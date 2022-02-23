@@ -61,7 +61,7 @@
                         {{ else if (call $.SliceContains .details.missing "x_e164" ) }}
                             <li>{{ template "error-phone-number-required" }}</li>
                         {{ else }}
-                            <li>{{ . }}</li>
+                            <li>{{ .Error.message }}</li>
                         {{ end }}
                     {{ else if (eq .kind "format") }}
                         {{ if (eq .details.format "phone") }}
@@ -81,7 +81,7 @@
                         {{ else if (eq .details.format "uri") }}
                             <li>{{ template "error-uri-format" }}</li>
                         {{ else }}
-                            <li>{{ . }}</li>
+                            <li>{{ .Error.message }}</li>
                         {{ end }}
                     {{ else if (eq .kind "maxLength") }}
                         <li>{{ template "error-max-length" (dict "expected" .details.expected) }}</li>
@@ -103,7 +103,7 @@
                     {{ else if (eq .kind "general") }}
                         <li>{{ .details.msg }}</li>
                     {{ else }}
-                        <li>{{ . }}</li>
+                        <li>{{ .Error.message }}</li>
                     {{ end }}
                 {{ end }}
             {{ else if eq .Error.reason "UserNotFound" }}
@@ -131,7 +131,7 @@
                 {{ else if (eq $cause.kind "NoAuthenticator") }}
                     <li>{{ template "error-developer-reauthentication" }}</li>
                 {{ else }}
-                    <li>{{ . }}</li>
+                    <li>{{ .Error.message }}</li>
                 {{ end }}
             {{ else if eq .Error.reason "InvalidVerificationCode" }}
                 <li>
