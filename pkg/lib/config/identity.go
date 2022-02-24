@@ -381,7 +381,7 @@ var _ = Schema.Add("OAuthSSOProviderConfig", `
 		"type": { "$ref": "#/$defs/OAuthSSOProviderType" },
 		"modify_disabled": { "type": "boolean" },
 		"client_id": { "type": "string" },
-		"claims": { "$ref": "#/$defs/VerificationOAuthClaimsConfig" },
+		"claims": { "$ref": "#/$defs/OAuthClaimsConfig" },
 		"tenant": { "type": "string" },
 		"policy": { "type": "string" },
 		"key_id": { "type": "string" },
@@ -429,11 +429,11 @@ var _ = Schema.Add("OAuthSSOProviderConfig", `
 `)
 
 type OAuthSSOProviderConfig struct {
-	Alias          string                         `json:"alias,omitempty"`
-	Type           OAuthSSOProviderType           `json:"type,omitempty"`
-	ModifyDisabled *bool                          `json:"modify_disabled,omitempty"`
-	ClientID       string                         `json:"client_id,omitempty"`
-	Claims         *VerificationOAuthClaimsConfig `json:"claims,omitempty"`
+	Alias          string               `json:"alias,omitempty"`
+	Type           OAuthSSOProviderType `json:"type,omitempty"`
+	ModifyDisabled *bool                `json:"modify_disabled,omitempty"`
+	ClientID       string               `json:"client_id,omitempty"`
+	Claims         *OAuthClaimsConfig   `json:"claims,omitempty"`
 
 	// Tenant is specific to `azureadv2` and `azureadb2c`
 	Tenant string `json:"tenant,omitempty"`
@@ -616,5 +616,39 @@ type BiometricConfig struct {
 func (c *BiometricConfig) SetDefaults() {
 	if c.ListEnabled == nil {
 		c.ListEnabled = newBool(false)
+	}
+}
+
+var _ = Schema.Add("OAuthClaimsConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"email": { "$ref": "#/$defs/OAuthClaimConfig" }
+	}
+}
+`)
+
+type OAuthClaimsConfig struct {
+	Email *OAuthClaimConfig `json:"email,omitempty"`
+}
+
+var _ = Schema.Add("OAuthClaimConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"assume_verified": { "type": "boolean" }
+	}
+}
+`)
+
+type OAuthClaimConfig struct {
+	AssumeVerified *bool `json:"assume_verified,omitempty"`
+}
+
+func (c *OAuthClaimConfig) SetDefaults() {
+	if c.AssumeVerified == nil {
+		c.AssumeVerified = newBool(true)
 	}
 }
