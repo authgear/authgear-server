@@ -136,6 +136,21 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
     ]),
     isSecretFieldTextArea: false,
   },
+  azureadb2c: {
+    providerType: "azureadb2c",
+    iconNode: (
+      <i className={cn("fab", "fa-microsoft", styles.widgetLabelIcon)} />
+    ),
+    fields: new Set<WidgetTextFieldKey>([
+      "alias",
+      "client_id",
+      "client_secret",
+      "tenant",
+      "policy",
+      "modify_disabled",
+    ]),
+    isSecretFieldTextArea: false,
+  },
   adfs: {
     providerType: "adfs",
     iconNode: (
@@ -299,6 +314,11 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
         onChange({ ...config, tenant: value ?? "" }, secret),
       [onChange, config, secret]
     );
+    const onPolicyChange = useCallback(
+      (_, value?: string) =>
+        onChange({ ...config, policy: value ?? "" }, secret),
+      [onChange, config, secret]
+    );
     const onDiscoveryDocumentEndpointChange = useCallback(
       (_, value?: string) =>
         onChange(
@@ -425,6 +445,22 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
             styles={TEXT_FIELD_STYLE}
             value={config.tenant ?? ""}
             onChange={onTenantChange}
+          />
+        )}
+        {visibleFields.has("policy") && (
+          <FormTextField
+            parentJSONPointer={jsonPointer}
+            fieldName="policy"
+            label={renderToString(
+              "SingleSignOnConfigurationScreen.widget.policy"
+            )}
+            className={styles.textField}
+            styles={TEXT_FIELD_STYLE}
+            value={config.policy ?? ""}
+            placeholder={renderToString(
+              "SingleSignOnConfigurationScreen.widget.policy.placeholder"
+            )}
+            onChange={onPolicyChange}
           />
         )}
         {visibleFields.has("discovery_document_endpoint") && (

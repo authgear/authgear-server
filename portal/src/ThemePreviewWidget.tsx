@@ -132,6 +132,16 @@ function getLightModeStyle(options: GetStyleOptions) {
     "--color-azureadv2-shaded-7": "#f4f4f4",
     "--color-azureadv2-shaded-8": "#f8f8f8",
 
+    "--color-azureadb2c-unshaded": "#ffffff",
+    "--color-azureadb2c-shaded-1": "#767676",
+    "--color-azureadb2c-shaded-2": "#a6a6a6",
+    "--color-azureadb2c-shaded-3": "#c8c8c8",
+    "--color-azureadb2c-shaded-4": "#d0d0d0",
+    "--color-azureadb2c-shaded-5": "#dadada",
+    "--color-azureadb2c-shaded-6": "#eaeaea",
+    "--color-azureadb2c-shaded-7": "#f4f4f4",
+    "--color-azureadb2c-shaded-8": "#f8f8f8",
+
     "--color-adfs-unshaded": "#ffffff",
     "--color-adfs-shaded-1": "#767676",
     "--color-adfs-shaded-2": "#a6a6a6",
@@ -409,6 +419,13 @@ function OAuthForm() {
         iconClassName="microsoftIcon"
         title={
           <FormattedMessage id="ThemePreviewWidget.azureadv2-button-label" />
+        }
+      />
+      <SimpleOAuthButton
+        providerType="azureadb2c"
+        iconClassName="microsoftIcon"
+        title={
+          <FormattedMessage id="ThemePreviewWidget.azureadb2c-button-label" />
         }
       />
       <SimpleOAuthButton
