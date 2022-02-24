@@ -108,6 +108,7 @@
   "oauth-branding-facebook": "使用 Facebook 帳戶登入",
   "oauth-branding-linkedin": "使用 LinkedIn 帳戶登入",
   "oauth-branding-azureadv2": "使用 Microsoft 帳戶登入",
+  "oauth-branding-azureadb2c": "使用 Azure AD B2C 帳戶登入",
   "oauth-branding-adfs": "使用 Microsoft AD FS 帳戶登入",
   "oauth-branding-wechat": "使用 WeChat 帳戶登入",
 
@@ -234,6 +235,7 @@
   "settings-identity-oauth-facebook": "Facebook",
   "settings-identity-oauth-linkedin": "LinkedIn",
   "settings-identity-oauth-azureadv2": "Azure AD",
+  "settings-identity-oauth-azureadb2c": "Azure AD B2C",
   "settings-identity-oauth-adfs": "Microsoft AD FS",
   "settings-identity-oauth-wechat": "WeChat",
   "settings-identity-login-id-email": "電郵地址",

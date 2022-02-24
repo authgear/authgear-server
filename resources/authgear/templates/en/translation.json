@@ -108,6 +108,7 @@
   "oauth-branding-facebook": "Login with Facebook",
   "oauth-branding-linkedin": "Sign in with LinkedIn",
   "oauth-branding-azureadv2": "Sign in with Microsoft Azure AD",
+  "oauth-branding-azureadb2c": "Sign in with Microsoft Azure AD B2C",
   "oauth-branding-adfs": "Sign in with Microsoft AD FS",
   "oauth-branding-wechat": "Login with WeChat",
 
@@ -235,6 +236,7 @@
   "settings-identity-oauth-facebook": "Facebook",
   "settings-identity-oauth-linkedin": "LinkedIn",
   "settings-identity-oauth-azureadv2": "Microsoft Azure AD",
+  "settings-identity-oauth-azureadb2c": "Microsoft Azure AD B2C",
   "settings-identity-oauth-adfs": "Microsoft AD FS",
   "settings-identity-oauth-wechat": "WeChat",
   "settings-identity-login-id-email": "Email Address",

@@ -62,6 +62,8 @@ func IsOAuthSSOProviderTypeDisabled(typ config.OAuthSSOProviderType, featureConf
 		return featureConfig.LinkedIn.Disabled
 	case config.OAuthSSOProviderTypeAzureADv2:
 		return featureConfig.Azureadv2.Disabled
+	case config.OAuthSSOProviderTypeAzureADB2C:
+		return featureConfig.Azureadb2c.Disabled
 	case config.OAuthSSOProviderTypeADFS:
 		return featureConfig.ADFS.Disabled
 	case config.OAuthSSOProviderTypeApple:

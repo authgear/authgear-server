@@ -42,6 +42,8 @@ config:
           disabled: true
         azureadv2:
           disabled: true
+        azureadb2c:
+          disabled: true
         adfs:
           disabled: true
         apple:
@@ -96,6 +98,8 @@ config:
       maximum_providers: 2
       providers:
         azureadv2:
+          disabled: true
+        azureadb2c:
           disabled: true
         adfs:
           disabled: true
