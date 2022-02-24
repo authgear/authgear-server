@@ -316,7 +316,72 @@ identity:
         type: email
         max_length: 320
         modify_disabled: false
-  oauth: {}
+  oauth:
+    providers:
+    - type: google
+      alias: google
+      modify_disabled: false
+      claims:
+        email:
+          assume_verified: true
+      client_id: a
+    - type: facebook
+      alias: facebook
+      modify_disabled: false
+      claims:
+        email:
+          assume_verified: true
+      client_id: a
+    - type: linkedin
+      alias: linkedin
+      modify_disabled: false
+      claims:
+        email:
+          assume_verified: true
+      client_id: a
+    - type: azureadv2
+      alias: azureadv2
+      modify_disabled: false
+      claims:
+        email:
+          assume_verified: true
+      client_id: a
+      tenant: a
+    - type: azureadb2c
+      alias: azureadb2c
+      modify_disabled: false
+      claims:
+        email:
+          assume_verified: true
+      client_id: a
+      tenant: a
+      policy: a
+    - type: adfs
+      alias: adfs
+      modify_disabled: false
+      claims:
+        email:
+          assume_verified: true
+      client_id: a
+      discovery_document_endpoint: http://test
+    - type: apple
+      alias: apple
+      modify_disabled: false
+      claims:
+        email:
+          assume_verified: true
+      client_id: a
+      key_id: a
+      team_id: a
+    - type: wechat
+      alias: wechat
+      modify_disabled: false
+      claims:
+        email:
+          assume_verified: true
+      client_id: a
+      app_type: web
+      account_id: gh_
   biometric:
     list_enabled: false
   on_conflict:

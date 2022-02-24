@@ -16,10 +16,48 @@ import (
 
 func TestAppConfig(t *testing.T) {
 	Convey("AppConfig", t, func() {
-		minimalAppConfig := `{ "id": "test", "http": { "public_origin": "http://test" } }`
+		fixture := `id: test
+http:
+  public_origin: http://test
+identity:
+  oauth:
+    providers:
+    - type: google
+      alias: google
+      client_id: a
+    - type: facebook
+      alias: facebook
+      client_id: a
+    - type: linkedin
+      alias: linkedin
+      client_id: a
+    - type: azureadv2
+      alias: azureadv2
+      client_id: a
+      tenant: a
+    - type: azureadb2c
+      alias: azureadb2c
+      client_id: a
+      tenant: a
+      policy: a
+    - type: adfs
+      alias: adfs
+      client_id: a
+      discovery_document_endpoint: http://test
+    - type: apple
+      alias: apple
+      client_id: a
+      key_id: a
+      team_id: a
+    - type: wechat
+      alias: wechat
+      client_id: a
+      app_type: web
+      account_id: gh_
+`
 
 		Convey("populate default values", func() {
-			cfg, err := config.Parse([]byte(minimalAppConfig))
+			cfg, err := config.Parse([]byte(fixture))
 			So(err, ShouldBeNil)
 
 			data, err := ioutil.ReadFile("testdata/default_config.yaml")
@@ -37,7 +75,7 @@ func TestAppConfig(t *testing.T) {
 		})
 
 		Convey("round-trip default configuration", func() {
-			cfg, err := config.Parse([]byte(minimalAppConfig))
+			cfg, err := config.Parse([]byte(fixture))
 			So(err, ShouldBeNil)
 
 			data, err := yaml.Marshal(cfg)
