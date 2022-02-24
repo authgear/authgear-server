@@ -165,6 +165,11 @@ func (c *Controller) renderError(err error) {
 
 	// Show WebUIInvalidSession error in different page.
 	u := *c.request.URL
+	// If the request method is Get, avoid redirect back to the same path
+	// which causes infinite redirect loop
+	if c.request.Method == http.MethodGet {
+		u.Path = "/error"
+	}
 	if apierror.Reason == webapp.WebUIInvalidSession.Reason {
 		u.Path = "/error"
 	}
