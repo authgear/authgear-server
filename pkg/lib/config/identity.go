@@ -333,6 +333,28 @@ func (t OAuthSSOProviderType) Scope() string {
 	panic(fmt.Sprintf("oauth: unknown provider type %s", string(t)))
 }
 
+func (t OAuthSSOProviderType) EmailRequired() bool {
+	switch t {
+	case OAuthSSOProviderTypeGoogle:
+		return true
+	case OAuthSSOProviderTypeFacebook:
+		return true
+	case OAuthSSOProviderTypeLinkedIn:
+		return true
+	case OAuthSSOProviderTypeAzureADv2:
+		return true
+	case OAuthSSOProviderTypeAzureADB2C:
+		return true
+	case OAuthSSOProviderTypeADFS:
+		return true
+	case OAuthSSOProviderTypeApple:
+		return true
+	case OAuthSSOProviderTypeWechat:
+		return false
+	}
+	panic(fmt.Sprintf("oauth: unknown provider type %s", string(t)))
+}
+
 const (
 	OAuthSSOProviderTypeGoogle     OAuthSSOProviderType = "google"
 	OAuthSSOProviderTypeFacebook   OAuthSSOProviderType = "facebook"
@@ -458,6 +480,11 @@ type OAuthSSOProviderConfig struct {
 func (c *OAuthSSOProviderConfig) SetDefaults() {
 	if c.ModifyDisabled == nil {
 		c.ModifyDisabled = newBool(false)
+	}
+
+	if c.Claims.Email.Required == nil {
+		emailRequired := c.Type.EmailRequired()
+		c.Claims.Email.Required = &emailRequired
 	}
 }
 
@@ -638,17 +665,20 @@ var _ = Schema.Add("OAuthClaimConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"assume_verified": { "type": "boolean" }
+		"assume_verified": { "type": "boolean" },
+		"required": { "type": "boolean" }
 	}
 }
 `)
 
 type OAuthClaimConfig struct {
 	AssumeVerified *bool `json:"assume_verified,omitempty"`
+	Required       *bool `json:"required,omitempty"`
 }
 
 func (c *OAuthClaimConfig) SetDefaults() {
 	if c.AssumeVerified == nil {
 		c.AssumeVerified = newBool(true)
 	}
+	// Required is type-specific so the default is not set here.
 }

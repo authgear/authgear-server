@@ -324,6 +324,7 @@ identity:
       claims:
         email:
           assume_verified: true
+          required: true
       client_id: a
     - type: facebook
       alias: facebook
@@ -331,6 +332,7 @@ identity:
       claims:
         email:
           assume_verified: true
+          required: true
       client_id: a
     - type: linkedin
       alias: linkedin
@@ -338,6 +340,7 @@ identity:
       claims:
         email:
           assume_verified: true
+          required: true
       client_id: a
     - type: azureadv2
       alias: azureadv2
@@ -345,6 +348,7 @@ identity:
       claims:
         email:
           assume_verified: true
+          required: true
       client_id: a
       tenant: a
     - type: azureadb2c
@@ -353,6 +357,7 @@ identity:
       claims:
         email:
           assume_verified: true
+          required: true
       client_id: a
       tenant: a
       policy: a
@@ -362,6 +367,7 @@ identity:
       claims:
         email:
           assume_verified: true
+          required: true
       client_id: a
       discovery_document_endpoint: http://test
     - type: apple
@@ -370,6 +376,7 @@ identity:
       claims:
         email:
           assume_verified: true
+          required: true
       client_id: a
       key_id: a
       team_id: a
@@ -379,6 +386,7 @@ identity:
       claims:
         email:
           assume_verified: true
+          required: false
       client_id: a
       app_type: web
       account_id: gh_
