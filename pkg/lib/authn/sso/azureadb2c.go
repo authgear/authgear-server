@@ -90,6 +90,18 @@ func (f *Azureadb2cImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, 
 		return
 	}
 
+	iss, ok := claims["iss"].(string)
+	if !ok {
+		err = OAuthProtocolError.New("iss not found in ID token")
+		return
+	}
+	if iss != c.Issuer {
+		err = OAuthProtocolError.New(
+			fmt.Sprintf("iss: %v != %v", iss, c.Issuer),
+		)
+		return
+	}
+
 	sub, ok := claims["sub"].(string)
 	if !ok || sub == "" {
 		err = OAuthProtocolError.New("sub not found in ID Token")
