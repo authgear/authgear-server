@@ -149,14 +149,11 @@ func (f *Azureadb2cImpl) Extract(claims map[string]interface{}) (stdattrs.T, err
 			}
 		}
 	}
-
-	if email == "" {
-		return nil, OAuthProtocolError.New("email cannot be interred from ID token")
-	}
-
 	out[stdattrs.Email] = email
 
-	return out, nil
+	return stdattrs.Extract(out, stdattrs.ExtractOptions{
+		EmailRequired: *f.ProviderConfig.Claims.Email.Required,
+	})
 }
 
 func (f *Azureadb2cImpl) GetPrompt(prompt []string) []string {

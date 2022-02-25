@@ -134,7 +134,13 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, p
 
 	authInfo.ProviderRawProfile = claims
 	authInfo.ProviderUserID = oid
-	authInfo.StandardAttributes = stdattrs.Extract(claims)
+	stdAttrs, err := stdattrs.Extract(claims, stdattrs.ExtractOptions{
+		EmailRequired: *f.ProviderConfig.Claims.Email.Required,
+	})
+	if err != nil {
+		return
+	}
+	authInfo.StandardAttributes = stdAttrs
 
 	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
 	if err != nil {

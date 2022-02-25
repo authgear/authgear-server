@@ -103,7 +103,13 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, para
 	// Google supports
 	// given_name, family_name, email, picture, profile, locale
 	// https://developers.google.com/identity/protocols/oauth2/openid-connect#obtainuserinfo
-	authInfo.StandardAttributes = stdattrs.Extract(claims)
+	stdAttrs, err := stdattrs.Extract(claims, stdattrs.ExtractOptions{
+		EmailRequired: *f.ProviderConfig.Claims.Email.Required,
+	})
+	if err != nil {
+		return
+	}
+	authInfo.StandardAttributes = stdAttrs
 
 	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
 	if err != nil {

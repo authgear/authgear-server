@@ -145,7 +145,14 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param
 
 	authInfo.ProviderRawProfile = claims
 	authInfo.ProviderUserID = sub
-	authInfo.StandardAttributes = stdattrs.Extract(claims).WithNameCopiedToGivenName()
+
+	stdAttrs, err := stdattrs.Extract(claims, stdattrs.ExtractOptions{
+		EmailRequired: *f.ProviderConfig.Claims.Email.Required,
+	})
+	if err != nil {
+		return
+	}
+	authInfo.StandardAttributes = stdAttrs.WithNameCopiedToGivenName()
 
 	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
 	if err != nil {

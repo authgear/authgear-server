@@ -1,5 +1,7 @@
 package stdattrs
 
+import "github.com/authgear/authgear-server/pkg/api/apierrors"
+
 func extractString(input map[string]interface{}, output T, key string) {
 	if value, ok := input[key].(string); ok && value != "" {
 		output[key] = value
@@ -27,9 +29,13 @@ func extractAddress(input map[string]interface{}, output T) {
 	}
 }
 
+type ExtractOptions struct {
+	EmailRequired bool
+}
+
 // Extract extracts OIDC standard claims.
 // The output is NOT normalized.
-func Extract(claims map[string]interface{}) T {
+func Extract(claims map[string]interface{}, opts ExtractOptions) (T, error) {
 	out := T{}
 
 	extractString(claims, out, Name)
@@ -51,5 +57,13 @@ func Extract(claims map[string]interface{}) T {
 	extractBool(claims, out, PhoneNumberVerified)
 	extractAddress(claims, out)
 
-	return out
+	emailOK := false
+	if email, ok := out[Email].(string); ok && email != "" {
+		emailOK = true
+	}
+	if opts.EmailRequired && !emailOK {
+		return nil, InvariantViolated.NewWithCause("claim email is required but it is missing", apierrors.StringCause("EmailRequired"))
+	}
+
+	return out, nil
 }

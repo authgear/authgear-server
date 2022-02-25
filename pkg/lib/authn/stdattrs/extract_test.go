@@ -1,6 +1,7 @@
 package stdattrs
 
 import (
+	"fmt"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -39,7 +40,7 @@ func makeFull() T {
 func TestExtract(t *testing.T) {
 	Convey("Extract", t, func() {
 		test := func(input T, expected T) {
-			actual := Extract(input)
+			actual, _ := Extract(input, ExtractOptions{})
 			So(actual, ShouldResemble, expected)
 		}
 
@@ -63,5 +64,16 @@ func TestExtract(t *testing.T) {
 				Formatted: "some address",
 			},
 		})
+	})
+
+	Convey("Extract email", t, func() {
+		test := func(input T, expected error) {
+			_, err := Extract(input, ExtractOptions{
+				EmailRequired: true,
+			})
+			So(err, ShouldBeError, expected)
+		}
+
+		test(T{}, fmt.Errorf("claim email is required but it is missing"))
 	})
 }
