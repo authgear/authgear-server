@@ -6,6 +6,7 @@ import React, {
   useState,
 } from "react";
 import cn from "classnames";
+import produce from "immer";
 import { Checkbox, DirectionalHint, Toggle, MessageBar } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
@@ -54,8 +55,9 @@ interface SingleSignOnConfigurationWidgetProps {
 }
 
 type WidgetTextFieldKey =
-  | keyof Omit<OAuthSSOProviderConfig, "type">
-  | "client_secret";
+  | keyof Omit<OAuthSSOProviderConfig, "type" | "claims">
+  | "client_secret"
+  | "email_required";
 
 interface OAuthProviderInfo {
   providerType: OAuthSSOProviderType;
@@ -133,6 +135,7 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "client_secret",
       "tenant",
       "modify_disabled",
+      "email_required",
     ]),
     isSecretFieldTextArea: false,
   },
@@ -148,6 +151,7 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "tenant",
       "policy",
       "modify_disabled",
+      "email_required",
     ]),
     isSecretFieldTextArea: false,
   },
@@ -162,6 +166,7 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "client_secret",
       "discovery_document_endpoint",
       "modify_disabled",
+      "email_required",
     ]),
     isSecretFieldTextArea: false,
   },
@@ -366,6 +371,23 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
         onChange({ ...config, modify_disabled: value ?? false }, secret),
       [onChange, config, secret]
     );
+    const onEmailRequiredChange = useCallback(
+      (_, value?: boolean) => {
+        const newConfig = produce(config, (config) => {
+          if (value != null) {
+            config.claims ??= {};
+            config.claims.email ??= {};
+            if (!value) {
+              config.claims.email.required = false;
+            } else {
+              delete config.claims.email.required;
+            }
+          }
+        });
+        onChange(newConfig, secret);
+      },
+      [onChange, config, secret]
+    );
 
     const disabledByLimitReached = useMemo(() => {
       return !isEnabled && limitReached;
@@ -542,6 +564,16 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
                 directionalHint={DirectionalHint.bottomLeftEdge}
               />
             }
+          />
+        )}
+        {visibleFields.has("email_required") && (
+          <Checkbox
+            label={renderToString(
+              "SingleSignOnConfigurationScreen.widget.email-required"
+            )}
+            className={styles.checkbox}
+            checked={config.claims?.email?.required ?? true}
+            onChange={onEmailRequiredChange}
           />
         )}
         {visibleFields.has("modify_disabled") && (
