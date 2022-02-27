@@ -246,6 +246,210 @@ func TestTranslationResource(t *testing.T) {
 				"c": { "LanguageTag": "zh", "Value": "zh c in fs C" }
 			}`))
 		})
+
+		Convey("it should resolve based on app agnostic / app specific keys", func() {
+			writeFile(fsA, "en", `{
+				"app.name": "en app.name in fs A",
+				"email.default.sender": "no-reply+en@authgear.com",
+				"some-key-1": "en some-key-1 in fs A",
+				"some-key-2": "en some-key-2 in fs A"
+			}`)
+			writeFile(fsA, "zh-HK", `{
+				"app.name": "zh-HK app.name in fs A",
+				"email.default.sender": "no-reply+zh@authgear.com",
+				"some-key-1": "zh-HK some-key-1 in fs A",
+				"some-key-2": "zh-HK some-key-2 in fs A"
+			}`)
+			Convey("should resolve all keys when no keys are provided in higher fs level", func() {
+				er := resource.EffectiveResource{
+					DefaultTag:    "en",
+					SupportedTags: []string{"en", "zh-HK", "jp"},
+				}
+				data, err := read(er)
+				So(err, ShouldBeNil)
+				So(data, ShouldEqual, compact(`{
+					"app.name": { "LanguageTag": "en", "Value": "en app.name in fs A" },
+					"email.default.sender": { "LanguageTag": "en", "Value": "no-reply+en@authgear.com" },
+					"some-key-1": { "LanguageTag": "en", "Value": "en some-key-1 in fs A" },
+					"some-key-2": { "LanguageTag": "en", "Value": "en some-key-2 in fs A" }
+				}`))
+
+				er.PreferredTags = []string{"zh"}
+				data, err = read(er)
+				So(err, ShouldBeNil)
+				So(data, ShouldEqual, compact(`{
+					"app.name": { "LanguageTag": "zh-HK", "Value": "zh-HK app.name in fs A" },
+					"email.default.sender": { "LanguageTag": "zh-HK", "Value": "no-reply+zh@authgear.com" },
+					"some-key-1": { "LanguageTag": "zh-HK", "Value": "zh-HK some-key-1 in fs A" },
+					"some-key-2": { "LanguageTag": "zh-HK", "Value": "zh-HK some-key-2 in fs A" }
+				}`))
+
+				er.PreferredTags = []string{"jp"}
+				data, err = read(er)
+				So(err, ShouldBeNil)
+				So(data, ShouldEqual, compact(`{
+					"app.name": { "LanguageTag": "en", "Value": "en app.name in fs A" },
+					"email.default.sender": { "LanguageTag": "en", "Value": "no-reply+en@authgear.com" },
+					"some-key-1": { "LanguageTag": "en", "Value": "en some-key-1 in fs A" },
+					"some-key-2": { "LanguageTag": "en", "Value": "en some-key-2 in fs A" }
+				}`))
+			})
+
+			Convey("should resolve when keys are provided in custom fs level fallback language", func() {
+				writeFile(fsB, "en", `{
+					"email.default.sender": "no-reply@example.com"
+				}`)
+				er := resource.EffectiveResource{
+					DefaultTag:    "en",
+					SupportedTags: []string{"en", "zh-HK", "jp"},
+				}
+				er.PreferredTags = []string{"en"}
+				data, err := read(er)
+				So(err, ShouldBeNil)
+				So(data, ShouldEqual, compact(`{
+					"app.name": { "LanguageTag": "en", "Value": "en app.name in fs A" },
+					"email.default.sender": { "LanguageTag": "en", "Value": "no-reply@example.com" },
+					"some-key-1": { "LanguageTag": "en", "Value": "en some-key-1 in fs A" },
+					"some-key-2": { "LanguageTag": "en", "Value": "en some-key-2 in fs A" }
+				}`))
+
+				er.PreferredTags = []string{"zh"}
+				data, err = read(er)
+				So(err, ShouldBeNil)
+				So(data, ShouldEqual, compact(`{
+					"app.name": { "LanguageTag": "zh-HK", "Value": "zh-HK app.name in fs A" },
+					"email.default.sender": { "LanguageTag": "en", "Value": "no-reply@example.com" },
+					"some-key-1": { "LanguageTag": "zh-HK", "Value": "zh-HK some-key-1 in fs A" },
+					"some-key-2": { "LanguageTag": "zh-HK", "Value": "zh-HK some-key-2 in fs A" }
+				}`))
+
+				er.PreferredTags = []string{"jp"}
+				data, err = read(er)
+				So(err, ShouldBeNil)
+				So(data, ShouldEqual, compact(`{
+					"app.name": { "LanguageTag": "en", "Value": "en app.name in fs A" },
+					"email.default.sender": { "LanguageTag": "en", "Value": "no-reply@example.com" },
+					"some-key-1": { "LanguageTag": "en", "Value": "en some-key-1 in fs A" },
+					"some-key-2": { "LanguageTag": "en", "Value": "en some-key-2 in fs A" }
+				}`))
+
+				er.PreferredTags = []string{"ko"}
+				data, err = read(er)
+				So(err, ShouldBeNil)
+				So(data, ShouldEqual, compact(`{
+					"app.name": { "LanguageTag": "en", "Value": "en app.name in fs A" },
+					"email.default.sender": { "LanguageTag": "en", "Value": "no-reply@example.com" },
+					"some-key-1": { "LanguageTag": "en", "Value": "en some-key-1 in fs A" },
+					"some-key-2": { "LanguageTag": "en", "Value": "en some-key-2 in fs A" }
+				}`))
+			})
+
+			Convey("should resolve when keys are provided in app fs level with non-English fallback language", func() {
+				writeFile(fsB, "en", `{
+					"email.default.sender": "no-reply+en@custom.com"
+				}`)
+				writeFile(fsC, "jp", `{
+					"email.default.sender": "no-reply+jp@app.com",
+					"some-key-1": "jp some-key-1 in fs C"
+				}`)
+				er := resource.EffectiveResource{
+					DefaultTag:    "jp",
+					SupportedTags: []string{"en", "zh-HK", "jp"},
+				}
+				er.PreferredTags = []string{"en"}
+				data, err := read(er)
+				So(err, ShouldBeNil)
+				So(data, ShouldEqual, compact(`{
+					"app.name": { "LanguageTag": "en", "Value": "en app.name in fs A" },
+					"email.default.sender": { "LanguageTag": "jp", "Value": "no-reply+jp@app.com" },
+					"some-key-1": { "LanguageTag": "en", "Value": "en some-key-1 in fs A" },
+					"some-key-2": { "LanguageTag": "en", "Value": "en some-key-2 in fs A" }
+				}`))
+
+				er.PreferredTags = []string{"zh"}
+				data, err = read(er)
+				So(err, ShouldBeNil)
+				So(data, ShouldEqual, compact(`{
+					"app.name": { "LanguageTag": "zh-HK", "Value": "zh-HK app.name in fs A" },
+					"email.default.sender": { "LanguageTag": "jp", "Value": "no-reply+jp@app.com" },
+					"some-key-1": { "LanguageTag": "zh-HK", "Value": "zh-HK some-key-1 in fs A" },
+					"some-key-2": { "LanguageTag": "zh-HK", "Value": "zh-HK some-key-2 in fs A" }
+				}`))
+
+				er.PreferredTags = []string{"jp"}
+				data, err = read(er)
+				So(err, ShouldBeNil)
+				So(data, ShouldEqual, compact(`{
+					"app.name": { "LanguageTag": "jp", "Value": "en app.name in fs A" },
+					"email.default.sender": { "LanguageTag": "jp", "Value": "no-reply+jp@app.com" },
+					"some-key-1": { "LanguageTag": "jp", "Value": "jp some-key-1 in fs C" },
+					"some-key-2": { "LanguageTag": "jp", "Value": "en some-key-2 in fs A" }
+				}`))
+
+				er.PreferredTags = []string{"ko"}
+				data, err = read(er)
+				So(err, ShouldBeNil)
+				So(data, ShouldEqual, compact(`{
+					"app.name": { "LanguageTag": "jp", "Value": "en app.name in fs A" },
+					"email.default.sender": { "LanguageTag": "jp", "Value": "no-reply+jp@app.com" },
+					"some-key-1": { "LanguageTag": "jp", "Value": "jp some-key-1 in fs C" },
+					"some-key-2": { "LanguageTag": "jp", "Value": "en some-key-2 in fs A" }
+				}`))
+			})
+
+			Convey("should resolve when keys are provided in app fs level with non fallback language", func() {
+				writeFile(fsB, "en", `{
+					"email.default.sender": "no-reply+en@custom.com"
+				}`)
+				writeFile(fsC, "jp", `{
+					"email.default.sender": "no-reply+jp@app.com",
+					"some-key-1": "jp some-key-1 in fs C"
+				}`)
+				er := resource.EffectiveResource{
+					DefaultTag:    "zh-HK",
+					SupportedTags: []string{"en", "zh-HK", "jp"},
+				}
+				er.PreferredTags = []string{"en"}
+				data, err := read(er)
+				So(err, ShouldBeNil)
+				So(data, ShouldEqual, compact(`{
+					"app.name": { "LanguageTag": "en", "Value": "en app.name in fs A" },
+					"email.default.sender": { "LanguageTag": "jp", "Value": "no-reply+jp@app.com" },
+					"some-key-1": { "LanguageTag": "en", "Value": "en some-key-1 in fs A" },
+					"some-key-2": { "LanguageTag": "en", "Value": "en some-key-2 in fs A" }
+				}`))
+
+				er.PreferredTags = []string{"zh"}
+				data, err = read(er)
+				So(err, ShouldBeNil)
+				So(data, ShouldEqual, compact(`{
+					"app.name": { "LanguageTag": "zh-HK", "Value": "zh-HK app.name in fs A" },
+					"email.default.sender": { "LanguageTag": "jp", "Value": "no-reply+jp@app.com" },
+					"some-key-1": { "LanguageTag": "zh-HK", "Value": "zh-HK some-key-1 in fs A" },
+					"some-key-2": { "LanguageTag": "zh-HK", "Value": "zh-HK some-key-2 in fs A" }
+				}`))
+
+				er.PreferredTags = []string{"jp"}
+				data, err = read(er)
+				So(err, ShouldBeNil)
+				So(data, ShouldEqual, compact(`{
+					"app.name": { "LanguageTag": "en", "Value": "en app.name in fs A" },
+					"email.default.sender": { "LanguageTag": "jp", "Value": "no-reply+jp@app.com" },
+					"some-key-1": { "LanguageTag": "jp", "Value": "jp some-key-1 in fs C" },
+					"some-key-2": { "LanguageTag": "en", "Value": "en some-key-2 in fs A" }
+				}`))
+
+				er.PreferredTags = []string{"ko"}
+				data, err = read(er)
+				So(err, ShouldBeNil)
+				So(data, ShouldEqual, compact(`{
+					"app.name": { "LanguageTag": "zh-HK", "Value": "zh-HK app.name in fs A" },
+					"email.default.sender": { "LanguageTag": "jp", "Value": "no-reply+jp@app.com" },
+					"some-key-1": { "LanguageTag": "zh-HK", "Value": "zh-HK some-key-1 in fs A" },
+					"some-key-2": { "LanguageTag": "zh-HK", "Value": "zh-HK some-key-2 in fs A" }
+				}`))
+			})
+		})
 	})
 
 	Convey("TranslationJSON EffectiveFile", t, func() {
@@ -519,5 +723,24 @@ func TestTranslationResource(t *testing.T) {
 				Data: nil,
 			})
 		})
+	})
+
+	Convey("TranslationJSON isAppSpecificKey", t, func() {
+		test := func(key string, result bool) {
+			actual := template.TranslationJSON.(interface{ IsAppSpecificKey(key string) bool }).IsAppSpecificKey(key)
+			So(actual, ShouldEqual, result)
+		}
+
+		test("app.name", true)
+		test("email.default.sender", true)
+		test("email.welcome-email.sender", true)
+		test("email.welcome-email.reply-to", true)
+		test("sms.default.sender", true)
+
+		test("email.default.subject", false)
+		test("email.welcome-email.subject", false)
+		test("settings-my-profile-title", false)
+		test("any-key", false)
+
 	})
 }
