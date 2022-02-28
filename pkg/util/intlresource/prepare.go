@@ -47,10 +47,10 @@ func PrepareFallback(
 ) error {
 	defaultLanguageTag := view.DefaultLanguageTag()
 
-	// Add the builtin resource of intl.DefaultLanguage first.
+	// Add the builtin resource of intl.BuiltinBaseLanguage first.
 	for _, resrc := range resources {
 		langTag := extractLanguageTag(resrc)
-		if resrc.Location.Fs.GetFsLevel() == resource.FsLevelBuiltin && langTag == intl.DefaultLanguage {
+		if resrc.Location.Fs.GetFsLevel() == resource.FsLevelBuiltin && langTag == intl.BuiltinBaseLanguage {
 			err := add(defaultLanguageTag, resrc)
 			if err != nil {
 				return err

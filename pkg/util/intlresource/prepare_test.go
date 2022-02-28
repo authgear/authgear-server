@@ -30,7 +30,7 @@ func (f testFS) GetFsLevel() resource.FsLevel {
 func TestPrepare(t *testing.T) {
 	Convey("Prepare", t, func() {
 		resources := []resource.ResourceFile{
-			// The builtin resource in intl.DefaultLanguage
+			// The builtin resource in intl.BuiltinBaseLanguage
 			{
 				Location: resource.Location{
 					Fs:   testFS{resource.FsLevelBuiltin},

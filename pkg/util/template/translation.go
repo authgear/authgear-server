@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 
 	messageformat "github.com/iawaknahc/gomessageformat"
 	"golang.org/x/text/language"
@@ -25,11 +26,34 @@ func (t Translation) GetLanguageTag() string {
 
 const TranslationJSONName = "translation.json"
 
+var appSpecificKeysRegex = []*regexp.Regexp{
+	regexp.MustCompile(`^app\.name$`),
+	regexp.MustCompile(`^email\..+\.sender$`),
+	regexp.MustCompile(`^email\..+\.reply-to$`),
+	regexp.MustCompile(`^sms\..+\.sender$`),
+}
+
+var fsLevelsOrderedInAscendingPriority = []resource.FsLevel{
+	resource.FsLevelBuiltin,
+	resource.FsLevelCustom,
+	resource.FsLevelApp,
+}
+
 type translationJSON struct{}
 
 var _ resource.Descriptor = &translationJSON{}
 
 var TranslationJSON = resource.RegisterResource(&translationJSON{})
+
+func (t *translationJSON) IsAppSpecificKey(key string) bool {
+	for _, r := range appSpecificKeysRegex {
+		matched := r.MatchString(key)
+		if matched {
+			return true
+		}
+	}
+	return false
+}
 
 func (t *translationJSON) MatchResource(path string) (*resource.Match, bool) {
 	return matchTemplatePath(path, TranslationJSONName)
@@ -166,24 +190,44 @@ func (t *translationJSON) viewEffectiveResource(resources []resource.ResourceFil
 	preferredLanguageTags := view.PreferredLanguageTags()
 	defaultLanguageTag := view.DefaultLanguageTag()
 
+	appSpecificTranslationMap := make(map[TranslationKey]map[resource.FsLevel]map[LanguageTag]TranslationValue)
 	translationMap := make(map[TranslationKey]map[LanguageTag]TranslationValue)
+
 	add := func(langTag string, resrc resource.ResourceFile) error {
 		var jsonObj map[string]interface{}
 		if err := json.Unmarshal(resrc.Data, &jsonObj); err != nil {
 			return fmt.Errorf("translation file must be JSON: %w", err)
 		}
 
+		fsLevel := resrc.Location.Fs.GetFsLevel()
 		for key, val := range jsonObj {
 			value, ok := val.(string)
 			if !ok {
 				return fmt.Errorf("translation `%v` must be string (%T)", key, val)
 			}
-			keyTranslations, ok := translationMap[TranslationKey(key)]
-			if !ok {
-				keyTranslations = make(map[LanguageTag]TranslationValue)
-				translationMap[TranslationKey(key)] = keyTranslations
+			if t.IsAppSpecificKey(key) {
+				// prepare app specific keys tanslation map
+				keyTranslations, ok := appSpecificTranslationMap[TranslationKey(key)]
+				if !ok {
+					keyTranslations = make(map[resource.FsLevel]map[LanguageTag]TranslationValue)
+					appSpecificTranslationMap[TranslationKey(key)] = keyTranslations
+				}
+
+				fsTranslations, ok := keyTranslations[fsLevel]
+				if !ok {
+					fsTranslations = make(map[LanguageTag]TranslationValue)
+					keyTranslations[fsLevel] = fsTranslations
+				}
+				fsTranslations[LanguageTag(langTag)] = TranslationValue(value)
+			} else {
+				// prepare app agnostic keys tanslation map
+				keyTranslations, ok := translationMap[TranslationKey(key)]
+				if !ok {
+					keyTranslations = make(map[LanguageTag]TranslationValue)
+					translationMap[TranslationKey(key)] = keyTranslations
+				}
+				keyTranslations[LanguageTag(langTag)] = TranslationValue(value)
 			}
-			keyTranslations[LanguageTag(langTag)] = TranslationValue(value)
 		}
 		return nil
 	}
@@ -198,6 +242,11 @@ func (t *translationJSON) viewEffectiveResource(resources []resource.ResourceFil
 	}
 
 	translationData := make(map[string]Translation)
+	// Prepare app agnostic data
+	// We will first group all translations by the languages based on the fs level hierarchy
+	// Higher fs level translations overwrite the lower one
+	// After getting translations in all the languages
+	// Resolve the translations bases on user's preferred language
 	for key, translations := range translationMap {
 		var items []intlresource.LanguageItem
 		for languageTag, value := range translations {
@@ -221,6 +270,45 @@ func (t *translationJSON) viewEffectiveResource(resources []resource.ResourceFil
 		}
 
 		translationData[string(key)] = matched.(Translation)
+	}
+
+	// Preparing app specific data
+	// If translations are provided in the higher fs level,
+	// the translations will be resolved at that fs level.
+	// Based on the user's preferred language, we will first look for the matched language,
+	// the next will be the fallback language, the third will be any language other languages
+	// We will only look for the translations from the lower fs level
+	// if the keys are not provided in the higher fs level translations
+	for key, translationsInFs := range appSpecificTranslationMap {
+		for _, level := range fsLevelsOrderedInAscendingPriority {
+			var items []intlresource.LanguageItem
+			for translationFsLevel, translations := range translationsInFs {
+				if level != translationFsLevel {
+					continue
+				}
+				for languageTag, value := range translations {
+					items = append(items, Translation{
+						LanguageTag: string(languageTag),
+						Value:       string(value),
+					})
+				}
+			}
+
+			var matched intlresource.LanguageItem
+			matched, err := intlresource.Match(preferredLanguageTags, defaultLanguageTag, items)
+			if errors.Is(err, intlresource.ErrNoLanguageMatch) {
+				if len(items) > 0 {
+					// Use first item in case of no match, to ensure resolution always succeed in the fs level
+					matched = items[0]
+				} else {
+					// Ignore keys when no tranlations are provided in this fs level
+					continue
+				}
+			} else if err != nil {
+				return nil, err
+			}
+			translationData[string(key)] = matched.(Translation)
+		}
 	}
 
 	// translationData
