@@ -37,3 +37,9 @@ var ArgElasticsearchURL = &cobraviper.StringArgument{
 	EnvName:      "ELASTICSEARCH_URL",
 	Usage:        "Elasticsearch URL",
 }
+
+var ArgAppID = &cobraviper.StringArgument{
+	ArgumentName: "app-id",
+	EnvName:      "APP_ID",
+	Usage:        "App ID",
+}
