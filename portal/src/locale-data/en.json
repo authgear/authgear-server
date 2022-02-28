@@ -1031,6 +1031,7 @@
   "AnalyticsSignupMethodsWidget.chart.linkedin.label": "LinkedIn",
   "AnalyticsSignupMethodsWidget.chart.azureadv2.label": "MS Azure AD",
   "AnalyticsSignupMethodsWidget.chart.adfs.label": "MS AD FS",
+  "AnalyticsSignupMethodsWidget.chart.azureadb2c.label": "MS Azure AD B2C",
   "AnalyticsSignupMethodsWidget.chart.apple.label": "Apple",
   "AnalyticsSignupMethodsWidget.chart.wechat.label": "WeChat",
   "AnalyticsSignupMethodsWidget.chart.anonymous.label": "Anonymous",

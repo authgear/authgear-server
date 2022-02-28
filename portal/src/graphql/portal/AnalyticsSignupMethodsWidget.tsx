@@ -21,6 +21,7 @@ const ColorMap: Record<string, string> = {
   facebook: "#4267B2",
   linkedin: "#0077B5",
   azureadv2: "#007FFF",
+  azureadb2c: "#2DE7FD",
   adfs: "#49A8EC",
   apple: "#A2AAAD",
   wechat: "#45B049",
