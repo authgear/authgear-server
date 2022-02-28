@@ -26,12 +26,13 @@ const ColorMap: Record<string, string> = {
   wechat: "#45B049",
   anonymous: "#957AFF",
 };
+const UnknownMethodColor = "#EAEAEA";
 
 function getColorCodeByMethod(method: string): string {
   if (method in ColorMap) {
     return ColorMap[method];
   }
-  return "";
+  return UnknownMethodColor;
 }
 interface AnalyticsSignupMethodsChartProps {
   dataset: AnalyticChartsQuery_signupByMethodsChart_dataset[];
@@ -77,9 +78,10 @@ const AnalyticsSignupMethodsChart: React.FC<AnalyticsSignupMethodsChartProps> =
 
       return {
         labels: dataset.map((pt) => {
-          return renderToString(
+          const label = renderToString(
             `AnalyticsSignupMethodsWidget.chart.${pt.label}.label`
           );
+          return label ? label : pt.label;
         }),
         datasets: [
           {
@@ -111,6 +113,7 @@ const AnalyticsSignupMethodsChart: React.FC<AnalyticsSignupMethodsChartProps> =
 const AnalyticsSignupMethodsWidgetContent: React.FC<AnalyticsSignupMethodsWidgetProps> =
   function AnalyticsSignupMethodsWidgetContent(props) {
     const { loading, signupByMethodsChart } = props;
+    const { renderToString } = useContext(Context);
 
     const dataset = useMemo(
       () =>
@@ -118,6 +121,17 @@ const AnalyticsSignupMethodsWidgetContent: React.FC<AnalyticsSignupMethodsWidget
         (signupByMethodsChart?.dataset.filter((pt) => pt && pt.data !== 0) ??
           []) as AnalyticChartsQuery_signupByMethodsChart_dataset[],
       [signupByMethodsChart]
+    );
+
+    const methodLabels = useMemo(
+      () =>
+        dataset.map((pt) => {
+          const label = renderToString(
+            `AnalyticsSignupMethodsWidget.chart.${pt.label}.label`
+          );
+          return label ? label : pt.label;
+        }),
+      [dataset, renderToString]
     );
 
     if (loading) {
@@ -132,18 +146,14 @@ const AnalyticsSignupMethodsWidgetContent: React.FC<AnalyticsSignupMethodsWidget
       <div>
         <AnalyticsSignupMethodsChart dataset={dataset} />
         <div className={styles.legend}>
-          {dataset.map((pt) => {
+          {dataset.map((pt, i) => {
             return (
               <div
                 key={`legend-${pt.label}`}
                 className={styles.legendItem}
                 style={{ borderColor: getColorCodeByMethod(pt.label) }}
               >
-                <Text variant="smallPlus">
-                  <FormattedMessage
-                    id={`AnalyticsSignupMethodsWidget.chart.${pt.label}.label`}
-                  />
-                </Text>
+                <Text variant="smallPlus">{methodLabels[i]}</Text>
                 <Text variant="medium" className={styles.bold}>
                   {pt.data}
                 </Text>
