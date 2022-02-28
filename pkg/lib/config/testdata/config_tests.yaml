@@ -235,6 +235,22 @@ config:
         - type: azureadv2
           alias: azure
           client_id: client_id
+---
+name: oauth-provider-azureadb2c
+error: |-
+  invalid configuration:
+  /identity/oauth/providers/0: required
+    map[actual:[alias client_id type] expected:[policy tenant] missing:[policy tenant]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  identity:
+    oauth:
+      providers:
+        - type: azureadb2c
+          alias: azureadb2c
+          client_id: client_id
 
 ---
 name: oauth-provider-adfs

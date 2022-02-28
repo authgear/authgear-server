@@ -289,6 +289,7 @@ var _ = Schema.Add("OAuthSSOProviderType", `
 		"facebook",
 		"linkedin",
 		"azureadv2",
+		"azureadb2c",
 		"adfs",
 		"apple",
 		"wechat"
@@ -313,6 +314,11 @@ func (t OAuthSSOProviderType) Scope() string {
 	case OAuthSSOProviderTypeAzureADv2:
 		// https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
 		return "openid profile email"
+	case OAuthSSOProviderTypeAzureADB2C:
+		// Instead of specifying scope to request a specific claim,
+		// the developer must customize the policy to allow which claims are returned to the relying party.
+		// If the developer is using User Flow policy, then those claims are called Application Claims.
+		return "openid"
 	case OAuthSSOProviderTypeADFS:
 		// The supported scopes are observed from a AD FS server.
 		return "openid profile email"
@@ -327,14 +333,37 @@ func (t OAuthSSOProviderType) Scope() string {
 	panic(fmt.Sprintf("oauth: unknown provider type %s", string(t)))
 }
 
+func (t OAuthSSOProviderType) EmailRequired() bool {
+	switch t {
+	case OAuthSSOProviderTypeGoogle:
+		return true
+	case OAuthSSOProviderTypeFacebook:
+		return true
+	case OAuthSSOProviderTypeLinkedIn:
+		return true
+	case OAuthSSOProviderTypeAzureADv2:
+		return true
+	case OAuthSSOProviderTypeAzureADB2C:
+		return true
+	case OAuthSSOProviderTypeADFS:
+		return true
+	case OAuthSSOProviderTypeApple:
+		return true
+	case OAuthSSOProviderTypeWechat:
+		return false
+	}
+	panic(fmt.Sprintf("oauth: unknown provider type %s", string(t)))
+}
+
 const (
-	OAuthSSOProviderTypeGoogle    OAuthSSOProviderType = "google"
-	OAuthSSOProviderTypeFacebook  OAuthSSOProviderType = "facebook"
-	OAuthSSOProviderTypeLinkedIn  OAuthSSOProviderType = "linkedin"
-	OAuthSSOProviderTypeAzureADv2 OAuthSSOProviderType = "azureadv2"
-	OAuthSSOProviderTypeADFS      OAuthSSOProviderType = "adfs"
-	OAuthSSOProviderTypeApple     OAuthSSOProviderType = "apple"
-	OAuthSSOProviderTypeWechat    OAuthSSOProviderType = "wechat"
+	OAuthSSOProviderTypeGoogle     OAuthSSOProviderType = "google"
+	OAuthSSOProviderTypeFacebook   OAuthSSOProviderType = "facebook"
+	OAuthSSOProviderTypeLinkedIn   OAuthSSOProviderType = "linkedin"
+	OAuthSSOProviderTypeAzureADv2  OAuthSSOProviderType = "azureadv2"
+	OAuthSSOProviderTypeAzureADB2C OAuthSSOProviderType = "azureadb2c"
+	OAuthSSOProviderTypeADFS       OAuthSSOProviderType = "adfs"
+	OAuthSSOProviderTypeApple      OAuthSSOProviderType = "apple"
+	OAuthSSOProviderTypeWechat     OAuthSSOProviderType = "wechat"
 )
 
 var OAuthSSOProviderTypes = []OAuthSSOProviderType{
@@ -342,6 +371,7 @@ var OAuthSSOProviderTypes = []OAuthSSOProviderType{
 	OAuthSSOProviderTypeFacebook,
 	OAuthSSOProviderTypeLinkedIn,
 	OAuthSSOProviderTypeAzureADv2,
+	OAuthSSOProviderTypeAzureADB2C,
 	OAuthSSOProviderTypeADFS,
 	OAuthSSOProviderTypeApple,
 	OAuthSSOProviderTypeWechat,
@@ -373,8 +403,9 @@ var _ = Schema.Add("OAuthSSOProviderConfig", `
 		"type": { "$ref": "#/$defs/OAuthSSOProviderType" },
 		"modify_disabled": { "type": "boolean" },
 		"client_id": { "type": "string" },
-		"claims": { "$ref": "#/$defs/VerificationOAuthClaimsConfig" },
+		"claims": { "$ref": "#/$defs/OAuthClaimsConfig" },
 		"tenant": { "type": "string" },
+		"policy": { "type": "string" },
 		"key_id": { "type": "string" },
 		"team_id": { "type": "string" },
 		"app_type": { "$ref": "#/$defs/OAuthSSOWeChatAppType" },
@@ -408,20 +439,29 @@ var _ = Schema.Add("OAuthSSOProviderConfig", `
 			"then": {
 				"required": ["discovery_document_endpoint"]
 			}
+		},
+		{
+			"if": { "properties": { "type": { "const": "azureadb2c" } } },
+			"then": {
+				"required": ["tenant", "policy"]
+			}
 		}
 	]
 }
 `)
 
 type OAuthSSOProviderConfig struct {
-	Alias          string                         `json:"alias,omitempty"`
-	Type           OAuthSSOProviderType           `json:"type,omitempty"`
-	ModifyDisabled *bool                          `json:"modify_disabled,omitempty"`
-	ClientID       string                         `json:"client_id,omitempty"`
-	Claims         *VerificationOAuthClaimsConfig `json:"claims,omitempty"`
+	Alias          string               `json:"alias,omitempty"`
+	Type           OAuthSSOProviderType `json:"type,omitempty"`
+	ModifyDisabled *bool                `json:"modify_disabled,omitempty"`
+	ClientID       string               `json:"client_id,omitempty"`
+	Claims         *OAuthClaimsConfig   `json:"claims,omitempty"`
 
-	// Tenant is specific to `azureadv2`
+	// Tenant is specific to `azureadv2` and `azureadb2c`
 	Tenant string `json:"tenant,omitempty"`
+
+	// Policy is specific to `azureadb2c`
+	Policy string `json:"policy,omitempty"`
 
 	// KeyID and TeamID are specific to `apple`
 	KeyID  string `json:"key_id,omitempty"`
@@ -440,6 +480,11 @@ type OAuthSSOProviderConfig struct {
 func (c *OAuthSSOProviderConfig) SetDefaults() {
 	if c.ModifyDisabled == nil {
 		c.ModifyDisabled = newBool(false)
+	}
+
+	if c.Claims.Email.Required == nil {
+		emailRequired := c.Type.EmailRequired()
+		c.Claims.Email.Required = &emailRequired
 	}
 }
 
@@ -474,6 +519,14 @@ func (c *OAuthSSOProviderConfig) ProviderID() ProviderID {
 		// Rotating the OAuth application is OK.
 		// But rotating the tenant is problematic.
 		// But if email remains unchanged, the user can associate their account.
+		keys["tenant"] = c.Tenant
+	case OAuthSSOProviderTypeAzureADB2C:
+		// By default sub is the Object ID of the user in the directory.
+		// A tenant is a directory.
+		// sub is scoped to the tenant only.
+		// Therefore, ProviderID is Type + tenant.
+		//
+		// See https://docs.microsoft.com/en-us/azure/active-directory-b2c/tokens-overview#claims
 		keys["tenant"] = c.Tenant
 	case OAuthSSOProviderTypeApple:
 		// Apple supports OIDC.
@@ -591,4 +644,41 @@ func (c *BiometricConfig) SetDefaults() {
 	if c.ListEnabled == nil {
 		c.ListEnabled = newBool(false)
 	}
+}
+
+var _ = Schema.Add("OAuthClaimsConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"email": { "$ref": "#/$defs/OAuthClaimConfig" }
+	}
+}
+`)
+
+type OAuthClaimsConfig struct {
+	Email *OAuthClaimConfig `json:"email,omitempty"`
+}
+
+var _ = Schema.Add("OAuthClaimConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"assume_verified": { "type": "boolean" },
+		"required": { "type": "boolean" }
+	}
+}
+`)
+
+type OAuthClaimConfig struct {
+	AssumeVerified *bool `json:"assume_verified,omitempty"`
+	Required       *bool `json:"required,omitempty"`
+}
+
+func (c *OAuthClaimConfig) SetDefaults() {
+	if c.AssumeVerified == nil {
+		c.AssumeVerified = newBool(true)
+	}
+	// Required is type-specific so the default is not set here.
 }

@@ -273,6 +273,13 @@ func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 	authInfo.ProviderRawProfile = combinedResponse
 	id, attrs := decodeLinkedIn(combinedResponse)
 	authInfo.ProviderUserID = id
+
+	attrs, err = stdattrs.Extract(attrs, stdattrs.ExtractOptions{
+		EmailRequired: *f.ProviderConfig.Claims.Email.Required,
+	})
+	if err != nil {
+		return
+	}
 	authInfo.StandardAttributes = attrs
 
 	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)

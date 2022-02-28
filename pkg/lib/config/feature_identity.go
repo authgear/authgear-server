@@ -89,6 +89,7 @@ var _ = FeatureConfigSchema.Add("OAuthSSOProvidersFeatureConfig", `
 		"facebook": { "$ref": "#/$defs/OAuthSSOProviderFeatureConfig" },
 		"linkedin": { "$ref": "#/$defs/OAuthSSOProviderFeatureConfig" },
 		"azureadv2": { "$ref": "#/$defs/OAuthSSOProviderFeatureConfig" },
+		"azureadb2c": { "$ref": "#/$defs/OAuthSSOProviderFeatureConfig" },
 		"adfs": { "$ref": "#/$defs/OAuthSSOProviderFeatureConfig" },
 		"apple": { "$ref": "#/$defs/OAuthSSOProviderFeatureConfig" },
 		"wechat": { "$ref": "#/$defs/OAuthSSOProviderFeatureConfig" }
@@ -97,13 +98,14 @@ var _ = FeatureConfigSchema.Add("OAuthSSOProvidersFeatureConfig", `
 `)
 
 type OAuthSSOProvidersFeatureConfig struct {
-	Google    *OAuthSSOProviderFeatureConfig `json:"google,omitempty"`
-	Facebook  *OAuthSSOProviderFeatureConfig `json:"facebook,omitempty"`
-	LinkedIn  *OAuthSSOProviderFeatureConfig `json:"linkedin,omitempty"`
-	Azureadv2 *OAuthSSOProviderFeatureConfig `json:"azureadv2,omitempty"`
-	ADFS      *OAuthSSOProviderFeatureConfig `json:"adfs,omitempty"`
-	Apple     *OAuthSSOProviderFeatureConfig `json:"apple,omitempty"`
-	Wechat    *OAuthSSOProviderFeatureConfig `json:"wechat,omitempty"`
+	Google     *OAuthSSOProviderFeatureConfig `json:"google,omitempty"`
+	Facebook   *OAuthSSOProviderFeatureConfig `json:"facebook,omitempty"`
+	LinkedIn   *OAuthSSOProviderFeatureConfig `json:"linkedin,omitempty"`
+	Azureadv2  *OAuthSSOProviderFeatureConfig `json:"azureadv2,omitempty"`
+	Azureadb2c *OAuthSSOProviderFeatureConfig `json:"azureadb2c,omitempty"`
+	ADFS       *OAuthSSOProviderFeatureConfig `json:"adfs,omitempty"`
+	Apple      *OAuthSSOProviderFeatureConfig `json:"apple,omitempty"`
+	Wechat     *OAuthSSOProviderFeatureConfig `json:"wechat,omitempty"`
 }
 
 var _ = FeatureConfigSchema.Add("OAuthSSOProviderFeatureConfig", `

@@ -45,6 +45,7 @@
   "error-duplicated-identity": "{IntentKind, select, IntentAuthenticate {{IdentityType, select, login_id {{LoginIDType, select, email {This email address} phone {This phone number} username {This username} other {This identity}} has been registered. Maybe you want to sign in?} other {This external account has been registered. Maybe you want to sign in?}}} other {This identity has been registered. Maybe you want to sign in?}}",
   "error-duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{You have already set up this phone number for authentication. Maybe you want to set up another phone number?} oob_otp_email{You have already set up this email address for authentication. Maybe you want to set up another email address?} other{You have already set up this authenticator. Maybe want to setup another one?}}",
   "error-developer-reauthentication": "[To Developer] You just triggered reauthentication but the setup is incorrect. Please visit <a class=\"link\" target=\"_blank\" href=\"https://docs.authgear.com/integrate/reauthentication\">https://docs.authgear.com/integrate/reauthentication</a>",
+  "error-developer-email-required": "[To Developer] The OAuth provider does not return the email claim. If you expect the provider to always return the claim, please double check the configuration of your provider. If you expect the claim to be optional, please update the configuration of Authgear in the portal.",
   "error-verification-code-invalid": "Verification code is invalid, used or expired. Please request a new one.",
   "error-verification-code-invalid-click-to-resend": "Click to resend.",
   "error-remove-last-identity": "You cannot disconnect the last identity. You need to keep at least 1 identity.",
@@ -108,6 +109,7 @@
   "oauth-branding-facebook": "Login with Facebook",
   "oauth-branding-linkedin": "Sign in with LinkedIn",
   "oauth-branding-azureadv2": "Sign in with Microsoft Azure AD",
+  "oauth-branding-azureadb2c": "Sign in with Microsoft Azure AD B2C",
   "oauth-branding-adfs": "Sign in with Microsoft AD FS",
   "oauth-branding-wechat": "Login with WeChat",
 
@@ -235,6 +237,7 @@
   "settings-identity-oauth-facebook": "Facebook",
   "settings-identity-oauth-linkedin": "LinkedIn",
   "settings-identity-oauth-azureadv2": "Microsoft Azure AD",
+  "settings-identity-oauth-azureadb2c": "Microsoft Azure AD B2C",
   "settings-identity-oauth-adfs": "Microsoft AD FS",
   "settings-identity-oauth-wechat": "WeChat",
   "settings-identity-login-id-email": "Email Address",

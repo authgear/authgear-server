@@ -96,7 +96,11 @@ func (f *ADFSImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param 
 		return
 	}
 
-	extracted := stdattrs.Extract(claims)
+	extracted, err := stdattrs.Extract(claims, stdattrs.ExtractOptions{})
+	if err != nil {
+		return
+	}
+
 	// Transform upn into preferred_username
 	if _, ok := extracted[stdattrs.PreferredUsername]; !ok {
 		extracted[stdattrs.PreferredUsername] = upn
@@ -109,9 +113,16 @@ func (f *ADFSImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param 
 		}
 	}
 
+	extracted, err = stdattrs.Extract(extracted, stdattrs.ExtractOptions{
+		EmailRequired: *f.ProviderConfig.Claims.Email.Required,
+	})
+	if err != nil {
+		return
+	}
+	authInfo.StandardAttributes = extracted
+
 	authInfo.ProviderRawProfile = claims
 	authInfo.ProviderUserID = sub
-	authInfo.StandardAttributes = extracted
 
 	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
 	if err != nil {

@@ -110,14 +110,20 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 	}
 
 	authInfo.ProviderUserID = id
-	authInfo.StandardAttributes = stdattrs.T{
+	stdAttrs, err := stdattrs.Extract(map[string]interface{}{
 		stdattrs.Email:      email,
 		stdattrs.GivenName:  firstName,
 		stdattrs.FamilyName: lastName,
 		stdattrs.Name:       name,
 		stdattrs.Nickname:   shortName,
 		stdattrs.Picture:    picture,
+	}, stdattrs.ExtractOptions{
+		EmailRequired: *f.ProviderConfig.Claims.Email.Required,
+	})
+	if err != nil {
+		return
 	}
+	authInfo.StandardAttributes = stdAttrs
 
 	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
 	if err != nil {

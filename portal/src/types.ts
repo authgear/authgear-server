@@ -54,12 +54,19 @@ export const oauthSSOProviderTypes = [
   "facebook",
   "linkedin",
   "azureadv2",
+  "azureadb2c",
   "adfs",
   "wechat",
 ] as const;
 export type OAuthSSOProviderType = typeof oauthSSOProviderTypes[number];
 export const oauthSSOWeChatAppType = ["mobile", "web"] as const;
 export type OAuthSSOWeChatAppType = typeof oauthSSOWeChatAppType[number];
+export interface OAuthClaimConfig {
+  required?: boolean;
+}
+export interface OAuthClaimsConfig {
+  email?: OAuthClaimConfig;
+}
 export interface OAuthSSOProviderConfig {
   alias: string;
   type: OAuthSSOProviderType;
@@ -73,6 +80,8 @@ export interface OAuthSSOProviderConfig {
   is_sandbox_account?: boolean;
   wechat_redirect_uris?: string[];
   discovery_document_endpoint?: string;
+  policy?: string;
+  claims?: OAuthClaimsConfig;
 }
 export const oauthSSOProviderItemKeys = [
   "apple",
@@ -80,6 +89,7 @@ export const oauthSSOProviderItemKeys = [
   "facebook",
   "linkedin",
   "azureadv2",
+  "azureadb2c",
   "adfs",
   "wechat.mobile",
   "wechat.web",
@@ -498,6 +508,7 @@ export interface OAuthSSOProvidersFeatureConfig {
   facebook?: OAuthSSOProviderFeatureConfig;
   linkedin?: OAuthSSOProviderFeatureConfig;
   azureadv2?: OAuthSSOProviderFeatureConfig;
+  azureadb2c?: OAuthSSOProviderFeatureConfig;
   adfs?: OAuthSSOProviderFeatureConfig;
   apple?: OAuthSSOProviderFeatureConfig;
   wechat?: OAuthSSOProviderFeatureConfig;

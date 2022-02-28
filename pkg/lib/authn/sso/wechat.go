@@ -114,6 +114,8 @@ func (w *WechatImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _
 
 	authInfo.ProviderRawProfile = rawProfile
 	authInfo.ProviderUserID = userID
+
+	// Claims.Email.Required is not respected because wechat does not return the email claim.
 	authInfo.StandardAttributes = stdattrs.T{
 		stdattrs.Name:   name,
 		stdattrs.Locale: locale,

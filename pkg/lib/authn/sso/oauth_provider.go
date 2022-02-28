@@ -48,6 +48,7 @@ type NonOpenIDConnectProvider interface {
 // "google"
 // "apple"
 // "azureadv2"
+// "azureadb2c"
 // "adfs"
 type OpenIDConnectProvider interface {
 	OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error)
@@ -110,6 +111,14 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 		}
 	case config.OAuthSSOProviderTypeAzureADv2:
 		return &Azureadv2Impl{
+			Clock:                        p.Clock,
+			RedirectURL:                  p.RedirectURL,
+			ProviderConfig:               *providerConfig,
+			Credentials:                  *credentials,
+			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
+		}
+	case config.OAuthSSOProviderTypeAzureADB2C:
+		return &Azureadb2cImpl{
 			Clock:                        p.Clock,
 			RedirectURL:                  p.RedirectURL,
 			ProviderConfig:               *providerConfig,

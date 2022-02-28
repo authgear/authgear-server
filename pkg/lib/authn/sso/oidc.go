@@ -36,6 +36,7 @@ type OIDCAuthParams struct {
 }
 
 type OIDCDiscoveryDocument struct {
+	Issuer                string `json:"issuer"`
 	AuthorizationEndpoint string `json:"authorization_endpoint"`
 	TokenEndpoint         string `json:"token_endpoint"`
 	JWKSUri               string `json:"jwks_uri"`

@@ -134,6 +134,10 @@
 					<div class="sso-btn-icon image-icon microsoft-icon"></div>
 					<span class="title text-base">{{ template "oauth-branding-azureadv2" }}</span>
 					{{- end -}}
+					{{- if eq .provider_type "azureadb2c" -}}
+					<div class="sso-btn-icon image-icon microsoft-icon"></div>
+					<span class="title text-base">{{ template "oauth-branding-azureadb2c" }}</span>
+					{{- end -}}
 					{{- if eq .provider_type "adfs" -}}
 					<div class="sso-btn-icon image-icon microsoft-icon"></div>
 					<span class="title text-base">{{ template "oauth-branding-adfs" }}</span>
