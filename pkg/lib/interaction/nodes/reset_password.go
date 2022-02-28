@@ -1,9 +1,13 @@
 package nodes
 
 import (
+	"fmt"
+	"net/http"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/successpage"
 )
 
 func init() {
@@ -40,6 +44,8 @@ type EdgeResetPassword struct{}
 func (e *EdgeResetPassword) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var resetInput InputResetPassword
 	var codeInput InputResetPasswordByCode
+	fmt.Println("EdgeResetPassword")
+	successPageCookie := ctx.CookieManager.ValueCookie(successpage.PathCookieDef, "/reset_password/success")
 	if interaction.Input(rawInput, &resetInput) {
 		userID := resetInput.GetResetPasswordUserID()
 		newPassword := resetInput.GetNewPassword()
@@ -50,8 +56,9 @@ func (e *EdgeResetPassword) Instantiate(ctx *interaction.Context, graph *interac
 		}
 
 		return &NodeResetPasswordEnd{
-			OldAuthenticator: oldInfo,
-			NewAuthenticator: newInfo,
+			OldAuthenticator:  oldInfo,
+			NewAuthenticator:  newInfo,
+			SuccessPageCookie: successPageCookie,
 		}, nil
 
 	} else if interaction.Input(rawInput, &codeInput) {
@@ -70,18 +77,27 @@ func (e *EdgeResetPassword) Instantiate(ctx *interaction.Context, graph *interac
 		}
 
 		return &NodeResetPasswordEnd{
-			OldAuthenticator: oldInfo,
-			NewAuthenticator: newInfo,
+			OldAuthenticator:  oldInfo,
+			NewAuthenticator:  newInfo,
+			SuccessPageCookie: successPageCookie,
 		}, nil
-
 	} else {
 		return nil, interaction.ErrIncompatibleInput
 	}
 }
 
 type NodeResetPasswordEnd struct {
-	OldAuthenticator *authenticator.Info `json:"old_authenticator"`
-	NewAuthenticator *authenticator.Info `json:"new_authenticator,omitempty"`
+	OldAuthenticator  *authenticator.Info `json:"old_authenticator"`
+	NewAuthenticator  *authenticator.Info `json:"new_authenticator,omitempty"`
+	SuccessPageCookie *http.Cookie        `json:"success_page_cookie,omitempty"`
+}
+
+// GetCookies implements CookiesGetter
+func (n *NodeResetPasswordEnd) GetCookies() []*http.Cookie {
+	if n.SuccessPageCookie == nil {
+		return nil
+	}
+	return []*http.Cookie{n.SuccessPageCookie}
 }
 
 func (n *NodeResetPasswordEnd) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {

@@ -134,3 +134,10 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		wire.Bind(new(httproute.Middleware), new(*webapp.SettingsSubRoutesMiddleware)),
 	))
 }
+
+func newSuccessPageMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*webapp.SuccessPageMiddleware)),
+	))
+}

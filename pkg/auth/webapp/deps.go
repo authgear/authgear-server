@@ -25,6 +25,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(ClientIDMiddleware), "*"),
 	wire.Struct(new(VisitorIDMiddleware), "*"),
 	wire.Struct(new(SettingsSubRoutesMiddleware), "*"),
+	wire.Struct(new(SuccessPageMiddleware), "*"),
 
 	NewPublicOriginMiddlewareLogger,
 	wire.Struct(new(PublicOriginMiddleware), "*"),

@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/successpage"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -40,6 +41,7 @@ type SettingsDeleteAccountHandler struct {
 	AccountDeletion   *config.AccountDeletionConfig
 	Clock             clock.Clock
 	Users             SettingsDeleteAccountUserService
+	Cookies           CookieManager
 }
 
 func (h *SettingsDeleteAccountHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -95,7 +97,13 @@ func (h *SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.
 			return err
 		}
 
-		result := webapp.Result{RedirectURI: redirectURI}
+		// set success page path cookie before visiting success page
+		result := webapp.Result{
+			RedirectURI: redirectURI,
+			Cookies: []*http.Cookie{
+				h.Cookies.ValueCookie(successpage.PathCookieDef, redirectURI),
+			},
+		}
 		result.WriteResponse(w, r)
 		return nil
 	})

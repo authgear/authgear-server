@@ -28184,6 +28184,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		AccountDeletion:   accountDeletionConfig,
 		Clock:             clockClock,
 		Users:             userFacade,
+		Cookies:           cookieManager,
 	}
 	return settingsDeleteAccountHandler
 }
@@ -32347,6 +32348,28 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Identities: identityFacade,
 	}
 	return settingsSubRoutesMiddleware
+}
+
+func newSuccessPageMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	request := p.Request
+	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookie := &webapp.ErrorCookie{
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
+	}
+	successPageMiddleware := &webapp.SuccessPageMiddleware{
+		Cookies:     cookieManager,
+		ErrorCookie: errorCookie,
+	}
+	return successPageMiddleware
 }
 
 // wire_middleware.go:
