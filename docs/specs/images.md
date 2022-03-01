@@ -17,8 +17,8 @@ GET /_images/APP_ID/OBJECT_ID/OPTIONS HTTP/1.1
 - `APP_ID`: The authgear app id
 - `OBJECT_ID`: The file object id
 - `OPTIONS`: Following options are supported.
-    - Resizing options, e.g. `w=400,h=300`
-    - Resizing profile, a pre-configured resizing option, e.g. `profile`
+    - Pre-configured resizing option.
+        - `profile`: The Authgear Images will transform the image to width 500px, height 500px, center crop. Essential EXIF data (e.g. orientation) will be processed and disabled.
     - Original image: `original`
 
 ### Uploading image
@@ -37,7 +37,7 @@ THE FILE CONTENT
 HTTP/1.1 200 OK
 Content-Type: application/json
 
-{ "variants": { "original": "ORIGINAL_IMAGE_URL", "profile": "PROFILE_IMAGE_URL" } }
+{ "url": "authgearimages:///OBJECT_ID" }
 ```
 
 - `APP_ID`: The authgear app id
@@ -55,8 +55,8 @@ Content-Type: application/json
 
 When the user uploads the profile image from the Auth UI.
 1. The Auth UI frontend sends a request to the main server and obtains the pre-signed upload URL.
-1. The Auth UI frontend uploads the image to the pre-signed upload URL.
-1. The Auth UI frontend obtains the image variants from the Authgear Images server and sets the profile URL to the user profile attributes.
+1. The Auth UI frontend uploads the image to the pre-signed upload URL and obtains the URL.
+1. The Auth UI frontend sets the URL to the user profile attributes.
 
 #### Request signed upload URL endpoint
 
@@ -80,8 +80,8 @@ The Admin API will also be used by the portal for updating user profile images.
 
 The user profile image uploading flow:
 1. Call the API to obtain the pre-signed upload URL.
-2. Upload the image to the pre-signed upload URL and obtain the variants.
-3. Set the profile image URL to the user profile attributes through admin GraphQL API.
+2. Upload the image to the pre-signed upload URL and obtain the URL.
+3. Set the URL to the user profile attributes through admin GraphQL API.
 
 #### Request signed upload URL endpoint
 
@@ -99,6 +99,14 @@ Content-Type: application/json
 
 { "upload_url": "SIGNED_URL" }
 ```
+
+### The profile URL
+
+On update, `standard_attributes.profile` accepts URL `https://...` and `authgearimages:///OBJECT_ID`.
+
+On output, `standard_attributes.profile` outputs HTTPS URL. For authgear images, the URL will become the GET URL of the Authgear Images with `profile` resizing option. e.g. `https://app1.authgearapps.com/_images/app1/OBJECT_ID/profile`.
+
+For supporting CDN, env `IMAGES_HOST` is supported. When it is configured, it changes the host of the output URL. e.g. `https://cdn.authgearappsimages.com/_images/app1/OBJECT_ID/profile`.'
 
 ## Database table schema
 
