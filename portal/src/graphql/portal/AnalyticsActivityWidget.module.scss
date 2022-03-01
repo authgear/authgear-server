@@ -1,0 +1,23 @@
+.pivot {
+  text-align: right;
+}
+
+.loadingWrapper {
+  min-height: 500px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.chartContainer {
+  height: 350px;
+  margin: 20px 0;
+}
+
+.totalUserLabel {
+  display: flex;
+  flex-direction: column;
+  row-gap: 4px;
+  text-align: left;
+}

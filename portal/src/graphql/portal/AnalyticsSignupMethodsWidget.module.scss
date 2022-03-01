@@ -1,0 +1,41 @@
+.loadingWrapper {
+  min-height: 290px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.chartContainer {
+  position: relative;
+  height: 170px;
+  margin: 20px 0;
+
+  .noDataAvailableLabel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+}
+
+.legend {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  column-gap: 6px;
+  row-gap: 16px;
+}
+
+.legendItem {
+  border-left: 3px solid;
+  padding-left: 8px;
+  display: flex;
+  flex-direction: column;
+  row-gap: 4px;
+  text-align: left;
+}
+
+.bold {
+  font-weight: 600;
+}
