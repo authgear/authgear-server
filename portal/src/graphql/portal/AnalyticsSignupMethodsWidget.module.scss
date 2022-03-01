@@ -21,16 +21,13 @@
 }
 
 .legend {
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   column-gap: 6px;
   row-gap: 16px;
-  flex-wrap: wrap;
-  padding-top: 5px;
 }
 
 .legendItem {
-  width: 82px;
   border-left: 3px solid;
   padding-left: 8px;
   display: flex;
