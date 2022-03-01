@@ -1,9 +1,12 @@
 package nodes
 
 import (
+	"net/http"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/successpage"
 )
 
 func init() {
@@ -70,13 +73,24 @@ func (e *EdgeForgotPasswordSelectLoginID) Instantiate(ctx *interaction.Context, 
 		return nil, err
 	}
 
+	successPageCookie := ctx.CookieManager.ValueCookie(successpage.PathCookieDef, "/forgot_password/success")
 	return &NodeForgotPasswordEnd{
-		LoginID: loginID,
+		LoginID:           loginID,
+		SuccessPageCookie: successPageCookie,
 	}, nil
 }
 
 type NodeForgotPasswordEnd struct {
-	LoginID string `json:"login_id"`
+	LoginID           string       `json:"login_id"`
+	SuccessPageCookie *http.Cookie `json:"success_page_cookie,omitempty"`
+}
+
+// GetCookies implements CookiesGetter
+func (n *NodeForgotPasswordEnd) GetCookies() []*http.Cookie {
+	if n.SuccessPageCookie == nil {
+		return nil
+	}
+	return []*http.Cookie{n.SuccessPageCookie}
 }
 
 // GetLoginID implements ForgotPasswordSuccessNode.
