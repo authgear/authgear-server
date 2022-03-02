@@ -30,17 +30,12 @@ func (i *Importer) ImportRecord(record []string, now time.Time) error {
 	name := record[2]
 	passwordHash := record[3]
 
-	stdAttrs, err := StandardAttributes(name)
-	if err != nil {
-		return err
-	}
-
 	emailChecker := loginid.EmailChecker{
 		Config: i.EmailConfig,
 	}
 	validationCtx := &validation.Context{}
 	emailChecker.Validate(validationCtx, rawEmail)
-	err = validationCtx.Error(fmt.Sprintf("invalid email: %v", rawEmail))
+	err := validationCtx.Error(fmt.Sprintf("invalid email: %v", rawEmail))
 	if err != nil {
 		return err
 	}
@@ -60,6 +55,11 @@ func (i *Importer) ImportRecord(record []string, now time.Time) error {
 	}
 
 	claims, err := Claims(loginID)
+	if err != nil {
+		return err
+	}
+
+	stdAttrs, err := StandardAttributes(name, loginID)
 	if err != nil {
 		return err
 	}
@@ -201,9 +201,10 @@ func (i *Importer) ImportFromCSV(csvPath string) error {
 	return nil
 }
 
-func StandardAttributes(name string) ([]byte, error) {
+func StandardAttributes(name string, email string) ([]byte, error) {
 	attrs := map[string]interface{}{
-		"name": name,
+		"name":  name,
+		"email": email,
 	}
 	return json.Marshal(attrs)
 }
