@@ -22,6 +22,7 @@ type ServiceNoEvent struct {
 	UserQueries       UserQueries
 	UserStore         UserStore
 	ClaimStore        ClaimStore
+	ProcessorFactory  ProcessorFactory
 }
 
 func (s *ServiceNoEvent) PopulateIdentityAwareStandardAttributes(userID string) (err error) {
@@ -182,12 +183,22 @@ func (s *ServiceNoEvent) UpdateStandardAttributes(role accesscontrol.Role, userI
 
 // DeriveStandardAttributes populates email_verified and phone_number_verified,
 // if email or phone_number are found in attrs.
+// It also processes the data before output, e.g. transform profile url from authgearimages:// to https://.
 func (s *ServiceNoEvent) DeriveStandardAttributes(role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error) {
 	out := make(map[string]interface{})
 
 	for key, value := range attrs {
 		// Copy
 		out[key] = value
+
+		processor := s.ProcessorFactory.ProcessorWithAttrKey(key)
+		if processor != nil {
+			processed, err := processor.Process(out[key])
+			if err != nil {
+				return nil, err
+			}
+			out[key] = processed
+		}
 
 		// Email
 		if key == stdattrs.Email {

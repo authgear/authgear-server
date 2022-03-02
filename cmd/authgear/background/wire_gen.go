@@ -347,12 +347,19 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	request := NewDummyHTTPRequest()
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, configAppID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -465,7 +472,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	request := NewDummyHTTPRequest()
 	trustProxy := environmentConfig.TrustProxy
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	cookieDef := session.NewSessionCookieDef(sessionConfig)

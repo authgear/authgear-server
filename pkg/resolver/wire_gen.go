@@ -339,12 +339,18 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         userStore,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,

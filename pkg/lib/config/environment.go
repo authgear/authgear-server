@@ -23,4 +23,7 @@ type EnvironmentConfig struct {
 	Database DatabaseEnvironmentConfig `envconfig:"DATABASE"`
 	// AuditDatabase configures the audit database
 	AuditDatabase DatabaseCredentialsEnvironmentConfig `envconfig:"AUDIT_DATABASE"`
+	// ImagesCDNHost is the host of the Authgear images CDN
+	// It needs to be set only when setting up CDN for the images server
+	ImagesCDNHost ImagesCDNHost `envconfig:"IMAGES_CDN_HOST"`
 }

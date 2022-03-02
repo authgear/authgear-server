@@ -362,12 +362,18 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         userStore,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -1005,12 +1011,18 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         userStore,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -1585,12 +1597,18 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         userStore,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -2202,12 +2220,18 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         userStore,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -2508,12 +2532,18 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -2745,12 +2775,18 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -3027,12 +3063,18 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         userStore,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -3352,12 +3394,18 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         userStore,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -3942,12 +3990,18 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -4552,12 +4606,18 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -5195,12 +5255,18 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -5836,12 +5902,18 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -6477,12 +6549,18 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -7105,12 +7183,18 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -7734,12 +7818,18 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -8355,12 +8445,18 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -8979,12 +9075,18 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -9606,12 +9708,18 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -10230,12 +10338,18 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -10853,12 +10967,18 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -11477,12 +11597,18 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -12102,12 +12228,18 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -12725,12 +12857,18 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -13348,12 +13486,18 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -13973,12 +14117,18 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -14596,12 +14746,18 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -15219,12 +15375,18 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -15845,12 +16007,18 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -16468,12 +16636,18 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -17096,12 +17270,18 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -17719,12 +17899,18 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -18343,12 +18529,18 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -18966,12 +19158,18 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -19612,12 +19810,18 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -20246,12 +20450,18 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -20893,12 +21103,18 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -21519,12 +21735,18 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -22143,12 +22365,18 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -22776,12 +23004,18 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -23400,12 +23634,18 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -24024,12 +24264,18 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -24649,12 +24895,18 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -25278,12 +25530,18 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -25902,12 +26160,18 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -26526,12 +26790,18 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -27150,12 +27420,18 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -27774,12 +28050,18 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -28405,12 +28687,18 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -29030,12 +29318,18 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -29653,12 +29947,18 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -30295,12 +30595,18 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -30918,12 +31224,18 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -31784,12 +32096,18 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         userStore,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -32157,12 +32475,18 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureAttrProcessor := stdattrs.NewPictureAttrProcessor(request, appID, imagesCDNHost)
+	processorFactory := stdattrs.ProcessorFactory{
+		PictureAttrProcessor: pictureAttrProcessor,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		ProcessorFactory:  processorFactory,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
