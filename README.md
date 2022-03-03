@@ -15,8 +15,6 @@ Note that there is a local .tool-versions in project root. For the following set
 
 3. Install icu4c
 
-On macOS, the simplest way is to install it with brew
-
 ```sh
 brew install icu4c
 ```
@@ -29,7 +27,20 @@ export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig"
 
 To avoid doing the above every time you open a new shell, you may want to add it to your shell initialization script such as `~/.profile`, `~/.bash_profile`, etc.
 
-4. Run `make vendor`
+4. Install libvips
+
+```sh
+brew install vips
+```
+
+libvips on macOS requires `-Xpreprocessor` to build.
+Run the following to tell Cgo.
+
+```sh
+export CGO_CFLAGS_ALLOW="-Xpreprocessor"
+```
+
+5. Run `make vendor`
 
 ## Environment setup
 
