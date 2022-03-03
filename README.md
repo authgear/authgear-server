@@ -19,10 +19,10 @@ Note that there is a local .tool-versions in project root. For the following set
 brew install icu4c
 ```
 
-Note that by default icu4c is not symlinked to /usr/local, so you have to ensure your shell has the following in effect
+icu4c installed by brew is not globally visible by default, so you have to ensure your shell has the following in effect
 
 ```sh
-export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig"
+export PKG_CONFIG_PATH="$(brew --prefix)/opt/icu4c/lib/pkgconfig"
 ```
 
 To avoid doing the above every time you open a new shell, you may want to add it to your shell initialization script such as `~/.profile`, `~/.bash_profile`, etc.
