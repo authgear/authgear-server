@@ -64,6 +64,27 @@ type ResizingMode interface {
 	Resize(image ImageDimensions, resize ResizeDimensions) ResizeResult
 }
 
+type ResizingModeType string
+
+const (
+	ResizingModeTypeScaleDown ResizingModeType = "scale-down"
+	ResizingModeTypeContain   ResizingModeType = "contain"
+	ResizingModeTypeCover     ResizingModeType = "cover"
+)
+
+func ResizingModeFromType(t ResizingModeType) ResizingMode {
+	switch t {
+	case ResizingModeTypeScaleDown:
+		return ResizingModeScaleDown{}
+	case ResizingModeTypeContain:
+		return ResizingModeContain{}
+	case ResizingModeTypeCover:
+		return ResizingModeCover{}
+	default:
+		return ResizingModeCover{}
+	}
+}
+
 func div(x int, y int) float64 {
 	return float64(x) / float64(y)
 }
