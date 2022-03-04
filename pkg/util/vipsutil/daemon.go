@@ -28,14 +28,11 @@ type Daemon struct {
 
 var _ io.Closer = &Daemon{}
 
-func NewDaemon(numWorker int) *Daemon {
-	return &Daemon{
+func OpenDaemon(numWorker int) *Daemon {
+	d := &Daemon{
 		numWorker: numWorker,
 		queue:     make(chan task),
 	}
-}
-
-func (d *Daemon) Open() {
 	for i := 0; i < d.numWorker; i++ {
 		go func(workerID int) {
 			for task := range d.queue {
@@ -48,6 +45,7 @@ func (d *Daemon) Open() {
 			}
 		}(i)
 	}
+	return d
 }
 
 func (v *Daemon) runInput(i Input) (o *Output, err error) {
