@@ -56,8 +56,28 @@ func (v *Daemon) runInput(i Input) (o *Output, err error) {
 		return
 	}
 
-	// FIXME(vips): process the input according to options.
-	data, metadata, err := imageRef.ExportNative()
+	// Consume Exif orientation.
+	err = imageRef.AutoRotate()
+	if err != nil {
+		return
+	}
+
+	// Resize
+	resizeMode := ResizingModeFromType(i.Options.ResizingModeType)
+	resizeDimen := ResizeDimensions{
+		Width:  i.Options.Width,
+		Height: i.Options.Height,
+	}
+	imageDimen := ImageDimensions{
+		Width:  imageRef.Metadata().Width,
+		Height: imageRef.Metadata().Height,
+	}
+	err = resizeMode.Resize(imageDimen, resizeDimen).ApplyTo(imageRef, vips.KernelAuto)
+	if err != nil {
+		return
+	}
+
+	data, metadata, err := Export(imageRef)
 	if err != nil {
 		return
 	}

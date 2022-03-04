@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"image"
 	"image/color"
+	"image/jpeg"
 	"image/png"
+	"os"
 	"runtime"
 	"sync"
 	"testing"
@@ -75,5 +77,44 @@ func TestDaemonGoroutineCharacteristics(t *testing.T) {
 		// n4 = n0
 		n4 := runtime.NumGoroutine()
 		So(n4, ShouldEqual, n0)
+	})
+}
+
+func TestDaemonProcess(t *testing.T) {
+	LibvipsInit()
+
+	Convey("Daemon Process", t, func() {
+		numWorker := 1
+		d := NewDaemon(numWorker)
+		d.Open()
+		defer d.Close()
+
+		f, err := os.Open("testdata/image-cat-coffee.jpg")
+		So(err, ShouldBeNil)
+		defer f.Close()
+
+		input := Input{
+			Reader: f,
+			Options: Options{
+				Width:            500,
+				Height:           500,
+				ResizingModeType: ResizingModeTypeCover,
+			},
+		}
+
+		output, err := d.Process(input)
+		So(err, ShouldBeNil)
+
+		expected, err := os.Open("testdata/image-cat-coffee.expected.jpg")
+		So(err, ShouldBeNil)
+		defer expected.Close()
+
+		expectedImage, err := jpeg.Decode(expected)
+		So(err, ShouldBeNil)
+
+		actualImage, err := jpeg.Decode(bytes.NewReader(output.Data))
+		So(err, ShouldBeNil)
+
+		So(expectedImage.Bounds, ShouldEqual, actualImage.Bounds)
 	})
 }
