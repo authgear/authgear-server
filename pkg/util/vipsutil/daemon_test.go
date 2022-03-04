@@ -32,12 +32,11 @@ func TestDaemonGoroutineCharacteristics(t *testing.T) {
 	LibvipsInit()
 
 	Convey("Daemon goroutine characteristics", t, func() {
-		numWorker := 4
-		d := NewDaemon(numWorker)
-
 		// n0 is the initial number of running goroutine.
 		n0 := runtime.NumGoroutine()
-		d.Open()
+
+		numWorker := 4
+		d := OpenDaemon(numWorker)
 
 		// n1 is the number of running goroutine after the daemon is opened.
 		// n1 = n0 + numWorker
@@ -85,8 +84,7 @@ func TestDaemonProcess(t *testing.T) {
 
 	Convey("Daemon Process", t, func() {
 		numWorker := 1
-		d := NewDaemon(numWorker)
-		d.Open()
+		d := OpenDaemon(numWorker)
 		defer d.Close()
 
 		f, err := os.Open("testdata/image-cat-coffee.jpg")
