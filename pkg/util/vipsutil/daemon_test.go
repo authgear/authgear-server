@@ -2,6 +2,7 @@ package vipsutil
 
 import (
 	"bytes"
+	"fmt"
 	"image"
 	"image/color"
 	"image/jpeg"
@@ -26,6 +27,15 @@ func NewPNG(width int, height int) []byte {
 	w := bytes.Buffer{}
 	_ = png.Encode(&w, img)
 	return w.Bytes()
+}
+
+type ErrorReader struct {
+	Error error
+}
+
+func (r ErrorReader) Read(p []byte) (n int, err error) {
+	err = r.Error
+	return
 }
 
 func TestDaemonGoroutineCharacteristics(t *testing.T) {
@@ -114,5 +124,56 @@ func TestDaemonProcess(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		So(expectedImage.Bounds, ShouldEqual, actualImage.Bounds)
+	})
+
+	Convey("Daemon Process does not panic on invalid input", t, func() {
+		numWorker := 1
+		d := OpenDaemon(numWorker)
+		defer d.Close()
+
+		_, err := d.Process(Input{
+			Reader: bytes.NewBuffer(nil),
+			Options: Options{
+				Width:            500,
+				Height:           500,
+				ResizingModeType: ResizingModeTypeCover,
+			},
+		})
+		So(err, ShouldNotBeNil)
+	})
+
+	Convey("Daemon Process does not panic on io error", t, func() {
+		numWorker := 1
+		d := OpenDaemon(numWorker)
+		defer d.Close()
+
+		_, err := d.Process(Input{
+			Reader: ErrorReader{
+				Error: fmt.Errorf("some io error"),
+			},
+			Options: Options{
+				Width:            500,
+				Height:           500,
+				ResizingModeType: ResizingModeTypeCover,
+			},
+		})
+		So(err, ShouldBeError, "some io error")
+	})
+
+	Convey("Daemon Process does not error on zero options", t, func() {
+		numWorker := 1
+		d := OpenDaemon(numWorker)
+		defer d.Close()
+
+		f, err := os.Open("testdata/image-cat-coffee.jpg")
+		So(err, ShouldBeNil)
+		defer f.Close()
+
+		input := Input{
+			Reader: f,
+		}
+
+		_, err = d.Process(input)
+		So(err, ShouldBeNil)
 	})
 }
