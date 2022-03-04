@@ -60,19 +60,22 @@ func (v *Daemon) runInput(i Input) (o *Output, err error) {
 		return
 	}
 
-	// Resize
-	resizeMode := ResizingModeFromType(i.Options.ResizingModeType)
-	resizeDimen := ResizeDimensions{
-		Width:  i.Options.Width,
-		Height: i.Options.Height,
-	}
-	imageDimen := ImageDimensions{
-		Width:  imageRef.Metadata().Width,
-		Height: imageRef.Metadata().Height,
-	}
-	err = resizeMode.Resize(imageDimen, resizeDimen).ApplyTo(imageRef, vips.KernelAuto)
-	if err != nil {
-		return
+	// Resize only if it is OK to do so.
+	// This checking avoids division by zero.
+	if i.Options.ShouldResize() {
+		resizeMode := ResizingModeFromType(i.Options.ResizingModeType)
+		resizeDimen := ResizeDimensions{
+			Width:  i.Options.Width,
+			Height: i.Options.Height,
+		}
+		imageDimen := ImageDimensions{
+			Width:  imageRef.Metadata().Width,
+			Height: imageRef.Metadata().Height,
+		}
+		err = resizeMode.Resize(imageDimen, resizeDimen).ApplyTo(imageRef, vips.KernelAuto)
+		if err != nil {
+			return
+		}
 	}
 
 	data, metadata, err := Export(imageRef)
