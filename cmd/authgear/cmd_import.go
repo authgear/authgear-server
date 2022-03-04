@@ -35,6 +35,7 @@ var cmdImport = &cobra.Command{
 		emailCaseSensitive, _ := cmd.Flags().GetBool("email-case-sensitive")
 		emailBlockPlusSign, _ := cmd.Flags().GetBool("email-block-plus-sign")
 		emailIgnoreDotSign, _ := cmd.Flags().GetBool("email-ignore-dot-sign")
+		emailMarkAsVerified, _ := cmd.Flags().GetBool("email-mark-as-verified")
 
 		loginIDEmailConfig := &config.LoginIDEmailConfig{
 			CaseSensitive: &emailCaseSensitive,
@@ -60,7 +61,11 @@ var cmdImport = &cobra.Command{
 			loginIDEmailConfig,
 		)
 
-		return importer.ImportFromCSV(csvPath)
+		opts := cmdimporter.ImportOptions{
+			EmailMarkAsVerified: emailMarkAsVerified,
+		}
+
+		return importer.ImportFromCSV(csvPath, opts)
 	},
 }
 
@@ -81,4 +86,5 @@ func init() {
 	_ = cmdImport.Flags().Bool("email-case-sensitive", false, "set email is case sensitive")
 	_ = cmdImport.Flags().Bool("email-block-plus-sign", false, "disallow plus sign in email")
 	_ = cmdImport.Flags().Bool("email-ignore-dot-sign", false, "ignore the dot sign in email")
+	_ = cmdImport.Flags().Bool("email-mark-as-verified", false, "mark email as verified")
 }
