@@ -6,10 +6,13 @@ import (
 	"github.com/kelseyhightower/envconfig"
 
 	imagesconfig "github.com/authgear/authgear-server/pkg/images/config"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 type Config struct {
 	*imagesconfig.EnvironmentConfig
+
+	ObjectStore *imagesconfig.ObjectStoreConfig `envconfig:"IMAGES_OBJECT_STORE"`
 
 	// ListenAddr sets the listen address of the images server.
 	ListenAddr string `envconfig:"PORTAL_LISTEN_ADDR" default:"0.0.0.0:3004"`
@@ -23,5 +26,16 @@ func LoadConfigFromEnv() (*Config, error) {
 		return nil, fmt.Errorf("cannot load server config: %w", err)
 	}
 
+	err = config.Validate()
+	if err != nil {
+		return nil, err
+	}
+
 	return config, nil
+}
+
+func (c *Config) Validate() error {
+	ctx := &validation.Context{}
+	c.ObjectStore.Validate(ctx.Child("IMAGES_OBJECT_STORE"))
+	return ctx.Error("invalid server configuration")
 }
