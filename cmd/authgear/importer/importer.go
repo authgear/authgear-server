@@ -16,6 +16,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
+type ImportOptions struct {
+	EmailMarkAsVerified bool
+}
+
 type Importer struct {
 	AppID         config.AppID
 	Handle        *appdb.Handle
@@ -24,7 +28,7 @@ type Importer struct {
 	EmailConfig   *config.LoginIDEmailConfig
 }
 
-func (i *Importer) ImportRecord(record []string, now time.Time) error {
+func (i *Importer) ImportRecord(record []string, opts ImportOptions, now time.Time) error {
 	userID := record[0]
 	rawEmail := record[1]
 	name := record[2]
@@ -134,6 +138,22 @@ func (i *Importer) ImportRecord(record []string, now time.Time) error {
 		).Suffix("ON CONFLICT (id) DO UPDATE SET password_hash = EXCLUDED.password_hash"),
 	}
 
+	if opts.EmailMarkAsVerified {
+		insertStmts = append(insertStmts, i.SQLBuilderApp.Insert(i.SQLBuilderApp.TableName("_auth_verified_claim")).Columns(
+			"id",
+			"user_id",
+			"name",
+			"value",
+			"created_at",
+		).Values(
+			userID,
+			userID,
+			"email",
+			loginID,
+			now,
+		).Suffix("ON CONFLICT (id) DO UPDATE SET value = EXCLUDED.value"))
+	}
+
 	err = i.Handle.WithTx(func() (err error) {
 		for _, stmt := range insertStmts {
 			_, err = i.SQLExecutor.ExecWith(stmt)
@@ -150,7 +170,7 @@ func (i *Importer) ImportRecord(record []string, now time.Time) error {
 	return nil
 }
 
-func (i *Importer) ImportFromCSV(csvPath string) error {
+func (i *Importer) ImportFromCSV(csvPath string, opts ImportOptions) error {
 	now := time.Now().UTC()
 
 	f, err := os.Open(csvPath)
@@ -184,7 +204,7 @@ func (i *Importer) ImportFromCSV(csvPath string) error {
 		}
 
 		numTotal++
-		err = i.ImportRecord(record, now)
+		err = i.ImportRecord(record, opts, now)
 		if err != nil {
 			numBad++
 			fmt.Fprintf(os.Stderr, "%v:%v: %v\n", csvPath, numTotal, err)
