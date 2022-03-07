@@ -32,6 +32,7 @@ func newSentryMiddleware(p *deps.RequestProvider) httproute.Middleware {
 
 func newGetHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
+		deps.DependencySet,
 		wire.Struct(new(handler.GetHandler), "*"),
 		wire.Bind(new(http.Handler), new(*handler.GetHandler)),
 	))

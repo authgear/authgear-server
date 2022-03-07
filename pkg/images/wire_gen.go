@@ -39,6 +39,16 @@ func newSentryMiddleware(p *deps.RequestProvider) httproute.Middleware {
 }
 
 func newGetHandler(p *deps.RequestProvider) http.Handler {
-	getHandler := &handler.GetHandler{}
+	extractKey := _wireExtractKeyValue
+	rootProvider := p.RootProvider
+	objectStoreConfig := rootProvider.ObjectStoreConfig
+	director := deps.NewDirector(extractKey, objectStoreConfig)
+	getHandler := &handler.GetHandler{
+		Director: director,
+	}
 	return getHandler
 }
+
+var (
+	_wireExtractKeyValue = handler.ExtractKey
+)
