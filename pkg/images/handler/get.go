@@ -7,6 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/imageproxy"
+	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 func ConfigureGetRoute(route httproute.Route) httproute.Route {
@@ -23,8 +24,15 @@ var ExtractKey imageproxy.ExtractKey = func(r *http.Request) string {
 	)
 }
 
+type GetHandlerLogger struct{ *log.Logger }
+
+func NewGetHandlerLogger(lf *log.Factory) GetHandlerLogger {
+	return GetHandlerLogger{lf.New("get-handler")}
+}
+
 type GetHandler struct {
 	Director imageproxy.Director
+	Logger   GetHandlerLogger
 }
 
 func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +44,10 @@ func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	director := h.Director.Director
 	reverseProxy := httputil.ReverseProxy{
 		Director: director,
-		// ErrorHandler
+		ErrorHandler: func(w http.ResponseWriter, r *http.Request, err error) {
+			h.Logger.WithError(err).Errorf("reverse proxy error")
+			w.WriteHeader(http.StatusBadGateway)
+		},
 		// ModifyResponse
 	}
 	reverseProxy.ServeHTTP(w, r)
