@@ -26,12 +26,23 @@ func LoadConfigFromEnv() (*Config, error) {
 		return nil, fmt.Errorf("cannot load server config: %w", err)
 	}
 
+	err = config.Initialize()
+	if err != nil {
+		return nil, err
+	}
+
 	err = config.Validate()
 	if err != nil {
 		return nil, err
 	}
 
 	return config, nil
+}
+
+func (c *Config) Initialize() error {
+	ctx := &validation.Context{}
+	c.ObjectStore.Initialize(ctx.Child("IMAGES_OBJECT_STORE"))
+	return ctx.Error("failed to initialize server configuration")
 }
 
 func (c *Config) Validate() error {
