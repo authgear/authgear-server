@@ -43,8 +43,11 @@ func newGetHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
 	objectStoreConfig := rootProvider.ObjectStoreConfig
 	director := deps.NewDirector(extractKey, objectStoreConfig)
+	factory := rootProvider.LoggerFactory
+	getHandlerLogger := handler.NewGetHandlerLogger(factory)
 	getHandler := &handler.GetHandler{
 		Director: director,
+		Logger:   getHandlerLogger,
 	}
 	return getHandler
 }
