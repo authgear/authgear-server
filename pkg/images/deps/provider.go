@@ -13,19 +13,21 @@ import (
 
 type RootProvider struct {
 	EnvironmentConfig imagesconfig.EnvironmentConfig
+	ObjectStoreConfig *imagesconfig.ObjectStoreConfig
 	LoggerFactory     *log.Factory
 	SentryHub         *getsentry.Hub
 }
 
 func NewRootProvider(
-	cfg imagesconfig.EnvironmentConfig,
+	envConfig imagesconfig.EnvironmentConfig,
+	objectStoreConfig *imagesconfig.ObjectStoreConfig,
 ) (*RootProvider, error) {
-	logLevel, err := log.ParseLevel(string(cfg.LogLevel))
+	logLevel, err := log.ParseLevel(string(envConfig.LogLevel))
 	if err != nil {
 		return nil, err
 	}
 
-	sentryHub, err := sentry.NewHub(string(cfg.SentryDSN))
+	sentryHub, err := sentry.NewHub(string(envConfig.SentryDSN))
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +39,8 @@ func NewRootProvider(
 	)
 
 	return &RootProvider{
-		EnvironmentConfig: cfg,
+		EnvironmentConfig: envConfig,
+		ObjectStoreConfig: objectStoreConfig,
 		LoggerFactory:     loggerFactory,
 		SentryHub:         sentryHub,
 	}, nil
