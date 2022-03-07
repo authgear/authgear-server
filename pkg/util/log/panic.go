@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"net/http"
 	"syscall"
 
 	"github.com/lib/pq"
@@ -20,6 +21,12 @@ func PanicValue(logger *Logger, err error) {
 	// We consider all of them as request canceled and do not log them.
 
 	if errors.Is(err, context.Canceled) {
+		skip = true
+	}
+
+	// ErrAbortHandler is a sentinel panic value to abort a handler.
+	// net/http does NOT log this error, so do we.
+	if errors.Is(err, http.ErrAbortHandler) {
 		skip = true
 	}
 
