@@ -66,6 +66,7 @@ require (
 
 require (
 	cloud.google.com/go/storage v1.14.0
+	github.com/aws/aws-sdk-go v1.34.30
 	github.com/davidbyttow/govips/v2 v2.10.0
 )
 
@@ -106,6 +107,7 @@ require (
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.11 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/klauspost/compress v1.10.3 // indirect
