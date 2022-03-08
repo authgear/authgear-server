@@ -120,8 +120,8 @@ func (h *GetHandler) modifyResponse(resp *http.Response) error {
 		Reader: bytes.NewReader(originalBytes),
 		Options: vipsutil.Options{
 			ResizingModeType: vipsutil.ResizingModeTypeCover,
-			Width:            500,
-			Height:           500,
+			Width:            240,
+			Height:           240,
 		},
 	}
 
