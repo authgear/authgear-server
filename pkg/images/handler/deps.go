@@ -7,4 +7,6 @@ import (
 var DependencySet = wire.NewSet(
 	NewGetHandlerLogger,
 	wire.Struct(new(GetHandler), "*"),
+	NewPostHandlerLogger,
+	wire.Struct(new(PostHandler), "*"),
 )
