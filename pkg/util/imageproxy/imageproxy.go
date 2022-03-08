@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+//go:generate mockgen -source=imageproxy.go -destination=imageproxy_mock.go -package imageproxy
+
 type ExtractKey func(r *http.Request) string
 
 func getKey(extractKey ExtractKey, r *http.Request) string {
