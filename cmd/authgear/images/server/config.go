@@ -15,7 +15,7 @@ type Config struct {
 	ObjectStore *imagesconfig.ObjectStoreConfig `envconfig:"IMAGES_OBJECT_STORE"`
 
 	// ListenAddr sets the listen address of the images server.
-	ListenAddr string `envconfig:"PORTAL_LISTEN_ADDR" default:"0.0.0.0:3004"`
+	ListenAddr string `envconfig:"IMAGES_LISTEN_ADDR" default:"0.0.0.0:3004"`
 }
 
 func LoadConfigFromEnv() (*Config, error) {
