@@ -5,6 +5,7 @@ FROM golang:1.17.7-bullseye as stage1
 RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
     libicu-dev \
+    libvips-dev \
     && rm -rf /var/lib/apt/lists/*
 
 ARG GIT_HASH
@@ -38,6 +39,7 @@ WORKDIR /app
 # /usr/share/zoneinfo/ (tzdata)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libicu-dev \
+    libvips-dev \
     ca-certificates \
     mime-support \
     tzdata \
