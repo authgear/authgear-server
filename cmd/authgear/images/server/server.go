@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/images/deps"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/server"
+	"github.com/authgear/authgear-server/pkg/util/vipsutil"
 	"github.com/authgear/authgear-server/pkg/version"
 )
 
@@ -15,6 +16,8 @@ type Controller struct {
 }
 
 func (c *Controller) Start() {
+	vipsutil.LibvipsInit()
+
 	cfg, err := LoadConfigFromEnv()
 	if err != nil {
 		golog.Fatalf("failed to load server config: %s", err)

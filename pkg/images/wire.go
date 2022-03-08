@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/images/handler"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/vipsutil"
 )
 
 func newPanicMiddleware(p *deps.RequestProvider) httproute.Middleware {
@@ -34,6 +35,7 @@ func newGetHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		deps.DependencySet,
 		handler.DependencySet,
+		wire.Bind(new(handler.VipsDaemon), new(*vipsutil.Daemon)),
 		wire.Bind(new(http.Handler), new(*handler.GetHandler)),
 	))
 }
