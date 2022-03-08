@@ -5,6 +5,8 @@ import (
 
 	imagesconfig "github.com/authgear/authgear-server/pkg/images/config"
 	imageshandler "github.com/authgear/authgear-server/pkg/images/handler"
+	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/imageproxy"
 )
 
@@ -32,6 +34,30 @@ func NewDirector(extractKey imageproxy.ExtractKey, objectStoreConfig *imagesconf
 	}
 }
 
+func NewCloudStorage(objectStoreConfig *imagesconfig.ObjectStoreConfig, c clock.Clock) cloudstorage.Storage {
+	switch objectStoreConfig.Type {
+	case imagesconfig.ObjectStoreTypeAWSS3:
+		// FIXME(images): s3 storeage implementation
+		return nil
+	case imagesconfig.ObjectStoreTypeGCPGCS:
+		s, err := cloudstorage.NewGCSStorage(
+			objectStoreConfig.GCPGCS.CredentialsJSON,
+			objectStoreConfig.GCPGCS.ServiceAccount,
+			objectStoreConfig.GCPGCS.BucketName,
+			c,
+		)
+		if err != nil {
+			panic(err)
+		}
+		return s
+	case imagesconfig.ObjectStoreTypeAzureBlobStorage:
+		// FIXME(images): azure blob storeage implementation
+		return nil
+	default:
+		return nil
+	}
+}
+
 var DependencySet = wire.NewSet(
 	wire.FieldsOf(new(*RootProvider),
 		"EnvironmentConfig",
@@ -48,4 +74,7 @@ var DependencySet = wire.NewSet(
 	),
 	wire.Value(imageshandler.ExtractKey),
 	NewDirector,
+	clock.DependencySet,
+	cloudstorage.DependencySet,
+	NewCloudStorage,
 )

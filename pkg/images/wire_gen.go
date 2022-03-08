@@ -9,8 +9,11 @@ package images
 import (
 	"github.com/authgear/authgear-server/pkg/images/deps"
 	"github.com/authgear/authgear-server/pkg/images/handler"
+	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"net/http"
 )
 
@@ -62,8 +65,24 @@ func newPostHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
 	factory := rootProvider.LoggerFactory
 	postHandlerLogger := handler.NewPostHandlerLogger(factory)
+	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
+	jsonResponseWriter := &httputil.JSONResponseWriter{
+		Logger: jsonResponseWriterLogger,
+	}
+	objectStoreConfig := rootProvider.ObjectStoreConfig
+	clock := _wireSystemClockValue
+	storage := deps.NewCloudStorage(objectStoreConfig, clock)
+	provider := cloudstorage.Provider{
+		Storage: storage,
+	}
 	postHandler := &handler.PostHandler{
-		Logger: postHandlerLogger,
+		Logger:               postHandlerLogger,
+		JSON:                 jsonResponseWriter,
+		CloudStorageProvider: provider,
 	}
 	return postHandler
 }
+
+var (
+	_wireSystemClockValue = clock.NewSystemClock()
+)
