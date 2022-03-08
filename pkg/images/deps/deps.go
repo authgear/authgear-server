@@ -38,6 +38,7 @@ var DependencySet = wire.NewSet(
 		"ObjectStoreConfig",
 		"LoggerFactory",
 		"SentryHub",
+		"VipsDaemon",
 	),
 	wire.FieldsOf(new(*RequestProvider),
 		"RootProvider",
