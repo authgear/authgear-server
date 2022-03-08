@@ -39,3 +39,11 @@ func newGetHandler(p *deps.RequestProvider) http.Handler {
 		wire.Bind(new(http.Handler), new(*handler.GetHandler)),
 	))
 }
+
+func newPostHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		deps.DependencySet,
+		handler.DependencySet,
+		wire.Bind(new(http.Handler), new(*handler.PostHandler)),
+	))
+}

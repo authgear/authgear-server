@@ -57,3 +57,13 @@ func newGetHandler(p *deps.RequestProvider) http.Handler {
 var (
 	_wireExtractKeyValue = handler.ExtractKey
 )
+
+func newPostHandler(p *deps.RequestProvider) http.Handler {
+	rootProvider := p.RootProvider
+	factory := rootProvider.LoggerFactory
+	postHandlerLogger := handler.NewPostHandlerLogger(factory)
+	postHandler := &handler.PostHandler{
+		Logger: postHandlerLogger,
+	}
+	return postHandler
+}
