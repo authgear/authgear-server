@@ -59,8 +59,13 @@ func NewCloudStorage(objectStoreConfig *imagesconfig.ObjectStoreConfig, c clock.
 		}
 		return s
 	case imagesconfig.ObjectStoreTypeAzureBlobStorage:
-		// FIXME(images): azure blob storeage implementation
-		return nil
+		return cloudstorage.NewAzureStorage(
+			objectStoreConfig.AzureBlobStorage.ServiceURL,
+			objectStoreConfig.AzureBlobStorage.StorageAccount,
+			objectStoreConfig.AzureBlobStorage.AccessKey,
+			objectStoreConfig.AzureBlobStorage.Container,
+			c,
+		)
 	default:
 		return nil
 	}
