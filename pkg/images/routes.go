@@ -23,6 +23,7 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 
 	rootRoute := httproute.Route{Middleware: rootChain}
 	router.Add(handler.ConfigureGetRoute(rootRoute), p.Handler(newGetHandler))
+	router.Add(handler.ConfigurePostRoute(rootRoute), p.Handler(newPostHandler))
 
 	return router
 }
