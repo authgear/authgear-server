@@ -64,7 +64,10 @@ require (
 	sigs.k8s.io/yaml v1.3.0
 )
 
-require github.com/davidbyttow/govips/v2 v2.10.0
+require (
+	cloud.google.com/go/storage v1.14.0
+	github.com/davidbyttow/govips/v2 v2.10.0
+)
 
 require (
 	cloud.google.com/go v0.99.0 // indirect
