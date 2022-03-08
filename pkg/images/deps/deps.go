@@ -37,8 +37,16 @@ func NewDirector(extractKey imageproxy.ExtractKey, objectStoreConfig *imagesconf
 func NewCloudStorage(objectStoreConfig *imagesconfig.ObjectStoreConfig, c clock.Clock) cloudstorage.Storage {
 	switch objectStoreConfig.Type {
 	case imagesconfig.ObjectStoreTypeAWSS3:
-		// FIXME(images): s3 storeage implementation
-		return nil
+		s, err := cloudstorage.NewS3Storage(
+			objectStoreConfig.AWSS3.AccessKeyID,
+			objectStoreConfig.AWSS3.SecretAccessKey,
+			objectStoreConfig.AWSS3.Region,
+			objectStoreConfig.AWSS3.BucketName,
+		)
+		if err != nil {
+			panic(err)
+		}
+		return s
 	case imagesconfig.ObjectStoreTypeGCPGCS:
 		s, err := cloudstorage.NewGCSStorage(
 			objectStoreConfig.GCPGCS.CredentialsJSON,
