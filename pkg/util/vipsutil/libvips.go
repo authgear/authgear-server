@@ -22,4 +22,6 @@ func LibvipsInit() {
 		CollectStats:     false,
 	}
 	vips.Startup(&cfg)
+	// The default log evel is INFO, which is too noisey.
+	vips.LoggingSettings(nil, vips.LogLevelWarning)
 }
