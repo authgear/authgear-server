@@ -6,6 +6,7 @@ package auth
 import (
 	"github.com/google/wire"
 
+	"github.com/authgear/authgear-server/pkg/auth/api"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -139,5 +140,12 @@ func newSuccessPageMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*webapp.SuccessPageMiddleware)),
+	))
+}
+
+func newAPIRRequireAuthenticatedMiddlewareMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*api.RequireAuthenticatedMiddleware)),
 	))
 }
