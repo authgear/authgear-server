@@ -59,6 +59,11 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.Middleware(newCORSMiddleware),
 	)
 
+	apiAuthenticatedChain := httproute.Chain(
+		apiChain,
+		p.Middleware(newAPIRRequireAuthenticatedMiddlewareMiddleware),
+	)
+
 	scopedChain := httproute.Chain(
 		rootChain,
 		p.Middleware(newSessionMiddleware),
@@ -121,6 +126,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	oauthStaticRoute := httproute.Route{Middleware: oauthStaticChain}
 	oauthAPIRoute := httproute.Route{Middleware: oauthAPIChain}
 	apiRoute := httproute.Route{Middleware: apiChain}
+	apiAuthenticatedRoute := httproute.Route{Middleware: apiAuthenticatedChain}
 	scopedRoute := httproute.Route{Middleware: scopedChain}
 	webappPageRoute := httproute.Route{Middleware: webappPageChain}
 	webappAuthEntrypointRoute := httproute.Route{Middleware: webappAuthEntrypointChain}
@@ -198,6 +204,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	router.Add(apihandler.ConfigureAnonymousUserSignupRoute(apiRoute), p.Handler(newAPIAnonymousUserSignupHandler))
 	router.Add(apihandler.ConfigureAnonymousUserPromotionCodeRoute(apiRoute), p.Handler(newAPIAnonymousUserPromotionCodeHandler))
+	router.Add(apihandler.ConfigurePresignImagesUploadRoute(apiAuthenticatedRoute), p.Handler(newAPIPresignImagesUploadHandler))
 
 	router.Add(webapphandler.ConfigureWebsocketRoute(webappWebsocketRoute), p.Handler(newWebAppWebsocketHandler))
 
