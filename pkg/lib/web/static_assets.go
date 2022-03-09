@@ -79,6 +79,14 @@ var IntlTelInputRealRuntime = resource.RegisterResource(JavaScriptDescriptor{
 	Path: StaticAssetResourcePrefix + "intl-tel-input/js/utils.js",
 })
 
+// CropperjsJS - cropperjs v1.5.12
+var CropperjsJS = resource.RegisterResource(JavaScriptDescriptor{
+	Path: StaticAssetResourcePrefix + "cropperjs/js/cropper.min.js",
+})
+var CropperjsCSS = resource.RegisterResource(CSSDescriptor{
+	Path: StaticAssetResourcePrefix + "cropperjs/css/cropper.min.css",
+})
+
 var AppLogo = resource.RegisterResource(ImageDescriptor{Name: "app_logo"})
 var AppLogoDark = resource.RegisterResource(ImageDescriptor{Name: "app_logo_dark"})
 var Favicon = resource.RegisterResource(ImageDescriptor{Name: "favicon"})

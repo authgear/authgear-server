@@ -40,6 +40,9 @@ var StaticAssetResources = map[string]resource.Descriptor{
 	"intl-tel-input/img/flags@2x.png":         IntlTelInputImage2X,
 	"intl-tel-input/js/intlTelInput.min.js":   IntlTelInputRuntime,
 	"intl-tel-input/js/utils.js":              IntlTelInputRealRuntime,
+
+	"cropperjs/css/cropper.min.css": CropperjsCSS,
+	"cropperjs/js/cropper.min.js":   CropperjsJS,
 }
 
 type ResourceManager interface {
