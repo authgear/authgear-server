@@ -44,6 +44,9 @@ export function autoSubmitForm() {
 export function xhrSubmitForm(): () => void {
   let isSubmitting = false;
   function submitForm(e: Event) {
+    if (e.defaultPrevented) {
+      return;
+    }
     e.preventDefault();
     e.stopPropagation();
     if (isSubmitting) {
