@@ -8,6 +8,7 @@ package auth
 
 import (
 	"context"
+	api2 "github.com/authgear/authgear-server/pkg/auth/api"
 	"github.com/authgear/authgear-server/pkg/auth/handler/api"
 	"github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	webapp2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -32371,4 +32372,17 @@ func newSuccessPageMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		ErrorCookie: errorCookie,
 	}
 	return successPageMiddleware
+}
+
+func newAPIRRequireAuthenticatedMiddlewareMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
+	jsonResponseWriter := &httputil.JSONResponseWriter{
+		Logger: jsonResponseWriterLogger,
+	}
+	requireAuthenticatedMiddleware := &api2.RequireAuthenticatedMiddleware{
+		JSON: jsonResponseWriter,
+	}
+	return requireAuthenticatedMiddleware
 }
