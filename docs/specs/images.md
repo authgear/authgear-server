@@ -37,7 +37,11 @@ THE FILE CONTENT
 HTTP/1.1 200 OK
 Content-Type: application/json
 
-{ "url": "authgearimages:///OBJECT_ID" }
+{
+    "result": {
+        "upload_url": "authgearimages:///OBJECT_ID"
+    }
+}
 ```
 
 - `APP_ID`: The authgear app id
@@ -65,13 +69,17 @@ The endpoint is rate-limited per user.
 The signed URL should have user id in the metadata parameter.
 
 ```
-POST /images/upload HTTP/1.1
+POST /api/images/upload HTTP/1.1
 
 ---
 HTTP/1.1 200 OK
 Content-Type: application/json
 
-{ "upload_url": "SIGNED_URL" }
+{
+    "result": {
+        "upload_url": "SIGNED_URL"
+    }
+}
 ```
 
 ### Admin API
@@ -97,7 +105,11 @@ Content-Type: application/json
 HTTP/1.1 200 OK
 Content-Type: application/json
 
-{ "upload_url": "SIGNED_URL" }
+{
+    "result": {
+        "upload_url": "SIGNED_URL"
+    }
+}
 ```
 
 ### The profile URL
