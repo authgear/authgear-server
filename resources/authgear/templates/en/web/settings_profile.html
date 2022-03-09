@@ -17,9 +17,11 @@
         src="{{ call $.StaticAssetURL "avatar-placeholder" }}"
       {{ end }}
     >
-    {{/* TODO(picture) */}}
-    {{/* The edit link is not shown because we only supports entering URL */}}
-    {{/* We will add the button back when we support uploading picture */}}
+    {{ if (call $.IsEditable "/picture") }}
+    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/picture/edit">
+      <i class="ti ti-edit"></i>
+    </a>
+    {{ end }}
   </div>
   {{ end }}
 
