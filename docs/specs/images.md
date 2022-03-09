@@ -18,7 +18,7 @@ GET /_images/APP_ID/OBJECT_ID/OPTIONS HTTP/1.1
 - `OBJECT_ID`: The file object id
 - `OPTIONS`: Following options are supported.
     - Pre-configured resizing option.
-        - `profile`: The Authgear Images will transform the image to width 500px, height 500px, center crop. Essential EXIF data (e.g. orientation) will be processed and disabled.
+        - `profile`: The Authgear Images will transform the image to width 240px, height 240px, center crop. Essential EXIF data (e.g. orientation) will be processed and disabled.
     - Original image: `original`
 
 ### Uploading image
