@@ -45,9 +45,11 @@ func newGetHandler(p *deps.RequestProvider) http.Handler {
 	director := deps.NewDirector(extractKey, objectStoreConfig)
 	factory := rootProvider.LoggerFactory
 	getHandlerLogger := handler.NewGetHandlerLogger(factory)
+	daemon := rootProvider.VipsDaemon
 	getHandler := &handler.GetHandler{
-		Director: director,
-		Logger:   getHandlerLogger,
+		Director:   director,
+		Logger:     getHandlerLogger,
+		VipsDaemon: daemon,
 	}
 	return getHandler
 }

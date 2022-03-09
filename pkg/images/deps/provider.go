@@ -2,6 +2,7 @@ package deps
 
 import (
 	"net/http"
+	"runtime"
 
 	getsentry "github.com/getsentry/sentry-go"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/sentry"
+	"github.com/authgear/authgear-server/pkg/util/vipsutil"
 )
 
 type RootProvider struct {
@@ -16,6 +18,7 @@ type RootProvider struct {
 	ObjectStoreConfig *imagesconfig.ObjectStoreConfig
 	LoggerFactory     *log.Factory
 	SentryHub         *getsentry.Hub
+	VipsDaemon        *vipsutil.Daemon
 }
 
 func NewRootProvider(
@@ -38,11 +41,16 @@ func NewRootProvider(
 		sentry.NewLogHookFromHub(sentryHub),
 	)
 
+	// We do not have a chance to close this yet :(
+	// But it is not harmful not to close this.
+	vipsDaemon := vipsutil.OpenDaemon(runtime.NumCPU())
+
 	return &RootProvider{
 		EnvironmentConfig: envConfig,
 		ObjectStoreConfig: objectStoreConfig,
 		LoggerFactory:     loggerFactory,
 		SentryHub:         sentryHub,
+		VipsDaemon:        vipsDaemon,
 	}, nil
 }
 
