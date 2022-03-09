@@ -314,6 +314,8 @@ Various files in this project have versioned dependencies.
   - The version of Debian bullseye is `2021a`, which correspond to `tzdata@v1.0.25`.
 - [The intl-tel-input static resources in ./resources/authgear/static](./resources/authgear/static)
 - [The tabler static resources in ./resources/authgear/static](./resources/authgear/static)
+- [The cropperjs static resources in ./resources/authgear/static](./resources/authgear/static)
+- [The cropperjs type definition in ./authui/src](./authui/src)
 
 ## Update third party static resources
 
