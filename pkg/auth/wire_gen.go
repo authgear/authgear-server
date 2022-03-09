@@ -4954,6 +4954,33 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	return anonymousUserPromotionCodeAPIHandler
 }
 
+func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
+	jsonResponseWriter := &httputil.JSONResponseWriter{
+		Logger: jsonResponseWriterLogger,
+	}
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesUploadHost := environmentConfig.ImagesUploadHost
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	presignImagesUploadHandler := &api.PresignImagesUploadHandler{
+		JSON:             jsonResponseWriter,
+		HTTPProto:        httpProto,
+		HTTPHost:         httpHost,
+		ImagesUploadHost: imagesUploadHost,
+		AppID:            appID,
+	}
+	return presignImagesUploadHandler
+}
+
 func newWebAppOAuthEntrypointHandler(p *deps.RequestProvider) http.Handler {
 	oAuthEntrypointHandler := &webapp2.OAuthEntrypointHandler{}
 	return oAuthEntrypointHandler
