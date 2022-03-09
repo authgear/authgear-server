@@ -8,6 +8,8 @@ type SentryDSN string
 
 type StaticAssetURLPrefix string
 
+type ImagesUploadHost string
+
 type EnvironmentConfig struct {
 	// TrustProxy sets whether HTTP headers from proxy are to be trusted
 	TrustProxy TrustProxy `envconfig:"TRUST_PROXY" default:"false"`
@@ -23,4 +25,7 @@ type EnvironmentConfig struct {
 	Database DatabaseEnvironmentConfig `envconfig:"DATABASE"`
 	// AuditDatabase configures the audit database
 	AuditDatabase DatabaseCredentialsEnvironmentConfig `envconfig:"AUDIT_DATABASE"`
+	// ImagesUploadHost is useful for development
+	// If it is not set, the request host is used
+	ImagesUploadHost ImagesUploadHost `envconfig:"IMAGES_UPLOAD_HOST"`
 }

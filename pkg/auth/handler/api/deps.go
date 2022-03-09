@@ -9,4 +9,5 @@ var DependencySet = wire.NewSet(
 	NewAnonymousUserSignupAPIHandlerLogger,
 	wire.Struct(new(AnonymousUserPromotionCodeAPIHandler), "*"),
 	NewAnonymousUserPromotionCodeAPILogger,
+	wire.Struct(new(PresignImagesUploadHandler), "*"),
 )
