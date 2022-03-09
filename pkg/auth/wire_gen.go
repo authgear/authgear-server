@@ -4972,12 +4972,25 @@ func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
+	logger := ratelimit.NewLogger(factory)
+	handle := appProvider.Redis
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	clockClock := _wireSystemClockValue
+	limiter := &ratelimit.Limiter{
+		Logger:  logger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	presignImagesUploadHandler := &api.PresignImagesUploadHandler{
 		JSON:             jsonResponseWriter,
 		HTTPProto:        httpProto,
 		HTTPHost:         httpHost,
 		ImagesUploadHost: imagesUploadHost,
 		AppID:            appID,
+		RateLimiter:      limiter,
 	}
 	return presignImagesUploadHandler
 }
