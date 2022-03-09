@@ -122,6 +122,31 @@
   {{ end }}
   {{ end }}
 
+  {{ if (eq $.Variant "picture") }}
+  {{ if (call $.IsEditable "/picture") }}
+  <div class="grid grid-cols-1 auto-rows-auto">
+    <input class="hidden" name="/picture" value="{{ $.Picture }}">
+    <img id="imagepicker-img-preview" class="w-60 h-60 rounded-full place-self-center"
+      {{ if $.Picture }}
+	src="{{ $.Picture }}"
+      {{ else }}
+	src="{{ call $.StaticAssetURL "avatar-placeholder" }}"
+      {{ end }}
+    >
+    <div>
+      <img id="imagepicker-img-cropper" class="w-full h-60 hidden">
+    </div>
+    <input id="imagepicker-input-file" type="file" class="hidden" accept="image/png, image/jpeg">
+    <button id="imagepicker-button-file" type="button" class="btn primary-btn text-base margin-t-40">
+      {{ template "settings-profile-edit-upload-picture-label" }}
+    </button>
+    <button id="imagepicker-button-remove" type="button" class="btn secondary-btn text-base margin-t-12 {{ if not $.Picture }}hidden{{ end }}">
+      {{ template "settings-profile-edit-remove-picture-label" }}
+    </button>
+  </div>
+  {{ end }}
+  {{ end }}
+
   {{ if (eq $.Variant "website") }}
   {{ if (call $.IsEditable "/website") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
@@ -322,7 +347,7 @@
   {{ end }}
   {{ end }}
 
-  <button class="btn primary-btn margin-t-20" type="submit" name="x_action" value="save" {{ if $save_disabled }}disabled{{ end }}>
+  <button id="save-button" class="btn primary-btn margin-t-20 {{ if (eq $.Variant "picture") }}hidden{{ end }}" type="submit" name="x_action" value="save" {{ if $save_disabled }}disabled{{ end }}>
     {{ template "save-button-label" }}
   </button>
 
