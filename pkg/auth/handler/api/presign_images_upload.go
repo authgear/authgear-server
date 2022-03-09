@@ -7,10 +7,16 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
+
+type RateLimiter interface {
+	TakeToken(bucket ratelimit.Bucket) error
+}
 
 func ConfigurePresignImagesUploadRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -28,11 +34,18 @@ type PresignImagesUploadHandler struct {
 	HTTPHost         httputil.HTTPHost
 	ImagesUploadHost config.ImagesUploadHost
 	AppID            config.AppID
+	RateLimiter      RateLimiter
 }
 
 func (h *PresignImagesUploadHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	// FIXME(images): presigned the url
-	// FIXME(images): add rate limit
+
+	userID := session.GetUserID(req.Context())
+	err := h.RateLimiter.TakeToken(PresignImagesUploadRateLimitBucket(*userID))
+	if err != nil {
+		h.JSON.WriteResponse(resp, &api.Response{Error: err})
+		return
+	}
 
 	host := string(h.HTTPHost)
 	if h.ImagesUploadHost != "" {
