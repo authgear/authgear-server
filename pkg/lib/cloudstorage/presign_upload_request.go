@@ -24,9 +24,8 @@ func (r *PresignUploadRequest) Sanitize() {
 	if _, ok := r.Headers["content-type"]; !ok {
 		r.Headers["content-type"] = "application/octet-stream"
 	}
-	if _, ok := r.Headers["cache-control"]; !ok {
-		r.Headers["cache-control"] = "max-age=3600"
-	}
+	// We do not set cache-control on objects directly.
+	// Instead, the GET endpoint will set cache-control header.
 }
 
 func (r *PresignUploadRequest) ContentLength() (contentLength int) {
