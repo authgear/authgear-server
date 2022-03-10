@@ -4967,7 +4967,6 @@ func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 	trustProxy := environmentConfig.TrustProxy
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	imagesUploadHost := environmentConfig.ImagesUploadHost
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -4984,12 +4983,11 @@ func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	presignImagesUploadHandler := &api.PresignImagesUploadHandler{
-		JSON:             jsonResponseWriter,
-		HTTPProto:        httpProto,
-		HTTPHost:         httpHost,
-		ImagesUploadHost: imagesUploadHost,
-		AppID:            appID,
-		RateLimiter:      limiter,
+		JSON:        jsonResponseWriter,
+		HTTPProto:   httpProto,
+		HTTPHost:    httpHost,
+		AppID:       appID,
+		RateLimiter: limiter,
 	}
 	return presignImagesUploadHandler
 }

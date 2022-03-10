@@ -26,7 +26,6 @@ var envConfigDeps = wire.NewSet(
 		"SentryDSN",
 		"StaticAssetURLPrefix",
 		"Database",
-		"ImagesUploadHost",
 	),
 )
 

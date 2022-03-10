@@ -29,12 +29,11 @@ type PresignImagesUploadResponse struct {
 }
 
 type PresignImagesUploadHandler struct {
-	JSON             JSONResponseWriter
-	HTTPProto        httputil.HTTPProto
-	HTTPHost         httputil.HTTPHost
-	ImagesUploadHost config.ImagesUploadHost
-	AppID            config.AppID
-	RateLimiter      RateLimiter
+	JSON        JSONResponseWriter
+	HTTPProto   httputil.HTTPProto
+	HTTPHost    httputil.HTTPHost
+	AppID       config.AppID
+	RateLimiter RateLimiter
 }
 
 func (h *PresignImagesUploadHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
@@ -48,9 +47,6 @@ func (h *PresignImagesUploadHandler) ServeHTTP(resp http.ResponseWriter, req *ht
 	}
 
 	host := string(h.HTTPHost)
-	if h.ImagesUploadHost != "" {
-		host = string(h.ImagesUploadHost)
-	}
 	u := &url.URL{
 		Host:   host,
 		Scheme: string(h.HTTPProto),
