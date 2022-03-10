@@ -64,10 +64,16 @@ require (
 	sigs.k8s.io/yaml v1.3.0
 )
 
-require github.com/davidbyttow/govips/v2 v2.10.0
+require (
+	cloud.google.com/go/storage v1.14.0
+	github.com/Azure/azure-storage-blob-go v0.14.0
+	github.com/aws/aws-sdk-go v1.34.30
+	github.com/davidbyttow/govips/v2 v2.10.0
+)
 
 require (
 	cloud.google.com/go v0.99.0 // indirect
+	github.com/Azure/azure-pipeline-go v0.2.3 // indirect
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
@@ -103,6 +109,7 @@ require (
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.11 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/klauspost/compress v1.10.3 // indirect
@@ -114,6 +121,7 @@ require (
 	github.com/lestrrat-go/iter v1.0.1 // indirect
 	github.com/lestrrat-go/option v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
+	github.com/mattn/go-ieproxy v0.0.1 // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
 	github.com/mitchellh/reflectwalk v1.0.0 // indirect

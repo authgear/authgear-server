@@ -15,7 +15,7 @@ type Config struct {
 	ObjectStore *imagesconfig.ObjectStoreConfig `envconfig:"IMAGES_OBJECT_STORE"`
 
 	// ListenAddr sets the listen address of the images server.
-	ListenAddr string `envconfig:"PORTAL_LISTEN_ADDR" default:"0.0.0.0:3004"`
+	ListenAddr string `envconfig:"IMAGES_LISTEN_ADDR" default:"0.0.0.0:3004"`
 }
 
 func LoadConfigFromEnv() (*Config, error) {
@@ -26,12 +26,23 @@ func LoadConfigFromEnv() (*Config, error) {
 		return nil, fmt.Errorf("cannot load server config: %w", err)
 	}
 
+	err = config.Initialize()
+	if err != nil {
+		return nil, err
+	}
+
 	err = config.Validate()
 	if err != nil {
 		return nil, err
 	}
 
 	return config, nil
+}
+
+func (c *Config) Initialize() error {
+	ctx := &validation.Context{}
+	c.ObjectStore.Initialize(ctx.Child("IMAGES_OBJECT_STORE"))
+	return ctx.Error("failed to initialize server configuration")
 }
 
 func (c *Config) Validate() error {
