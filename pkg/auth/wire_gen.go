@@ -8,6 +8,7 @@ package auth
 
 import (
 	"context"
+	api2 "github.com/authgear/authgear-server/pkg/auth/api"
 	"github.com/authgear/authgear-server/pkg/auth/handler/api"
 	"github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	webapp2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -4952,6 +4953,46 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		PromotionCodes: anonymousUserHandler,
 	}
 	return anonymousUserPromotionCodeAPIHandler
+}
+
+func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
+	jsonResponseWriter := &httputil.JSONResponseWriter{
+		Logger: jsonResponseWriterLogger,
+	}
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesUploadHost := environmentConfig.ImagesUploadHost
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	logger := ratelimit.NewLogger(factory)
+	handle := appProvider.Redis
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	clockClock := _wireSystemClockValue
+	limiter := &ratelimit.Limiter{
+		Logger:  logger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	presignImagesUploadHandler := &api.PresignImagesUploadHandler{
+		JSON:             jsonResponseWriter,
+		HTTPProto:        httpProto,
+		HTTPHost:         httpHost,
+		ImagesUploadHost: imagesUploadHost,
+		AppID:            appID,
+		RateLimiter:      limiter,
+	}
+	return presignImagesUploadHandler
 }
 
 func newWebAppOAuthEntrypointHandler(p *deps.RequestProvider) http.Handler {
@@ -32370,6 +32411,19 @@ func newSuccessPageMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		ErrorCookie: errorCookie,
 	}
 	return successPageMiddleware
+}
+
+func newAPIRRequireAuthenticatedMiddlewareMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
+	jsonResponseWriter := &httputil.JSONResponseWriter{
+		Logger: jsonResponseWriterLogger,
+	}
+	requireAuthenticatedMiddleware := &api2.RequireAuthenticatedMiddleware{
+		JSON: jsonResponseWriter,
+	}
+	return requireAuthenticatedMiddleware
 }
 
 // wire_middleware.go:
