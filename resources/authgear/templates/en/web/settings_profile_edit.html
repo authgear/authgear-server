@@ -24,6 +24,11 @@
     {{ template "settings-profile-edit-title" (dict "variant" $.Variant "label" $caLabel) }}
   </h1>
 
+  <form id="remove-picture-form" class="hidden" method="post" novalidate>
+    {{ $.CSRFField }}
+    <input type="hidden" name="/picture" value="">
+  </form>
+
   <form id="form" class="twc-container-vertical" method="post" novalidate>
   {{ $.CSRFField }}
 
@@ -125,7 +130,7 @@
   {{ if (eq $.Variant "picture") }}
   {{ if (call $.IsEditable "/picture") }}
   <div class="grid grid-cols-1 auto-rows-auto">
-    <input class="hidden" name="/picture" value="{{ $.Picture }}">
+    <input id="imagepicker-input-value" type="hidden" name="/picture" value="{{ $.Picture }}">
     <img id="imagepicker-img-preview" class="w-60 h-60 rounded-full place-self-center"
       {{ if $.Picture }}
 	src="{{ $.Picture }}"
@@ -140,7 +145,7 @@
     <button id="imagepicker-button-file" type="button" class="btn primary-btn text-base margin-t-40">
       {{ template "settings-profile-edit-upload-picture-label" }}
     </button>
-    <button id="imagepicker-button-remove" type="button" class="btn secondary-btn text-base margin-t-12 {{ if not $.Picture }}hidden{{ end }}">
+    <button id="imagepicker-button-remove" class="btn secondary-btn text-base margin-t-12 {{ if not $.Picture }}hidden{{ end }}" type="submit" name="x_action" value="save" form="remove-picture-form">
       {{ template "settings-profile-edit-remove-picture-label" }}
     </button>
   </div>

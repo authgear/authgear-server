@@ -96,18 +96,12 @@ function onSubmit(e: Event) {
   });
 }
 
-function onClickRemove(e: Event) {
-  e.preventDefault();
-  e.stopPropagation();
-  // TODO(images): Unset the standard attribute picture and submit form.
-}
-
 export function setupImagePicker(): () => void {
   // The image picker recognizes the following elements:
   // #imagepicker-input-file
   //   The hidden <input type="file"> to let the end-user to select a file.
   // #imagepicker-input-value
-  //   The hidden <input type="text"> to store the value.
+  //   The hidden <input type="hidden"> to store the value.
   // #imagepicker-img-cropper
   //   The <img> to inject cropperjs
   // #imageicker-button-file
@@ -116,18 +110,17 @@ export function setupImagePicker(): () => void {
   //   The button removes the picture and save.
   // #save-button
   //   Show the save button in edit mode.
+  // #form
+  //   The form that saves the standard attributes.
   const inputFile = document.getElementById("imagepicker-input-file");
   const buttonFile = document.getElementById("imagepicker-button-file");
-  const buttonRemove = document.getElementById("imagepicker-button-remove");
   const form = document.getElementById("form");
   inputFile?.addEventListener("change", onChange);
   buttonFile?.addEventListener("click", onClickFile);
-  buttonRemove?.addEventListener("click", onClickRemove);
   form?.addEventListener("submit", onSubmit);
   return () => {
     inputFile?.removeEventListener("change", onChange);
     buttonFile?.removeEventListener("click", onClickFile);
-    buttonRemove?.removeEventListener("click", onClickRemove);
     form?.removeEventListener("submit", onSubmit);
   };
 }
