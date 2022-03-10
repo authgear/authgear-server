@@ -69,15 +69,6 @@ func NewGCSStorage(
 	return s, nil
 }
 
-var GCSStandardToProprietaryMap = map[string]string{
-	"access-control-allow-origin":      "x-goog-meta-accesscontrolalloworigin",
-	"access-control-expose-headers":    "x-goog-meta-accesscontrolexposeheaders",
-	"access-control-max-age":           "x-goog-meta-accesscontrolmaxage",
-	"access-control-allow-credentials": "x-goog-meta-accesscontrolallowcredentials",
-	"access-control-allow-methods":     "x-goog-meta-accesscontrolallowmethods",
-	"access-control-allow-headers":     "x-goog-meta-accesscontrolallowheaders",
-}
-
 func (s *GCSStorage) PresignPutObject(name string, header http.Header) (*http.Request, error) {
 	now := s.Clock.NowUTC()
 
