@@ -53,3 +53,7 @@ func (p *Provider) checkDuplicate(key string) error {
 	}
 	return apierrors.AlreadyExists.WithReason("DuplicatedImage").Errorf("duplicated image")
 }
+
+func (p *Provider) MakeDirector(extractKey func(r *http.Request) string) func(r *http.Request) {
+	return p.Storage.MakeDirector(extractKey)
+}

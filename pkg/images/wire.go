@@ -10,6 +10,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/images/deps"
 	"github.com/authgear/authgear-server/pkg/images/handler"
+	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/vipsutil"
@@ -36,6 +37,7 @@ func newGetHandler(p *deps.RequestProvider) http.Handler {
 		deps.DependencySet,
 		handler.DependencySet,
 		wire.Bind(new(handler.VipsDaemon), new(*vipsutil.Daemon)),
+		wire.Bind(new(handler.DirectorMaker), new(*cloudstorage.Provider)),
 		wire.Bind(new(http.Handler), new(*handler.GetHandler)),
 	))
 }

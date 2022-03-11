@@ -11,7 +11,6 @@ import (
 	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/imageproxy"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/vipsutil"
 )
@@ -24,7 +23,7 @@ func ConfigureGetRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/_images/:appid/:objectid/:options")
 }
 
-var ExtractKey imageproxy.ExtractKey = func(r *http.Request) string {
+func ExtractKey(r *http.Request) string {
 	return fmt.Sprintf(
 		"%s/%s",
 		httproute.GetParam(r, "appid"),
@@ -60,25 +59,25 @@ func ParseImageVariant(s string) (ImageVariant, bool) {
 	}
 }
 
+type DirectorMaker interface {
+	MakeDirector(extractKey func(*http.Request) string) func(*http.Request)
+}
+
 type GetHandler struct {
-	Director   imageproxy.Director
-	Logger     GetHandlerLogger
-	VipsDaemon VipsDaemon
+	DirectorMaker DirectorMaker
+	Logger        GetHandlerLogger
+	VipsDaemon    VipsDaemon
 }
 
 func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if h.Director == nil {
-		http.Error(w, "images are disabled", http.StatusInternalServerError)
-		return
-	}
-
 	imageVariant, ok := ParseImageVariant(httproute.GetParam(r, "options"))
 	if !ok {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	director := h.Director.Director
+	director := h.DirectorMaker.MakeDirector(ExtractKey)
+
 	reverseProxy := httputil.ReverseProxy{
 		Director: director,
 		ErrorHandler: func(w http.ResponseWriter, r *http.Request, err error) {
