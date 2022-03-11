@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -100,11 +99,31 @@ func (s *S3Storage) PresignHeadObject(name string) (*url.URL, error) {
 	}
 	req, _ := s.s3.HeadObjectRequest(input)
 	req.NotHoist = false
-	urlStr, _, err := req.PresignRequest(1 * time.Hour)
+	urlStr, _, err := req.PresignRequest(PresignGetExpires)
 	if err != nil {
 		return nil, fmt.Errorf("failed to presign head request: %w", err)
 	}
 	u, _ := url.Parse(urlStr)
 
 	return u, nil
+}
+
+func (s *S3Storage) MakeDirector(extractKey func(r *http.Request) string) func(r *http.Request) {
+	return func(r *http.Request) {
+		key := extractKey(r)
+		input := &s3.GetObjectInput{
+			Bucket: aws.String(s.Bucket),
+			Key:    aws.String(key),
+		}
+		req, _ := s.s3.GetObjectRequest(input)
+		req.NotHoist = false
+		urlStr, _, err := req.PresignRequest(PresignGetExpires)
+		if err != nil {
+			panic(fmt.Errorf("failed to presign head request: %w", err))
+		}
+
+		u, _ := url.Parse(urlStr)
+		r.Host = ""
+		r.URL = u
+	}
 }
