@@ -5,6 +5,7 @@
 package handler
 
 import (
+	http "net/http"
 	reflect "reflect"
 
 	vipsutil "github.com/authgear/authgear-server/pkg/util/vipsutil"
@@ -47,4 +48,41 @@ func (m *MockVipsDaemon) Process(i vipsutil.Input) (*vipsutil.Output, error) {
 func (mr *MockVipsDaemonMockRecorder) Process(i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Process", reflect.TypeOf((*MockVipsDaemon)(nil).Process), i)
+}
+
+// MockDirectorMaker is a mock of DirectorMaker interface.
+type MockDirectorMaker struct {
+	ctrl     *gomock.Controller
+	recorder *MockDirectorMakerMockRecorder
+}
+
+// MockDirectorMakerMockRecorder is the mock recorder for MockDirectorMaker.
+type MockDirectorMakerMockRecorder struct {
+	mock *MockDirectorMaker
+}
+
+// NewMockDirectorMaker creates a new mock instance.
+func NewMockDirectorMaker(ctrl *gomock.Controller) *MockDirectorMaker {
+	mock := &MockDirectorMaker{ctrl: ctrl}
+	mock.recorder = &MockDirectorMakerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockDirectorMaker) EXPECT() *MockDirectorMakerMockRecorder {
+	return m.recorder
+}
+
+// MakeDirector mocks base method.
+func (m *MockDirectorMaker) MakeDirector(extractKey func(*http.Request) string) func(*http.Request) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MakeDirector", extractKey)
+	ret0, _ := ret[0].(func(*http.Request))
+	return ret0
+}
+
+// MakeDirector indicates an expected call of MakeDirector.
+func (mr *MockDirectorMakerMockRecorder) MakeDirector(extractKey interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeDirector", reflect.TypeOf((*MockDirectorMaker)(nil).MakeDirector), extractKey)
 }

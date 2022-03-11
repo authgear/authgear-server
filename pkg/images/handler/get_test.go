@@ -12,7 +12,6 @@ import (
 	"gopkg.in/h2non/gock.v1"
 
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/imageproxy"
 	"github.com/authgear/authgear-server/pkg/util/vipsutil"
 )
 
@@ -24,14 +23,14 @@ func TestGetHandler(t *testing.T) {
 		gock.Intercept()
 		defer gock.Off()
 
-		director := imageproxy.NewMockDirector(ctrl)
+		directorMaker := NewMockDirectorMaker(ctrl)
 		vipsDaemon := NewMockVipsDaemon(ctrl)
 
 		router := httproute.NewRouter()
 		h := GetHandler{
-			Director:   director,
-			Logger:     GetHandlerLogger{logrus.NewEntry(logrus.New())},
-			VipsDaemon: vipsDaemon,
+			DirectorMaker: directorMaker,
+			Logger:        GetHandlerLogger{logrus.NewEntry(logrus.New())},
+			VipsDaemon:    vipsDaemon,
 		}
 		router.Add(ConfigureGetRoute(httproute.Route{}), &h)
 
@@ -39,7 +38,7 @@ func TestGetHandler(t *testing.T) {
 			r, _ := http.NewRequest("GET", "http://localhost:3004/_images/app/image.jpg/profile", nil)
 			w := httptest.NewRecorder()
 
-			director.EXPECT().Director(gomock.Any()).AnyTimes()
+			directorMaker.EXPECT().MakeDirector(gomock.Any()).AnyTimes().Return(func(r *http.Request) {})
 			gock.New("http://localhost:3004").Reply(404)
 
 			router.ServeHTTP(w, r)
@@ -52,7 +51,7 @@ func TestGetHandler(t *testing.T) {
 			r, _ := http.NewRequest("GET", "http://localhost:3004/_images/app/image.jpg/invalid", nil)
 			w := httptest.NewRecorder()
 
-			director.EXPECT().Director(gomock.Any()).AnyTimes()
+			directorMaker.EXPECT().MakeDirector(gomock.Any()).AnyTimes().Return(func(r *http.Request) {})
 
 			router.ServeHTTP(w, r)
 			So(w.Result().StatusCode, ShouldEqual, 404)
@@ -64,7 +63,7 @@ func TestGetHandler(t *testing.T) {
 			r, _ := http.NewRequest("GET", "http://localhost:3004/_images/app/image.jpg/profile", nil)
 			w := httptest.NewRecorder()
 
-			director.EXPECT().Director(gomock.Any()).AnyTimes()
+			directorMaker.EXPECT().MakeDirector(gomock.Any()).AnyTimes().Return(func(r *http.Request) {})
 			vipsDaemon.EXPECT().Process(gomock.Any()).Times(1).Return(&vipsutil.Output{
 				Data:          nil,
 				ImageMetadata: &vips.ImageMetadata{},
@@ -83,7 +82,7 @@ func TestGetHandler(t *testing.T) {
 			r, _ := http.NewRequest("GET", "http://localhost:3004/_images/app/image.jpg/profile", nil)
 			w := httptest.NewRecorder()
 
-			director.EXPECT().Director(gomock.Any()).AnyTimes()
+			directorMaker.EXPECT().MakeDirector(gomock.Any()).AnyTimes().Return(func(r *http.Request) {})
 			vipsDaemon.EXPECT().Process(gomock.Any()).Times(1).Return(&vipsutil.Output{
 				Data: nil,
 				ImageMetadata: &vips.ImageMetadata{

@@ -132,3 +132,15 @@ func (s *GCSStorage) PresignGetOrHeadObject(name string, method string) (*url.UR
 func (s *GCSStorage) PresignHeadObject(name string) (*url.URL, error) {
 	return s.PresignGetOrHeadObject(name, "HEAD")
 }
+
+func (s *GCSStorage) MakeDirector(extractKey func(r *http.Request) string) func(r *http.Request) {
+	return func(r *http.Request) {
+		key := extractKey(r)
+		u, err := s.PresignGetOrHeadObject(key, "GET")
+		if err != nil {
+			panic(err)
+		}
+		r.Host = ""
+		r.URL = u
+	}
+}
