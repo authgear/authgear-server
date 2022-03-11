@@ -22,6 +22,7 @@ type ServiceNoEvent struct {
 	UserQueries       UserQueries
 	UserStore         UserStore
 	ClaimStore        ClaimStore
+	Transformer       Transformer
 }
 
 func (s *ServiceNoEvent) PopulateIdentityAwareStandardAttributes(userID string) (err error) {
@@ -186,6 +187,11 @@ func (s *ServiceNoEvent) DeriveStandardAttributes(role accesscontrol.Role, userI
 	out := make(map[string]interface{})
 
 	for key, value := range attrs {
+		value, err := s.Transformer.StorageFormToRepresentationForm(key, value)
+		if err != nil {
+			return nil, err
+		}
+
 		// Copy
 		out[key] = value
 
