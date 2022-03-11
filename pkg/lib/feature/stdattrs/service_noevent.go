@@ -102,6 +102,15 @@ func (s *ServiceNoEvent) UpdateStandardAttributes(role accesscontrol.Role, userI
 	// Remove derived attributes to avoid failing the validation.
 	stdAttrs = stdattrs.T(stdAttrs).WithDerivedAttributesRemoved()
 
+	// Transform if needed.
+	for key, value := range stdAttrs {
+		value, err := s.Transformer.RepresentationFormToStorageForm(key, value)
+		if err != nil {
+			return err
+		}
+		stdAttrs[key] = value
+	}
+
 	err := stdattrs.Validate(stdattrs.T(stdAttrs))
 	if err != nil {
 		return err
