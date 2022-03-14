@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
@@ -24,6 +25,10 @@ type Provider struct {
 }
 
 func (p *Provider) PresignPostRequest(url *url.URL) error {
+	if p.Secret == nil {
+		return apierrors.NewInternalError("missing images secret")
+	}
+
 	key, err := jwkutil.ExtractOctetKey(p.Secret.Set, "")
 	if err != nil {
 		return fmt.Errorf("presign: %w", err)
@@ -39,6 +44,10 @@ func (p *Provider) PresignPostRequest(url *url.URL) error {
 }
 
 func (p *Provider) Verify(r *http.Request) error {
+	if p.Secret == nil {
+		return apierrors.NewInternalError("missing images secret")
+	}
+
 	key, err := jwkutil.ExtractOctetKey(p.Secret.Set, "")
 	if err != nil {
 		return fmt.Errorf("presign: %w", err)
