@@ -43,7 +43,7 @@ var Schema = validation.NewSimpleSchema(`
 		},
 		"picture": {
 			"type": "string",
-			"format": "uri"
+			"format": "x_picture"
 		},
 		"profile": {
 			"type": "string",

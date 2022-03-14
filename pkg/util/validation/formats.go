@@ -35,6 +35,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["x_verification_code"] = secretcode.OOBOTPSecretCode
 	jsonschemaformat.DefaultChecker["x_recovery_code"] = secretcode.RecoveryCode
 	jsonschemaformat.DefaultChecker["x_custom_attribute_pointer"] = FormatCustomAttributePointer{}
+	jsonschemaformat.DefaultChecker["x_picture"] = FormatPicture{}
 }
 
 // FormatPhone checks if input is a phone number in E.164 format.
@@ -111,6 +112,48 @@ func (f FormatURI) CheckFormat(value interface{}) error {
 	}
 
 	return nil
+}
+
+type FormatPicture struct{}
+
+func (FormatPicture) CheckFormat(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	u, err := url.Parse(str)
+	if err != nil {
+		return err
+	}
+
+	switch u.Scheme {
+	case "http":
+		fallthrough
+	case "https":
+		return FormatURI{}.CheckFormat(value)
+	case "authgearimages":
+		if u.Host != "" {
+			return errors.New("authgearimages URI does not have host")
+		}
+		p := u.EscapedPath()
+		if p == "" {
+			p = "/"
+		}
+
+		hasTrailingSlash := strings.HasSuffix(p, "/")
+		cleaned := filepath.Clean(p)
+		if hasTrailingSlash && !strings.HasSuffix(cleaned, "/") {
+			cleaned = cleaned + "/"
+		}
+		if !filepath.IsAbs(p) || cleaned != p {
+			return errors.New("authgearimages URI must be normalized")
+		}
+
+		return nil
+	default:
+		return fmt.Errorf("invalid scheme: %v", u.Scheme)
+	}
 }
 
 // FormatHTTPOrigin checks if input is a valid origin with http/https scheme,
