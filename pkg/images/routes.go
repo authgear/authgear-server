@@ -5,11 +5,12 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/images/deps"
 	"github.com/authgear/authgear-server/pkg/images/handler"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-func NewRouter(p *deps.RootProvider) *httproute.Router {
+func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *httproute.Router {
 	router := httproute.NewRouter()
 	router.Add(httproute.Route{
 		Methods:     []string{"GET"},
@@ -17,8 +18,13 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 	}, http.HandlerFunc(httputil.HealthCheckHandler))
 
 	rootChain := httproute.Chain(
-		p.Middleware(newPanicMiddleware),
-		p.Middleware(newSentryMiddleware),
+		p.RootMiddleware(newPanicMiddleware),
+		p.RootMiddleware(newSentryMiddleware),
+		&deps.RequestMiddleware{
+			RootProvider: p,
+			ConfigSource: configSource,
+		},
+		p.Middleware(newCORSMiddleware),
 	)
 
 	rootRoute := httproute.Route{Middleware: rootChain}
