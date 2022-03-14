@@ -39,7 +39,7 @@ Content-Type: application/json
 
 {
     "result": {
-        "upload_url": "authgearimages:///OBJECT_ID"
+        "upload_url": "authgearimages:///APP_ID/OBJECT_ID"
     }
 }
 ```
@@ -114,7 +114,7 @@ Content-Type: application/json
 
 ### The profile URL
 
-On update, `standard_attributes.profile` accepts URL `https://...` and `authgearimages:///OBJECT_ID`.
+On update, `standard_attributes.profile` accepts URL `https://...` and `authgearimages:///APP_ID/OBJECT_ID`.
 
 On output, `standard_attributes.profile` outputs HTTPS URL. For authgear images, the URL will become the GET URL of the Authgear Images with `profile` resizing option. e.g. `https://app1.authgearapps.com/_images/app1/OBJECT_ID/profile`.
 
