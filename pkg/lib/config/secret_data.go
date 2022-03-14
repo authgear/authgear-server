@@ -394,3 +394,26 @@ func (c *AdminAPIAuthKey) UnmarshalJSON(b []byte) error {
 func (c *AdminAPIAuthKey) SensitiveStrings() []string {
 	return nil
 }
+
+var _ = SecretConfigSchema.Add("ImagesKeyMaterials", `{ "$ref": "#/$defs/JWS" }`)
+
+type ImagesKeyMaterials struct {
+	jwk.Set
+}
+
+var _ json.Marshaler = &ImagesKeyMaterials{}
+var _ json.Unmarshaler = &ImagesKeyMaterials{}
+
+func (c *ImagesKeyMaterials) MarshalJSON() ([]byte, error) {
+	return c.Set.(interface{}).(json.Marshaler).MarshalJSON()
+}
+func (c *ImagesKeyMaterials) UnmarshalJSON(b []byte) error {
+	if c.Set == nil {
+		c.Set = jwk.NewSet()
+	}
+	return c.Set.(interface{}).(json.Unmarshaler).UnmarshalJSON(b)
+}
+
+func (c *ImagesKeyMaterials) SensitiveStrings() []string {
+	return nil
+}
