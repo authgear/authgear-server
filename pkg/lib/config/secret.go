@@ -245,6 +245,7 @@ const (
 	OAuthKeyMaterialsKey        SecretKey = "oauth"
 	CSRFKeyMaterialsKey         SecretKey = "csrf"
 	WebhookKeyMaterialsKey      SecretKey = "webhook"
+	ImagesKeyMaterialsKey       SecretKey = "images"
 )
 
 func (key SecretKey) IsUpdatable() bool {
@@ -280,6 +281,7 @@ var secretItemKeys = map[SecretKey]secretKeyDef{
 	OAuthKeyMaterialsKey:        {"OAuthKeyMaterials", func() SecretItemData { return &OAuthKeyMaterials{} }},
 	CSRFKeyMaterialsKey:         {"CSRFKeyMaterials", func() SecretItemData { return &CSRFKeyMaterials{} }},
 	WebhookKeyMaterialsKey:      {"WebhookKeyMaterials", func() SecretItemData { return &WebhookKeyMaterials{} }},
+	ImagesKeyMaterialsKey:       {"ImagesKeyMaterials", func() SecretItemData { return &ImagesKeyMaterials{} }},
 }
 
 var _ = SecretConfigSchema.AddJSON("SecretKey", map[string]interface{}{
