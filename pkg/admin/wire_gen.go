@@ -326,12 +326,21 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,

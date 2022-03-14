@@ -363,12 +363,19 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         userStore,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -1006,12 +1013,19 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         userStore,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -1586,12 +1600,21 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         userStore,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -1760,8 +1783,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -2203,12 +2224,21 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         userStore,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -2509,12 +2539,19 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -2746,12 +2783,19 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -3028,12 +3072,19 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         userStore,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -3353,12 +3404,21 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         userStore,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -3527,8 +3587,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -3943,12 +4001,21 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -4131,8 +4198,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -4553,12 +4618,21 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -4741,8 +4815,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -5234,12 +5306,21 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -5421,8 +5502,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -5875,12 +5954,21 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -6062,8 +6150,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -6516,12 +6602,21 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -6703,8 +6798,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -7144,12 +7237,21 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -7331,8 +7433,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -7773,12 +7873,21 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -7960,8 +8069,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -8394,12 +8501,21 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -8581,8 +8697,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -9018,12 +9132,21 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -9205,8 +9328,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -9645,12 +9766,21 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -9832,8 +9962,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -10269,12 +10397,21 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -10456,8 +10593,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -10892,12 +11027,21 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -11079,8 +11223,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -11516,12 +11658,21 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -11703,8 +11854,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -12141,12 +12290,21 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -12328,8 +12486,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -12764,12 +12920,21 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -12951,8 +13116,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -13387,12 +13550,21 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -13574,8 +13746,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -14012,12 +14182,21 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -14199,8 +14378,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -14635,12 +14812,21 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -14822,8 +15008,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -15258,12 +15442,21 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -15445,8 +15638,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -15884,12 +16075,21 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -16071,8 +16271,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -16507,12 +16705,21 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -16694,8 +16901,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -17135,12 +17340,21 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -17322,8 +17536,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -17758,12 +17970,21 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -17945,8 +18166,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -18382,12 +18601,21 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -18569,8 +18797,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -19005,12 +19231,21 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -19192,8 +19427,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -19651,12 +19884,21 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -19838,8 +20080,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -20285,12 +20525,21 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -20472,8 +20721,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -20932,12 +21179,21 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -21119,8 +21375,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -21558,12 +21812,21 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -21745,8 +22008,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -22182,12 +22443,21 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -22369,8 +22639,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -22815,12 +23083,21 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -23002,8 +23279,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -23439,12 +23714,21 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -23626,8 +23910,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -24063,12 +24345,21 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -24250,8 +24541,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -24688,12 +24977,21 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -24875,8 +25173,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -25317,12 +25613,21 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -25504,8 +25809,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -25941,12 +26244,21 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -26128,8 +26440,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -26565,12 +26875,21 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -26752,8 +27071,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -27189,12 +27506,21 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -27376,8 +27702,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -27813,12 +28137,21 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -28000,8 +28333,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -28444,12 +28775,21 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -28631,8 +28971,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -29069,12 +29407,21 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -29256,8 +29603,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -29692,12 +30037,21 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -29879,8 +30233,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -30334,12 +30686,21 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -30521,8 +30882,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -30957,12 +31316,21 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -31144,8 +31512,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -31823,12 +32189,19 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         userStore,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
@@ -32196,12 +32569,21 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
