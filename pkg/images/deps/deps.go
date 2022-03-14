@@ -5,7 +5,7 @@ import (
 
 	imagesconfig "github.com/authgear/authgear-server/pkg/images/config"
 	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
-	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -59,21 +59,30 @@ var RootDependencySet = wire.NewSet(
 	),
 )
 
-var DependencySet = wire.NewSet(
+var AppRootDependencySet = wire.NewSet(
 	RootDependencySet,
 	wire.FieldsOf(new(*AppProvider),
 		"RootProvider",
 		"Config",
 	),
+)
+
+var RequestDependencySet = wire.NewSet(
+	AppRootDependencySet,
 	wire.FieldsOf(new(*RequestProvider),
 		"AppProvider",
+		"Request",
 	),
-	wire.FieldsOf(new(*config.Config),
-		"AppConfig",
-	),
-	wire.FieldsOf(new(*config.AppConfig),
-		"HTTP",
-	),
+	deps.ProvideRequestContext,
+	deps.ProvideRemoteIP,
+	deps.ProvideUserAgentString,
+	deps.ProvideHTTPHost,
+	deps.ProvideHTTPProto,
+)
+
+var DependencySet = wire.NewSet(
+	RequestDependencySet,
+	deps.CommonDependencySet,
 	clock.DependencySet,
 	cloudstorage.DependencySet,
 	NewCloudStorage,
