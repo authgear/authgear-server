@@ -19,7 +19,7 @@ import (
 
 func ConfigureGetRoute(route httproute.Route) httproute.Route {
 	return route.
-		WithMethods("GET").
+		WithMethods("GET", "OPTION").
 		WithPathPattern("/_images/:appid/:objectid/:options")
 }
 

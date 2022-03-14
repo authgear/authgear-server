@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	golog "log"
 
 	"github.com/authgear/authgear-server/pkg/images"
@@ -28,6 +29,13 @@ func (c *Controller) Start() {
 		golog.Fatalf("failed to setup server: %s", err)
 	}
 
+	configSrcController := newConfigSourceController(p, context.Background())
+	err = configSrcController.Open()
+	if err != nil {
+		c.logger.WithError(err).Fatal("cannot open configuration")
+	}
+	defer configSrcController.Close()
+
 	// From now, we should use c.logger to log.
 	c.logger = p.LoggerFactory.New("authgear-images")
 	c.logger.Infof("authgear (version %s)", version.Version)
@@ -36,7 +44,7 @@ func (c *Controller) Start() {
 	specs = append(specs, server.Spec{
 		Name:          "images server",
 		ListenAddress: cfg.ListenAddr,
-		Handler:       images.NewRouter(p),
+		Handler:       images.NewRouter(p, configSrcController.GetConfigSource()),
 	})
 	server.Start(c.logger, specs)
 }
