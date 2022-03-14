@@ -55,6 +55,7 @@ import (
 	handler2 "github.com/authgear/authgear-server/pkg/lib/oauth/oidc/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
+	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
@@ -5054,12 +5055,20 @@ func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 		Storage: storageRedis,
 		Clock:   clockClock,
 	}
+	secretConfig := config.SecretConfig
+	imagesKeyMaterials := deps.ProvideImagesKeyMaterials(secretConfig)
+	provider := &presign.Provider{
+		Secret: imagesKeyMaterials,
+		Clock:  clockClock,
+		Host:   httpHost,
+	}
 	presignImagesUploadHandler := &api.PresignImagesUploadHandler{
-		JSON:        jsonResponseWriter,
-		HTTPProto:   httpProto,
-		HTTPHost:    httpHost,
-		AppID:       appID,
-		RateLimiter: limiter,
+		JSON:            jsonResponseWriter,
+		HTTPProto:       httpProto,
+		HTTPHost:        httpHost,
+		AppID:           appID,
+		RateLimiter:     limiter,
+		PresignProvider: provider,
 	}
 	return presignImagesUploadHandler
 }
