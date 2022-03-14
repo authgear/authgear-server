@@ -34,6 +34,7 @@ var configSourceConfigDependencySet = wire.NewSet(
 func newConfigSourceController(p *deps.RootProvider, c context.Context) *configsource.Controller {
 	panic(wire.Build(
 		configSourceConfigDependencySet,
+		configsource.NewResolveAppIDTypePath,
 		configsource.DependencySet,
 	))
 }
