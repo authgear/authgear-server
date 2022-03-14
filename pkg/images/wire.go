@@ -16,19 +16,27 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/vipsutil"
 )
 
-func newPanicMiddleware(p *deps.RequestProvider) httproute.Middleware {
+func newPanicMiddleware(p *deps.RootProvider) httproute.Middleware {
 	panic(wire.Build(
-		deps.DependencySet,
+		deps.RootDependencySet,
 		middleware.DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*middleware.PanicMiddleware)),
 	))
 }
 
-func newSentryMiddleware(p *deps.RequestProvider) httproute.Middleware {
+func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	panic(wire.Build(
-		deps.DependencySet,
+		deps.RootDependencySet,
 		wire.Struct(new(middleware.SentryMiddleware), "*"),
 		wire.Bind(new(httproute.Middleware), new(*middleware.SentryMiddleware)),
+	))
+}
+
+func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		middleware.DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*middleware.CORSMiddleware)),
 	))
 }
 

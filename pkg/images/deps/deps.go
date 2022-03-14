@@ -5,6 +5,7 @@ import (
 
 	imagesconfig "github.com/authgear/authgear-server/pkg/images/config"
 	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -45,7 +46,7 @@ func NewCloudStorage(objectStoreConfig *imagesconfig.ObjectStoreConfig, c clock.
 	}
 }
 
-var DependencySet = wire.NewSet(
+var RootDependencySet = wire.NewSet(
 	wire.FieldsOf(new(*RootProvider),
 		"EnvironmentConfig",
 		"ObjectStoreConfig",
@@ -53,11 +54,25 @@ var DependencySet = wire.NewSet(
 		"SentryHub",
 		"VipsDaemon",
 	),
-	wire.FieldsOf(new(*RequestProvider),
-		"RootProvider",
-	),
 	wire.FieldsOf(new(*imagesconfig.EnvironmentConfig),
 		"TrustProxy",
+	),
+)
+
+var DependencySet = wire.NewSet(
+	RootDependencySet,
+	wire.FieldsOf(new(*AppProvider),
+		"RootProvider",
+		"Config",
+	),
+	wire.FieldsOf(new(*RequestProvider),
+		"AppProvider",
+	),
+	wire.FieldsOf(new(*config.Config),
+		"AppConfig",
+	),
+	wire.FieldsOf(new(*config.AppConfig),
+		"HTTP",
 	),
 	clock.DependencySet,
 	cloudstorage.DependencySet,

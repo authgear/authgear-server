@@ -21,7 +21,7 @@ import (
 
 func ConfigurePostRoute(route httproute.Route) httproute.Route {
 	return route.
-		WithMethods("POST").
+		WithMethods("POST", "OPTION").
 		WithPathPattern("/_images/:appid/:objectid")
 }
 

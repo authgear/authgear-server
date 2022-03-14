@@ -19,9 +19,8 @@ import (
 
 // Injectors from wire.go:
 
-func newPanicMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	rootProvider := p.RootProvider
-	factory := rootProvider.LoggerFactory
+func newPanicMiddleware(p *deps.RootProvider) httproute.Middleware {
+	factory := p.LoggerFactory
 	panicMiddlewareLogger := middleware.NewPanicMiddlewareLogger(factory)
 	panicMiddleware := &middleware.PanicMiddleware{
 		Logger: panicMiddlewareLogger,
@@ -29,10 +28,9 @@ func newPanicMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	return panicMiddleware
 }
 
-func newSentryMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	rootProvider := p.RootProvider
-	hub := rootProvider.SentryHub
-	environmentConfig := &rootProvider.EnvironmentConfig
+func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
+	hub := p.SentryHub
+	environmentConfig := &p.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	sentryMiddleware := &middleware.SentryMiddleware{
 		SentryHub:  hub,
@@ -41,8 +39,24 @@ func newSentryMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	return sentryMiddleware
 }
 
+func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	appProvider := p.AppProvider
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	factory := rootProvider.LoggerFactory
+	corsMiddlewareLogger := middleware.NewCORSMiddlewareLogger(factory)
+	corsMiddleware := &middleware.CORSMiddleware{
+		Config: httpConfig,
+		Logger: corsMiddlewareLogger,
+	}
+	return corsMiddleware
+}
+
 func newGetHandler(p *deps.RequestProvider) http.Handler {
-	rootProvider := p.RootProvider
+	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
 	objectStoreConfig := rootProvider.ObjectStoreConfig
 	clock := _wireSystemClockValue
 	storage := deps.NewCloudStorage(objectStoreConfig, clock)
@@ -65,7 +79,8 @@ var (
 )
 
 func newPostHandler(p *deps.RequestProvider) http.Handler {
-	rootProvider := p.RootProvider
+	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
 	factory := rootProvider.LoggerFactory
 	postHandlerLogger := handler.NewPostHandlerLogger(factory)
 	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
