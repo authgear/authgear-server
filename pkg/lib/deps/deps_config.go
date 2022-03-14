@@ -70,6 +70,7 @@ var secretDeps = wire.NewSet(
 	ProvideOAuthKeyMaterials,
 	ProvideCSRFKeyMaterials,
 	ProvideWebhookKeyMaterials,
+	ProvideImagesKeyMaterials,
 )
 
 func ProvideDatabaseCredentials(c *config.SecretConfig) *config.DatabaseCredentials {
@@ -134,5 +135,10 @@ func ProvideCSRFKeyMaterials(c *config.SecretConfig) *config.CSRFKeyMaterials {
 
 func ProvideWebhookKeyMaterials(c *config.SecretConfig) *config.WebhookKeyMaterials {
 	s, _ := c.LookupData(config.WebhookKeyMaterialsKey).(*config.WebhookKeyMaterials)
+	return s
+}
+
+func ProvideImagesKeyMaterials(c *config.SecretConfig) *config.ImagesKeyMaterials {
+	s, _ := c.LookupData(config.ImagesKeyMaterialsKey).(*config.ImagesKeyMaterials)
 	return s
 }
