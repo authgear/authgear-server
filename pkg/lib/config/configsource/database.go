@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/resource"
@@ -39,15 +40,31 @@ func NewDatabaseLogger(lf *log.Factory) DatabaseLogger {
 	return DatabaseLogger{lf.New("configsource-database")}
 }
 
+type ResolveAppIDType string
+
+func NewResolveAppIDTypeDomain() ResolveAppIDType {
+	return ResolveAppIDTypeDomain
+}
+
+func NewResolveAppIDTypePath() ResolveAppIDType {
+	return ResolveAppIDTypePath
+}
+
+const (
+	ResolveAppIDTypeDomain ResolveAppIDType = "domain"
+	ResolveAppIDTypePath   ResolveAppIDType = "path"
+)
+
 type Database struct {
-	Logger         DatabaseLogger
-	BaseResources  *resource.Manager
-	TrustProxy     config.TrustProxy
-	Config         *Config
-	Clock          clock.Clock
-	Store          *Store
-	Database       *globaldb.Handle
-	DatabaseConfig *config.DatabaseEnvironmentConfig
+	Logger           DatabaseLogger
+	BaseResources    *resource.Manager
+	TrustProxy       config.TrustProxy
+	Config           *Config
+	Clock            clock.Clock
+	Store            *Store
+	Database         *globaldb.Handle
+	DatabaseConfig   *config.DatabaseEnvironmentConfig
+	ResolveAppIDType ResolveAppIDType
 
 	done     chan<- struct{} `wire:"-"`
 	listener *db.PQListener  `wire:"-"`
@@ -93,6 +110,32 @@ func (d *Database) Close() error {
 }
 
 func (d *Database) ResolveAppID(r *http.Request) (string, error) {
+	switch d.ResolveAppIDType {
+	case ResolveAppIDTypeDomain:
+		return d.resolveAppIDByDomain(r)
+	case ResolveAppIDTypePath:
+		return d.resolveAppIDByPath(r)
+	default:
+		panic("invalid resolve app id type")
+	}
+}
+
+func (d *Database) resolveAppIDByPath(r *http.Request) (string, error) {
+	appid := httproute.GetParam(r, "appid")
+	if appid == "" {
+		return "", ErrAppNotFound
+	}
+
+	// Try to resolve app to ensure the app exist
+	_, err := d.ResolveContext(appid)
+	if err != nil {
+		return "", err
+	}
+
+	return appid, nil
+}
+
+func (d *Database) resolveAppIDByDomain(r *http.Request) (string, error) {
 	host := httputil.GetHost(r, bool(d.TrustProxy))
 	if h, _, err := net.SplitHostPort(host); err == nil {
 		host = h
