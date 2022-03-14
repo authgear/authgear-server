@@ -42,23 +42,26 @@ func newSentryMiddleware(p *deps.RequestProvider) httproute.Middleware {
 }
 
 func newGetHandler(p *deps.RequestProvider) http.Handler {
-	extractKey := _wireExtractKeyValue
 	rootProvider := p.RootProvider
 	objectStoreConfig := rootProvider.ObjectStoreConfig
-	director := deps.NewDirector(extractKey, objectStoreConfig)
+	clock := _wireSystemClockValue
+	storage := deps.NewCloudStorage(objectStoreConfig, clock)
+	provider := &cloudstorage.Provider{
+		Storage: storage,
+	}
 	factory := rootProvider.LoggerFactory
 	getHandlerLogger := handler.NewGetHandlerLogger(factory)
 	daemon := rootProvider.VipsDaemon
 	getHandler := &handler.GetHandler{
-		Director:   director,
-		Logger:     getHandlerLogger,
-		VipsDaemon: daemon,
+		DirectorMaker: provider,
+		Logger:        getHandlerLogger,
+		VipsDaemon:    daemon,
 	}
 	return getHandler
 }
 
 var (
-	_wireExtractKeyValue = handler.ExtractKey
+	_wireSystemClockValue = clock.NewSystemClock()
 )
 
 func newPostHandler(p *deps.RequestProvider) http.Handler {
@@ -70,8 +73,8 @@ func newPostHandler(p *deps.RequestProvider) http.Handler {
 		Logger: jsonResponseWriterLogger,
 	}
 	objectStoreConfig := rootProvider.ObjectStoreConfig
-	clock := _wireSystemClockValue
-	storage := deps.NewCloudStorage(objectStoreConfig, clock)
+	clockClock := _wireSystemClockValue
+	storage := deps.NewCloudStorage(objectStoreConfig, clockClock)
 	provider := cloudstorage.Provider{
 		Storage: storage,
 	}
@@ -82,7 +85,3 @@ func newPostHandler(p *deps.RequestProvider) http.Handler {
 	}
 	return postHandler
 }
-
-var (
-	_wireSystemClockValue = clock.NewSystemClock()
-)

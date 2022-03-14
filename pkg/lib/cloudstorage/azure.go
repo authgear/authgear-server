@@ -113,3 +113,15 @@ func (s *AzureStorage) SignedURL(name string, now time.Time, duration time.Durat
 
 	return &u, nil
 }
+
+func (s *AzureStorage) MakeDirector(extractKey func(r *http.Request) string) func(r *http.Request) {
+	return func(r *http.Request) {
+		key := extractKey(r)
+		u, err := s.PresignGetObject(key)
+		if err != nil {
+			panic(err)
+		}
+		r.Host = ""
+		r.URL = u
+	}
+}
