@@ -10,7 +10,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/images/deps"
 	"github.com/authgear/authgear-server/pkg/images/handler"
 	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
+	deps2 "github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -93,10 +95,23 @@ func newPostHandler(p *deps.RequestProvider) http.Handler {
 	provider := cloudstorage.Provider{
 		Storage: storage,
 	}
+	config := appProvider.Config
+	secretConfig := config.SecretConfig
+	imagesKeyMaterials := deps2.ProvideImagesKeyMaterials(secretConfig)
+	request := p.Request
+	environmentConfig := &rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	httpHost := deps2.ProvideHTTPHost(request, trustProxy)
+	presignProvider := &presign.Provider{
+		Secret: imagesKeyMaterials,
+		Clock:  clockClock,
+		Host:   httpHost,
+	}
 	postHandler := &handler.PostHandler{
 		Logger:               postHandlerLogger,
 		JSON:                 jsonResponseWriter,
 		CloudStorageProvider: provider,
+		PresignProvider:      presignProvider,
 	}
 	return postHandler
 }

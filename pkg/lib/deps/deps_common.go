@@ -40,6 +40,7 @@ import (
 	oidchandler "github.com/authgear/authgear-server/pkg/lib/oauth/oidc/handler"
 	oauthpq "github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	oauthredis "github.com/authgear/authgear-server/pkg/lib/oauth/redis"
+	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
@@ -304,4 +305,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(interaction.StdAttrsService), new(*featurestdattrs.Service)),
 		wire.Bind(new(hook.StandardAttributesServiceNoEvent), new(*featurestdattrs.ServiceNoEvent)),
 	),
+
+	presign.DependencySet,
 )
