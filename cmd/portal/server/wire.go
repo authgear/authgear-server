@@ -18,6 +18,7 @@ func newConfigSourceController(p *deps.RootProvider, c context.Context) *configs
 	panic(wire.Build(
 		clock.DependencySet,
 		globaldb.DependencySet,
+		configsource.NewResolveAppIDTypeDomain,
 		configsource.DependencySet,
 		wire.FieldsOf(new(*deps.RootProvider),
 			"EnvironmentConfig",

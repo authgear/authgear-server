@@ -17,6 +17,7 @@ import (
 func newConfigSourceController(p *deps.BackgroundProvider, c context.Context) *configsource.Controller {
 	panic(wire.Build(
 		DependencySet,
+		configsource.NewResolveAppIDTypeDomain,
 		configsource.DependencySet,
 	))
 }

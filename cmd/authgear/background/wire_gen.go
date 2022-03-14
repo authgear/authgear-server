@@ -73,15 +73,17 @@ func newConfigSourceController(p *deps.BackgroundProvider, c context.Context) *c
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	resolveAppIDType := configsource.NewResolveAppIDTypeDomain()
 	database := &configsource.Database{
-		Logger:         databaseLogger,
-		BaseResources:  manager,
-		TrustProxy:     trustProxy,
-		Config:         config,
-		Clock:          clock,
-		Store:          store,
-		Database:       handle,
-		DatabaseConfig: databaseEnvironmentConfig,
+		Logger:           databaseLogger,
+		BaseResources:    manager,
+		TrustProxy:       trustProxy,
+		Config:           config,
+		Clock:            clock,
+		Store:            store,
+		Database:         handle,
+		DatabaseConfig:   databaseEnvironmentConfig,
+		ResolveAppIDType: resolveAppIDType,
 	}
 	controller := configsource.NewController(config, localFS, database)
 	return controller
