@@ -1,3 +1,5 @@
+import { disableAllButtons } from "./loading";
+
 function destroyCropper(img: HTMLImageElement) {
   // The namespace .cropper is known by reading the source code.
   // It could change anytime!
@@ -106,6 +108,7 @@ function onClickSave(e: Event) {
       return;
     }
 
+    const revert = disableAllButtons();
     try {
       const resp = await fetch("/api/images/upload", { method: "POST" });
       const body = await resp.json();
@@ -134,6 +137,10 @@ function onClickSave(e: Event) {
       inputValue.value = url;
       formUpload.submit();
     } catch (e) {
+      // revert is only called for error branch because
+      // The success branch also loads a new page.
+      // Keeping the buttons in disabled state reduce flickering in the UI.
+      revert();
       setNetworkError();
       console.error(e);
     }
