@@ -1,6 +1,7 @@
 import React from "react";
 import cn from "classnames";
-import { Persona, PersonaSize, Text } from "@fluentui/react";
+import { Link } from "react-router-dom";
+import { Persona, PersonaSize, Text, FontIcon } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import { formatDatetime } from "../../util/formatDatetime";
@@ -12,6 +13,7 @@ interface UserDetailSummaryProps {
   formattedName?: string;
   endUserAccountIdentifier: string | undefined;
   profileImageURL: string | undefined;
+  profileImageEditable: boolean;
   createdAtISO: string | null;
   lastLoginAtISO: string | null;
 }
@@ -22,6 +24,7 @@ const UserDetailSummary: React.FC<UserDetailSummaryProps> =
       formattedName,
       endUserAccountIdentifier,
       profileImageURL,
+      profileImageEditable,
       createdAtISO,
       lastLoginAtISO,
       className,
@@ -36,12 +39,18 @@ const UserDetailSummary: React.FC<UserDetailSummaryProps> =
 
     return (
       <section className={cn(styles.root, className)}>
-        <Persona
-          className={styles.profilePic}
-          imageUrl={profileImageURL}
-          size={PersonaSize.size72}
-          hidePersonaDetails={true}
-        />
+        <div className={styles.profilePic}>
+          <Persona
+            imageUrl={profileImageURL}
+            size={PersonaSize.size72}
+            hidePersonaDetails={true}
+          />
+          {profileImageEditable && (
+            <Link className={styles.cameraLink} to="./edit-picture">
+              <FontIcon className={styles.cameraIcon} iconName="Camera" />
+            </Link>
+          )}
+        </div>
         <Text className={styles.accountID} variant="medium">
           {endUserAccountIdentifier ?? ""}
         </Text>
