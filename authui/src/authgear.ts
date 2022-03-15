@@ -1,4 +1,5 @@
 import Turbolinks from "turbolinks";
+import axios from "axios";
 import { init } from "./core";
 import { setupIntlTelInput } from "./intlTelInput";
 import { setupPasswordPolicy } from "./password-policy";
@@ -14,6 +15,8 @@ import { setupAccountDeletion } from "./accountdeletion";
 import { setupImagePicker } from "./imagepicker";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
+
+axios.defaults.withCredentials = true;
 
 init();
 

@@ -6,6 +6,9 @@
     "format": "prettier --write --list-different ./src/*.ts",
     "build": "parcel build --no-cache src/authgear.ts src/tailwind.css --dist-dir ../resources/authgear/static"
   },
+  "alias": {
+    "process": false
+  },
   "devDependencies": {
     "@types/luxon": "2.0.9",
     "@types/turbolinks": "5.2.0",
@@ -19,6 +22,7 @@
     "typescript": "4.5.5"
   },
   "dependencies": {
+    "axios": "0.26.1",
     "luxon": "2.3.0",
     "turbolinks": "5.2.0",
     "zxcvbn": "4.4.2"

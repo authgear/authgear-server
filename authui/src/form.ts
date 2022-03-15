@@ -1,4 +1,5 @@
 import Turbolinks from "turbolinks";
+import axios, { Method } from "axios";
 import { disableAllButtons } from "./loading";
 
 // Handle click link to submit form
@@ -76,14 +77,13 @@ export function xhrSubmitForm(): () => void {
 
     const revert = disableAllButtons();
     try {
-      const resp = await fetch(form.action, {
-        method: form.method,
+      const resp = await axios(form.action, {
+        method: form.method as Method,
         headers: {
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
           "X-Authgear-XHR": "true",
         },
-        credentials: "same-origin",
-        body: params,
+        data: params,
       });
       if (resp.status < 200 || resp.status >= 300) {
         // revert is only called for error branch because
@@ -94,7 +94,7 @@ export function xhrSubmitForm(): () => void {
         return;
       }
 
-      const { redirect_uri, action } = await resp.json();
+      const { redirect_uri, action } = resp.data;
 
       Turbolinks.clearCache();
       switch (action) {
