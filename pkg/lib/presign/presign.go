@@ -26,7 +26,7 @@ type Provider struct {
 func (p *Provider) PresignPostRequest(url *url.URL) error {
 	key, err := jwkutil.ExtractOctetKey(p.Secret.Set, "")
 	if err != nil {
-		return fmt.Errorf("webhook: %w", err)
+		return fmt.Errorf("presign: %w", err)
 	}
 	now := p.Clock.NowUTC()
 	r := &http.Request{
@@ -41,7 +41,7 @@ func (p *Provider) PresignPostRequest(url *url.URL) error {
 func (p *Provider) Verify(r *http.Request) error {
 	key, err := jwkutil.ExtractOctetKey(p.Secret.Set, "")
 	if err != nil {
-		return fmt.Errorf("webhook: %w", err)
+		return fmt.Errorf("presign: %w", err)
 	}
 	now := p.Clock.NowUTC()
 	return httpsigning.Verify(key, p.Host, r, now)
