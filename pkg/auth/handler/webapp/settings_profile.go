@@ -16,7 +16,7 @@ var TemplateWebSettingsProfileHTML = template.RegisterHTML(
 
 func ConfigureSettingsProfileRoute(route httproute.Route) httproute.Route {
 	return route.
-		WithMethods("OPTION", "GET").
+		WithMethods("GET").
 		WithPathPattern("/settings/profile")
 }
 
