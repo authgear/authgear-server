@@ -8,18 +8,19 @@ package server
 
 import (
 	"context"
+	"github.com/authgear/authgear-server/pkg/images/config"
+	"github.com/authgear/authgear-server/pkg/images/deps"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
-	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task/executor"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task/queue"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/google/wire"
 )
 
 // Injectors from wire.go:
 
 func newConfigSourceController(p *deps.RootProvider, c context.Context) *configsource.Controller {
-	config := p.ConfigSourceConfig
+	environmentConfig := &p.EnvironmentConfig
+	config := environmentConfig.ConfigSource
 	factory := p.LoggerFactory
 	localFSLogger := configsource.NewLocalFSLogger(factory)
 	manager := p.BaseResources
@@ -29,10 +30,9 @@ func newConfigSourceController(p *deps.RootProvider, c context.Context) *configs
 		Config:        config,
 	}
 	databaseLogger := configsource.NewDatabaseLogger(factory)
-	environmentConfig := p.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	clock := _wireSystemClockValue
-	databaseEnvironmentConfig := &environmentConfig.Database
+	databaseEnvironmentConfig := environmentConfig.Database
 	sqlBuilder := globaldb.NewSQLBuilder(databaseEnvironmentConfig)
 	pool := p.DatabasePool
 	handle := globaldb.NewHandle(c, pool, databaseEnvironmentConfig, factory)
@@ -41,7 +41,7 @@ func newConfigSourceController(p *deps.RootProvider, c context.Context) *configs
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	resolveAppIDType := configsource.NewResolveAppIDTypeDomain()
+	resolveAppIDType := configsource.NewResolveAppIDTypePath()
 	database := &configsource.Database{
 		Logger:           databaseLogger,
 		BaseResources:    manager,
@@ -61,14 +61,16 @@ var (
 	_wireSystemClockValue = clock.NewSystemClock()
 )
 
-func newInProcessQueue(p *deps.AppProvider, e *executor.InProcessExecutor) *queue.InProcessQueue {
-	handle := p.AppDatabase
-	config := p.Config
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inProcessQueue := &queue.InProcessQueue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       e,
-	}
-	return inProcessQueue
-}
+// wire.go:
+
+var configSourceConfigDependencySet = wire.NewSet(globaldb.DependencySet, clock.DependencySet, wire.FieldsOf(new(*deps.RootProvider),
+	"EnvironmentConfig",
+	"LoggerFactory",
+	"DatabasePool",
+	"BaseResources",
+), wire.FieldsOf(new(*config.EnvironmentConfig),
+	"TrustProxy",
+	"ConfigSource",
+	"Database",
+),
+)
