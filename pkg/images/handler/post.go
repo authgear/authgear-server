@@ -29,6 +29,10 @@ type JSONResponseWriter interface {
 	WriteResponse(rw http.ResponseWriter, resp *api.Response)
 }
 
+type PresignProvider interface {
+	Verify(r *http.Request) error
+}
+
 type PostHandlerLogger struct{ *log.Logger }
 
 func NewPostHandlerLogger(lf *log.Factory) PostHandlerLogger {
@@ -39,12 +43,11 @@ type PostHandler struct {
 	Logger               PostHandlerLogger
 	JSON                 JSONResponseWriter
 	CloudStorageProvider cloudstorage.Provider
+	PresignProvider      PresignProvider
 }
 
 func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// FIXME(images): Verify signature
 	// FIXME(images): Store records
-	// FIXME(images): change images to public
 
 	var err error
 
@@ -56,6 +59,11 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			h.JSON.WriteResponse(w, &api.Response{Error: err})
 		}
 	}()
+
+	err = h.PresignProvider.Verify(r)
+	if err != nil {
+		return
+	}
 
 	contentType := r.Header.Get("Content-Type")
 	mediaType, params, err := mime.ParseMediaType(contentType)
