@@ -15,8 +15,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
+	"github.com/authgear/authgear-server/pkg/lib/images"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 func ConfigurePostRoute(route httproute.Route) httproute.Route {
@@ -33,6 +37,10 @@ type PresignProvider interface {
 	Verify(r *http.Request) error
 }
 
+type ImagesStore interface {
+	Create(file *images.File) error
+}
+
 type PostHandlerLogger struct{ *log.Logger }
 
 func NewPostHandlerLogger(lf *log.Factory) PostHandlerLogger {
@@ -44,11 +52,12 @@ type PostHandler struct {
 	JSON                 JSONResponseWriter
 	CloudStorageProvider cloudstorage.Provider
 	PresignProvider      PresignProvider
+	Database             *appdb.Handle
+	ImagesStore          ImagesStore
+	Clock                clock.Clock
 }
 
 func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// FIXME(images): Store records
-
 	var err error
 
 	defer func() {
@@ -128,6 +137,24 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	encodedMetaDate := r.URL.Query().Get(images.QueryMetadata)
+	metadata, err := images.DecodeFileMetadata(encodedMetaDate)
+	if err != nil {
+		return
+	}
+	saveImagesFileRecord := func() error {
+		objectID := httproute.GetParam(r, "objectid")
+		return h.Database.WithTx(func() error {
+			return h.ImagesStore.Create(&images.File{
+				ID:        uuid.New(),
+				ObjectID:  objectID,
+				Metadata:  metadata,
+				Size:      fileHeader.Size,
+				CreatedAt: h.Clock.NowUTC(),
+			})
+		})
+	}
+
 	presignUploadResponse, err := h.CloudStorageProvider.PresignPutRequest(&presignUploadRequest)
 	if err != nil {
 		return
@@ -158,6 +185,13 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if resp.StatusCode < 200 || resp.StatusCode > 299 {
 			return nil
 		}
+
+		err := saveImagesFileRecord()
+		if err != nil {
+			h.Logger.WithError(err).Error("failed to save image file record")
+			return err
+		}
+
 		resp.StatusCode = 200
 		body := &api.Response{Result: map[string]interface{}{
 			"url": fmt.Sprintf("authgearimages:///%s", key),

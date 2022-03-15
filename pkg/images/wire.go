@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/images/deps"
 	"github.com/authgear/authgear-server/pkg/images/handler"
 	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
+	"github.com/authgear/authgear-server/pkg/lib/images"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -56,8 +57,10 @@ func newPostHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		deps.DependencySet,
 		handler.DependencySet,
+		images.DependencySet,
 		wire.Bind(new(handler.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
 		wire.Bind(new(handler.PresignProvider), new(*presign.Provider)),
+		wire.Bind(new(handler.ImagesStore), new(*images.Store)),
 		wire.Bind(new(http.Handler), new(*handler.PostHandler)),
 	))
 }

@@ -11,6 +11,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/images/handler"
 	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
 	deps2 "github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/images"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -107,11 +109,27 @@ func newPostHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 		Host:   httpHost,
 	}
+	context := deps2.ProvideRequestContext(request)
+	pool := rootProvider.DatabasePool
+	databaseConfig := deps.NewDatabaseConfig()
+	databaseCredentials := deps2.ProvideDatabaseCredentials(secretConfig)
+	handle := appdb.NewHandle(context, pool, databaseConfig, databaseCredentials, factory)
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	store := &images.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
 	postHandler := &handler.PostHandler{
 		Logger:               postHandlerLogger,
 		JSON:                 jsonResponseWriter,
 		CloudStorageProvider: provider,
 		PresignProvider:      presignProvider,
+		Database:             handle,
+		ImagesStore:          store,
+		Clock:                clockClock,
 	}
 	return postHandler
 }
