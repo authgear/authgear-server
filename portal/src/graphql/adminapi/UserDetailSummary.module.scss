@@ -20,6 +20,32 @@
 .profilePic {
   grid-area: pic;
   place-self: center;
+  position: relative;
+}
+
+.cameraLink {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+}
+
+.cameraLink:hover {
+  opacity: initial;
+}
+
+.cameraIcon {
+  color: white;
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
 }
 
 .accountID {
