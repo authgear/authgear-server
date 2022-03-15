@@ -5,9 +5,17 @@ import (
 
 	imagesconfig "github.com/authgear/authgear-server/pkg/images/config"
 	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
+
+func NewDatabaseConfig() *config.DatabaseConfig {
+	cfg := &config.DatabaseConfig{}
+	cfg.SetDefaults()
+	return cfg
+}
 
 func NewCloudStorage(objectStoreConfig *imagesconfig.ObjectStoreConfig, c clock.Clock) cloudstorage.Storage {
 	switch objectStoreConfig.Type {
@@ -53,6 +61,7 @@ var RootDependencySet = wire.NewSet(
 		"LoggerFactory",
 		"SentryHub",
 		"VipsDaemon",
+		"DatabasePool",
 	),
 	wire.FieldsOf(new(*imagesconfig.EnvironmentConfig),
 		"TrustProxy",
@@ -83,6 +92,8 @@ var RequestDependencySet = wire.NewSet(
 var DependencySet = wire.NewSet(
 	RequestDependencySet,
 	deps.CommonDependencySet,
+	NewDatabaseConfig,
+	appdb.NewHandle,
 	clock.DependencySet,
 	cloudstorage.DependencySet,
 	NewCloudStorage,
