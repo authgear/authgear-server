@@ -22,7 +22,7 @@ var TemplateWebSettingsProfileEditHTML = template.RegisterHTML(
 
 func ConfigureSettingsProfileEditRoute(route httproute.Route) httproute.Route {
 	return route.
-		WithMethods("OPTION", "GET", "POST").
+		WithMethods("GET", "POST").
 		WithPathPattern("/settings/profile/:variant/edit")
 }
 
