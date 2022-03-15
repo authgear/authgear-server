@@ -7,10 +7,12 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/images"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -32,6 +34,12 @@ type PresignImagesUploadResponse struct {
 	UploadURL string `json:"upload_url"`
 }
 
+type PresignImagesUploadHandlerLogger struct{ *log.Logger }
+
+func NewPresignImagesUploadHandlerLogger(lf *log.Factory) PresignImagesUploadHandlerLogger {
+	return PresignImagesUploadHandlerLogger{lf.New("api-presign-images-upload")}
+}
+
 type PresignImagesUploadHandler struct {
 	JSON            JSONResponseWriter
 	HTTPProto       httputil.HTTPProto
@@ -39,6 +47,7 @@ type PresignImagesUploadHandler struct {
 	AppID           config.AppID
 	RateLimiter     RateLimiter
 	PresignProvider PresignProvider
+	Logger          PresignImagesUploadHandlerLogger
 }
 
 func (h *PresignImagesUploadHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
@@ -49,12 +58,26 @@ func (h *PresignImagesUploadHandler) ServeHTTP(resp http.ResponseWriter, req *ht
 		return
 	}
 
+	metadata := &images.FileMetadata{
+		UserID:     *userID,
+		UploadedBy: images.UploadedByTypeUser,
+	}
+	encodedData, err := images.EncodeFileMetaData(metadata)
+	if err != nil {
+		h.Logger.WithError(err).Error("failed to encode metadata")
+		h.JSON.WriteResponse(resp, &api.Response{Error: err})
+		return
+	}
+
 	host := string(h.HTTPHost)
 	u := &url.URL{
 		Host:   host,
 		Scheme: string(h.HTTPProto),
 	}
 	u.Path = path.Join("/_images", string(h.AppID), uuid.New())
+	q := u.Query()
+	q.Set(images.QueryMetadata, encodedData)
+	u.RawQuery = q.Encode()
 
 	err = h.PresignProvider.PresignPostRequest(u)
 	if err != nil {

@@ -5062,6 +5062,7 @@ func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 		Host:   httpHost,
 	}
+	presignImagesUploadHandlerLogger := api.NewPresignImagesUploadHandlerLogger(factory)
 	presignImagesUploadHandler := &api.PresignImagesUploadHandler{
 		JSON:            jsonResponseWriter,
 		HTTPProto:       httpProto,
@@ -5069,6 +5070,7 @@ func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 		AppID:           appID,
 		RateLimiter:     limiter,
 		PresignProvider: provider,
+		Logger:          presignImagesUploadHandlerLogger,
 	}
 	return presignImagesUploadHandler
 }
