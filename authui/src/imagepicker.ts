@@ -1,3 +1,4 @@
+import axios from "axios";
 import { disableAllButtons } from "./loading";
 
 function destroyCropper(img: HTMLImageElement) {
@@ -110,8 +111,8 @@ function onClickSave(e: Event) {
 
     const revert = disableAllButtons();
     try {
-      const resp = await fetch("/api/images/upload", { method: "POST" });
-      const body = await resp.json();
+      const resp = await axios("/api/images/upload", { method: "POST" });
+      const body = resp.data;
       if (body.error) {
         throw body.error;
       }
@@ -122,11 +123,11 @@ function onClickSave(e: Event) {
 
       const formData = new FormData();
       formData.append("file", blob);
-      const uploadResp = await fetch(upload_url, {
+      const uploadResp = await axios(upload_url, {
         method: "POST",
-        body: formData,
+        data: formData,
       });
-      const uploadRespBody = await uploadResp.json();
+      const uploadRespBody = uploadResp.data;
       if (uploadRespBody.error) {
         throw uploadRespBody.error;
       }
