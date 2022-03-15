@@ -300,6 +300,10 @@
   "AddUsernameScreen.password.label": "Password",
   "AddUsernameScreen.error.duplicated-username": "Username already exist",
 
+  "EditPictureScreen.title": "Edit Profile Picture",
+  "EditPictureScreen.upload-new-picture.label": "Upload New Picture",
+  "EditPictureScreen.remove-picture.label": "Remove Picture",
+
   "UserDetails.session.header": "Sessions",
   "UserDetails.session.devices": "Devices",
   "UserDetails.session.kind": "Kind",
