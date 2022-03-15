@@ -21,6 +21,7 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import FormTextField from "../../FormTextField";
 import FormDropdown from "../../FormDropdown";
 import FormPhoneTextField from "../../FormPhoneTextField";
+import TextLink from "../../TextLink";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { parseBirthdate, toBirthdate } from "../../util/birthdate";
 import {
@@ -188,6 +189,27 @@ function StandardAttributeTextField(props: StandardAttributeTextFieldProps) {
       label={renderToString(label)}
       placeholder={placeholder}
       disabled={disabled}
+    />
+  );
+}
+
+interface StandardAttributeLabelProps {
+  standardAttributes: StandardAttributesState;
+  fieldName: keyof StandardAttributes;
+  className?: string;
+}
+
+function StandardAttributeLabel(props: StandardAttributeLabelProps) {
+  const { standardAttributes, fieldName, className } = props;
+  const { renderToString } = useContext(Context);
+  // @ts-expect-error
+  const value = standardAttributes[fieldName];
+  const label = "standard-attribute." + fieldName;
+  return (
+    <TextLink
+      className={className}
+      value={value}
+      label={renderToString(label)}
     />
   );
 }
@@ -843,13 +865,9 @@ const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
           )}
         </Div>
         {isReadable("picture") && (
-          <StandardAttributeTextField
+          <StandardAttributeLabel
             fieldName="picture"
             standardAttributes={standardAttributes}
-            makeOnChangeText={makeOnChangeText}
-            isDisabled={isDisabled}
-            className={styles.standalone}
-            placeholder={renderToString("UserProfileForm.picture.placeholder")}
           />
         )}
         <Div className={styles.singleColumnGroup}>
@@ -917,7 +935,6 @@ const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
         )}
         {isReadable("birthdate") && (
           <DatePicker
-            className={styles.standalone}
             label={renderToString("standard-attribute.birthdate")}
             firstDayOfWeek={DayOfWeek.Monday}
             firstWeekOfYear={FirstWeekOfYear.FirstFourDayWeek}
@@ -1078,11 +1095,7 @@ const UserProfileForm: React.FC<UserProfileFormProps> =
           customAttributesConfig={customAttributesConfig}
         />
         {updatedAtFormatted != null && (
-          <Text
-            className={styles.standalone}
-            variant="small"
-            styles={UPDATED_AT_STYLES}
-          >
+          <Text variant="small" styles={UPDATED_AT_STYLES}>
             <FormattedMessage
               id="standard-attribute.updated_at"
               values={{
