@@ -42,8 +42,6 @@ type PresignImagesUploadHandler struct {
 }
 
 func (h *PresignImagesUploadHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	// FIXME(images): presigned the url
-
 	userID := session.GetUserID(req.Context())
 	err := h.RateLimiter.TakeToken(PresignImagesUploadRateLimitBucket(*userID))
 	if err != nil {
