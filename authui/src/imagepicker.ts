@@ -1,3 +1,11 @@
+import axios from "axios";
+import {
+  disableAllButtons,
+  hideProgressBar,
+  showProgressBar,
+  progressEventHandler,
+} from "./loading";
+
 function destroyCropper(img: HTMLImageElement) {
   // The namespace .cropper is known by reading the source code.
   // It could change anytime!
@@ -106,9 +114,15 @@ function onClickSave(e: Event) {
       return;
     }
 
+    const revert = disableAllButtons();
+    showProgressBar();
     try {
-      const resp = await fetch("/api/images/upload", { method: "POST" });
-      const body = await resp.json();
+      const resp = await axios("/api/images/upload", {
+        method: "POST",
+        onDownloadProgress: progressEventHandler,
+        onUploadProgress: progressEventHandler,
+      });
+      const body = resp.data;
       if (body.error) {
         throw body.error;
       }
@@ -119,11 +133,13 @@ function onClickSave(e: Event) {
 
       const formData = new FormData();
       formData.append("file", blob);
-      const uploadResp = await fetch(upload_url, {
+      const uploadResp = await axios(upload_url, {
         method: "POST",
-        body: formData,
+        data: formData,
+        onDownloadProgress: progressEventHandler,
+        onUploadProgress: progressEventHandler,
       });
-      const uploadRespBody = await uploadResp.json();
+      const uploadRespBody = uploadResp.data;
       if (uploadRespBody.error) {
         throw uploadRespBody.error;
       }
@@ -134,8 +150,14 @@ function onClickSave(e: Event) {
       inputValue.value = url;
       formUpload.submit();
     } catch (e) {
+      // revert is only called for error branch because
+      // The success branch also loads a new page.
+      // Keeping the buttons in disabled state reduce flickering in the UI.
+      revert();
       setNetworkError();
       console.error(e);
+    } finally {
+      hideProgressBar();
     }
   });
 }

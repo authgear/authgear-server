@@ -1,4 +1,11 @@
 import Turbolinks from "turbolinks";
+import axios, { Method } from "axios";
+import {
+  disableAllButtons,
+  hideProgressBar,
+  showProgressBar,
+  progressEventHandler,
+} from "./loading";
 
 // Handle click link to submit form
 // When clicking element with `data-submit-link`, it will perform click on
@@ -42,17 +49,12 @@ export function autoSubmitForm() {
 }
 
 export function xhrSubmitForm(): () => void {
-  let isSubmitting = false;
-  function submitForm(e: Event) {
+  async function submitForm(e: Event) {
     if (e.defaultPrevented) {
       return;
     }
     e.preventDefault();
     e.stopPropagation();
-    if (isSubmitting) {
-      return;
-    }
-    isSubmitting = true;
 
     const form = e.currentTarget as HTMLFormElement;
     const formData = new FormData(form);
@@ -78,42 +80,51 @@ export function xhrSubmitForm(): () => void {
       }
     }
 
-    fetch(form.action, {
-      method: form.method,
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        "X-Authgear-XHR": "true",
-      },
-      credentials: "same-origin",
-      body: params,
-    })
-      .then((resp) => {
-        if (resp.status < 200 || resp.status >= 300) {
-          isSubmitting = false;
-          setServerError();
-          return;
-        }
-        return resp.json().then(({ redirect_uri, action }) => {
-          isSubmitting = false;
-
-          Turbolinks.clearCache();
-          switch (action) {
-            case "redirect":
-              // Perform full redirect.
-              window.location = redirect_uri;
-              break;
-
-            case "replace":
-            case "advance":
-              Turbolinks.visit(redirect_uri, { action });
-              break;
-          }
-        });
-      })
-      .catch(() => {
-        isSubmitting = false;
-        setNetworkError();
+    const revert = disableAllButtons();
+    showProgressBar();
+    try {
+      const resp = await axios(form.action, {
+        method: form.method as Method,
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          "X-Authgear-XHR": "true",
+        },
+        data: params,
+        onUploadProgress: progressEventHandler,
+        onDownloadProgress: progressEventHandler,
       });
+      if (resp.status < 200 || resp.status >= 300) {
+        // revert is only called for error branch because
+        // The success branch also loads a new page.
+        // Keeping the buttons in disabled state reduce flickering in the UI.
+        revert();
+        setServerError();
+        return;
+      }
+
+      const { redirect_uri, action } = resp.data;
+
+      Turbolinks.clearCache();
+      switch (action) {
+        case "redirect":
+          // Perform full redirect.
+          window.location = redirect_uri;
+          break;
+
+        case "replace":
+        case "advance":
+          Turbolinks.visit(redirect_uri, { action });
+          break;
+      }
+    } catch {
+      setNetworkError();
+      // revert is only called for error branch because
+      // The success branch also loads a new page.
+      // Keeping the buttons in disabled state reduce flickering in the UI.
+      revert();
+    } finally {
+      hideProgressBar();
+    }
   }
 
   const elems = document.querySelectorAll("form");
