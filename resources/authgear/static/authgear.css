@@ -979,3 +979,22 @@ h1, h2, h3, h4, h5, h6 {
   background-size: cover;
   background-repeat: no-repeat;
 }
+
+#loading-progress-bar {
+  position: fixed;
+  display: block;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background-color: var(--color-primary-unshaded);
+  z-index: 9999;
+  transition:
+    width 300ms ease-out,
+    opacity 150ms 150ms ease-in;
+  transform: translate3d(0, 0, 0);
+  opacity: 0;
+}
+
+.turbolinks-progress-bar {
+  background: var(--color-primary-unshaded);
+}
