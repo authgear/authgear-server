@@ -1,6 +1,11 @@
 import Turbolinks from "turbolinks";
 import axios, { Method } from "axios";
-import { disableAllButtons } from "./loading";
+import {
+  disableAllButtons,
+  hideProgressBar,
+  showProgressBar,
+  progressEventHandler,
+} from "./loading";
 
 // Handle click link to submit form
 // When clicking element with `data-submit-link`, it will perform click on
@@ -76,6 +81,7 @@ export function xhrSubmitForm(): () => void {
     }
 
     const revert = disableAllButtons();
+    showProgressBar();
     try {
       const resp = await axios(form.action, {
         method: form.method as Method,
@@ -84,6 +90,8 @@ export function xhrSubmitForm(): () => void {
           "X-Authgear-XHR": "true",
         },
         data: params,
+        onUploadProgress: progressEventHandler,
+        onDownloadProgress: progressEventHandler,
       });
       if (resp.status < 200 || resp.status >= 300) {
         // revert is only called for error branch because
@@ -114,6 +122,8 @@ export function xhrSubmitForm(): () => void {
       // The success branch also loads a new page.
       // Keeping the buttons in disabled state reduce flickering in the UI.
       revert();
+    } finally {
+      hideProgressBar();
     }
   }
 
