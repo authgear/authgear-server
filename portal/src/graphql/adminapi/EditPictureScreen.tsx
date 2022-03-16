@@ -1,4 +1,12 @@
-import React, { useMemo, useContext, useState, useCallback } from "react";
+import React, {
+  useMemo,
+  useContext,
+  useState,
+  useCallback,
+  useRef,
+  ChangeEvent,
+} from "react";
+import cn from "classnames";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import {
   Dialog,
@@ -16,6 +24,7 @@ import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ScreenContent from "../../ScreenContent";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
+import ReactCropperjs from "../../ReactCropperjs";
 import { UserQuery_node_User } from "./query/__generated__/UserQuery";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useUserQuery } from "./query/userQuery";
@@ -25,12 +34,10 @@ import { useUpdateUserMutation } from "./mutations/updateUserMutation";
 import styles from "./EditPictureScreen.module.scss";
 
 interface FormState {
-  picture: string;
+  picture?: string;
+  selected?: string;
+  uploaded?: string;
 }
-
-const defaultState: FormState = {
-  picture: "",
-};
 
 interface RemoveDialogProps {
   hidden: boolean;
@@ -77,6 +84,8 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
   const { renderToString } = useContext(Context);
   const { themes } = useSystemConfig();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const cropperjsRef = useRef<ReactCropperjs | null>(null);
   const isDirty = false;
   const navBreadcrumbItems = useMemo(() => {
     return [
@@ -95,7 +104,7 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
 
   const submit = useCallback(
     async (state: FormState) => {
-      if (state.picture === "") {
+      if (state.uploaded == null) {
         const standardAttributes = {
           ...user.standardAttributes,
         };
@@ -106,7 +115,16 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
     [user.id, user.standardAttributes, user.customAttributes, updateUser]
   );
 
-  const { updateError, save } = useSimpleForm({
+  const picture = user.standardAttributes.picture;
+  const pictureIsSet = picture != null && picture !== "";
+
+  const defaultState = useMemo(() => {
+    return {
+      picture,
+    };
+  }, [picture]);
+
+  const { updateError, save, state, setState } = useSimpleForm({
     stateMode: "UpdateInitialStateWithUseEffect",
     defaultState,
     submit,
@@ -124,32 +142,80 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
     );
   }, [save, navigate]);
 
-  const picture = user.standardAttributes.picture;
-  const pictureIsSet = picture != null && picture !== "";
+  const onChangeFile = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const target = e.currentTarget;
+      if (!(target instanceof HTMLInputElement)) {
+        return;
+      }
 
-  const initialItems: ICommandBarItemProps[] = useMemo(() => {
+      const file = target.files?.[0];
+      if (file == null) {
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.addEventListener("load", () => {
+        if (typeof reader.result === "string") {
+          const selected: string = reader.result;
+          setState((prev) => {
+            return {
+              ...prev,
+              selected,
+            };
+          });
+        }
+      });
+      reader.readAsDataURL(file);
+    },
+    [setState]
+  );
+
+  const items: ICommandBarItemProps[] = useMemo(() => {
+    if (state.selected == null) {
+      return [
+        {
+          key: "upload",
+          text: renderToString("EditPictureScreen.upload-new-picture.label"),
+          iconProps: { iconName: "Upload" },
+          onClick: () => {
+            fileInputRef.current?.click();
+          },
+        },
+        {
+          key: "remove",
+          text: renderToString("EditPictureScreen.remove-picture.label"),
+          iconProps: { iconName: "Delete" },
+          disabled: !pictureIsSet,
+          theme: pictureIsSet ? themes.destructive : themes.main,
+          onClick: () => {
+            setIsRemoveDialogVisible(true);
+          },
+        },
+      ];
+    }
     return [
       {
-        key: "upload",
-        text: renderToString("EditPictureScreen.upload-new-picture.label"),
-        iconProps: { iconName: "Upload" },
-      },
-      {
-        key: "remove",
-        text: renderToString("EditPictureScreen.remove-picture.label"),
-        iconProps: { iconName: "Delete" },
-        disabled: !pictureIsSet,
-        theme: pictureIsSet ? themes.destructive : themes.main,
+        key: "save",
+        text: renderToString("save"),
+        iconProps: { iconName: "Save" },
         onClick: () => {
-          setIsRemoveDialogVisible(true);
+          // FIXME(images): get signed URL and upload image.
+          // cropperjsRef.current?.getBlob();
         },
       },
     ];
-  }, [renderToString, pictureIsSet, themes.destructive, themes.main]);
+  }, [
+    renderToString,
+    pictureIsSet,
+    themes.destructive,
+    themes.main,
+    state.selected,
+  ]);
   return (
     <FormProvider error={updateError}>
       <CommandBarContainer
-        primaryItems={initialItems}
+        primaryItems={items}
         messageBar={<FormErrorMessageBar />}
       >
         <form>
@@ -158,7 +224,20 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
               className={styles.widget}
               items={navBreadcrumbItems}
             />
+            <ReactCropperjs
+              ref={cropperjsRef}
+              className={cn(styles.widget, styles.cropperjs)}
+              editSrc={state.selected}
+              displaySrc={state.picture}
+            />
           </ScreenContent>
+          <input
+            ref={fileInputRef}
+            className={styles.fileInput}
+            type="file"
+            accept="image/png, image/jpeg"
+            onChange={onChangeFile}
+          />
         </form>
       </CommandBarContainer>
       <NavigationBlockerDialog blockNavigation={isDirty} />
