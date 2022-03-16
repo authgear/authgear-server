@@ -180,6 +180,11 @@
   height: 55px;
   width: initial;
 }
+/* it is intended to apply padding to __page_frame.html only */
+/* but not __wide_page_frame.html */
+.page-header .no-banner {
+  padding: 16px 0;
+}
 
 .secondary-txt {
   color: var(--color-text-shaded-1);
