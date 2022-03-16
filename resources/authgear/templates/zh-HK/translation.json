@@ -339,6 +339,10 @@
   "settings-profile-edit-preferred-username-placeholder": "沒有可供選擇的用戶名稱",
   "settings-profile-edit-upload-picture-label": "上載頭像",
   "settings-profile-edit-remove-picture-label": "移除頭像",
+  "settings-profile-edit-remove-confirmation-title": "移除頭像",
+  "settings-profile-edit-remove-confirmation-desc": "確定移除頭像?",
+  "settings-profile-edit-remove-confirmation-action-label": "移除",
+  "settings-profile-edit-remove-confirmation-cancel-label": "取消",
 
   "settings-page-anonymous-user": "訪客",
 
