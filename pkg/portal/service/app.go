@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -24,9 +25,11 @@ import (
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
 	"github.com/authgear/authgear-server/pkg/util/blocklist"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/resource"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 var ErrAppIDReserved = apierrors.Forbidden.WithReason("AppIDReserved").
@@ -310,6 +313,19 @@ func (s *AppService) generateResources(appHost string, appID string, featureConf
 		}
 		appResources[configsource.AuthgearFeatureYAML] = featureConfigYAML
 	}
+
+	// Generate translation json with default app name
+	defaultTranslationJSONPath := path.Join(
+		"templates", intl.BuiltinBaseLanguage, template.TranslationJSONName,
+	)
+	translationJSONObj := map[string]string{
+		"app.name": appID,
+	}
+	translationJSON, err := json.Marshal(translationJSONObj)
+	if err != nil {
+		return nil, err
+	}
+	appResources[defaultTranslationJSONPath] = translationJSON
 
 	return appResources, nil
 }
