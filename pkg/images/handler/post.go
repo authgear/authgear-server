@@ -20,7 +20,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
-	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 func ConfigurePostRoute(route httproute.Route) httproute.Route {
@@ -146,8 +145,7 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		objectID := httproute.GetParam(r, "objectid")
 		return h.Database.WithTx(func() error {
 			return h.ImagesStore.Create(&images.File{
-				ID:        uuid.New(),
-				ObjectID:  objectID,
+				ID:        objectID,
 				Metadata:  metadata,
 				Size:      fileHeader.Size,
 				CreatedAt: h.Clock.NowUTC(),
