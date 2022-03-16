@@ -13,6 +13,7 @@ import "normalize.css";
 import "./index.scss";
 import "intl-tel-input/build/css/intlTelInput.css";
 import "intl-tel-input/build/js/utils.js";
+import "cropperjs/dist/cropper.min.css";
 
 import React from "react";
 import { render } from "react-dom";
