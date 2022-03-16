@@ -97,12 +97,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userLoader := loader.NewUserLoader(adminAPIService)
 	appServiceLogger := service.NewAppServiceLogger(logFactory)
-	databaseEnvironmentConfig := rootProvider.DatabaseConfig
-	sqlBuilder := globaldb.NewSQLBuilder(databaseEnvironmentConfig)
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
 	pool := rootProvider.Database
-	handle := globaldb.NewHandle(context, pool, databaseEnvironmentConfig, logFactory)
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	handle := globaldb.NewHandle(context, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, logFactory)
 	sqlExecutor := globaldb.NewSQLExecutor(context, handle)
 	appConfig := rootProvider.AppConfig
 	configServiceLogger := service.NewConfigServiceLogger(logFactory)
@@ -294,9 +295,11 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	rootProvider := p.RootProvider
 	pool := rootProvider.Database
-	databaseEnvironmentConfig := rootProvider.DatabaseConfig
+	environmentConfig := rootProvider.EnvironmentConfig
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
 	logFactory := rootProvider.LoggerFactory
-	handle := globaldb.NewHandle(context, pool, databaseEnvironmentConfig, logFactory)
+	handle := globaldb.NewHandle(context, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, logFactory)
 	configServiceLogger := service.NewConfigServiceLogger(logFactory)
 	appConfig := rootProvider.AppConfig
 	controller := rootProvider.ConfigSourceController
@@ -319,12 +322,11 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		Kubernetes:           kubernetes,
 	}
 	clockClock := _wireSystemClockValue
-	sqlBuilder := globaldb.NewSQLBuilder(databaseEnvironmentConfig)
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(context, handle)
 	mailConfig := rootProvider.MailConfig
 	inProcessExecutorLogger := task.NewInProcessExecutorLogger(logFactory)
 	logger := mail.NewLogger(logFactory)
-	environmentConfig := rootProvider.EnvironmentConfig
 	devMode := environmentConfig.DevMode
 	smtpConfig := rootProvider.SMTPConfig
 	smtpServerCredentials := deps.ProvideSMTPServerCredentials(smtpConfig)

@@ -21,9 +21,11 @@ type SQLBuilder struct {
 	db.SQLBuilder
 }
 
-func NewSQLBuilder(c *config.DatabaseEnvironmentConfig) *SQLBuilder {
+func NewSQLBuilder(
+	credentials *config.GlobalDatabaseCredentialsEnvironmentConfig,
+) *SQLBuilder {
 	return &SQLBuilder{
-		db.NewSQLBuilder(c.DatabaseSchema),
+		db.NewSQLBuilder(credentials.DatabaseSchema),
 	}
 }
 
@@ -47,11 +49,12 @@ type Handle struct {
 func NewHandle(
 	ctx context.Context,
 	pool *db.Pool,
+	credentials *config.GlobalDatabaseCredentialsEnvironmentConfig,
 	cfg *config.DatabaseEnvironmentConfig,
 	lf *log.Factory,
 ) *Handle {
 	opts := db.ConnectionOptions{
-		DatabaseURL:           cfg.DatabaseURL,
+		DatabaseURL:           credentials.DatabaseURL,
 		MaxOpenConnection:     cfg.MaxOpenConn,
 		MaxIdleConnection:     cfg.MaxIdleConn,
 		MaxConnectionLifetime: time.Second * time.Duration(cfg.ConnMaxLifetimeSeconds),

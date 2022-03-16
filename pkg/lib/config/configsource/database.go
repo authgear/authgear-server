@@ -56,14 +56,16 @@ const (
 )
 
 type Database struct {
-	Logger           DatabaseLogger
-	BaseResources    *resource.Manager
-	TrustProxy       config.TrustProxy
-	Config           *Config
-	Clock            clock.Clock
-	Store            *Store
-	Database         *globaldb.Handle
-	DatabaseConfig   *config.DatabaseEnvironmentConfig
+	Logger              DatabaseLogger
+	BaseResources       *resource.Manager
+	TrustProxy          config.TrustProxy
+	Config              *Config
+	Clock               clock.Clock
+	Store               *Store
+	Database            *globaldb.Handle
+	DatabaseCredentials *config.GlobalDatabaseCredentialsEnvironmentConfig
+	DatabaseConfig      *config.DatabaseEnvironmentConfig
+
 	ResolveAppIDType ResolveAppIDType
 
 	done     chan<- struct{} `wire:"-"`
@@ -81,7 +83,7 @@ func (d *Database) Open() error {
 	d.done = done
 
 	d.listener = &db.PQListener{
-		DatabaseURL: d.DatabaseConfig.DatabaseURL,
+		DatabaseURL: d.DatabaseCredentials.DatabaseURL,
 	}
 	go d.listener.Listen([]string{
 		PGChannelConfigSourceChange,

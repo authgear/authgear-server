@@ -22,11 +22,11 @@ import (
 // Injectors from wire.go:
 
 func NewAppLister(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials) *AppLister {
-	databaseConfig := NewDatabaseConfig()
-	databaseEnvironmentConfig := NewDatabaseEnvironmentConfig(databaseCredentials, databaseConfig)
+	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
+	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
 	factory := NewLoggerFactory()
-	handle := globaldb.NewHandle(ctx, pool, databaseEnvironmentConfig, factory)
-	sqlBuilder := globaldb.NewSQLBuilder(databaseEnvironmentConfig)
+	handle := globaldb.NewHandle(ctx, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(ctx, handle)
 	store := &configsource.Store{
 		SQLBuilder:  sqlBuilder,

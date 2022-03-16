@@ -81,9 +81,10 @@ func newPanicMiddleware(p *deps.RootProvider) httproute.Middleware {
 func newHealthzHandler(p *deps.RootProvider, w http.ResponseWriter, r *http.Request, ctx context.Context) http.Handler {
 	pool := p.DatabasePool
 	environmentConfig := p.EnvironmentConfig
-	databaseEnvironmentConfig := &environmentConfig.Database
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
 	factory := p.LoggerFactory
-	handle := globaldb.NewHandle(ctx, pool, databaseEnvironmentConfig, factory)
+	handle := globaldb.NewHandle(ctx, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
 	sqlExecutor := globaldb.NewSQLExecutor(ctx, handle)
 	handlerLogger := healthz.NewHandlerLogger(factory)
 	handler := &healthz.Handler{

@@ -23,16 +23,17 @@ import (
 // Injectors from wire.go:
 
 func NewUserWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials) *analytic.UserWeeklyReport {
-	databaseConfig := NewDatabaseConfig()
-	databaseEnvironmentConfig := NewDatabaseEnvironmentConfig(databaseCredentials, databaseConfig)
+	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
+	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
 	factory := NewLoggerFactory()
-	handle := globaldb.NewHandle(ctx, pool, databaseEnvironmentConfig, factory)
-	sqlBuilder := globaldb.NewSQLBuilder(databaseEnvironmentConfig)
+	handle := globaldb.NewHandle(ctx, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(ctx, handle)
 	globalDBStore := &analytic.GlobalDBStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	databaseConfig := NewDatabaseConfig()
 	appdbHandle := appdb.NewHandle(ctx, pool, databaseConfig, databaseCredentials, factory)
 	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	appdbSQLExecutor := appdb.NewSQLExecutor(ctx, appdbHandle)
@@ -50,16 +51,17 @@ func NewUserWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredentials
 }
 
 func NewProjectWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials) *analytic.ProjectWeeklyReport {
-	databaseConfig := NewDatabaseConfig()
-	databaseEnvironmentConfig := NewDatabaseEnvironmentConfig(databaseCredentials, databaseConfig)
+	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
+	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
 	factory := NewLoggerFactory()
-	handle := globaldb.NewHandle(ctx, pool, databaseEnvironmentConfig, factory)
-	sqlBuilder := globaldb.NewSQLBuilder(databaseEnvironmentConfig)
+	handle := globaldb.NewHandle(ctx, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(ctx, handle)
 	globalDBStore := &analytic.GlobalDBStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	databaseConfig := NewDatabaseConfig()
 	appdbHandle := appdb.NewHandle(ctx, pool, databaseConfig, databaseCredentials, factory)
 	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	appdbSQLExecutor := appdb.NewSQLExecutor(ctx, appdbHandle)
@@ -86,16 +88,17 @@ func NewProjectWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredenti
 }
 
 func NewProjectMonthlyReport(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials) *analytic.ProjectMonthlyReport {
-	databaseConfig := NewDatabaseConfig()
-	databaseEnvironmentConfig := NewDatabaseEnvironmentConfig(databaseCredentials, databaseConfig)
+	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
+	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
 	factory := NewLoggerFactory()
-	handle := globaldb.NewHandle(ctx, pool, databaseEnvironmentConfig, factory)
-	sqlBuilder := globaldb.NewSQLBuilder(databaseEnvironmentConfig)
+	handle := globaldb.NewHandle(ctx, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(ctx, handle)
 	globalDBStore := &analytic.GlobalDBStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	databaseConfig := NewDatabaseConfig()
 	readHandle := auditdb.NewReadHandle(ctx, pool, databaseConfig, auditDatabaseCredentials, factory)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
 	readSQLExecutor := auditdb.NewReadSQLExecutor(ctx, readHandle)
@@ -113,16 +116,17 @@ func NewProjectMonthlyReport(ctx context.Context, pool *db.Pool, databaseCredent
 }
 
 func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials, redisPool *redis.Pool, credentials *config.AnalyticRedisCredentials) *analytic.CountCollector {
-	databaseConfig := NewDatabaseConfig()
-	databaseEnvironmentConfig := NewDatabaseEnvironmentConfig(databaseCredentials, databaseConfig)
+	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
+	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
 	factory := NewLoggerFactory()
-	handle := globaldb.NewHandle(ctx, pool, databaseEnvironmentConfig, factory)
-	sqlBuilder := globaldb.NewSQLBuilder(databaseEnvironmentConfig)
+	handle := globaldb.NewHandle(ctx, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(ctx, handle)
 	globalDBStore := &analytic.GlobalDBStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	databaseConfig := NewDatabaseConfig()
 	appdbHandle := appdb.NewHandle(ctx, pool, databaseConfig, databaseCredentials, factory)
 	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	appdbSQLExecutor := appdb.NewSQLExecutor(ctx, appdbHandle)

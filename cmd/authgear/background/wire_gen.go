@@ -64,10 +64,11 @@ func newConfigSourceController(p *deps.BackgroundProvider, c context.Context) *c
 	environmentConfig := p.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	clock := _wireSystemClockValue
-	databaseEnvironmentConfig := &environmentConfig.Database
-	sqlBuilder := globaldb.NewSQLBuilder(databaseEnvironmentConfig)
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	pool := p.DatabasePool
-	handle := globaldb.NewHandle(c, pool, databaseEnvironmentConfig, factory)
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	handle := globaldb.NewHandle(c, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
 	sqlExecutor := globaldb.NewSQLExecutor(c, handle)
 	store := &configsource.Store{
 		SQLBuilder:  sqlBuilder,
@@ -75,15 +76,16 @@ func newConfigSourceController(p *deps.BackgroundProvider, c context.Context) *c
 	}
 	resolveAppIDType := configsource.NewResolveAppIDTypeDomain()
 	database := &configsource.Database{
-		Logger:           databaseLogger,
-		BaseResources:    manager,
-		TrustProxy:       trustProxy,
-		Config:           config,
-		Clock:            clock,
-		Store:            store,
-		Database:         handle,
-		DatabaseConfig:   databaseEnvironmentConfig,
-		ResolveAppIDType: resolveAppIDType,
+		Logger:              databaseLogger,
+		BaseResources:       manager,
+		TrustProxy:          trustProxy,
+		Config:              config,
+		Clock:               clock,
+		Store:               store,
+		Database:            handle,
+		DatabaseCredentials: globalDatabaseCredentialsEnvironmentConfig,
+		DatabaseConfig:      databaseEnvironmentConfig,
+		ResolveAppIDType:    resolveAppIDType,
 	}
 	controller := configsource.NewController(config, localFS, database)
 	return controller
@@ -97,9 +99,10 @@ func newAccountDeletionRunner(p *deps.BackgroundProvider, c context.Context, ctr
 	factory := p.LoggerFactory
 	pool := p.DatabasePool
 	environmentConfig := p.EnvironmentConfig
-	databaseEnvironmentConfig := &environmentConfig.Database
-	handle := globaldb.NewHandle(c, pool, databaseEnvironmentConfig, factory)
-	sqlBuilder := globaldb.NewSQLBuilder(databaseEnvironmentConfig)
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	handle := globaldb.NewHandle(c, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(c, handle)
 	clockClock := _wireSystemClockValue
 	store := &accountdeletion.Store{

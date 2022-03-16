@@ -20,21 +20,18 @@ func NewDatabaseConfig() *config.DatabaseConfig {
 	return cfg
 }
 
-func NewDatabaseEnvironmentConfig(dbCredentials *config.DatabaseCredentials, dbConfig *config.DatabaseConfig) *config.DatabaseEnvironmentConfig {
-	return &config.DatabaseEnvironmentConfig{
-		DatabaseURL:            dbCredentials.DatabaseURL,
-		DatabaseSchema:         dbCredentials.DatabaseSchema,
-		MaxOpenConn:            *dbConfig.MaxOpenConnection,
-		MaxIdleConn:            *dbConfig.MaxIdleConnection,
-		ConnMaxLifetimeSeconds: int(*dbConfig.MaxConnectionLifetime),
-		ConnMaxIdleTimeSeconds: int(*dbConfig.IdleConnectionTimeout),
+func NewGlobalDatabaseCredentials(dbCredentials *config.DatabaseCredentials) *config.GlobalDatabaseCredentialsEnvironmentConfig {
+	return &config.GlobalDatabaseCredentialsEnvironmentConfig{
+		DatabaseURL:    dbCredentials.DatabaseURL,
+		DatabaseSchema: dbCredentials.DatabaseSchema,
 	}
 }
 
 var DependencySet = wire.NewSet(
 	NewLoggerFactory,
 	NewDatabaseConfig,
-	NewDatabaseEnvironmentConfig,
+	config.NewDefaultDatabaseEnvironmentConfig,
+	NewGlobalDatabaseCredentials,
 	globaldb.DependencySet,
 	appdb.NewHandle,
 	appdb.DependencySet,

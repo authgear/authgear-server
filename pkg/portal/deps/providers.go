@@ -22,7 +22,6 @@ type RootProvider struct {
 	AuthgearConfig       *portalconfig.AuthgearConfig
 	AdminAPIConfig       *portalconfig.AdminAPIConfig
 	AppConfig            *portalconfig.AppConfig
-	DatabaseConfig       *config.DatabaseEnvironmentConfig
 	SMTPConfig           *portalconfig.SMTPConfig
 	MailConfig           *portalconfig.MailConfig
 	KubernetesConfig     *portalconfig.KubernetesConfig
@@ -49,7 +48,6 @@ func NewRootProvider(
 	authgearConfig *portalconfig.AuthgearConfig,
 	adminAPIConfig *portalconfig.AdminAPIConfig,
 	appConfig *portalconfig.AppConfig,
-	dbConfig *config.DatabaseEnvironmentConfig,
 	smtpConfig *portalconfig.SMTPConfig,
 	mailConfig *portalconfig.MailConfig,
 	kubernetesConfig *portalconfig.KubernetesConfig,
@@ -80,7 +78,6 @@ func NewRootProvider(
 		AuthgearConfig:       authgearConfig,
 		AdminAPIConfig:       adminAPIConfig,
 		AppConfig:            appConfig,
-		DatabaseConfig:       dbConfig,
 		SMTPConfig:           smtpConfig,
 		MailConfig:           mailConfig,
 		KubernetesConfig:     kubernetesConfig,

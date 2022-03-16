@@ -95,7 +95,7 @@ func (c *Config) Validate() error {
 		ctx.Child("AUTHGEAR_ENDPOINT").EmitErrorMessage("missing authgear endpoint")
 	}
 
-	if c.Database.DatabaseURL == "" {
+	if c.GlobalDatabase.DatabaseURL == "" {
 		ctx.Child("DATABASE_URL").EmitErrorMessage("missing database URL")
 	}
 

@@ -21,14 +21,10 @@ func NewDatabaseConfig() *config.DatabaseConfig {
 	return cfg
 }
 
-func NewDatabaseEnvironmentConfig(dbCredentials *config.DatabaseCredentials, dbConfig *config.DatabaseConfig) *config.DatabaseEnvironmentConfig {
-	return &config.DatabaseEnvironmentConfig{
-		DatabaseURL:            dbCredentials.DatabaseURL,
-		DatabaseSchema:         dbCredentials.DatabaseSchema,
-		MaxOpenConn:            *dbConfig.MaxOpenConnection,
-		MaxIdleConn:            *dbConfig.MaxIdleConnection,
-		ConnMaxLifetimeSeconds: int(*dbConfig.MaxConnectionLifetime),
-		ConnMaxIdleTimeSeconds: int(*dbConfig.IdleConnectionTimeout),
+func NewGlobalDatabaseCredentials(dbCredentials *config.DatabaseCredentials) *config.GlobalDatabaseCredentialsEnvironmentConfig {
+	return &config.GlobalDatabaseCredentialsEnvironmentConfig{
+		DatabaseURL:    dbCredentials.DatabaseURL,
+		DatabaseSchema: dbCredentials.DatabaseSchema,
 	}
 }
 
@@ -41,7 +37,8 @@ func NewRedisConfig() *config.RedisConfig {
 var DependencySet = wire.NewSet(
 	NewLoggerFactory,
 	NewDatabaseConfig,
-	NewDatabaseEnvironmentConfig,
+	config.NewDefaultDatabaseEnvironmentConfig,
+	NewGlobalDatabaseCredentials,
 	NewRedisConfig,
 	globaldb.DependencySet,
 	appdb.NewHandle,

@@ -29,7 +29,8 @@ func newConfigSourceController(p *deps.RootProvider, c context.Context) *configs
 		),
 		wire.FieldsOf(new(*config.EnvironmentConfig),
 			"TrustProxy",
-			"Database",
+			"GlobalDatabase",
+			"DatabaseConfig",
 		),
 	))
 }
