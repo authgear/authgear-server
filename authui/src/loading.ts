@@ -18,3 +18,36 @@ export function disableAllButtons(): () => void {
     }
   };
 }
+
+export function hideProgressBar(): void {
+  const loadingProgressBar = document.getElementById("loading-progress-bar");
+  if (loadingProgressBar == null) {
+    return;
+  }
+  loadingProgressBar.style.opacity = "0";
+}
+
+export function showProgressBar(): void {
+  const loadingProgressBar = document.getElementById("loading-progress-bar");
+  if (loadingProgressBar == null) {
+    return;
+  }
+  loadingProgressBar.style.opacity = "1";
+}
+
+export function progressEventHandler(progressEvent: ProgressEvent): void {
+  const loadingProgressBar = document.getElementById("loading-progress-bar");
+  if (loadingProgressBar == null) {
+    return;
+  }
+
+  if (!progressEvent.lengthComputable) {
+    return;
+  }
+
+  const percentage = Math.round(
+    (100 * progressEvent.loaded) / progressEvent.total
+  );
+  const width = Math.max(0, Math.min(100, percentage));
+  loadingProgressBar.style.width = `${width}%`;
+}

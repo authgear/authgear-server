@@ -1,5 +1,10 @@
 import axios from "axios";
-import { disableAllButtons } from "./loading";
+import {
+  disableAllButtons,
+  hideProgressBar,
+  showProgressBar,
+  progressEventHandler,
+} from "./loading";
 
 function destroyCropper(img: HTMLImageElement) {
   // The namespace .cropper is known by reading the source code.
@@ -110,8 +115,13 @@ function onClickSave(e: Event) {
     }
 
     const revert = disableAllButtons();
+    showProgressBar();
     try {
-      const resp = await axios("/api/images/upload", { method: "POST" });
+      const resp = await axios("/api/images/upload", {
+        method: "POST",
+        onDownloadProgress: progressEventHandler,
+        onUploadProgress: progressEventHandler,
+      });
       const body = resp.data;
       if (body.error) {
         throw body.error;
@@ -126,6 +136,8 @@ function onClickSave(e: Event) {
       const uploadResp = await axios(upload_url, {
         method: "POST",
         data: formData,
+        onDownloadProgress: progressEventHandler,
+        onUploadProgress: progressEventHandler,
       });
       const uploadRespBody = uploadResp.data;
       if (uploadRespBody.error) {
@@ -144,6 +156,8 @@ function onClickSave(e: Event) {
       revert();
       setNetworkError();
       console.error(e);
+    } finally {
+      hideProgressBar();
     }
   });
 }
