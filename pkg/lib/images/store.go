@@ -21,14 +21,12 @@ func (s *Store) Create(i *File) error {
 		Insert(s.SQLBuilder.TableName("_images_file")).
 		Columns(
 			"id",
-			"object_id",
 			"size",
 			"metadata",
 			"created_at",
 		).
 		Values(
 			i.ID,
-			i.ObjectID,
 			i.Size,
 			metadata,
 			i.CreatedAt,

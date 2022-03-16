@@ -38,7 +38,6 @@ const (
 
 type File struct {
 	ID        string
-	ObjectID  string
 	Size      int64
 	CreatedAt time.Time
 	Metadata  *FileMetadata
