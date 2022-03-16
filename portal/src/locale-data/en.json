@@ -303,6 +303,7 @@
   "EditPictureScreen.title": "Edit Profile Picture",
   "EditPictureScreen.upload-new-picture.label": "Upload New Picture",
   "EditPictureScreen.remove-picture.label": "Remove Picture",
+  "EditPictureScreen.remove-picture.dialog.description": "Are you sure you want to remove the profile picture?",
 
   "UserDetails.session.header": "Sessions",
   "UserDetails.session.devices": "Devices",
