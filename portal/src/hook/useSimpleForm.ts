@@ -52,15 +52,15 @@ export function useSimpleForm<State, Result = unknown>(
   );
 
   const reset = useCallback(() => {
-    if (isLoading || !isDirty) {
+    if (isLoading) {
       return;
     }
     setError(null);
     setCurrentState(initialState);
-  }, [isLoading, isDirty, initialState]);
+  }, [isLoading, initialState]);
 
   const save = useCallback(async () => {
-    if (isLoading || !isDirty) {
+    if (isLoading) {
       return;
     }
 
@@ -88,15 +88,7 @@ export function useSimpleForm<State, Result = unknown>(
     } finally {
       setIsLoading(false);
     }
-  }, [
-    isLoading,
-    isDirty,
-    submit,
-    validate,
-    currentState,
-    initialState,
-    stateMode,
-  ]);
+  }, [isLoading, submit, validate, currentState, initialState, stateMode]);
 
   const setState = useCallback(
     (fn: (state: State) => State) => {
