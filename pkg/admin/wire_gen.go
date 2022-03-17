@@ -52,6 +52,7 @@ import (
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
+	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
@@ -60,6 +61,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"net/http"
@@ -760,3 +762,39 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 var (
 	_wireRandValue = idpsession.Rand(rand.SecureRand)
 )
+
+func newPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
+	jsonResponseWriter := &httputil.JSONResponseWriter{
+		Logger: jsonResponseWriterLogger,
+	}
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	configConfig := appProvider.Config
+	appConfig := configConfig.AppConfig
+	appID := appConfig.ID
+	secretConfig := configConfig.SecretConfig
+	imagesKeyMaterials := deps.ProvideImagesKeyMaterials(secretConfig)
+	clockClock := _wireSystemClockValue
+	provider := &presign.Provider{
+		Secret: imagesKeyMaterials,
+		Clock:  clockClock,
+		Host:   httpHost,
+	}
+	presignImagesUploadHandlerLogger := transport.NewPresignImagesUploadHandlerLogger(factory)
+	presignImagesUploadHandler := &transport.PresignImagesUploadHandler{
+		JSON:            jsonResponseWriter,
+		HTTPProto:       httpProto,
+		HTTPHost:        httpHost,
+		AppID:           appID,
+		PresignProvider: provider,
+		Logger:          presignImagesUploadHandlerLogger,
+	}
+	return presignImagesUploadHandler
+}
