@@ -26,7 +26,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
+	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 var DependencySet = wire.NewSet(
@@ -82,5 +84,8 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(sso.WechatURLProvider), new(*WebEndpoints)),
 
 	transport.DependencySet,
+	wire.Bind(new(transport.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
+	wire.Bind(new(transport.PresignProvider), new(*presign.Provider)),
+
 	adminauthz.DependencySet,
 )
