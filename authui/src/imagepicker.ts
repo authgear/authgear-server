@@ -94,9 +94,34 @@ function onClickSave(e: Event) {
     return;
   }
 
+  const maxDimensions = 1024;
+  const dimensionsOptions = (function () {
+    const imageData = cropper.getImageData();
+    const cropBoxData = cropper.getCropBoxData();
+    // assume the cropped area is square
+    if (
+      imageData.naturalWidth > 0 &&
+      imageData.width > 0 &&
+      cropBoxData.width > 0
+    ) {
+      const imageScale = imageData.naturalWidth / imageData.width;
+      const croppedImageWidth = Math.floor(cropBoxData.width * imageScale);
+      const resultDimensions = Math.min(croppedImageWidth, maxDimensions);
+      return {
+        width: resultDimensions,
+        height: resultDimensions,
+      };
+    }
+
+    // last resort when any of the image or crop box data is unavailable
+    return {
+      maxWidth: maxDimensions,
+      maxHeight: maxDimensions,
+    };
+  })();
+
   const canvas = cropper.getCroppedCanvas({
-    width: 240,
-    height: 240,
+    ...dimensionsOptions,
     imageSmoothingQuality: "high",
   });
   canvas.toBlob(async (blob) => {
