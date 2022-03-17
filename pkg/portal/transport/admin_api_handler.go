@@ -13,7 +13,7 @@ import (
 )
 
 func ConfigureAdminAPIRoute(route httproute.Route) httproute.Route {
-	return route.WithMethods("OPTIONS", "GET", "POST").WithPathPattern("/api/apps/:appid/graphql")
+	return route.WithMethods("OPTIONS", "GET", "POST").WithPathPattern("/api/apps/:appid/*path")
 }
 
 type AdminAPIAuthzService interface {
@@ -21,7 +21,7 @@ type AdminAPIAuthzService interface {
 }
 
 type AdminAPIService interface {
-	Director(appID string) (func(*http.Request), error)
+	Director(appID string, path string) (func(*http.Request), error)
 }
 
 type AdminAPILogger struct{ *log.Logger }
@@ -44,6 +44,8 @@ func (h *AdminAPIHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid app ID", http.StatusBadRequest)
 		return
 	}
+
+	p := httproute.GetParam(r, "path")
 
 	appID := resolved.ID
 
@@ -78,7 +80,7 @@ func (h *AdminAPIHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	director, err := h.AdminAPI.Director(appID)
+	director, err := h.AdminAPI.Director(appID, p)
 	if err != nil {
 		h.Logger.WithError(err).Errorf("failed to proxy admin API request")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
