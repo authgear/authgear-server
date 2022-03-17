@@ -150,7 +150,19 @@
     <button id="imagepicker-button-file" type="button" class="btn primary-btn text-base margin-t-40">
       {{ template "settings-profile-edit-upload-picture-label" }}
     </button>
-    <button id="imagepicker-button-remove" class="btn secondary-btn text-base margin-t-12 {{ if not $.Picture }}hidden{{ end }}" type="submit" name="x_action" value="save" form="imagepicker-form-remove">
+    <button
+      id="imagepicker-button-remove"
+      class="btn secondary-btn text-base margin-t-12 {{ if not $.Picture }}hidden{{ end }}"
+      type="submit"
+      name="x_action"
+      value="save"
+      form="imagepicker-form-remove"
+      data-modal="confirmation"
+      data-modal-title="{{ template "settings-profile-edit-remove-confirmation-title" }}"
+      data-modal-body="{{ template "settings-profile-edit-remove-confirmation-desc" }}"
+      data-modal-action-label="{{ template "settings-profile-edit-remove-confirmation-action-label" }}"
+      data-modal-cancel-label="{{ template "settings-profile-edit-remove-confirmation-cancel-label" }}"
+    >
       {{ template "settings-profile-edit-remove-picture-label" }}
     </button>
     <button id="imagepicker-button-save" class="btn primary-btn text-base margin-t-40 hidden" type="button">

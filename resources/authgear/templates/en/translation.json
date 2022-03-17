@@ -340,6 +340,10 @@
   "settings-profile-edit-preferred-username-placeholder": "No usernames available",
   "settings-profile-edit-upload-picture-label": "Upload new picture",
   "settings-profile-edit-remove-picture-label": "Remove picture",
+  "settings-profile-edit-remove-confirmation-title": "Remove Profile Picture",
+  "settings-profile-edit-remove-confirmation-desc": "Are you sure to remove the profile picture?",
+  "settings-profile-edit-remove-confirmation-action-label": "Remove",
+  "settings-profile-edit-remove-confirmation-cancel-label": "Cancel",
 
   "settings-page-anonymous-user": "Guest",
 
