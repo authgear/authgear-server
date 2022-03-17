@@ -52,6 +52,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 	route := httproute.Route{Middleware: chain}
 
 	router.AddRoutes(p.Handler(newGraphQLHandler), transport.ConfigureGraphQLRoute(route)...)
+	router.Add(transport.ConfigurePresignImagesUploadRoute(route), p.Handler(newPresignImagesUploadHandler))
 
 	return router
 }
