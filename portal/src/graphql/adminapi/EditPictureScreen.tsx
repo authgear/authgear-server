@@ -16,6 +16,7 @@ import {
   ICommandBarItemProps,
 } from "@fluentui/react";
 import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 import CommandBarContainer from "../../CommandBarContainer";
 import { FormProvider } from "../../form";
 import { FormErrorMessageBar } from "../../FormErrorMessageBar";
@@ -36,7 +37,6 @@ import styles from "./EditPictureScreen.module.scss";
 interface FormState {
   picture?: string;
   selected?: string;
-  uploaded?: string;
 }
 
 interface RemoveDialogProps {
@@ -77,15 +77,28 @@ function RemoveDialog(props: RemoveDialogProps) {
 
 interface EditPictureScreenContentProps {
   user: UserQuery_node_User;
+  appID: string;
 }
 
+interface UploadState {
+  error: unknown;
+  loading: boolean;
+}
+
+const DEFAULT_UPLOAD_STATE: UploadState = {
+  error: undefined,
+  loading: false,
+};
+
 function EditPictureScreenContent(props: EditPictureScreenContentProps) {
-  const { user } = props;
+  const { user, appID } = props;
   const { renderToString } = useContext(Context);
   const { themes } = useSystemConfig();
   const navigate = useNavigate();
+  const [uploadState, setUploadState] = useState(DEFAULT_UPLOAD_STATE);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cropperjsRef = useRef<ReactCropperjs | null>(null);
+  const uploadedURLRef = useRef<string | null>(null);
   const isDirty = false;
   const navBreadcrumbItems = useMemo(() => {
     return [
@@ -103,8 +116,14 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
   const { updateUser } = useUpdateUserMutation();
 
   const submit = useCallback(
-    async (state: FormState) => {
-      if (state.uploaded == null) {
+    async (_state: FormState) => {
+      if (uploadedURLRef.current != null) {
+        const standardAttributes = {
+          ...user.standardAttributes,
+          picture: uploadedURLRef.current,
+        };
+        await updateUser(user.id, standardAttributes, user.customAttributes);
+      } else {
         const standardAttributes = {
           ...user.standardAttributes,
         };
@@ -171,6 +190,71 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
     [setState]
   );
 
+  const upload = useCallback(async () => {
+    if (uploadState.loading) {
+      return;
+    }
+
+    try {
+      const blob = await cropperjsRef.current?.getBlob();
+      if (blob == null) {
+        return;
+      }
+
+      setUploadState({
+        error: undefined,
+        loading: true,
+      });
+
+      const resp = await axios(`/api/apps/${appID}/_api/admin/images/upload`, {
+        method: "GET",
+      });
+
+      const { upload_url } = resp.data.result;
+      const formData = new FormData();
+      formData.append("file", blob);
+      const uploadResp = await axios(upload_url, {
+        method: "POST",
+        data: formData,
+      });
+
+      const {
+        result: { url },
+      } = uploadResp.data;
+      uploadedURLRef.current = url;
+      save().then(
+        () => {
+          navigate("..", { replace: true });
+        },
+        () => {}
+      );
+      // eslint-disable-next-line @typescript-eslint/no-implicit-any-catch
+    } catch (e: any) {
+      if (e?.response?.data?.error != null) {
+        setUploadState((prev) => {
+          return {
+            ...prev,
+            error: e.response.data.error,
+          };
+        });
+      } else {
+        setUploadState((prev) => {
+          return {
+            ...prev,
+            error: e,
+          };
+        });
+      }
+    } finally {
+      setUploadState((prev) => {
+        return {
+          ...prev,
+          loading: false,
+        };
+      });
+    }
+  }, [appID, uploadState.loading, save, navigate]);
+
   const items: ICommandBarItemProps[] = useMemo(() => {
     if (state.selected == null) {
       return [
@@ -200,8 +284,7 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
         text: renderToString("save"),
         iconProps: { iconName: "Save" },
         onClick: () => {
-          // FIXME(images): get signed URL and upload image.
-          // cropperjsRef.current?.getBlob();
+          upload().catch(() => {});
         },
       },
     ];
@@ -211,9 +294,10 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
     themes.destructive,
     themes.main,
     state.selected,
+    upload,
   ]);
   return (
-    <FormProvider error={updateError}>
+    <FormProvider error={updateError || uploadState.error}>
       <CommandBarContainer
         primaryItems={items}
         messageBar={<FormErrorMessageBar />}
@@ -251,7 +335,7 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
 }
 
 const EditPictureScreen: React.FC = function EditPictureScreen() {
-  const { appID: _appID, userID } = useParams();
+  const { appID, userID } = useParams();
   const {
     user,
     loading: loadingUser,
@@ -271,7 +355,7 @@ const EditPictureScreen: React.FC = function EditPictureScreen() {
     return <ShowError error={userError} onRetry={refetchUser} />;
   }
 
-  return <EditPictureScreenContent user={user} />;
+  return <EditPictureScreenContent user={user} appID={appID} />;
 };
 
 export default EditPictureScreen;
