@@ -11,6 +11,35 @@ export interface ReactCropperjsProps {
   displaySrc?: string;
 }
 
+const maxDimensions = 1024;
+
+function calculateDimensions(
+  cropper: Cropperjs
+): Cropperjs.GetCroppedCanvasOptions {
+  const imageData = cropper.getImageData();
+  const cropBoxData = cropper.getCropBoxData();
+  // assume the cropped area is square
+  if (
+    imageData.naturalWidth > 0 &&
+    imageData.width > 0 &&
+    cropBoxData.width > 0
+  ) {
+    const imageScale = imageData.naturalWidth / imageData.width;
+    const croppedImageWidth = Math.floor(cropBoxData.width * imageScale);
+    const resultDimensions = Math.min(croppedImageWidth, maxDimensions);
+    return {
+      width: resultDimensions,
+      height: resultDimensions,
+    };
+  }
+
+  // last resort when any of the image or crop box data is unavailable
+  return {
+    maxWidth: maxDimensions,
+    maxHeight: maxDimensions,
+  };
+}
+
 class ReactCropperjs extends React.Component<ReactCropperjsProps> {
   instance: Cropperjs | null = null;
   img: React.RefObject<HTMLImageElement> = createRef();
@@ -56,8 +85,7 @@ class ReactCropperjs extends React.Component<ReactCropperjsProps> {
   async getBlob(): Promise<Blob> {
     return new Promise((resolve) => {
       const canvas = this.instance?.getCroppedCanvas({
-        width: 240,
-        height: 240,
+        ...calculateDimensions(this.instance),
         imageSmoothingQuality: "high",
       });
       canvas?.toBlob((blob) => {
