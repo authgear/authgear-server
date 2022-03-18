@@ -14,6 +14,7 @@ import {
   PrimaryButton,
   DefaultButton,
   ICommandBarItemProps,
+  ProgressIndicator,
 } from "@fluentui/react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -83,6 +84,7 @@ interface EditPictureScreenContentProps {
 interface UploadState {
   error: unknown;
   loading: boolean;
+  percentComplete?: number;
 }
 
 const DEFAULT_UPLOAD_STATE: UploadState = {
@@ -143,7 +145,7 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
     };
   }, [picture]);
 
-  const { updateError, save, state, setState } = useSimpleForm({
+  const { updateError, save, state, setState, isUpdating } = useSimpleForm({
     stateMode: "UpdateInitialStateWithUseEffect",
     defaultState,
     submit,
@@ -190,6 +192,20 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
     [setState]
   );
 
+  const onProgress = useCallback(
+    (e: ProgressEvent) => {
+      if (e.lengthComputable) {
+        setState((prev) => {
+          return {
+            ...prev,
+            percentComplete: e.loaded / e.total,
+          };
+        });
+      }
+    },
+    [setState]
+  );
+
   const upload = useCallback(async () => {
     if (uploadState.loading) {
       return;
@@ -204,10 +220,13 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
       setUploadState({
         error: undefined,
         loading: true,
+        percentComplete: undefined,
       });
 
       const resp = await axios(`/api/apps/${appID}/_api/admin/images/upload`, {
         method: "GET",
+        onUploadProgress: onProgress,
+        onDownloadProgress: onProgress,
       });
 
       const { upload_url } = resp.data.result;
@@ -216,6 +235,8 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
       const uploadResp = await axios(upload_url, {
         method: "POST",
         data: formData,
+        onUploadProgress: onProgress,
+        onDownloadProgress: onProgress,
       });
 
       const {
@@ -253,7 +274,7 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
         };
       });
     }
-  }, [appID, uploadState.loading, save, navigate]);
+  }, [appID, uploadState.loading, save, navigate, onProgress]);
 
   const items: ICommandBarItemProps[] = useMemo(() => {
     if (state.selected == null) {
@@ -283,6 +304,7 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
         key: "save",
         text: renderToString("save"),
         iconProps: { iconName: "Save" },
+        disabled: uploadState.loading || isUpdating,
         onClick: () => {
           upload().catch(() => {});
         },
@@ -294,7 +316,9 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
     themes.destructive,
     themes.main,
     state.selected,
+    uploadState.loading,
     upload,
+    isUpdating,
   ]);
   return (
     <FormProvider error={updateError || uploadState.error}>
@@ -313,6 +337,11 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
               className={cn(styles.widget, styles.cropperjs)}
               editSrc={state.selected}
               displaySrc={state.picture}
+            />
+            <ProgressIndicator
+              className={styles.widget}
+              percentComplete={uploadState.percentComplete}
+              progressHidden={!uploadState.loading}
             />
           </ScreenContent>
           <input
