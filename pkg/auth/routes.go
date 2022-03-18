@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -88,7 +89,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		webappChain,
 		p.Middleware(newCSRFMiddleware),
 		webapp.TurbolinksMiddleware{},
-		p.Middleware(newSecHeadersMiddleware),
+		web.StaticSecurityHeadersMiddleware{},
+		p.Middleware(newDynamicCSPMiddleware),
 	)
 	webappAuthEntrypointChain := httproute.Chain(
 		webappPageChain,

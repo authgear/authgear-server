@@ -8,7 +8,6 @@ import (
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -60,15 +59,10 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	))
 }
 
-func provideSecHeadersMiddleware(http *config.HTTPConfig) *web.SecHeadersMiddleware {
-	return &web.SecHeadersMiddleware{CSPDirectives: http.CSPDirectives}
-}
-
-func newSecHeadersMiddleware(p *deps.RequestProvider) httproute.Middleware {
+func newDynamicCSPMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,
-		provideSecHeadersMiddleware,
-		wire.Bind(new(httproute.Middleware), new(*web.SecHeadersMiddleware)),
+		wire.Bind(new(httproute.Middleware), new(*web.DynamicCSPMiddleware)),
 	))
 }
 
