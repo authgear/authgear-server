@@ -27,7 +27,15 @@ var FileMetaSchema = validation.NewSimpleSchema(`
 				"enum": ["user", "admin_api"]
 			}
 		},
-		"required": ["user_id", "uploaded_by"]
+		"required": ["uploaded_by"],
+		"allOf": [
+			{
+				"if": { "properties": { "uploaded_by": { "const": "user" } } },
+				"then": {
+					"required": ["user_id"]
+				}
+			}
+		]
 	}
 `)
 
