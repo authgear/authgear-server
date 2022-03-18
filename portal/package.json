@@ -49,6 +49,7 @@
     "@fluentui/react": "8.55.2",
     "@monaco-editor/react": "3.7.2",
     "@oursky/react-messageformat": "2.0.2",
+    "axios": "0.26.1",
     "base64-js": "1.5.1",
     "chart.js": "3.7.0",
     "chartjs-plugin-datalabels": "2.0.0",
