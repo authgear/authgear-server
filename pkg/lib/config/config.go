@@ -39,7 +39,8 @@ var _ = Schema.Add("AppConfig", `
 		"account_deletion": { "$ref": "#/$defs/AccountDeletionConfig" },
 		"forgot_password": { "$ref": "#/$defs/ForgotPasswordConfig" },
 		"welcome_message": { "$ref": "#/$defs/WelcomeMessageConfig" },
-		"verification": { "$ref": "#/$defs/VerificationConfig" }
+		"verification": { "$ref": "#/$defs/VerificationConfig" },
+		"google_tag_manager": { "$ref": "#/$defs/GoogleTagManagerConfig" }
 	},
 	"required": ["id", "http"]
 }
@@ -66,6 +67,8 @@ type AppConfig struct {
 	ForgotPassword *ForgotPasswordConfig `json:"forgot_password,omitempty"`
 	WelcomeMessage *WelcomeMessageConfig `json:"welcome_message,omitempty"`
 	Verification   *VerificationConfig   `json:"verification,omitempty"`
+
+	GoogleTagManager *GoogleTagManagerConfig `json:"google_tag_manager,omitempty"`
 }
 
 // nolint: gocyclo
