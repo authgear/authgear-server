@@ -49,11 +49,14 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	rootProvider := appProvider.RootProvider
+	environmentConfig := &rootProvider.EnvironmentConfig
+	corsAllowedOrigins := environmentConfig.CORSAllowedOrigins
 	factory := rootProvider.LoggerFactory
 	corsMiddlewareLogger := middleware.NewCORSMiddlewareLogger(factory)
 	corsMiddleware := &middleware.CORSMiddleware{
-		Config: httpConfig,
-		Logger: corsMiddlewareLogger,
+		Config:             httpConfig,
+		CORSAllowedOrigins: corsAllowedOrigins,
+		Logger:             corsMiddlewareLogger,
 	}
 	return corsMiddleware
 }

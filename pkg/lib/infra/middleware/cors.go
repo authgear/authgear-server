@@ -15,14 +15,19 @@ func NewCORSMiddlewareLogger(lf *log.Factory) CORSMiddlewareLogger {
 	return CORSMiddlewareLogger{lf.New("cors-middleware")}
 }
 
+// CORSMiddleware provides CORS headers by matching request origin with the configured allowed origins
+// The allowed origins are provided through app config and environment variable
 type CORSMiddleware struct {
-	Config *config.HTTPConfig
-	Logger CORSMiddlewareLogger
+	Config             *config.HTTPConfig
+	CORSAllowedOrigins config.CORSAllowedOrigins
+	Logger             CORSMiddlewareLogger
 }
 
 func (m *CORSMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		matcher, err := originmatcher.New(m.Config.AllowedOrigins)
+		allowedOrigins := m.Config.AllowedOrigins
+		allowedOrigins = append(allowedOrigins, m.CORSAllowedOrigins.List()...)
+		matcher, err := originmatcher.New(allowedOrigins)
 		// nolint: staticcheck
 		if err != nil {
 			// err is handled by not writing any CORS headers.
