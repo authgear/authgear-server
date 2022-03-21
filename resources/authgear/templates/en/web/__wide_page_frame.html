@@ -3,6 +3,14 @@
 <html lang="{{ $.ResolvedLanguageTag }}">
 {{ template "__html_head.html" . }}
 <body class="page">
+
+<!-- Google Tag Manager (noscript) -->
+{{ if $.GoogleTagManagerContainerID }}
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ $.GoogleTagManagerContainerID }}"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+{{ end }}
+<!-- End Google Tag Manager (noscript) -->
+
 {{ template "__message_bar.html" . }}
 <div id="loading-progress-bar"></div>
 <div class="max-w-90 m-auto">
