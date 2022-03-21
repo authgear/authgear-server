@@ -101,7 +101,6 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cropperjsRef = useRef<ReactCropperjs | null>(null);
   const uploadedURLRef = useRef<string | null>(null);
-  const isDirty = false;
   const navBreadcrumbItems = useMemo(() => {
     return [
       { to: "../../..", label: <FormattedMessage id="UsersScreen.title" /> },
@@ -150,6 +149,10 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
     defaultState,
     submit,
   });
+
+  const isDirty = useMemo(() => {
+    return state.selected != null;
+  }, [state.selected]);
 
   const onConfirmRemove = useCallback(() => {
     save().then(
