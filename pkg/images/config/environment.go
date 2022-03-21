@@ -22,4 +22,6 @@ type EnvironmentConfig struct {
 	CustomResourceDirectory string `envconfig:"CUSTOM_RESOURCE_DIRECTORY"`
 	// Database configures the configsource database
 	Database *config.DatabaseEnvironmentConfig `envconfig:"DATABASE"`
+	// CORSAllowOrigins configures a comma-separated list of allowed origins for CORSMiddleware
+	CORSAllowedOrigins config.CORSAllowedOrigins `envconfig:"CORS_ALLOWED_ORIGINS"`
 }

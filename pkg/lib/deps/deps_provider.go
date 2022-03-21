@@ -27,6 +27,7 @@ var envConfigDeps = wire.NewSet(
 		"StaticAssetURLPrefix",
 		"Database",
 		"ImagesCDNHost",
+		"CORSAllowedOrigins",
 	),
 )
 
