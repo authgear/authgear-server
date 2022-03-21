@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/clientid"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/geoip"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -28,6 +29,7 @@ type TranslationService interface {
 
 // BaseViewModel contains data that are common to all pages.
 type BaseViewModel struct {
+	CSPNonce                    string
 	CSRFField                   htmltemplate.HTML
 	Translations                TranslationService
 	StaticAssetURL              func(id string) (url string)
@@ -127,6 +129,8 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		clientName = client.Name
 	}
 
+	cspNonce := web.GetCSPNonce(r.Context())
+
 	preferredLanguageTags := intl.GetPreferredLanguageTags(r.Context())
 	_, resolvedLanguageTagTag := intl.Resolve(preferredLanguageTags, string(m.DefaultLanguageTag), []string(m.SupportedLanguageTags))
 	resolvedLanguageTag := resolvedLanguageTagTag.String()
@@ -150,6 +154,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	}
 
 	model := BaseViewModel{
+		CSPNonce:     cspNonce,
 		CSRFField:    csrf.TemplateField(r),
 		Translations: m.Translations,
 		// This function has to return 1-value only.

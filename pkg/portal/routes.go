@@ -19,28 +19,31 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 		PathPattern: "/healthz",
 	}, http.HandlerFunc(httputil.HealthCheckHandler))
 
-	// TODO(csp): improve security
-	secMiddleware := &web.SecHeadersMiddleware{
-		CSPDirectives: []string{
-			// FIXME(regeneratorRuntime)
-			// parcel-2.0.0-rc.0 requires us to use ES6 module when the browser supports it.
-			// ES6 module assumes strict mode.
-			// regeneratorRuntime is not compatible with strict mode because
-			// it uses Function to generate function, which is considered as eval.
-			"script-src 'self' 'unsafe-eval' 'unsafe-inline' cdn.jsdelivr.net",
-			"worker-src 'self' 'unsafe-inline' cdn.jsdelivr.net",
-			"object-src 'none'",
-			"base-uri 'none'",
-			"block-all-mixed-content",
+	securityMiddleware := httproute.Chain(
+		web.StaticSecurityHeadersMiddleware{},
+		web.StaticCSPMiddleware{
+			CSPDirectives: []string{
+				// FIXME(regeneratorRuntime)
+				// parcel-2.0.0-rc.0 requires us to use ES6 module when the browser supports it.
+				// ES6 module assumes strict mode.
+				// regeneratorRuntime is not compatible with strict mode because
+				// it uses Function to generate function, which is considered as eval.
+				"script-src 'self' 'unsafe-eval' 'unsafe-inline' cdn.jsdelivr.net",
+				"worker-src 'self' 'unsafe-inline' cdn.jsdelivr.net",
+				"object-src 'none'",
+				"base-uri 'none'",
+				"block-all-mixed-content",
+				"frame-ancestors 'none'",
+			},
 		},
-	}
+	)
 
 	rootChain := httproute.Chain(
 		p.Middleware(newPanicMiddleware),
 		p.Middleware(newBodyLimitMiddleware),
 		p.Middleware(newSentryMiddleware),
 		p.Middleware(newSessionInfoMiddleware),
-		secMiddleware,
+		securityMiddleware,
 		httproute.MiddlewareFunc(httputil.NoCache),
 	)
 
@@ -70,7 +73,7 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 
 	router.Add(transport.ConfigureAdminAPIRoute(adminAPIRoute), p.Handler(newAdminAPIHandler))
 
-	router.NotFound(secMiddleware.Handle(p.Handler(newStaticAssetsHandler)))
+	router.NotFound(securityMiddleware.Handle(p.Handler(newStaticAssetsHandler)))
 
 	return router
 }

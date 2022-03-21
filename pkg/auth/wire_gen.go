@@ -31,7 +31,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	stdattrs2 "github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/event"
@@ -31482,13 +31481,15 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	return corsMiddleware
 }
 
-func newSecHeadersMiddleware(p *deps.RequestProvider) httproute.Middleware {
+func newDynamicCSPMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
-	secHeadersMiddleware := provideSecHeadersMiddleware(httpConfig)
-	return secHeadersMiddleware
+	dynamicCSPMiddleware := &web.DynamicCSPMiddleware{
+		HTTPConfig: httpConfig,
+	}
+	return dynamicCSPMiddleware
 }
 
 func newCSRFMiddleware(p *deps.RequestProvider) httproute.Middleware {
@@ -32370,10 +32371,4 @@ func newSuccessPageMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		ErrorCookie: errorCookie,
 	}
 	return successPageMiddleware
-}
-
-// wire_middleware.go:
-
-func provideSecHeadersMiddleware(http2 *config.HTTPConfig) *web.SecHeadersMiddleware {
-	return &web.SecHeadersMiddleware{CSPDirectives: http2.CSPDirectives}
 }

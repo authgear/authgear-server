@@ -20,21 +20,24 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 		PathPattern: "/healthz",
 	}, p.RootHandler(newHealthzHandler))
 
-	// TODO(csp): improve security
-	secMiddleware := &web.SecHeadersMiddleware{
-		CSPDirectives: []string{
-			"script-src 'self' 'unsafe-inline' cdn.jsdelivr.net",
-			"object-src 'none'",
-			"base-uri 'none'",
-			"block-all-mixed-content",
+	securityMiddleware := httproute.Chain(
+		web.StaticSecurityHeadersMiddleware{},
+		web.StaticCSPMiddleware{
+			CSPDirectives: []string{
+				"script-src 'self' 'unsafe-inline' cdn.jsdelivr.net",
+				"object-src 'none'",
+				"base-uri 'none'",
+				"block-all-mixed-content",
+				"frame-ancestors 'none'",
+			},
 		},
-	}
+	)
 
 	chain := httproute.Chain(
 		p.RootMiddleware(newPanicMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
-		secMiddleware,
+		securityMiddleware,
 		httproute.MiddlewareFunc(httputil.NoCache),
 		&deps.RequestMiddleware{
 			RootProvider: p,
