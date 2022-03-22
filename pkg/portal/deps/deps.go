@@ -46,20 +46,6 @@ func ProvideAuditDatabaseCredentials(cfg *config.EnvironmentConfig) *config.Audi
 	return nil
 }
 
-func ProvideDatabaseConfig(databaseConfig *config.DatabaseEnvironmentConfig) *config.DatabaseConfig {
-	newDurationSecondsConfig := func(sec int) *config.DurationSeconds {
-		c := config.DurationSeconds(sec)
-		return &c
-	}
-
-	return &config.DatabaseConfig{
-		MaxOpenConnection:     &databaseConfig.MaxOpenConn,
-		MaxIdleConnection:     &databaseConfig.MaxIdleConn,
-		IdleConnectionTimeout: newDurationSecondsConfig(databaseConfig.ConnMaxIdleTimeSeconds),
-		MaxConnectionLifetime: newDurationSecondsConfig(databaseConfig.ConnMaxLifetimeSeconds),
-	}
-}
-
 var DependencySet = wire.NewSet(
 	wire.FieldsOf(new(*RootProvider),
 		"EnvironmentConfig",
@@ -98,7 +84,6 @@ var DependencySet = wire.NewSet(
 	ProvideHTTPProto,
 	ProvideConfigSource,
 	ProvideAppBaseResources,
-	ProvideDatabaseConfig,
 	ProvideAuditDatabaseCredentials,
 	wire.Bind(new(template.ResourceManager), new(*resource.Manager)),
 	wire.Value(template.DefaultLanguageTag(intl.BuiltinBaseLanguage)),

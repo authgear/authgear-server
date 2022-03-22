@@ -33,8 +33,7 @@ func NewUserWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredentials
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	databaseConfig := NewDatabaseConfig()
-	appdbHandle := appdb.NewHandle(ctx, pool, databaseConfig, databaseCredentials, factory)
+	appdbHandle := appdb.NewHandle(ctx, pool, databaseEnvironmentConfig, databaseCredentials, factory)
 	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	appdbSQLExecutor := appdb.NewSQLExecutor(ctx, appdbHandle)
 	appDBStore := &analytic.AppDBStore{
@@ -61,15 +60,14 @@ func NewProjectWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredenti
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	databaseConfig := NewDatabaseConfig()
-	appdbHandle := appdb.NewHandle(ctx, pool, databaseConfig, databaseCredentials, factory)
+	appdbHandle := appdb.NewHandle(ctx, pool, databaseEnvironmentConfig, databaseCredentials, factory)
 	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	appdbSQLExecutor := appdb.NewSQLExecutor(ctx, appdbHandle)
 	appDBStore := &analytic.AppDBStore{
 		SQLBuilder:  appdbSQLBuilder,
 		SQLExecutor: appdbSQLExecutor,
 	}
-	readHandle := auditdb.NewReadHandle(ctx, pool, databaseConfig, auditDatabaseCredentials, factory)
+	readHandle := auditdb.NewReadHandle(ctx, pool, databaseEnvironmentConfig, auditDatabaseCredentials, factory)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
 	readSQLExecutor := auditdb.NewReadSQLExecutor(ctx, readHandle)
 	auditDBReadStore := &analytic.AuditDBReadStore{
@@ -98,8 +96,7 @@ func NewProjectMonthlyReport(ctx context.Context, pool *db.Pool, databaseCredent
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	databaseConfig := NewDatabaseConfig()
-	readHandle := auditdb.NewReadHandle(ctx, pool, databaseConfig, auditDatabaseCredentials, factory)
+	readHandle := auditdb.NewReadHandle(ctx, pool, databaseEnvironmentConfig, auditDatabaseCredentials, factory)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
 	readSQLExecutor := auditdb.NewReadSQLExecutor(ctx, readHandle)
 	auditDBReadStore := &analytic.AuditDBReadStore{
@@ -126,22 +123,21 @@ func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	databaseConfig := NewDatabaseConfig()
-	appdbHandle := appdb.NewHandle(ctx, pool, databaseConfig, databaseCredentials, factory)
+	appdbHandle := appdb.NewHandle(ctx, pool, databaseEnvironmentConfig, databaseCredentials, factory)
 	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	appdbSQLExecutor := appdb.NewSQLExecutor(ctx, appdbHandle)
 	appDBStore := &analytic.AppDBStore{
 		SQLBuilder:  appdbSQLBuilder,
 		SQLExecutor: appdbSQLExecutor,
 	}
-	readHandle := auditdb.NewReadHandle(ctx, pool, databaseConfig, auditDatabaseCredentials, factory)
+	readHandle := auditdb.NewReadHandle(ctx, pool, databaseEnvironmentConfig, auditDatabaseCredentials, factory)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
 	readSQLExecutor := auditdb.NewReadSQLExecutor(ctx, readHandle)
 	auditDBReadStore := &analytic.AuditDBReadStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: readSQLExecutor,
 	}
-	writeHandle := auditdb.NewWriteHandle(ctx, pool, databaseConfig, auditDatabaseCredentials, factory)
+	writeHandle := auditdb.NewWriteHandle(ctx, pool, databaseEnvironmentConfig, auditDatabaseCredentials, factory)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(ctx, writeHandle)
 	auditDBWriteStore := &analytic.AuditDBWriteStore{
 		SQLBuilder:  auditdbSQLBuilder,

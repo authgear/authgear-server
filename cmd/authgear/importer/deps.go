@@ -14,12 +14,6 @@ func NewLoggerFactory() *log.Factory {
 	return log.NewFactory(log.LevelInfo)
 }
 
-func NewDatabaseConfig() *config.DatabaseConfig {
-	cfg := &config.DatabaseConfig{}
-	cfg.SetDefaults()
-	return cfg
-}
-
 func NewGlobalDatabaseCredentials(dbCredentials *config.DatabaseCredentials) *config.GlobalDatabaseCredentialsEnvironmentConfig {
 	return &config.GlobalDatabaseCredentialsEnvironmentConfig{
 		DatabaseURL:    dbCredentials.DatabaseURL,
@@ -29,7 +23,6 @@ func NewGlobalDatabaseCredentials(dbCredentials *config.DatabaseCredentials) *co
 
 var DependencySet = wire.NewSet(
 	NewLoggerFactory,
-	NewDatabaseConfig,
 	config.NewDefaultDatabaseEnvironmentConfig,
 	NewGlobalDatabaseCredentials,
 	globaldb.DependencySet,

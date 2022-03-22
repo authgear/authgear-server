@@ -222,9 +222,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	smtpService := &smtp.Service{
 		Context: context,
 	}
-	databaseConfig := deps.ProvideDatabaseConfig(databaseEnvironmentConfig)
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
-	readHandle := auditdb.NewReadHandle(context, pool, databaseConfig, auditDatabaseCredentials, logFactory)
+	readHandle := auditdb.NewReadHandle(context, pool, databaseEnvironmentConfig, auditDatabaseCredentials, logFactory)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
 	readSQLExecutor := auditdb.NewReadSQLExecutor(context, readHandle)
 	auditDBReadStore := &analytic.AuditDBReadStore{

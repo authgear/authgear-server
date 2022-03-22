@@ -127,12 +127,13 @@ func newAccountDeletionRunner(p *deps.BackgroundProvider, c context.Context, ctr
 
 func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID string, appContext *config.AppContext) *UserService {
 	pool := p.DatabasePool
-	databaseConfig := NewDatabaseConfig()
+	environmentConfig := p.EnvironmentConfig
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
 	configConfig := appContext.Config
 	secretConfig := configConfig.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	factory := p.LoggerFactory
-	handle := appdb.NewHandle(ctx, pool, databaseConfig, databaseCredentials, factory)
+	handle := appdb.NewHandle(ctx, pool, databaseEnvironmentConfig, databaseCredentials, factory)
 	appConfig := configConfig.AppConfig
 	configAppID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, configAppID)
@@ -156,7 +157,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	}
 	httpConfig := appConfig.HTTP
 	localizationConfig := appConfig.Localization
-	environmentConfig := p.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:            ctx,
@@ -405,7 +405,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	}
 	auditLogger := audit.NewLogger(factory)
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	writeHandle := auditdb.NewWriteHandle(ctx, pool, databaseConfig, auditDatabaseCredentials, factory)
+	writeHandle := auditdb.NewWriteHandle(ctx, pool, databaseEnvironmentConfig, auditDatabaseCredentials, factory)
 	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, configAppID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(ctx, writeHandle)
 	writeStore := &audit.WriteStore{

@@ -40,9 +40,9 @@ func NewAppLister(ctx context.Context, pool *db.Pool, databaseCredentials *confi
 }
 
 func NewReindexer(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, appID config.AppID) *Reindexer {
-	databaseConfig := NewDatabaseConfig()
+	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
 	factory := NewLoggerFactory()
-	handle := appdb.NewHandle(ctx, pool, databaseConfig, databaseCredentials, factory)
+	handle := appdb.NewHandle(ctx, pool, databaseEnvironmentConfig, databaseCredentials, factory)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	sqlExecutor := appdb.NewSQLExecutor(ctx, handle)
 	clock := _wireSystemClockValue

@@ -75,16 +75,16 @@ type Handle struct {
 func NewHandle(
 	ctx context.Context,
 	pool *db.Pool,
-	cfg *config.DatabaseConfig,
+	cfg *config.DatabaseEnvironmentConfig,
 	credentials *config.DatabaseCredentials,
 	lf *log.Factory,
 ) *Handle {
 	opts := db.ConnectionOptions{
 		DatabaseURL:           credentials.DatabaseURL,
-		MaxOpenConnection:     *cfg.MaxOpenConnection,
-		MaxIdleConnection:     *cfg.MaxIdleConnection,
-		MaxConnectionLifetime: cfg.MaxConnectionLifetime.Duration(),
-		IdleConnectionTimeout: cfg.IdleConnectionTimeout.Duration(),
+		MaxOpenConnection:     cfg.MaxOpenConn,
+		MaxIdleConnection:     cfg.MaxIdleConn,
+		MaxConnectionLifetime: cfg.ConnMaxLifetimeSeconds.Duration(),
+		IdleConnectionTimeout: cfg.ConnMaxIdleTimeSeconds.Duration(),
 	}
 	return &Handle{
 		db.NewHookHandle(ctx, pool, opts, lf),

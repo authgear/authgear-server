@@ -53,12 +53,6 @@ func ProvideUserAgentString() httputil.UserAgentString {
 	return "authgear"
 }
 
-func NewDatabaseConfig() *config.DatabaseConfig {
-	cfg := &config.DatabaseConfig{}
-	cfg.SetDefaults()
-	return cfg
-}
-
 func NewRedisConfig() *config.RedisConfig {
 	cfg := &config.RedisConfig{}
 	cfg.SetDefaults()
@@ -103,7 +97,6 @@ var DependencySet = wire.NewSet(
 	ProvideUserAgentString,
 	ProvideHTTPHost,
 	ProvideHTTPProto,
-	NewDatabaseConfig,
 	NewRedisConfig,
 	wire.Struct(new(UserServiceFactory), "*"),
 	wire.Struct(new(UserService), "*"),
