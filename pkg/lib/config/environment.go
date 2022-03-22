@@ -39,6 +39,8 @@ type EnvironmentConfig struct {
 	AuditDatabase AuditDatabaseCredentialsEnvironmentConfig `envconfig:"AUDIT_DATABASE"`
 	// DatabaseConfig configures the database connection config
 	DatabaseConfig DatabaseEnvironmentConfig `envconfig:"DATABASE_CONFIG"`
+	// RedisConfig configures the redis connection config
+	RedisConfig RedisEnvironmentConfig `envconfig:"REDIS_CONFIG"`
 
 	ImagesCDNHost ImagesCDNHost `envconfig:"IMAGES_CDN_HOST"`
 	// CORSAllowOrigins configures a comma-separated list of allowed origins for CORSMiddleware

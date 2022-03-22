@@ -22,17 +22,11 @@ func NewGlobalDatabaseCredentials(dbCredentials *config.DatabaseCredentials) *co
 	}
 }
 
-func NewRedisConfig() *config.RedisConfig {
-	cfg := &config.RedisConfig{}
-	cfg.SetDefaults()
-	return cfg
-}
-
 var DependencySet = wire.NewSet(
 	NewLoggerFactory,
 	config.NewDefaultDatabaseEnvironmentConfig,
 	NewGlobalDatabaseCredentials,
-	NewRedisConfig,
+	config.NewDefaultRedisEnvironmentConfig,
 	globaldb.DependencySet,
 	appdb.NewHandle,
 	appdb.DependencySet,

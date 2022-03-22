@@ -14,16 +14,16 @@ type Handle struct {
 	hub *redis.Hub
 }
 
-func NewHandle(pool *redis.Pool, hub *redis.Hub, cfg *config.RedisConfig, credentials *config.RedisCredentials, lf *log.Factory) *Handle {
+func NewHandle(pool *redis.Pool, hub *redis.Hub, cfg *config.RedisEnvironmentConfig, credentials *config.RedisCredentials, lf *log.Factory) *Handle {
 	return &Handle{
 		Handle: redis.NewHandle(
 			pool,
 			redis.ConnectionOptions{
 				RedisURL:              credentials.RedisURL,
-				MaxOpenConnection:     cfg.MaxOpenConnection,
-				MaxIdleConnection:     cfg.MaxIdleConnection,
-				IdleConnectionTimeout: cfg.IdleConnectionTimeout,
-				MaxConnectionLifetime: cfg.MaxConnectionLifetime,
+				MaxOpenConnection:     &cfg.MaxOpenConnection,
+				MaxIdleConnection:     &cfg.MaxIdleConnection,
+				IdleConnectionTimeout: &cfg.IdleConnectionTimeout,
+				MaxConnectionLifetime: &cfg.MaxConnectionLifetime,
 			},
 			lf.New("appredis-handle"),
 		),

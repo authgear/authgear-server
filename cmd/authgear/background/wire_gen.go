@@ -173,9 +173,9 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	logger := ratelimit.NewLogger(factory)
 	redisPool := p.RedisPool
 	hub := p.RedisHub
-	redisConfig := NewRedisConfig()
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
 	redisCredentials := deps.ProvideRedisCredentials(secretConfig)
-	appredisHandle := appredis.NewHandle(redisPool, hub, redisConfig, redisCredentials, factory)
+	appredisHandle := appredis.NewHandle(redisPool, hub, redisEnvironmentConfig, redisCredentials, factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: configAppID,
 		Redis: appredisHandle,

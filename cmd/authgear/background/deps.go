@@ -53,12 +53,6 @@ func ProvideUserAgentString() httputil.UserAgentString {
 	return "authgear"
 }
 
-func NewRedisConfig() *config.RedisConfig {
-	cfg := &config.RedisConfig{}
-	cfg.SetDefaults()
-	return cfg
-}
-
 type UserServiceFactory struct {
 	BackgroundProvider *deps.BackgroundProvider
 }
@@ -97,7 +91,6 @@ var DependencySet = wire.NewSet(
 	ProvideUserAgentString,
 	ProvideHTTPHost,
 	ProvideHTTPProto,
-	NewRedisConfig,
 	wire.Struct(new(UserServiceFactory), "*"),
 	wire.Struct(new(UserService), "*"),
 	wire.Bind(new(UserFacade), new(*facade.UserFacade)),

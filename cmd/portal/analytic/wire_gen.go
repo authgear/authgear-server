@@ -143,8 +143,8 @@ func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
 	}
-	redisConfig := NewRedisConfig()
-	analyticredisHandle := analyticredis.NewHandle(redisPool, redisConfig, credentials, factory)
+	redisEnvironmentConfig := config.NewDefaultRedisEnvironmentConfig()
+	analyticredisHandle := analyticredis.NewHandle(redisPool, redisEnvironmentConfig, credentials, factory)
 	readStoreRedis := &analytic.ReadStoreRedis{
 		Context: ctx,
 		Redis:   analyticredisHandle,

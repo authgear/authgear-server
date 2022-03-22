@@ -116,7 +116,7 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 	redis := appredis.NewHandle(
 		p.RedisPool,
 		p.RedisHub,
-		cfg.AppConfig.Redis,
+		&p.EnvironmentConfig.RedisConfig,
 		cfg.SecretConfig.LookupData(config.RedisCredentialsKey).(*config.RedisCredentials),
 		loggerFactory,
 	)
@@ -127,7 +127,7 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 	}
 	analyticRedis := analyticredis.NewHandle(
 		p.RedisPool,
-		cfg.AppConfig.Redis,
+		&p.EnvironmentConfig.RedisConfig,
 		analyticRedisCredentials,
 		loggerFactory,
 	)

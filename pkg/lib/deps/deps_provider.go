@@ -29,6 +29,7 @@ var envConfigDeps = wire.NewSet(
 		"DatabaseConfig",
 		"ImagesCDNHost",
 		"CORSAllowedOrigins",
+		"RedisConfig",
 	),
 )
 
