@@ -26,7 +26,6 @@ var _ = Schema.Add("AppConfig", `
 	"properties": {
 		"id": { "type": "string" },
 		"http": { "$ref": "#/$defs/HTTPConfig" },
-		"database": { "$ref": "#/$defs/DatabaseConfig" },
 		"redis": { "$ref": "#/$defs/RedisConfig" },
 		"hook": { "$ref": "#/$defs/HookConfig" },
 		"ui": { "$ref": "#/$defs/UIConfig" },
@@ -50,10 +49,9 @@ var _ = Schema.Add("AppConfig", `
 type AppConfig struct {
 	ID AppID `json:"id"`
 
-	HTTP     *HTTPConfig     `json:"http"`
-	Database *DatabaseConfig `json:"database,omitempty"`
-	Redis    *RedisConfig    `json:"redis,omitempty"`
-	Hook     *HookConfig     `json:"hook,omitempty"`
+	HTTP  *HTTPConfig  `json:"http"`
+	Redis *RedisConfig `json:"redis,omitempty"`
+	Hook  *HookConfig  `json:"hook,omitempty"`
 
 	UI           *UIConfig           `json:"ui,omitempty"`
 	Localization *LocalizationConfig `json:"localization,omitempty"`
