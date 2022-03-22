@@ -1,33 +1,47 @@
 {{ define "__banner.html" }}
 
-{{ $light := call $.StaticAssetURL "app-logo" }}
-{{ $dark := call $.StaticAssetURL "app-logo-dark" }}
-{{ if not $dark }}
-{{ $dark = $light }}
-{{ end }}
-
-{{ if $.DarkThemeEnabled }}
-<img class="banner light" src="{{ $light }}">
-<img class="banner dark" src="{{ $dark }}">
+{{ if .darkThemeEnabled }}
+<img class="banner light" src="{{ .light }}">
+<img class="banner dark" src="{{ .dark }}">
 {{ else }}
-<img class="banner" src="{{ $light }}">
+<img class="banner" src="{{ .light }}">
 {{ end }}
 
 {{ end }}
 
 
 {{ define "__banner_link.html" }}
-{{ if $.ClientURI }}
+
+{{ $light := call $.StaticAssetURL "app-logo" }}
+{{ $dark := call $.StaticAssetURL "app-logo-dark" }}
+{{ if not $dark }}
+{{ $dark = $light }}
+{{ end }}
+{{ if not $light }}
+{{/* the dark logo will be used in the light mode if there is dark logo only */}}
+{{/* we assume both light and dark mode should have logo once it is set */}}
+{{ $light = $dark }}
+{{ end }}
+{{ $noBanner := not $light }}
+{{ $option := (dict
+    "darkThemeEnabled" $.DarkThemeEnabled
+    "light" $light
+    "dark" $dark
+) }}
+
+{{ if $noBanner }}
+<div class="no-banner"></div>
+{{ else if $.ClientURI }}
 <a class="not-a banner-frame" href="{{ $.ClientURI }}">
-    {{ template "__banner.html" . }}
+    {{ template "__banner.html" $option }}
 </a>
 {{ else }}
 <div class="banner-frame">
-    {{ template "__banner.html" . }}
+    {{ template "__banner.html" $option }}
 </div>
 {{ end }}
-{{ end }}
 
+{{ end }}
 
 {{ define "__header.html" }}
 <div class="banner-wrapper">

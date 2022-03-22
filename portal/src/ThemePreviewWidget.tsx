@@ -10,8 +10,6 @@ import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { getShades, BannerConfiguration } from "./util/theme";
 import { base64EncodedDataToDataURI } from "./util/uri";
 import styles from "./ThemePreviewWidget.module.scss";
-import appLogo from "./images/app_logo.png";
-import appLogoDark from "./images/app_logo_dark.png";
 
 export interface ThemePreviewWidgetProps {
   ref?: Ref<HTMLElement>;
@@ -216,7 +214,7 @@ interface BannerProps {
 }
 
 function Banner(props: BannerProps) {
-  const { appLogoValue, isDarkMode, bannerConfiguration } = props;
+  const { appLogoValue, bannerConfiguration } = props;
   const src = useMemo(() => {
     if (appLogoValue != null) {
       return base64EncodedDataToDataURI(appLogoValue);
@@ -225,25 +223,29 @@ function Banner(props: BannerProps) {
   }, [appLogoValue]);
   return (
     <div className={cn(styles.marginV20)}>
-      <div
-        className={styles.bannerFrame}
-        style={{
-          backgroundColor: bannerConfiguration.backgroundColor,
-          paddingTop: bannerConfiguration.paddingTop,
-          paddingRight: bannerConfiguration.paddingRight,
-          paddingBottom: bannerConfiguration.paddingBottom,
-          paddingLeft: bannerConfiguration.paddingLeft,
-        }}
-      >
-        <img
-          className={styles.banner}
-          src={src ?? (isDarkMode ? appLogoDark : appLogo)}
+      {src ? (
+        <div
+          className={styles.bannerFrame}
           style={{
-            width: bannerConfiguration.width,
-            height: bannerConfiguration.height,
+            backgroundColor: bannerConfiguration.backgroundColor,
+            paddingTop: bannerConfiguration.paddingTop,
+            paddingRight: bannerConfiguration.paddingRight,
+            paddingBottom: bannerConfiguration.paddingBottom,
+            paddingLeft: bannerConfiguration.paddingLeft,
           }}
-        />
-      </div>
+        >
+          <img
+            className={styles.banner}
+            src={src}
+            style={{
+              width: bannerConfiguration.width,
+              height: bannerConfiguration.height,
+            }}
+          />
+        </div>
+      ) : (
+        <div className={styles.noBannerFrame}></div>
+      )}
     </div>
   );
 }
