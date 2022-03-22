@@ -111,6 +111,13 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	))
 }
 
+func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerapi.PresignImagesUploadHandler)),
+	))
+}
+
 func newWebAppOAuthEntrypointHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

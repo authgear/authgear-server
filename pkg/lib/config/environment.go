@@ -1,5 +1,7 @@
 package config
 
+import "strings"
+
 type TrustProxy bool
 
 type DevMode bool
@@ -7,6 +9,18 @@ type DevMode bool
 type SentryDSN string
 
 type StaticAssetURLPrefix string
+
+type ImagesCDNHost string
+
+type CORSAllowedOrigins string
+
+func (c *CORSAllowedOrigins) List() []string {
+	if string(*c) == "" {
+		return []string{}
+	}
+
+	return strings.Split(string(*c), ",")
+}
 
 type EnvironmentConfig struct {
 	// TrustProxy sets whether HTTP headers from proxy are to be trusted
@@ -23,4 +37,8 @@ type EnvironmentConfig struct {
 	Database DatabaseEnvironmentConfig `envconfig:"DATABASE"`
 	// AuditDatabase configures the audit database
 	AuditDatabase DatabaseCredentialsEnvironmentConfig `envconfig:"AUDIT_DATABASE"`
+
+	ImagesCDNHost ImagesCDNHost `envconfig:"IMAGES_CDN_HOST"`
+	// CORSAllowOrigins configures a comma-separated list of allowed origins for CORSMiddleware
+	CORSAllowedOrigins CORSAllowedOrigins `envconfig:"CORS_ALLOWED_ORIGINS"`
 }

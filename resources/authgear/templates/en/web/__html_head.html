@@ -9,9 +9,18 @@
 <meta name="x-geoip-country-code" content="{{ $.GeoIPCountryCode }}">
 <meta name="x-form-json" content="{{ $.FormJSON }}">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Tell turbolinks not to use stale page for application visit -->
+<!-- See https://github.com/turbolinks/turbolinks#opting-out-of-caching -->
+<!-- This issue is particularly noticeable in the following situation -->
+<!-- 1. Go to picture screen, see the profile picture screen -->
+<!-- 2. Remove the picture screen, be redirected to profile screen -->
+<!-- 3. Go back to picture screen, see the stale profile picture screen with the removed picture for a very short period -->
+<!-- Stale page is still available for navigating back -->
+<meta name="turbolinks-cache-control" content="no-preview">
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "tailwind.css" }}">
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "tabler-icons.min.css" }}">
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "intl-tel-input/css/intlTelInput.min.css" }}">
+<link rel="stylesheet" href="{{ call $.StaticAssetURL "cropperjs/css/cropper.min.css" }}">
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-light-theme.css" }}">
 {{ if $.DarkThemeEnabled }}
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-dark-theme.css" }}">
@@ -19,6 +28,7 @@
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear.css" }}">
 <script src="{{ call $.StaticAssetURL "intl-tel-input/js/intlTelInput.min.js" }}"></script>
 <script src="{{ call $.StaticAssetURL "intl-tel-input/js/utils.js" }}"></script>
+<script src="{{ call $.StaticAssetURL "cropperjs/js/cropper.min.js" }}"></script>
 <script src="{{ call $.StaticAssetURL "web-js" }}"></script>
 </head>
 {{ end }}

@@ -1,4 +1,5 @@
 import Turbolinks from "turbolinks";
+import axios from "axios";
 import { init } from "./core";
 import { setupIntlTelInput } from "./intlTelInput";
 import { setupPasswordPolicy } from "./password-policy";
@@ -11,8 +12,11 @@ import {
 import { setupSelectEmptyValue, setupGenderSelect } from "./select";
 import { formatDateRelative, formatInputDate } from "./date";
 import { setupAccountDeletion } from "./accountdeletion";
+import { setupImagePicker } from "./imagepicker";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
+
+axios.defaults.withCredentials = true;
 
 init();
 
@@ -31,6 +35,8 @@ window.api.onLoad(formatDateRelative);
 window.api.onLoad(formatInputDate);
 
 window.api.onLoad(setupAccountDeletion);
+
+window.api.onLoad(setupImagePicker);
 
 function copyToClipboard(str: string): void {
   const el = document.createElement("textarea");

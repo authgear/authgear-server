@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"path"
 	"strings"
 	texttemplate "text/template"
 
@@ -59,17 +58,13 @@ func (s *AdminAPIService) ResolveEndpoint(appID string) (*url.URL, error) {
 		if err != nil {
 			return nil, err
 		}
-		if endpoint.Path == "" {
-			endpoint.Path = "/"
-		}
-		endpoint.Path = path.Join(endpoint.Path, "graphql")
 		return endpoint, nil
 	default:
 		panic(fmt.Errorf("portal: unexpected admin API type: %v", s.AdminAPIConfig.Type))
 	}
 }
 
-func (s *AdminAPIService) Director(appID string) (director func(*http.Request), err error) {
+func (s *AdminAPIService) Director(appID string, p string) (director func(*http.Request), err error) {
 	cfg, err := s.ResolveConfig(appID)
 	if err != nil {
 		return
@@ -85,6 +80,7 @@ func (s *AdminAPIService) Director(appID string) (director func(*http.Request), 
 	if err != nil {
 		return
 	}
+	endpoint.Path = p
 
 	host, err := s.ResolveHost(appID)
 	if err != nil {
@@ -108,5 +104,5 @@ func (s *AdminAPIService) Director(appID string) (director func(*http.Request), 
 }
 
 func (s *AdminAPIService) SelfDirector() (director func(*http.Request), err error) {
-	return s.Director(s.AuthgearConfig.AppID)
+	return s.Director(s.AuthgearConfig.AppID, "/graphql")
 }

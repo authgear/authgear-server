@@ -117,8 +117,8 @@ func TestValidate(t *testing.T) {
 					Location: "/picture",
 					Keyword:  "format",
 					Info: map[string]interface{}{
-						"error":  "input URL must be absolute",
-						"format": "uri",
+						"error":  "invalid scheme: ",
+						"format": "x_picture",
 					},
 				},
 			},

@@ -24,6 +24,17 @@
     {{ template "settings-profile-edit-title" (dict "variant" $.Variant "label" $caLabel) }}
   </h1>
 
+  <form id="imagepicker-form-remove" class="hidden" method="post" novalidate>
+    {{ $.CSRFField }}
+    <input type="hidden" name="/picture" value="">
+  </form>
+
+  <form id="imagepicker-form-upload" class="hidden" method="post" novalidate>
+    {{ $.CSRFField }}
+    <input id="imagepicker-input-value" type="hidden" name="/picture" value="">
+    <input type="hidden" name="x_action" value="save">
+  </form>
+
   <form id="form" class="twc-container-vertical" method="post" novalidate>
   {{ $.CSRFField }}
 
@@ -119,6 +130,45 @@
     {{ template "standard-attribute-profile" }}
     <input class="primary-txt input text-input text-base" name="/profile" value="{{ $.Profile }}">
   </label>
+  {{ end }}
+  {{ end }}
+
+  {{ if (eq $.Variant "picture") }}
+  {{ if (call $.IsEditable "/picture") }}
+  <div class="grid grid-cols-1 auto-rows-auto">
+    <img id="imagepicker-img-preview" class="w-60 h-60 rounded-full place-self-center"
+      {{ if $.Picture }}
+	src="{{ $.Picture }}"
+      {{ else }}
+	src="{{ call $.StaticAssetURL "avatar-placeholder" }}"
+      {{ end }}
+    >
+    <div>
+      <img id="imagepicker-img-cropper" class="w-full h-60 hidden">
+    </div>
+    <input id="imagepicker-input-file" type="file" class="hidden" accept="image/png, image/jpeg">
+    <button id="imagepicker-button-file" type="button" class="btn primary-btn text-base margin-t-40">
+      {{ template "settings-profile-edit-upload-picture-label" }}
+    </button>
+    <button
+      id="imagepicker-button-remove"
+      class="btn secondary-btn text-base margin-t-12 {{ if not $.Picture }}hidden{{ end }}"
+      type="submit"
+      name="x_action"
+      value="save"
+      form="imagepicker-form-remove"
+      data-modal="confirmation"
+      data-modal-title="{{ template "settings-profile-edit-remove-confirmation-title" }}"
+      data-modal-body="{{ template "settings-profile-edit-remove-confirmation-desc" }}"
+      data-modal-action-label="{{ template "settings-profile-edit-remove-confirmation-action-label" }}"
+      data-modal-cancel-label="{{ template "settings-profile-edit-remove-confirmation-cancel-label" }}"
+    >
+      {{ template "settings-profile-edit-remove-picture-label" }}
+    </button>
+    <button id="imagepicker-button-save" class="btn primary-btn text-base margin-t-40 hidden" type="button">
+      {{ template "save-button-label" }}
+    </button>
+  </div>
   {{ end }}
   {{ end }}
 
@@ -322,7 +372,7 @@
   {{ end }}
   {{ end }}
 
-  <button class="btn primary-btn margin-t-20" type="submit" name="x_action" value="save" {{ if $save_disabled }}disabled{{ end }}>
+  <button id="save-button" class="btn primary-btn margin-t-20 {{ if (eq $.Variant "picture") }}hidden{{ end }}" type="submit" name="x_action" value="save" {{ if $save_disabled }}disabled{{ end }}>
     {{ template "save-button-label" }}
   </button>
 

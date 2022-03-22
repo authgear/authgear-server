@@ -83,6 +83,11 @@ func GenerateSecretConfigFromOptions(opts *GenerateSecretConfigOptions, createdA
 		Data: &AdminAPIAuthKey{Set: wrapInSet(secrets.GenerateRSAKey(createdAt, rng))},
 	})
 
+	items = append(items, SecretItem{
+		Key:  ImagesKeyMaterialsKey,
+		Data: &ImagesKeyMaterials{Set: wrapInSet(secrets.GenerateOctetKey(createdAt, rng))},
+	})
+
 	marshalSecretData(items)
 	return &SecretConfig{Secrets: items}
 }

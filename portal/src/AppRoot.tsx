@@ -15,6 +15,8 @@ import AddEmailScreen from "./graphql/adminapi/AddEmailScreen";
 import AddPhoneScreen from "./graphql/adminapi/AddPhoneScreen";
 import AddUsernameScreen from "./graphql/adminapi/AddUsernameScreen";
 import ResetPasswordScreen from "./graphql/adminapi/ResetPasswordScreen";
+import EditPictureScreen from "./graphql/adminapi/EditPictureScreen";
+
 import AuditLogScreen from "./graphql/adminapi/AuditLogScreen";
 import AuditLogEntryScreen from "./graphql/adminapi/AuditLogEntryScreen";
 
@@ -99,6 +101,10 @@ const AppRoot: React.FC = function AppRoot() {
           <Route
             path="/users/:userID/details/reset-password"
             element={<ResetPasswordScreen />}
+          />
+          <Route
+            path="/users/:userID/details/edit-picture"
+            element={<EditPictureScreen />}
           />
           <Route
             path="/configuration/authentication/login-id"

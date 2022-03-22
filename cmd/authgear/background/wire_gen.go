@@ -73,15 +73,17 @@ func newConfigSourceController(p *deps.BackgroundProvider, c context.Context) *c
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	resolveAppIDType := configsource.NewResolveAppIDTypeDomain()
 	database := &configsource.Database{
-		Logger:         databaseLogger,
-		BaseResources:  manager,
-		TrustProxy:     trustProxy,
-		Config:         config,
-		Clock:          clock,
-		Store:          store,
-		Database:       handle,
-		DatabaseConfig: databaseEnvironmentConfig,
+		Logger:           databaseLogger,
+		BaseResources:    manager,
+		TrustProxy:       trustProxy,
+		Config:           config,
+		Clock:            clock,
+		Store:            store,
+		Database:         handle,
+		DatabaseConfig:   databaseEnvironmentConfig,
+		ResolveAppIDType: resolveAppIDType,
 	}
 	controller := configsource.NewController(config, localFS, database)
 	return controller
@@ -347,12 +349,21 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	httpProto := ProvideHTTPProto()
+	httpHost := ProvideHTTPHost()
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
 	serviceNoEvent := &stdattrs.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
 		UserStore:         store,
 		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,

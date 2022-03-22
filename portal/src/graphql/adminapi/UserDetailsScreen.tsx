@@ -45,7 +45,7 @@ import {
   AccessControlLevelString,
   CustomAttributesAttributeConfig,
 } from "../../types";
-import { parseJSONPointer } from "../../util/jsonpointer";
+import { jsonPointerToString, parseJSONPointer } from "../../util/jsonpointer";
 import { formatDatetime } from "../../util/formatDatetime";
 
 import styles from "./UserDetailsScreen.module.scss";
@@ -283,10 +283,17 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
     data?.standardAttributes ?? {}
   );
 
+  const profileImageEditable = useMemo(() => {
+    const ptr = jsonPointerToString(["picture"]);
+    const level = standardAttributeAccessControl[ptr];
+    return level === "readwrite";
+  }, [standardAttributeAccessControl]);
+
   return (
     <div className={styles.widget}>
       <UserDetailSummary
         profileImageURL={data?.standardAttributes.picture}
+        profileImageEditable={profileImageEditable}
         formattedName={data?.formattedName ?? undefined}
         endUserAccountIdentifier={endUserAccountIdentifier}
         createdAtISO={data?.createdAt ?? null}

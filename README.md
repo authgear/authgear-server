@@ -15,21 +15,32 @@ Note that there is a local .tool-versions in project root. For the following set
 
 3. Install icu4c
 
-On macOS, the simplest way is to install it with brew
-
 ```sh
 brew install icu4c
 ```
 
-Note that by default icu4c is not symlinked to /usr/local, so you have to ensure your shell has the following in effect
+icu4c installed by brew is not globally visible by default, so you have to ensure your shell has the following in effect
 
 ```sh
-export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig"
+export PKG_CONFIG_PATH="$(brew --prefix)/opt/icu4c/lib/pkgconfig"
 ```
 
 To avoid doing the above every time you open a new shell, you may want to add it to your shell initialization script such as `~/.profile`, `~/.bash_profile`, etc.
 
-4. Run `make vendor`
+4. Install libvips
+
+```sh
+brew install vips
+```
+
+libvips on macOS requires `-Xpreprocessor` to build.
+Run the following to tell Cgo.
+
+```sh
+export CGO_CFLAGS_ALLOW="-Xpreprocessor"
+```
+
+5. Run `make vendor`
 
 ## Environment setup
 
@@ -303,6 +314,8 @@ Various files in this project have versioned dependencies.
   - The version of Debian bullseye is `2021a`, which correspond to `tzdata@v1.0.25`.
 - [The intl-tel-input static resources in ./resources/authgear/static](./resources/authgear/static)
 - [The tabler static resources in ./resources/authgear/static](./resources/authgear/static)
+- [The cropperjs static resources in ./resources/authgear/static](./resources/authgear/static)
+- [The cropperjs type definition in ./authui/src](./authui/src)
 
 ## Update third party static resources
 

@@ -45,6 +45,7 @@
   "activate": "Activate",
   "reveal": "Reveal",
   "download": "Download",
+  "not-set": "Not set",
 
   "apple": "Apple",
   "google": "Google",
@@ -298,6 +299,11 @@
   "AddUsernameScreen.username.label": "Username",
   "AddUsernameScreen.password.label": "Password",
   "AddUsernameScreen.error.duplicated-username": "Username already exist",
+
+  "EditPictureScreen.title": "Edit Profile Picture",
+  "EditPictureScreen.upload-new-picture.label": "Upload New Picture",
+  "EditPictureScreen.remove-picture.label": "Remove Picture",
+  "EditPictureScreen.remove-picture.dialog.description": "Are you sure you want to remove the profile picture?",
 
   "UserDetails.session.header": "Sessions",
   "UserDetails.session.devices": "Devices",

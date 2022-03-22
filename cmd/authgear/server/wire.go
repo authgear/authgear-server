@@ -15,6 +15,7 @@ import (
 
 func newConfigSourceController(p *deps.RootProvider, c context.Context) *configsource.Controller {
 	panic(wire.Build(
+		configsource.NewResolveAppIDTypeDomain,
 		deps.RootDependencySet,
 		wire.FieldsOf(new(*deps.RootProvider),
 			"DatabasePool",

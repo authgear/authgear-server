@@ -332,11 +332,17 @@
 
   "settings-profile-formatted-names-label": "名稱",
 
-  "settings-profile-edit-title": "更改{variant, select, name{名稱} email{電郵地址} phone_number{電話號碼} preferred_username{用戶名稱} profile{個人檔案 URL} website{網站 URL} gender{性別} birthdate{出生日期} zoneinfo{時區} locale{偏好語言} address{地址} other{{label}}}",
+  "settings-profile-edit-title": "更改{variant, select, name{名稱} email{電郵地址} phone_number{電話號碼} preferred_username{用戶名稱} profile{個人檔案 URL} picture{頭像} website{網站 URL} gender{性別} birthdate{出生日期} zoneinfo{時區} locale{偏好語言} address{地址} other{{label}}}",
   "settings-profile-edit-gender-other": "其他 (請註明)",
   "settings-profile-edit-email-placeholder": "沒有可供選擇的電郵地址",
   "settings-profile-edit-phone-number-placeholder": "沒有可供選擇的電話號碼",
   "settings-profile-edit-preferred-username-placeholder": "沒有可供選擇的用戶名稱",
+  "settings-profile-edit-upload-picture-label": "上傳頭像",
+  "settings-profile-edit-remove-picture-label": "移除頭像",
+  "settings-profile-edit-remove-confirmation-title": "移除頭像",
+  "settings-profile-edit-remove-confirmation-desc": "確定移除頭像?",
+  "settings-profile-edit-remove-confirmation-action-label": "移除",
+  "settings-profile-edit-remove-confirmation-cancel-label": "取消",
 
   "settings-page-anonymous-user": "訪客",
 
