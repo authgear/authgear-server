@@ -1,0 +1,246 @@
+import React, { useContext, useMemo, useCallback } from "react";
+import { useParams } from "react-router-dom";
+import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import {
+  DetailsList,
+  IColumn,
+  ColumnActionsMode,
+  SelectionMode,
+  Text,
+  Link as FluentLink,
+  Image,
+  ImageFit,
+} from "@fluentui/react";
+import {
+  AppConfigFormModel,
+  useAppConfigForm,
+} from "../../hook/useAppConfigForm";
+import ReactRouterLink from "../../ReactRouterLink";
+import ShowLoading from "../../ShowLoading";
+import ShowError from "../../ShowError";
+import FormContainer from "../../FormContainer";
+import ScreenContent from "../../ScreenContent";
+import ScreenTitle from "../../ScreenTitle";
+import { PortalAPIAppConfig } from "../../types";
+import { useSystemConfig } from "../../context/SystemConfigContext";
+import styles from "./IntegrationsConfigurationScreen.module.scss";
+
+import gtmLogoURL from "../../images/gtm_logo.png";
+
+interface FormState {
+  googleTagManagerContainerID: string;
+}
+
+interface Item {
+  iconURL: string;
+  name: string;
+  description: string;
+  connected: boolean;
+}
+
+export interface IntegrationsConfigurationContentProps {
+  form: AppConfigFormModel<FormState>;
+}
+
+function constructFormState(config: PortalAPIAppConfig): FormState {
+  return {
+    googleTagManagerContainerID: config.google_tag_manager?.container_id ?? "",
+  };
+}
+
+function constructConfig(
+  config: PortalAPIAppConfig,
+  _initialState: FormState,
+  _currentState: FormState,
+  _effectiveConfig: PortalAPIAppConfig
+): PortalAPIAppConfig {
+  return config;
+}
+
+interface AddonProps {
+  item: Item;
+}
+
+function Addon(props: AddonProps) {
+  const {
+    themes: {
+      main: {
+        palette: { neutralTertiary },
+      },
+    },
+  } = useSystemConfig();
+  return (
+    <div className={styles.addon}>
+      <div className={styles.addonLogo}>
+        <Image
+          className={styles.addonLogoImage}
+          src={props.item.iconURL}
+          imageFit={ImageFit.cover}
+        />
+      </div>
+      <Text className={styles.addonName}>{props.item.name}</Text>
+      <Text
+        className={styles.addonDescription}
+        styles={{
+          root: {
+            color: neutralTertiary,
+          },
+        }}
+      >
+        {props.item.description}
+      </Text>
+    </div>
+  );
+}
+
+const IntegrationsConfigurationContent: React.FC<IntegrationsConfigurationContentProps> =
+  function IntegrationsConfigurationContent(props) {
+    const {
+      form: {
+        state: { googleTagManagerContainerID },
+      },
+    } = props;
+    const {
+      themes: {
+        main: {
+          palette: { neutralSecondary },
+        },
+      },
+    } = useSystemConfig();
+
+    const { renderToString } = useContext(Context);
+    const columns: IColumn[] = [
+      {
+        key: "add-on",
+        name: renderToString("IntegrationsConfigurationScreen.add-on"),
+        minWidth: 250,
+        columnActionsMode: ColumnActionsMode.disabled,
+      },
+      {
+        key: "status",
+        // Empty string here is intentional.
+        name: "",
+        minWidth: 100,
+        columnActionsMode: ColumnActionsMode.disabled,
+      },
+      {
+        key: "action",
+        name: renderToString("IntegrationsConfigurationScreen.action"),
+        minWidth: 100,
+        columnActionsMode: ColumnActionsMode.disabled,
+      },
+    ];
+
+    const items: Item[] = useMemo(() => {
+      return [
+        {
+          iconURL: gtmLogoURL,
+          name: renderToString(
+            "IntegrationsConfigurationScreen.add-on.gtm.name"
+          ),
+          description: renderToString(
+            "IntegrationsConfigurationScreen.add-on.gtm.description"
+          ),
+          connected: googleTagManagerContainerID !== "",
+        },
+      ];
+    }, [renderToString, googleTagManagerContainerID]);
+
+    const onRenderItemColumn = useCallback(
+      (item?: Item, _index?: number, column?: IColumn) => {
+        if (item == null || column == null) {
+          return null;
+        }
+        switch (column.key) {
+          case "add-on": {
+            return <Addon item={item} />;
+          }
+          case "status": {
+            if (item.connected) {
+              return (
+                <div className={styles.cell}>
+                  <Text
+                    styles={{
+                      root: {
+                        color: neutralSecondary,
+                      },
+                    }}
+                  >
+                    <FormattedMessage id="IntegrationsConfigurationScreen.status.connected" />
+                  </Text>
+                </div>
+              );
+            }
+            return null;
+          }
+          case "action": {
+            if (item.connected) {
+              return (
+                <div className={styles.cell}>
+                  <ReactRouterLink
+                    to="#"
+                    component={FluentLink}
+                    className={styles.action}
+                  >
+                    <FormattedMessage id="edit" />
+                  </ReactRouterLink>
+                </div>
+              );
+            }
+            return (
+              <div className={styles.cell}>
+                <ReactRouterLink
+                  to="#"
+                  component={FluentLink}
+                  className={styles.action}
+                >
+                  <FormattedMessage id="connect" />
+                </ReactRouterLink>
+              </div>
+            );
+          }
+        }
+        return null;
+      },
+      [neutralSecondary]
+    );
+
+    return (
+      <ScreenContent>
+        <ScreenTitle className={styles.widget}>
+          <FormattedMessage id="IntegrationsConfigurationScreen.title" />
+        </ScreenTitle>
+        <div className={styles.widget}>
+          <DetailsList
+            styles={{}}
+            columns={columns}
+            items={items}
+            selectionMode={SelectionMode.none}
+            onRenderItemColumn={onRenderItemColumn}
+          />
+        </div>
+      </ScreenContent>
+    );
+  };
+
+const IntegrationsConfigurationScreen: React.FC =
+  function IntegrationsConfigurationScreen() {
+    const { appID } = useParams();
+    const form = useAppConfigForm(appID, constructFormState, constructConfig);
+
+    if (form.isLoading) {
+      return <ShowLoading />;
+    }
+
+    if (form.loadError) {
+      return <ShowError error={form.loadError} onRetry={form.reload} />;
+    }
+
+    return (
+      <FormContainer form={form}>
+        <IntegrationsConfigurationContent form={form} />
+      </FormContainer>
+    );
+  };
+
+export default IntegrationsConfigurationScreen;

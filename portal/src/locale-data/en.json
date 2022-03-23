@@ -32,6 +32,7 @@
   "enabled": "Enabled",
   "confirm": "Confirm",
   "cancel": "Cancel",
+  "connect": "Connect",
   "disconnect": "Disconnect",
   "verified": "Verified",
   "unverified": "Not Verified",
@@ -118,6 +119,7 @@
   "ScreenNav.admin-api": "Admin API",
   "ScreenNav.smtp": "Custom Email Provider",
   "ScreenNav.account-deletion": "Account Deletion",
+  "ScreenNav.integrations": "Integrations",
 
   "NavBreadcrumb.label": "Nested navigation",
 
@@ -1042,6 +1044,13 @@
   "AnalyticsSignupMethodsWidget.chart.wechat.label": "WeChat",
   "AnalyticsSignupMethodsWidget.chart.anonymous.label": "Anonymous",
   "AnalyticsSignupMethodsWidget.no-data-available.label": "No Data Available",
+
+  "IntegrationsConfigurationScreen.title": "Integrations",
+  "IntegrationsConfigurationScreen.add-on": "Add-on",
+  "IntegrationsConfigurationScreen.action": "Action",
+  "IntegrationsConfigurationScreen.add-on.gtm.name": "Google Tag Manager",
+  "IntegrationsConfigurationScreen.add-on.gtm.description": "Connect your container to Authgear for conversion tracking, site analytics, retargeting, and more.",
+  "IntegrationsConfigurationScreen.status.connected": "Connected",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",

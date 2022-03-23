@@ -128,6 +128,10 @@ const ScreenNav: React.FC = function ScreenNav() {
         ],
       },
       {
+        textKey: "ScreenNav.integrations",
+        url: "integrations",
+      },
+      {
         textKey: "ScreenNav.billing",
         url: "billing",
       },
