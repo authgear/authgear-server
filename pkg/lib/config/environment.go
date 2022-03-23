@@ -33,10 +33,14 @@ type EnvironmentConfig struct {
 	StaticAssetURLPrefix StaticAssetURLPrefix `envconfig:"STATIC_ASSET_URL_PREFIX" default:"/static"`
 	// SentryDSN sets the sentry DSN.
 	SentryDSN SentryDSN `envconfig:"SENTRY_DSN"`
-	// Database configures the backend database
-	Database DatabaseEnvironmentConfig `envconfig:"DATABASE"`
+	// GlobalDatabase configures the global database
+	GlobalDatabase GlobalDatabaseCredentialsEnvironmentConfig `envconfig:"DATABASE"`
 	// AuditDatabase configures the audit database
-	AuditDatabase DatabaseCredentialsEnvironmentConfig `envconfig:"AUDIT_DATABASE"`
+	AuditDatabase AuditDatabaseCredentialsEnvironmentConfig `envconfig:"AUDIT_DATABASE"`
+	// DatabaseConfig configures the database connection config
+	DatabaseConfig DatabaseEnvironmentConfig `envconfig:"DATABASE_CONFIG"`
+	// RedisConfig configures the redis connection config
+	RedisConfig RedisEnvironmentConfig `envconfig:"REDIS_CONFIG"`
 
 	ImagesCDNHost ImagesCDNHost `envconfig:"IMAGES_CDN_HOST"`
 	// CORSAllowOrigins configures a comma-separated list of allowed origins for CORSMiddleware

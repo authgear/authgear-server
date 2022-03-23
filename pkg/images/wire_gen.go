@@ -114,9 +114,9 @@ func newPostHandler(p *deps.RequestProvider) http.Handler {
 	}
 	context := deps2.ProvideRequestContext(request)
 	pool := rootProvider.DatabasePool
-	databaseConfig := deps.NewDatabaseConfig()
+	databaseEnvironmentConfig := environmentConfig.DatabaseConfig
 	databaseCredentials := deps2.ProvideDatabaseCredentials(secretConfig)
-	handle := appdb.NewHandle(context, pool, databaseConfig, databaseCredentials, factory)
+	handle := appdb.NewHandle(context, pool, databaseEnvironmentConfig, databaseCredentials, factory)
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)

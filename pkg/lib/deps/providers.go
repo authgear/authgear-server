@@ -91,7 +91,7 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 	appDatabase := appdb.NewHandle(
 		ctx,
 		p.DatabasePool,
-		cfg.AppConfig.Database,
+		&p.EnvironmentConfig.DatabaseConfig,
 		cfg.SecretConfig.LookupData(config.DatabaseCredentialsKey).(*config.DatabaseCredentials),
 		loggerFactory,
 	)
@@ -102,21 +102,21 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 	auditReadDatabase := auditdb.NewReadHandle(
 		ctx,
 		p.DatabasePool,
-		cfg.AppConfig.Database,
+		&p.EnvironmentConfig.DatabaseConfig,
 		auditDatabaseCredentials,
 		loggerFactory,
 	)
 	auditWriteDatabase := auditdb.NewWriteHandle(
 		ctx,
 		p.DatabasePool,
-		cfg.AppConfig.Database,
+		&p.EnvironmentConfig.DatabaseConfig,
 		auditDatabaseCredentials,
 		loggerFactory,
 	)
 	redis := appredis.NewHandle(
 		p.RedisPool,
 		p.RedisHub,
-		cfg.AppConfig.Redis,
+		&p.EnvironmentConfig.RedisConfig,
 		cfg.SecretConfig.LookupData(config.RedisCredentialsKey).(*config.RedisCredentials),
 		loggerFactory,
 	)
@@ -127,7 +127,7 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 	}
 	analyticRedis := analyticredis.NewHandle(
 		p.RedisPool,
-		cfg.AppConfig.Redis,
+		&p.EnvironmentConfig.RedisConfig,
 		analyticRedisCredentials,
 		loggerFactory,
 	)

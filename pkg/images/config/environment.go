@@ -20,8 +20,10 @@ type EnvironmentConfig struct {
 	BuiltinResourceDirectory string `envconfig:"BUILTIN_RESOURCE_DIRECTORY" default:"resources/authgear"`
 	// CustomResourceDirectory sets the directory for customized resource files
 	CustomResourceDirectory string `envconfig:"CUSTOM_RESOURCE_DIRECTORY"`
-	// Database configures the configsource database
-	Database *config.DatabaseEnvironmentConfig `envconfig:"DATABASE"`
+	// GlobalDatabase configures the global database for configuresource
+	GlobalDatabase *config.GlobalDatabaseCredentialsEnvironmentConfig `envconfig:"DATABASE"`
+	// DatabaseConfig configures the database connection config
+	DatabaseConfig *config.DatabaseEnvironmentConfig `envconfig:"DATABASE_CONFIG"`
 	// CORSAllowOrigins configures a comma-separated list of allowed origins for CORSMiddleware
 	CORSAllowedOrigins config.CORSAllowedOrigins `envconfig:"CORS_ALLOWED_ORIGINS"`
 }

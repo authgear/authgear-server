@@ -101,7 +101,7 @@ type ReadHandle struct {
 func NewReadHandle(
 	ctx context.Context,
 	pool *db.Pool,
-	cfg *config.DatabaseConfig,
+	cfg *config.DatabaseEnvironmentConfig,
 	credentials *config.AuditDatabaseCredentials,
 	lf *log.Factory,
 ) *ReadHandle {
@@ -111,10 +111,10 @@ func NewReadHandle(
 
 	opts := db.ConnectionOptions{
 		DatabaseURL:           credentials.DatabaseURL,
-		MaxOpenConnection:     *cfg.MaxOpenConnection,
-		MaxIdleConnection:     *cfg.MaxIdleConnection,
-		MaxConnectionLifetime: cfg.MaxConnectionLifetime.Duration(),
-		IdleConnectionTimeout: cfg.IdleConnectionTimeout.Duration(),
+		MaxOpenConnection:     cfg.MaxOpenConn,
+		MaxIdleConnection:     cfg.MaxIdleConn,
+		MaxConnectionLifetime: cfg.ConnMaxLifetimeSeconds.Duration(),
+		IdleConnectionTimeout: cfg.ConnMaxIdleTimeSeconds.Duration(),
 	}
 	return &ReadHandle{
 		db.NewHookHandle(ctx, pool, opts, lf),
@@ -132,7 +132,7 @@ type WriteHandle struct {
 func NewWriteHandle(
 	ctx context.Context,
 	pool *db.Pool,
-	cfg *config.DatabaseConfig,
+	cfg *config.DatabaseEnvironmentConfig,
 	credentials *config.AuditDatabaseCredentials,
 	lf *log.Factory,
 ) *WriteHandle {
@@ -142,10 +142,10 @@ func NewWriteHandle(
 
 	opts := db.ConnectionOptions{
 		DatabaseURL:           credentials.DatabaseURL,
-		MaxOpenConnection:     *cfg.MaxOpenConnection,
-		MaxIdleConnection:     *cfg.MaxIdleConnection,
-		MaxConnectionLifetime: cfg.MaxConnectionLifetime.Duration(),
-		IdleConnectionTimeout: cfg.IdleConnectionTimeout.Duration(),
+		MaxOpenConnection:     cfg.MaxOpenConn,
+		MaxIdleConnection:     cfg.MaxIdleConn,
+		MaxConnectionLifetime: cfg.ConnMaxLifetimeSeconds.Duration(),
+		IdleConnectionTimeout: cfg.ConnMaxIdleTimeSeconds.Duration(),
 	}
 	return &WriteHandle{
 		db.NewHookHandle(ctx, pool, opts, lf),

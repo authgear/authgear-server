@@ -64,10 +64,11 @@ func newConfigSourceController(p *deps.BackgroundProvider, c context.Context) *c
 	environmentConfig := p.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	clock := _wireSystemClockValue
-	databaseEnvironmentConfig := &environmentConfig.Database
-	sqlBuilder := globaldb.NewSQLBuilder(databaseEnvironmentConfig)
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	pool := p.DatabasePool
-	handle := globaldb.NewHandle(c, pool, databaseEnvironmentConfig, factory)
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	handle := globaldb.NewHandle(c, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
 	sqlExecutor := globaldb.NewSQLExecutor(c, handle)
 	store := &configsource.Store{
 		SQLBuilder:  sqlBuilder,
@@ -75,15 +76,16 @@ func newConfigSourceController(p *deps.BackgroundProvider, c context.Context) *c
 	}
 	resolveAppIDType := configsource.NewResolveAppIDTypeDomain()
 	database := &configsource.Database{
-		Logger:           databaseLogger,
-		BaseResources:    manager,
-		TrustProxy:       trustProxy,
-		Config:           config,
-		Clock:            clock,
-		Store:            store,
-		Database:         handle,
-		DatabaseConfig:   databaseEnvironmentConfig,
-		ResolveAppIDType: resolveAppIDType,
+		Logger:              databaseLogger,
+		BaseResources:       manager,
+		TrustProxy:          trustProxy,
+		Config:              config,
+		Clock:               clock,
+		Store:               store,
+		Database:            handle,
+		DatabaseCredentials: globalDatabaseCredentialsEnvironmentConfig,
+		DatabaseConfig:      databaseEnvironmentConfig,
+		ResolveAppIDType:    resolveAppIDType,
 	}
 	controller := configsource.NewController(config, localFS, database)
 	return controller
@@ -97,9 +99,10 @@ func newAccountDeletionRunner(p *deps.BackgroundProvider, c context.Context, ctr
 	factory := p.LoggerFactory
 	pool := p.DatabasePool
 	environmentConfig := p.EnvironmentConfig
-	databaseEnvironmentConfig := &environmentConfig.Database
-	handle := globaldb.NewHandle(c, pool, databaseEnvironmentConfig, factory)
-	sqlBuilder := globaldb.NewSQLBuilder(databaseEnvironmentConfig)
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	handle := globaldb.NewHandle(c, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(c, handle)
 	clockClock := _wireSystemClockValue
 	store := &accountdeletion.Store{
@@ -124,12 +127,13 @@ func newAccountDeletionRunner(p *deps.BackgroundProvider, c context.Context, ctr
 
 func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID string, appContext *config.AppContext) *UserService {
 	pool := p.DatabasePool
-	databaseConfig := NewDatabaseConfig()
+	environmentConfig := p.EnvironmentConfig
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
 	configConfig := appContext.Config
 	secretConfig := configConfig.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	factory := p.LoggerFactory
-	handle := appdb.NewHandle(ctx, pool, databaseConfig, databaseCredentials, factory)
+	handle := appdb.NewHandle(ctx, pool, databaseEnvironmentConfig, databaseCredentials, factory)
 	appConfig := configConfig.AppConfig
 	configAppID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, configAppID)
@@ -153,7 +157,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	}
 	httpConfig := appConfig.HTTP
 	localizationConfig := appConfig.Localization
-	environmentConfig := p.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:            ctx,
@@ -170,9 +173,9 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	logger := ratelimit.NewLogger(factory)
 	redisPool := p.RedisPool
 	hub := p.RedisHub
-	redisConfig := NewRedisConfig()
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
 	redisCredentials := deps.ProvideRedisCredentials(secretConfig)
-	appredisHandle := appredis.NewHandle(redisPool, hub, redisConfig, redisCredentials, factory)
+	appredisHandle := appredis.NewHandle(redisPool, hub, redisEnvironmentConfig, redisCredentials, factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: configAppID,
 		Redis: appredisHandle,
@@ -402,7 +405,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	}
 	auditLogger := audit.NewLogger(factory)
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	writeHandle := auditdb.NewWriteHandle(ctx, pool, databaseConfig, auditDatabaseCredentials, factory)
+	writeHandle := auditdb.NewWriteHandle(ctx, pool, databaseEnvironmentConfig, auditDatabaseCredentials, factory)
 	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, configAppID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(ctx, writeHandle)
 	writeStore := &audit.WriteStore{

@@ -25,9 +25,11 @@ var envConfigDeps = wire.NewSet(
 		"DevMode",
 		"SentryDSN",
 		"StaticAssetURLPrefix",
-		"Database",
+		"GlobalDatabase",
+		"DatabaseConfig",
 		"ImagesCDNHost",
 		"CORSAllowedOrigins",
+		"RedisConfig",
 	),
 )
 

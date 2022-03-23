@@ -19,12 +19,12 @@ import (
 // Injectors from wire.go:
 
 func NewService(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials) *Service {
-	databaseConfig := NewDatabaseConfig()
-	databaseEnvironmentConfig := NewDatabaseEnvironmentConfig(databaseCredentials, databaseConfig)
+	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
+	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
 	factory := NewLoggerFactory()
-	handle := globaldb.NewHandle(ctx, pool, databaseEnvironmentConfig, factory)
+	handle := globaldb.NewHandle(ctx, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
 	clock := _wireSystemClockValue
-	sqlBuilder := globaldb.NewSQLBuilder(databaseEnvironmentConfig)
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(ctx, handle)
 	store := &plan.Store{
 		Clock:       clock,

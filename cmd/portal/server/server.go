@@ -31,7 +31,6 @@ func (c *Controller) Start() {
 		&cfg.Authgear,
 		&cfg.AdminAPI,
 		&cfg.App,
-		&cfg.Database,
 		&cfg.SMTP,
 		&cfg.Mail,
 		&cfg.Kubernetes,

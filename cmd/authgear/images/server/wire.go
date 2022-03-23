@@ -27,7 +27,8 @@ var configSourceConfigDependencySet = wire.NewSet(
 	wire.FieldsOf(new(*imagesconfig.EnvironmentConfig),
 		"TrustProxy",
 		"ConfigSource",
-		"Database",
+		"GlobalDatabase",
+		"DatabaseConfig",
 	),
 )
 
