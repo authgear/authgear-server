@@ -174,27 +174,18 @@ const IntegrationsConfigurationContent: React.FC<IntegrationsConfigurationConten
             return null;
           }
           case "action": {
-            if (item.connected) {
-              return (
-                <div className={styles.cell}>
-                  <ReactRouterLink
-                    to="#"
-                    component={FluentLink}
-                    className={styles.action}
-                  >
-                    <FormattedMessage id="edit" />
-                  </ReactRouterLink>
-                </div>
-              );
-            }
             return (
               <div className={styles.cell}>
                 <ReactRouterLink
-                  to="#"
+                  to="./google-tag-manager"
                   component={FluentLink}
                   className={styles.action}
                 >
-                  <FormattedMessage id="connect" />
+                  {item.connected ? (
+                    <FormattedMessage id="edit" />
+                  ) : (
+                    <FormattedMessage id="connect" />
+                  )}
                 </ReactRouterLink>
               </div>
             );

@@ -48,6 +48,7 @@ import CreateCustomAttributeScreen from "./graphql/portal/CreateCustomAttributeS
 import AccountDeletionConfigurationScreen from "./graphql/portal/AccountDeletionConfigurationScreen";
 import AnalyticsScreen from "./graphql/portal/AnalyticsScreen";
 import IntegrationsConfigurationScreen from "./graphql/portal/IntegrationsConfigurationScreen";
+import GoogleTagManagerConfigurationScreen from "./graphql/portal/GoogleTagManagerConfigurationScreen";
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams();
@@ -187,6 +188,10 @@ const AppRoot: React.FC = function AppRoot() {
           <Route
             path="/integrations"
             element={<IntegrationsConfigurationScreen />}
+          />
+          <Route
+            path="/integrations/google-tag-manager"
+            element={<GoogleTagManagerConfigurationScreen />}
           />
           <Route path="/portal-admins" element={<PortalAdminsSettings />} />
           <Route path="/portal-admins/invite" element={<InviteAdminScreen />} />
