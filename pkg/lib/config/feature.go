@@ -18,19 +18,21 @@ var _ = FeatureConfigSchema.Add("FeatureConfig", `
 		"ui": { "$ref": "#/$defs/UIFeatureConfig" },
 		"oauth": { "$ref": "#/$defs/OAuthFeatureConfig" },
 		"hook": { "$ref": "#/$defs/HookFeatureConfig" },
-		"audit_log": { "$ref": "#/$defs/AuditLogFeatureConfig" }
+		"audit_log": { "$ref": "#/$defs/AuditLogFeatureConfig" },
+		"google_tag_manager": { "$ref": "#/$defs/GoogleTagManagerFeatureConfig" }
 	}
 }
 `)
 
 type FeatureConfig struct {
-	Identity       *IdentityFeatureConfig       `json:"identity,omitempty"`
-	Authentication *AuthenticationFeatureConfig `json:"authentication,omitempty"`
-	CustomDomain   *CustomDomainFeatureConfig   `json:"custom_domain,omitempty"`
-	UI             *UIFeatureConfig             `json:"ui,omitempty"`
-	OAuth          *OAuthFeatureConfig          `json:"oauth,omitempty"`
-	Hook           *HookFeatureConfig           `json:"hook,omitempty"`
-	AuditLog       *AuditLogFeatureConfig       `json:"audit_log,omitempty"`
+	Identity         *IdentityFeatureConfig         `json:"identity,omitempty"`
+	Authentication   *AuthenticationFeatureConfig   `json:"authentication,omitempty"`
+	CustomDomain     *CustomDomainFeatureConfig     `json:"custom_domain,omitempty"`
+	UI               *UIFeatureConfig               `json:"ui,omitempty"`
+	OAuth            *OAuthFeatureConfig            `json:"oauth,omitempty"`
+	Hook             *HookFeatureConfig             `json:"hook,omitempty"`
+	AuditLog         *AuditLogFeatureConfig         `json:"audit_log,omitempty"`
+	GoogleTagManager *GoogleTagManagerFeatureConfig `json:"google_tag_manager,omitempty"`
 }
 
 func ParseFeatureConfig(inputYAML []byte) (*FeatureConfig, error) {

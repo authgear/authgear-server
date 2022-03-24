@@ -5,10 +5,11 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { Context } from "@oursky/react-messageformat";
 import { INavLink, INavLinkGroup, Nav } from "@fluentui/react";
 import { useSystemConfig } from "./context/SystemConfigContext";
+import { useAppFeatureConfigQuery } from "./graphql/portal/query/appFeatureConfigQuery";
 import { Location } from "history";
 
 function getAppRouterPath(location: Location) {
@@ -43,10 +44,16 @@ interface NavLinkProps {
 }
 
 const ScreenNav: React.FC = function ScreenNav() {
+  const { appID } = useParams();
   const navigate = useNavigate();
   const { renderToString } = useContext(Context);
   const location = useLocation();
   const path = getAppRouterPath(location);
+  const featureConfig = useAppFeatureConfigQuery(appID);
+  const showIntegrations =
+    !featureConfig.loading &&
+    (featureConfig.effectiveFeatureConfig?.google_tag_manager?.disabled ??
+      false) === false;
 
   const { auditLogEnabled, analyticEnabled } = useSystemConfig();
 
@@ -127,10 +134,14 @@ const ScreenNav: React.FC = function ScreenNav() {
           },
         ],
       },
-      {
-        textKey: "ScreenNav.integrations",
-        url: "integrations",
-      },
+      ...(showIntegrations
+        ? [
+            {
+              textKey: "ScreenNav.integrations",
+              url: "integrations",
+            },
+          ]
+        : []),
       {
         textKey: "ScreenNav.billing",
         url: "billing",
@@ -167,7 +178,7 @@ const ScreenNav: React.FC = function ScreenNav() {
     ];
 
     return links;
-  }, [analyticEnabled, auditLogEnabled]);
+  }, [analyticEnabled, auditLogEnabled, showIntegrations]);
 
   const [selectedKeys, selectedKey] = useMemo(() => {
     const matchedKeys: string[] = [];

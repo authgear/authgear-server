@@ -469,6 +469,11 @@ export interface PortalAPIFeatureConfig {
   oauth?: OAuthFeatureConfig;
   hook?: HookFeatureConfig;
   audit_log?: AuditLogFeatureConfig;
+  google_tag_manager?: GoogleTagManagerFeatureConfig;
+}
+
+export interface GoogleTagManagerFeatureConfig {
+  disabled?: boolean;
 }
 
 export interface AuthenticationFeatureConfig {
