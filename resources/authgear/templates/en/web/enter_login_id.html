@@ -49,10 +49,24 @@
 {{ end }}
 
 <div class="grid grid-cols-1 auto-rows-auto gap-y-2 margin-t-20">
-	<button form="main-form" class="btn primary-btn" type="submit" name="x_action" value="add_or_update">{{ template "next-button-label" }}</button>
+	<button
+		form="main-form"
+		class="btn primary-btn"
+		type="submit"
+		name="x_action"
+		value="add_or_update"
+		data-authgear-event="authgear.button.change_login_id"
+	>{{ template "next-button-label" }}</button>
 
 	{{ if .IdentityID }}{{ if gt $.IdentityCount 1 }}
-	<button form="remove-form" class="btn secondary-btn text-left text-sm" type="submit" name="x_action" value="remove">
+	<button
+		form="remove-form"
+		class="btn secondary-btn text-left text-sm"
+		type="submit"
+		name="x_action"
+		value="remove"
+		data-authgear-event="authgear.button.remove_login_id"
+	>
 		{{ if eq .LoginIDType "username" }}
 		{{ template "remove-button-label" }}
 		{{ else }}

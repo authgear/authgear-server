@@ -39,6 +39,7 @@
 	name="x_action"
 	value="{{ $.Action }}"
 	{{ if eq $.Action "submit" }}{{ if $.VerificationCode }}data-auto-submit="true"{{ end }}{{ end }}
+	data-authgear-event="authgear.button.enter_verification_code"
 >
 {{ template "next-button-label" }}
 </button>
@@ -54,6 +55,7 @@
 	data-label="{{ template "verify-user-resend-button-label" }}"
 	data-label-unit="{{ template "verify-user-resend-button-label--unit" }}"
 	data-submit-form="verify-identity-resend"
+	data-authgear-event="authgear.button.resend_verification_code"
 >{{ template "verify-user-resend-button-label" }}</button>
 {{ end }}
 

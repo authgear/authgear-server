@@ -37,7 +37,13 @@
 	placeholder="{{ template "setup-totp-code-placeholder" }}"
 >
 
-<button class="btn primary-btn" type="submit" name="x_action" value="">{{ template "next-button-label" }}</button>
+<button
+	class="btn primary-btn"
+	type="submit"
+	name="x_action"
+	value=""
+	data-authgear-event="authgear.button.setup_totp"
+>{{ template "next-button-label" }}</button>
 
 <p class="text-sm break-words primary-txt margin-0">{{ template "setup-totp-get-google-authenticator-description" }}</p>
 

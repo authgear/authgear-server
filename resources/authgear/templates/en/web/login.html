@@ -73,7 +73,13 @@
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if not $.LoginIDDisabled }}
-				<button class="btn primary-btn" type="submit" name="x_action" value="login_id">{{ template "next-button-label" }}</button>
+				<button
+					class="btn primary-btn"
+					type="submit"
+					name="x_action"
+					value="login_id"
+					data-authgear-event="authgear.button.sign_in"
+				>{{ template "next-button-label" }}</button>
 				{{ end }}
 
 				{{/* Forgot password link is deliberately omitted here. */}}
@@ -101,7 +107,14 @@
 				{{ $skip = true }}
 				{{ end }}
 				{{- if not $skip -}}
-				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_action" value="oauth" data-form-xhr="false">
+				<button
+					class="btn sso-btn {{ .provider_type }}"
+					type="submit"
+					name="x_action"
+					value="oauth"
+					data-form-xhr="false"
+					data-authgear-event="authgear.button.oauth"
+				>
 					<input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
 					<span class="sso-btn-content">
 					{{- if eq .provider_type "apple" -}}
