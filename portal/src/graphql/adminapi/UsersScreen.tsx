@@ -46,6 +46,7 @@ const LIST_QUERY = gql`
           isDeactivated
           deleteAt
           standardAttributes
+          formattedName
         }
       }
       totalCount
