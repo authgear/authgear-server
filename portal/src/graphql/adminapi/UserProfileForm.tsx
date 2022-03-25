@@ -556,6 +556,19 @@ const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
       [standardAttributes, onChangeStandardAttributes]
     );
 
+    const onChangeEmail = useMemo(
+      () => makeOnChangeDropdown("email"),
+      [makeOnChangeDropdown]
+    );
+    const onChangePhoneNumber = useMemo(
+      () => makeOnChangeDropdown("phone_number"),
+      [makeOnChangeDropdown]
+    );
+    const onChangePreferredUsername = useMemo(
+      () => makeOnChangeDropdown("preferred_username"),
+      [makeOnChangeDropdown]
+    );
+
     const onChangeStreetAddress = useMemo(
       () => makeOnChangeAddressText("street_address"),
       [makeOnChangeAddressText]
@@ -898,18 +911,21 @@ const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
           <Dropdown
             label={renderToString("standard-attribute.email")}
             selectedKey={standardAttributes.email}
+            onChange={onChangeEmail}
             options={emailOptions}
             disabled={emailOptions.length <= 0}
           />
           <Dropdown
             label={renderToString("standard-attribute.phone_number")}
             selectedKey={standardAttributes.phone_number}
+            onChange={onChangePhoneNumber}
             options={phoneNumberOptions}
             disabled={phoneNumberOptions.length <= 0}
           />
           <Dropdown
             label={renderToString("standard-attribute.preferred_username")}
             selectedKey={standardAttributes.preferred_username}
+            onChange={onChangePreferredUsername}
             options={preferredUsernameOptions}
             disabled={preferredUsernameOptions.length <= 0}
           />
