@@ -15,6 +15,7 @@ import { useSystemConfig } from "../../context/SystemConfigContext";
 import {
   AuditLogEntryQuery,
   AuditLogEntryQueryVariables,
+  AuditLogEntryQuery_node_AuditLog,
 } from "./__generated__/AuditLogEntryQuery";
 
 import styles from "./AuditLogEntryScreen.module.scss";
@@ -38,6 +39,19 @@ const QUERY = gql`
     }
   }
 `;
+
+function getRawUserIDFromAuditLog(
+  node: AuditLogEntryQuery_node_AuditLog
+): string | undefined {
+  // The simple case is just use the user.id.
+  const userID = node.user?.id ?? null;
+  if (userID != null) {
+    return extractRawID(userID);
+  }
+  // Otherwise use the user ID in the payload.
+  const rawUserID = (node.data as any)?.payload?.user?.id;
+  return rawUserID ?? undefined;
+}
 
 function SummaryText(props: { children: React.ReactNode; light?: boolean }) {
   const { themes } = useSystemConfig();
@@ -95,9 +109,7 @@ const AuditLogEntryScreen: React.FC = function AuditLogEntryScreen() {
   if (data?.node?.__typename === "AuditLog") {
     activityType = data.node.activityType;
     loggedAt = formatDatetime(locale, data.node.createdAt) ?? undefined;
-    rawUserID = data.node.user?.id
-      ? extractRawID(data.node.user.id)
-      : undefined;
+    rawUserID = getRawUserIDFromAuditLog(data.node);
     ipAddress = data.node.ipAddress ?? undefined;
     userAgent = data.node.userAgent ?? undefined;
     clientID = data.node.clientID ?? undefined;

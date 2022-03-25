@@ -26,6 +26,7 @@ export interface AuditLogListQuery_auditLogs_edges_node {
   createdAt: GQL_DateTime;
   activityType: AuditLogActivityType;
   user: AuditLogListQuery_auditLogs_edges_node_user | null;
+  data: GQL_AuditLogData | null;
 }
 
 export interface AuditLogListQuery_auditLogs_edges {

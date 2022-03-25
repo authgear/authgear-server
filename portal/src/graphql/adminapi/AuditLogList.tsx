@@ -11,7 +11,10 @@ import {
 import { Context } from "@oursky/react-messageformat";
 import ReactRouterLink from "../../ReactRouterLink";
 import PaginationWidget from "../../PaginationWidget";
-import { AuditLogListQuery_auditLogs } from "./__generated__/AuditLogListQuery";
+import {
+  AuditLogListQuery_auditLogs,
+  AuditLogListQuery_auditLogs_edges_node,
+} from "./__generated__/AuditLogListQuery";
 import { formatDatetime } from "../../util/formatDatetime";
 import { extractRawID } from "../../util/graphql";
 import useDelayedValue from "../../hook/useDelayedValue";
@@ -36,6 +39,19 @@ interface AuditLogListItem {
   createdAt: string;
   userID: string | null;
   rawUserID: string | null;
+}
+
+function getRawUserIDFromAuditLog(
+  node: AuditLogListQuery_auditLogs_edges_node
+): string | null {
+  // The simple case is just use the user.id.
+  const userID = node.user?.id ?? null;
+  if (userID != null) {
+    return extractRawID(userID);
+  }
+  // Otherwise use the user ID in the payload.
+  const rawUserID = (node.data as any)?.payload?.user?.id;
+  return rawUserID ?? null;
 }
 
 const AuditLogList: React.FC<AuditLogListProps> = function AuditLogList(props) {
@@ -86,7 +102,7 @@ const AuditLogList: React.FC<AuditLogListProps> = function AuditLogList(props) {
         const node = edge?.node;
         if (node != null) {
           const userID = node.user?.id ?? null;
-          const rawUserID = userID ? extractRawID(userID) : null;
+          const rawUserID = getRawUserIDFromAuditLog(node);
           items.push({
             id: node.id,
             userID,
