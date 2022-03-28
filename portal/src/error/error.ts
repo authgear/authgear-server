@@ -25,6 +25,7 @@ import {
 import {
   APIResourceNotFoundError,
   APIResourceTooLargeError,
+  APIUnsupportedImageFileError,
 } from "./resources";
 import {
   WebHookDisallowedError,
@@ -76,7 +77,8 @@ export type APIError =
   | APIInvalidAppIDError
   | APIReservedAppIDError
   | APIResourceNotFoundError
-  | APIResourceTooLargeError;
+  | APIResourceTooLargeError
+  | APIUnsupportedImageFileError;
 
 export function isAPIError(value: unknown): value is APIError {
   return (

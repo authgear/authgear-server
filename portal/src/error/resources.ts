@@ -12,3 +12,11 @@ export interface APIResourceTooLargeError {
     path: string;
   };
 }
+
+export interface APIUnsupportedImageFileError {
+  errorName: string;
+  reason: "UnsupportedImageFile";
+  info: {
+    type: string;
+  };
+}
