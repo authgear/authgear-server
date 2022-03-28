@@ -107,7 +107,7 @@
                     {{ end }}
                 {{ end }}
             {{ else if eq .Error.reason "UserNotFound" }}
-                <li>{{ template "error-user-not-found" }}</li>
+                {{ template "__error_account" . }}
             {{ else if eq .Error.reason "InvalidCredentials" }}
                 <li>{{ template "error-invalid-credentials" (dict "AuthenticationType" $info.AuthenticationType) }}</li>
             {{ else if eq .Error.reason "PasswordResetFailed" }}
@@ -123,7 +123,7 @@
                 {{ else if (eq $cause.kind "RemoveLastSecondaryAuthenticator") }}
                     <li>{{ template "error-remove-last-secondary-authenticator" }}</li>
                 {{ else if (eq $cause.kind "DuplicatedIdentity") }}
-                    <li>{{ template "error-duplicated-identity" (dict "IntentKind" $info.IntentKind "IdentityType" $info.IdentityType "LoginIDType" $info.LoginIDType) }}</li>
+                    {{ template "__error_account" . }}
                 {{ else if (eq $cause.kind "DuplicatedAuthenticator") }}
                     <li>{{ template "error-duplicated-authenticator" (dict "AuthenticatorType" $cause.AuthenticatorType) }}</li>
                 {{ else if (eq $cause.kind "MismatchedUser") }}
@@ -181,4 +181,46 @@
     </ul>
     <button data-close-button-target="error-message-bar" type="button" class="w-8 h-8 flex justify-center items-center"><i class="ti ti-x"></i></button>
 </div>
+{{ end }}
+{{ define "__error_account" }}
+{{ $info := $.Error.info }}
+{{ $dict := (dict
+    "IntentKind" $info.IntentKind
+    "IdentityTypeIncoming" $info.IdentityTypeIncoming
+    "LoginIDTypeIncoming" $info.LoginIDTypeIncoming
+    "OAuthProviderTypeIncoming" $info.OAuthProviderTypeIncoming
+    "IdentityTypeExisting" $info.IdentityTypeExisting
+    "LoginIDTypeExisting" $info.LoginIDTypeExisting
+    "OAuthProviderTypeExisting" $info.OAuthProviderTypeExisting
+)}}
+
+{{/* Determine whether it is a conflict */}}
+{{ $is_conflict := true }}
+{{ if not $info.IdentityTypeExisting }}
+{{ $is_conflict = false }}
+{{ end }}
+
+{{/* Tell the end-user the account is not found if there is no conflict */}}
+{{ if not $is_conflict }}
+<li>{{ template "error-account-not-found" $dict }}</li>
+{{ end }}
+
+{{/* Tell the end-user these is a conflict */}}
+{{/* and give suggestion contextually */}}
+{{ if $is_conflict }}
+{{ $suggest_connect_oauth := (and
+    (eq $info.IdentityTypeExisting "login_id")
+    (eq $info.IdentityTypeIncoming "oauth")
+)}}
+
+<li>
+{{ template "error-account-conflict" $dict }}
+{{ if $suggest_connect_oauth }}
+{{ template "error-suggestion-connect-oauth" $dict }}
+{{ else }}
+{{ template "error-suggestion-sign-in" $dict }}
+{{ end }}
+</li>
+{{ end }}
+
 {{ end }}

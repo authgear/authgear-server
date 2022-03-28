@@ -170,8 +170,7 @@ func (s *Service) GetMany(refs []*model.IdentityRef) ([]*identity.Info, error) {
 	return infos, nil
 }
 
-// GetBySpec return user ID and information about the identity that matches the provided spec.
-func (s *Service) GetBySpec(spec *identity.Spec) (*identity.Info, error) {
+func (s *Service) getBySpec(spec *identity.Spec) (*identity.Info, error) {
 	switch spec.Type {
 	case model.IdentityTypeLoginID:
 		loginID := extractLoginIDValue(spec.Claims)
@@ -221,6 +220,76 @@ func (s *Service) GetBySpec(spec *identity.Spec) (*identity.Info, error) {
 	}
 
 	panic("identity: unknown identity type " + spec.Type)
+}
+
+// SearchBySpec does not return identity.ErrIdentityNotFound.
+func (s *Service) SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, otherMatches []*identity.Info, err error) {
+	exactMatch, err = s.getBySpec(spec)
+	// The simplest case is the exact match case.
+	if err == nil {
+		return
+	}
+
+	// Any error other than identity.ErrIdentityNotFound
+	if err != nil && !errors.Is(err, identity.ErrIdentityNotFound) {
+		return
+	}
+
+	// Do not consider identity.ErrIdentityNotFound as error.
+	err = nil
+
+	claimsToSearch := make(map[string]interface{})
+
+	// Otherwise we have to search.
+	switch spec.Type {
+	case model.IdentityTypeLoginID:
+		// For login ID, we treat the login ID value as email, phone_number and preferred_username.
+		loginID := extractLoginIDValue(spec.Claims)
+		claimsToSearch[string(model.ClaimEmail)] = loginID
+		claimsToSearch[string(model.ClaimPhoneNumber)] = loginID
+		claimsToSearch[string(model.ClaimPreferredUsername)] = loginID
+	case model.IdentityTypeOAuth:
+		if c, ok := spec.Claims[identity.IdentityClaimOAuthClaims].(map[string]interface{}); ok {
+			claimsToSearch = c
+		}
+	default:
+		break
+	}
+
+	for name, value := range claimsToSearch {
+		str, ok := value.(string)
+		if !ok {
+			continue
+		}
+		switch name {
+		case string(model.ClaimEmail),
+			string(model.ClaimPhoneNumber),
+			string(model.ClaimPreferredUsername):
+
+			var loginIDs []*loginid.Identity
+			loginIDs, err = s.LoginID.ListByClaim(name, str)
+			if err != nil {
+				return
+			}
+
+			for _, loginID := range loginIDs {
+				otherMatches = append(otherMatches, loginIDToIdentityInfo(loginID))
+			}
+
+			var oauths []*oauth.Identity
+			oauths, err = s.OAuth.ListByClaim(name, str)
+			if err != nil {
+				return
+			}
+
+			for _, o := range oauths {
+				otherMatches = append(otherMatches, s.toIdentityInfo(o))
+			}
+
+		}
+	}
+
+	return
 }
 
 func (s *Service) ListByUser(userID string) ([]*identity.Info, error) {

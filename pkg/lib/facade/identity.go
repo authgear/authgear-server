@@ -13,8 +13,8 @@ func (i IdentityFacade) Get(userID string, typ model.IdentityType, id string) (*
 	return i.Coordinator.IdentityGet(userID, typ, id)
 }
 
-func (i IdentityFacade) GetBySpec(spec *identity.Spec) (*identity.Info, error) {
-	return i.Coordinator.IdentityGetBySpec(spec)
+func (i IdentityFacade) SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, otherMatches []*identity.Info, err error) {
+	return i.Coordinator.IdentitySearchBySpec(spec)
 }
 
 func (i IdentityFacade) ListByUser(userID string) ([]*identity.Info, error) {
