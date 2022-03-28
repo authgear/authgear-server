@@ -106,10 +106,12 @@ const AuditLogEntryScreen: React.FC = function AuditLogEntryScreen() {
   let userAgent: string | undefined;
   let clientID: string | undefined;
   let code: string | undefined;
+  let deleted = false;
   if (data?.node?.__typename === "AuditLog") {
     activityType = data.node.activityType;
     loggedAt = formatDatetime(locale, data.node.createdAt) ?? undefined;
     rawUserID = getRawUserIDFromAuditLog(data.node);
+    deleted = data.node.user?.id == null && rawUserID != null;
     ipAddress = data.node.ipAddress ?? undefined;
     userAgent = data.node.userAgent ?? undefined;
     clientID = data.node.clientID ?? undefined;
@@ -150,6 +152,7 @@ const AuditLogEntryScreen: React.FC = function AuditLogEntryScreen() {
                 id="AuditLogEntryScreen.user-id"
                 values={{
                   id: rawUserID,
+                  deleted: String(deleted),
                 }}
               />
             </SummaryText>

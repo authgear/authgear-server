@@ -795,10 +795,11 @@
   "AuditLogList.column.activity-type": "Activity Type",
   "AuditLogList.column.created-at": "Timestamp",
   "AuditLogList.column.user-id": "User ID",
+  "AuditLogList.label.user-id": "{id} (deleted)",
 
   "AuditLogEntryScreen.title": "Log Details",
   "AuditLogEntryScreen.activity-type": "Activity Type: {type}",
-  "AuditLogEntryScreen.user-id": "User ID: {id}",
+  "AuditLogEntryScreen.user-id": "User ID: {id}{deleted, select, true{ (deleted)} other{}}",
   "AuditLogEntryScreen.logged-at": "Logged at: {datetime}",
   "AuditLogEntryScreen.ip-address": "IP Address: {ip}",
   "AuditLogEntryScreen.user-agent": "User Agent: {userAgent}",

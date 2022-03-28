@@ -8,7 +8,7 @@ import {
   ShimmeredDetailsList,
   Link as FluentLink,
 } from "@fluentui/react";
-import { Context } from "@oursky/react-messageformat";
+import { Context, Values } from "@oursky/react-messageformat";
 import ReactRouterLink from "../../ReactRouterLink";
 import PaginationWidget from "../../PaginationWidget";
 import {
@@ -42,6 +42,7 @@ interface AuditLogListItem {
 }
 
 function getRawUserIDFromAuditLog(
+  renderToString: (id: string, values: Values | undefined) => string,
   node: AuditLogListQuery_auditLogs_edges_node
 ): string | null {
   // The simple case is just use the user.id.
@@ -49,9 +50,16 @@ function getRawUserIDFromAuditLog(
   if (userID != null) {
     return extractRawID(userID);
   }
+
   // Otherwise use the user ID in the payload.
   const rawUserID = (node.data as any)?.payload?.user?.id;
-  return rawUserID ?? null;
+  if (rawUserID != null) {
+    return renderToString("AuditLogList.label.user-id", {
+      id: rawUserID,
+    });
+  }
+
+  return null;
 }
 
 const AuditLogList: React.FC<AuditLogListProps> = function AuditLogList(props) {
@@ -102,7 +110,7 @@ const AuditLogList: React.FC<AuditLogListProps> = function AuditLogList(props) {
         const node = edge?.node;
         if (node != null) {
           const userID = node.user?.id ?? null;
-          const rawUserID = getRawUserIDFromAuditLog(node);
+          const rawUserID = getRawUserIDFromAuditLog(renderToString, node);
           items.push({
             id: node.id,
             userID,
