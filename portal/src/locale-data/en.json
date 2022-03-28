@@ -555,7 +555,7 @@
   "UISettingsScreen.title": "UI Settings",
   "UISettingsScreen.description": "Authgear comes with some simple styling for your login and signup page. You can customize the look and feel here.",
   "UISettingsScreen.favicon-title": "Favicon",
-  "UISettingsScreen.favicon-description": "Upload a 32x32 pixel ICO, PNG, GIF or PNG below 100 KB",
+  "UISettingsScreen.favicon-description": "Upload a 32x32 pixel JPEG, PNG or GIF file below 100 KB",
   "UISettingsScreen.app-name-title": "Organization / Product Name",
   "UISettingsScreen.app-name-label": "It will be used as some placeholder text for your authentication screen, emails, etc. You can always change it later.",
   "UISettingsScreen.link-settings-title": "Link Settings",
