@@ -131,11 +131,12 @@ func (s *Service) WillCommitTx() (err error) {
 }
 
 func (s *Service) DidCommitTx() {
-	defer func() {
-		s.NonBlockingEvents = nil
-	}()
+	// To avoid triggering the events multiple times
+	// reset s.NonBlockingEvents when we start processing the events
+	nonBlockingEvents := s.NonBlockingEvents
+	s.NonBlockingEvents = nil
 
-	for _, e := range s.NonBlockingEvents {
+	for _, e := range nonBlockingEvents {
 		for _, sink := range s.Sinks {
 			err := sink.ReceiveNonBlockingEvent(e)
 			if err != nil {
