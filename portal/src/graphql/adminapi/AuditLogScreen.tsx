@@ -55,6 +55,7 @@ const QUERY = gql`
           user {
             id
           }
+          data
         }
       }
       totalCount
