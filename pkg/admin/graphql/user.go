@@ -151,7 +151,11 @@ var nodeUser = node(
 					if err != nil {
 						return nil, err
 					}
-					return stdattrs.T(stdAttrs).FormattedName(), nil
+					formattedName := stdattrs.T(stdAttrs).FormattedName()
+					if formattedName == "" {
+						return nil, nil
+					}
+					return formattedName, nil
 				},
 			},
 			"endUserAccountID": &graphql.Field{
@@ -163,7 +167,11 @@ var nodeUser = node(
 					if err != nil {
 						return nil, err
 					}
-					return stdattrs.T(stdAttrs).EndUserAccountID(), nil
+					endUserAccountID := stdattrs.T(stdAttrs).EndUserAccountID()
+					if endUserAccountID == "" {
+						return nil, nil
+					}
+					return endUserAccountID, nil
 				},
 			},
 		},
