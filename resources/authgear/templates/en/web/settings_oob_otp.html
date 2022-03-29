@@ -36,7 +36,13 @@
       </p>
       {{ $.CSRFField }}
       <input type="hidden" name="x_authenticator_id" value="{{ .ID }}">
-      <button class="w-6 col-start-3 row-start-1 row-span-2 flex flex-col items-end justify-center btn destructive-secondary-btn" type="submit" name="x_action" value="remove">
+      <button
+        class="w-6 col-start-3 row-start-1 row-span-2 flex flex-col items-end justify-center btn destructive-secondary-btn"
+        type="submit"
+        name="x_action"
+        value="remove"
+        data-authgear-event="authgear.button.remove_oob_otp"
+      >
         <i class="ti ti-circle-minus"></i>
       </button>
     </form>

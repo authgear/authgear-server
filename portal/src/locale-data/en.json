@@ -32,6 +32,7 @@
   "enabled": "Enabled",
   "confirm": "Confirm",
   "cancel": "Cancel",
+  "connect": "Connect",
   "disconnect": "Disconnect",
   "verified": "Verified",
   "unverified": "Not Verified",
@@ -68,7 +69,7 @@
   "errors.validation.required": "Please fill in this field",
   "errors.validation.general": "Invalid value",
   "errors.validation.pattern": "Expect the value to match {expected}",
-  "errors.validation.format": "{format, select, email{Please enter an email address} phone{Please enter a phone number} uri{Please enter an URL} wechat_account_id{Wechat account ID starts with gh_} http_origin_spec{An origin is a hostname without userinfo, path, query or fragment. Optionally it can start with http: or https: to enforce a scheme, otherwise HTTP or HTTPS is allowed} x_custom_attribute_pointer{Invalid attribute name} other{Invalid format}}",
+  "errors.validation.format": "{format, select, email{Please enter an email address} phone{Please enter a phone number} uri{Please enter an URL} wechat_account_id{Wechat account ID starts with gh_} http_origin_spec{An origin is a hostname without userinfo, path, query or fragment. Optionally it can start with http: or https: to enforce a scheme, otherwise HTTP or HTTPS is allowed} x_custom_attribute_pointer{Invalid attribute name} google_tag_manager_container_id{Google Tag Manager Container ID starts with GTM-} other{Invalid format}}",
   "errors.validation.minItems": "Expect at least {expected} items",
   "errors.validation.uniqueItems": "Expect unique items in the list",
   "errors.validation.minimum": "Expect number larger than or equal to {minimum}",
@@ -118,6 +119,7 @@
   "ScreenNav.admin-api": "Admin API",
   "ScreenNav.smtp": "Custom Email Provider",
   "ScreenNav.account-deletion": "Account Deletion",
+  "ScreenNav.integrations": "Integrations",
 
   "NavBreadcrumb.label": "Nested navigation",
 
@@ -1042,6 +1044,19 @@
   "AnalyticsSignupMethodsWidget.chart.wechat.label": "WeChat",
   "AnalyticsSignupMethodsWidget.chart.anonymous.label": "Anonymous",
   "AnalyticsSignupMethodsWidget.no-data-available.label": "No Data Available",
+
+  "IntegrationsConfigurationScreen.title": "Integrations",
+  "IntegrationsConfigurationScreen.add-on": "Add-on",
+  "IntegrationsConfigurationScreen.action": "Action",
+  "IntegrationsConfigurationScreen.add-on.gtm.name": "Google Tag Manager",
+  "IntegrationsConfigurationScreen.add-on.gtm.description": "Connect your container to Authgear for conversion tracking, site analytics, retargeting, and more.",
+  "IntegrationsConfigurationScreen.status.connected": "Connected",
+
+  "GoogleTagManagerConfigurationScreen.title": "Google Tag Manager",
+  "GoogleTagManagerConfigurationScreen.description": "Connect your container to Authgear for conversion tracking, site analytics, retargeting, and more. See {ExternalLink, react, href{https://docs.authgear.com/integrate/google-tag-manager} children{integration guide}} if you need help.",
+  "GoogleTagManagerConfigurationScreen.toggle.label": "Google Tag Manager Integration",
+  "GoogleTagManagerConfigurationScreen.container-id.label": "Tag Manager Container ID",
+  "GoogleTagManagerConfigurationScreen.container-id.placeholder": "e.g. GTM-123456",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",

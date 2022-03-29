@@ -216,3 +216,14 @@ func TestFormatCustomAttributePointer(t *testing.T) {
 		So(f("/my_string"), ShouldBeNil)
 	})
 }
+
+func TestFormatGoogleTagManagerContainerID(t *testing.T) {
+	f := FormatGoogleTagManagerContainerID{}.CheckFormat
+
+	Convey("FormatGoogleTagManagerContainerID", t, func() {
+		So(f(1), ShouldBeNil)
+
+		So(f(""), ShouldBeError, "expect google tag manager container ID to start with GTM-")
+		So(f("GTM-AAAAAA"), ShouldBeNil)
+	})
+}

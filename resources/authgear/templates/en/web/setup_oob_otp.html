@@ -43,7 +43,13 @@
 >
 {{ end }}
 
-<button class="btn primary-btn margin-t-20" type="submit" name="x_action" value="">{{ template "next-button-label" }}</button>
+<button
+	class="btn primary-btn margin-t-20"
+	type="submit"
+	name="x_action"
+	value=""
+	data-authgear-event="authgear.button.setup_oob_otp"
+>{{ template "next-button-label" }}</button>
 
 </form>
 

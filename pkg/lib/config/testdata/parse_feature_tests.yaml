@@ -122,3 +122,9 @@ config:
       maximum: 1
   audit_log:
     retrieval_days: 3
+---
+name: disable-google-tag-manager
+error: null
+config:
+  google_tag_manager:
+    disabled: true

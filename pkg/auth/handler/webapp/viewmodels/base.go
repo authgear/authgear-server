@@ -55,7 +55,8 @@ type BaseViewModel struct {
 	FlashMessageType      string
 	ResolvedLanguageTag   string
 	// IsSupportedMobilePlatform is true when the user agent is iOS or Android.
-	IsSupportedMobilePlatform bool
+	IsSupportedMobilePlatform   bool
+	GoogleTagManagerContainerID string
 }
 
 func (m *BaseViewModel) SetError(err error) {
@@ -111,6 +112,7 @@ type BaseViewModeler struct {
 	StaticAssets          StaticAssetResolver
 	ForgotPassword        *config.ForgotPasswordConfig
 	Authentication        *config.AuthenticationConfig
+	GoogleTagManager      *config.GoogleTagManagerConfig
 	ErrorCookie           ErrorCookie
 	Translations          TranslationService
 	Clock                 clock.Clock
@@ -195,11 +197,12 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 			}
 			return webapp.MakeURL(u, u.Path, inQuery).String()
 		},
-		ForgotPasswordEnabled: *m.ForgotPassword.Enabled,
-		PublicSignupDisabled:  m.Authentication.PublicSignupDisabled,
-		PageLoadedAt:          int(now),
-		FlashMessageType:      m.FlashMessage.Pop(r, rw),
-		ResolvedLanguageTag:   resolvedLanguageTag,
+		ForgotPasswordEnabled:       *m.ForgotPassword.Enabled,
+		PublicSignupDisabled:        m.Authentication.PublicSignupDisabled,
+		PageLoadedAt:                int(now),
+		FlashMessageType:            m.FlashMessage.Pop(r, rw),
+		ResolvedLanguageTag:         resolvedLanguageTag,
+		GoogleTagManagerContainerID: m.GoogleTagManager.ContainerID,
 	}
 
 	if errorState, ok := m.ErrorCookie.GetError(r); ok {

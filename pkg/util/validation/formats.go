@@ -36,6 +36,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["x_recovery_code"] = secretcode.RecoveryCode
 	jsonschemaformat.DefaultChecker["x_custom_attribute_pointer"] = FormatCustomAttributePointer{}
 	jsonschemaformat.DefaultChecker["x_picture"] = FormatPicture{}
+	jsonschemaformat.DefaultChecker["google_tag_manager_container_id"] = FormatGoogleTagManagerContainerID{}
 }
 
 // FormatPhone checks if input is a phone number in E.164 format.
@@ -367,6 +368,20 @@ func (FormatCustomAttributePointer) CheckFormat(value interface{}) error {
 		if !checkFunc(r) {
 			return fmt.Errorf("invalid character at %v: %#v", i, string(r))
 		}
+	}
+
+	return nil
+}
+
+type FormatGoogleTagManagerContainerID struct{}
+
+func (FormatGoogleTagManagerContainerID) CheckFormat(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+	if !strings.HasPrefix(str, "GTM-") {
+		return errors.New("expect google tag manager container ID to start with GTM-")
 	}
 
 	return nil

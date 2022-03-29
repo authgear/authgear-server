@@ -1,0 +1,17 @@
+part: GoogleTagManagerConfig
+name: empty-container-id
+error: |-
+  invalid value:
+  /container_id: format
+    map[error:expect google tag manager container ID to start with GTM- format:google_tag_manager_container_id]
+value:
+  container_id: ""
+---
+part: GoogleTagManagerConfig
+name: invalid-container-id
+error: |-
+  invalid value:
+  /container_id: format
+    map[error:expect google tag manager container ID to start with GTM- format:google_tag_manager_container_id]
+value:
+  container_id: foobar

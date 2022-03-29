@@ -56,6 +56,7 @@
         data-modal-body="{{ template "settings-sessions-confirmation-desc" }}"
         data-modal-action-label="{{ template "settings-sessions-confirmation-action-label" }}"
         data-modal-cancel-label="{{ template "settings-sessions-confirmation-cancel-label" }}"
+        data-authgear-event="authgear.button.revoke_session"
       >
         <i class="ti ti-x"></i>
       </button>
@@ -78,6 +79,7 @@
         data-modal-body="{{ template "settings-sessions-confirmation-group-desc" }}"
         data-modal-action-label="{{ template "settings-sessions-confirmation-action-label" }}"
         data-modal-cancel-label="{{ template "settings-sessions-confirmation-cancel-label" }}"
+        data-authgear-event="authgear.button.revoke_session_group"
       >
         {{ template "settings-sessions-revoke-group-label" }}
       </button>
@@ -101,6 +103,7 @@
       data-modal-body="{{ template "settings-sessions-confirmation-all-desc" }}"
       data-modal-action-label="{{ template "settings-sessions-confirmation-action-label" }}"
       data-modal-cancel-label="{{ template "settings-sessions-confirmation-cancel-label" }}"
+      data-authgear-event="authgear.button.revoke_all_sessions"
     >
       {{ template "settings-sessions-revoke-all-label" }}
     </button>

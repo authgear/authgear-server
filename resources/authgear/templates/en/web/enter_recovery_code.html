@@ -21,7 +21,13 @@
 	placeholder="{{ template "enter-recovery-code-placeholder" }}"
 >
 
-<button class="btn primary-btn margin-t-20" type="submit" name="x_action" value="">{{ template "next-button-label" }}</button>
+<button
+	class="btn primary-btn margin-t-20"
+	type="submit"
+	name="x_action"
+	value=""
+	data-authgear-event="authgear.button.enter_recovery_code"
+>{{ template "next-button-label" }}</button>
 
 </form>
 

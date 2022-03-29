@@ -110,7 +110,13 @@
       <form class="" method="post" novalidate>
       {{ $.CSRFField }}
       <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
-      <button class="btn action-btn text-xs" type="submit" name="x_action" value="verify_login_id">
+      <button
+        class="btn action-btn text-xs"
+        type="submit"
+        name="x_action"
+        value="verify_login_id"
+        data-authgear-event="authgear.button.resend_verification_code"
+      >
         {{ template "resend-verification-code-button-label" }}
       </button>
       </form>
@@ -127,12 +133,25 @@
       {{ if not .modify_disabled }}
         {{ if .identity_id }}
           {{ if gt $.IdentityCount 1 }}
-            <button class="btn destructive-secondary-btn flex-1 flex flex-col items-end justify-center" type="submit" name="x_action" value="unlink_oauth">
+            <button
+              class="btn destructive-secondary-btn flex-1 flex flex-col items-end justify-center"
+              type="submit"
+              name="x_action"
+              value="unlink_oauth"
+              data-authgear-event="authgear.button.disconnect_oauth"
+            >
               <i class="ti ti-unlink"></i>
             </button>
           {{ end }}
         {{ else }}
-        <button class="btn secondary-btn flex-1 flex flex-col items-end justify-center" type="submit" name="x_action" value="link_oauth" data-form-xhr="false">
+        <button
+          class="btn secondary-btn flex-1 flex flex-col items-end justify-center"
+          type="submit"
+          name="x_action"
+          value="link_oauth"
+          data-form-xhr="false"
+          data-authgear-event="authgear.button.connect_oauth"
+        >
           <i class="ti ti-circle-plus"></i>
         </button>
         {{ end }}

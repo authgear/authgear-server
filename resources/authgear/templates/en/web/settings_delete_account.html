@@ -20,7 +20,15 @@
     <input class="primary-txt input text-input" name="delete" data-account-deletion-delete-button="delete-account-button">
   </label>
 
-  <button id="delete-account-button" class="btn destructive-btn margin-t-20" type="submit" name="x_action" value="delete" disabled>
+  <button
+    id="delete-account-button"
+    class="btn destructive-btn margin-t-20"
+    type="submit"
+    name="x_action"
+    value="delete"
+    disabled
+    data-authgear-event="authgear.button.schedule_account_deletion"
+  >
     {{ template "account-deletion-delete-account-button-label" }}
   </button>
 </form>

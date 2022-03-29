@@ -34,7 +34,14 @@
 
 {{ template "__use_recovery_code.html" . }}
 
-<button form="main-form" class="btn primary-btn margin-t-20" type="submit" name="x_action" value="">{{ template "next-button-label" }}</button>
+<button
+	form="main-form"
+	class="btn primary-btn margin-t-20"
+	type="submit"
+	name="x_action"
+	value=""
+	data-authgear-event="authgear.button.enter_totp"
+>{{ template "next-button-label" }}</button>
 
 {{ template "__alternatives.html" . }}
 

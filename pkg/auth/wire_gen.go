@@ -5682,6 +5682,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -5693,6 +5694,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -6330,6 +6332,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -6341,6 +6344,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -6978,6 +6982,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -6989,6 +6994,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -7613,6 +7619,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -7624,6 +7631,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -8249,6 +8257,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -8260,6 +8269,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -8877,6 +8887,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -8888,6 +8899,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -9508,6 +9520,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -9519,6 +9532,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -10142,6 +10156,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -10153,6 +10168,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -10773,6 +10789,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -10784,6 +10801,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -11403,6 +11421,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -11414,6 +11433,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -12034,6 +12054,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -12045,6 +12066,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -12666,6 +12688,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -12677,6 +12700,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -13296,6 +13320,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -13307,6 +13332,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -13926,6 +13952,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -13937,6 +13964,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -14558,6 +14586,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -14569,6 +14598,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -15188,6 +15218,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -15199,6 +15230,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -15818,6 +15850,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -15829,6 +15862,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -16451,6 +16485,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -16462,6 +16497,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -17081,6 +17117,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -17092,6 +17129,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -17716,6 +17754,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -17727,6 +17766,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -18346,6 +18386,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -18357,6 +18398,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -18977,6 +19019,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -18988,6 +19031,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -19607,6 +19651,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -19618,6 +19663,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -20260,6 +20306,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -20271,6 +20318,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -20901,6 +20949,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -20912,6 +20961,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -21555,6 +21605,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -21566,6 +21617,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -22188,6 +22240,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -22199,6 +22252,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -22819,6 +22873,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -22830,6 +22885,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -23459,6 +23515,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -23470,6 +23527,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -24090,6 +24148,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -24101,6 +24160,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -24721,6 +24781,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -24732,6 +24793,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -25353,6 +25415,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -25364,6 +25427,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -25989,6 +26053,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -26000,6 +26065,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -26620,6 +26686,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -26631,6 +26698,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -27251,6 +27319,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -27262,6 +27331,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -27882,6 +27952,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -27893,6 +27964,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -28513,6 +28585,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -28524,6 +28597,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -29151,6 +29225,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -29162,6 +29237,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -29783,6 +29859,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -29794,6 +29871,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -30413,6 +30491,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -30424,6 +30503,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -31062,6 +31142,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -31073,6 +31154,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -31692,6 +31774,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
@@ -31703,6 +31786,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,
@@ -31813,6 +31897,7 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	authenticationConfig := appConfig.Authentication
+	googleTagManagerConfig := appConfig.GoogleTagManager
 	errorCookieDef := webapp.NewErrorCookieDef()
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
@@ -31846,6 +31931,7 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
 		ErrorCookie:           errorCookie,
 		Translations:          translationService,
 		Clock:                 clockClock,

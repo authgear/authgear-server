@@ -421,6 +421,7 @@ export interface PortalAPIAppConfig {
   hook?: HookConfig;
   user_profile?: UserProfileConfig;
   account_deletion?: AccountDeletionConfig;
+  google_tag_manager?: GoogleTagManagerConfig;
 }
 
 export interface OAuthClientSecret {
@@ -468,6 +469,11 @@ export interface PortalAPIFeatureConfig {
   oauth?: OAuthFeatureConfig;
   hook?: HookFeatureConfig;
   audit_log?: AuditLogFeatureConfig;
+  google_tag_manager?: GoogleTagManagerFeatureConfig;
+}
+
+export interface GoogleTagManagerFeatureConfig {
+  disabled?: boolean;
 }
 
 export interface AuthenticationFeatureConfig {
@@ -558,6 +564,10 @@ export interface AuditLogFeatureConfig {
 export interface AccountDeletionConfig {
   scheduled_by_end_user_enabled?: boolean;
   grace_period_days?: number;
+}
+
+export interface GoogleTagManagerConfig {
+  container_id?: string;
 }
 
 export interface StandardAttributes {

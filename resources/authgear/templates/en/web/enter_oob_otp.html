@@ -46,12 +46,21 @@
 <button id="resend-button" class="btn secondary-btn text-sm" type="submit" name="x_action" value="resend"
 	data-cooldown="{{ $.OOBOTPCodeSendCooldown }}"
 	data-label="{{ template "oob-otp-resend-button-label" }}"
-	data-label-unit="{{ template "oob-otp-resend-button-label--unit" }}">{{ template "oob-otp-resend-button-label" }}</button>
+	data-label-unit="{{ template "oob-otp-resend-button-label--unit" }}"
+	data-authgear-event="authgear.button.resend_oob_otp"
+>{{ template "oob-otp-resend-button-label" }}</button>
 </form>
 
 {{ template "__use_recovery_code.html" . }}
 
-<button form="main-form" class="btn primary-btn margin-t-20" type="submit" name="x_action" value="submit">{{ template "next-button-label" }}</button>
+<button
+	form="main-form"
+	class="btn primary-btn margin-t-20"
+	type="submit"
+	name="x_action"
+	value="submit"
+	data-authgear-event="authgear.button.enter_oob_otp"
+>{{ template "next-button-label" }}</button>
 
 {{ template "__alternatives.html" . }}
 
