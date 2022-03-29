@@ -29,7 +29,14 @@
     <input type="hidden" name="/picture" value="">
   </form>
 
-  <form id="imagepicker-form-upload" class="hidden" method="post" novalidate>
+  {{/* Normally form does not need action set. */}}
+  {{/* However, this form is submitted asynchronously. */}}
+  {{/* By the time this form is submitted, the URL in the address bar could have changed. */}}
+  {{/* This could result in a weird bug like https://github.com/authgear/authgear-server/issues/1916 */}}
+  {{/* Back button is clicked after the upload was initiated */}}
+  {{/* When the upload finishes, this form is submitted to the URL of the previous page */}}
+  {{/* The previous page does not support POST method, hence we see the error described in the issue */}}
+  <form id="imagepicker-form-upload" class="hidden" method="post" action="{{ $.RequestURI }}" novalidate>
     {{ $.CSRFField }}
     <input id="imagepicker-input-value" type="hidden" name="/picture" value="">
     <input type="hidden" name="x_action" value="save">
