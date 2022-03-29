@@ -37,7 +37,6 @@ import { useUserQuery } from "./query/userQuery";
 import { UserQuery_node_User } from "./query/__generated__/UserQuery";
 import { usePivotNavigation } from "../../hook/usePivot";
 import { nonNullable } from "../../util/types";
-import { getEndUserAccountIdentifier } from "../../util/user";
 import {
   PortalAPIAppConfig,
   StandardAttributes,
@@ -279,10 +278,6 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   const sessions =
     data?.sessions?.edges?.map((edge) => edge?.node).filter(nonNullable) ?? [];
 
-  const endUserAccountIdentifier = getEndUserAccountIdentifier(
-    data?.standardAttributes ?? {}
-  );
-
   const profileImageEditable = useMemo(() => {
     const ptr = jsonPointerToString(["picture"]);
     const level = standardAttributeAccessControl[ptr];
@@ -295,7 +290,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
         profileImageURL={data?.standardAttributes.picture}
         profileImageEditable={profileImageEditable}
         formattedName={data?.formattedName ?? undefined}
-        endUserAccountIdentifier={endUserAccountIdentifier}
+        endUserAccountIdentifier={data?.endUserAccountID ?? undefined}
         createdAtISO={data?.createdAt ?? null}
         lastLoginAtISO={data?.lastLoginAt ?? null}
       />
@@ -496,11 +491,6 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
       customAttributesConfig,
     ]);
 
-    const endUserAccountIdentifier = useMemo(
-      () => getEndUserAccountIdentifier(user.standardAttributes),
-      [user.standardAttributes]
-    );
-
     const { updateUser } = useUpdateUserMutation();
 
     const submit = useCallback(
@@ -539,7 +529,7 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
           onDismiss={onDismissDeleteUserDialog}
           userID={user.id}
           userDeleteAt={user.deleteAt}
-          endUserAccountIdentifier={endUserAccountIdentifier}
+          endUserAccountIdentifier={user.endUserAccountID ?? undefined}
         />
         <SetUserDisabledDialog
           isHidden={setUserDisabledDialogIsHidden}
@@ -547,7 +537,7 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
           userID={user.id}
           userIsDisabled={user.isDisabled}
           userDeleteAt={user.deleteAt}
-          endUserAccountIdentifier={endUserAccountIdentifier}
+          endUserAccountIdentifier={user.endUserAccountID ?? undefined}
         />
       </FormContainer>
     );

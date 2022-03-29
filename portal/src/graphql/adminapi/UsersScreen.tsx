@@ -47,6 +47,7 @@ const LIST_QUERY = gql`
           deleteAt
           standardAttributes
           formattedName
+          endUserAccountID
         }
       }
       totalCount

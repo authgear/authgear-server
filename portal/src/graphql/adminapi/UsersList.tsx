@@ -27,7 +27,6 @@ import { formatDatetime } from "../../util/formatDatetime";
 import styles from "./UsersList.module.scss";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import useDelayedValue from "../../hook/useDelayedValue";
-import { getEndUserAccountIdentifier } from "../../util/user";
 
 interface UsersListProps {
   className?: string;
@@ -203,8 +202,7 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
             lastLoginAt: formatDatetime(locale, node.lastLoginAt),
             profilePictureURL: node.standardAttributes.picture ?? null,
             formattedName: node.formattedName,
-            endUserAccountIdentitifer:
-              getEndUserAccountIdentifier(node.standardAttributes) ?? null,
+            endUserAccountIdentitifer: node.endUserAccountID ?? null,
             username: node.standardAttributes.preferred_username ?? null,
             phone: node.standardAttributes.phone_number ?? null,
             email: node.standardAttributes.email ?? null,

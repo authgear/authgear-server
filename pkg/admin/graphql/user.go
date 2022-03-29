@@ -154,6 +154,18 @@ var nodeUser = node(
 					return stdattrs.T(stdAttrs).FormattedName(), nil
 				},
 			},
+			"endUserAccountID": &graphql.Field{
+				Type: graphql.String,
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					source := p.Source.(*user.User)
+					gqlCtx := GQLContext(p.Context)
+					stdAttrs, err := gqlCtx.UserProfileFacade.DeriveStandardAttributes(accesscontrol.RoleGreatest, source.ID, source.UpdatedAt, source.StandardAttributes)
+					if err != nil {
+						return nil, err
+					}
+					return stdattrs.T(stdAttrs).EndUserAccountID(), nil
+				},
+			},
 		},
 	}),
 	&user.User{},

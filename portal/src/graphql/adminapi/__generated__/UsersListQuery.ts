@@ -32,6 +32,7 @@ export interface UsersListQuery_users_edges_node {
   deleteAt: GQL_DateTime | null;
   standardAttributes: GQL_UserStandardAttributes;
   formattedName: string | null;
+  endUserAccountID: string | null;
 }
 
 export interface UsersListQuery_users_edges {

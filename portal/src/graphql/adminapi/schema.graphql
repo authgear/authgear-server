@@ -698,6 +698,9 @@ type User implements Entity & Node {
   disableReason: String
 
   """"""
+  endUserAccountID: String
+
+  """"""
   formattedName: String
 
   """The ID of an object"""

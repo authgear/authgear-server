@@ -54,6 +54,7 @@ const userQuery = gql`
           }
         }
         formattedName
+        endUserAccountID
         isDisabled
         disableReason
         isDeactivated

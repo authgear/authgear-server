@@ -130,6 +130,7 @@ export interface UserQuery_node_User {
   customAttributes: GQL_UserCustomAttributes;
   sessions: UserQuery_node_User_sessions | null;
   formattedName: string | null;
+  endUserAccountID: string | null;
   isDisabled: boolean;
   disableReason: string | null;
   isDeactivated: boolean;
