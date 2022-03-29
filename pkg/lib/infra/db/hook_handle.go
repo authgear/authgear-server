@@ -128,7 +128,7 @@ func (h *HookHandle) ReadOnly(do func() error) (err error) {
 		} else if err != nil {
 			_ = rollbackTx(tx)
 		} else {
-			err = commitTx(tx, h.hooks)
+			err = rollbackTx(tx)
 			if err == nil {
 				shouldRunDidCommitHooks = true
 			}
