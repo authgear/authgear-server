@@ -88,8 +88,8 @@ const CreateClientSuccessDialog: React.FC<CreateClientSuccessDialogProps> =
     });
 
     const onConfirmCreateClientSuccess = useCallback(() => {
-      navigate("../");
-    }, [navigate]);
+      navigate(`../${encodeURIComponent(clientId)}/edit`);
+    }, [navigate, clientId]);
 
     return (
       <Dialog
@@ -108,7 +108,7 @@ const CreateClientSuccessDialog: React.FC<CreateClientSuccessDialogProps> =
         <Feedback />
         <DialogFooter>
           <PrimaryButton onClick={onConfirmCreateClientSuccess}>
-            <FormattedMessage id="done" />
+            <FormattedMessage id="edit" />
           </PrimaryButton>
         </DialogFooter>
       </Dialog>
