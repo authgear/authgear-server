@@ -40,6 +40,20 @@ Run the following to tell Cgo.
 export CGO_CFLAGS_ALLOW="-Xpreprocessor"
 ```
 
+5. Install libmagic
+
+```sh
+brew install libmagic
+```
+
+Run the following to tell Cgo where to find libmagic.
+Preferably you add it to your shell startup script.
+
+```sh
+export CGO_CFLAGS="-I$(brew --prefix)/include"
+export CGO_LDFLAGS="-L$(brew --prefix)/lib"
+```
+
 5. Run `make vendor`
 
 ## Environment setup

@@ -4,8 +4,9 @@ FROM golang:1.17.7-bullseye as stage1
 # Install build time C dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
-    libvips-dev \
     libicu-dev \
+    libvips-dev \
+    libmagic-dev \
     && rm -rf /var/lib/apt/lists/*
 
 ARG GIT_HASH
@@ -50,6 +51,8 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libicu-dev \
     libvips-dev \
+    libmagic-dev \
+    libmagic-mgc \
     ca-certificates \
     mime-support \
     tzdata \

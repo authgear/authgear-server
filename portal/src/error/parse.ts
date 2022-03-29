@@ -201,6 +201,15 @@ function parseError(error: APIError): ParsedAPIError[] {
       });
       break;
     }
+    case "UnsupportedImageFile": {
+      errors.push({
+        messageID: "errors.unsupported-image-file",
+        arguments: {
+          type: error.info.type,
+        },
+      });
+      break;
+    }
     default:
       errors.push({
         messageID: "errors.unknown",
