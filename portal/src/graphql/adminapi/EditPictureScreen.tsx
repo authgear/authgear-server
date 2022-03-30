@@ -36,6 +36,8 @@ import { useUpdateUserMutation } from "./mutations/updateUserMutation";
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
 import { jsonPointerToString } from "../../util/jsonpointer";
 import { AccessControlLevelString } from "../../types";
+import { APIError } from "../../error/error";
+import { ErrorParseRule, makeLocalErrorParseRule } from "../../error/parse";
 
 import styles from "./EditPictureScreen.module.scss";
 
@@ -49,6 +51,20 @@ interface RemoveDialogProps {
   onDismiss: () => void;
   onConfirm: () => void;
 }
+
+const SENTINEL: APIError = {
+  errorName: "__local",
+  reason: "__local",
+  info: {
+    error: {
+      messageID: "errors.invalid-selected-image",
+    },
+  },
+};
+
+const RULES: ErrorParseRule[] = [
+  makeLocalErrorParseRule(SENTINEL, SENTINEL.info.error),
+];
 
 function RemoveDialog(props: RemoveDialogProps) {
   const { hidden, onDismiss, onConfirm } = props;
@@ -101,6 +117,9 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
   const { renderToString } = useContext(Context);
   const { themes } = useSystemConfig();
   const navigate = useNavigate();
+  const [reactCropperjsError, setReactCropperjsError] = useState<
+    typeof SENTINEL | null
+  >(null);
   const [uploadState, setUploadState] = useState(DEFAULT_UPLOAD_STATE);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cropperjsRef = useRef<ReactCropperjs | null>(null);
@@ -119,6 +138,14 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
   }, []);
 
   const { updateUser } = useUpdateUserMutation();
+
+  const onReactCropperjsError = useCallback(() => {
+    setReactCropperjsError(SENTINEL);
+  }, []);
+
+  const onReactCropperjsLoad = useCallback(() => {
+    setReactCropperjsError(null);
+  }, []);
 
   const submit = useCallback(
     async (_state: FormState) => {
@@ -284,30 +311,34 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
   }, [appID, uploadState.loading, save, navigate, onProgress]);
 
   const items: ICommandBarItemProps[] = useMemo(() => {
-    if (state.selected == null) {
-      return [
-        {
-          key: "upload",
-          text: renderToString("EditPictureScreen.upload-new-picture.label"),
-          iconProps: { iconName: "Upload" },
-          onClick: () => {
-            fileInputRef.current?.click();
-          },
+    const showUpload = state.selected == null || reactCropperjsError != null;
+    const showRemove = state.selected == null;
+    const showSave = state.selected != null && reactCropperjsError == null;
+    const items = [];
+    if (showUpload) {
+      items.push({
+        key: "upload",
+        text: renderToString("EditPictureScreen.upload-new-picture.label"),
+        iconProps: { iconName: "Upload" },
+        onClick: () => {
+          fileInputRef.current?.click();
         },
-        {
-          key: "remove",
-          text: renderToString("EditPictureScreen.remove-picture.label"),
-          iconProps: { iconName: "Delete" },
-          disabled: !pictureIsSet,
-          theme: pictureIsSet ? themes.destructive : themes.main,
-          onClick: () => {
-            setIsRemoveDialogVisible(true);
-          },
-        },
-      ];
+      });
     }
-    return [
-      {
+    if (showRemove) {
+      items.push({
+        key: "remove",
+        text: renderToString("EditPictureScreen.remove-picture.label"),
+        iconProps: { iconName: "Delete" },
+        disabled: !pictureIsSet,
+        theme: pictureIsSet ? themes.destructive : themes.main,
+        onClick: () => {
+          setIsRemoveDialogVisible(true);
+        },
+      });
+    }
+    if (showSave) {
+      items.push({
         key: "save",
         text: renderToString("save"),
         iconProps: { iconName: "Save" },
@@ -315,8 +346,9 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
         onClick: () => {
           upload().catch(() => {});
         },
-      },
-    ];
+      });
+    }
+    return items;
   }, [
     renderToString,
     pictureIsSet,
@@ -326,9 +358,13 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
     uploadState.loading,
     upload,
     isUpdating,
+    reactCropperjsError,
   ]);
   return (
-    <FormProvider error={updateError || uploadState.error}>
+    <FormProvider
+      error={updateError || uploadState.error || reactCropperjsError}
+      rules={RULES}
+    >
       <CommandBarContainer
         primaryItems={items}
         messageBar={<FormErrorMessageBar />}
@@ -344,6 +380,8 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
               className={cn(styles.widget, styles.cropperjs)}
               editSrc={state.selected}
               displaySrc={state.picture}
+              onError={onReactCropperjsError}
+              onLoad={onReactCropperjsLoad}
             />
             <ProgressIndicator
               className={styles.widget}
