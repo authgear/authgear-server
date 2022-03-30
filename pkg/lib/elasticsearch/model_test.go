@@ -23,6 +23,7 @@ func TestRawToSource(t *testing.T) {
 			Email:             []string{"user@example.com"},
 			PreferredUsername: []string{"user"},
 			PhoneNumber:       []string{"+85298765432"},
+			OAuthSubjectID:    []string{"PROVIDER_SUBJECT_ID"},
 		}
 
 		source := RawToSource(raw)
@@ -74,6 +75,12 @@ func TestRawToSource(t *testing.T) {
 			],
 			"phone_number_national_number_text": [
 				"98765432"
+			],
+			"oauth_subject_id": [
+				"PROVIDER_SUBJECT_ID"
+			],
+			"oauth_subject_id_text": [
+				"PROVIDER_SUBJECT_ID"
 			]
 		}`)
 	})

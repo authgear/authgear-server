@@ -82,6 +82,15 @@ func CreateIndex(es *elasticsearch.Client) error {
 						"min_chars": 3,
 						"max_chars": 15
 					}
+				},
+				"oauth_subject_id": { "type": "keyword" },
+				"oauth_subject_id_text": {
+					"type": "text",
+					"analyzer": "keyword",
+					"index_prefixes": {
+						"min_chars": 3,
+						"max_chars": 19
+					}
 				}
 			}
 		}

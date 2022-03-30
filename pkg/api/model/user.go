@@ -32,6 +32,7 @@ type ElasticsearchUserRaw struct {
 	Email             []string
 	PreferredUsername []string
 	PhoneNumber       []string
+	OAuthSubjectID    []string
 }
 
 type ElasticsearchUserSource struct {
@@ -61,4 +62,7 @@ type ElasticsearchUserSource struct {
 
 	PhoneNumberNationalNumber     []string `json:"phone_number_national_number,omitempty"`
 	PhoneNumberNationalNumberText []string `json:"phone_number_national_number_text,omitempty"`
+
+	OAuthSubjectID     []string `json:"oauth_subject_id,omitempty"`
+	OAuthSubjectIDText []string `json:"oauth_subject_id_text,omitempty"`
 }
