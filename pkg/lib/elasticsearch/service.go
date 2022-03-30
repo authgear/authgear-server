@@ -74,6 +74,7 @@ func (s *Service) ReindexUser(userID string, isDelete bool) (err error) {
 	var arrClaims []map[string]interface{}
 	for _, oauthI := range oauthIdentities {
 		arrClaims = append(arrClaims, oauthI.Claims)
+		raw.OAuthSubjectID = append(raw.OAuthSubjectID, oauthI.ProviderSubjectID)
 	}
 	for _, loginIDI := range loginIDIdentities {
 		arrClaims = append(arrClaims, loginIDI.Claims)
