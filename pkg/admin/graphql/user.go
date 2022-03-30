@@ -4,9 +4,8 @@ import (
 	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
-	"github.com/authgear/authgear-server/pkg/lib/authn/user"
-	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -27,15 +26,12 @@ var nodeUser = node(
 			"lastLoginAt": &graphql.Field{
 				Type:        graphql.DateTime,
 				Description: "The last login time of user",
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					return p.Source.(*user.User).MostRecentLoginAt, nil
-				},
 			},
 			"identities": &graphql.Field{
 				Type: connIdentity.ConnectionType,
 				Args: relay.ConnectionArgs,
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					source := p.Source.(*user.User)
+					source := p.Source.(*model.User)
 					gqlCtx := GQLContext(p.Context)
 					refs, err := gqlCtx.IdentityFacade.List(source.ID)
 					if err != nil {
@@ -54,7 +50,7 @@ var nodeUser = node(
 				Type: connAuthenticator.ConnectionType,
 				Args: relay.ConnectionArgs,
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					source := p.Source.(*user.User)
+					source := p.Source.(*model.User)
 					gqlCtx := GQLContext(p.Context)
 					refs, err := gqlCtx.AuthenticatorFacade.List(source.ID)
 					if err != nil {
@@ -73,7 +69,7 @@ var nodeUser = node(
 			"verifiedClaims": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(claim))),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					source := p.Source.(*user.User)
+					source := p.Source.(*model.User)
 					gqlCtx := GQLContext(p.Context)
 					claims, err := gqlCtx.VerificationFacade.Get(source.ID)
 					if err != nil {
@@ -87,7 +83,7 @@ var nodeUser = node(
 				Type: connSession.ConnectionType,
 				Args: relay.ConnectionArgs,
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					source := p.Source.(*user.User)
+					source := p.Source.(*model.User)
 					gqlCtx := GQLContext(p.Context)
 					ss, err := gqlCtx.SessionFacade.List(source.ID)
 					if err != nil {
@@ -105,6 +101,9 @@ var nodeUser = node(
 			"isDisabled": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.Boolean),
 			},
+			"isAnonymous": &graphql.Field{
+				Type: graphql.NewNonNull(graphql.Boolean),
+			},
 			"disableReason": &graphql.Field{
 				Type: graphql.String,
 			},
@@ -114,49 +113,38 @@ var nodeUser = node(
 			"deleteAt": &graphql.Field{
 				Type:        graphql.DateTime,
 				Description: "The scheduled deletion time of the user",
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					return p.Source.(*user.User).DeleteAt, nil
-				},
 			},
 			"standardAttributes": &graphql.Field{
 				Type: graphql.NewNonNull(UserStandardAttributes),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					source := p.Source.(*user.User)
-					gqlCtx := GQLContext(p.Context)
-					attrs, err := gqlCtx.UserProfileFacade.DeriveStandardAttributes(accesscontrol.RoleGreatest, source.ID, source.UpdatedAt, source.StandardAttributes)
-					if err != nil {
-						return nil, err
-					}
-					return attrs, nil
-				},
 			},
 			"customAttributes": &graphql.Field{
 				Type: graphql.NewNonNull(UserCustomAttributes),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					source := p.Source.(*user.User)
-					gqlCtx := GQLContext(p.Context)
-					attrs, err := gqlCtx.UserProfileFacade.ReadCustomAttributesInStorageForm(accesscontrol.RoleGreatest, source.ID, source.CustomAttributes)
-					if err != nil {
-						return nil, err
-					}
-					return attrs, nil
-				},
 			},
 			"formattedName": &graphql.Field{
 				Type: graphql.String,
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					source := p.Source.(*user.User)
-					gqlCtx := GQLContext(p.Context)
-					stdAttrs, err := gqlCtx.UserProfileFacade.DeriveStandardAttributes(accesscontrol.RoleGreatest, source.ID, source.UpdatedAt, source.StandardAttributes)
-					if err != nil {
-						return nil, err
+					source := p.Source.(*model.User)
+					formattedName := stdattrs.T(source.StandardAttributes).FormattedName()
+					if formattedName == "" {
+						return nil, nil
 					}
-					return stdattrs.T(stdAttrs).FormattedName(), nil
+					return formattedName, nil
+				},
+			},
+			"endUserAccountID": &graphql.Field{
+				Type: graphql.String,
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					source := p.Source.(*model.User)
+					endUserAccountID := stdattrs.T(source.StandardAttributes).EndUserAccountID()
+					if endUserAccountID == "" {
+						return nil, nil
+					}
+					return endUserAccountID, nil
 				},
 			},
 		},
 	}),
-	&user.User{},
+	&model.User{},
 	func(ctx *Context, id string) (interface{}, error) {
 		return ctx.Users.Load(id).Value, nil
 	},

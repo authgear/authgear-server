@@ -10,6 +10,7 @@ import styles from "./UserDetailSummary.module.scss";
 
 interface UserDetailSummaryProps {
   className?: string;
+  isAnonymous: boolean;
   formattedName?: string;
   endUserAccountIdentifier: string | undefined;
   profileImageURL: string | undefined;
@@ -21,6 +22,7 @@ interface UserDetailSummaryProps {
 const UserDetailSummary: React.FC<UserDetailSummaryProps> =
   function UserDetailSummary(props: UserDetailSummaryProps) {
     const {
+      isAnonymous,
       formattedName,
       endUserAccountIdentifier,
       profileImageURL,
@@ -51,24 +53,31 @@ const UserDetailSummary: React.FC<UserDetailSummaryProps> =
             </Link>
           )}
         </div>
-        <Text className={styles.accountID} variant="medium">
-          {endUserAccountIdentifier ?? ""}
-        </Text>
-        <Text className={styles.formattedName} variant="medium">
-          {formattedName ? formattedName : ""}
-        </Text>
-        <Text className={styles.createdAt} variant="small">
-          <FormattedMessage
-            id="UserDetails.signed-up"
-            values={{ datetime: formatedSignedUp ?? "" }}
-          />
-        </Text>
-        <Text className={styles.lastLoginAt} variant="small">
-          <FormattedMessage
-            id="UserDetails.last-login-at"
-            values={{ datetime: formatedLastLogin ?? "" }}
-          />
-        </Text>
+        <div className={styles.lines}>
+          {isAnonymous && (
+            <Text className={styles.anonymousUserLabel} variant="medium">
+              <FormattedMessage id="UsersList.anonymous-user" />
+            </Text>
+          )}
+          <Text className={styles.accountID} variant="medium">
+            {endUserAccountIdentifier ?? ""}
+          </Text>
+          <Text className={styles.formattedName} variant="medium">
+            {formattedName ? formattedName : ""}
+          </Text>
+          <Text variant="small">
+            <FormattedMessage
+              id="UserDetails.signed-up"
+              values={{ datetime: formatedSignedUp ?? "" }}
+            />
+          </Text>
+          <Text variant="small">
+            <FormattedMessage
+              id="UserDetails.last-login-at"
+              values={{ datetime: formatedLastLogin ?? "" }}
+            />
+          </Text>
+        </div>
       </section>
     );
   };

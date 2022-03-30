@@ -23,6 +23,7 @@ export interface UsersListQuery_users_edges_node {
    * The last login time of user
    */
   lastLoginAt: GQL_DateTime | null;
+  isAnonymous: boolean;
   isDisabled: boolean;
   disableReason: string | null;
   isDeactivated: boolean;
@@ -31,6 +32,8 @@ export interface UsersListQuery_users_edges_node {
    */
   deleteAt: GQL_DateTime | null;
   standardAttributes: GQL_UserStandardAttributes;
+  formattedName: string | null;
+  endUserAccountID: string | null;
 }
 
 export interface UsersListQuery_users_edges {

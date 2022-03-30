@@ -41,11 +41,14 @@ const LIST_QUERY = gql`
           id
           createdAt
           lastLoginAt
+          isAnonymous
           isDisabled
           disableReason
           isDeactivated
           deleteAt
           standardAttributes
+          formattedName
+          endUserAccountID
         }
       }
       totalCount

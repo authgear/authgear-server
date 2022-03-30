@@ -9,6 +9,9 @@ import {
   DetailsRow,
   ActionButton,
   ColumnActionsMode,
+  Persona,
+  PersonaSize,
+  Text,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { Link } from "react-router-dom";
@@ -24,7 +27,6 @@ import { formatDatetime } from "../../util/formatDatetime";
 import styles from "./UsersList.module.scss";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import useDelayedValue from "../../hook/useDelayedValue";
-import { getEndUserAccountIdentifier } from "../../util/user";
 
 interface UsersListProps {
   className?: string;
@@ -42,15 +44,18 @@ interface UsersListProps {
 interface UserListItem {
   id: string;
   rawID: string;
+  isAnonymous: boolean;
   isDisabled: boolean;
   isDeactivated: boolean;
   deleteAt: string | null;
   createdAt: string | null;
+  lastLoginAt: string | null;
+  profilePictureURL: string | null;
+  formattedName: string | null;
   endUserAccountIdentitifer: string | null;
   username: string | null;
   phone: string | null;
   email: string | null;
-  lastLoginAt: string | null;
 }
 
 interface DisableUserDialogData {
@@ -70,6 +75,44 @@ const isUserListItem = (value: unknown): value is UserListItem => {
     "id" in value && "username" in value && "phone" in value && "email" in value
   );
 };
+
+interface UserInfoProps {
+  item: UserListItem;
+}
+
+function UserInfo(props: UserInfoProps) {
+  const {
+    item: {
+      profilePictureURL,
+      formattedName,
+      endUserAccountIdentitifer,
+      rawID,
+      isAnonymous,
+    },
+  } = props;
+  return (
+    <div className={styles.userInfo}>
+      <div className={styles.userInfoPicture}>
+        <Persona
+          imageUrl={profilePictureURL ?? undefined}
+          size={PersonaSize.size40}
+          hidePersonaDetails={true}
+        />
+      </div>
+
+      <Text className={styles.userInfoDisplayName}>
+        {isAnonymous ? (
+          <Text className={styles.anonymousUserLabel}>
+            <FormattedMessage id="UsersList.anonymous-user" />
+          </Text>
+        ) : (
+          formattedName ?? endUserAccountIdentitifer
+        )}
+      </Text>
+      <div className={styles.userInfoRawID}>{rawID}</div>
+    </div>
+  );
+}
 
 const UsersList: React.FC<UsersListProps> = function UsersList(props) {
   const {
@@ -92,10 +135,9 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
 
   const columns: IColumn[] = [
     {
-      key: "rawID",
-      fieldName: "rawID",
+      key: "info",
       name: renderToString("UsersList.column.raw-id"),
-      minWidth: 250,
+      minWidth: 300,
       columnActionsMode: ColumnActionsMode.disabled,
     },
     {
@@ -116,7 +158,7 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
       key: "phone",
       fieldName: "phone",
       name: renderToString("UsersList.column.phone"),
-      minWidth: 150,
+      minWidth: 120,
       columnActionsMode: ColumnActionsMode.disabled,
     },
     {
@@ -162,13 +204,15 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
           items.push({
             id: node.id,
             rawID: extractRawID(node.id),
+            isAnonymous: node.isAnonymous,
             isDisabled: node.isDisabled,
             isDeactivated: node.isDeactivated,
             deleteAt: formatDatetime(locale, node.deleteAt),
             createdAt: formatDatetime(locale, node.createdAt),
             lastLoginAt: formatDatetime(locale, node.lastLoginAt),
-            endUserAccountIdentitifer:
-              getEndUserAccountIdentifier(node.standardAttributes) ?? null,
+            profilePictureURL: node.standardAttributes.picture ?? null,
+            formattedName: node.formattedName,
+            endUserAccountIdentitifer: node.endUserAccountID ?? null,
             username: node.standardAttributes.preferred_username ?? null,
             phone: node.standardAttributes.phone_number ?? null,
             email: node.standardAttributes.email ?? null,
@@ -211,6 +255,9 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
   const onRenderUserItemColumn = useCallback(
     (item: UserListItem, _index?: number, column?: IColumn) => {
       switch (column?.key) {
+        case "info": {
+          return <UserInfo item={item} />;
+        }
         case "action": {
           const theme =
             item.deleteAt != null
@@ -229,21 +276,22 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
             );
 
           return (
-            <ActionButton
-              className={styles.actionButton}
-              styles={{ flexContainer: { alignItems: "normal" } }}
-              theme={theme}
-              onClick={(event) => onUserActionClick(event, item)}
-            >
-              {children}
-            </ActionButton>
+            <div className={styles.cell}>
+              <ActionButton
+                className={styles.actionButton}
+                theme={theme}
+                onClick={(event) => onUserActionClick(event, item)}
+              >
+                {children}
+              </ActionButton>
+            </div>
           );
         }
         default:
           return (
-            <span>
+            <div className={styles.cell}>
               {item[column?.key as keyof UserListItem] ?? USER_LIST_PLACEHOLDER}
-            </span>
+            </div>
           );
       }
     },

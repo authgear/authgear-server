@@ -1,12 +1,12 @@
 package loader
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type UserLoaderUserService interface {
-	GetManyRaw(ids []string) ([]*user.User, error)
+	GetMany(ids []string) ([]*model.User, error)
 }
 
 type UserLoader struct {
@@ -31,13 +31,13 @@ func (l *UserLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
 	}
 
 	// Get entities.
-	entities, err := l.Users.GetManyRaw(ids)
+	entities, err := l.Users.GetMany(ids)
 	if err != nil {
 		return nil, err
 	}
 
 	// Create map.
-	entityMap := make(map[string]*user.User)
+	entityMap := make(map[string]*model.User)
 	for _, entity := range entities {
 		entityMap[entity.ID] = entity
 	}

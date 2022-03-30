@@ -698,6 +698,9 @@ type User implements Entity & Node {
   disableReason: String
 
   """"""
+  endUserAccountID: String
+
+  """"""
   formattedName: String
 
   """The ID of an object"""
@@ -705,6 +708,9 @@ type User implements Entity & Node {
 
   """"""
   identities(after: String, before: String, first: Int, last: Int): IdentityConnection
+
+  """"""
+  isAnonymous: Boolean!
 
   """"""
   isDeactivated: Boolean!
