@@ -101,6 +101,9 @@ var nodeUser = node(
 			"isDisabled": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.Boolean),
 			},
+			"isAnonymous": &graphql.Field{
+				Type: graphql.NewNonNull(graphql.Boolean),
+			},
 			"disableReason": &graphql.Field{
 				Type: graphql.String,
 			},

@@ -41,6 +41,7 @@ const LIST_QUERY = gql`
           id
           createdAt
           lastLoginAt
+          isAnonymous
           isDisabled
           disableReason
           isDeactivated

@@ -131,6 +131,7 @@ export interface UserQuery_node_User {
   sessions: UserQuery_node_User_sessions | null;
   formattedName: string | null;
   endUserAccountID: string | null;
+  isAnonymous: boolean;
   isDisabled: boolean;
   disableReason: string | null;
   isDeactivated: boolean;

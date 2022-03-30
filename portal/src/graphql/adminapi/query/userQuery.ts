@@ -55,6 +55,7 @@ const userQuery = gql`
         }
         formattedName
         endUserAccountID
+        isAnonymous
         isDisabled
         disableReason
         isDeactivated

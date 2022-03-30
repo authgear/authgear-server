@@ -23,6 +23,7 @@ export interface UsersListQuery_users_edges_node {
    * The last login time of user
    */
   lastLoginAt: GQL_DateTime | null;
+  isAnonymous: boolean;
   isDisabled: boolean;
   disableReason: string | null;
   isDeactivated: boolean;
