@@ -692,7 +692,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,

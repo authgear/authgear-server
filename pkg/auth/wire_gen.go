@@ -612,14 +612,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     userStore,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -656,7 +648,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -1276,14 +1267,6 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     userStore,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -1320,7 +1303,6 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -1896,14 +1878,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     userStore,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -1962,7 +1936,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -3748,14 +3721,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     userStore,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -3814,7 +3779,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -4373,14 +4337,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -4439,7 +4395,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -5004,14 +4959,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -5070,7 +5017,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -5715,14 +5661,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -5780,7 +5718,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -6379,14 +6316,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -6444,7 +6373,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -7043,14 +6971,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -7108,7 +7028,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -7694,14 +7613,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -7759,7 +7670,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -8346,14 +8256,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -8411,7 +8313,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -8990,14 +8891,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -9055,7 +8948,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -9637,14 +9529,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -9702,7 +9586,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -10287,14 +10170,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -10352,7 +10227,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -10934,14 +10808,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -10999,7 +10865,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -11580,14 +11445,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -11645,7 +11502,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -12227,14 +12083,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -12292,7 +12140,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -12875,14 +12722,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -12940,7 +12779,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -13521,14 +13359,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -13586,7 +13416,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -14167,14 +13996,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -14232,7 +14053,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -14815,14 +14635,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -14880,7 +14692,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -15461,14 +15272,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -15526,7 +15329,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -16107,14 +15909,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -16172,7 +15966,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -16756,14 +16549,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -16821,7 +16606,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -17402,14 +17186,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -17467,7 +17243,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -18053,14 +17828,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -18118,7 +17885,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -18699,14 +18465,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -18764,7 +18522,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -19346,14 +19103,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -19411,7 +19160,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -19992,14 +19740,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -20057,7 +19797,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -20661,14 +20400,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -20726,7 +20457,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -21318,14 +21048,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -21383,7 +21105,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -21988,14 +21709,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -22053,7 +21766,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -22637,14 +22349,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -22702,7 +22406,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -23284,14 +22987,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -23349,7 +23044,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -23940,14 +23634,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -24005,7 +23691,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -24587,14 +24272,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -24652,7 +24329,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -25234,14 +24910,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -25299,7 +24967,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -25882,14 +25549,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -25947,7 +25606,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -26534,14 +26192,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -26599,7 +26249,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -27181,14 +26830,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -27246,7 +26887,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -27828,14 +27468,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -27893,7 +27525,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -28475,14 +28106,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -28540,7 +28163,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -29122,14 +28744,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -29187,7 +28801,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -29776,14 +29389,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -29841,7 +29446,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -30424,14 +30028,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -30489,7 +30085,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -31070,14 +30665,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -31135,7 +30722,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -31735,14 +31321,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -31800,7 +31378,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,
@@ -32381,14 +31958,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
-	service4 := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
 	challengeProvider := &challenge.Provider{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -32446,7 +32015,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
-		Search:                    service4,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
 		StdAttrsService:           stdattrsService,

@@ -175,10 +175,6 @@ type NonceService interface {
 	GetAndClear() string
 }
 
-type SearchService interface {
-	ReindexUser(userID string, isDelete bool) error
-}
-
 type AuthenticationInfoService interface {
 	Save(entry *authenticationinfo.Entry) error
 }
@@ -211,8 +207,6 @@ type Context struct {
 	RateLimiter              RateLimiter
 
 	Nonces NonceService
-
-	Search SearchService
 
 	Challenges                ChallengeProvider
 	Users                     UserService
