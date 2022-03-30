@@ -81,6 +81,11 @@ func MakeSearchBody(
 
 	// For unknown reason, if the search keyword is shorter than the prefix min chars,
 	// elasticsearch will throw runtime exception.
+
+	// For unknown reason, if the search keyword is mix of Chinese characters and English characters,
+	// elasticsearch will throw a runtime exception of
+	// Cannot invoke Object.hashCode() because this.rewriteMethod is null.
+	// When "rewrite" is set to "constant_score_boolean", this error seems gone.
 	if len(searchKeyword) >= PrefixMinChars {
 		should = append(should, []interface{}{
 			map[string]interface{}{
@@ -88,6 +93,7 @@ func MakeSearchBody(
 					"email_text": map[string]interface{}{
 						"value":            searchKeyword,
 						"case_insensitive": true,
+						"rewrite":          "constant_score_boolean",
 					},
 				},
 			},
@@ -96,6 +102,7 @@ func MakeSearchBody(
 					"email_local_part_text": map[string]interface{}{
 						"value":            searchKeyword,
 						"case_insensitive": true,
+						"rewrite":          "constant_score_boolean",
 					},
 				},
 			},
@@ -104,6 +111,7 @@ func MakeSearchBody(
 					"email_domain_text": map[string]interface{}{
 						"value":            searchKeyword,
 						"case_insensitive": true,
+						"rewrite":          "constant_score_boolean",
 					},
 				},
 			},
@@ -112,6 +120,7 @@ func MakeSearchBody(
 					"preferred_username_text": map[string]interface{}{
 						"value":            searchKeyword,
 						"case_insensitive": true,
+						"rewrite":          "constant_score_boolean",
 					},
 				},
 			},
@@ -120,6 +129,7 @@ func MakeSearchBody(
 					"phone_number_text": map[string]interface{}{
 						"value":            searchKeyword,
 						"case_insensitive": true,
+						"rewrite":          "constant_score_boolean",
 					},
 				},
 			},
@@ -128,6 +138,7 @@ func MakeSearchBody(
 					"phone_number_national_number_text": map[string]interface{}{
 						"value":            searchKeyword,
 						"case_insensitive": true,
+						"rewrite":          "constant_score_boolean",
 					},
 				},
 			},
