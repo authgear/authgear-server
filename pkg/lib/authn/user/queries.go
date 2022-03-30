@@ -72,3 +72,25 @@ func (p *Queries) Get(id string, role accesscontrol.Role) (*model.User, error) {
 
 	return newUserModel(user, identities, authenticators, isVerified, stdAttrs, customAttrs), nil
 }
+
+func (p *Queries) GetMany(ids []string) (users []*model.User, err error) {
+	rawUsers, err := p.GetManyRaw(ids)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, rawUser := range rawUsers {
+		if rawUser == nil {
+			users = append(users, nil)
+		} else {
+			var u *model.User
+			u, err = p.Get(rawUser.ID, accesscontrol.RoleGreatest)
+			if err != nil {
+				return
+			}
+			users = append(users, u)
+		}
+	}
+
+	return
+}
