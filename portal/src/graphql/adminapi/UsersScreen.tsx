@@ -1,6 +1,16 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  createContext,
+} from "react";
 import { useNavigate } from "react-router-dom";
-import { ICommandBarItemProps, SearchBox } from "@fluentui/react";
+import {
+  ICommandBarItemProps,
+  SearchBox,
+  ISearchBoxProps,
+} from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { gql, useQuery } from "@apollo/client";
 import NavBreadcrumb from "../../NavBreadcrumb";
@@ -18,6 +28,8 @@ import ShowError from "../../ShowError";
 import useDelayedValue from "../../hook/useDelayedValue";
 
 import styles from "./UsersScreen.module.scss";
+
+const LocalSearchBoxContext = createContext<LocalSearchBoxProps | null>(null);
 
 const pageSize = 10;
 
@@ -53,6 +65,22 @@ const LIST_QUERY = gql`
   }
 `;
 
+interface LocalSearchBoxProps {
+  className?: ISearchBoxProps["className"];
+  placeholder?: ISearchBoxProps["placeholder"];
+  value?: ISearchBoxProps["value"];
+  onChange?: ISearchBoxProps["onChange"];
+  onClear?: ISearchBoxProps["onClear"];
+}
+
+function LocalSearchBox() {
+  const value = useContext(LocalSearchBoxContext);
+  if (value == null) {
+    return null;
+  }
+  return <SearchBox {...value} />;
+}
+
 const UsersScreen: React.FC = function UsersScreen() {
   const { searchEnabled } = useSystemConfig();
 
@@ -86,34 +114,37 @@ const UsersScreen: React.FC = function UsersScreen() {
     setOffset(0);
   }, []);
 
+  const localSearchBoxProps: LocalSearchBoxProps = useMemo(() => {
+    return {
+      className: styles.searchBox,
+      placeholder: renderToString("search"),
+      value: searchKeyword,
+      onChange: onChangeSearchKeyword,
+      onClear: onClearSearchKeyword,
+    };
+  }, [
+    renderToString,
+    searchKeyword,
+    onChangeSearchKeyword,
+    onClearSearchKeyword,
+  ]);
+
+  // If secondaryItems changes on every key stroke,
+  // input method such as cangjie cannot be used.
+  // Every key stroke is entered into the text box literally without giving us a chance to select character.
+  // This can be work around by using context.
   const secondaryItems: ICommandBarItemProps[] = useMemo(() => {
     if (searchEnabled) {
       return [
         {
           key: "search",
           // eslint-disable-next-line react/no-unstable-nested-components
-          onRender: () => {
-            return (
-              <SearchBox
-                className={styles.searchBox}
-                placeholder={renderToString("search")}
-                value={searchKeyword}
-                onChange={onChangeSearchKeyword}
-                onClear={onClearSearchKeyword}
-              />
-            );
-          },
+          onRender: () => <LocalSearchBox />,
         },
       ];
     }
     return [];
-  }, [
-    renderToString,
-    onChangeSearchKeyword,
-    searchKeyword,
-    searchEnabled,
-    onClearSearchKeyword,
-  ]);
+  }, [searchEnabled]);
 
   const primaryItems: ICommandBarItemProps[] = useMemo(() => {
     return [
@@ -181,29 +212,31 @@ const UsersScreen: React.FC = function UsersScreen() {
   );
 
   return (
-    <CommandBarContainer
-      className={styles.root}
-      isLoading={loading}
-      primaryItems={primaryItems}
-      secondaryItems={secondaryItems}
-      messageBar={messageBar}
-    >
-      <ScreenContent className={styles.content} layout="list">
-        <NavBreadcrumb className={styles.widget} items={items} />
-        <UsersList
-          className={styles.widget}
-          loading={loading}
-          users={data?.users ?? null}
-          offset={offset}
-          pageSize={pageSize}
-          totalCount={data?.users?.totalCount ?? undefined}
-          onChangeOffset={onChangeOffset}
-          onColumnClick={onColumnClick}
-          sortBy={sortBy}
-          sortDirection={sortDirection}
-        />
-      </ScreenContent>
-    </CommandBarContainer>
+    <LocalSearchBoxContext.Provider value={localSearchBoxProps}>
+      <CommandBarContainer
+        className={styles.root}
+        isLoading={loading}
+        primaryItems={primaryItems}
+        secondaryItems={secondaryItems}
+        messageBar={messageBar}
+      >
+        <ScreenContent className={styles.content} layout="list">
+          <NavBreadcrumb className={styles.widget} items={items} />
+          <UsersList
+            className={styles.widget}
+            loading={loading}
+            users={data?.users ?? null}
+            offset={offset}
+            pageSize={pageSize}
+            totalCount={data?.users?.totalCount ?? undefined}
+            onChangeOffset={onChangeOffset}
+            onColumnClick={onColumnClick}
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+          />
+        </ScreenContent>
+      </CommandBarContainer>
+    </LocalSearchBoxContext.Provider>
   );
 };
 
