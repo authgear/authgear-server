@@ -4,23 +4,12 @@
   width: 600px;
   font-size: 13px;
   font-weight: 300;
+  margin-bottom: 20px;
   display: grid;
   row-gap: 4px;
   column-gap: 26px;
-  grid-template:
-    "pic     accountID"
-    "pic     formattedName"
-    "pic             ." 4px
-    "pic     createdAt"
-    "pic   lastLoginAt"
-    / min-content auto;
-  margin-bottom: 20px;
-}
-
-.profilePic {
-  grid-area: pic;
-  place-self: center;
-  position: relative;
+  grid-template-columns: min-content auto;
+  grid-template-rows: auto;
 }
 
 .cameraLink {
@@ -48,20 +37,31 @@
   height: 32px;
 }
 
+.profilePic {
+  grid-column: 1 / span 1;
+  grid-row: 1 / span 1;
+  place-self: center;
+  position: relative;
+}
+
+.lines {
+  grid-column: 2 / span 2;
+  grid-row: 1 / span 1;
+  display: grid;
+  grid-template-columns: auto;
+  grid-auto-rows: auto;
+  row-gap: 4px;
+  column-gap: 26px;
+}
+
 .accountID {
-  grid-area: accountID;
   color: $black;
 }
 
 .formattedName {
-  grid-area: formattedName;
   color: $black;
 }
 
-.createdAt {
-  grid-area: createdAt;
-}
-
-.lastLoginAt {
-  grid-area: lastLoginAt;
+.anonymousUserLabel {
+  font-style: italic;
 }

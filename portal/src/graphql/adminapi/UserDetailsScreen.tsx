@@ -287,6 +287,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   return (
     <div className={styles.widget}>
       <UserDetailSummary
+        isAnonymous={data?.isAnonymous ?? false}
         profileImageURL={data?.standardAttributes.picture}
         profileImageEditable={profileImageEditable}
         formattedName={data?.formattedName ?? undefined}
