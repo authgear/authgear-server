@@ -44,6 +44,7 @@ interface UsersListProps {
 interface UserListItem {
   id: string;
   rawID: string;
+  isAnonymous: boolean;
   isDisabled: boolean;
   isDeactivated: boolean;
   deleteAt: string | null;
@@ -86,6 +87,7 @@ function UserInfo(props: UserInfoProps) {
       formattedName,
       endUserAccountIdentitifer,
       rawID,
+      isAnonymous,
     },
   } = props;
   return (
@@ -97,8 +99,15 @@ function UserInfo(props: UserInfoProps) {
           hidePersonaDetails={true}
         />
       </div>
+
       <Text className={styles.userInfoDisplayName}>
-        {formattedName ?? endUserAccountIdentitifer}
+        {isAnonymous ? (
+          <Text className={styles.anonymousUserLabel}>
+            <FormattedMessage id="UsersList.anonymous-user" />
+          </Text>
+        ) : (
+          formattedName ?? endUserAccountIdentitifer
+        )}
       </Text>
       <div className={styles.userInfoRawID}>{rawID}</div>
     </div>
@@ -195,6 +204,7 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
           items.push({
             id: node.id,
             rawID: extractRawID(node.id),
+            isAnonymous: node.isAnonymous,
             isDisabled: node.isDisabled,
             isDeactivated: node.isDeactivated,
             deleteAt: formatDatetime(locale, node.deleteAt),
