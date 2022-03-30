@@ -21,7 +21,7 @@ type EventService interface {
 
 type IdentityService interface {
 	Get(userID string, typ model.IdentityType, id string) (*identity.Info, error)
-	GetBySpec(spec *identity.Spec) (*identity.Info, error)
+	SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, otherMatches []*identity.Info, err error)
 	ListByUser(userID string) ([]*identity.Info, error)
 	ListByClaim(name string, value string) ([]*identity.Info, error)
 	New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
@@ -116,8 +116,8 @@ func (c *Coordinator) IdentityGet(userID string, typ model.IdentityType, id stri
 	return c.Identities.Get(userID, typ, id)
 }
 
-func (c *Coordinator) IdentityGetBySpec(spec *identity.Spec) (*identity.Info, error) {
-	return c.Identities.GetBySpec(spec)
+func (c *Coordinator) IdentitySearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, otherMatches []*identity.Info, err error) {
+	return c.Identities.SearchBySpec(spec)
 }
 
 func (c *Coordinator) IdentityListByUser(userID string) ([]*identity.Info, error) {

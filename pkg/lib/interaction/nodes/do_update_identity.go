@@ -47,7 +47,9 @@ func (n *NodeDoUpdateIdentity) GetEffects() ([]interaction.Effect, error) {
 		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			if _, err := ctx.Identities.CheckDuplicated(n.IdentityAfterUpdate); err != nil {
 				if errors.Is(err, identity.ErrIdentityAlreadyExists) {
-					return n.IdentityAfterUpdate.FillDetails(interaction.ErrDuplicatedIdentity)
+					s1 := n.IdentityBeforeUpdate.ToSpec()
+					s2 := n.IdentityAfterUpdate.ToSpec()
+					return identityFillDetails(interaction.ErrDuplicatedIdentity, &s2, &s1)
 				}
 				return err
 			}

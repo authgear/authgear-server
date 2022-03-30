@@ -46,3 +46,9 @@ func (n *NodeCheckIdentityConflict) GetEffects() ([]interaction.Effect, error) {
 func (n *NodeCheckIdentityConflict) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
 	return graph.Intent.DeriveEdgesForNode(graph, n)
 }
+
+func (n *NodeCheckIdentityConflict) FillDetails(err error) error {
+	spec := n.NewIdentity.ToSpec()
+	otherSpec := n.DuplicatedIdentity.ToSpec()
+	return identityFillDetails(err, &spec, &otherSpec)
+}

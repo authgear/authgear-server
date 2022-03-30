@@ -33,11 +33,17 @@ func (e *EdgeSelectIdentityEnd) Instantiate(ctx *interaction.Context, graph *int
 		}
 	}
 
-	var info *identity.Info
-	info, err := ctx.Identities.GetBySpec(e.IdentitySpec)
-	if errors.Is(err, identity.ErrIdentityNotFound) {
-		// nolint: ineffassign
-		err = nil
+	var otherMatch *identity.Info
+	exactMatch, otherMatches, err := ctx.Identities.SearchBySpec(e.IdentitySpec)
+	if err != nil {
+		return nil, err
+	}
+
+	if exactMatch == nil {
+		// Take the first one as other match.
+		if len(otherMatches) > 0 {
+			otherMatch = otherMatches[0]
+		}
 
 		if e.IsAuthentication {
 			switch e.IdentitySpec.Type {
@@ -59,13 +65,11 @@ func (e *EdgeSelectIdentityEnd) Instantiate(ctx *interaction.Context, graph *int
 				panic(fmt.Errorf("interaction: unknown identity type: %v", e.IdentitySpec.Type))
 			}
 		}
-	} else if err != nil {
-		return nil, err
 	}
 
 	// Ensure info is up-to-date.
-	if info != nil && info.Type == model.IdentityTypeOAuth {
-		info, err = ctx.Identities.UpdateWithSpec(info, e.IdentitySpec, identity.NewIdentityOptions{})
+	if exactMatch != nil && exactMatch.Type == model.IdentityTypeOAuth {
+		exactMatch, err = ctx.Identities.UpdateWithSpec(exactMatch, e.IdentitySpec, identity.NewIdentityOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -73,13 +77,15 @@ func (e *EdgeSelectIdentityEnd) Instantiate(ctx *interaction.Context, graph *int
 
 	return &NodeSelectIdentityEnd{
 		IdentitySpec: e.IdentitySpec,
-		IdentityInfo: info,
+		IdentityInfo: exactMatch,
+		OtherMatch:   otherMatch,
 	}, nil
 }
 
 type NodeSelectIdentityEnd struct {
 	IdentitySpec *identity.Spec `json:"identity_spec"`
 	IdentityInfo *identity.Info `json:"identity_info"`
+	OtherMatch   *identity.Info `json:"other_match"`
 }
 
 func (n *NodeSelectIdentityEnd) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -93,7 +99,7 @@ func (n *NodeSelectIdentityEnd) GetEffects() ([]interaction.Effect, error) {
 			_, err := ctx.Identities.CheckDuplicated(n.IdentityInfo)
 			if err != nil {
 				if errors.Is(err, identity.ErrIdentityAlreadyExists) {
-					return n.IdentityInfo.FillDetails(interaction.ErrDuplicatedIdentity)
+					return n.FillDetails(interaction.ErrDuplicatedIdentity)
 				}
 				return err
 			}
@@ -117,4 +123,25 @@ func (n *NodeSelectIdentityEnd) GetEffects() ([]interaction.Effect, error) {
 
 func (n *NodeSelectIdentityEnd) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
 	return graph.Intent.DeriveEdgesForNode(graph, n)
+}
+
+func (n *NodeSelectIdentityEnd) FillDetails(err error) error {
+	spec := n.IdentitySpec
+	var otherSpec *identity.Spec
+
+	// The spec fetches an exact match and other match.
+	// Normally it is the sign-in cases.
+	if n.IdentityInfo != nil && n.OtherMatch != nil {
+		s := n.OtherMatch.ToSpec()
+		otherSpec = &s
+	}
+
+	// The spec fetches an exact match.
+	// Normally it is the sign-up cases.
+	if n.IdentityInfo != nil && n.OtherMatch == nil {
+		s := n.IdentityInfo.ToSpec()
+		otherSpec = &s
+	}
+
+	return identityFillDetails(err, spec, otherSpec)
 }
