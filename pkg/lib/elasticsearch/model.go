@@ -24,6 +24,8 @@ func RawToSource(raw *model.ElasticsearchUserRaw) *model.ElasticsearchUserSource
 		PreferredUsernameText: raw.PreferredUsername,
 		PhoneNumber:           raw.PhoneNumber,
 		PhoneNumberText:       raw.PhoneNumber,
+		OAuthSubjectID:        raw.OAuthSubjectID,
+		OAuthSubjectIDText:    raw.OAuthSubjectID,
 	}
 
 	var emailLocalPart []string
