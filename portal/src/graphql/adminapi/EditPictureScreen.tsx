@@ -4,6 +4,7 @@ import React, {
   useState,
   useCallback,
   useRef,
+  useEffect,
   ChangeEvent,
 } from "react";
 import cn from "classnames";
@@ -32,6 +33,9 @@ import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useUserQuery } from "./query/userQuery";
 import { useSimpleForm } from "../../hook/useSimpleForm";
 import { useUpdateUserMutation } from "./mutations/updateUserMutation";
+import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
+import { jsonPointerToString } from "../../util/jsonpointer";
+import { AccessControlLevelString } from "../../types";
 
 import styles from "./EditPictureScreen.module.scss";
 
@@ -367,6 +371,7 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
 }
 
 const EditPictureScreen: React.FC = function EditPictureScreen() {
+  const navigate = useNavigate();
   const { appID, userID } = useParams();
   const {
     user,
@@ -375,16 +380,48 @@ const EditPictureScreen: React.FC = function EditPictureScreen() {
     refetch: refetchUser,
   } = useUserQuery(userID);
 
-  if (loadingUser) {
+  const {
+    effectiveAppConfig,
+    loading: loadingAppConfig,
+    error: appConfigError,
+    refetch: refetchAppConfig,
+  } = useAppAndSecretConfigQuery(appID);
+
+  const standardAttributeAccessControl = useMemo(() => {
+    const record: Record<string, AccessControlLevelString> = {};
+    for (const item of effectiveAppConfig?.user_profile?.standard_attributes
+      ?.access_control ?? []) {
+      record[item.pointer] = item.access_control.portal_ui;
+    }
+    return record;
+  }, [effectiveAppConfig]);
+
+  const profileImageEditable = useMemo(() => {
+    const ptr = jsonPointerToString(["picture"]);
+    const level = standardAttributeAccessControl[ptr];
+    return level === "readwrite";
+  }, [standardAttributeAccessControl]);
+
+  useEffect(() => {
+    if (!profileImageEditable) {
+      navigate("..");
+    }
+  }, [navigate, profileImageEditable]);
+
+  if (loadingUser || loadingAppConfig) {
     return <ShowLoading />;
   }
 
-  if (user == null) {
+  if (user == null || effectiveAppConfig == null) {
     return <ShowLoading />;
   }
 
   if (userError != null) {
     return <ShowError error={userError} onRetry={refetchUser} />;
+  }
+
+  if (appConfigError != null) {
+    return <ShowError error={appConfigError} onRetry={refetchAppConfig} />;
   }
 
   return <EditPictureScreenContent user={user} appID={appID} />;
