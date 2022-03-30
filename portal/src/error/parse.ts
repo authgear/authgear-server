@@ -223,6 +223,18 @@ export interface ErrorParseRule {
   (apiError: APIError): ParsedAPIError[];
 }
 
+export function makeLocalErrorParseRule(
+  sentinel: APIError,
+  error: ParsedAPIError
+): ErrorParseRule {
+  return (apiError: APIError): ParsedAPIError[] => {
+    if (apiError === sentinel) {
+      return [error];
+    }
+    return [];
+  };
+}
+
 export function makeReasonErrorParseRule(
   reason: APIError["reason"],
   errorMessageID: string

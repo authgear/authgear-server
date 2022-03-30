@@ -32,6 +32,7 @@ import {
   WebHookDeliveryTimeoutError,
   WebHookInvalidResponseError,
 } from "./webhook";
+import type { ParsedAPIError } from "./parse";
 
 export interface NetworkError {
   errorName: "NetworkFailed";
@@ -51,10 +52,19 @@ export interface UnknownError {
   };
 }
 
+export interface LocalError {
+  errorName: "__local";
+  reason: "__local";
+  info: {
+    error: ParsedAPIError;
+  };
+}
+
 export type APIError =
   | NetworkError
   | RequestEntityTooLargeError
   | UnknownError
+  | LocalError
   | WebHookDisallowedError
   | WebHookDeliveryTimeoutError
   | WebHookInvalidResponseError
