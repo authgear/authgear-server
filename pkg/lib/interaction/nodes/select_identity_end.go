@@ -128,9 +128,20 @@ func (n *NodeSelectIdentityEnd) DeriveEdges(graph *interaction.Graph) ([]interac
 func (n *NodeSelectIdentityEnd) FillDetails(err error) error {
 	spec := n.IdentitySpec
 	var otherSpec *identity.Spec
-	if n.OtherMatch != nil {
+
+	// The spec fetches an exact match and other match.
+	// Normally it is the sign-in cases.
+	if n.IdentityInfo != nil && n.OtherMatch != nil {
 		s := n.OtherMatch.ToSpec()
 		otherSpec = &s
 	}
+
+	// The spec fetches an exact match.
+	// Normally it is the sign-up cases.
+	if n.IdentityInfo != nil && n.OtherMatch == nil {
+		s := n.IdentityInfo.ToSpec()
+		otherSpec = &s
+	}
+
 	return identityFillDetails(err, spec, otherSpec)
 }
