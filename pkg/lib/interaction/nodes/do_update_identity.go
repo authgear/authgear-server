@@ -49,7 +49,7 @@ func (n *NodeDoUpdateIdentity) GetEffects() ([]interaction.Effect, error) {
 				if errors.Is(err, identity.ErrIdentityAlreadyExists) {
 					s1 := n.IdentityBeforeUpdate.ToSpec()
 					s2 := n.IdentityAfterUpdate.ToSpec()
-					return identityFillDetails(interaction.ErrDuplicatedIdentity, &s1, &s2)
+					return identityFillDetails(interaction.ErrDuplicatedIdentity, &s2, &s1)
 				}
 				return err
 			}
