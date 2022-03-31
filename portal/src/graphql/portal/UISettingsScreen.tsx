@@ -387,7 +387,17 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             }
 
             const jsonValue = JSON.parse(oldValue);
-            jsonValue[key] = value;
+
+            // If the value is an empty string,
+            // interpret as using default value.
+            // This interpretation is only present on this screen.
+            // LocalizationConfigurationScreen still allows saving empty strings.
+            if (value === "") {
+              delete jsonValue[key];
+            } else {
+              jsonValue[key] = value;
+            }
+
             updatedResources[specifierId(selectedSpecifier)] = {
               specifier: selectedSpecifier,
               path: expandSpecifier(selectedSpecifier),
