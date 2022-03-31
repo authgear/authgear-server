@@ -1,12 +1,13 @@
 import React, { createRef } from "react";
 import cn from "classnames";
 import Cropperjs from "cropperjs";
-import { Image, ImageFit } from "@fluentui/react";
+import { Image, ImageFit, FontIcon } from "@fluentui/react";
 
 import styles from "./ReactCropperjs.module.scss";
 
 export interface ReactCropperjsProps {
   className?: string;
+  onClickSelectImage?: () => void;
   editSrc?: string;
   displaySrc?: string;
   onError?: () => void;
@@ -69,23 +70,38 @@ class ReactCropperjs extends React.Component<ReactCropperjsProps> {
   }
 
   render(): React.ReactNode {
-    const { className, editSrc, displaySrc, onError, onLoad } = this.props;
+    const {
+      className,
+      editSrc,
+      displaySrc,
+      onError,
+      onLoad,
+      onClickSelectImage,
+    } = this.props;
     return (
       <div className={cn(className, styles.container)}>
         <img
           ref={this.img}
-          className={styles.img}
+          className={cn(styles.img, editSrc == null && styles.hidden)}
           src={editSrc}
           onError={onError}
           onLoad={onLoad}
         />
-        {editSrc == null ? (
-          <Image
-            className={styles.img}
-            src={displaySrc}
-            imageFit={ImageFit.contain}
-          />
-        ) : null}
+        {editSrc == null &&
+          (displaySrc == null ? (
+            <FontIcon
+              role="button"
+              className={styles.placeholder}
+              iconName="Contact"
+              onClick={onClickSelectImage}
+            />
+          ) : (
+            <Image
+              className={styles.preview}
+              src={displaySrc}
+              imageFit={ImageFit.contain}
+            />
+          ))}
       </div>
     );
   }
