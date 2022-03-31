@@ -5,6 +5,7 @@ import {
   showProgressBar,
   progressEventHandler,
 } from "./loading";
+import { handleAxiosError, showErrorMessage, hideErrorMessage } from "./error";
 
 function destroyCropper(img: HTMLImageElement) {
   // The namespace .cropper is known by reading the source code.
@@ -51,7 +52,7 @@ function onChange(e: Event) {
     return;
   }
 
-  setErrorMessage("error-message-invalid-selected-image", true);
+  hideErrorMessage("error-message-invalid-selected-image");
 
   imgCropper?.classList.remove("hidden");
   const buttonFile = document.getElementById("imagepicker-button-file");
@@ -88,7 +89,7 @@ function onError(e: Event) {
     buttonFile?.classList.remove("hidden");
     const buttonSave = document.getElementById("imagepicker-button-save");
     buttonSave?.classList.add("hidden");
-    setErrorMessage("error-message-invalid-selected-image", false);
+    showErrorMessage("error-message-invalid-selected-image");
   }
 }
 
@@ -168,9 +169,6 @@ function onClickSave(e: Event) {
         onUploadProgress: progressEventHandler,
       });
       const body = resp.data;
-      if (body.error) {
-        throw body.error;
-      }
 
       const {
         result: { upload_url },
@@ -185,9 +183,6 @@ function onClickSave(e: Event) {
         onUploadProgress: progressEventHandler,
       });
       const uploadRespBody = uploadResp.data;
-      if (uploadRespBody.error) {
-        throw uploadRespBody.error;
-      }
       const {
         result: { url },
       } = uploadRespBody;
@@ -199,35 +194,11 @@ function onClickSave(e: Event) {
       // The success branch also loads a new page.
       // Keeping the buttons in disabled state reduce flickering in the UI.
       revert();
-      setNetworkError();
-      console.error(e);
+      handleAxiosError(e);
     } finally {
       hideProgressBar();
     }
   });
-}
-
-function setErrorMessage(id: string, hidden: boolean) {
-  const errorMessageBar = document.getElementById("error-message-bar");
-  if (errorMessageBar == null) {
-    return;
-  }
-  const message = document.getElementById(id);
-  if (message == null) {
-    return;
-  }
-
-  if (hidden) {
-    errorMessageBar.classList.add("hidden");
-    message.classList.add("hidden");
-  } else {
-    errorMessageBar.classList.remove("hidden");
-    message.classList.remove("hidden");
-  }
-}
-
-function setNetworkError() {
-  setErrorMessage("error-message-network", false);
 }
 
 export function setupImagePicker(): () => void {

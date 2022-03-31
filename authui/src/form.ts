@@ -6,6 +6,7 @@ import {
   showProgressBar,
   progressEventHandler,
 } from "./loading";
+import { handleAxiosError } from "./error";
 
 // Handle click link to submit form
 // When clicking element with `data-submit-link`, it will perform click on
@@ -93,14 +94,6 @@ export function xhrSubmitForm(): () => void {
         onUploadProgress: progressEventHandler,
         onDownloadProgress: progressEventHandler,
       });
-      if (resp.status < 200 || resp.status >= 300) {
-        // revert is only called for error branch because
-        // The success branch also loads a new page.
-        // Keeping the buttons in disabled state reduce flickering in the UI.
-        revert();
-        setServerError();
-        return;
-      }
 
       const { redirect_uri, action } = resp.data;
 
@@ -116,8 +109,8 @@ export function xhrSubmitForm(): () => void {
           Turbolinks.visit(redirect_uri, { action });
           break;
       }
-    } catch {
-      setNetworkError();
+    } catch (e: unknown) {
+      handleAxiosError(e);
       // revert is only called for error branch because
       // The success branch also loads a new page.
       // Keeping the buttons in disabled state reduce flickering in the UI.
@@ -144,28 +137,6 @@ export function xhrSubmitForm(): () => void {
       form.removeEventListener("submit", submitForm);
     }
   };
-}
-
-function setErrorMessage(id: string) {
-  const errorMessageBar = document.getElementById("error-message-bar");
-  if (errorMessageBar == null) {
-    return;
-  }
-  const message = document.getElementById(id);
-  if (message == null) {
-    return;
-  }
-
-  errorMessageBar.classList.remove("hidden");
-  message.classList.remove("hidden");
-}
-
-function setServerError() {
-  setErrorMessage("error-message-server");
-}
-
-function setNetworkError() {
-  setErrorMessage("error-message-network");
 }
 
 export function restoreForm() {
