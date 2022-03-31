@@ -20,6 +20,8 @@ type NonBlockingPayload interface {
 	NonBlockingEventType() Type
 	ForWebHook() bool
 	ForAudit() bool
+	ReindexUserNeeded() bool
+	IsUserDeleted() bool
 }
 
 type Event struct {

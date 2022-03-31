@@ -65,4 +65,12 @@ func (e *IdentityLoginIDUpdatedEventPayload) ForAudit() bool {
 	return true
 }
 
+func (e *IdentityLoginIDUpdatedEventPayload) ReindexUserNeeded() bool {
+	return true
+}
+
+func (e *IdentityLoginIDUpdatedEventPayload) IsUserDeleted() bool {
+	return false
+}
+
 var _ event.NonBlockingPayload = &IdentityLoginIDUpdatedEventPayload{}

@@ -46,6 +46,14 @@ func (e *MockNonBlockingEvent1) ForAudit() bool {
 	return true
 }
 
+func (e *MockNonBlockingEvent1) ReindexUserNeeded() bool {
+	return true
+}
+
+func (e *MockNonBlockingEvent1) IsUserDeleted() bool {
+	return false
+}
+
 type MockNonBlockingEvent2 struct {
 	MockUserEventBase
 }
@@ -63,6 +71,14 @@ func (e *MockNonBlockingEvent2) ForWebHook() bool {
 
 func (e *MockNonBlockingEvent2) ForAudit() bool {
 	return true
+}
+
+func (e *MockNonBlockingEvent2) ReindexUserNeeded() bool {
+	return true
+}
+
+func (e *MockNonBlockingEvent2) IsUserDeleted() bool {
+	return false
 }
 
 type MockNonBlockingEvent3 struct {
@@ -84,6 +100,14 @@ func (e *MockNonBlockingEvent3) ForAudit() bool {
 	return true
 }
 
+func (e *MockNonBlockingEvent3) ReindexUserNeeded() bool {
+	return true
+}
+
+func (e *MockNonBlockingEvent3) IsUserDeleted() bool {
+	return false
+}
+
 type MockNonBlockingEvent4 struct {
 	MockUserEventBase
 }
@@ -101,6 +125,14 @@ func (e *MockNonBlockingEvent4) ForWebHook() bool {
 
 func (e *MockNonBlockingEvent4) ForAudit() bool {
 	return true
+}
+
+func (e *MockNonBlockingEvent4) ReindexUserNeeded() bool {
+	return true
+}
+
+func (e *MockNonBlockingEvent4) IsUserDeleted() bool {
+	return false
 }
 
 type MockBlockingEvent1 struct {

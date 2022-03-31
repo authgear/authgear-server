@@ -37,4 +37,12 @@ func (e *EmailSentEventPayload) ForAudit() bool {
 	return true
 }
 
+func (e *EmailSentEventPayload) ReindexUserNeeded() bool {
+	return false
+}
+
+func (e *EmailSentEventPayload) IsUserDeleted() bool {
+	return false
+}
+
 var _ event.NonBlockingPayload = &EmailSentEventPayload{}

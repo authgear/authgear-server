@@ -36,10 +36,14 @@ func (s *InProcessQueue) WillCommitTx() error {
 }
 
 func (s *InProcessQueue) DidCommitTx() {
-	for _, param := range s.pendingTasks {
+	// To avoid running the tasks multiple times
+	// reset s.pendingTasks when we start processing the tasks
+	pendingTasks := s.pendingTasks
+	s.pendingTasks = nil
+
+	for _, param := range pendingTasks {
 		s.run(param)
 	}
-	s.pendingTasks = nil
 }
 
 func (s *InProcessQueue) run(param task.Param) {

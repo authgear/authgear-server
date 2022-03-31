@@ -42,4 +42,12 @@ func (e *IdentityOAuthDisconnectedEventPayload) ForAudit() bool {
 	return true
 }
 
+func (e *IdentityOAuthDisconnectedEventPayload) ReindexUserNeeded() bool {
+	return true
+}
+
+func (e *IdentityOAuthDisconnectedEventPayload) IsUserDeleted() bool {
+	return false
+}
+
 var _ event.NonBlockingPayload = &IdentityOAuthDisconnectedEventPayload{}

@@ -42,4 +42,12 @@ func (e *UserCreatedEventPayload) ForAudit() bool {
 	return true
 }
 
+func (e *UserCreatedEventPayload) ReindexUserNeeded() bool {
+	return true
+}
+
+func (e *UserCreatedEventPayload) IsUserDeleted() bool {
+	return false
+}
+
 var _ event.NonBlockingPayload = &UserCreatedEventPayload{}

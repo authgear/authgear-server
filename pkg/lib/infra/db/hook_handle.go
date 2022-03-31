@@ -57,10 +57,20 @@ func (h *HookHandle) WithTx(do func() error) (err error) {
 	// See https://github.com/authgear/authgear-server/issues/1612 for the bug of failing to enforcing the invariant.
 	h.tx = tx
 	defer func() {
+		shouldRunDidCommitHooks := false
 		// WillCommitTx of hook is allowed to access the database.
 		// So the assignment to nil should happen last.
 		defer func() {
 			h.tx = nil
+
+			if shouldRunDidCommitHooks {
+				// reset tx to complete the current transcation
+				// before running the DidCommitTx hook
+				// so new tx can be opened inside the DidCommitTx hook
+				for _, hook := range h.hooks {
+					hook.DidCommitTx()
+				}
+			}
 		}()
 
 		if r := recover(); r != nil {
@@ -70,6 +80,9 @@ func (h *HookHandle) WithTx(do func() error) (err error) {
 			_ = rollbackTx(tx)
 		} else {
 			err = commitTx(tx, h.hooks)
+			if err == nil {
+				shouldRunDidCommitHooks = true
+			}
 		}
 	}()
 
@@ -92,10 +105,21 @@ func (h *HookHandle) ReadOnly(do func() error) (err error) {
 	// See https://github.com/authgear/authgear-server/issues/1612 for the bug of failing to enforcing the invariant.
 	h.tx = tx
 	defer func() {
+		shouldRunDidCommitHooks := false
+
 		// WillCommitTx of hook is allowed to access the database.
 		// So the assignment to nil should happen last.
 		defer func() {
 			h.tx = nil
+
+			if shouldRunDidCommitHooks {
+				// reset tx to complete the current transcation
+				// before running the DidCommitTx hook
+				// so new tx can be opened inside the DidCommitTx hook
+				for _, hook := range h.hooks {
+					hook.DidCommitTx()
+				}
+			}
 		}()
 
 		if r := recover(); r != nil {
@@ -104,7 +128,10 @@ func (h *HookHandle) ReadOnly(do func() error) (err error) {
 		} else if err != nil {
 			_ = rollbackTx(tx)
 		} else {
-			err = commitTx(tx, h.hooks)
+			err = rollbackTx(tx)
+			if err == nil {
+				shouldRunDidCommitHooks = true
+			}
 		}
 	}()
 
@@ -142,10 +169,6 @@ func commitTx(tx *sqlx.Tx, hooks []TransactionHook) error {
 	err := tx.Commit()
 	if err != nil {
 		return fmt.Errorf("hook-handle: failed to commit transaction: %w", err)
-	}
-
-	for _, hook := range hooks {
-		hook.DidCommitTx()
 	}
 
 	return nil

@@ -68,7 +68,6 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		libes.DependencySet,
-		wire.Bind(new(interaction.SearchService), new(*libes.Service)),
 	),
 
 	wire.NewSet(
