@@ -73,6 +73,7 @@
 
   "error-network": "Your device is offline. Please check your network connection first.",
   "error-server": "Server encountered an internal error.",
+  "error-invalid-selected-image": "The selected image is invalid. Try another one.",
 
   "success-resend-code": "Resent code successfully!",
 

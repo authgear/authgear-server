@@ -27,6 +27,7 @@
     <ul class="messages-txt list-none flex flex-col flex-1 margin-h-0 margin-v-6 padding-0 text-sm">
         <li id="error-message-server" class="hidden">{{ template "error-server" }}</li>
         <li id="error-message-network" class="hidden">{{ template "error-network" }}</li>
+        <li id="error-message-invalid-selected-image" class="hidden">{{ template "error-invalid-selected-image" }}</li>
         {{ if $display_error }}
             {{ $info := .Error.info }}
             {{ if eq .Error.reason "ValidationFailed" }}

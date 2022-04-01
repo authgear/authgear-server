@@ -9,6 +9,8 @@ export interface ReactCropperjsProps {
   className?: string;
   editSrc?: string;
   displaySrc?: string;
+  onError?: () => void;
+  onLoad?: () => void;
 }
 
 const maxDimensions = 1024;
@@ -67,10 +69,16 @@ class ReactCropperjs extends React.Component<ReactCropperjsProps> {
   }
 
   render(): React.ReactNode {
-    const { className, editSrc, displaySrc } = this.props;
+    const { className, editSrc, displaySrc, onError, onLoad } = this.props;
     return (
       <div className={cn(className, styles.container)}>
-        <img ref={this.img} className={styles.img} src={editSrc} />
+        <img
+          ref={this.img}
+          className={styles.img}
+          src={editSrc}
+          onError={onError}
+          onLoad={onLoad}
+        />
         {editSrc == null ? (
           <Image
             className={styles.img}

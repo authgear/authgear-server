@@ -51,6 +51,8 @@ function onChange(e: Event) {
     return;
   }
 
+  setErrorMessage("error-message-invalid-selected-image", true);
+
   imgCropper?.classList.remove("hidden");
   const buttonFile = document.getElementById("imagepicker-button-file");
   buttonFile?.classList.add("hidden");
@@ -70,6 +72,24 @@ function onChange(e: Event) {
     }
   });
   reader.readAsDataURL(file);
+}
+
+function onError(e: Event) {
+  const target = e.currentTarget;
+  if (!(target instanceof HTMLImageElement)) {
+    return;
+  }
+
+  const src = target.src;
+  // It is a file from the file system and it does not load.
+  // It is probably the file is broken.
+  if (/^data:/.test(src)) {
+    const buttonFile = document.getElementById("imagepicker-button-file");
+    buttonFile?.classList.remove("hidden");
+    const buttonSave = document.getElementById("imagepicker-button-save");
+    buttonSave?.classList.add("hidden");
+    setErrorMessage("error-message-invalid-selected-image", false);
+  }
 }
 
 function onClickFile(e: Event) {
@@ -187,7 +207,7 @@ function onClickSave(e: Event) {
   });
 }
 
-function setErrorMessage(id: string) {
+function setErrorMessage(id: string, hidden: boolean) {
   const errorMessageBar = document.getElementById("error-message-bar");
   if (errorMessageBar == null) {
     return;
@@ -197,12 +217,17 @@ function setErrorMessage(id: string) {
     return;
   }
 
-  errorMessageBar.classList.remove("hidden");
-  message.classList.remove("hidden");
+  if (hidden) {
+    errorMessageBar.classList.add("hidden");
+    message.classList.add("hidden");
+  } else {
+    errorMessageBar.classList.remove("hidden");
+    message.classList.remove("hidden");
+  }
 }
 
 function setNetworkError() {
-  setErrorMessage("error-message-network");
+  setErrorMessage("error-message-network", false);
 }
 
 export function setupImagePicker(): () => void {
@@ -230,11 +255,14 @@ export function setupImagePicker(): () => void {
   const inputFile = document.getElementById("imagepicker-input-file");
   const buttonFile = document.getElementById("imagepicker-button-file");
   const buttonSave = document.getElementById("imagepicker-button-save");
+  const img = document.getElementById("imagepicker-img-cropper");
   inputFile?.addEventListener("change", onChange);
+  img?.addEventListener("error", onError);
   buttonFile?.addEventListener("click", onClickFile);
   buttonSave?.addEventListener("click", onClickSave);
   return () => {
     inputFile?.removeEventListener("change", onChange);
+    img?.addEventListener("error", onError);
     buttonFile?.removeEventListener("click", onClickFile);
     buttonSave?.removeEventListener("click", onClickSave);
   };
