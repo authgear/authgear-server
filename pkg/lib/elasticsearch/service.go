@@ -68,12 +68,13 @@ func (s *Service) ReindexUser(userID string, isDelete bool) (err error) {
 	}
 
 	raw := &model.ElasticsearchUserRaw{
-		ID:          u.ID,
-		AppID:       string(s.AppID),
-		CreatedAt:   u.CreatedAt,
-		UpdatedAt:   u.UpdatedAt,
-		LastLoginAt: u.LastLoginAt,
-		IsDisabled:  u.IsDisabled,
+		ID:                 u.ID,
+		AppID:              string(s.AppID),
+		CreatedAt:          u.CreatedAt,
+		UpdatedAt:          u.UpdatedAt,
+		LastLoginAt:        u.LastLoginAt,
+		IsDisabled:         u.IsDisabled,
+		StandardAttributes: u.StandardAttributes,
 	}
 
 	var arrClaims []map[string]interface{}

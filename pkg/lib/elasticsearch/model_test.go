@@ -8,6 +8,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 )
 
 func TestRawToSource(t *testing.T) {
@@ -24,6 +25,10 @@ func TestRawToSource(t *testing.T) {
 			PreferredUsername: []string{"user"},
 			PhoneNumber:       []string{"+85298765432"},
 			OAuthSubjectID:    []string{"PROVIDER_SUBJECT_ID"},
+			StandardAttributes: map[string]interface{}{
+				stdattrs.Name:   "User",
+				stdattrs.Locale: "en",
+			},
 		}
 
 		source := RawToSource(raw)
@@ -81,7 +86,9 @@ func TestRawToSource(t *testing.T) {
 			],
 			"oauth_subject_id_text": [
 				"PROVIDER_SUBJECT_ID"
-			]
+			],
+			"name": "User",
+			"locale": "en"
 		}`)
 	})
 }
