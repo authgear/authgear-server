@@ -7,7 +7,6 @@ import React, {
   useEffect,
   ChangeEvent,
 } from "react";
-import cn from "classnames";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import {
   Dialog,
@@ -310,6 +309,10 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
     }
   }, [appID, uploadState.loading, save, navigate, onProgress]);
 
+  const onClickSelectImage = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
   const items: ICommandBarItemProps[] = useMemo(() => {
     const showUpload = state.selected == null || reactCropperjsError != null;
     const showRemove = state.selected == null;
@@ -377,11 +380,12 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
             />
             <ReactCropperjs
               ref={cropperjsRef}
-              className={cn(styles.widget, styles.cropperjs)}
+              className={styles.widget}
               editSrc={state.selected}
               displaySrc={state.picture}
               onError={onReactCropperjsError}
               onLoad={onReactCropperjsLoad}
+              onClickSelectImage={onClickSelectImage}
             />
             <ProgressIndicator
               className={styles.widget}
