@@ -381,7 +381,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := &elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -456,7 +456,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	service5 := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,

@@ -424,7 +424,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	elasticsearchService := elasticsearch.Service{
 		AppID:     configAppID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: noopTaskQueue,
