@@ -17,13 +17,18 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/tasks"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
+
+type UserQueries interface {
+	Get(userID string, role accesscontrol.Role) (*model.User, error)
+}
 
 type Service struct {
 	AppID     config.AppID
 	Client    *elasticsearch.Client
-	Users     *libuser.Store
+	Users     UserQueries
 	OAuth     *identityoauth.Store
 	LoginID   *identityloginid.Store
 	TaskQueue task.Queue
@@ -49,7 +54,7 @@ func (s *Service) ReindexUser(userID string, isDelete bool) (err error) {
 		return nil
 	}
 
-	u, err := s.Users.Get(userID)
+	u, err := s.Users.Get(userID, accesscontrol.RoleGreatest)
 	if err != nil {
 		return
 	}
@@ -67,7 +72,7 @@ func (s *Service) ReindexUser(userID string, isDelete bool) (err error) {
 		AppID:       string(s.AppID),
 		CreatedAt:   u.CreatedAt,
 		UpdatedAt:   u.UpdatedAt,
-		LastLoginAt: u.MostRecentLoginAt,
+		LastLoginAt: u.LastLoginAt,
 		IsDisabled:  u.IsDisabled,
 	}
 
