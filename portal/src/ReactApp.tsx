@@ -9,7 +9,7 @@ import { ApolloProvider } from "@apollo/client";
 import authgear from "@authgear/web";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import AppsScreen from "./graphql/portal/AppsScreen";
-import CreateAppScreen from "./graphql/portal/CreateAppScreen";
+import CreateProjectScreen from "./graphql/portal/CreateProjectScreen";
 import AppRoot from "./AppRoot";
 import MESSAGES from "./locale-data/en.json";
 import { client } from "./graphql/portal/apollo";
@@ -67,7 +67,7 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
         <AppRoute
           requireAuth={true}
           path="/projects/create"
-          element={<CreateAppScreen />}
+          element={<CreateProjectScreen />}
         />
         <AppRoute
           requireAuth={true}
