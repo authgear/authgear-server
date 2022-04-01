@@ -6,6 +6,7 @@
 
   "loading": "Loading...",
 
+  "back": "Back",
   "error": "Error",
   "reset": "Reset",
   "discard-changes": "Discard Changes",
@@ -1060,6 +1061,8 @@
   "GoogleTagManagerConfigurationScreen.toggle.label": "Google Tag Manager Integration",
   "GoogleTagManagerConfigurationScreen.container-id.label": "Tag Manager Container ID",
   "GoogleTagManagerConfigurationScreen.container-id.placeholder": "e.g. GTM-123456",
+
+  "WizardContentLayout.skip.label": "Skip and I’ll set up my project manually",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
