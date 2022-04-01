@@ -312,6 +312,7 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
   const onClickSelectImage = useCallback(() => {
     fileInputRef.current?.click();
   }, []);
+  const loading = uploadState.loading || isUpdating;
 
   const items: ICommandBarItemProps[] = useMemo(() => {
     const showUpload = state.selected == null || reactCropperjsError != null;
@@ -345,7 +346,7 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
         key: "save",
         text: renderToString("save"),
         iconProps: { iconName: "Save" },
-        disabled: uploadState.loading || isUpdating,
+        disabled: loading,
         onClick: () => {
           upload().catch(() => {});
         },
@@ -358,13 +359,13 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
     themes.destructive,
     themes.main,
     state.selected,
-    uploadState.loading,
     upload,
-    isUpdating,
     reactCropperjsError,
+    loading,
   ]);
   return (
     <FormProvider
+      loading={loading}
       error={updateError || uploadState.error || reactCropperjsError}
       rules={RULES}
     >

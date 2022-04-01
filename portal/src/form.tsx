@@ -15,24 +15,36 @@ import {
 } from "./error/parse";
 
 export interface FormContext {
+  loading: boolean;
   readonly fieldErrors: ReadonlyMap<FormField, ParsedAPIError[]>;
   readonly topErrors: readonly ParsedAPIError[];
-
   registerField(field: FormField): void;
-
   unregisterField(field: FormField): void;
 }
 
 const context = React.createContext<FormContext | null>(null);
 
 export interface FormProviderProps {
+  loading: boolean;
   error?: unknown;
   fallbackErrorMessageID?: string;
   rules?: ErrorParseRule[];
 }
 
+interface ErrorContext {
+  fields: FormField[];
+  topRules: ErrorParseRule[];
+  fallbackErrorMessageID?: string;
+}
+
 export const FormProvider: React.FC<FormProviderProps> = (props) => {
-  const { error, fallbackErrorMessageID, rules = [], children } = props;
+  const {
+    loading,
+    error,
+    fallbackErrorMessageID,
+    rules = [],
+    children,
+  } = props;
 
   const [fields, setFields] = useState<FormField[]>([]);
   const registerField = useCallback((field: FormField) => {
@@ -41,12 +53,6 @@ export const FormProvider: React.FC<FormProviderProps> = (props) => {
   const unregisterField = useCallback((field: FormField) => {
     setFields((fields) => fields.filter((f) => f !== field));
   }, []);
-
-  interface ErrorContext {
-    fields: FormField[];
-    topRules: ErrorParseRule[];
-    fallbackErrorMessageID?: string;
-  }
 
   const errorContextRef = useRef<ErrorContext>({ fields: [], topRules: [] });
   useEffect(() => {
@@ -75,12 +81,13 @@ export const FormProvider: React.FC<FormProviderProps> = (props) => {
 
   const value = useMemo(
     () => ({
+      loading,
       fieldErrors,
       topErrors,
       registerField,
       unregisterField,
     }),
-    [fieldErrors, topErrors, registerField, unregisterField]
+    [loading, fieldErrors, topErrors, registerField, unregisterField]
   );
 
   return <context.Provider value={value}>{children}</context.Provider>;
@@ -120,15 +127,18 @@ function getFieldErrors(
   return errors;
 }
 
-export function useFormField(field: FormField): {
+export interface FormFieldProps {
+  loading: boolean;
   errors: readonly ParsedAPIError[];
-} {
+}
+
+export function useFormField(field: FormField): FormFieldProps {
   const ctx = useContext(context);
   if (!ctx) {
     throw new Error("Attempted to use useFormField outside FormProvider");
   }
   // eslint-disable-next-line @typescript-eslint/unbound-method
-  const { registerField, unregisterField, fieldErrors } = ctx;
+  const { loading, registerField, unregisterField, fieldErrors } = ctx;
 
   useEffect(() => {
     registerField(field);
@@ -142,6 +152,7 @@ export function useFormField(field: FormField): {
   );
 
   return {
+    loading,
     errors,
   };
 }

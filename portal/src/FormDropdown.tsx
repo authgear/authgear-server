@@ -12,7 +12,13 @@ export interface FormDropdownProps extends IDropdownProps {
 const FormDropdown: React.FC<FormDropdownProps> = function FormDropdown(
   props: FormDropdownProps
 ) {
-  const { parentJSONPointer, fieldName, errorRules, ...rest } = props;
+  const {
+    parentJSONPointer,
+    fieldName,
+    errorRules,
+    disabled: ownDisabled,
+    ...rest
+  } = props;
   const field = useMemo(
     () => ({
       parentJSONPointer,
@@ -21,8 +27,10 @@ const FormDropdown: React.FC<FormDropdownProps> = function FormDropdown(
     }),
     [parentJSONPointer, fieldName, errorRules]
   );
-  const extraProps = useErrorMessageString(field);
-  return <Dropdown {...rest} {...extraProps} />;
+  const { disabled: ctxDisabled, ...extraProps } = useErrorMessageString(field);
+  return (
+    <Dropdown {...rest} {...extraProps} disabled={ownDisabled ?? ctxDisabled} />
+  );
 };
 
 export default FormDropdown;

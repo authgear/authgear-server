@@ -71,6 +71,7 @@ const OnboardingFormContainer: React.FC<OnboardingFormContainerProps> =
 
     return (
       <FormProvider
+        loading={isUpdating}
         error={updateError ?? localError}
         rules={errorRules}
         fallbackErrorMessageID={fallbackErrorMessageID}
