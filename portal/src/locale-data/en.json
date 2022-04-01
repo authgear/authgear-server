@@ -1064,6 +1064,11 @@
 
   "WizardContentLayout.skip.label": "Skip and I’ll set up my project manually",
 
+  "CreateProjectScreen.title": "Create your first project",
+  "CreateProjectScreen.create-project.label": "Create Project",
+  "CreateProjectScreen.app-id.label": "What is the name of your project?",
+  "CreateProjectScreen.app-id.description": "This is your Authgear endpoint for your applications. Once chosen, the project cannot be renamed.",
+
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
   "Locales.ar": "Arabic",
