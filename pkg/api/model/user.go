@@ -23,16 +23,17 @@ type UserRef struct {
 }
 
 type ElasticsearchUserRaw struct {
-	ID                string
-	AppID             string
-	CreatedAt         time.Time
-	UpdatedAt         time.Time
-	LastLoginAt       *time.Time
-	IsDisabled        bool
-	Email             []string
-	PreferredUsername []string
-	PhoneNumber       []string
-	OAuthSubjectID    []string
+	ID                 string
+	AppID              string
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+	LastLoginAt        *time.Time
+	IsDisabled         bool
+	Email              []string
+	PreferredUsername  []string
+	PhoneNumber        []string
+	OAuthSubjectID     []string
+	StandardAttributes map[string]interface{}
 }
 
 type ElasticsearchUserSource struct {
@@ -65,4 +66,19 @@ type ElasticsearchUserSource struct {
 
 	OAuthSubjectID     []string `json:"oauth_subject_id,omitempty"`
 	OAuthSubjectIDText []string `json:"oauth_subject_id_text,omitempty"`
+
+	FamilyName    string `json:"family_name,omitempty"`
+	GivenName     string `json:"given_name,omitempty"`
+	MiddleName    string `json:"middle_name,omitempty"`
+	Name          string `json:"name,omitempty"`
+	Nickname      string `json:"nickname,omitempty"`
+	Gender        string `json:"gender,omitempty"`
+	Zoneinfo      string `json:"zoneinfo,omitempty"`
+	Locale        string `json:"locale,omitempty"`
+	Formatted     string `json:"formatted,omitempty"`
+	StreetAddress string `json:"street_address,omitempty"`
+	Locality      string `json:"locality,omitempty"`
+	Region        string `json:"region,omitempty"`
+	PostalCode    string `json:"postal_code,omitempty"`
+	Country       string `json:"country,omitempty"`
 }
