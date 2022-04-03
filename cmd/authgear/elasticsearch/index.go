@@ -91,7 +91,21 @@ func CreateIndex(es *elasticsearch.Client) error {
 						"min_chars": 3,
 						"max_chars": 19
 					}
-				}
+				},
+				"family_name": { "type": "text" },
+				"given_name": { "type": "text" },
+				"middle_name": { "type": "text" },
+				"name": { "type": "text" },
+				"nickname": { "type": "text" },
+				"formatted": { "type": "text" },
+				"street_address": { "type": "text" },
+				"locality": { "type": "text" },
+				"region": { "type": "text" },
+				"gender": { "type": "keyword" },
+				"zoneinfo": { "type": "keyword" },
+				"locale": { "type": "keyword" },
+				"country": { "type": "keyword" },
+				"postal_code": { "type": "keyword" }
 			}
 		}
 	}
