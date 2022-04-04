@@ -28,7 +28,7 @@ import {
   mergeSystemConfig,
 } from "./system-config";
 import { loadTheme, Link as FluentLink, ILinkProps } from "@fluentui/react";
-import OnboardingCompletionScreen from "./graphql/portal/OnboardingCompletionScreen";
+import ProjectWizardDoneScreen from "./graphql/portal/ProjectWizardDoneScreen";
 import OnboardingRedirect from "./OnboardingRedirect";
 import { ReactRouterLink, ReactRouterLinkProps } from "./ReactRouterLink";
 import { AppRoute } from "./AppRoute";
@@ -82,7 +82,7 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
         <AppRoute
           requireAuth={true}
           path="/project/:appID/wizard/done"
-          element={<OnboardingCompletionScreen />}
+          element={<ProjectWizardDoneScreen />}
         />
         <AppRoute path="/oauth-redirect" element={<OAuthRedirect />} />
         <AppRoute
