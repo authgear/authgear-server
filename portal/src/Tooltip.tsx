@@ -43,12 +43,22 @@ export function useTooltipTargetElement(): UseTooltipTargetElementResult {
 }
 
 export interface TooltipIconProps {
+  id?: string;
   className?: string;
+  setRef?: React.RefCallback<unknown>;
 }
 
 export function TooltipIcon(props: TooltipIconProps): React.ReactElement {
-  const { className } = props;
-  return <Icon className={cn(className, styles.infoIcon)} iconName="info" />;
+  const { id, setRef, className } = props;
+  return (
+    <Icon
+      id={id}
+      className={cn(className, styles.infoIcon)}
+      /* @ts-expect-error */
+      ref={setRef}
+      iconName="info"
+    />
+  );
 }
 
 const Tooltip: React.FC<TooltipProps> = function Tooltip(props: TooltipProps) {

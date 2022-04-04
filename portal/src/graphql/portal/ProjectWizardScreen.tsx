@@ -29,10 +29,17 @@ import {
   SecondaryAuthenticationMode,
   SecondaryAuthenticatorType,
 } from "../../types";
-import { TooltipIcon } from "../../Tooltip";
+import { TooltipIcon, useTooltipTargetElement } from "../../Tooltip";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import styles from "./ProjectWizardScreen.module.scss";
+
+const TOOLTIP_HOST_STYLES = {
+  root: {
+    display: "inline-block",
+    position: "relative",
+  },
+} as const;
 
 type Step1Answer = "password" | "oob_otp_email";
 type Step2Answer = SecondaryAuthenticationMode;
@@ -98,6 +105,13 @@ function Step1(props: StepProps) {
     [navigate]
   );
 
+  const { id, setRef, targetElement } = useTooltipTargetElement();
+  const tooltipProps = useMemo(() => {
+    return {
+      targetElement,
+    };
+  }, [targetElement]);
+
   const options: IChoiceGroupOption[] = useMemo(() => {
     return [
       {
@@ -109,15 +123,18 @@ function Step1(props: StepProps) {
         text: renderToString("ProjectWizardScreen.step1.option.oob-otp-email"),
         onRenderField: (props, render) => {
           return (
-            <TooltipHost
-              className={styles.optionWithTooltip}
-              content={renderToString(
-                "ProjectWizardScreen.step1.tooltip.oob-otp-email"
-              )}
-            >
+            <>
               {render!(props)}
-              <TooltipIcon />
-            </TooltipHost>
+              <TooltipHost
+                styles={TOOLTIP_HOST_STYLES}
+                tooltipProps={tooltipProps}
+                content={renderToString(
+                  "ProjectWizardScreen.step1.tooltip.oob-otp-email"
+                )}
+              >
+                <TooltipIcon id={id} setRef={setRef} />
+              </TooltipHost>
+            </>
           );
         },
       },
@@ -134,7 +151,7 @@ function Step1(props: StepProps) {
         disabled: true,
       },
     ];
-  }, [renderToString]);
+  }, [renderToString, id, setRef, tooltipProps]);
 
   const onChange = useCallback(
     (_e, option) => {
