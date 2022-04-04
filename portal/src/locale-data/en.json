@@ -871,7 +871,7 @@
 
   "SubscriptionScreen.summary-mau.free": "5,000",
   "SubscriptionScreen.summary-mau.startups": "5,000",
-  "SubscriptionScreen.summary-mau.business": "20,000",
+  "SubscriptionScreen.summary-mau.business": "30,000",
   "SubscriptionScreen.summary-mau.enterprise": "-",
 
   "SubscriptionScreen.summary-price.free": "Free",
@@ -890,11 +890,11 @@
   "SubscriptionScreen.des.enterprise": "Manage 50,000+ MAUs",
 
   "SubscriptionScreen.mau.startups": "Up to 5,000 MAUs",
-  "SubscriptionScreen.mau.business": "20,000 MAUs included",
+  "SubscriptionScreen.mau.business": "30,000 MAUs included",
   "SubscriptionScreen.mau.enterprise": "",
 
   "SubscriptionScreen.extra-cost.startups": "",
-  "SubscriptionScreen.extra-cost.business": "USD 50/mo per 2,000 additional MAUs\nUSD 0.05 per SMS",
+  "SubscriptionScreen.extra-cost.business": "USD 50/mo per 5,000 additional MAUs\nUSD 0.01-0.06 per SMS",
   "SubscriptionScreen.extra-cost.enterprise": "",
 
   "SubscriptionScreen.features.startups": "All other features from Starter plan\n10 App Clients\nCustom Domains\nNo Visible Branding\nUnlimited Social Connections\n2 Webhooks\n7 days Log Retention\n3 Admins with Role Management",
