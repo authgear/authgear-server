@@ -62,6 +62,7 @@ type SettingsHandler struct {
 	Identities               SettingsIdentityService
 	Verification             SettingsVerificationService
 	AccountDeletion          *config.AccountDeletionConfig
+	TutorialCookie           TutorialCookie
 }
 
 func (h *SettingsHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -71,6 +72,9 @@ func (h *SettingsHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[
 
 	// BaseViewModel
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
+	if h.TutorialCookie.Pop(r, rw, httputil.SettingsTutorialCookieName) {
+		baseViewModel.SetTutorial(httputil.SettingsTutorialCookieName)
+	}
 	viewmodels.Embed(data, baseViewModel)
 
 	// SettingsViewModel

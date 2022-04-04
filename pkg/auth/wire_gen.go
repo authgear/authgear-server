@@ -5810,12 +5810,16 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	analyticService := &analytic.Service{
 		Counter: writeStoreRedis,
 	}
+	tutorialCookie := &httputil.TutorialCookie{
+		Cookies: cookieManager,
+	}
 	loginHandler := &webapp2.LoginHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		FormPrefiller:     formPrefiller,
 		Renderer:          responseRenderer,
 		AnalyticService:   analyticService,
+		TutorialCookie:    tutorialCookie,
 	}
 	return loginHandler
 }
@@ -6465,12 +6469,16 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	analyticService := &analytic.Service{
 		Counter: writeStoreRedis,
 	}
+	tutorialCookie := &httputil.TutorialCookie{
+		Cookies: cookieManager,
+	}
 	signupHandler := &webapp2.SignupHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		FormPrefiller:     formPrefiller,
 		Renderer:          responseRenderer,
 		AnalyticService:   analyticService,
+		TutorialCookie:    tutorialCookie,
 	}
 	return signupHandler
 }
@@ -19891,6 +19899,9 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Identities:        facadeIdentityFacade,
 		Clock:             clockClock,
 	}
+	tutorialCookie := &httputil.TutorialCookie{
+		Cookies: cookieManager,
+	}
 	settingsHandler := &webapp2.SettingsHandler{
 		ControllerFactory:        controllerFactory,
 		BaseViewModel:            baseViewModeler,
@@ -19900,6 +19911,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               serviceService,
 		Verification:             verificationService,
 		AccountDeletion:          accountDeletionConfig,
+		TutorialCookie:           tutorialCookie,
 	}
 	return settingsHandler
 }

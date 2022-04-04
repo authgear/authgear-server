@@ -49,12 +49,16 @@ type SignupHandler struct {
 	FormPrefiller     *FormPrefiller
 	Renderer          Renderer
 	AnalyticService   AnalyticService
+	TutorialCookie    TutorialCookie
 }
 
 func (h *SignupHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.EmbedForm(data, r.Form)
+	if h.TutorialCookie.Pop(r, rw, httputil.SignupLoginTutorialCookieName) {
+		baseViewModel.SetTutorial(httputil.SignupLoginTutorialCookieName)
+	}
 	viewmodels.Embed(data, baseViewModel)
 	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithGraph(graph)
 	viewmodels.Embed(data, authenticationViewModel)

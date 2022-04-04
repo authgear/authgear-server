@@ -58,6 +58,7 @@ type BaseViewModel struct {
 	// IsSupportedMobilePlatform is true when the user agent is iOS or Android.
 	IsSupportedMobilePlatform   bool
 	GoogleTagManagerContainerID string
+	TutorialMessageType         string
 }
 
 func (m *BaseViewModel) SetError(err error) {
@@ -90,6 +91,10 @@ func (m *BaseViewModel) SetFormJSON(form url.Values) {
 		panic(err)
 	}
 	m.FormJSON = string(b)
+}
+
+func (m *BaseViewModel) SetTutorial(name httputil.TutorialCookieName) {
+	m.TutorialMessageType = string(name)
 }
 
 type StaticAssetResolver interface {
