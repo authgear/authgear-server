@@ -94,8 +94,7 @@ const CreateProjectScreen: React.FC = function CreateProjectScreen() {
   useEffect(() => {
     if (form.submissionResult) {
       const appID = form.submissionResult;
-      // FIXME(wizard): redirect to the new wizard.
-      navigate(`/project/${encodeURIComponent(appID)}/onboarding`);
+      navigate(`/project/${encodeURIComponent(appID)}/wizard`);
     }
   }, [form, navigate]);
 
