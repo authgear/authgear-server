@@ -129,14 +129,6 @@
   "AppsScreen.title": "Select Project",
   "AppsScreen.create-app": "Create Project",
 
-  "CreateAppScreen.title": "Create a new project",
-  "CreateAppScreen.desc": "Answer a few question, and we can quickly setup authentication for your apps!",
-  "CreateAppScreen.app-id.label": "What is the name of your project?",
-  "CreateAppScreen.error.duplicated-app-id": "Project ID already exist",
-  "CreateAppScreen.error.reserved-app-id": "Project ID is reserved",
-  "CreateAppScreen.error.invalid-app-id": "Invalid Project ID. Project ID should start and end with lowercase alphanumeric characters or numbers, and it should contain only lowercase alphanumeric characters, numbers or '-'",
-  "CreateAppScreen.error.generic": "Failed to create project",
-
   "ProjectWizardDoneScreen.title": "Done",
   "ProjectWizardDoneScreen.desc": "You can always change these configuration in the portal, or configure an even more complicated authentication system.",
   "ProjectWizardDoneScreen.completion-message": "You just setup a full feature login, signup and setting page for your next app!",
@@ -1028,6 +1020,9 @@
   "CreateProjectScreen.create-project.label": "Create Project",
   "CreateProjectScreen.app-id.label": "What is the name of your project?",
   "CreateProjectScreen.app-id.description": "This is your Authgear endpoint for your applications. Once chosen, the project cannot be renamed.",
+  "CreateProjectScreen.error.duplicated-app-id": "Project ID already exist",
+  "CreateProjectScreen.error.reserved-app-id": "Project ID is reserved",
+  "CreateProjectScreen.error.invalid-app-id": "Invalid Project ID. Project ID should start and end with lowercase alphanumeric characters or numbers, and it should contain only lowercase alphanumeric characters, numbers or '-'",
 
   "ProjectWizardScreen.step.title": "Setting up {appID} ({currentStep}/{totalStep})",
   "ProjectWizardScreen.step1.question": "How should the users sign in to your application?",

@@ -33,15 +33,15 @@ const APP_ID_SCHEME = "https://";
 const errorRules: ErrorParseRule[] = [
   makeReasonErrorParseRule(
     "DuplicatedAppID",
-    "CreateAppScreen.error.duplicated-app-id"
+    "CreateProjectScreen.error.duplicated-app-id"
   ),
   makeReasonErrorParseRule(
     "AppIDReserved",
-    "CreateAppScreen.error.reserved-app-id"
+    "CreateProjectScreen.error.reserved-app-id"
   ),
   makeReasonErrorParseRule(
     "InvalidAppID",
-    "CreateAppScreen.error.invalid-app-id"
+    "CreateProjectScreen.error.invalid-app-id"
   ),
 ];
 
