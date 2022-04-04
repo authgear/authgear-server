@@ -1,0 +1,14 @@
+{{ define "__tutorial.html" }}
+{{ if .TutorialMessageType }}
+<div class="tutorial flex flex-row gap-x-2 p-3 pb-3.5">
+  <i class="ti ti-info-circle text-sm tablet:text-sm desktop:text-base" aria-hidden="true"></i>
+  <span class="text-sm tablet:text-sm desktop:text-base">
+    {{ if (eq .TutorialMessageType "signup_login_tutorial") }}
+      {{ template "tutorial-signup-login" }}
+    {{ else if (eq .TutorialMessageType "settings_tutorial") }}
+      {{ template "tutorial-settings" }}
+    {{ end }}
+  </span>
+</div>
+{{ end }}
+{{ end }}

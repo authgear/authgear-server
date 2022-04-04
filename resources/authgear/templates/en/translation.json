@@ -396,6 +396,9 @@
   "gender-female": "Female",
   "gender-male": "Male",
 
+  "tutorial-signup-login": "This is the <b>Signup & Login page</b> of your project. Try sign up and be the first user of your app!",
+  "tutorial-settings": "The <b>Account Setting page</b> is ready to go. Your users can manage their security and profile here. Integrate this page to your apps for full auth experience.",
+
   "territory-AC": "Ascension Island",
   "territory-AD": "Andorra",
   "territory-AE": "United Arab Emirates",
