@@ -26,6 +26,7 @@ var utilsDeps = wire.NewSet(
 		wire.Bind(new(oidchandler.CookieManager), new(*httputil.CookieManager)),
 		wire.Bind(new(interaction.CookieManager), new(*httputil.CookieManager)),
 		wire.Bind(new(httputil.FlashMessageCookieManager), new(*httputil.CookieManager)),
+		wire.Bind(new(httputil.TutorialCookieManager), new(*httputil.CookieManager)),
 		wire.Bind(new(nonce.CookieManager), new(*httputil.CookieManager)),
 	),
 )
