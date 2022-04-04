@@ -56,7 +56,7 @@ export default function WizardContentLayout(
       {appID != null && (
         <ReactRouterLink
           className={styles.skip}
-          to={`/projects/${appID}`}
+          to={`/project/${appID}`}
           component={FluentLink}
         >
           <FormattedMessage id="WizardContentLayout.skip.label" />
