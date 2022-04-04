@@ -16,6 +16,7 @@ import SettingScreenImg from "../../images/onboarding_settings_screen.png";
 import SSOLogoImg from "../../images/onboarding_sso_logo.png";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import ShowLoading from "../../ShowLoading";
+import ReactRouterLink from "../../ReactRouterLink";
 import { PortalAPIAppConfig } from "../../types";
 
 export interface OnboardingCompletionStepContentProps {
@@ -70,30 +71,26 @@ const OnboardingCompletionStepContent: React.FC<OnboardingCompletionStepContentP
     );
   };
 
-interface ActionButtonProps {
-  iconProps: IIconProps;
-  labelId: string;
-  href: string;
+function makeActionButton(
+  iconProps: IIconProps
+): React.FC<React.AnchorHTMLAttributes<HTMLAnchorElement>> {
+  return function ActionButton(props) {
+    const { children, ...rest } = props;
+    return (
+      <a
+        className={styles.actionButton}
+        style={{ boxShadow: DefaultEffects.elevation4 }}
+        {...rest}
+      >
+        <Icon {...iconProps} className={styles.actionIcon} />
+        <Text className={styles.labelText}>{children}</Text>
+        <Icon className={styles.arrowIcon} iconName="ChromeBackMirrored" />
+      </a>
+    );
+  };
 }
-
-const ActionButton: React.FC<ActionButtonProps> = function ActionButton(props) {
-  const { iconProps, labelId, href } = props;
-  return (
-    <a
-      className={styles.actionButton}
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      style={{ boxShadow: DefaultEffects.elevation4 }}
-    >
-      <Icon {...iconProps} className={styles.actionIcon} />
-      <Text className={styles.labelText}>
-        <FormattedMessage id={labelId} />
-      </Text>
-      <Icon className={styles.arrowIcon} iconName="ChromeBackMirrored" />
-    </a>
-  );
-};
+const ActionButtonPortal = makeActionButton({ iconName: "PlugConnected" });
+const ActionButtonDocs = makeActionButton({ iconName: "ReadingMode" });
 
 interface OnboardingCompletionContentProps {
   config: PortalAPIAppConfig;
@@ -171,17 +168,19 @@ const OnboardingCompletionContent: React.FC<OnboardingCompletionContentProps> =
               <Text className={styles.title}>
                 <FormattedMessage id="OnboardingCompletion.now-you-may.title" />
               </Text>
-
-              <ActionButton
-                labelId="OnboardingCompletion.now-you-may.portal.label"
-                iconProps={{ iconName: "PlugConnected" }}
-                href={portalAppEndpoint}
-              />
-              <ActionButton
-                labelId="OnboardingCompletion.now-you-may.doc.label"
-                iconProps={{ iconName: "ReadingMode" }}
+              <ReactRouterLink
+                to={portalAppEndpoint}
+                component={ActionButtonPortal}
+              >
+                <FormattedMessage id="OnboardingCompletion.now-you-may.portal.label" />
+              </ReactRouterLink>
+              <ActionButtonDocs
                 href="https://docs.authgear.com/"
-              />
+                target="_blank"
+                rel="noreferrer"
+              >
+                <FormattedMessage id="OnboardingCompletion.now-you-may.doc.label" />
+              </ActionButtonDocs>
             </div>
           </div>
         </div>
