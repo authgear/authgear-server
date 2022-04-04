@@ -10,6 +10,7 @@ import authgear from "@authgear/web";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import AppsScreen from "./graphql/portal/AppsScreen";
 import CreateProjectScreen from "./graphql/portal/CreateProjectScreen";
+import ProjectWizardScreen from "./graphql/portal/ProjectWizardScreen";
 import AppRoot from "./AppRoot";
 import MESSAGES from "./locale-data/en.json";
 import { client } from "./graphql/portal/apollo";
@@ -73,6 +74,16 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
           requireAuth={true}
           path="/project/:appID/*"
           element={<AppRoot />}
+        />
+        <AppRoute
+          requireAuth={true}
+          path="/project/:appID/wizard/*"
+          element={<ProjectWizardScreen />}
+        />
+        <AppRoute
+          requireAuth={true}
+          path="/project/:appID/wizard/done"
+          element={<OnboardingCompletionScreen />}
         />
         <AppRoute
           requireAuth={true}
