@@ -102,7 +102,7 @@ const ProjectWizardDoneContent: React.FC<ProjectWizardDoneContentProps> =
 
     const { config } = props;
 
-    const endpoint = config.http?.public_origin;
+    const endpoint = `${config.http?.public_origin}?x_tutorial=true`;
 
     const portalAppEndpoint = `/project/${encodeURIComponent(appID)}`;
     const portalSSOEndpoint = `/project/${encodeURIComponent(
