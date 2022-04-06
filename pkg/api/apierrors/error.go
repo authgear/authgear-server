@@ -66,7 +66,7 @@ func (e *APIError) HasCause(kind string) bool {
 }
 
 func (k Kind) New(msg string) error {
-	return &skyerr{kind: k, msg: msg}
+	return k.NewWithDetails(msg, make(Details))
 }
 
 func (k Kind) NewWithDetails(msg string, details Details) error {
@@ -111,6 +111,17 @@ func (e *skyerr) FillDetails(d errorutil.Details) {
 	for key, value := range e.details {
 		d[key] = value
 	}
+}
+
+func AddDetails(err error, d errorutil.Details) error {
+	var e *skyerr
+	if errors.As(err, &e) {
+		for key, value := range d {
+			e.details[key] = value
+		}
+	}
+
+	return err
 }
 
 func IsAPIError(err error) bool {
