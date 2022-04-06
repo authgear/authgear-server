@@ -119,6 +119,7 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "client_id",
       "client_secret",
       "modify_disabled",
+      "email_required",
     ]),
     isSecretFieldTextArea: false,
   },

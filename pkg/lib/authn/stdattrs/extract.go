@@ -1,7 +1,5 @@
 package stdattrs
 
-import "github.com/authgear/authgear-server/pkg/api/apierrors"
-
 func extractString(input map[string]interface{}, output T, key string) {
 	if value, ok := input[key].(string); ok && value != "" {
 		output[key] = value
@@ -62,7 +60,7 @@ func Extract(claims map[string]interface{}, opts ExtractOptions) (T, error) {
 		emailOK = true
 	}
 	if opts.EmailRequired && !emailOK {
-		return nil, InvariantViolated.NewWithCause("claim email is required but it is missing", apierrors.StringCause("EmailRequired"))
+		return nil, StandardAttributesEmailRequired.New("claim email is required but it is missing")
 	}
 
 	return out, nil

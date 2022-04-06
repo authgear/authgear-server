@@ -7,8 +7,10 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 const (
@@ -77,6 +79,9 @@ func (g *GithubImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _
 		EmailRequired: *g.ProviderConfig.Claims.Email.Required,
 	})
 	if err != nil {
+		err = apierrors.AddDetails(err, errorutil.Details{
+			"ProviderType": apierrors.APIErrorDetail.Value(g.ProviderConfig.Type),
+		})
 		return
 	}
 	authInfo.StandardAttributes = stdAttrs
