@@ -1,55 +1,27 @@
-export function setupPasswordVisibilityToggle(): () => void {
-  const passwordInputs = document.querySelectorAll(
-    "[data-show-password-button]"
-  );
+import { Controller } from "@hotwired/stimulus";
 
-  const disposers: Array<() => void> = [];
+export class PasswordVisibilityToggleController extends Controller {
+  static targets = ["input", "showButton", "hideButton"];
 
-  for (let i = 0; i < passwordInputs.length; i++) {
-    const passwordInput = passwordInputs[i] as HTMLInputElement;
+  declare inputTarget: HTMLInputElement;
+  declare showButtonTarget: HTMLButtonElement;
+  declare hideButtonTarget: HTMLButtonElement;
 
-    const showPasswordButtonID = passwordInput.getAttribute(
-      "data-show-password-button"
-    );
-    const hidePasswordButtonID = passwordInput.getAttribute(
-      "data-hide-password-button"
-    );
-    if (showPasswordButtonID == null || hidePasswordButtonID == null) {
-      continue;
-    }
+  show(e: Event) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
 
-    const showPasswordButton = document.getElementById(showPasswordButtonID);
-    const hidePasswordButton = document.getElementById(hidePasswordButtonID);
-    if (showPasswordButton == null || hidePasswordButton == null) {
-      continue;
-    }
-
-    const togglePasswordVisibility = (e: Event) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      if (hidePasswordButton.classList.contains("hidden")) {
-        passwordInput.type = "text";
-        showPasswordButton.classList.add("hidden");
-        hidePasswordButton.classList.remove("hidden");
-      } else {
-        passwordInput.type = "password";
-        showPasswordButton.classList.remove("hidden");
-        hidePasswordButton.classList.add("hidden");
-      }
-    };
-
-    showPasswordButton.addEventListener("click", togglePasswordVisibility);
-    hidePasswordButton.addEventListener("click", togglePasswordVisibility);
-    disposers.push(() => {
-      showPasswordButton.removeEventListener("click", togglePasswordVisibility);
-      hidePasswordButton.removeEventListener("click", togglePasswordVisibility);
-    });
+    this.inputTarget.type = "text";
+    this.showButtonTarget.classList.add("hidden");
+    this.hideButtonTarget.classList.remove("hidden");
   }
 
-  return () => {
-    for (const disposer of disposers) {
-      disposer();
-    }
-  };
+  hide(e: Event) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+
+    this.inputTarget.type = "password";
+    this.showButtonTarget.classList.remove("hidden");
+    this.hideButtonTarget.classList.add("hidden");
+  }
 }

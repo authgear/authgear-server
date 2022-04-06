@@ -1,4 +1,5 @@
 import Turbolinks from "turbolinks";
+import { Application } from "@hotwired/stimulus";
 import axios from "axios";
 import { init } from "./core";
 import { setupIntlTelInput } from "./intlTelInput";
@@ -20,13 +21,19 @@ import { setupResendButton } from "./resendButton";
 import { setupPreventDoubleTap } from "./preventDoubleTap";
 import { setupCopyButton } from "./copy";
 import { setupMessageBar } from "./messageBar";
-import { setupPasswordVisibilityToggle } from "./passwordVisibility";
+import { PasswordVisibilityToggleController } from "./passwordVisibility";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
 
 axios.defaults.withCredentials = true;
 
 init();
+
+const Stimulus = Application.start();
+Stimulus.register(
+  "password-visibility-toggle",
+  PasswordVisibilityToggleController
+);
 
 window.api.onLoad(() => {
   document.body.classList.add("js");
@@ -64,5 +71,3 @@ window.api.onLoad(restoreForm);
 window.api.onLoad(setupResendButton);
 
 window.api.onLoad(setupMessageBar);
-
-window.api.onLoad(setupPasswordVisibilityToggle);
