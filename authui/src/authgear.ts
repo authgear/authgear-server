@@ -3,7 +3,6 @@ import { Application } from "@hotwired/stimulus";
 import axios from "axios";
 import { init } from "./core";
 import { setupIntlTelInput } from "./intlTelInput";
-import { setupPasswordPolicy } from "./password-policy";
 import {
   clickLinkSubmitForm,
   autoSubmitForm,
@@ -22,6 +21,7 @@ import { setupPreventDoubleTap } from "./preventDoubleTap";
 import { setupCopyButton } from "./copy";
 import { setupMessageBar } from "./messageBar";
 import { PasswordVisibilityToggleController } from "./passwordVisibility";
+import { PasswordPolicyController } from "./password-policy";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
 
@@ -34,12 +34,11 @@ Stimulus.register(
   "password-visibility-toggle",
   PasswordVisibilityToggleController
 );
+Stimulus.register("password-policy", PasswordPolicyController);
 
 window.api.onLoad(() => {
   document.body.classList.add("js");
 });
-
-window.api.onLoad(setupPasswordPolicy);
 
 window.api.onLoad(setupIntlTelInput);
 
