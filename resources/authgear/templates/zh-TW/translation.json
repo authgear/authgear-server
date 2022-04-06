@@ -38,8 +38,8 @@
 
   "error-account-not-found": "找不到{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {此電郵地址} phone {此電話號碼} username {此用戶名稱} other {此身份資料} }} oauth {此電郵地址} other {此身份資料} }。請確保帳號正確。",
   "error-account-conflict": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {此電郵地址} phone {此電話號碼} username {此用戶名稱} other {此身份資料} }} oauth {此電郵地址} other {此身份資料}}已被使用。",
-  "error-suggestion-sign-in": "{ IntentKind, select, IntentAuthenticate {{ IdentityTypeExisting, select, login_id {你想以{ LoginIDTypeExisting, select, email {電郵地址} phone {電話號碼} username {用戶名稱} other {登入名稱} }登入嗎？} oauth {你想以{ OAuthProviderTypeExisting, select, google {Google} facebook {Facebook} linkedin {LinkedIn} azureadv2 {Azure AD} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {Wechat} other {OAuth} }登入嗎？} other {你想登入嗎？} }} other {} }",
-  "error-suggestion-connect-oauth": "{ IntentKind, select, IntentAuthenticate {{ IdentityTypeExisting, select, login_id {{ IdentityTypeIncoming, select, oauth {你可於登入後連結你的{ OAuthProviderTypeIncoming, select, google {Google} facebook {Facebook} linkedin {LinkedIn} azureadv2 {Azure AD} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {Wechat} other {OAuth} }帳戶。} other {} }} other {} }} other {} }",
+  "error-suggestion-sign-in": "{ IntentKind, select, IntentAuthenticate {{ IdentityTypeExisting, select, login_id {你想以{ LoginIDTypeExisting, select, email {電郵地址} phone {電話號碼} username {用戶名稱} other {登入名稱} }登入嗎？} oauth {你想以{ OAuthProviderTypeExisting, select, google {Google} facebook {Facebook} github {GitHub} linkedin {LinkedIn} azureadv2 {Azure AD} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {Wechat} other {OAuth} }登入嗎？} other {你想登入嗎？} }} other {} }",
+  "error-suggestion-connect-oauth": "{ IntentKind, select, IntentAuthenticate {{ IdentityTypeExisting, select, login_id {{ IdentityTypeIncoming, select, oauth {你可於登入後連結你的{ OAuthProviderTypeIncoming, select, google {Google} facebook {Facebook} github {GitHub} linkedin {LinkedIn} azureadv2 {Azure AD} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {Wechat} other {OAuth} }帳戶。} other {} }} other {} }} other {} }",
 
   "error-invalid-credentials": "{AuthenticationType, select, password{密碼不正確} totp{驗證器應用程式／裝置所顯示的6位碼不正確} oob_otp_sms {短訊一次性密碼不正確} oob_otp_email{電郵一次性密碼不正確} recovery_code {10位的備用碼不正確} other {無效的憑証}}",
   "error-max-length": "字串長度須少於或等於{expected, plural, other{#個字}}",
@@ -112,6 +112,7 @@
   "oauth-branding-apple": "使用 Apple 帳戶登入",
   "oauth-branding-google": "使用 Google 帳戶登入",
   "oauth-branding-facebook": "使用 Facebook 帳戶登入",
+  "oauth-branding-github": "使用 GitHub 帳戶登入",
   "oauth-branding-linkedin": "使用 LinkedIn 帳戶登入",
   "oauth-branding-azureadv2": "使用 Microsoft 帳戶登入",
   "oauth-branding-azureadb2c": "使用 Azure AD B2C 帳戶登入",
@@ -239,6 +240,7 @@
   "settings-identity-oauth-google": "Google",
   "settings-identity-oauth-apple": "Apple",
   "settings-identity-oauth-facebook": "Facebook",
+  "settings-identity-oauth-github": "GitHub",
   "settings-identity-oauth-linkedin": "LinkedIn",
   "settings-identity-oauth-azureadv2": "Azure AD",
   "settings-identity-oauth-azureadb2c": "Azure AD B2C",

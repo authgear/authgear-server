@@ -52,6 +52,7 @@ export const oauthSSOProviderTypes = [
   "apple",
   "google",
   "facebook",
+  "github",
   "linkedin",
   "azureadv2",
   "azureadb2c",
@@ -87,6 +88,7 @@ export const oauthSSOProviderItemKeys = [
   "apple",
   "google",
   "facebook",
+  "github",
   "linkedin",
   "azureadv2",
   "azureadb2c",
@@ -512,6 +514,7 @@ export interface OAuthSSOFeatureConfig {
 export interface OAuthSSOProvidersFeatureConfig {
   google?: OAuthSSOProviderFeatureConfig;
   facebook?: OAuthSSOProviderFeatureConfig;
+  github?: OAuthSSOProviderFeatureConfig;
   linkedin?: OAuthSSOProviderFeatureConfig;
   azureadv2?: OAuthSSOProviderFeatureConfig;
   azureadb2c?: OAuthSSOProviderFeatureConfig;

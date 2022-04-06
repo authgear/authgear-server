@@ -287,6 +287,7 @@ var _ = Schema.Add("OAuthSSOProviderType", `
 	"enum": [
 		"google",
 		"facebook",
+		"github",
 		"linkedin",
 		"azureadv2",
 		"azureadb2c",
@@ -307,6 +308,9 @@ func (t OAuthSSOProviderType) Scope() string {
 	case OAuthSSOProviderTypeFacebook:
 		// https://developers.facebook.com/docs/permissions/reference
 		return "email public_profile"
+	case OAuthSSOProviderTypeGithub:
+		// https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps
+		return "read:user user:email"
 	case OAuthSSOProviderTypeLinkedIn:
 		// https://docs.microsoft.com/en-us/linkedin/shared/references/v2/profile/lite-profile
 		// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/primary-contact-api?context=linkedin/compliance/context
@@ -339,6 +343,8 @@ func (t OAuthSSOProviderType) EmailRequired() bool {
 		return true
 	case OAuthSSOProviderTypeFacebook:
 		return true
+	case OAuthSSOProviderTypeGithub:
+		return true
 	case OAuthSSOProviderTypeLinkedIn:
 		return true
 	case OAuthSSOProviderTypeAzureADv2:
@@ -358,6 +364,7 @@ func (t OAuthSSOProviderType) EmailRequired() bool {
 const (
 	OAuthSSOProviderTypeGoogle     OAuthSSOProviderType = "google"
 	OAuthSSOProviderTypeFacebook   OAuthSSOProviderType = "facebook"
+	OAuthSSOProviderTypeGithub     OAuthSSOProviderType = "github"
 	OAuthSSOProviderTypeLinkedIn   OAuthSSOProviderType = "linkedin"
 	OAuthSSOProviderTypeAzureADv2  OAuthSSOProviderType = "azureadv2"
 	OAuthSSOProviderTypeAzureADB2C OAuthSSOProviderType = "azureadb2c"
@@ -369,6 +376,7 @@ const (
 var OAuthSSOProviderTypes = []OAuthSSOProviderType{
 	OAuthSSOProviderTypeGoogle,
 	OAuthSSOProviderTypeFacebook,
+	OAuthSSOProviderTypeGithub,
 	OAuthSSOProviderTypeLinkedIn,
 	OAuthSSOProviderTypeAzureADv2,
 	OAuthSSOProviderTypeAzureADB2C,
@@ -506,6 +514,10 @@ func (c *OAuthSSOProviderConfig) ProviderID() ProviderID {
 		// Rotating the OAuth application is problematic.
 		// But if email remains unchanged, the user can associate their account.
 		keys["client_id"] = c.ClientID
+	case OAuthSSOProviderTypeGithub:
+		// Github does NOT support OIDC.
+		// Github user ID is public, not scoped to anything.
+		break
 	case OAuthSSOProviderTypeLinkedIn:
 		// LinkedIn is the same as Facebook.
 		keys["client_id"] = c.ClientID

@@ -110,6 +110,16 @@ function getLightModeStyle(options: GetStyleOptions) {
     "--color-facebook-shaded-7": "#2d4474",
     "--color-facebook-shaded-8": "#213256",
 
+    "--color-github-unshaded": "#171515",
+    "--color-github-shaded-1": "#e3e1e1",
+    "--color-github-shaded-2": "#cac5c5",
+    "--color-github-shaded-3": "#b0abab",
+    "--color-github-shaded-4": "#979090",
+    "--color-github-shaded-5": "#7d7777",
+    "--color-github-shaded-6": "#645e5e",
+    "--color-github-shaded-7": "#4a4545",
+    "--color-github-shaded-8": "#302d2d",
+
     "--color-linkedin-unshaded": "#187fb8",
     "--color-linkedin-shaded-1": "#f3f9fc",
     "--color-linkedin-shaded-2": "#d2e8f4",
@@ -408,6 +418,11 @@ function OAuthForm() {
         title={
           <FormattedMessage id="ThemePreviewWidget.facebook-button-label" />
         }
+      />
+      <SimpleOAuthButton
+        providerType="github"
+        iconClassName="githubIcon"
+        title={<FormattedMessage id="ThemePreviewWidget.github-button-label" />}
       />
       <SimpleOAuthButton
         providerType="linkedin"

@@ -129,6 +129,10 @@
 					<div class="sso-btn-icon image-icon facebook-icon"></div>
 					<span class="title text-base">{{ template "oauth-branding-facebook" }}</span>
 					{{- end -}}
+					{{- if eq .provider_type "github" -}}
+					<div class="sso-btn-icon image-icon github-icon"></div>
+					<span class="title text-base">{{ template "oauth-branding-github" }}</span>
+					{{- end -}}
 					{{- if eq .provider_type "linkedin" -}}
 					<div class="sso-btn-icon image-icon linkedin-icon"></div>
 					<span class="title text-base">{{ template "oauth-branding-linkedin" }}</span>
