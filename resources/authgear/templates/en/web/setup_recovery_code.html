@@ -9,7 +9,7 @@
 	<p class="text-sm primary-txt text-center m-0 whitespace-pre-wrap">{{ template "recovery-code-storage-description" }}</p>
 	<ol class="recovery-code-list m-0 padding-v-20 padding-inline-end-20 grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-2 gap-x-5">
 		{{ range $.RecoveryCodes }}
-			<li class="font-mono whitespace-pre text-base leading-none margin-h-20 place-self-center">{{ . }}</li>
+			<li class="font-mono whitespace-pre text-base leading-none mx-5 place-self-center">{{ . }}</li>
 		{{ end }}
 	</ol>
 	<code id="recovery-code-content" class="hidden">{{ template "__recovery_code.html" . }}</code>
