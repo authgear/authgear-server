@@ -142,6 +142,7 @@ const oauthIconMap: Record<OAuthSSOProviderType, React.ReactNode> = {
   apple: <i className={cn("fab", "fa-apple", styles.widgetLabelIcon)} />,
   google: <i className={cn("fab", "fa-google", styles.widgetLabelIcon)} />,
   facebook: <i className={cn("fab", "fa-facebook", styles.widgetLabelIcon)} />,
+  github: <i className={cn("fab", "fa-github", styles.widgetLabelIcon)} />,
   linkedin: <i className={cn("fab", "fa-linkedin", styles.widgetLabelIcon)} />,
   azureadv2: (
     <i className={cn("fab", "fa-microsoft", styles.widgetLabelIcon)} />

@@ -125,38 +125,19 @@
 				>
 					<input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
 					<span class="sso-btn-content">
-					{{- if eq .provider_type "apple" -}}
-					<div class="sso-btn-icon image-icon apple-icon"></div>
-					<span class="title text-base">{{ template "oauth-branding-apple" }}</span>
-					{{- end -}}
-					{{- if eq .provider_type "google" -}}
-					<div class="sso-btn-icon image-icon google-icon"></div>
-					<span class="title text-base">{{ template "oauth-branding-google" }}</span>
-					{{- end -}}
-					{{- if eq .provider_type "facebook" -}}
-					<div class="sso-btn-icon image-icon facebook-icon"></div>
-					<span class="title text-base">{{ template "oauth-branding-facebook" }}</span>
-					{{- end -}}
-					{{- if eq .provider_type "linkedin" -}}
-					<div class="sso-btn-icon image-icon linkedin-icon"></div>
-					<span class="title text-base">{{ template "oauth-branding-linkedin" }}</span>
-					{{- end -}}
+					{{- $icon_class := printf "%s-icon" .provider_type -}}
 					{{- if eq .provider_type "azureadv2" -}}
-					<div class="sso-btn-icon image-icon microsoft-icon"></div>
-					<span class="title text-base">{{ template "oauth-branding-azureadv2" }}</span>
+					{{- $icon_class = "microsoft-icon" }}
 					{{- end -}}
 					{{- if eq .provider_type "azureadb2c" -}}
-					<div class="sso-btn-icon image-icon microsoft-icon"></div>
-					<span class="title text-base">{{ template "oauth-branding-azureadb2c" }}</span>
+					{{- $icon_class = "microsoft-icon" }}
 					{{- end -}}
 					{{- if eq .provider_type "adfs" -}}
-					<div class="sso-btn-icon image-icon microsoft-icon"></div>
-					<span class="title text-base">{{ template "oauth-branding-adfs" }}</span>
+					{{- $icon_class = "microsoft-icon" }}
 					{{- end -}}
-					{{- if eq .provider_type "wechat" -}}
-					<div class="sso-btn-icon image-icon wechat-icon"></div>
-					<span class="title text-base">{{ template "oauth-branding-wechat" }}</span>
-					{{- end -}}
+
+					<div class="sso-btn-icon image-icon {{ $icon_class }}"></div>
+					<span class="title text-base">{{ $.Translations.RenderText (printf "oauth-branding-%s" .provider_type) nil }}</span>
 					</span>
 				</button>
 				</form>

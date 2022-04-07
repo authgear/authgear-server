@@ -19,6 +19,7 @@ const ColorMap: Record<string, string> = {
   username: "#FFB900",
   google: "#EA4335",
   facebook: "#4267B2",
+  github: "#171515",
   linkedin: "#0077B5",
   azureadv2: "#007FFF",
   azureadb2c: "#2DE7FD",

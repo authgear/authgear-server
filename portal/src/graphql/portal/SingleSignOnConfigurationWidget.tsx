@@ -111,6 +111,18 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
     ]),
     isSecretFieldTextArea: false,
   },
+  github: {
+    providerType: "github",
+    iconNode: <i className={cn("fab", "fa-github", styles.widgetLabelIcon)} />,
+    fields: new Set<WidgetTextFieldKey>([
+      "alias",
+      "client_id",
+      "client_secret",
+      "modify_disabled",
+      "email_required",
+    ]),
+    isSecretFieldTextArea: false,
+  },
   linkedin: {
     providerType: "linkedin",
     iconNode: (

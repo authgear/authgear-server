@@ -58,6 +58,8 @@ func IsOAuthSSOProviderTypeDisabled(typ config.OAuthSSOProviderType, featureConf
 		return featureConfig.Google.Disabled
 	case config.OAuthSSOProviderTypeFacebook:
 		return featureConfig.Facebook.Disabled
+	case config.OAuthSSOProviderTypeGithub:
+		return featureConfig.Github.Disabled
 	case config.OAuthSSOProviderTypeLinkedIn:
 		return featureConfig.LinkedIn.Disabled
 	case config.OAuthSSOProviderTypeAzureADv2:

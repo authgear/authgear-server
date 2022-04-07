@@ -102,6 +102,13 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 			Credentials:                  *credentials,
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
 		}
+	case config.OAuthSSOProviderTypeGithub:
+		return &GithubImpl{
+			RedirectURL:                  p.RedirectURL,
+			ProviderConfig:               *providerConfig,
+			Credentials:                  *credentials,
+			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
+		}
 	case config.OAuthSSOProviderTypeLinkedIn:
 		return &LinkedInImpl{
 			RedirectURL:                  p.RedirectURL,

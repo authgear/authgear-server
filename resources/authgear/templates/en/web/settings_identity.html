@@ -38,14 +38,17 @@
     {{ $ti := "" }}
 
     {{ if eq .type "oauth" }}
-    {{ if eq .provider_type "google" }}   {{ $ti = "ti ti-brand-google" }}    {{ end }}
-    {{ if eq .provider_type "apple" }}    {{ $ti = "ti ti-brand-apple" }}     {{ end }}
-    {{ if eq .provider_type "facebook" }} {{ $ti = "ti ti-brand-facebook" }}  {{ end }}
-    {{ if eq .provider_type "linkedin" }} {{ $ti = "ti ti-brand-linkedin" }}  {{ end }}
-    {{ if eq .provider_type "azureadv2" }}{{ $ti = "ti ti-brand-windows" }}   {{ end }}
-    {{ if eq .provider_type "azureadb2c" }}{{ $ti = "ti ti-brand-windows" }}   {{ end }}
-    {{ if eq .provider_type "adfs" }}     {{ $ti = "ti ti-brand-windows" }}   {{ end }}
-    {{ if eq .provider_type "wechat" }}   {{ $ti = "ti ti-message-circle" }}  {{ end }}
+    {{ if eq .provider_type "azureadv2" }}
+      {{ $ti = "ti ti-brand-windows" }}
+    {{ else if eq .provider_type "azureadb2c" }}
+      {{ $ti = "ti ti-brand-windows" }}
+    {{ else if eq .provider_type "adfs" }}
+      {{ $ti = "ti ti-brand-windows" }}
+    {{ else if eq .provider_type "wechat" }}
+      {{ $ti = "ti ti-message-circle" }}
+    {{ else }}
+      {{ $ti = printf "ti ti-brand-%s" .provider_type }}
+    {{ end }}
     {{ end }}
 
     {{ if eq .type "login_id" }}
@@ -62,20 +65,10 @@
         <i class="twc-title-icon primary-txt text-base {{ $ti }}" aria-hidden="true"></i>
         <p class="margin-0 primary-txt text-base">
           {{ if eq .type "oauth" }}
-            {{ if eq .provider_type "google" }}{{ template "settings-identity-oauth-google" }}{{ end }}
-            {{ if eq .provider_type "apple" }}{{ template "settings-identity-oauth-apple" }}{{ end }}
-            {{ if eq .provider_type "facebook" }}{{ template "settings-identity-oauth-facebook" }}{{ end }}
-            {{ if eq .provider_type "linkedin" }}{{ template "settings-identity-oauth-linkedin" }}{{ end }}
-            {{ if eq .provider_type "azureadv2" }}{{ template "settings-identity-oauth-azureadv2" }}{{ end }}
-            {{ if eq .provider_type "azureadb2c" }}{{ template "settings-identity-oauth-azureadb2c" }}{{ end }}
-            {{ if eq .provider_type "adfs" }}{{ template "settings-identity-oauth-adfs" }}{{ end }}
-            {{ if eq .provider_type "wechat" }}{{ template "settings-identity-oauth-wechat" }}{{ end }}
+            {{ $.Translations.RenderText (printf "settings-identity-oauth-%s" .provider_type) nil }}
           {{ end }}
           {{ if eq .type "login_id" }}
-            {{ if eq .login_id_type "email" }}{{ template "settings-identity-login-id-email" }}{{ end }}
-            {{ if eq .login_id_type "phone" }}{{ template "settings-identity-login-id-phone" }}{{ end }}
-            {{ if eq .login_id_type "username" }}{{ template "settings-identity-login-id-username" }}{{ end }}
-            {{ if eq .login_id_type "raw" }}{{ template "settings-identity-login-id-raw" }}{{ end }}
+            {{ $.Translations.RenderText (printf "settings-identity-login-id-%s" .login_id_type) nil }}
           {{ end }}
         </p>
       </div>

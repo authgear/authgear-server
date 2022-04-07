@@ -5,4 +5,4 @@ import (
 )
 
 var AccessControlViolated = apierrors.Forbidden.WithReason("AccessControlViolated")
-var InvariantViolated = apierrors.Invalid.WithReason("InvariantViolated")
+var StandardAttributesEmailRequired = apierrors.BadRequest.WithReason("StandardAttributesEmailRequired")
