@@ -8,7 +8,7 @@
 	</h1>
 
 	<p class="primary-txt text-center m-0 text-sm whitespace-pre-wrap">{{ template "recovery-code-storage-description" }}</p>
-	<ol class="recovery-code-list m-0 padding-v-20 padding-inline-end-20 grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-2 gap-x-5">
+	<ol class="recovery-code-list m-0 py-5 padding-inline-end-20 grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-2 gap-x-5">
 		{{ range $.RecoveryCodes }}
 			<li class="font-mono whitespace-pre text-base leading-none mx-5 place-self-center">{{ . }}</li>
 		{{ end }}
