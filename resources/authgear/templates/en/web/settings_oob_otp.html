@@ -6,7 +6,7 @@
     {{ template "__nav_bar.html" "/settings/mfa" }}
   </div>
 
-  <div class="px-5 pt-4 padding-b-20 row-sep grid grid-cols-1 auto-rows-auto gap-y-1">
+  <div class="px-5 pt-4 pb-5 row-sep grid grid-cols-1 auto-rows-auto gap-y-1">
     <h1 class="text-base m-0 primary-txt text-xl font-bold">
       {{ if eq $.OOBAuthenticatorType "oob_otp_email" }}
       {{ template "settings-oob-otp-email-title" }}

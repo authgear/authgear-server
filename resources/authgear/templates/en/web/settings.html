@@ -258,7 +258,7 @@
 {{ $show_mfa := (and (not $.SecondaryAuthenticationDisabled) (or $show_secondary_totp $show_secondary_oob_otp_email $show_secondary_oob_otp_sms $show_secondary_password)) }}
 
 
-<div class="pane grid grid grid-cols-1 auto-rows-auto gap-y-2.5 pt-4 padding-b-20">
+<div class="pane grid grid grid-cols-1 auto-rows-auto gap-y-2.5 pt-4 pb-5">
 <!-- The title and the description -->
 <div class="px-5 grid grid-cols-1 auto-rows-auto gap-y-1">
   <h1 class="m-0 primary-txt text-xl font-bold">
