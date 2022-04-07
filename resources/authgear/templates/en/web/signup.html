@@ -23,8 +23,8 @@
 	<div class="pane flex flex-col">
 		{{ if not $.PublicSignupDisabled }}{{ if $has_login_id }}
 		<div class="flex flex-row">
-			<a class="not-a flex items-center justify-center flex-1 padding-v-16 signin-signup-link primary-txt" href="/login" data-turbolinks-action="replace">{{ template "login-label" }}</a>
-			<a class="not-a flex items-center justify-center flex-1 padding-v-16 signin-signup-link primary-txt current" href="/signup" data-turbolinks-action="replace">{{ template "signup-label" }}</a>
+			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link primary-txt" href="/login" data-turbolinks-action="replace">{{ template "login-label" }}</a>
+			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link primary-txt current" href="/signup" data-turbolinks-action="replace">{{ template "signup-label" }}</a>
 		</div>
 		{{ end }}{{ end }}
 
