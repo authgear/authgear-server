@@ -6,7 +6,7 @@
 {{ if not $.IsStandardAttributesAllHidden }}
 <div class="pane flex flex-col">
 
-  <div class="padding-h-20 mt-4 mb-1">
+  <div class="px-5 mt-4 mb-1">
     <h1 class="m-0 primary-txt text-xl font-bold">
       {{ template "settings-my-profile-title" }}
     </h1>
@@ -42,7 +42,7 @@
 {{/* Identity */}}
 <div class="pane flex flex-col">
 
-  <div class="padding-h-20 mt-4 mb-1">
+  <div class="px-5 mt-4 mb-1">
     <h1 class="m-0 primary-txt text-xl font-bold">
       {{ template "settings-my-account-title" }}
     </h1>
@@ -260,7 +260,7 @@
 
 <div class="pane grid grid grid-cols-1 auto-rows-auto gap-y-2.5 padding-t-16 padding-b-20">
 <!-- The title and the description -->
-<div class="padding-h-20 grid grid-cols-1 auto-rows-auto gap-y-1">
+<div class="px-5 grid grid-cols-1 auto-rows-auto gap-y-1">
   <h1 class="m-0 primary-txt text-xl font-bold">
     {{ template "settings-page-security-section-title" }}
   </h1>
@@ -269,7 +269,7 @@
   </p>
 </div>
 
-<div class="padding-h-20 grid grid-cols-2 tablet:grid-cols-2 desktop:grid-cols-3 auto-rows-min gap-4">
+<div class="px-5 grid grid-cols-2 tablet:grid-cols-2 desktop:grid-cols-3 auto-rows-min gap-4">
   {{ range $.Authenticators }}
   <!-- Primary Password -->
   {{ if eq .Type "password" }}{{ if eq .Kind "primary" }}
@@ -358,7 +358,7 @@
 </div>
 
 {{ if $.ClientURI }}
-<div class="pane padding-v-16 padding-h-20 flex justify-center">
+<div class="pane padding-v-16 px-5 flex justify-center">
   <a class="link text-sm" href="{{ $.ClientURI }}">
     <i class="ti ti-logout mr-2.5"></i>
     {{ template "back-to-app-label" }}

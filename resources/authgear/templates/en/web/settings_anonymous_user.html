@@ -3,7 +3,7 @@
 {{ define "page-content" }}
 
 <div class="pane flex flex-col">
-  <div class="padding-h-20 mt-4 mb-1">
+  <div class="px-5 mt-4 mb-1">
     <h1 class="m-0 primary-txt text-xl font-bold">
       {{ template "settings-my-profile-title" }}
     </h1>
@@ -21,7 +21,7 @@
 </div>
 
 {{ if $.ClientURI }}
-<div class="pane padding-v-16 padding-h-20 flex justify-center">
+<div class="pane padding-v-16 px-5 flex justify-center">
   <a class="link text-sm" href="{{ $.ClientURI }}">
     <i class="ti ti-logout mr-2.5"></i>
     {{ template "back-to-app-label" }}
