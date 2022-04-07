@@ -13,14 +13,14 @@
 		{{ end }}
 	{{ end }}
 	{{ if $.PublicSignupDisabled }}
-	<div class="pane twc-container-vertical padding-t-32 padding-b-20 px-6 tablet:padding-h-32 desktop:padding-h-32">
+	<div class="pane twc-container-vertical padding-t-32 padding-b-20 px-6 tablet:px-8 desktop:px-8">
 		<p class="primary-txt m-0 text-base">{{ template "public-signup-disabled-notice" }}</p>
 		<a class="as-btn not-a btn primary-btn my-5" href="/login" data-turbolinks="false">{{ template "login-label" }}</a>
 		{{ template "__watermark.html" . }}
 	</div>
 	{{ else }}
 
-	<div class="pane twc-container-vertical padding-t-32 padding-b-20 px-6 tablet:padding-h-32 desktop:padding-h-32">
+	<div class="pane twc-container-vertical padding-t-32 padding-b-20 px-6 tablet:px-8 desktop:px-8">
 			<form class="twc-container-vertical" method="post" novalidate>
 				{{ $.CSRFField }}
 
