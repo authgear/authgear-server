@@ -33210,3 +33210,22 @@ func newAPIRRequireAuthenticatedMiddlewareMiddleware(p *deps.RequestProvider) ht
 	}
 	return requireAuthenticatedMiddleware
 }
+
+func newTutorialMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	request := p.Request
+	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	tutorialCookie := &httputil.TutorialCookie{
+		Cookies: cookieManager,
+	}
+	tutorialMiddleware := &webapp.TutorialMiddleware{
+		TutorialCookie: tutorialCookie,
+	}
+	return tutorialMiddleware
+}
