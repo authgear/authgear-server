@@ -9,7 +9,7 @@
 {{ if .WeChatRedirectURI }}
 <p class="text-sm break-words m-0 primary-txt text-center">{{ template "wechat-auth-with-app-description" }}</p>
 
-<div class="twc-container-vertical margin-v-20">
+<div class="twc-container-vertical my-5">
 <a class="as-btn not-a btn primary-btn"
     href="{{ $.WeChatRedirectURI }}"
     data-turbolinks-action="replace"

@@ -9,14 +9,14 @@
         <div class="text-center text-sm">
             {{ template "error-web-ui-invalid-session-return" }}
         </div>
-        <a class="as-btn not-a btn primary-btn margin-v-20" href="{{ last .SessionStepURLs }}" data-turbolinks="false">
+        <a class="as-btn not-a btn primary-btn my-5" href="{{ last .SessionStepURLs }}" data-turbolinks="false">
             {{ template "error-web-ui-invalid-session-action" }}
         </a>
     {{ else }}
         <div class="text-center text-sm">
             {{ template "error-web-ui-invalid-session-retry" }}
         </div>
-        <a class="as-btn not-a btn primary-btn margin-v-20" href="/" data-turbolinks="false">
+        <a class="as-btn not-a btn primary-btn my-5" href="/" data-turbolinks="false">
             {{ template "error-web-ui-invalid-session-action" }}
         </a>
     {{ end }}

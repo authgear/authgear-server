@@ -15,7 +15,7 @@
 	{{ if $.PublicSignupDisabled }}
 	<div class="pane twc-container-vertical padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
 		<p class="primary-txt m-0 text-base">{{ template "public-signup-disabled-notice" }}</p>
-		<a class="as-btn not-a btn primary-btn margin-v-20" href="/login" data-turbolinks="false">{{ template "login-label" }}</a>
+		<a class="as-btn not-a btn primary-btn my-5" href="/login" data-turbolinks="false">{{ template "login-label" }}</a>
 		{{ template "__watermark.html" . }}
 	</div>
 	{{ else }}
