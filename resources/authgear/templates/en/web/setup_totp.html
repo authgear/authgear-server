@@ -1,13 +1,13 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<div class="pane twc-container-vertical padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
+<div class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
 
-<h1 class="primary-txt text-center margin-0 text-xl font-bold">
+<h1 class="primary-txt text-center m-0 text-xl font-bold">
 	{{ template "setup-totp-title" }}
 </h1>
 
-<p class="text-sm primary-txt text-center margin-0">{{ template "setup-totp-description" }}</p>
+<p class="text-sm primary-txt text-center m-0">{{ template "setup-totp-description" }}</p>
 
 <form class="twc-container-vertical" method="post" novalidate>
 
@@ -16,7 +16,7 @@
 <img class="w-48 place-self-center" src="{{ $.ImageURI }}">
 
 <div class="text-sm primary-txt border border-color border-solid font-mono flex flex-row items-center">
-	<span id="totp-code-key" class="flex-1 margin-h-12 break-all">{{ template "setup-totp-raw-secret" (dict "secret" $.Secret) }}</span>
+	<span id="totp-code-key" class="flex-1 mx-3 break-all">{{ template "setup-totp-raw-secret" (dict "secret" $.Secret) }}</span>
 	<button type="button" class="btn secondary-btn w-11 h-11 flex items-center justify-center" data-copy-button-target="#totp-code-key">
 		<i class="ti ti-copy"></i>
 	</button>
@@ -45,9 +45,9 @@
 	data-authgear-event="authgear.button.setup_totp"
 >{{ template "next-button-label" }}</button>
 
-<p class="text-sm break-words primary-txt margin-0">{{ template "setup-totp-get-google-authenticator-description" }}</p>
+<p class="text-sm break-words primary-txt m-0">{{ template "setup-totp-get-google-authenticator-description" }}</p>
 
-<p class="text-sm break-words primary-txt whitespace-pre-wrap margin-0">{{ template "setup-totp-use-google-authenticator-description" }}</p>
+<p class="text-sm break-words primary-txt whitespace-pre-wrap m-0">{{ template "setup-totp-use-google-authenticator-description" }}</p>
 
 </form>
 

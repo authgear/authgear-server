@@ -1,15 +1,15 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<div class="pane twc-container-vertical padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
-  <h2 class="primary-txt text-center margin-0 text-xl font-bold">
+<div class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
+  <h2 class="primary-txt text-center m-0 text-xl font-bold">
     {{ template "logout-button-hint" }}
   </h2>
   <!-- We need to disable XHR for this request because after logout it could possibly redirect to external website with post_logout_uri -->
   <form class="flex flex-col" method="post" novalidate>
     {{ $.CSRFField }}
     <button
-      class="btn primary-btn margin-v-20"
+      class="btn primary-btn my-5"
       type="submit"
       name="x_action"
       value="logout"

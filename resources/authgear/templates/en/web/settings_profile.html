@@ -2,13 +2,13 @@
 
 {{ define "page-content" }}
 <div class="pane flex flex-col">
-  <div class="padding-h-16">
+  <div class="px-4">
     {{ template "__nav_bar.html" "/settings" }}
   </div>
 
   {{/* picture */}}
   {{ if (call $.IsReadable "/picture") }}
-  <div class="padding-20 row-sep gap-3 grid grid-cols-1fr-auto grid-rows-auto-auto">
+  <div class="p-5 row-sep gap-3 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <div class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-picture" }}</div>
     <img class="col-start-1 col-span-1 row-start-2 row-span-1 rounded-full bg-center bg-cover bg-no-repeat w-20 h-20"
       {{ if $.Picture }}
@@ -27,7 +27,7 @@
 
   {{/* FormattedNames */}}
   {{ if (or (call $.IsReadable "/name") (call $.IsReadable "/given_name") (call $.IsReadable "/family_name") (call $.IsReadable "/middle_name") (call $.IsReadable "/nickname")) }}
-  <div class="padding-20 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
+  <div class="p-5 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "settings-profile-formatted-names-label" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt whitespace-pre-wrap">{{ $.FormattedNames }}</span>
     {{ if (or (call $.IsEditable "/name") (call $.IsEditable "/given_name") (call $.IsEditable "/family_name") (call $.IsEditable "/middle_name") (call $.IsEditable "/nickname")) }}
@@ -40,7 +40,7 @@
 
   {{/* email */}}
   {{ if (call $.IsReadable "/email") }}
-  <div class="padding-20 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
+  <div class="p-5 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-email" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Email }}</span>
     {{ if (call $.IsEditable "/email") }}
@@ -53,7 +53,7 @@
 
   {{/* phone_number */}}
   {{ if (call $.IsReadable "/phone_number") }}
-  <div class="padding-20 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
+  <div class="p-5 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-phone-number" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.PhoneNumber }}</span>
     {{ if (call $.IsEditable "/phone_number") }}
@@ -66,7 +66,7 @@
 
   {{/* preferred_username */}}
   {{ if (call $.IsReadable "/preferred_username") }}
-  <div class="padding-20 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
+  <div class="p-5 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-preferred-username" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.PreferredUsername }}</span>
     {{ if (call $.IsEditable "/preferred_username") }}
@@ -79,7 +79,7 @@
 
   {{/* profile */}}
   {{ if (call $.IsReadable "/profile") }}
-  <div class="padding-20 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
+  <div class="p-5 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-profile" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Profile }}</span>
     {{ if (call $.IsEditable "/profile") }}
@@ -92,7 +92,7 @@
 
   {{/* website */}}
   {{ if (call $.IsReadable "/website") }}
-  <div class="padding-20 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
+  <div class="p-5 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-website" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Website }}</span>
     {{ if (call $.IsEditable "/website") }}
@@ -105,7 +105,7 @@
 
   {{/* gender */}}
   {{ if (call $.IsReadable "/gender") }}
-  <div class="padding-20 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
+  <div class="p-5 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-gender" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Gender }}</span>
     {{ if (call $.IsEditable "/gender") }}
@@ -118,7 +118,7 @@
 
   {{/* birthdate */}}
   {{ if (call $.IsReadable "/birthdate") }}
-  <div class="padding-20 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
+  <div class="p-5 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-birthdate" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt" data-input-date-value="{{ $.Birthdate }}">{{ $.Birthdate }}</span>
     {{ if (call $.IsEditable "/birthdate") }}
@@ -131,7 +131,7 @@
 
   {{/* zoneinfo */}}
   {{ if (call $.IsReadable "/zoneinfo") }}
-  <div class="padding-20 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
+  <div class="p-5 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-zoneinfo" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">
       {{ if $.Zoneinfo }}
@@ -148,7 +148,7 @@
 
   {{/* locale */}}
   {{ if (call $.IsReadable "/locale") }}
-  <div class="padding-20 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
+  <div class="p-5 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-locale" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">
       {{ if $.Locale }}
@@ -166,7 +166,7 @@
 
   {{/* address.address */}}
   {{ if (call $.IsReadable "/address") }}
-  <div class="padding-20 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
+  <div class="p-5 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-address" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">
       {{- if $.AddressStreetAddress }}<span class="whitespace-pre-wrap">{{ $.AddressStreetAddress }}</span><br>{{ end }}
@@ -184,7 +184,7 @@
   {{ end }}
 
   {{ range $.CustomAttributes }}
-  <div class="padding-20 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
+  <div class="p-5 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
     {{ $label_key := printf "custom-attribute-label-%s" .Pointer }}
     {{ $has_key := $.Translations.HasKey $label_key }}
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">

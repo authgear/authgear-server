@@ -1,9 +1,9 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<div class="pane twc-container-vertical padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
+<div class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
 
-<h1 class="margin-0 primary-txt text-center text-xl font-bold">
+<h1 class="m-0 primary-txt text-center text-xl font-bold">
 	{{ if $.IdentityID }}
 	{{ template "enter-login-id-page-title--change" (dict "key" $.LoginIDKey) }}
 	{{ else }}
@@ -12,7 +12,7 @@
 </h1>
 
 {{ if $.IdentityID }}
-<p class="text-sm margin-0 break-words secondary-txt text-center">
+<p class="text-sm m-0 break-words secondary-txt text-center">
 	{{ template "enter-login-id-page-description--change" (dict "key" $.LoginIDKey "displayID" $.DisplayID) }}
 </p>
 {{ end }}
@@ -48,7 +48,7 @@
 >
 {{ end }}
 
-<div class="grid grid-cols-1 auto-rows-auto gap-y-2 margin-t-20">
+<div class="grid grid-cols-1 auto-rows-auto gap-y-2 mt-5">
 	<button
 		form="main-form"
 		class="btn primary-btn"

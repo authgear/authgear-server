@@ -6,22 +6,22 @@
 {{ if not $.IsStandardAttributesAllHidden }}
 <div class="pane flex flex-col">
 
-  <div class="padding-h-20 margin-t-16 margin-b-4">
-    <h1 class="margin-0 primary-txt text-xl font-bold">
+  <div class="px-5 mt-4 mb-1">
+    <h1 class="m-0 primary-txt text-xl font-bold">
       {{ template "settings-my-profile-title" }}
     </h1>
   </div>
 
-  <div class="padding-10 flex flex-row items-center row-sep">
+  <div class="p-2.5 flex flex-row items-center row-sep">
     <img
-      class="margin-10 rounded-full bg-center bg-cover bg-no-repeat w-18 h-18"
+      class="m-2.5 rounded-full bg-center bg-cover bg-no-repeat w-18 h-18"
       {{ if (and (call $.IsReadable "/picture") $.Picture) }}
         src="{{ $.Picture }}"
       {{ else }}
         src="{{ call $.StaticAssetURL "avatar-placeholder" }}"
       {{ end }}
     >
-    <div class="margin-h-10 flex flex-col space-y-1">
+    <div class="mx-2.5 flex flex-col space-y-1">
       {{ $any_name_readable := (or (call $.IsReadable "/name") (call $.IsReadable "/given_name") (call $.IsReadable "/family_name") (call $.IsReadable "/middle_name") (call $.IsReadable "/nickname")) }}
       {{ if (and $any_name_readable $.FormattedName) }}<span class="primary-txt">{{ $.FormattedName }}</span>{{ end }}
       {{ if (and (not $.FormattedName) $.EndUserAccountID) }}<span class="primary-txt">{{ $.EndUserAccountID }}</span>{{ end }}
@@ -30,7 +30,7 @@
     </div>
   </div>
 
-  <div class="padding-20 row-sep">
+  <div class="p-5 row-sep">
     <a class="link action text-sm" href="/settings/profile">
       <i class="ti ti-chevrons-right"></i>
       {{ template "more-button-label" }}
@@ -42,17 +42,17 @@
 {{/* Identity */}}
 <div class="pane flex flex-col">
 
-  <div class="padding-h-20 margin-t-16 margin-b-4">
-    <h1 class="margin-0 primary-txt text-xl font-bold">
+  <div class="px-5 mt-4 mb-1">
+    <h1 class="m-0 primary-txt text-xl font-bold">
       {{ template "settings-my-account-title" }}
     </h1>
   </div>
 
-  <div class="padding-20 row-sep grid grid-cols-1 auto-rows-auto gap-y-1">
-    <h2 class="margin-0 primary-txt text-base font-semibold">
+  <div class="p-5 row-sep grid grid-cols-1 auto-rows-auto gap-y-1">
+    <h2 class="m-0 primary-txt text-base font-semibold">
       {{ template "settings-identity-title" }}
     </h2>
-    <p class="margin-0 text-sm secondary-txt">
+    <p class="m-0 text-sm secondary-txt">
       {{ template "settings-identity-description" }}
     </p>
   </div>
@@ -80,7 +80,7 @@
   {{ end }}
 
   {{ if not $is_hidden }}
-  <section class="padding-20 row-sep flex flex-row space-x-2">
+  <section class="p-5 row-sep flex flex-row space-x-2">
     {{ $ti := "" }}
 
     {{ if eq .type "oauth" }}
@@ -108,7 +108,7 @@
       {{/* Row */}}
       <div class="flex flex-row space-x-2">
         <i class="twc-title-icon primary-txt text-base {{ $ti }}" aria-hidden="true"></i>
-        <p class="margin-0 primary-txt text-base">
+        <p class="m-0 primary-txt text-base">
           {{ if eq .type "oauth" }}
             {{ $.Translations.RenderText (printf "settings-identity-oauth-%s" .provider_type) nil }}
           {{ end }}
@@ -120,7 +120,7 @@
 
       {{/* Row */}}
       {{ if .display_id }}
-      <p class="text-sm margin-0 secondary-txt leading-normal">
+      <p class="text-sm m-0 secondary-txt leading-normal">
         {{ .display_id }}
 
         <!-- TODO(verification): show verification for all identity types -->
@@ -196,7 +196,7 @@
   {{ end }}
 
   {{ if $show_more_button }}
-  <div class="padding-20 row-sep">
+  <div class="p-5 row-sep">
     <a class="link action text-sm" href="/settings/identity">
       <i class="ti ti-chevrons-right"></i>
       {{ template "more-button-label" }}
@@ -251,27 +251,27 @@
 {{ $show_mfa := (and (not $.SecondaryAuthenticationDisabled) (or $show_secondary_totp $show_secondary_oob_otp_email $show_secondary_oob_otp_sms $show_secondary_password)) }}
 
 
-<div class="pane grid grid grid-cols-1 auto-rows-auto gap-y-2.5 padding-t-16 padding-b-20">
+<div class="pane grid grid grid-cols-1 auto-rows-auto gap-y-2.5 pt-4 pb-5">
 <!-- The title and the description -->
-<div class="padding-h-20 grid grid-cols-1 auto-rows-auto gap-y-1">
-  <h1 class="margin-0 primary-txt text-xl font-bold">
+<div class="px-5 grid grid-cols-1 auto-rows-auto gap-y-1">
+  <h1 class="m-0 primary-txt text-xl font-bold">
     {{ template "settings-page-security-section-title" }}
   </h1>
-  <p class="text-sm margin-0 secondary-txt">
+  <p class="text-sm m-0 secondary-txt">
     {{ template "settings-page-security-section-description" }}
   </p>
 </div>
 
-<div class="padding-h-20 grid grid-cols-2 tablet:grid-cols-2 desktop:grid-cols-3 auto-rows-min gap-4">
+<div class="px-5 grid grid-cols-2 tablet:grid-cols-2 desktop:grid-cols-3 auto-rows-min gap-4">
   {{ range $.Authenticators }}
   <!-- Primary Password -->
   {{ if eq .Type "password" }}{{ if eq .Kind "primary" }}
-  <a class="settings-security-item padding-12 tablet:padding-12 desktop:padding-16 rounded-md not-a grid grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/change_password">
+  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/change_password">
     <i class="ti ti-key text-32 block primary-txt" aria-hidden="true"></i>
-    <p class="margin-0 primary-txt text-base">
+    <p class="m-0 primary-txt text-base">
       {{ template "settings-page-primary-password-title" }}
     </p>
-    <p class="margin-0 secondary-txt text-xs">
+    <p class="m-0 secondary-txt text-xs">
       <!-- FIXME(ui): Use user preferred timezone -->
       {{ template "settings-page-primary-password-description" (dict "time" .UpdatedAt "rfc3339" (rfc3339 .UpdatedAt)) }}
     </p>
@@ -280,12 +280,12 @@
 
   <!-- Primary OOB OTP Email -->
   {{ if eq .Type "oob_otp_email" }}{{ if eq .Kind "primary" }}
-  <a class="settings-security-item padding-12 tablet:padding-12 desktop:padding-16 rounded-md not-a grid grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/identity">
+  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/identity">
     <i class="ti ti-mail text-32 block primary-txt" aria-hidden="true"></i>
-    <p class="margin-0 primary-txt text-base">
+    <p class="m-0 primary-txt text-base">
       {{ template "settings-page-primary-oob-otp-title--email" }}
     </p>
-    <p class="margin-0 secondary-txt text-xs truncate">
+    <p class="m-0 secondary-txt text-xs truncate">
       {{ index .Claims "https://authgear.com/claims/oob_otp/email" }}
       <br>
       <!-- FIXME(ui): Use user preferred timezone -->
@@ -296,12 +296,12 @@
 
   <!-- Primary OOB OTP SMS -->
   {{ if eq .Type "oob_otp_sms" }}{{ if eq .Kind "primary" }}
-  <a class="settings-security-item padding-12 tablet:padding-12 desktop:padding-16 rounded-md not-a grid grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/identity">
+  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/identity">
     <i class="ti ti-message-dots text-32 block primary-txt" aria-hidden="true"></i>
-    <p class="margin-0 primary-txt text-base">
+    <p class="m-0 primary-txt text-base">
       {{ template "settings-page-primary-oob-otp-title--sms" }}
     </p>
-    <p class="margin-0 secondary-txt text-xs">
+    <p class="m-0 secondary-txt text-xs">
       {{ index .Claims "https://authgear.com/claims/oob_otp/phone" }}
       <br>
       <!-- FIXME(ui): Use user preferred timezone -->
@@ -313,12 +313,12 @@
 
   <!-- MFA -->
   {{ if $show_mfa }}
-  <a class="settings-security-item padding-12 tablet:padding-12 desktop:padding-16 rounded-md not-a grid grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/mfa">
+  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/mfa">
     <i class="ti ti-shield-lock text-32 block  primary-txt" aria-hidden="true"></i>
-    <p class="margin-0 primary-txt text-base">
+    <p class="m-0 primary-txt text-base">
       {{ template "settings-page-mfa-section-title" }}
     </p>
-    <p class="margin-0 secondary-txt text-xs">
+    <p class="m-0 secondary-txt text-xs">
       {{ template "settings-page-mfa-section-description" }}
     </p>
   </a>
@@ -326,23 +326,23 @@
 
   {{ if $.ShowBiometric }}
   <!-- Biometric -->
-  <a class="settings-security-item padding-12 tablet:padding-12 desktop:padding-16 rounded-md not-a grid grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/biometric">
+  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/biometric">
     <i class="ti ti-fingerprint text-32 block primary-txt" aria-hidden="true"></i>
-    <p class="margin-0 primary-txt text-base">
+    <p class="m-0 primary-txt text-base">
       {{ template "settings-page-biometric-section-title" }}
     </p>
-    <p class="margin-0 secondary-txt text-xs">
+    <p class="m-0 secondary-txt text-xs">
       {{ template "settings-page-biometric-section-description" }}
     </p>
   </a>
   {{ end }}
 
-  <a class="settings-security-item padding-12 tablet:padding-12 desktop:padding-16 rounded-md not-a grid grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/sessions">
+  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/sessions">
     <i class="ti ti-shield-check text-32 block primary-txt" aria-hidden="true"></i>
-    <p class="margin-0 primary-txt text-base">
+    <p class="m-0 primary-txt text-base">
       {{ template "settings-page-session-section-title" }}
     </p>
-    <p class="margin-0 secondary-txt text-xs">
+    <p class="m-0 secondary-txt text-xs">
       {{ template "settings-page-session-section-description" }}
     </p>
   </a>
@@ -351,9 +351,9 @@
 </div>
 
 {{ if $.ClientURI }}
-<div class="pane padding-v-16 padding-h-20 flex justify-center">
+<div class="pane py-4 px-5 flex justify-center">
   <a class="link text-sm" href="{{ $.ClientURI }}">
-    <i class="ti ti-logout margin-r-10"></i>
+    <i class="ti ti-logout mr-2.5"></i>
     {{ template "back-to-app-label" }}
   </a>
 </div>

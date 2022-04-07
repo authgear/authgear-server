@@ -3,38 +3,38 @@
 {{ define "page-content" }}
 <div class="pane flex flex-col">
 
-<div class="padding-h-16">
+<div class="px-4">
   {{ template "__nav_bar.html" "/settings" }}
 </div>
 
-<div class="padding-h-20 padding-t-16 padding-b-20 row-sep grid grid-cols-1 auto-rows-auto gap-y-1">
-  <h1 class="margin-0 primary-txt text-xl font-bold">
+<div class="px-5 pt-4 pb-5 row-sep grid grid-cols-1 auto-rows-auto gap-y-1">
+  <h1 class="m-0 primary-txt text-xl font-bold">
     {{ template "settings-sessions-title" }}
   </h1>
-  <p class="margin-0 secondary-txt text-sm">
+  <p class="m-0 secondary-txt text-sm">
     {{ template "settings-sessions-description" }}
   </p>
 </div>
 
-<div class="twc-container-vertical row-sep padding-v-20">
+<div class="twc-container-vertical row-sep py-5">
 {{ range $.SessionGroups }}
-<div class="padding-h-20 flex flex-col divide-y">
-  <div class="flex flex-row space-x-2 padding-v-6 items-center">
+<div class="px-5 flex flex-col divide-y">
+  <div class="flex flex-row space-x-2 py-1.5 items-center">
     {{ $icon := "" }}
     {{ if eq .Type "grouped" }}{{ $icon = "devices" }}{{ else }}{{ $icon = "device-laptop" }}{{ end }}
     <i class="twc-title-icon ti ti-{{ $icon }} primary-txt text-sm" aria-hidden="true"></i>
-    <h2 class="flex-1 primary-txt text-base margin-0 truncate text-sm font-normal">{{ .DisplayName }}</h2>
+    <h2 class="flex-1 primary-txt text-base m-0 truncate text-sm font-normal">{{ .DisplayName }}</h2>
   </div>
   {{ range .Sessions }}
-  <div class="grid grid-cols-1fr-auto padding-v-6">
-    <p class="col-start-1 text-sm leading-normal margin-0 secondary-txt">
+  <div class="grid grid-cols-1fr-auto py-1.5">
+    <p class="col-start-1 text-sm leading-normal m-0 secondary-txt">
       {{ if and .LastAccessedByIPEnglishCountryName .LastAccessedByIPCountryCode }}
       {{ template "settings-sessions-item-title" (dict "countryName" .LastAccessedByIPEnglishCountryName "countryCode" .LastAccessedByIPCountryCode "ip" .LastAccessedByIP) }}
       {{ else }}
       {{ .LastAccessedByIP }}
       {{ end }}
     </p>
-    <p class="col-start-1 row-start-2 text-sm leading-normal margin-0 secondary-txt">
+    <p class="col-start-1 row-start-2 text-sm leading-normal m-0 secondary-txt">
       {{ $desc := .DisplayName }}
       {{ if .ApplicationName }}
       {{ $desc = .ApplicationName }}
@@ -65,7 +65,7 @@
   </div>
   {{ end }}
   {{ if .OfflineGrantIDs }}
-  <div class="grid padding-v-8">
+  <div class="grid py-2">
     <form method="post" novalidate>
       {{ $.CSRFField }}
       <input type="hidden" name="x_session_id" value="{{ index .OfflineGrantIDs 0 }}">
@@ -90,7 +90,7 @@
 {{ end }}
 </div>
 
-<div class="padding-20 row-sep">
+<div class="p-5 row-sep">
   <form method="post" novalidate>
     {{ $.CSRFField }}
     <button

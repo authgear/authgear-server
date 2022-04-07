@@ -15,16 +15,16 @@
 	<div class="pane flex flex-col">
 		{{ if $has_login_id }}{{ if (not (or $.PublicSignupDisabled $.AllowLoginOnly)) }}
 		<div class="flex flex-row">
-			<a class="not-a flex items-center justify-center flex-1 padding-v-16 signin-signup-link primary-txt current" href="/login" data-turbolinks-action="replace">{{ template "login-label" }}</a>
-			<a class="not-a flex items-center justify-center flex-1 padding-v-16 signin-signup-link primary-txt" href="/signup" data-turbolinks-action="replace">{{ template "signup-label" }}</a>
+			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link primary-txt current" href="/login" data-turbolinks-action="replace">{{ template "login-label" }}</a>
+			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link primary-txt" href="/signup" data-turbolinks-action="replace">{{ template "signup-label" }}</a>
 		</div>
 		{{ end }}{{ end }}
 
-		<div class="twc-container-vertical padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
+		<div class="twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
 			<form class="twc-container-vertical" method="post" novalidate>
 				{{ $.CSRFField }}
 
-				<h1 class="margin-0 primary-txt text-center text-xl font-bold">
+				<h1 class="m-0 primary-txt text-center text-xl font-bold">
 					{{ if $.ClientName }}
 					{{ template "log-in-to-continue" (dict "AppOrClientName" $.ClientName) }}
 					{{ else }}
@@ -89,7 +89,7 @@
 
 			{{ if $has_oauth }}{{ if $has_login_id }}
 			<div class="alternative-separator flex flex-row items-center">
-				<span class="primary-txt margin-h-6 text-sm">{{ template "sso-login-id-separator-both-present" }}</span>
+				<span class="primary-txt mx-1.5 text-sm">{{ template "sso-login-id-separator-both-present" }}</span>
 			</div>
 			{{ end }}{{ end }}
 
@@ -140,7 +140,7 @@
 			{{ end }}
 
 			{{ if ($.Translations.HasKey "toc-pp-footer") }}
-			<p class="text-sm primary-txt margin-0">
+			<p class="text-sm primary-txt m-0">
 			{{ template "toc-pp-footer" (dict "termsOfService" (.Translations.RenderText "terms-of-service-link" nil) "privacyPolicy" (.Translations.RenderText "privacy-policy-link" nil)) }}
 			</p>
 			{{ end }}

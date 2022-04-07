@@ -6,7 +6,7 @@
 {{ if .FlashMessageType }}
 <div id="message-bar" class="messages-bar flex flex-row success">
     <div class="w-8 h-8 flex justify-center items-center good-txt"><i class="ti ti-circle-check"></i></div>
-    <ul class="messages-txt list-none flex flex-col flex-1 padding-0 margin-h-0 margin-v-6 text-sm">
+    <ul class="messages-txt list-none flex flex-col flex-1 p-0 mx-0 my-1.5 text-sm">
         {{ if (eq .FlashMessageType "resend_code_success") }}
             <li>{{ template "success-resend-code" }}</li>
         {{ end }}

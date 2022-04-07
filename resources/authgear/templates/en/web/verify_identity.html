@@ -2,14 +2,14 @@
 
 {{ define "page-content" }}
 
-<div class="pane twc-container-vertical padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
+<div class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
 
 {{ if $.IdentityDisplayID }}
 {{ if eq $.VerificationCodeChannel "sms" }}
-<h1 class="primary-txt margin-0 text-center text-xl font-bold">{{ template "verify-user-page-title--sms" }}</h1>
+<h1 class="primary-txt m-0 text-center text-xl font-bold">{{ template "verify-user-page-title--sms" }}</h1>
 {{ end }}
 {{ if eq $.VerificationCodeChannel "email" }}
-<h1 class="primary-txt margin-0 text-center text-xl font-bold">{{ template "verify-user-page-title--email" }}</h1>
+<h1 class="primary-txt m-0 text-center text-xl font-bold">{{ template "verify-user-page-title--email" }}</h1>
 {{ end }}
 {{ end }}
 
@@ -34,7 +34,7 @@
 	{{ if eq $.Action "update_session_step" }}readonly{{ end }}
 >
 <button
-	class="btn primary-btn margin-t-20"
+	class="btn primary-btn mt-5"
 	type="submit"
 	name="x_action"
 	value="{{ $.Action }}"
@@ -45,7 +45,7 @@
 </button>
 </form>
 
-<form class="link margin-b-20" method="post" novalidate>
+<form class="link mb-5" method="post" novalidate>
 {{ $.CSRFField }}
 
 {{ if not (eq $.Action "update_session_step") }}

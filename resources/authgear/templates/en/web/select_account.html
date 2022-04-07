@@ -1,9 +1,9 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<div class="pane twc-container-vertical padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
+<div class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
 
-<h1 class="primary-txt margin-0 text-center text-xl font-bold">
+<h1 class="primary-txt m-0 text-center text-xl font-bold">
     {{ if $.ClientName }}
     {{ template "select-account-title" (dict "AppOrClientName" $.ClientName) }}
     {{ else }}
@@ -12,16 +12,16 @@
     {{ end }}
 </h1>
 
-<p class="text-sm primary-txt margin-0 text-center">
+<p class="text-sm primary-txt m-0 text-center">
     {{ template "select-account-you-are-using-description" }}
 </p>
 
 <div class="primary-txt text-center flex flex-row justify-center justify-center">
     <i class="ti ti-user text-4xl leading-10"></i>
-    <span class="margin-l-8 truncate text-base leading-10">{{ $.IdentityDisplayName }}</span>
+    <span class="ml-2 truncate text-base leading-10">{{ $.IdentityDisplayName }}</span>
 </div>
 
-<div class="twc-container-vertical margin-t-20">
+<div class="twc-container-vertical mt-5">
     <form class="flex flex-col" method="post" novalidate>
     {{ $.CSRFField }}
     <button
