@@ -7,15 +7,19 @@ import { FormField, ParsedAPIError } from "./error/parse";
 import ErrorRenderer from "./ErrorRenderer";
 
 export interface FieldProps<T> {
+  disabled: boolean;
   errorMessage?: T;
 }
 
 export function useErrorMessage(formField: FormField): FieldProps<JSX.Element> {
-  const { errors } = useFormField(formField);
+  const { loading, errors } = useFormField(formField);
   if (errors.length <= 0) {
-    return {};
+    return {
+      disabled: loading,
+    };
   }
   return {
+    disabled: loading,
     errorMessage: <ErrorRenderer errors={errors} />,
   };
 }
@@ -45,12 +49,13 @@ export function useErrorMessageString(
   formField: FormField
 ): FieldProps<string> {
   const { renderToString } = useContext(Context);
-  const { errors } = useFormField(formField);
+  const { loading, errors } = useFormField(formField);
   const errorMessage = useMemo(
     () => renderErrors(errors, renderToString),
     [errors, renderToString]
   );
   return {
+    disabled: loading,
     errorMessage,
   };
 }

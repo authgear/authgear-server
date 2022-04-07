@@ -223,7 +223,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
       return [];
     }
     const rawLoginIdKeys = appConfig?.identity?.login_id?.keys ?? [];
-    return rawLoginIdKeys.map((loginIdKey) => loginIdKey.key);
+    return rawLoginIdKeys.map((loginIdKey) => loginIdKey.type);
   }, [appConfig]);
 
   const standardAttributeAccessControl = useMemo(() => {

@@ -9,7 +9,8 @@ import { ApolloProvider } from "@apollo/client";
 import authgear from "@authgear/web";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import AppsScreen from "./graphql/portal/AppsScreen";
-import CreateAppScreen from "./graphql/portal/CreateAppScreen";
+import CreateProjectScreen from "./graphql/portal/CreateProjectScreen";
+import ProjectWizardScreen from "./graphql/portal/ProjectWizardScreen";
 import AppRoot from "./AppRoot";
 import MESSAGES from "./locale-data/en.json";
 import { client } from "./graphql/portal/apollo";
@@ -27,8 +28,7 @@ import {
   mergeSystemConfig,
 } from "./system-config";
 import { loadTheme, Link as FluentLink, ILinkProps } from "@fluentui/react";
-import OnboardingConfigAppScreen from "./graphql/portal/OnboardingConfigAppScreen";
-import OnboardingCompletionScreen from "./graphql/portal/OnboardingCompletionScreen";
+import ProjectWizardDoneScreen from "./graphql/portal/ProjectWizardDoneScreen";
 import OnboardingRedirect from "./OnboardingRedirect";
 import { ReactRouterLink, ReactRouterLinkProps } from "./ReactRouterLink";
 import { AppRoute } from "./AppRoute";
@@ -67,7 +67,7 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
         <AppRoute
           requireAuth={true}
           path="/projects/create"
-          element={<CreateAppScreen />}
+          element={<CreateProjectScreen />}
         />
         <AppRoute
           requireAuth={true}
@@ -76,13 +76,13 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
         />
         <AppRoute
           requireAuth={true}
-          path="/project/:appID/onboarding"
-          element={<OnboardingConfigAppScreen />}
+          path="/project/:appID/wizard/*"
+          element={<ProjectWizardScreen />}
         />
         <AppRoute
           requireAuth={true}
-          path="/project/:appID/done"
-          element={<OnboardingCompletionScreen />}
+          path="/project/:appID/wizard/done"
+          element={<ProjectWizardDoneScreen />}
         />
         <AppRoute path="/oauth-redirect" element={<OAuthRedirect />} />
         <AppRoute

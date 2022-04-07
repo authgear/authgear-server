@@ -151,6 +151,7 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
 
   return (
     <FormProvider
+      loading={isUpdating}
       error={updateError ?? localError}
       rules={errorRules}
       fallbackErrorMessageID={fallbackErrorMessageID}

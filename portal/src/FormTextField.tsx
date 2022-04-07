@@ -12,7 +12,13 @@ export interface FormTextFieldProps extends ITextFieldProps {
 const FormTextField: React.FC<FormTextFieldProps> = function FormTextField(
   props: FormTextFieldProps
 ) {
-  const { parentJSONPointer, fieldName, errorRules, ...rest } = props;
+  const {
+    parentJSONPointer,
+    fieldName,
+    errorRules,
+    disabled: ownDisabled,
+    ...rest
+  } = props;
   const field = useMemo(
     () => ({
       parentJSONPointer,
@@ -21,8 +27,14 @@ const FormTextField: React.FC<FormTextFieldProps> = function FormTextField(
     }),
     [parentJSONPointer, fieldName, errorRules]
   );
-  const textFieldProps = useErrorMessage(field);
-  return <TextField {...rest} {...textFieldProps} />;
+  const { disabled: ctxDisabled, ...textFieldProps } = useErrorMessage(field);
+  return (
+    <TextField
+      {...rest}
+      {...textFieldProps}
+      disabled={ownDisabled ?? ctxDisabled}
+    />
+  );
 };
 
 export default FormTextField;

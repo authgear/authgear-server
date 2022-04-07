@@ -10,15 +10,16 @@ import {
 } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import ScreenHeader from "../../ScreenHeader";
-import styles from "./OnboardingCompletionScreen.module.scss";
+import styles from "./ProjectWizardDoneScreen.module.scss";
 import SignupScreenImg from "../../images/onboarding_signup_screen.png";
 import SettingScreenImg from "../../images/onboarding_settings_screen.png";
 import SSOLogoImg from "../../images/onboarding_sso_logo.png";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import ShowLoading from "../../ShowLoading";
+import ReactRouterLink from "../../ReactRouterLink";
 import { PortalAPIAppConfig } from "../../types";
 
-export interface OnboardingCompletionStepContentProps {
+export interface ProjectWizardDoneStepContentProps {
   image: string;
   titleId: string;
   messageId: string;
@@ -28,8 +29,8 @@ export interface OnboardingCompletionStepContentProps {
   actionHref?: string;
 }
 
-const OnboardingCompletionStepContent: React.FC<OnboardingCompletionStepContentProps> =
-  function OnboardingCompletionStepContent(props) {
+const ProjectWizardDoneStepContent: React.FC<ProjectWizardDoneStepContentProps> =
+  function ProjectWizardDoneStepContent(props) {
     const { renderToString } = useContext(Context);
     const {
       image,
@@ -70,37 +71,33 @@ const OnboardingCompletionStepContent: React.FC<OnboardingCompletionStepContentP
     );
   };
 
-interface ActionButtonProps {
-  iconProps: IIconProps;
-  labelId: string;
-  href: string;
+function makeActionButton(
+  iconProps: IIconProps
+): React.FC<React.AnchorHTMLAttributes<HTMLAnchorElement>> {
+  return function ActionButton(props) {
+    const { children, ...rest } = props;
+    return (
+      <a
+        className={styles.actionButton}
+        style={{ boxShadow: DefaultEffects.elevation4 }}
+        {...rest}
+      >
+        <Icon {...iconProps} className={styles.actionIcon} />
+        <Text className={styles.labelText}>{children}</Text>
+        <Icon className={styles.arrowIcon} iconName="ChromeBackMirrored" />
+      </a>
+    );
+  };
 }
+const ActionButtonPortal = makeActionButton({ iconName: "PlugConnected" });
+const ActionButtonDocs = makeActionButton({ iconName: "ReadingMode" });
 
-const ActionButton: React.FC<ActionButtonProps> = function ActionButton(props) {
-  const { iconProps, labelId, href } = props;
-  return (
-    <a
-      className={styles.actionButton}
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      style={{ boxShadow: DefaultEffects.elevation4 }}
-    >
-      <Icon {...iconProps} className={styles.actionIcon} />
-      <Text className={styles.labelText}>
-        <FormattedMessage id={labelId} />
-      </Text>
-      <Icon className={styles.arrowIcon} iconName="ChromeBackMirrored" />
-    </a>
-  );
-};
-
-interface OnboardingCompletionContentProps {
+interface ProjectWizardDoneContentProps {
   config: PortalAPIAppConfig;
 }
 
-const OnboardingCompletionContent: React.FC<OnboardingCompletionContentProps> =
-  function OnboardingCompletionContent(props) {
+const ProjectWizardDoneContent: React.FC<ProjectWizardDoneContentProps> =
+  function ProjectWizardDoneContent(props) {
     const { appID } = useParams();
 
     const { config } = props;
@@ -130,58 +127,60 @@ const OnboardingCompletionContent: React.FC<OnboardingCompletionContentProps> =
           >
             <div className={styles.mainSection}>
               <Text className={styles.pageTitle} block={true} variant="xLarge">
-                <FormattedMessage id="OnboardingCompletion.title" />
+                <FormattedMessage id="ProjectWizardDoneScreen.title" />
               </Text>
               <Text className={styles.pageDesc} block={true} variant="small">
-                <FormattedMessage id="OnboardingCompletion.desc" />
+                <FormattedMessage id="ProjectWizardDoneScreen.desc" />
               </Text>
               <Text className={styles.completionMessage} block={true}>
-                <FormattedMessage id="OnboardingCompletion.completion-message" />
+                <FormattedMessage id="ProjectWizardDoneScreen.completion-message" />
               </Text>
               {!loginIDDisabled && (
-                <OnboardingCompletionStepContent
+                <ProjectWizardDoneStepContent
                   image={SignupScreenImg}
-                  titleId="OnboardingCompletion.signup-login.title"
-                  messageId="OnboardingCompletion.signup-login.desc"
+                  titleId="ProjectWizardDoneScreen.signup-login.title"
+                  messageId="ProjectWizardDoneScreen.signup-login.desc"
                   stepCount={1}
-                  actionLabelId="OnboardingCompletion.signup-login.action"
+                  actionLabelId="ProjectWizardDoneScreen.signup-login.action"
                   actionHref={endpoint}
                 />
               )}
               {!loginIDDisabled && (
-                <OnboardingCompletionStepContent
+                <ProjectWizardDoneStepContent
                   image={SettingScreenImg}
-                  titleId="OnboardingCompletion.settings.title"
-                  messageId="OnboardingCompletion.settings.desc"
+                  titleId="ProjectWizardDoneScreen.settings.title"
+                  messageId="ProjectWizardDoneScreen.settings.desc"
                   stepCount={2}
                   imageAlignRight={true}
                 />
               )}
               {loginIDDisabled && (
-                <OnboardingCompletionStepContent
+                <ProjectWizardDoneStepContent
                   image={SSOLogoImg}
-                  titleId="OnboardingCompletion.sso.title"
-                  messageId="OnboardingCompletion.sso.desc"
-                  actionLabelId="OnboardingCompletion.sso.action"
+                  titleId="ProjectWizardDoneScreen.sso.title"
+                  messageId="ProjectWizardDoneScreen.sso.desc"
+                  actionLabelId="ProjectWizardDoneScreen.sso.action"
                   actionHref={portalSSOEndpoint}
                 />
               )}
             </div>
             <div className={styles.nowYouMaySection}>
               <Text className={styles.title}>
-                <FormattedMessage id="OnboardingCompletion.now-you-may.title" />
+                <FormattedMessage id="ProjectWizardDoneScreen.now-you-may.title" />
               </Text>
-
-              <ActionButton
-                labelId="OnboardingCompletion.now-you-may.portal.label"
-                iconProps={{ iconName: "PlugConnected" }}
-                href={portalAppEndpoint}
-              />
-              <ActionButton
-                labelId="OnboardingCompletion.now-you-may.doc.label"
-                iconProps={{ iconName: "ReadingMode" }}
+              <ReactRouterLink
+                to={portalAppEndpoint}
+                component={ActionButtonPortal}
+              >
+                <FormattedMessage id="ProjectWizardDoneScreen.now-you-may.portal.label" />
+              </ReactRouterLink>
+              <ActionButtonDocs
                 href="https://docs.authgear.com/"
-              />
+                target="_blank"
+                rel="noreferrer"
+              >
+                <FormattedMessage id="ProjectWizardDoneScreen.now-you-may.doc.label" />
+              </ActionButtonDocs>
             </div>
           </div>
         </div>
@@ -189,22 +188,21 @@ const OnboardingCompletionContent: React.FC<OnboardingCompletionContentProps> =
     );
   };
 
-const OnboardingCompletionScreen: React.FC =
-  function OnboardingCompletionScreen() {
-    const { appID } = useParams();
+const ProjectWizardDoneScreen: React.FC = function ProjectWizardDoneScreen() {
+  const { appID } = useParams();
 
-    const { effectiveAppConfig, loading } = useAppAndSecretConfigQuery(appID);
+  const { effectiveAppConfig, loading } = useAppAndSecretConfigQuery(appID);
 
-    if (loading || !effectiveAppConfig) {
-      return <ShowLoading />;
-    }
+  if (loading || !effectiveAppConfig) {
+    return <ShowLoading />;
+  }
 
-    return (
-      <div className={styles.root}>
-        <ScreenHeader />
-        <OnboardingCompletionContent config={effectiveAppConfig} />
-      </div>
-    );
-  };
+  return (
+    <div className={styles.root}>
+      <ScreenHeader />
+      <ProjectWizardDoneContent config={effectiveAppConfig} />
+    </div>
+  );
+};
 
-export default OnboardingCompletionScreen;
+export default ProjectWizardDoneScreen;

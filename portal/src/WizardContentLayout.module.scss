@@ -1,0 +1,39 @@
+.root {
+  display: grid;
+  padding: 24px;
+  column-gap: 16px;
+  row-gap: 20px;
+  grid-template-columns: repeat(6, 80px);
+  grid-auto-rows: auto;
+  align-self: center;
+}
+
+.content {
+  grid-column: 1 / span 6;
+  margin-top: 24px;
+  padding: 16px;
+  display: grid;
+  row-gap: 16px;
+  grid-template-columns: auto;
+  grid-auto-rows: auto;
+  background-color: white;
+}
+
+.title {
+  font-weight: 600;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+}
+
+.backButton {
+  margin: 0 10px;
+}
+
+.skip {
+  grid-column: 1 / span 6;
+  font-size: smaller;
+}

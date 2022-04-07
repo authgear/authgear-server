@@ -13,7 +13,6 @@ export const loginIDKeyTypes = ["email", "phone", "username"] as const;
 export type LoginIDKeyType = typeof loginIDKeyTypes[number];
 
 export interface LoginIDKeyConfig {
-  key: string;
   type: LoginIDKeyType;
   maximum?: number;
   modify_disabled?: boolean;

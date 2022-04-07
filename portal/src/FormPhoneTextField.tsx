@@ -11,7 +11,13 @@ export interface FormPhoneTextFieldProps extends PhoneTextFieldProps {
 
 const FormPhoneTextField: React.FC<FormPhoneTextFieldProps> =
   function FormPhoneTextField(props: FormPhoneTextFieldProps) {
-    const { parentJSONPointer, fieldName, errorRules, ...rest } = props;
+    const {
+      parentJSONPointer,
+      fieldName,
+      errorRules,
+      disabled: ownDisabled,
+      ...rest
+    } = props;
     const field = useMemo(
       () => ({
         parentJSONPointer,
@@ -20,8 +26,14 @@ const FormPhoneTextField: React.FC<FormPhoneTextFieldProps> =
       }),
       [parentJSONPointer, fieldName, errorRules]
     );
-    const textFieldProps = useErrorMessage(field);
-    return <PhoneTextField {...rest} {...textFieldProps} />;
+    const { disabled: ctxDisabled, ...textFieldProps } = useErrorMessage(field);
+    return (
+      <PhoneTextField
+        {...rest}
+        {...textFieldProps}
+        disabled={ownDisabled ?? ctxDisabled}
+      />
+    );
   };
 
 export default FormPhoneTextField;

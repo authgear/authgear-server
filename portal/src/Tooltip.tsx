@@ -42,6 +42,25 @@ export function useTooltipTargetElement(): UseTooltipTargetElementResult {
   };
 }
 
+export interface TooltipIconProps {
+  id?: string;
+  className?: string;
+  setRef?: React.RefCallback<unknown>;
+}
+
+export function TooltipIcon(props: TooltipIconProps): React.ReactElement {
+  const { id, setRef, className } = props;
+  return (
+    <Icon
+      id={id}
+      className={cn(className, styles.infoIcon)}
+      /* @ts-expect-error */
+      ref={setRef}
+      iconName="info"
+    />
+  );
+}
+
 const Tooltip: React.FC<TooltipProps> = function Tooltip(props: TooltipProps) {
   const { className, tooltipMessageId, children } = props;
   const tooltipProps: ITooltipProps = React.useMemo(() => {
@@ -63,11 +82,7 @@ const Tooltip: React.FC<TooltipProps> = function Tooltip(props: TooltipProps) {
         tooltipProps={tooltipProps}
         directionalHint={DirectionalHint.bottomCenter}
       >
-        {children ? (
-          children
-        ) : (
-          <Icon className={styles.infoIcon} iconName={"info"} />
-        )}
+        {children ? children : <TooltipIcon />}
       </TooltipHost>
     </div>
   );
