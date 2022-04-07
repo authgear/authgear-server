@@ -3,19 +3,19 @@
 {{ define "page-content" }}
 <div class="pane twc-container-vertical padding-t-12 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
 {{ template "__nav_bar.html" "/settings" }}
-	<h1 class="primary-txt text-center margin-0 text-xl font-bold">
+	<h1 class="primary-txt text-center m-0 text-xl font-bold">
 		{{ template "recovery-code-title" }}
 	</h1>
 
-	<p class="primary-txt text-center margin-0 text-sm whitespace-pre-wrap">{{ template "recovery-code-storage-description" }}</p>
-	<ol class="recovery-code-list margin-0 padding-v-20 padding-inline-end-20 grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-2 gap-x-5">
+	<p class="primary-txt text-center m-0 text-sm whitespace-pre-wrap">{{ template "recovery-code-storage-description" }}</p>
+	<ol class="recovery-code-list m-0 padding-v-20 padding-inline-end-20 grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-2 gap-x-5">
 		{{ range $.RecoveryCodes }}
 			<li class="font-mono whitespace-pre text-base leading-none margin-h-20 place-self-center">{{ . }}</li>
 		{{ end }}
 	</ol>
 	<code id="recovery-code-content" class="hidden">{{ template "__recovery_code.html" . }}</code>
 
-	<p class="text-sm primary-txt text-center margin-0">{{ template "recovery-code-consumption-description" }}</p>
+	<p class="text-sm primary-txt text-center m-0">{{ template "recovery-code-consumption-description" }}</p>
 
 	<div class="margin-t-20 grid gap-4 grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-2">
 		<form method="post" novalidate>

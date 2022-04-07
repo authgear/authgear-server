@@ -3,11 +3,11 @@
 {{ define "page-content" }}
 <div class="pane twc-container-vertical padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
 
-<h1 class="margin-0 primary-txt text-center text-xl font-bold">{{ template "wechat-auth-title" }}</h1>
+<h1 class="m-0 primary-txt text-center text-xl font-bold">{{ template "wechat-auth-title" }}</h1>
 
 {{ if .IsNativePlatform }}
 {{ if .WeChatRedirectURI }}
-<p class="text-sm break-words margin-0 primary-txt text-center">{{ template "wechat-auth-with-app-description" }}</p>
+<p class="text-sm break-words m-0 primary-txt text-center">{{ template "wechat-auth-with-app-description" }}</p>
 
 <div class="twc-container-vertical margin-v-20">
 <a class="as-btn not-a btn primary-btn"
@@ -28,7 +28,7 @@
 </div>
 {{ end }}
 {{ else }}
-<p class="text-sm break-words margin-0 primary-txt text-center">{{ template "wechat-auth-with-qr-code-description" }}</p>
+<p class="text-sm break-words m-0 primary-txt text-center">{{ template "wechat-auth-with-qr-code-description" }}</p>
 
 <img class="w-48 place-self-center" src="{{ $.ImageURI }}">
 {{ end }}

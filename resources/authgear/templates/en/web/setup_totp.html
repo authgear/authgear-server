@@ -3,11 +3,11 @@
 {{ define "page-content" }}
 <div class="pane twc-container-vertical padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
 
-<h1 class="primary-txt text-center margin-0 text-xl font-bold">
+<h1 class="primary-txt text-center m-0 text-xl font-bold">
 	{{ template "setup-totp-title" }}
 </h1>
 
-<p class="text-sm primary-txt text-center margin-0">{{ template "setup-totp-description" }}</p>
+<p class="text-sm primary-txt text-center m-0">{{ template "setup-totp-description" }}</p>
 
 <form class="twc-container-vertical" method="post" novalidate>
 
@@ -45,9 +45,9 @@
 	data-authgear-event="authgear.button.setup_totp"
 >{{ template "next-button-label" }}</button>
 
-<p class="text-sm break-words primary-txt margin-0">{{ template "setup-totp-get-google-authenticator-description" }}</p>
+<p class="text-sm break-words primary-txt m-0">{{ template "setup-totp-get-google-authenticator-description" }}</p>
 
-<p class="text-sm break-words primary-txt whitespace-pre-wrap margin-0">{{ template "setup-totp-use-google-authenticator-description" }}</p>
+<p class="text-sm break-words primary-txt whitespace-pre-wrap m-0">{{ template "setup-totp-use-google-authenticator-description" }}</p>
 
 </form>
 

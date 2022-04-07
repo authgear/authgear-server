@@ -7,17 +7,17 @@
   </div>
 
   <div class="padding-h-20 padding-t-16 padding-b-20 row-sep grid grid-cols-1 auto-rows-auto gap-y-1">
-    <h1 class="margin-0 primary-txt text-xl font-bold">
+    <h1 class="m-0 primary-txt text-xl font-bold">
       {{ template "settings-totp-title" }}
     </h1>
   </div>
 
   {{ range $.Authenticators }}
     <form class="padding-20 row-sep grid grid-cols-1fr-auto auto-rows-auto gap-y-1 gap-x-2" method="post" novalidate>
-      <p class="col-start-1 col-span-1 self-center margin-0 primary-txt text-base">
+      <p class="col-start-1 col-span-1 self-center m-0 primary-txt text-base">
         {{ index .Claims "https://authgear.com/claims/totp/display_name" }}
       </p>
-      <p class="col-start-1 col-span-1 row-start-2 row-span-1 self-center margin-0 secondary-txt text-sm">
+      <p class="col-start-1 col-span-1 row-start-2 row-span-1 self-center m-0 secondary-txt text-sm">
         <!-- FIXME(ui): Use user preferred timezone -->
         {{ template "settings-totp-item-description" (dict "time" .CreatedAt "rfc3339" (rfc3339 .CreatedAt)) }}
       </p>

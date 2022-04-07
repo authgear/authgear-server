@@ -8,10 +8,10 @@
 </div>
 
 <div class="padding-h-20 padding-t-16 padding-b-20 row-sep grid grid-cols-1 auto-rows-auto gap-y-1">
-  <h1 class="margin-0 primary-txt text-xl font-bold">
+  <h1 class="m-0 primary-txt text-xl font-bold">
     {{ template "settings-sessions-title" }}
   </h1>
-  <p class="margin-0 secondary-txt text-sm">
+  <p class="m-0 secondary-txt text-sm">
     {{ template "settings-sessions-description" }}
   </p>
 </div>
@@ -23,18 +23,18 @@
     {{ $icon := "" }}
     {{ if eq .Type "grouped" }}{{ $icon = "devices" }}{{ else }}{{ $icon = "device-laptop" }}{{ end }}
     <i class="twc-title-icon ti ti-{{ $icon }} primary-txt text-sm" aria-hidden="true"></i>
-    <h2 class="flex-1 primary-txt text-base margin-0 truncate text-sm font-normal">{{ .DisplayName }}</h2>
+    <h2 class="flex-1 primary-txt text-base m-0 truncate text-sm font-normal">{{ .DisplayName }}</h2>
   </div>
   {{ range .Sessions }}
   <div class="grid grid-cols-1fr-auto padding-v-6">
-    <p class="col-start-1 text-sm leading-normal margin-0 secondary-txt">
+    <p class="col-start-1 text-sm leading-normal m-0 secondary-txt">
       {{ if and .LastAccessedByIPEnglishCountryName .LastAccessedByIPCountryCode }}
       {{ template "settings-sessions-item-title" (dict "countryName" .LastAccessedByIPEnglishCountryName "countryCode" .LastAccessedByIPCountryCode "ip" .LastAccessedByIP) }}
       {{ else }}
       {{ .LastAccessedByIP }}
       {{ end }}
     </p>
-    <p class="col-start-1 row-start-2 text-sm leading-normal margin-0 secondary-txt">
+    <p class="col-start-1 row-start-2 text-sm leading-normal m-0 secondary-txt">
       {{ $desc := .DisplayName }}
       {{ if .ApplicationName }}
       {{ $desc = .ApplicationName }}
