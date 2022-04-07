@@ -65,7 +65,7 @@
   </div>
   {{ end }}
   {{ if .OfflineGrantIDs }}
-  <div class="grid padding-v-8">
+  <div class="grid py-2">
     <form method="post" novalidate>
       {{ $.CSRFField }}
       <input type="hidden" name="x_session_id" value="{{ index .OfflineGrantIDs 0 }}">

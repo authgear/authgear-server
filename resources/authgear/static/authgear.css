@@ -131,11 +131,6 @@ h1, h2, h3, h4, h5, h6 {
   padding-inline-end: 20px;
 }
 
-.padding-v-8 {
-  padding-top: 8px;
-  padding-bottom: 8px;
-}
-
 .padding-v-10 {
   padding-top: 10px;
   padding-bottom: 10px;
