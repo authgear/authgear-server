@@ -5,10 +5,13 @@ import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import WizardScreenLayout from "../../WizardScreenLayout";
 import WizardContentLayout from "../../WizardContentLayout";
 import FormTextField from "../../FormTextField";
+import ShowError from "../../ShowError";
+import ShowLoading from "../../ShowLoading";
 import { FormErrorMessageBar } from "../../FormErrorMessageBar";
 import { FormProvider } from "../../form";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useCreateAppMutation } from "./mutations/createAppMutation";
+import { useAppListQuery } from "./query/appListQuery";
 import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 import { useSimpleForm } from "../../hook/useSimpleForm";
 
@@ -45,7 +48,12 @@ const errorRules: ErrorParseRule[] = [
   ),
 ];
 
-const CreateProjectScreen: React.FC = function CreateProjectScreen() {
+interface CreateProjectScreenContentProps {
+  numberOfApps: number;
+}
+
+function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
+  const { numberOfApps } = props;
   const navigate = useNavigate();
   const { appHostSuffix } = useSystemConfig();
   const { createApp } = useCreateAppMutation();
@@ -103,7 +111,14 @@ const CreateProjectScreen: React.FC = function CreateProjectScreen() {
       <WizardScreenLayout>
         <FormErrorMessageBar />
         <WizardContentLayout
-          title={<FormattedMessage id="CreateProjectScreen.title" />}
+          title={
+            <FormattedMessage
+              id="CreateProjectScreen.title"
+              values={{
+                apps: numberOfApps,
+              }}
+            />
+          }
           backButtonDisabled={true}
           primaryButton={
             <PrimaryButton onClick={onSubmitForm}>
@@ -131,6 +146,20 @@ const CreateProjectScreen: React.FC = function CreateProjectScreen() {
       </WizardScreenLayout>
     </FormProvider>
   );
+}
+
+const CreateProjectScreen: React.FC = function CreateProjectScreen() {
+  const { loading, error, apps, refetch } = useAppListQuery();
+
+  if (loading) {
+    return <ShowLoading />;
+  }
+
+  if (error != null) {
+    return <ShowError error={error} onRetry={refetch} />;
+  }
+
+  return <CreateProjectScreenContent numberOfApps={apps?.length ?? 0} />;
 };
 
 export default CreateProjectScreen;
