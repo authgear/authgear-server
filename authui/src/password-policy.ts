@@ -1,6 +1,7 @@
+import { Controller } from "@hotwired/stimulus";
 import zxcvbn from "zxcvbn";
 
-function checkPasswordLength(value: string, el: HTMLInputElement | null) {
+function checkPasswordLength(value: string, el: HTMLElement) {
   if (el == null) {
     return;
   }
@@ -8,58 +9,64 @@ function checkPasswordLength(value: string, el: HTMLInputElement | null) {
   const codePoints = Array.from(value);
   if (codePoints.length >= minLength) {
     el.classList.add("good-txt");
+  } else {
+    el.classList.add("error-txt");
   }
 }
 
-function checkPasswordUppercase(value: string, el: HTMLInputElement | null) {
+function checkPasswordUppercase(value: string, el: HTMLElement) {
   if (el == null) {
     return;
   }
   if (/[A-Z]/.test(value)) {
     el.classList.add("good-txt");
+  } else {
+    el.classList.add("error-txt");
   }
 }
 
-function checkPasswordLowercase(value: string, el: HTMLInputElement | null) {
+function checkPasswordLowercase(value: string, el: HTMLElement) {
   if (el == null) {
     return;
   }
   if (/[a-z]/.test(value)) {
     el.classList.add("good-txt");
+  } else {
+    el.classList.add("error-txt");
   }
 }
 
-function checkPasswordDigit(value: string, el: HTMLInputElement | null) {
+function checkPasswordDigit(value: string, el: HTMLElement) {
   if (el == null) {
     return;
   }
   if (/[0-9]/.test(value)) {
     el.classList.add("good-txt");
+  } else {
+    el.classList.add("error-txt");
   }
 }
 
-function checkPasswordSymbol(value: string, el: HTMLInputElement | null) {
+function checkPasswordSymbol(value: string, el: HTMLElement) {
   if (el == null) {
     return;
   }
   if (/[^a-zA-Z0-9]/.test(value)) {
     el.classList.add("good-txt");
+  } else {
+    el.classList.add("error-txt");
   }
 }
 
-function checkPasswordStrength(value: string) {
-  const meter: HTMLInputElement | null = document.querySelector(
-    "#password-strength-meter"
-  );
-  const desc: HTMLInputElement | null = document.querySelector(
-    "#password-strength-meter-description"
-  );
-  if (meter == null || desc == null) {
-    return;
-  }
-
-  meter.value = "0";
-  desc.textContent = "";
+function checkPasswordStrength(
+  value: string,
+  currentMeter: HTMLMeterElement,
+  currentMeterDescription: HTMLElement,
+  requiredMeter: HTMLMeterElement | null | undefined,
+  strengthTarget: HTMLElement | null | undefined
+) {
+  currentMeter.value = 0;
+  currentMeterDescription.textContent = "";
 
   if (value === "") {
     return;
@@ -67,40 +74,100 @@ function checkPasswordStrength(value: string) {
 
   const result = zxcvbn(value);
   const score = Math.min(5, Math.max(1, result.score + 1));
-  meter.value = String(score);
-  desc.textContent = desc.getAttribute("data-desc-" + score);
-}
-
-function checkPasswordPolicy(e: Event) {
-  const el = e.currentTarget as HTMLInputElement;
-  const value = el.value;
-  const els = document.querySelectorAll(".password-policy");
-  for (let i = 0; i < els.length; ++i) {
-    els[i].classList.remove("error-txt", "good-txt");
-  }
-  checkPasswordLength(value, document.querySelector(".password-policy.length"));
-  checkPasswordUppercase(
-    value,
-    document.querySelector(".password-policy.uppercase")
+  currentMeter.value = score;
+  currentMeterDescription.textContent = currentMeterDescription.getAttribute(
+    "data-desc-" + score
   );
-  checkPasswordLowercase(
-    value,
-    document.querySelector(".password-policy.lowercase")
-  );
-  checkPasswordDigit(value, document.querySelector(".password-policy.digit"));
-  checkPasswordSymbol(value, document.querySelector(".password-policy.symbol"));
-  checkPasswordStrength(value);
-}
 
-export function setupPasswordPolicy(): () => void {
-  const elems = document.querySelectorAll("[data-password-policy-password]");
-  for (let i = 0; i < elems.length; i++) {
-    elems[i].addEventListener("input", checkPasswordPolicy);
-  }
-
-  return () => {
-    for (let i = 0; i < elems.length; i++) {
-      elems[i].removeEventListener("input", checkPasswordPolicy);
+  if (requiredMeter != null && strengthTarget != null) {
+    if (currentMeter.value >= requiredMeter.value) {
+      strengthTarget.classList.add("good-txt");
+    } else {
+      strengthTarget.classList.add("error-txt");
     }
-  };
+  }
+}
+
+export class PasswordPolicyController extends Controller {
+  static targets = [
+    "input",
+
+    "currentMeter",
+    "currentMeterDescription",
+
+    "item",
+
+    "length",
+    "uppercase",
+    "lowercase",
+    "digit",
+    "symbol",
+    "strength",
+    "requiredMeter",
+  ];
+
+  declare inputTarget: HTMLInputElement;
+  declare currentMeterTarget: HTMLMeterElement;
+  declare currentMeterDescriptionTarget: HTMLElement;
+  declare itemTargets: HTMLElement[];
+
+  declare hasLengthTarget: boolean;
+  declare lengthTarget: HTMLElement;
+
+  declare hasUppercaseTarget: boolean;
+  declare uppercaseTarget: HTMLElement;
+
+  declare hasLowercaseTarget: boolean;
+  declare lowercaseTarget: HTMLElement;
+
+  declare hasDigitTarget: boolean;
+  declare digitTarget: HTMLElement;
+
+  declare hasSymbolTarget: boolean;
+  declare symbolTarget: HTMLElement;
+
+  declare hasStrengthTarget: boolean;
+  declare strengthTarget: HTMLElement;
+
+  declare hasRequiredMeterTarget: boolean;
+  declare requiredMeterTarget: HTMLMeterElement;
+
+  check() {
+    const value = this.inputTarget.value;
+    for (let i = 0; i < this.itemTargets.length; i++) {
+      this.itemTargets[i].classList.remove("error-txt", "good-txt");
+    }
+    if (this.hasLengthTarget) {
+      checkPasswordLength(value, this.lengthTarget);
+    }
+    if (this.hasUppercaseTarget) {
+      checkPasswordUppercase(value, this.uppercaseTarget);
+    }
+    if (this.hasLowercaseTarget) {
+      checkPasswordLowercase(value, this.lowercaseTarget);
+    }
+    if (this.hasDigitTarget) {
+      checkPasswordDigit(value, this.digitTarget);
+    }
+    if (this.hasSymbolTarget) {
+      checkPasswordSymbol(value, this.symbolTarget);
+    }
+    if (this.hasStrengthTarget && this.hasRequiredMeterTarget) {
+      checkPasswordStrength(
+        value,
+        this.currentMeterTarget,
+        this.currentMeterDescriptionTarget,
+        this.requiredMeterTarget,
+        this.strengthTarget
+      );
+    } else {
+      checkPasswordStrength(
+        value,
+        this.currentMeterTarget,
+        this.currentMeterDescriptionTarget,
+        null,
+        null
+      );
+    }
+  }
 }
