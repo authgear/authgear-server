@@ -37,6 +37,10 @@ func ConfigureLoginRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/login")
 }
 
+type TutorialCookie interface {
+	Pop(r *http.Request, rw http.ResponseWriter, name httputil.TutorialCookieName) bool
+}
+
 type LoginViewModel struct {
 	AllowLoginOnly bool
 }
@@ -47,6 +51,7 @@ type LoginHandler struct {
 	FormPrefiller     *FormPrefiller
 	Renderer          Renderer
 	AnalyticService   AnalyticService
+	TutorialCookie    TutorialCookie
 }
 
 func (h *LoginHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph, allowLoginOnly bool) (map[string]interface{}, error) {
@@ -56,6 +61,9 @@ func (h *LoginHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *i
 		AllowLoginOnly: allowLoginOnly,
 	}
 	viewmodels.EmbedForm(data, r.Form)
+	if h.TutorialCookie.Pop(r, rw, httputil.SignupLoginTutorialCookieName) {
+		baseViewModel.SetTutorial(httputil.SignupLoginTutorialCookieName)
+	}
 	viewmodels.Embed(data, baseViewModel)
 	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithGraph(graph)
 	viewmodels.Embed(data, authenticationViewModel)

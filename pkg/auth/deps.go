@@ -55,8 +55,10 @@ var DependencySet = wire.NewSet(
 
 	wire.Bind(new(webapp.GraphService), new(*interaction.Service)),
 	wire.Bind(new(webapp.CookieManager), new(*httputil.CookieManager)),
+	wire.Bind(new(webapp.TutorialMiddlewareTutorialCookie), new(*httputil.TutorialCookie)),
 	wire.Bind(new(handlerwebapp.CookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(oauthhandler.CookieManager), new(*httputil.CookieManager)),
+	wire.Bind(new(handlerwebapp.TutorialCookie), new(*httputil.TutorialCookie)),
 
 	wire.Bind(new(handlerwebapp.SelectAccountAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 

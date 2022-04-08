@@ -6,4 +6,5 @@ var DependencySet = wire.NewSet(
 	NewJSONResponseWriterLogger,
 	wire.Struct(new(JSONResponseWriter), "*"),
 	wire.Struct(new(FlashMessage), "*"),
+	wire.Struct(new(TutorialCookie), "*"),
 )

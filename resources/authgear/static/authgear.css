@@ -604,3 +604,17 @@ h1, h2, h3, h4, h5, h6 {
 .turbolinks-progress-bar {
   background: var(--color-primary-unshaded);
 }
+
+.tutorial {
+  background-color: var(--color-black-shaded-4);
+  color: var(--color-white-shaded-7);
+}
+
+@media (min-width: 1024px) {
+  .tutorial {
+    position: absolute;
+    width: 330px;
+    top: 20px;
+    right: 20px;
+  }
+}
