@@ -169,6 +169,8 @@
 
   --color-separator: #e5e5e5;
 
+  --color-settings-item-background: #f8f8f8;
+
   --color-password-strength-meter-0: #edebe9;
   --color-password-strength-meter-1: var(--color-error-unshaded);
   --color-password-strength-meter-2: #ffa133;
@@ -327,18 +329,19 @@
 }
 
 .settings-security-item {
-  border-color: var(--color-white-shaded-8);
-  background-color: var(--color-white-shaded-8);
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--color-settings-item-background);
+  background-color: var(--color-settings-item-background);
 }
 .settings-security-item:focus {
-  border-color: var(--color-white-shaded-8);
-  background-color: var(--color-white-shaded-8);
+  border-color: var(--color-primary-unshaded);
 }
 .settings-security-item:hover {
   border-color: var(--color-primary-unshaded);
 }
 .settings-security-item:active {
-  background-color: var(--color-white-shaded-6);
+  border-color: var(--color-primary-unshaded);
 }
 
 /* <a> does not have disabled attribute */
