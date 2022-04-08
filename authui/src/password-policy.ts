@@ -1,10 +1,7 @@
 import { Controller } from "@hotwired/stimulus";
 import zxcvbn from "zxcvbn";
 
-function checkPasswordLength(
-  value: string,
-  el: HTMLElement | null | undefined
-) {
+function checkPasswordLength(value: string, el: HTMLElement) {
   if (el == null) {
     return;
   }
@@ -17,10 +14,7 @@ function checkPasswordLength(
   }
 }
 
-function checkPasswordUppercase(
-  value: string,
-  el: HTMLElement | null | undefined
-) {
+function checkPasswordUppercase(value: string, el: HTMLElement) {
   if (el == null) {
     return;
   }
@@ -31,10 +25,7 @@ function checkPasswordUppercase(
   }
 }
 
-function checkPasswordLowercase(
-  value: string,
-  el: HTMLElement | null | undefined
-) {
+function checkPasswordLowercase(value: string, el: HTMLElement) {
   if (el == null) {
     return;
   }
@@ -45,7 +36,7 @@ function checkPasswordLowercase(
   }
 }
 
-function checkPasswordDigit(value: string, el: HTMLElement | null | undefined) {
+function checkPasswordDigit(value: string, el: HTMLElement) {
   if (el == null) {
     return;
   }
@@ -56,10 +47,7 @@ function checkPasswordDigit(value: string, el: HTMLElement | null | undefined) {
   }
 }
 
-function checkPasswordSymbol(
-  value: string,
-  el: HTMLElement | null | undefined
-) {
+function checkPasswordSymbol(value: string, el: HTMLElement) {
   if (el == null) {
     return;
   }
@@ -122,30 +110,64 @@ export class PasswordPolicyController extends Controller {
   declare currentMeterTarget: HTMLMeterElement;
   declare currentMeterDescriptionTarget: HTMLElement;
   declare itemTargets: HTMLElement[];
-  declare lengthTarget: HTMLElement | null | undefined;
-  declare uppercaseTarget: HTMLElement | null | undefined;
-  declare lowercaseTarget: HTMLElement | null | undefined;
-  declare digitTarget: HTMLElement | null | undefined;
-  declare symbolTarget: HTMLElement | null | undefined;
-  declare strengthTarget: HTMLElement | null | undefined;
-  declare requiredMeterTarget: HTMLMeterElement | null | undefined;
+
+  declare hasLengthTarget: boolean;
+  declare lengthTarget: HTMLElement;
+
+  declare hasUppercaseTarget: boolean;
+  declare uppercaseTarget: HTMLElement;
+
+  declare hasLowercaseTarget: boolean;
+  declare lowercaseTarget: HTMLElement;
+
+  declare hasDigitTarget: boolean;
+  declare digitTarget: HTMLElement;
+
+  declare hasSymbolTarget: boolean;
+  declare symbolTarget: HTMLElement;
+
+  declare hasStrengthTarget: boolean;
+  declare strengthTarget: HTMLElement;
+
+  declare hasRequiredMeterTarget: boolean;
+  declare requiredMeterTarget: HTMLMeterElement;
 
   check() {
     const value = this.inputTarget.value;
     for (let i = 0; i < this.itemTargets.length; i++) {
       this.itemTargets[i].classList.remove("error-txt", "good-txt");
     }
-    checkPasswordLength(value, this.lengthTarget);
-    checkPasswordUppercase(value, this.uppercaseTarget);
-    checkPasswordLowercase(value, this.lowercaseTarget);
-    checkPasswordDigit(value, this.digitTarget);
-    checkPasswordSymbol(value, this.symbolTarget);
-    checkPasswordStrength(
-      value,
-      this.currentMeterTarget,
-      this.currentMeterDescriptionTarget,
-      this.requiredMeterTarget,
-      this.strengthTarget
-    );
+    if (this.hasLengthTarget) {
+      checkPasswordLength(value, this.lengthTarget);
+    }
+    if (this.hasUppercaseTarget) {
+      checkPasswordUppercase(value, this.uppercaseTarget);
+    }
+    if (this.hasLowercaseTarget) {
+      checkPasswordLowercase(value, this.lowercaseTarget);
+    }
+    if (this.hasDigitTarget) {
+      checkPasswordDigit(value, this.digitTarget);
+    }
+    if (this.hasSymbolTarget) {
+      checkPasswordSymbol(value, this.symbolTarget);
+    }
+    if (this.hasStrengthTarget && this.hasRequiredMeterTarget) {
+      checkPasswordStrength(
+        value,
+        this.currentMeterTarget,
+        this.currentMeterDescriptionTarget,
+        this.requiredMeterTarget,
+        this.strengthTarget
+      );
+    } else {
+      checkPasswordStrength(
+        value,
+        this.currentMeterTarget,
+        this.currentMeterDescriptionTarget,
+        null,
+        null
+      );
+    }
   }
 }
