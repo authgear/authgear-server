@@ -62,6 +62,7 @@ const ScreenNav: React.FC = function ScreenNav() {
 
   const links: NavLinkProps[] = useMemo(() => {
     const links = [
+      { textKey: "ScreenNav.getting-started", url: "getting-started" },
       ...(analyticEnabled
         ? [{ textKey: "ScreenNav.analytics", url: "analytics" }]
         : []),

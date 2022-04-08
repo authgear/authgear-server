@@ -99,6 +99,7 @@
   "TodoButtonWrapper.dialog-message": "This feature is not yet implemented",
 
   "ScreenNav.label": "Top-level tab navigation",
+  "ScreenNav.getting-started": "Getting Started",
   "ScreenNav.analytics": "Analytics",
   "ScreenNav.users": "User Management",
   "ScreenNav.authentication": "Authentication",
