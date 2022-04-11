@@ -1,0 +1,83 @@
+.root {
+  padding: 32px;
+}
+
+.title {
+  margin: 0;
+  grid-column: 1 / span 12;
+  font-weight: 600;
+}
+
+.description {
+  grid-row: 2 / span 1;
+  grid-column: 1 / span 10;
+}
+
+.counter {
+  grid-row: 2 / span 1;
+  grid-column: 11 / span 2;
+  font-weight: 600;
+  justify-self: end;
+}
+
+.cards {
+  grid-column: 1 / span 12;
+  display: grid;
+  grid-template-columns: auto;
+  grid-auto-rows: auto;
+  row-gap: 16px;
+}
+
+.card {
+  border: 1px solid rgba(204, 204, 204, 0.8);
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 52px auto 1fr;
+  grid-template-rows: repeat(3, auto);
+  column-gap: 18px;
+  row-gap: 8px;
+  cursor: pointer;
+}
+
+.cardIcon {
+  grid-column: 1 / span 1;
+  grid-row: 1 / span 3;
+  align-self: start;
+  height: 52px;
+}
+
+.cardTitle {
+  grid-column: 2 / span 2;
+  grid-row: 1 / span 1;
+  font-weight: 600;
+}
+
+.cardDescription {
+  grid-column: 2 / span 2;
+  grid-row: 2 / span 1;
+}
+
+.cardActionButton {
+  grid-column: 2 / span 1;
+  grid-row: 3 / span 1;
+  font-size: smaller;
+}
+
+.cardSkipButton {
+  grid-column: 3 / span 1;
+  grid-row: 3 / span 1;
+  font-size: smaller;
+}
+
+.helpText {
+  grid-column: 1 / span 12;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  white-space: pre;
+}
+
+.dismissButton {
+  grid-column: 1 / span 12;
+  justify-self: end;
+}
