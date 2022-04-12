@@ -625,3 +625,14 @@ export interface Session {
   lastAccessedByIP: string;
   displayName: string;
 }
+
+export interface TutorialStatusData {
+  skipped?: boolean;
+  progress: {
+    authui?: boolean;
+    customize_ui?: boolean;
+    create_application?: boolean;
+    sso?: boolean;
+    invite?: boolean;
+  };
+}

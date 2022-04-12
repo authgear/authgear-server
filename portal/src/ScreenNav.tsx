@@ -5,11 +5,14 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import { useQuery } from "@apollo/client";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { Context } from "@oursky/react-messageformat";
 import { INavLink, INavLinkGroup, Nav } from "@fluentui/react";
 import { useSystemConfig } from "./context/SystemConfigContext";
-import { useAppFeatureConfigQuery } from "./graphql/portal/query/appFeatureConfigQuery";
+import query from "./graphql/portal/query/ScreenNavQuery";
+import { ScreenNavQuery } from "./graphql/portal/query/__generated__/ScreenNavQuery";
+import { client } from "./graphql/portal/apollo";
 import { Location } from "history";
 
 function getAppRouterPath(location: Location) {
@@ -49,11 +52,18 @@ const ScreenNav: React.FC = function ScreenNav() {
   const { renderToString } = useContext(Context);
   const location = useLocation();
   const path = getAppRouterPath(location);
-  const featureConfig = useAppFeatureConfigQuery(appID);
+  const queryResult = useQuery<ScreenNavQuery>(query, {
+    client,
+    variables: {
+      id: appID,
+    },
+  });
+  const app =
+    queryResult.data?.node?.__typename === "App" ? queryResult.data.node : null;
   const showIntegrations =
-    !featureConfig.loading &&
-    (featureConfig.effectiveFeatureConfig?.google_tag_manager?.disabled ??
-      false) === false;
+    (app?.effectiveFeatureConfig.google_tag_manager?.disabled ?? false) ===
+    false;
+  const skippedTutorial = app?.tutorialStatus.data.skipped === true;
 
   const { auditLogEnabled, analyticEnabled } = useSystemConfig();
 
@@ -62,7 +72,9 @@ const ScreenNav: React.FC = function ScreenNav() {
 
   const links: NavLinkProps[] = useMemo(() => {
     const links = [
-      { textKey: "ScreenNav.getting-started", url: "getting-started" },
+      ...(skippedTutorial
+        ? []
+        : [{ textKey: "ScreenNav.getting-started", url: "getting-started" }]),
       ...(analyticEnabled
         ? [{ textKey: "ScreenNav.analytics", url: "analytics" }]
         : []),
@@ -179,7 +191,7 @@ const ScreenNav: React.FC = function ScreenNav() {
     ];
 
     return links;
-  }, [analyticEnabled, auditLogEnabled, showIntegrations]);
+  }, [analyticEnabled, auditLogEnabled, showIntegrations, skippedTutorial]);
 
   const [selectedKeys, selectedKey] = useMemo(() => {
     const matchedKeys: string[] = [];
@@ -260,6 +272,10 @@ const ScreenNav: React.FC = function ScreenNav() {
     },
     [selectedKeys]
   );
+
+  if (queryResult.loading) {
+    return null;
+  }
 
   return (
     <Nav

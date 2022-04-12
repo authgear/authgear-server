@@ -28,3 +28,6 @@ declare type GQL_UserStandardAttributes = import("./types").StandardAttributes;
 
 // eslint-disable-next-line no-undef
 declare type GQL_UserCustomAttributes = import("./types").CustomAttributes;
+
+// eslint-disable-next-line no-undef
+declare type GQL_TutorialStatusData = import("./types").TutorialStatusData;

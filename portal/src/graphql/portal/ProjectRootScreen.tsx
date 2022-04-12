@@ -1,15 +1,37 @@
 import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { useQuery } from "@apollo/client";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import { ScreenNavQuery } from "./query/__generated__/ScreenNavQuery";
+import query from "./query/ScreenNavQuery";
+import { client } from "./apollo";
 import ShowLoading from "../../ShowLoading";
 
 const ProjectRootScreen: React.FC = function ProjectRootScreen() {
+  const { appID } = useParams();
   const { analyticEnabled } = useSystemConfig();
   const navigate = useNavigate();
+  const queryResult = useQuery<ScreenNavQuery>(query, {
+    client,
+    variables: {
+      id: appID,
+    },
+  });
+  const app =
+    queryResult.data?.node?.__typename === "App" ? queryResult.data.node : null;
+  const { loading } = queryResult;
+  const skippedTutorial = app?.tutorialStatus.data.skipped === true;
+  const path = !skippedTutorial
+    ? "./getting-started"
+    : analyticEnabled
+    ? "./analytics"
+    : "./users/";
 
   useEffect(() => {
-    navigate(analyticEnabled ? "./analytics" : "./users/", { replace: true });
-  }, [navigate, analyticEnabled]);
+    if (!loading && app != null) {
+      navigate(path, { replace: true });
+    }
+  }, [loading, app, path, navigate]);
 
   return <ShowLoading />;
 };
