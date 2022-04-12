@@ -10,6 +10,23 @@ const (
 	ProgressInvite            = "invite"
 )
 
+func ProgressFromString(s string) (Progress, bool) {
+	switch Progress(s) {
+	case ProgressAuthui:
+		return ProgressAuthui, true
+	case ProgressCustomizeUI:
+		return ProgressCustomizeUI, true
+	case ProgressCreateApplication:
+		return ProgressCreateApplication, true
+	case ProgressSSO:
+		return ProgressSSO, true
+	case ProgressInvite:
+		return ProgressInvite, true
+	default:
+		return "", false
+	}
+}
+
 type Entry struct {
 	AppID string
 	Data  map[string]interface{}

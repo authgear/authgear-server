@@ -21,6 +21,14 @@ import query from "./query/ScreenNavQuery";
 import { client } from "./apollo";
 import { ScreenNavQuery } from "./query/__generated__/ScreenNavQuery";
 import { TutorialStatusData } from "../../types";
+import {
+  SkipAppTutorialMutation,
+  SkipAppTutorialMutationVariables,
+} from "./__generated__/SkipAppTutorialMutation";
+import {
+  SkipAppTutorialProgressMutation,
+  SkipAppTutorialProgressMutationVariables,
+} from "./__generated__/SkipAppTutorialProgressMutation";
 
 import iconKey from "../../images/getting-started-icon-key.png";
 import iconCustomize from "../../images/getting-started-icon-customize.png";
@@ -29,10 +37,6 @@ import iconSSO from "../../images/getting-started-icon-sso.png";
 import iconTeam from "../../images/getting-started-icon-team.png";
 import iconTick from "../../images/getting-started-icon-tick.png";
 import styles from "./GetStartedScreen.module.scss";
-import {
-  SkipAppTutorialMutation,
-  SkipAppTutorialMutationVariables,
-} from "./__generated__/SkipAppTutorialMutation";
 
 const skipAppTutorialMutation = gql`
   mutation SkipAppTutorialMutation($appID: String!) {
@@ -44,8 +48,26 @@ const skipAppTutorialMutation = gql`
   }
 `;
 
+const skipAppTutorialProgressMutation = gql`
+  mutation SkipAppTutorialProgressMutation(
+    $appID: String!
+    $progress: String!
+  ) {
+    skipAppTutorialProgress(input: { id: $appID, progress: $progress }) {
+      app {
+        id
+        tutorialStatus {
+          data
+        }
+      }
+    }
+  }
+`;
+
+type Progress = keyof TutorialStatusData["progress"];
+
 interface CardSpec {
-  key: keyof TutorialStatusData["progress"];
+  key: Progress;
   iconSrc: string;
   internalHref?: string;
 }
@@ -120,17 +142,25 @@ function Counter(props: CounterProps) {
 }
 
 interface CardProps {
-  cardKey: string;
+  cardKey: Progress;
   isDone: boolean;
   iconSrc: string;
-  skipEnabled: boolean;
+  skipDisabled: boolean;
+  skipProgress?: (progress: Progress) => Promise<void>;
   externalHref?: string;
   internalHref?: string;
 }
 
 function Card(props: CardProps) {
-  const { cardKey, isDone, iconSrc, skipEnabled, externalHref, internalHref } =
-    props;
+  const {
+    cardKey,
+    isDone,
+    iconSrc,
+    skipProgress,
+    skipDisabled,
+    externalHref,
+    internalHref,
+  } = props;
   const id = "GetStartedScreen.card." + cardKey;
   const onClickCard = useCallback(
     (e) => {
@@ -149,10 +179,20 @@ function Card(props: CardProps) {
     },
     [id]
   );
-  const onClickSkip = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
+
+  const onClickSkip = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      skipProgress?.(cardKey).then(
+        () => {},
+        () => {}
+      );
+    },
+    [skipProgress, cardKey]
+  );
+
   return (
     <div className={styles.card} role="button" onClick={onClickCard}>
       <Image
@@ -192,11 +232,12 @@ function Card(props: CardProps) {
           {" >"}
         </Link>
       )}
-      {skipEnabled && (
+      {skipProgress != null && (
         <Link
           className={styles.cardSkipButton}
           as="button"
           onClick={onClickSkip}
+          disabled={skipDisabled}
         >
           <FormattedMessage id="GetStartedScreen.card.skip-button.label" />
           {" >"}
@@ -209,10 +250,13 @@ function Card(props: CardProps) {
 interface CardsProps {
   publicOrigin?: string;
   tutorialStatusData: TutorialStatusData;
+  skipProgress: (progress: Progress) => Promise<void>;
+  skipDisabled: boolean;
 }
 
 function Cards(props: CardsProps) {
-  const { publicOrigin, tutorialStatusData } = props;
+  const { publicOrigin, tutorialStatusData, skipProgress, skipDisabled } =
+    props;
   return (
     <div className={styles.cards}>
       {cards.map((card) => {
@@ -221,7 +265,8 @@ function Cards(props: CardsProps) {
             key={card.key}
             cardKey={card.key}
             isDone={tutorialStatusData.progress[card.key] === true}
-            skipEnabled={card.key === "sso"}
+            skipProgress={card.key === "sso" ? skipProgress : undefined}
+            skipDisabled={skipDisabled}
             iconSrc={card.iconSrc}
             externalHref={
               card.internalHref == null && publicOrigin != null
@@ -290,13 +335,39 @@ export default function GetStartedScreen(): React.ReactElement {
     fetchPolicy: "network-only",
   });
 
-  const [mutationFunction, { loading: mutationLoading }] = useMutation<
-    SkipAppTutorialMutation,
-    SkipAppTutorialMutationVariables
-  >(skipAppTutorialMutation, {
+  const [
+    skipAppTutorialMutationFunction,
+    { loading: skipAppTutorialMutationLoading },
+  ] = useMutation<SkipAppTutorialMutation, SkipAppTutorialMutationVariables>(
+    skipAppTutorialMutation,
+    {
+      client,
+      refetchQueries: [{ query }],
+    }
+  );
+
+  const [
+    skipAppTutorialProgressMutationFuction,
+    { loading: skipAppTutorialProgressMutationLoading },
+  ] = useMutation<
+    SkipAppTutorialProgressMutation,
+    SkipAppTutorialProgressMutationVariables
+  >(skipAppTutorialProgressMutation, {
     client,
     refetchQueries: [{ query }],
   });
+
+  const skipProgress = useCallback(
+    async (progress: Progress) => {
+      await skipAppTutorialProgressMutationFuction({
+        variables: {
+          appID,
+          progress,
+        },
+      });
+    },
+    [appID, skipAppTutorialProgressMutationFuction]
+  );
 
   const app =
     queryResult.data?.node?.__typename === "App" ? queryResult.data.node : null;
@@ -308,7 +379,7 @@ export default function GetStartedScreen(): React.ReactElement {
       e.preventDefault();
       e.stopPropagation();
 
-      mutationFunction({
+      skipAppTutorialMutationFunction({
         variables: {
           appID,
         },
@@ -319,10 +390,11 @@ export default function GetStartedScreen(): React.ReactElement {
         () => {}
       );
     },
-    [appID, mutationFunction, navigate]
+    [appID, skipAppTutorialMutationFunction, navigate]
   );
 
-  const loading = queryResult.loading || appConfigLoading || mutationLoading;
+  const loading =
+    queryResult.loading || appConfigLoading || skipAppTutorialMutationLoading;
 
   if (loading || !tutorialStatusData || !effectiveAppConfig) {
     return <ShowLoading />;
@@ -340,6 +412,8 @@ export default function GetStartedScreen(): React.ReactElement {
       <Cards
         publicOrigin={effectiveAppConfig.http?.public_origin}
         tutorialStatusData={tutorialStatusData}
+        skipProgress={skipProgress}
+        skipDisabled={skipAppTutorialProgressMutationLoading}
       />
       <HelpText />
       <DismissButton onClick={onClickDismissButton} disabled={loading} />

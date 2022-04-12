@@ -333,6 +333,9 @@ type Mutation {
   """Skip the tutorial of the app"""
   skipAppTutorial(input: SkipAppTutorialInput!): SkipAppTutorialPayload!
 
+  """Skip a progress of the tutorial of the app"""
+  skipAppTutorialProgress(input: SkipAppTutorialProgressInput!): SkipAppTutorialProgressPayload!
+
   """Update app"""
   updateApp(input: UpdateAppInput!): UpdateAppPayload!
 
@@ -537,6 +540,21 @@ input SkipAppTutorialInput {
 
 """"""
 type SkipAppTutorialPayload {
+  """"""
+  app: App!
+}
+
+""""""
+input SkipAppTutorialProgressInput {
+  """ID of the app."""
+  id: String!
+
+  """The progress to skip."""
+  progress: String!
+}
+
+""""""
+type SkipAppTutorialProgressPayload {
   """"""
   app: App!
 }

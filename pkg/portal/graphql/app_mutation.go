@@ -11,6 +11,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/session"
@@ -338,6 +339,82 @@ var _ = registerMutationField(
 			}
 
 			err = gqlCtx.TutorialService.Skip(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			appLazy := gqlCtx.Apps.Load(appID)
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"app": appLazy,
+			}).Value, nil
+		},
+	},
+)
+
+var skipAppTutorialProgressInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SkipAppTutorialProgressInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"id": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "ID of the app.",
+		},
+		"progress": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "The progress to skip.",
+		},
+	},
+})
+
+var skipAppTutorialProgressPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "SkipAppTutorialProgressPayload",
+	Fields: graphql.Fields{
+		"app": &graphql.Field{
+			Type: graphql.NewNonNull(nodeApp),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"skipAppTutorialProgress",
+	&graphql.Field{
+		Description: "Skip a progress of the tutorial of the app",
+		Type:        graphql.NewNonNull(skipAppTutorialProgressPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(skipAppTutorialProgressInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			// Access Control: authenicated user.
+			sessionInfo := session.GetValidSessionInfo(p.Context)
+			if sessionInfo == nil {
+				return nil, AccessDenied.New("only authenticated users can create app")
+			}
+
+			input := p.Args["input"].(map[string]interface{})
+			appNodeID := input["id"].(string)
+			progressStr := input["progress"].(string)
+
+			resolvedNodeID := relay.FromGlobalID(appNodeID)
+			if resolvedNodeID.Type != typeApp {
+				return nil, apierrors.NewInvalid("invalid app ID")
+			}
+			appID := resolvedNodeID.ID
+
+			gqlCtx := GQLContext(p.Context)
+
+			// Access control: collaborator.
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			progress, ok := tutorial.ProgressFromString(progressStr)
+			if !ok {
+				return nil, apierrors.NewInvalid("invalid progress")
+			}
+
+			err = gqlCtx.TutorialService.RecordProgresses(appID, []tutorial.Progress{progress})
 			if err != nil {
 				return nil, err
 			}
