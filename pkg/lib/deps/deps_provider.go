@@ -37,6 +37,7 @@ var rootDeps = wire.NewSet(
 	wire.FieldsOf(new(*RootProvider),
 		"EnvironmentConfig",
 		"ConfigSourceConfig",
+		"DatabasePool",
 	),
 
 	envConfigDeps,

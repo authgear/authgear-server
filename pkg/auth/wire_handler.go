@@ -19,9 +19,6 @@ import (
 func newHealthzHandler(p *deps.RootProvider, w http.ResponseWriter, r *http.Request, ctx context.Context) http.Handler {
 	panic(wire.Build(
 		deps.RootDependencySet,
-		wire.FieldsOf(new(*deps.RootProvider),
-			"DatabasePool",
-		),
 		healthz.DependencySet,
 		wire.Bind(new(http.Handler), new(*healthz.Handler)),
 	))
