@@ -83,6 +83,7 @@ type AppResourceManagerFactory interface {
 type TutorialService interface {
 	Get(appID string) (*tutorial.Entry, error)
 	RecordProgresses(appID string, ps []tutorial.Progress) (err error)
+	Skip(appID string) (err error)
 }
 
 type AnalyticChartService interface {

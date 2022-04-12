@@ -8,9 +8,9 @@ import {
   ImageFit,
   Link,
 } from "@fluentui/react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { FormattedMessage } from "@oursky/react-messageformat";
-import { useQuery } from "@apollo/client";
+import { gql, useQuery, useMutation } from "@apollo/client";
 import ScreenContent from "../../ScreenContent";
 import ReactRouterLink from "../../ReactRouterLink";
 import ShowLoading from "../../ShowLoading";
@@ -29,6 +29,20 @@ import iconSSO from "../../images/getting-started-icon-sso.png";
 import iconTeam from "../../images/getting-started-icon-team.png";
 import iconTick from "../../images/getting-started-icon-tick.png";
 import styles from "./GetStartedScreen.module.scss";
+import {
+  SkipAppTutorialMutation,
+  SkipAppTutorialMutationVariables,
+} from "./__generated__/SkipAppTutorialMutation";
+
+const skipAppTutorialMutation = gql`
+  mutation SkipAppTutorialMutation($appID: String!) {
+    skipAppTutorial(input: { id: $appID }) {
+      app {
+        id
+      }
+    }
+  }
+`;
 
 interface CardSpec {
   key: keyof TutorialStatusData["progress"];
@@ -233,6 +247,7 @@ function HelpText() {
 
 interface DismissButtonProps {
   onClick?: IButtonProps["onClick"];
+  disabled?: IButtonProps["disabled"];
 }
 
 function DismissButton(props: DismissButtonProps) {
@@ -257,9 +272,14 @@ function DismissButton(props: DismissButtonProps) {
 
 export default function GetStartedScreen(): React.ReactElement {
   const { appID } = useParams();
+  const navigate = useNavigate();
 
-  const { effectiveAppConfig, loading, error, refetch } =
-    useAppAndSecretConfigQuery(appID);
+  const {
+    effectiveAppConfig,
+    loading: appConfigLoading,
+    error,
+    refetch,
+  } = useAppAndSecretConfigQuery(appID);
 
   const queryResult = useQuery<ScreenNavQuery>(query, {
     client,
@@ -270,16 +290,41 @@ export default function GetStartedScreen(): React.ReactElement {
     fetchPolicy: "network-only",
   });
 
+  const [mutationFunction, { loading: mutationLoading }] = useMutation<
+    SkipAppTutorialMutation,
+    SkipAppTutorialMutationVariables
+  >(skipAppTutorialMutation, {
+    client,
+    refetchQueries: [{ query }],
+  });
+
   const app =
     queryResult.data?.node?.__typename === "App" ? queryResult.data.node : null;
 
   const tutorialStatusData = app?.tutorialStatus.data;
 
-  if (queryResult.loading || !tutorialStatusData) {
-    return <ShowLoading />;
-  }
+  const onClickDismissButton = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-  if (loading || !effectiveAppConfig) {
+      mutationFunction({
+        variables: {
+          appID,
+        },
+      }).then(
+        () => {
+          navigate("../");
+        },
+        () => {}
+      );
+    },
+    [appID, mutationFunction, navigate]
+  );
+
+  const loading = queryResult.loading || appConfigLoading || mutationLoading;
+
+  if (loading || !tutorialStatusData || !effectiveAppConfig) {
     return <ShowLoading />;
   }
 
@@ -297,7 +342,7 @@ export default function GetStartedScreen(): React.ReactElement {
         tutorialStatusData={tutorialStatusData}
       />
       <HelpText />
-      <DismissButton />
+      <DismissButton onClick={onClickDismissButton} disabled={loading} />
     </ScreenContent>
   );
 }

@@ -330,6 +330,9 @@ type Mutation {
   """Send test STMP configuration email"""
   sendTestSMTPConfigurationEmail(input: sendTestSMTPConfigurationEmailInput!): Boolean
 
+  """Skip the tutorial of the app"""
+  skipAppTutorial(input: SkipAppTutorialInput!): SkipAppTutorialPayload!
+
   """Update app"""
   updateApp(input: UpdateAppInput!): UpdateAppPayload!
 
@@ -524,6 +527,18 @@ type SignupConversionRate {
 
   """"""
   totalSignupUniquePageView: Int!
+}
+
+""""""
+input SkipAppTutorialInput {
+  """ID of the app."""
+  id: String!
+}
+
+""""""
+type SkipAppTutorialPayload {
+  """"""
+  app: App!
 }
 
 """Tutorial status of an app"""

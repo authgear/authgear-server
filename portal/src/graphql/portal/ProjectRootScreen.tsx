@@ -16,6 +16,7 @@ const ProjectRootScreen: React.FC = function ProjectRootScreen() {
     variables: {
       id: appID,
     },
+    fetchPolicy: "network-only",
   });
   const app =
     queryResult.data?.node?.__typename === "App" ? queryResult.data.node : null;
