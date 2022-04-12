@@ -43,6 +43,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
+	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/backgroundjob"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -418,6 +419,22 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Database: writeHandle,
 		Store:    writeStore,
 	}
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	globaldbHandle := globaldb.NewHandle(ctx, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	globaldbSQLExecutor := globaldb.NewSQLExecutor(ctx, globaldbHandle)
+	tutorialStoreImpl := &tutorial.StoreImpl{
+		SQLBuilder:  globaldbSQLBuilder,
+		SQLExecutor: globaldbSQLExecutor,
+	}
+	tutorialService := &tutorial.Service{
+		Store: tutorialStoreImpl,
+	}
+	tutorialSink := &tutorial.Sink{
+		AppID:        configAppID,
+		Service:      tutorialService,
+		GlobalHandle: globaldbHandle,
+	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -434,7 +451,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(ctx, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	eventService := event.NewService(ctx, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
 		RateLimiter:          limiter,
