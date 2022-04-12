@@ -10,12 +10,17 @@ import {
 } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import { FormattedMessage } from "@oursky/react-messageformat";
+import { useQuery } from "@apollo/client";
 import ScreenContent from "../../ScreenContent";
 import ReactRouterLink from "../../ReactRouterLink";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
+import query from "./query/ScreenNavQuery";
+import { client } from "./apollo";
+import { ScreenNavQuery } from "./query/__generated__/ScreenNavQuery";
+import { TutorialStatusData } from "../../types";
 
 import iconKey from "../../images/getting-started-icon-key.png";
 import iconCustomize from "../../images/getting-started-icon-customize.png";
@@ -25,7 +30,13 @@ import iconTeam from "../../images/getting-started-icon-team.png";
 import iconTick from "../../images/getting-started-icon-tick.png";
 import styles from "./GetStartedScreen.module.scss";
 
-const cards = [
+interface CardSpec {
+  key: keyof TutorialStatusData["progress"];
+  iconSrc: string;
+  internalHref?: string;
+}
+
+const cards: CardSpec[] = [
   {
     key: "authui",
     iconSrc: iconKey,
@@ -69,11 +80,19 @@ function Description() {
 }
 
 interface CounterProps {
-  remaining: number;
+  tutorialStatusData: TutorialStatusData;
 }
 
 function Counter(props: CounterProps) {
-  const { remaining } = props;
+  const total = 5;
+  const { tutorialStatusData } = props;
+  let done = 0;
+  for (const [, val] of Object.entries(tutorialStatusData.progress)) {
+    if (val === true) {
+      ++done;
+    }
+  }
+  const remaining = total - done;
   return (
     <Text block={true} className={styles.counter}>
       <FormattedMessage
@@ -175,10 +194,11 @@ function Card(props: CardProps) {
 
 interface CardsProps {
   publicOrigin?: string;
+  tutorialStatusData: TutorialStatusData;
 }
 
 function Cards(props: CardsProps) {
-  const { publicOrigin } = props;
+  const { publicOrigin, tutorialStatusData } = props;
   return (
     <div className={styles.cards}>
       {cards.map((card) => {
@@ -186,7 +206,7 @@ function Cards(props: CardsProps) {
           <Card
             key={card.key}
             cardKey={card.key}
-            isDone={false}
+            isDone={tutorialStatusData.progress[card.key] === true}
             skipEnabled={card.key === "sso"}
             iconSrc={card.iconSrc}
             externalHref={
@@ -241,6 +261,24 @@ export default function GetStartedScreen(): React.ReactElement {
   const { effectiveAppConfig, loading, error, refetch } =
     useAppAndSecretConfigQuery(appID);
 
+  const queryResult = useQuery<ScreenNavQuery>(query, {
+    client,
+    variables: {
+      id: appID,
+    },
+    // Refresh each time this screen is visited.
+    fetchPolicy: "network-only",
+  });
+
+  const app =
+    queryResult.data?.node?.__typename === "App" ? queryResult.data.node : null;
+
+  const tutorialStatusData = app?.tutorialStatus.data;
+
+  if (queryResult.loading || !tutorialStatusData) {
+    return <ShowLoading />;
+  }
+
   if (loading || !effectiveAppConfig) {
     return <ShowLoading />;
   }
@@ -253,8 +291,11 @@ export default function GetStartedScreen(): React.ReactElement {
     <ScreenContent className={styles.root}>
       <Title />
       <Description />
-      <Counter remaining={5} />
-      <Cards publicOrigin={effectiveAppConfig.http?.public_origin} />
+      <Counter tutorialStatusData={tutorialStatusData} />
+      <Cards
+        publicOrigin={effectiveAppConfig.http?.public_origin}
+        tutorialStatusData={tutorialStatusData}
+      />
       <HelpText />
       <DismissButton />
     </ScreenContent>
