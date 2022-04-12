@@ -161,6 +161,13 @@ function Card(props: CardProps) {
     externalHref,
     internalHref,
   } = props;
+  const {
+    themes: {
+      main: {
+        palette: { themePrimary },
+      },
+    },
+  } = useSystemConfig();
   const id = "GetStartedScreen.card." + cardKey;
   const onClickCard = useCallback(
     (e) => {
@@ -197,7 +204,15 @@ function Card(props: CardProps) {
   );
 
   return (
-    <div className={styles.card} role="button" onClick={onClickCard}>
+    <div
+      className={styles.card}
+      style={{
+        // @ts-expect-error
+        "--hover-color": themePrimary,
+      }}
+      role="button"
+      onClick={onClickCard}
+    >
       <Image
         className={styles.cardIcon}
         src={isDone ? iconTick : iconSrc}
