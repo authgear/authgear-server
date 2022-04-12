@@ -3,6 +3,7 @@ package appresource_test
 import (
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/spf13/afero"
 	"sigs.k8s.io/yaml"
@@ -15,6 +16,9 @@ import (
 
 func TestManager(t *testing.T) {
 	Convey("ApplyUpdates", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
 		appID := "app-id"
 		cfg := &config.Config{
 			AppConfig:     configtest.FixtureAppConfig("app-id"),
@@ -31,11 +35,14 @@ func TestManager(t *testing.T) {
 			baseResourceFs,
 			appResourceFs,
 		})
+		tutorialService := NewMockTutorialService(ctrl)
+		tutorialService.EXPECT().OnUpdateResource(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
 
 		portalResMgr := &appresource.Manager{
 			AppResourceManager: resMgr,
 			AppFS:              appResourceFs,
 			AppFeatureConfig:   cfg.FeatureConfig,
+			Tutorials:          tutorialService,
 		}
 
 		applyUpdates := func(updates []appresource.Update) error {
@@ -89,6 +96,7 @@ func TestManager(t *testing.T) {
 					AppResourceManager: resMgr,
 					AppFS:              appResourceFs,
 					AppFeatureConfig:   fc,
+					Tutorials:          tutorialService,
 				}
 				_, err := portalResMgr.ApplyUpdates(appID, updates)
 				return err

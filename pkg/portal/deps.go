@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	appresource "github.com/authgear/authgear-server/pkg/portal/appresource/factory"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/endpoint"
@@ -86,4 +87,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(transport.SystemConfigProvider), new(*service.SystemConfigProvider)),
 
 	appresource.DependencySet,
+
+	tutorial.DependencySet,
 )

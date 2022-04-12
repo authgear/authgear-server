@@ -17,12 +17,19 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
+//go:generate mockgen -source=manager.go -destination=manager_mock_test.go -package appresource_test
+
 const ConfigFileMaxSize = 100 * 1024
+
+type TutorialService interface {
+	OnUpdateResource(ctx context.Context, appID string, resourcesInAllFss []resource.ResourceFile, resourceInTargetFs *resource.ResourceFile, data []byte) (err error)
+}
 
 type Manager struct {
 	AppResourceManager *resource.Manager
 	AppFS              resource.Fs
 	AppFeatureConfig   *config.FeatureConfig
+	Tutorials          TutorialService
 }
 
 func (m *Manager) List() ([]string, error) {
@@ -103,7 +110,7 @@ func (m *Manager) ApplyUpdates(appID string, updates []Update) ([]*resource.Reso
 	}
 
 	// Construct new resource manager.
-	newManager, files, err := m.applyUpdates(m.AppFS, updates)
+	newManager, files, err := m.applyUpdates(appID, m.AppFS, updates)
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +187,7 @@ func (m *Manager) getFromAllFss(desc resource.Descriptor) ([]resource.ResourceFi
 	return files, nil
 }
 
-func (m *Manager) applyUpdates(appFs resource.Fs, updates []Update) (*resource.Manager, []*resource.ResourceFile, error) {
+func (m *Manager) applyUpdates(appID string, appFs resource.Fs, updates []Update) (*resource.Manager, []*resource.ResourceFile, error) {
 	manager := m.AppResourceManager
 
 	newFs, err := cloneFS(appFs)
@@ -217,6 +224,11 @@ func (m *Manager) applyUpdates(appFs resource.Fs, updates []Update) (*resource.M
 
 		ctx := context.Background()
 		ctx = context.WithValue(ctx, configsource.ContextKeyFeatureConfig, m.AppFeatureConfig)
+
+		err = m.Tutorials.OnUpdateResource(ctx, appID, all, resrc, u.Data)
+		if err != nil {
+			return nil, nil, err
+		}
 
 		resrc, err = desc.UpdateResource(ctx, all, resrc, u.Data)
 		if err != nil {
