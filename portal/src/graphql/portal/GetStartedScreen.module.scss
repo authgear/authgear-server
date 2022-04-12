@@ -69,6 +69,10 @@
   font-size: smaller;
 }
 
+.card:hover .cardActionButton {
+  text-decoration: underline;
+}
+
 .cardSkipButton {
   grid-column: 3 / span 1;
   grid-row: 3 / span 1;
