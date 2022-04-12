@@ -252,6 +252,20 @@ var nodeApp = node(
 					return ctx.CollaboratorInvitations.LoadMany(ids).Value, nil
 				},
 			},
+			"tutorialStatus": &graphql.Field{
+				Type: graphql.NewNonNull(tutorialStatus),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					ctx := GQLContext(p.Context)
+					app := p.Source.(*model.App)
+
+					entry, err := ctx.TutorialService.Get(app.ID)
+					if err != nil {
+						return nil, err
+					}
+
+					return entry, nil
+				},
+			},
 		},
 	}),
 	&model.App{},

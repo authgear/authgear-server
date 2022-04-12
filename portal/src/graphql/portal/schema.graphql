@@ -56,6 +56,9 @@ type App implements Node {
 
   """"""
   secretConfig: SecretConfig!
+
+  """"""
+  tutorialStatus: TutorialStatus!
 }
 
 """The `AppConfig` scalar type represents an app config JSON object"""
@@ -522,6 +525,18 @@ type SignupConversionRate {
   """"""
   totalSignupUniquePageView: Int!
 }
+
+"""Tutorial status of an app"""
+type TutorialStatus {
+  """"""
+  appID: String!
+
+  """"""
+  data: TutorialStatusData!
+}
+
+"""The `TutorialStatusData` scalar type represents tutorial status data"""
+scalar TutorialStatusData
 
 """"""
 input UpdateAppInput {
