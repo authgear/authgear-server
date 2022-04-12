@@ -165,14 +165,17 @@ function Card(props: CardProps) {
   const onClickCard = useCallback(
     (e) => {
       const target = e.target;
-      const actionButton = document.getElementById(id);
-      if (target === actionButton) {
-        // The element being clicked is the action button.
-        // Let the event does its default and propagate.
+      // Do not intercept clicks on links.
+      if (target instanceof HTMLAnchorElement) {
+        return;
+      }
+      // Do not intercept clicks on buttons.
+      if (target instanceof HTMLButtonElement) {
         return;
       }
 
-      // Clicking the card is the same as clicking the action button.
+      // Otherwise clicking the card is the same as clicking the action button.
+      const actionButton = document.getElementById(id);
       e.preventDefault();
       e.stopPropagation();
       actionButton?.click();
