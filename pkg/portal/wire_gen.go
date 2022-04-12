@@ -260,6 +260,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SMTPService:             smtpService,
 		AppResMgrFactory:        managerFactory,
 		AnalyticChartService:    chartService,
+		TutorialService:         tutorialService,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		DevMode:        devMode,

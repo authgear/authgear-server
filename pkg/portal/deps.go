@@ -79,6 +79,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.SMTPService), new(*smtp.Service)),
 	wire.Bind(new(graphql.AppResourceManagerFactory), new(*appresource.ManagerFactory)),
 	wire.Bind(new(graphql.AnalyticChartService), new(*analytic.ChartService)),
+	wire.Bind(new(graphql.TutorialService), new(*tutorial.Service)),
 
 	transport.DependencySet,
 	wire.Bind(new(transport.AdminAPIService), new(*service.AdminAPIService)),
