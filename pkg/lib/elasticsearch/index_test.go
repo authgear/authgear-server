@@ -95,6 +95,117 @@ func TestMakeSearchBody(t *testing.T) {
 								"case_insensitive": true
 							}
 						}
+					},
+					{
+						"term": {
+							"oauth_subject_id": {
+								"value": "SH",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
+						"match": {
+							"family_name": {
+								"query": "SH"
+							}
+						}
+					},
+					{
+						"match": {
+							"given_name": {
+								"query": "SH"
+							}
+						}
+					},
+					{
+						"match": {
+							"middle_name": {
+								"query": "SH"
+							}
+						}
+					},
+					{
+						"match": {
+							"name": {
+								"query": "SH"
+							}
+						}
+					},
+					{
+						"match": {
+							"nickname": {
+								"query": "SH"
+							}
+						}
+					},
+					{
+						"match": {
+							"formatted": {
+								"query": "SH"
+							}
+						}
+					},
+					{
+						"match": {
+							"street_address": {
+								"query": "SH"
+							}
+						}
+					},
+					{
+						"match": {
+							"locality": {
+								"query": "SH"
+							}
+						}
+					},
+					{
+						"match": {
+							"region": {
+								"query": "SH"
+							}
+						}
+					},
+					{
+						"term": {
+							"gender": {
+								"case_insensitive": true,
+								"value": "SH"
+							}
+						}
+					},
+					{
+						"term": {
+							"zoneinfo": {
+								"case_insensitive": true,
+								"value": "SH"
+							}
+						}
+					},
+					{
+						"term": {
+							"locale": {
+								"case_insensitive": true,
+								"value": "SH"
+							}
+						}
+					},
+					{
+						"term": {
+							"country": {
+								"case_insensitive": true,
+								"value": "SH"
+							}
+						}
+					},
+					{
+						"term": {
+							"postal_code": {
+								"case_insensitive": true,
+								"value": "SH"
+							}
+						}
 					}
 					]
 				}
@@ -182,6 +293,117 @@ func TestMakeSearchBody(t *testing.T) {
 						}
 					},
 					{
+						"term": {
+							"oauth_subject_id": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
+						"match": {
+							"family_name": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"given_name": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"middle_name": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"name": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"nickname": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"formatted": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"street_address": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"locality": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"region": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"gender": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"zoneinfo": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"locale": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"country": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"postal_code": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
 						"prefix": {
 							"email_text": {
 								"value": "KEYWORD",
@@ -229,6 +451,15 @@ func TestMakeSearchBody(t *testing.T) {
 					{
 						"prefix": {
 							"phone_number_national_number_text": {
+								"value": "KEYWORD",
+								"case_insensitive": true,
+								"rewrite": "constant_score_boolean"
+							}
+						}
+					},
+					{
+						"prefix": {
+							"oauth_subject_id_text": {
 								"value": "KEYWORD",
 								"case_insensitive": true,
 								"rewrite": "constant_score_boolean"
@@ -321,6 +552,117 @@ func TestMakeSearchBody(t *testing.T) {
 						}
 					},
 					{
+						"term": {
+							"oauth_subject_id": {
+								"value": "example.com",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
+						"match": {
+							"family_name": {
+								"query": "example.com"
+							}
+						}
+					},
+					{
+						"match": {
+							"given_name": {
+								"query": "example.com"
+							}
+						}
+					},
+					{
+						"match": {
+							"middle_name": {
+								"query": "example.com"
+							}
+						}
+					},
+					{
+						"match": {
+							"name": {
+								"query": "example.com"
+							}
+						}
+					},
+					{
+						"match": {
+							"nickname": {
+								"query": "example.com"
+							}
+						}
+					},
+					{
+						"match": {
+							"formatted": {
+								"query": "example.com"
+							}
+						}
+					},
+					{
+						"match": {
+							"street_address": {
+								"query": "example.com"
+							}
+						}
+					},
+					{
+						"match": {
+							"locality": {
+								"query": "example.com"
+							}
+						}
+					},
+					{
+						"match": {
+							"region": {
+								"query": "example.com"
+							}
+						}
+					},
+					{
+						"term": {
+							"gender": {
+								"case_insensitive": true,
+								"value": "example.com"
+							}
+						}
+					},
+					{
+						"term": {
+							"zoneinfo": {
+								"case_insensitive": true,
+								"value": "example.com"
+							}
+						}
+					},
+					{
+						"term": {
+							"locale": {
+								"case_insensitive": true,
+								"value": "example.com"
+							}
+						}
+					},
+					{
+						"term": {
+							"country": {
+								"case_insensitive": true,
+								"value": "example.com"
+							}
+						}
+					},
+					{
+						"term": {
+							"postal_code": {
+								"case_insensitive": true,
+								"value": "example.com"
+							}
+						}
+					},
+					{
 						"prefix": {
 							"email_text": {
 								"value": "example.com",
@@ -368,6 +710,15 @@ func TestMakeSearchBody(t *testing.T) {
 					{
 						"prefix": {
 							"phone_number_national_number_text": {
+								"value": "example.com",
+								"case_insensitive": true,
+								"rewrite": "constant_score_boolean"
+							}
+						}
+					},
+					{
+						"prefix": {
+							"oauth_subject_id_text": {
 								"value": "example.com",
 								"case_insensitive": true,
 								"rewrite": "constant_score_boolean"
@@ -460,6 +811,117 @@ func TestMakeSearchBody(t *testing.T) {
 						}
 					},
 					{
+						"term": {
+							"oauth_subject_id": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
+						"match": {
+							"family_name": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"given_name": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"middle_name": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"name": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"nickname": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"formatted": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"street_address": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"locality": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"region": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"gender": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"zoneinfo": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"locale": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"country": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"postal_code": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
 						"prefix": {
 							"email_text": {
 								"value": "KEYWORD",
@@ -507,6 +969,15 @@ func TestMakeSearchBody(t *testing.T) {
 					{
 						"prefix": {
 							"phone_number_national_number_text": {
+								"value": "KEYWORD",
+								"case_insensitive": true,
+								"rewrite": "constant_score_boolean"
+							}
+						}
+					},
+					{
+						"prefix": {
+							"oauth_subject_id_text": {
 								"value": "KEYWORD",
 								"case_insensitive": true,
 								"rewrite": "constant_score_boolean"
@@ -599,6 +1070,117 @@ func TestMakeSearchBody(t *testing.T) {
 						}
 					},
 					{
+						"term": {
+							"oauth_subject_id": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
+						"match": {
+							"family_name": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"given_name": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"middle_name": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"name": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"nickname": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"formatted": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"street_address": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"locality": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"region": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"gender": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"zoneinfo": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"locale": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"country": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"postal_code": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
 						"prefix": {
 							"email_text": {
 								"value": "KEYWORD",
@@ -646,6 +1228,15 @@ func TestMakeSearchBody(t *testing.T) {
 					{
 						"prefix": {
 							"phone_number_national_number_text": {
+								"value": "KEYWORD",
+								"case_insensitive": true,
+								"rewrite": "constant_score_boolean"
+							}
+						}
+					},
+					{
+						"prefix": {
+							"oauth_subject_id_text": {
 								"value": "KEYWORD",
 								"case_insensitive": true,
 								"rewrite": "constant_score_boolean"
@@ -741,6 +1332,117 @@ func TestMakeSearchBody(t *testing.T) {
 						}
 					},
 					{
+						"term": {
+							"oauth_subject_id": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
+						"match": {
+							"family_name": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"given_name": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"middle_name": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"name": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"nickname": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"formatted": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"street_address": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"locality": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"match": {
+							"region": {
+								"query": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"gender": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"zoneinfo": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"locale": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"country": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
+						"term": {
+							"postal_code": {
+								"case_insensitive": true,
+								"value": "KEYWORD"
+							}
+						}
+					},
+					{
 						"prefix": {
 							"email_text": {
 								"value": "KEYWORD",
@@ -788,6 +1490,15 @@ func TestMakeSearchBody(t *testing.T) {
 					{
 						"prefix": {
 							"phone_number_national_number_text": {
+								"value": "KEYWORD",
+								"case_insensitive": true,
+								"rewrite": "constant_score_boolean"
+							}
+						}
+					},
+					{
+						"prefix": {
+							"oauth_subject_id_text": {
 								"value": "KEYWORD",
 								"case_insensitive": true,
 								"rewrite": "constant_score_boolean"

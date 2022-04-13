@@ -434,7 +434,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     userStore,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -1089,7 +1089,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     userStore,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -1683,7 +1683,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     userStore,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -2312,7 +2312,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     userStore,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -3175,7 +3175,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     userStore,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -3526,7 +3526,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     userStore,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -4128,7 +4128,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -4750,7 +4750,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -5453,7 +5453,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -6112,7 +6112,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -6771,7 +6771,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -7413,7 +7413,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -8056,7 +8056,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -8691,7 +8691,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -9329,7 +9329,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -9970,7 +9970,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -10608,7 +10608,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -11245,7 +11245,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -11883,7 +11883,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -12522,7 +12522,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -13159,7 +13159,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -13796,7 +13796,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -14435,7 +14435,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -15072,7 +15072,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -15709,7 +15709,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -16349,7 +16349,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -16986,7 +16986,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -17628,7 +17628,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -18265,7 +18265,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -18903,7 +18903,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -19540,7 +19540,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -20204,7 +20204,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -20852,7 +20852,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -21513,7 +21513,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -22153,7 +22153,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -22791,7 +22791,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -23438,7 +23438,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -24076,7 +24076,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -24714,7 +24714,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -25353,7 +25353,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -25996,7 +25996,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -26634,7 +26634,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -27272,7 +27272,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -27910,7 +27910,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -28548,7 +28548,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -29193,7 +29193,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -29832,7 +29832,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -30469,7 +30469,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -31125,7 +31125,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -31762,7 +31762,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
@@ -33030,7 +33030,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
-		Users:     store,
+		Users:     queries,
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,

@@ -17,13 +17,18 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/tasks"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
+
+type UserQueries interface {
+	Get(userID string, role accesscontrol.Role) (*model.User, error)
+}
 
 type Service struct {
 	AppID     config.AppID
 	Client    *elasticsearch.Client
-	Users     *libuser.Store
+	Users     UserQueries
 	OAuth     *identityoauth.Store
 	LoginID   *identityloginid.Store
 	TaskQueue task.Queue
@@ -49,7 +54,7 @@ func (s *Service) ReindexUser(userID string, isDelete bool) (err error) {
 		return nil
 	}
 
-	u, err := s.Users.Get(userID)
+	u, err := s.Users.Get(userID, accesscontrol.RoleGreatest)
 	if err != nil {
 		return
 	}
@@ -63,17 +68,19 @@ func (s *Service) ReindexUser(userID string, isDelete bool) (err error) {
 	}
 
 	raw := &model.ElasticsearchUserRaw{
-		ID:          u.ID,
-		AppID:       string(s.AppID),
-		CreatedAt:   u.CreatedAt,
-		UpdatedAt:   u.UpdatedAt,
-		LastLoginAt: u.MostRecentLoginAt,
-		IsDisabled:  u.IsDisabled,
+		ID:                 u.ID,
+		AppID:              string(s.AppID),
+		CreatedAt:          u.CreatedAt,
+		UpdatedAt:          u.UpdatedAt,
+		LastLoginAt:        u.LastLoginAt,
+		IsDisabled:         u.IsDisabled,
+		StandardAttributes: u.StandardAttributes,
 	}
 
 	var arrClaims []map[string]interface{}
 	for _, oauthI := range oauthIdentities {
 		arrClaims = append(arrClaims, oauthI.Claims)
+		raw.OAuthSubjectID = append(raw.OAuthSubjectID, oauthI.ProviderSubjectID)
 	}
 	for _, loginIDI := range loginIDIdentities {
 		arrClaims = append(arrClaims, loginIDI.Claims)

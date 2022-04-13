@@ -77,6 +77,118 @@ func MakeSearchBody(
 				},
 			},
 		},
+		map[string]interface{}{
+			"term": map[string]interface{}{
+				"oauth_subject_id": map[string]interface{}{
+					"value":            searchKeyword,
+					"case_insensitive": true,
+				},
+			},
+		},
+		// standard attributes
+		map[string]interface{}{
+			"match": map[string]interface{}{
+				"family_name": map[string]interface{}{
+					"query": searchKeyword,
+				},
+			},
+		},
+		map[string]interface{}{
+			"match": map[string]interface{}{
+				"given_name": map[string]interface{}{
+					"query": searchKeyword,
+				},
+			},
+		},
+		map[string]interface{}{
+			"match": map[string]interface{}{
+				"middle_name": map[string]interface{}{
+					"query": searchKeyword,
+				},
+			},
+		},
+		map[string]interface{}{
+			"match": map[string]interface{}{
+				"name": map[string]interface{}{
+					"query": searchKeyword,
+				},
+			},
+		},
+		map[string]interface{}{
+			"match": map[string]interface{}{
+				"nickname": map[string]interface{}{
+					"query": searchKeyword,
+				},
+			},
+		},
+		map[string]interface{}{
+			"match": map[string]interface{}{
+				"formatted": map[string]interface{}{
+					"query": searchKeyword,
+				},
+			},
+		},
+		map[string]interface{}{
+			"match": map[string]interface{}{
+				"street_address": map[string]interface{}{
+					"query": searchKeyword,
+				},
+			},
+		},
+		map[string]interface{}{
+			"match": map[string]interface{}{
+				"locality": map[string]interface{}{
+					"query": searchKeyword,
+				},
+			},
+		},
+		map[string]interface{}{
+			"match": map[string]interface{}{
+				"region": map[string]interface{}{
+					"query": searchKeyword,
+				},
+			},
+		},
+		map[string]interface{}{
+			"term": map[string]interface{}{
+				"gender": map[string]interface{}{
+					"value":            searchKeyword,
+					"case_insensitive": true,
+				},
+			},
+		},
+		map[string]interface{}{
+			"term": map[string]interface{}{
+				"zoneinfo": map[string]interface{}{
+					"value":            searchKeyword,
+					"case_insensitive": true,
+				},
+			},
+		},
+		map[string]interface{}{
+			"term": map[string]interface{}{
+				"locale": map[string]interface{}{
+					"value":            searchKeyword,
+					"case_insensitive": true,
+				},
+			},
+		},
+		map[string]interface{}{
+			"term": map[string]interface{}{
+				"country": map[string]interface{}{
+					"value":            searchKeyword,
+					"case_insensitive": true,
+				},
+			},
+		},
+		map[string]interface{}{
+			"term": map[string]interface{}{
+				"postal_code": map[string]interface{}{
+					"value":            searchKeyword,
+					"case_insensitive": true,
+				},
+			},
+		},
 	}
 
 	// For unknown reason, if the search keyword is shorter than the prefix min chars,
@@ -136,6 +248,15 @@ func MakeSearchBody(
 			map[string]interface{}{
 				"prefix": map[string]interface{}{
 					"phone_number_national_number_text": map[string]interface{}{
+						"value":            searchKeyword,
+						"case_insensitive": true,
+						"rewrite":          "constant_score_boolean",
+					},
+				},
+			},
+			map[string]interface{}{
+				"prefix": map[string]interface{}{
+					"oauth_subject_id_text": map[string]interface{}{
 						"value":            searchKeyword,
 						"case_insensitive": true,
 						"rewrite":          "constant_score_boolean",

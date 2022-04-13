@@ -57,18 +57,26 @@ func (q *Reindexer) QueryPage(after model.PageCursor, first uint64) ([]Item, err
 		if err != nil {
 			return nil, err
 		}
+		// rawStandardAttributes is used in the re-index command
+		// Since the fields that we use for search won't need processing
+		// The re-index command should have greatest permission to access all fields.
+		// To access standard attributes publicly, it should go through
+		// DeriveStandardAttributes func.
+		rawStandardAttributes := u.StandardAttributes
 		raw := &model.ElasticsearchUserRaw{
-			ID:          u.ID,
-			AppID:       string(q.AppID),
-			CreatedAt:   u.CreatedAt,
-			UpdatedAt:   u.UpdatedAt,
-			LastLoginAt: u.MostRecentLoginAt,
-			IsDisabled:  u.IsDisabled,
+			ID:                 u.ID,
+			AppID:              string(q.AppID),
+			CreatedAt:          u.CreatedAt,
+			UpdatedAt:          u.UpdatedAt,
+			LastLoginAt:        u.MostRecentLoginAt,
+			IsDisabled:         u.IsDisabled,
+			StandardAttributes: rawStandardAttributes,
 		}
 
 		var arrClaims []map[string]interface{}
 		for _, oauthI := range oauthIdentities {
 			arrClaims = append(arrClaims, oauthI.Claims)
+			raw.OAuthSubjectID = append(raw.OAuthSubjectID, oauthI.ProviderSubjectID)
 		}
 		for _, loginIDI := range loginIDIdentities {
 			arrClaims = append(arrClaims, loginIDI.Claims)
