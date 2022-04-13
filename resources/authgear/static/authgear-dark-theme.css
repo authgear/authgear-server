@@ -254,3 +254,22 @@
     filter: invert(100%);
   }
 }
+
+@media (prefers-color-scheme: dark) {
+  .tutorial {
+    background-color: var(--color-black-shaded-4);
+    color: var(--color-white-shaded-7);
+    border-style: solid;
+    border-color: var(--color-white-shaded-7);
+    border-bottom-width: 1px;
+  }
+
+  @media (min-width: 1024px) {
+    .tutorial {
+      border-top-width: 1px;
+      border-right-width: 1px;
+      border-left-width: 1px;
+    }
+  }
+
+}

@@ -526,3 +526,8 @@ a:not(.not-a):active, .link:active {
   border-bottom: 2px solid var(--color-primary-unshaded);
   color: var(--color-primary-unshaded);
 }
+
+.tutorial {
+  background-color: var(--color-black-shaded-4);
+  color: var(--color-white-shaded-7);
+}

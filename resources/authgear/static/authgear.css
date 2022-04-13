@@ -612,11 +612,6 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--color-primary-unshaded);
 }
 
-.tutorial {
-  background-color: var(--color-black-shaded-4);
-  color: var(--color-white-shaded-7);
-}
-
 @media (min-width: 1024px) {
   .tutorial {
     position: absolute;
