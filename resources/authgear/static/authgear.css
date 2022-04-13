@@ -54,6 +54,13 @@ input, select, textarea, button {
   font-size: inherit;
 }
 
+/* textarea by default has background color of white */
+/* In dark mode, the text color is also white */
+/* Therefore we have to reset the background color to transparent */
+textarea {
+  background-color: transparent;
+}
+
 *:focus {
   outline: none;
 }
@@ -292,7 +299,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .pane {
   background-color: var(--color-pane-background);
-  box-shadow: 0px 4px 16px var(--color-pane-shadow);
+  box-shadow: 0px 4px 8px 0px var(--color-pane-shadow);
   border-radius: 6px;
   border: 1px solid var(--color-pane-border);
 }
@@ -603,11 +610,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .turbolinks-progress-bar {
   background: var(--color-primary-unshaded);
-}
-
-.tutorial {
-  background-color: var(--color-black-shaded-4);
-  color: var(--color-white-shaded-7);
 }
 
 @media (min-width: 1024px) {
