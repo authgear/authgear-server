@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/portal/appresource/factory"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/endpoint"
@@ -189,8 +190,16 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor:  sqlExecutor,
 	}
 	appBaseResources := deps.ProvideAppBaseResources(rootProvider)
+	storeImpl := &tutorial.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	tutorialService := &tutorial.Service{
+		Store: storeImpl,
+	}
 	managerFactory := &factory.ManagerFactory{
 		AppBaseResources: appBaseResources,
+		Tutorials:        tutorialService,
 	}
 	store := &plan.Store{
 		Clock:       clock,
@@ -251,6 +260,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SMTPService:             smtpService,
 		AppResMgrFactory:        managerFactory,
 		AnalyticChartService:    chartService,
+		TutorialService:         tutorialService,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		DevMode:        devMode,

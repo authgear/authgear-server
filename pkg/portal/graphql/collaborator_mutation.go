@@ -5,6 +5,7 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -222,6 +223,11 @@ var _ = registerMutationField(
 			}
 
 			invitation, err := gqlCtx.CollaboratorService.SendInvitation(appID, inviteeEmail)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.TutorialService.RecordProgresses(appID, []tutorial.Progress{tutorial.ProgressInvite})
 			if err != nil {
 				return nil, err
 			}

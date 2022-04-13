@@ -7,7 +7,6 @@ import { useAppAndSecretConfigQuery } from "./graphql/portal/query/appAndSecretC
 import ScreenLayout from "./ScreenLayout";
 import ShowLoading from "./ShowLoading";
 
-import ProjectRootScreen from "./graphql/portal/ProjectRootScreen";
 import UsersScreen from "./graphql/adminapi/UsersScreen";
 import AddUserScreen from "./graphql/adminapi/AddUserScreen";
 import UserDetailsScreen from "./graphql/adminapi/UserDetailsScreen";
@@ -20,6 +19,8 @@ import EditPictureScreen from "./graphql/adminapi/EditPictureScreen";
 import AuditLogScreen from "./graphql/adminapi/AuditLogScreen";
 import AuditLogEntryScreen from "./graphql/adminapi/AuditLogEntryScreen";
 
+import ProjectRootScreen from "./graphql/portal/ProjectRootScreen";
+import GetStartedScreen from "./graphql/portal/GetStartedScreen";
 import AnonymousUsersConfigurationScreen from "./graphql/portal/AnonymousUsersConfigurationScreen";
 import SingleSignOnConfigurationScreen from "./graphql/portal/SingleSignOnConfigurationScreen";
 import PasswordPolicyConfigurationScreen from "./graphql/portal/PasswordPolicyConfigurationScreen";
@@ -77,6 +78,7 @@ const AppRoot: React.FC = function AppRoot() {
       <ScreenLayout>
         <Routes>
           <Route path="/" element={<ProjectRootScreen />} />
+          <Route path="/getting-started" element={<GetStartedScreen />} />
           <Route path="/analytics" element={<AnalyticsScreen />} />
           <Route path="/users/" element={<UsersScreen />} />
           <Route path="/users/add-user/" element={<AddUserScreen />} />

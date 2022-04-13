@@ -7,6 +7,7 @@ import (
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/smtp"
@@ -79,6 +80,12 @@ type AppResourceManagerFactory interface {
 	NewManagerWithAppContext(appContext *config.AppContext) *appresource.Manager
 }
 
+type TutorialService interface {
+	Get(appID string) (*tutorial.Entry, error)
+	RecordProgresses(appID string, ps []tutorial.Progress) (err error)
+	Skip(appID string) (err error)
+}
+
 type AnalyticChartService interface {
 	GetActiveUserChart(appID string, periodical string, rangeFrom time.Time, rangeTo time.Time) (*analytic.Chart, error)
 	GetTotalUserCountChart(appID string, rangeFrom time.Time, rangeTo time.Time) (*analytic.Chart, error)
@@ -106,6 +113,7 @@ type Context struct {
 	SMTPService          SMTPService
 	AppResMgrFactory     AppResourceManagerFactory
 	AnalyticChartService AnalyticChartService
+	TutorialService      TutorialService
 }
 
 func (c *Context) Logger() *log.Logger {

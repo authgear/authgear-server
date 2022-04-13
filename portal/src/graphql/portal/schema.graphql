@@ -56,6 +56,9 @@ type App implements Node {
 
   """"""
   secretConfig: SecretConfig!
+
+  """"""
+  tutorialStatus: TutorialStatus!
 }
 
 """The `AppConfig` scalar type represents an app config JSON object"""
@@ -327,6 +330,12 @@ type Mutation {
   """Send test STMP configuration email"""
   sendTestSMTPConfigurationEmail(input: sendTestSMTPConfigurationEmailInput!): Boolean
 
+  """Skip the tutorial of the app"""
+  skipAppTutorial(input: SkipAppTutorialInput!): SkipAppTutorialPayload!
+
+  """Skip a progress of the tutorial of the app"""
+  skipAppTutorialProgress(input: SkipAppTutorialProgressInput!): SkipAppTutorialProgressPayload!
+
   """Update app"""
   updateApp(input: UpdateAppInput!): UpdateAppPayload!
 
@@ -522,6 +531,45 @@ type SignupConversionRate {
   """"""
   totalSignupUniquePageView: Int!
 }
+
+""""""
+input SkipAppTutorialInput {
+  """ID of the app."""
+  id: String!
+}
+
+""""""
+type SkipAppTutorialPayload {
+  """"""
+  app: App!
+}
+
+""""""
+input SkipAppTutorialProgressInput {
+  """ID of the app."""
+  id: String!
+
+  """The progress to skip."""
+  progress: String!
+}
+
+""""""
+type SkipAppTutorialProgressPayload {
+  """"""
+  app: App!
+}
+
+"""Tutorial status of an app"""
+type TutorialStatus {
+  """"""
+  appID: String!
+
+  """"""
+  data: TutorialStatusData!
+}
+
+"""The `TutorialStatusData` scalar type represents tutorial status data"""
+scalar TutorialStatusData
 
 """"""
 input UpdateAppInput {
