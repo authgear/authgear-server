@@ -63,7 +63,7 @@ func (g *GithubImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _
 
 	idJSONNumber, _ := userProfile["id"].(json.Number)
 	email, _ := userProfile["email"].(string)
-	name, _ := userProfile["name"].(string)
+	login, _ := userProfile["login"].(string)
 	picture, _ := userProfile["avatar_url"].(string)
 	profile, _ := userProfile["html_url"].(string)
 
@@ -71,10 +71,11 @@ func (g *GithubImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _
 
 	authInfo.ProviderUserID = id
 	stdAttrs, err := stdattrs.Extract(map[string]interface{}{
-		stdattrs.Email:   email,
-		stdattrs.Name:    name,
-		stdattrs.Picture: picture,
-		stdattrs.Profile: profile,
+		stdattrs.Email:     email,
+		stdattrs.Name:      login,
+		stdattrs.GivenName: login,
+		stdattrs.Picture:   picture,
+		stdattrs.Profile:   profile,
 	}, stdattrs.ExtractOptions{
 		EmailRequired: *g.ProviderConfig.Claims.Email.Required,
 	})
