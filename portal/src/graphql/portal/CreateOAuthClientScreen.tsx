@@ -26,6 +26,7 @@ import {
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
+import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
 import FormContainer from "../../FormContainer";
 
 import styles from "./CreateOAuthClientScreen.module.scss";
@@ -35,6 +36,17 @@ interface FormState {
   clients: OAuthClientConfig[];
   newClient: OAuthClientConfig;
 }
+
+const errorRules = [
+  makeValidationErrorMatchUnknownKindParseRule(
+    "general",
+    /^\/oauth\/clients$/,
+    "error.client-quota-exceeded",
+    {
+      to: "../../../billing",
+    }
+  ),
+];
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
@@ -183,7 +195,7 @@ const CreateOAuthClientScreen: React.FC = function CreateOAuthClientScreen() {
   }
 
   return (
-    <FormContainer form={form}>
+    <FormContainer form={form} errorRules={errorRules}>
       <CreateOAuthClientContent form={form} />
     </FormContainer>
   );

@@ -93,6 +93,7 @@
   "errors.request-entity-too-large": "The file size is too large. Please upload a file that is within the size limit.",
   "errors.unsupported-image-file": "Image file of {type} is unsupported",
   "errors.unknown": "Unknown error: {message}",
+  "error.client-quota-exceeded": "Application quota exceeded. To add more,{ReactRouterLink, react, children{upgrade your project plan} to{{to}}}.",
   "errors.invalid-selected-image": "The selected image is invalid. Try another one.",
 
   "TodoButtonWrapper.dialog-title": "Feature Not Ready",

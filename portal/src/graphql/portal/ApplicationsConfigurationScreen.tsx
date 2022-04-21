@@ -457,7 +457,7 @@ const ApplicationsConfigurationScreen: React.FC =
     const primaryItems: ICommandBarItemProps[] = useMemo(
       () => [
         {
-          key: "save",
+          key: "add",
           text: renderToString(
             "ApplicationsConfigurationScreen.add-client-button"
           ),
