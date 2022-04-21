@@ -1058,7 +1058,7 @@
   "GetStartedScreen.card.description.customize_ui": "Change the theme and colors of the pre-built UI to fit your branding.",
   "GetStartedScreen.card.action-label.customize_ui": "Customize",
   "GetStartedScreen.card.title.create_application": "Create application",
-  "GetStartedScreen.card.description.create_application": "Start integrating Authgear with your apps. Learn more about {ExternalLink, react, href{https://docs.authgear.com/integrate/how-authgear-integrate-with-your-applications} children{How Authgear works}}",
+  "GetStartedScreen.card.description.create_application": "Start integrating Authgear with your apps. Learn more about {ExternalLink, react, href{https://docs.authgear.com/get-started/authentication-approach} children{How Authgear works}}",
   "GetStartedScreen.card.action-label.create_application": "Create application",
   "GetStartedScreen.card.title.sso": "Add a social or enterprise login provider",
   "GetStartedScreen.card.description.sso": "Sign in to your apps with connections like Facebook, Google, Active Directory and more. {ExternalLink, react, href{https://docs.authgear.com/strategies/how-to-setup-sso-integrations} children{See setup instructions}}",
