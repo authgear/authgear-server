@@ -267,22 +267,36 @@ function Card(props: CardProps) {
 
 interface CardsProps {
   publicOrigin?: string;
+  numberOfClients: number;
   tutorialStatusData: TutorialStatusData;
   skipProgress: (progress: Progress) => Promise<void>;
   skipDisabled: boolean;
 }
 
 function Cards(props: CardsProps) {
-  const { publicOrigin, tutorialStatusData, skipProgress, skipDisabled } =
-    props;
+  const {
+    publicOrigin,
+    numberOfClients,
+    tutorialStatusData,
+    skipProgress,
+    skipDisabled,
+  } = props;
+
   return (
     <div className={styles.cards}>
       {cards.map((card) => {
+        // Special handling for apps with applications.
+        // https://github.com/authgear/authgear-server/issues/1976
+        const isDone = card.key === "create_application" && numberOfClients > 0;
+        const internalHref =
+          card.key === "create_application" && isDone
+            ? "../configuration/apps"
+            : undefined;
         return (
           <Card
             key={card.key}
             cardKey={card.key}
-            isDone={tutorialStatusData.progress[card.key] === true}
+            isDone={isDone || tutorialStatusData.progress[card.key] === true}
             skipProgress={card.key === "sso" ? skipProgress : undefined}
             skipDisabled={skipDisabled}
             iconSrc={card.iconSrc}
@@ -291,7 +305,7 @@ function Cards(props: CardsProps) {
                 ? `${publicOrigin}?x_tutorial=true`
                 : undefined
             }
-            internalHref={card.internalHref}
+            internalHref={internalHref ?? card.internalHref}
           />
         );
       })}
@@ -428,6 +442,7 @@ export default function GetStartedScreen(): React.ReactElement {
       <Description />
       <Counter tutorialStatusData={tutorialStatusData} />
       <Cards
+        numberOfClients={effectiveAppConfig.oauth?.clients?.length ?? 0}
         publicOrigin={effectiveAppConfig.http?.public_origin}
         tutorialStatusData={tutorialStatusData}
         skipProgress={skipProgress}
