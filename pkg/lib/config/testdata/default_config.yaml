@@ -396,6 +396,7 @@ authenticator:
     sms:
       maximum: 99
       message: {}
+      phone_otp_mode: "sms"
     email:
       maximum: 99
       message:
