@@ -116,21 +116,46 @@ type AuthenticatorOOBConfig struct {
 	Email *AuthenticatorOOBEmailConfig `json:"email,omitempty"`
 }
 
+var _ = Schema.Add("AuthenticatorPhoneOTPMode", `
+{
+	"type": "string",
+	"enum": ["sms", "whatsapp_sms", "whatsapp"]
+}
+`)
+
+type AuthenticatorPhoneOTPMode string
+
+const (
+	AuthenticatorPhoneOTPModeSMSOnly      AuthenticatorPhoneOTPMode = "sms"
+	AuthenticatorPhoneOTPModeWhatsappSMS  AuthenticatorPhoneOTPMode = "whatsapp_sms"
+	AuthenticatorPhoneOTPModeWhatsappOnly AuthenticatorPhoneOTPMode = "whatsapp"
+)
+
+func (m *AuthenticatorPhoneOTPMode) IsWhatsappEnabled() bool {
+	return *m == AuthenticatorPhoneOTPModeWhatsappSMS ||
+		*m == AuthenticatorPhoneOTPModeWhatsappOnly
+}
+
 var _ = Schema.Add("AuthenticatorOOBSMSConfig", `
 {
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"maximum": { "type": "integer" }
+		"maximum": { "type": "integer" },
+		"phone_otp_mode": { "$ref": "#/$defs/AuthenticatorPhoneOTPMode" }
 	}
 }
 `)
 
 type AuthenticatorOOBSMSConfig struct {
-	Maximum *int `json:"maximum,omitempty"`
+	Maximum      *int                      `json:"maximum,omitempty"`
+	PhoneOTPMode AuthenticatorPhoneOTPMode `json:"phone_otp_mode,omitempty"`
 }
 
 func (c *AuthenticatorOOBSMSConfig) SetDefaults() {
+	if c.PhoneOTPMode == "" {
+		c.PhoneOTPMode = AuthenticatorPhoneOTPModeSMSOnly
+	}
 	if c.Maximum == nil {
 		c.Maximum = newInt(99)
 	}
