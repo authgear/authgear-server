@@ -236,6 +236,11 @@ func (s *Service2) doPost(
 				inputFn = func() (interface{}, error) {
 					return &inputSelectTOTP{}, nil
 				}
+			case *nodes.EdgeCreateAuthenticatorWhatsappOTPSetup:
+				session.Steps = append(session.Steps, NewSessionStep(
+					SessionStepSetupWhatsappOTP,
+					graph.InstanceID,
+				))
 			default:
 				panic(fmt.Errorf("webapp: unexpected edge: %T", defaultEdge))
 			}
