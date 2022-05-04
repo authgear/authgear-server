@@ -452,6 +452,8 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 		default:
 			panic(fmt.Errorf("webapp: unexpected oob authenticator type: %s", currentNode.Authenticator.Type))
 		}
+	case *nodes.NodeCreateAuthenticatorWhatsappOTPSetup:
+		return SessionStepVerifyWhatsappOTP
 	case *nodes.NodeCreateAuthenticatorTOTPSetup:
 		return SessionStepSetupTOTP
 	case *nodes.NodeGenerateRecoveryCodeBegin:

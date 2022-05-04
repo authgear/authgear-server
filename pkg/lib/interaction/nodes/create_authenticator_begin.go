@@ -186,6 +186,15 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 
 			// check if identity login id type match oob type
 			if loginIDType == string(config.LoginIDKeyTypePhone) {
+
+				// Add whatsapp edge when it is enabled
+				if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
+					edges = append(edges, &EdgeCreateAuthenticatorWhatsappOTPSetup{
+						Stage:     n.Stage,
+						IsDefault: isDefault,
+					})
+				}
+
 				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
 					Stage:                n.Stage,
 					IsDefault:            isDefault,
