@@ -181,7 +181,11 @@ func (m *AlternativeStepsViewModel) AddCreateAuthenticatorAlternatives(graph *in
 				})
 			}
 		case *nodes.EdgeCreateAuthenticatorWhatsappOTPSetup:
-			// don't support selecting whatsapp otp from alternatives
+			if currentStepKind != webapp.SessionStepSetupWhatsappOTP {
+				m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
+					Step: webapp.SessionStepSetupWhatsappOTP,
+				})
+			}
 		default:
 			panic(fmt.Errorf("create_authenticator_begin: unexpected edge: %T", edge))
 		}
