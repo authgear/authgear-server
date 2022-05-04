@@ -1,27 +1,31 @@
 .root {
   padding: 32px;
+  min-width: 480px;
+  display: flex;
+  flex-direction: column;
+  row-gap: 16px;
 }
 
 .title {
   margin: 0;
-  grid-column: 1 / span 12;
   font-weight: 600;
 }
 
+.descriptionRow {
+  display: flex;
+  flex-direction: row;
+}
+
 .description {
-  grid-row: 2 / span 1;
-  grid-column: 1 / span 10;
+  flex: 1 0 0;
 }
 
 .counter {
-  grid-row: 2 / span 1;
-  grid-column: 11 / span 2;
   font-weight: 600;
   justify-self: end;
 }
 
 .cards {
-  grid-column: 1 / span 12;
   display: grid;
   grid-template-columns: auto;
   grid-auto-rows: auto;
@@ -64,6 +68,7 @@
 }
 
 .cardActionButton {
+  margin-top: 4px;
   grid-column: 2 / span 1;
   grid-row: 3 / span 1;
   font-size: smaller;
@@ -74,13 +79,13 @@
 }
 
 .cardSkipButton {
+  margin-top: 4px;
   grid-column: 3 / span 1;
   grid-row: 3 / span 1;
   font-size: smaller;
 }
 
 .helpText {
-  grid-column: 1 / span 12;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -88,6 +93,5 @@
 }
 
 .dismissButton {
-  grid-column: 1 / span 12;
-  justify-self: end;
+  align-self: end;
 }

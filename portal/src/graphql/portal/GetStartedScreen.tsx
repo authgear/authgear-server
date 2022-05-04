@@ -11,7 +11,6 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { gql, useQuery, useMutation } from "@apollo/client";
-import ScreenContent from "../../ScreenContent";
 import ReactRouterLink from "../../ReactRouterLink";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
@@ -437,10 +436,12 @@ export default function GetStartedScreen(): React.ReactElement {
   }
 
   return (
-    <ScreenContent className={styles.root}>
+    <div className={styles.root}>
       <Title />
-      <Description />
-      <Counter tutorialStatusData={tutorialStatusData} />
+      <div className={styles.descriptionRow}>
+        <Description />
+        <Counter tutorialStatusData={tutorialStatusData} />
+      </div>
       <Cards
         numberOfClients={effectiveAppConfig.oauth?.clients?.length ?? 0}
         publicOrigin={effectiveAppConfig.http?.public_origin}
@@ -450,6 +451,6 @@ export default function GetStartedScreen(): React.ReactElement {
       />
       <HelpText />
       <DismissButton onClick={onClickDismissButton} disabled={loading} />
-    </ScreenContent>
+    </div>
   );
 }
