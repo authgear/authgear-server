@@ -11,9 +11,14 @@
 {{ $.CSRFField }}
 
 <p class="primary-txt text-center text-2xl tracking-widest">
-The code
+{{ $.WhatsappOTP }}
 </p>
 
+</form>
+
+<form id="fallback-sms-form" class="hidden" method="post" novalidate>
+{{ $.CSRFField }}
+<input type="hidden" name="x_e164" value="{{ .Phone }}" />
 </form>
 
 <button
@@ -21,8 +26,18 @@ The code
 	class="btn primary-btn mt-5"
 	type="submit"
 	name="x_action"
-	value="submit"
+	value="verify"
 >{{ template "whatsapp-otp-confirm" }}</button>
+
+{{ if eq .PhoneOTPMode "whatsapp_sms" }}
+<button
+	form="fallback-sms-form"
+	class="btn secondary-btn"
+	type="submit"
+	name="x_action"
+	value="fallback_sms"
+>{{ template "whatsapp-otp-fallback-sms" }}</button>
+{{ end }}
 
 {{ template "__watermark.html" . }}
 </div>
