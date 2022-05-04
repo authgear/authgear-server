@@ -136,6 +136,10 @@ func (m *AuthenticatorPhoneOTPMode) IsWhatsappEnabled() bool {
 		*m == AuthenticatorPhoneOTPModeWhatsappOnly
 }
 
+func (m *AuthenticatorPhoneOTPMode) IsWhatsappOnly() bool {
+	return *m == AuthenticatorPhoneOTPModeWhatsappOnly
+}
+
 var _ = Schema.Add("AuthenticatorOOBSMSConfig", `
 {
 	"type": "object",

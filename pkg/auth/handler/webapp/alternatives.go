@@ -26,7 +26,8 @@ func handleAlternativeSteps(ctrl *Controller) {
 
 		case webapp.SessionStepSetupOOBOTPEmail,
 			webapp.SessionStepSetupOOBOTPSMS,
-			webapp.SessionStepCreatePassword:
+			webapp.SessionStepCreatePassword,
+			webapp.SessionStepSetupWhatsappOTP:
 			// Simple redirect.
 			choiceStep = webapp.SessionStepCreateAuthenticator
 			inputFn = nil

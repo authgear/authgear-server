@@ -342,11 +342,22 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 		case model.AuthenticatorTypeOOBSMS:
 			// Condition B and C.
 			if oobSMSCount < *n.AuthenticatorConfig.OOB.SMS.Maximum {
-				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
-					Stage:                n.Stage,
-					IsDefault:            isDefault,
-					OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
-				})
+				// Add whatsapp edge when it is enabled
+				if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
+					edges = append(edges, &EdgeCreateAuthenticatorWhatsappOTPSetup{
+						Stage:     n.Stage,
+						IsDefault: isDefault,
+					})
+				}
+
+				// Allow using sms
+				if !n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappOnly() {
+					edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
+						Stage:                n.Stage,
+						IsDefault:            isDefault,
+						OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
+					})
+				}
 			}
 		default:
 			panic("interaction: unknown authenticator type: " + typ)
