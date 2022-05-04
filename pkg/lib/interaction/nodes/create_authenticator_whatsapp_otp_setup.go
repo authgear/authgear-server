@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -81,6 +82,16 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(ctx *interaction.C
 	var skipInput interface{ SkipVerification() bool }
 	if interaction.Input(rawInput, &skipInput) && skipInput.SkipVerification() {
 		// Admin skip verify whatsapp otp and create OOB authenticator directly
+		return &NodeCreateAuthenticatorOOB{Stage: e.Stage, Authenticator: info}, nil
+	}
+
+	// Skip checking whatsapp otp if the phone number is verified
+	// Create OOB authenticator directly
+	aStatus, err := ctx.Verification.GetAuthenticatorVerificationStatus(info)
+	if err != nil {
+		return nil, err
+	}
+	if aStatus == verification.AuthenticatorStatusVerified {
 		return &NodeCreateAuthenticatorOOB{Stage: e.Stage, Authenticator: info}, nil
 	}
 
