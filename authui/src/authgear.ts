@@ -15,13 +15,13 @@ import { setupAccountDeletion } from "./accountdeletion";
 import { setupImagePicker } from "./imagepicker";
 import { setupWebsocket } from "./websocket";
 import { setupModal } from "./modal";
-import { setupClickToSwitch } from "./clickToSwitch";
 import { setupResendButton } from "./resendButton";
 import { setupPreventDoubleTap } from "./preventDoubleTap";
 import { setupCopyButton } from "./copy";
 import { setupMessageBar } from "./messageBar";
 import { PasswordVisibilityToggleController } from "./passwordVisibility";
 import { PasswordPolicyController } from "./password-policy";
+import { ClickToSwitchController } from "./clickToSwitch";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
 
@@ -35,6 +35,7 @@ Stimulus.register(
   PasswordVisibilityToggleController
 );
 Stimulus.register("password-policy", PasswordPolicyController);
+Stimulus.register("click-to-switch", ClickToSwitchController);
 
 window.api.onLoad(() => {
   document.body.classList.add("js");
@@ -57,8 +58,6 @@ window.api.onLoad(setupPreventDoubleTap);
 window.api.onLoad(setupWebsocket);
 
 window.api.onLoad(setupModal);
-
-window.api.onLoad(setupClickToSwitch);
 
 window.api.onLoad(setupCopyButton);
 

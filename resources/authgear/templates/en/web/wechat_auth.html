@@ -9,11 +9,12 @@
 {{ if .WeChatRedirectURI }}
 <p class="text-sm break-words m-0 primary-txt text-center">{{ template "wechat-auth-with-app-description" }}</p>
 
-<div class="twc-container-vertical my-5">
+<div class="twc-container-vertical my-5" data-controller="click-to-switch">
 <a class="as-btn not-a btn primary-btn"
     href="{{ $.WeChatRedirectURI }}"
     data-turbolinks-action="replace"
-    data-switch-to-on-click="#proceed-button"
+    data-click-to-switch-target="clickToHide"
+    data-action="click-to-switch#click"
 >
 {{ template "wechat-open-app" }}
 </a>
@@ -21,7 +22,7 @@
     href="{{ $.CurrentURI }}"
     data-turbolinks-action="replace"
     data-is-refresh-link="true"
-    id="proceed-button"
+    data-click-to-switch-target="clickToShow"
 >
 {{ template "wechat-proceed" }}
 </a>
