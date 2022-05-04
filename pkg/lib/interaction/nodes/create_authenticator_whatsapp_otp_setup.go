@@ -78,6 +78,12 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(ctx *interaction.C
 		return nil, err
 	}
 
+	var skipInput interface{ SkipVerification() bool }
+	if interaction.Input(rawInput, &skipInput) && skipInput.SkipVerification() {
+		// Admin skip verify whatsapp otp and create OOB authenticator directly
+		return &NodeCreateAuthenticatorOOB{Stage: e.Stage, Authenticator: info}, nil
+	}
+
 	// fixme(whatsapp): generate otp
 
 	return &NodeCreateAuthenticatorWhatsappOTPSetup{
