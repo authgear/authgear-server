@@ -1,36 +1,14 @@
-export function setupClickToSwitch(): () => void {
-  const targets = document.querySelectorAll("[data-switch-to-on-click]");
+import { Controller } from "@hotwired/stimulus";
 
-  function listener(e: Event) {
-    e.preventDefault();
-    e.stopPropagation();
+export class ClickToSwitchController extends Controller {
+  static targets = ["clickToShow", "clickToHide"];
 
-    if (!(e.currentTarget instanceof HTMLElement)) {
-      return;
-    }
-    const selector = e.currentTarget.getAttribute("data-switch-to-on-click");
-    if (selector == null) {
-      return;
-    }
+  declare clickToShowTarget: HTMLElement;
+  declare clickToHideTarget: HTMLElement;
 
-    const selectedElement = document.querySelector(selector);
-    if (selectedElement == null) {
-      return;
-    }
-
-    e.currentTarget.classList.add("hidden");
-    selectedElement.classList.remove("hidden");
+  click() {
+    // Do not call prevent default intentionally.
+    this.clickToHideTarget.classList.add("hidden");
+    this.clickToShowTarget.classList.remove("hidden");
   }
-
-  for (let i = 0; i < targets.length; i++) {
-    const target = targets[i];
-    target.addEventListener("click", listener);
-  }
-
-  return () => {
-    for (let i = 0; i < targets.length; i++) {
-      const target = targets[i];
-      target.removeEventListener("click", listener);
-    }
-  };
 }
