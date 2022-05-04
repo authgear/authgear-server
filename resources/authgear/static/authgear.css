@@ -115,15 +115,6 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* This declaration needs to be placed before "hidden" */
-/* Make <a> appears like <button> */
-.as-btn {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-}
-
 .footer-watermark {
   display: inline-block;
   height: 18px;

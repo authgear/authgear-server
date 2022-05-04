@@ -10,4 +10,8 @@
   .twc-container-vertical {
     @apply grid grid-cols-1 auto-rows-auto gap-y-5;
   }
+
+  .as-btn {
+    @apply flex flex-row justify-center items-center;
+  }
 }
