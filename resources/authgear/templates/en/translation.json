@@ -164,6 +164,11 @@
   "verify-user-success-page-title": "Account verification",
   "verify-user-success-description": "You have successfully verified your account.",
 
+  "verify-identity-via-whatsapp-page-title": "Phone verification via WhatsApp",
+  "verify-identity-via-whatsapp-description": "Please send the following one-time password to number {whatsappNumber}.",
+  "verify-identity-via-whatsapp-confirm": "Confirm after sent the one-time password",
+  "verify-identity-via-whatsapp-fallback-sms": "Fallback using SMS",
+
   "use-login-id-key": "Use {key, select, email{email address} username{username} phone{phone number} other{{key}}} instead",
 
   "create-password-page-title": "Create Password",
