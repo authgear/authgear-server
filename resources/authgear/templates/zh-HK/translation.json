@@ -290,7 +290,7 @@
   "setup-totp-instead": "改為使用驗證器應用程式／裝置",
   "setup-oob-otp-email-instead": "改為使用電郵作雙重驗證",
   "setup-oob-otp-sms-instead": "改為使用短訊作雙重驗證",
-  "setup-whatsapp-otp-instead": "Setup WhatsApp 2-step verification instead",
+  "setup-whatsapp-otp-instead": "Setup phone 2-step verification instead",
   "setup-password-instead": "改為設置密碼",
   "enter-totp-instead": "改為輸入6位驗證器碼",
   "enter-password-instead": "改為輸入密碼",
@@ -303,7 +303,7 @@
   "setup-oob-otp-title--sms": "設置短訊雙重驗證",
   "setup-oob-otp-title--email": "設置電郵雙重驗證",
 
-  "setup-whatsapp-otp-title": "Setup Whatsapp 2-step verification",
+  "setup-whatsapp-otp-title": "Setup phone 2-step verification",
 
   "setup-totp-title": "設置驗證器",
   "setup-totp-code-placeholder": "6位碼",
