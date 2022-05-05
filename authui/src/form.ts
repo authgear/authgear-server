@@ -50,6 +50,8 @@ export function autoSubmitForm() {
 }
 
 export function xhrSubmitForm(): () => void {
+  let revertDisabledButtons: { (): void } | null;
+
   async function submitForm(e: Event) {
     if (e.defaultPrevented) {
       return;
@@ -81,7 +83,7 @@ export function xhrSubmitForm(): () => void {
       }
     }
 
-    const revert = disableAllButtons();
+    revertDisabledButtons = disableAllButtons();
     showProgressBar();
     try {
       const resp = await axios(form.action, {
@@ -114,7 +116,10 @@ export function xhrSubmitForm(): () => void {
       // revert is only called for error branch because
       // The success branch also loads a new page.
       // Keeping the buttons in disabled state reduce flickering in the UI.
-      revert();
+      if (revertDisabledButtons) {
+        revertDisabledButtons();
+        revertDisabledButtons = null;
+      }
     } finally {
       hideProgressBar();
     }
@@ -132,7 +137,16 @@ export function xhrSubmitForm(): () => void {
     form.addEventListener("submit", submitForm);
   }
 
+  // Revert disabled buttons before turbolinks cache the page
+  // To avoid flickering in the UI
+  const beforeCache = () => {
+    if (revertDisabledButtons) {
+      revertDisabledButtons();
+    }
+  };
+  document.addEventListener("turbolinks:before-cache", beforeCache);
   return () => {
+    document.removeEventListener("turbolinks:before-cache", beforeCache);
     for (const form of forms) {
       form.removeEventListener("submit", submitForm);
     }
