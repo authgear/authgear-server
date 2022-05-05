@@ -181,7 +181,8 @@ func (m *AlternativeStepsViewModel) AddCreateAuthenticatorAlternatives(graph *in
 				})
 			}
 		case *nodes.EdgeCreateAuthenticatorWhatsappOTPSetup:
-			if currentStepKind != webapp.SessionStepSetupWhatsappOTP {
+			if currentStepKind != webapp.SessionStepSetupWhatsappOTP &&
+				currentStepKind != webapp.SessionStepEnterOOBOTPSetupSMS {
 				m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
 					Step: webapp.SessionStepSetupWhatsappOTP,
 				})
