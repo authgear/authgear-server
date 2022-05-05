@@ -163,6 +163,11 @@
   "verify-user-success-page-title": "帳號驗證",
   "verify-user-success-description": "你的帳號已完成驗證",
 
+  "verify-identity-via-whatsapp-page-title": "Phone verification via WhatsApp",
+  "verify-identity-via-whatsapp-description": "Please send the following one-time password to number {whatsappNumber}.",
+  "verify-identity-via-whatsapp-confirm": "Confirm after sent the one-time password",
+  "verify-identity-via-whatsapp-fallback-sms": "Fallback using SMS",
+
   "use-login-id-key": "改為用{key, select, email{電郵地址} username{用戶名稱} phone{電話號碼} other{{key}}}",
 
   "create-password-page-title": "建立密碼",

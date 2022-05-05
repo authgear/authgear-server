@@ -269,6 +269,13 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	))
 }
 
+func newWebAppVerifyIdentityViaWhatsappHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.VerifyIdentityViaWhatsappHandler)),
+	))
+}
+
 func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
