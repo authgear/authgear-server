@@ -110,7 +110,7 @@
         value="verify_login_id"
         data-authgear-event="authgear.button.resend_verification_code"
       >
-        {{ template "resend-verification-code-button-label" }}
+        {{ template "verify-via-button-label" (dict "loginIDType" .login_id_type ) }}
       </button>
       </form>
       {{ end }}{{ end }}{{ end }}
