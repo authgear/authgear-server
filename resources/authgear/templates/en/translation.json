@@ -95,7 +95,7 @@
   "save-button-label": "Save",
   "more-button-label": "More",
   "done-button-label": "Done",
-  "resend-verification-code-button-label": "Send verification code",
+  "verify-via-button-label": "Verify via {loginIDType, select, email {email} phone {phone} other {loginIDType}}",
   "verification-status-label--unverified": "Not verified",
   "verification-status-label--verified": "Verified",
   "activated-label": "Activated",
