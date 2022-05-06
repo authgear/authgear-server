@@ -57,7 +57,8 @@ export function xhrSubmitForm(): () => void {
       return;
     }
     e.preventDefault();
-    e.stopPropagation();
+    // Do not stop propagation so that GTM can recognize the event as Form Submission trigger.
+    // e.stopPropagation();
 
     const form = e.currentTarget as HTMLFormElement;
     const formData = new FormData(form);
