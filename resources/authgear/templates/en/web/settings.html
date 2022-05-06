@@ -149,7 +149,7 @@
         {{ $.CSRFField }}
         <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
         <button class="btn action-btn text-xs" type="submit" name="x_action" value="verify_login_id">
-          {{ template "resend-verification-code-button-label" }}
+          {{ template "verify-via-button-label" (dict "loginIDType" .login_id_type ) }}
         </button>
       </form>
       {{ end }}{{ end }}{{ end }}
