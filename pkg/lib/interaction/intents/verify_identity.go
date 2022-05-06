@@ -34,6 +34,7 @@ func (i *IntentVerifyIdentity) InstantiateRootNode(ctx *interaction.Context, gra
 	return &nodes.NodeEnsureVerificationBegin{
 		Identity:        identityInfo,
 		RequestedByUser: true,
+		PhoneOTPMode:    ctx.Config.Authenticator.OOB.SMS.PhoneOTPMode,
 	}, nil
 }
 
