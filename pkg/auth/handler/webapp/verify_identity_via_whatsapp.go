@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -20,6 +21,11 @@ func ConfigureVerifyIdentityViaWhatsappRoute(route httproute.Route) httproute.Ro
 		WithPathPattern("/verify_identity_via_whatsapp")
 }
 
+type VerifyIdentityViaWhatsappViewModel struct {
+	PhoneOTPMode config.AuthenticatorPhoneOTPMode
+	WhatsappOTP  string
+}
+
 type VerifyIdentityViaWhatsappHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
@@ -29,7 +35,14 @@ type VerifyIdentityViaWhatsappHandler struct {
 func (h *VerifyIdentityViaWhatsappHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
+	viewModel := VerifyIdentityViaWhatsappViewModel{}
+	var n WhatsappOTPNode
+	if graph.FindLastNode(&n) {
+		viewModel.PhoneOTPMode = n.GetPhoneOTPMode()
+		viewModel.WhatsappOTP = n.GetWhatsappOTP()
+	}
 	viewmodels.Embed(data, baseViewModel)
+	viewmodels.Embed(data, viewModel)
 	return data, nil
 }
 
@@ -53,6 +66,35 @@ func (h *VerifyIdentityViaWhatsappHandler) ServeHTTP(w http.ResponseWriter, r *h
 		}
 
 		h.Renderer.RenderHTML(w, r, TemplateWebVerifyIdentityViaWhatsappHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("verify", func() error {
+		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+			// fixme(whatsapp): get the otp from redis which store by the webhook
+			input = &InputWhatsappOTP{
+				WhatsappOTP: "secret",
+			}
+			return
+		})
+		if err != nil {
+			return err
+		}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
+
+	ctrl.PostAction("fallback_sms", func() error {
+		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+			input = &InputVerifyIdentityViaWhatsappFallbackSMS{}
+			return
+		})
+		if err != nil {
+			return err
+		}
+
+		result.WriteResponse(w, r)
 		return nil
 	})
 

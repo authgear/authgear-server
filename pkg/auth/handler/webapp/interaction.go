@@ -273,3 +273,9 @@ type InputSetupWhatsappOTP struct {
 func (i *InputSetupWhatsappOTP) GetWhatsappPhone() string { return i.Phone }
 
 var _ nodes.InputCreateAuthenticatorWhatsappOTPSetup = &InputSetupWhatsappOTP{}
+
+type InputVerifyIdentityViaWhatsappFallbackSMS struct{}
+
+func (i *InputVerifyIdentityViaWhatsappFallbackSMS) FallbackSMS() {}
+
+var _ nodes.InputCreateAuthenticatorWhatsappFallbackSMS = &InputVerifyIdentityViaWhatsappFallbackSMS{}

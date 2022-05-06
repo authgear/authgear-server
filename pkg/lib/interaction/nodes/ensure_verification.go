@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -27,14 +28,16 @@ func (e *EdgeEnsureVerificationBegin) Instantiate(ctx *interaction.Context, grap
 		Identity:         e.Identity,
 		RequestedByUser:  e.RequestedByUser,
 		SkipVerification: skipVerification,
+		PhoneOTPMode:     ctx.Config.Authenticator.OOB.SMS.PhoneOTPMode,
 	}, nil
 }
 
 type NodeEnsureVerificationBegin struct {
-	Identity           *identity.Info      `json:"identity"`
-	RequestedByUser    bool                `json:"requested_by_user"`
-	SkipVerification   bool                `json:"skip_verification"`
-	VerificationStatus verification.Status `json:"-"`
+	Identity           *identity.Info                   `json:"identity"`
+	RequestedByUser    bool                             `json:"requested_by_user"`
+	SkipVerification   bool                             `json:"skip_verification"`
+	PhoneOTPMode       config.AuthenticatorPhoneOTPMode `json:"phone_otp_mode"`
+	VerificationStatus verification.Status              `json:"-"`
 }
 
 func (n *NodeEnsureVerificationBegin) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -57,11 +60,20 @@ func (n *NodeEnsureVerificationBegin) GetEffects() ([]interaction.Effect, error)
 }
 
 func (n *NodeEnsureVerificationBegin) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+	isPhoneIdentity := ensurePhoneLoginIDIdentity(n.Identity) == nil
 	switch n.VerificationStatus {
 	case verification.StatusDisabled, verification.StatusVerified:
 		break
 	case verification.StatusPending:
 		if n.RequestedByUser && !n.SkipVerification {
+			if n.PhoneOTPMode.IsWhatsappEnabled() && isPhoneIdentity {
+				return []interaction.Edge{
+					&EdgeVerifyIdentityViaWhatsapp{
+						Identity:        n.Identity,
+						RequestedByUser: n.RequestedByUser,
+					},
+				}, nil
+			}
 			return []interaction.Edge{
 				&EdgeVerifyIdentity{
 					Identity:        n.Identity,
@@ -71,6 +83,14 @@ func (n *NodeEnsureVerificationBegin) DeriveEdges(graph *interaction.Graph) ([]i
 		}
 	case verification.StatusRequired:
 		if !n.SkipVerification {
+			if n.PhoneOTPMode.IsWhatsappEnabled() && isPhoneIdentity {
+				return []interaction.Edge{
+					&EdgeVerifyIdentityViaWhatsapp{
+						Identity:        n.Identity,
+						RequestedByUser: n.RequestedByUser,
+					},
+				}, nil
+			}
 			return []interaction.Edge{
 				&EdgeVerifyIdentity{
 					Identity:        n.Identity,
