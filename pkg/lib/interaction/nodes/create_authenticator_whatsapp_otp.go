@@ -11,7 +11,7 @@ func init() {
 }
 
 type InputCreateAuthenticatorWhatsappOTP interface {
-	GetWhatsappOTP() string
+	VerifyWhatsappOTP()
 }
 
 type EdgeCreateAuthenticatorWhatsappOTP struct {
@@ -24,8 +24,11 @@ func (e *EdgeCreateAuthenticatorWhatsappOTP) Instantiate(ctx *interaction.Contex
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
-
-	// fixme(whatsapp): check otp
+	phone := e.Authenticator.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string)
+	_, err := ctx.WhatsappCodeProvider.VerifyCode(phone, ctx.WebSessionID, true)
+	if err != nil {
+		return nil, err
+	}
 
 	return &NodeCreateAuthenticatorWhatsappOTP{Stage: e.Stage, Authenticator: e.Authenticator}, nil
 }
