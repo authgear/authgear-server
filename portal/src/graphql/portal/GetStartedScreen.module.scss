@@ -85,11 +85,12 @@
   font-size: smaller;
 }
 
+.helpTextIcon {
+  vertical-align: middle;
+}
+
 .helpText {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  white-space: pre;
+  word-break: break-all;
 }
 
 .dismissButton {

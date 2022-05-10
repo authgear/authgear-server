@@ -315,7 +315,7 @@ function Cards(props: CardsProps) {
 function HelpText() {
   return (
     <Text block={true} className={styles.helpText}>
-      <FontIcon iconName="Lifesaver" />
+      <FontIcon className={styles.helpTextIcon} iconName="Lifesaver" />
       <FormattedMessage id="GetStartedScreen.help-text" />
     </Text>
   );
