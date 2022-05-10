@@ -20,6 +20,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
@@ -689,6 +690,17 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Random:          rand,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -721,6 +733,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef,
 		MFADeviceTokenCookie:      mfaCookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
