@@ -21,6 +21,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
@@ -645,6 +646,17 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -677,6 +689,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -1318,6 +1331,17 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -1350,6 +1374,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -1969,6 +1994,17 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Random:          idpsessionRand,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -2001,6 +2037,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef,
 		MFADeviceTokenCookie:      mfaCookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -3866,6 +3903,17 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Random:          idpsessionRand,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -3898,6 +3946,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef,
 		MFADeviceTokenCookie:      mfaCookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -4500,6 +4549,17 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Random:          idpsessionRand,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -4532,6 +4592,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef,
 		MFADeviceTokenCookie:      mfaCookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -5140,6 +5201,17 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Random:          idpsessionRand,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -5172,6 +5244,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef,
 		MFADeviceTokenCookie:      mfaCookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -5859,6 +5932,17 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -5891,6 +5975,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -6536,6 +6621,17 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -6568,6 +6664,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -7213,6 +7310,17 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -7245,6 +7353,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -7873,6 +7982,17 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -7905,6 +8025,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -8534,6 +8655,17 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -8566,6 +8698,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -9187,6 +9320,17 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -9219,6 +9363,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -9843,6 +9988,17 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -9875,6 +10031,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -10502,6 +10659,17 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -10534,6 +10702,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -11158,6 +11327,17 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -11190,6 +11370,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -11813,6 +11994,17 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -11845,6 +12037,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -12469,6 +12662,17 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -12501,6 +12705,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -13126,6 +13331,17 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -13158,6 +13374,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -13781,6 +13998,17 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -13813,6 +14041,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -14436,6 +14665,17 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -14468,6 +14708,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -15093,6 +15334,17 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -15125,6 +15377,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -15748,6 +16001,17 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -15780,6 +16044,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -16403,6 +16668,17 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -16435,6 +16711,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -17058,6 +17335,17 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -17090,6 +17378,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -17713,6 +18002,17 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -17745,6 +18045,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -18371,6 +18672,17 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -18403,6 +18715,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -19026,6 +19339,17 @@ func newWebAppVerifyIdentityViaWhatsappHandler(p *deps.RequestProvider) http.Han
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -19058,6 +19382,7 @@ func newWebAppVerifyIdentityViaWhatsappHandler(p *deps.RequestProvider) http.Han
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -19681,6 +20006,17 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -19713,6 +20049,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -20341,6 +20678,17 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -20373,6 +20721,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -20996,6 +21345,17 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -21028,6 +21388,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -21652,6 +22013,17 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -21684,6 +22056,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -22307,6 +22680,17 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -22339,6 +22723,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -22989,6 +23374,17 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -23021,6 +23417,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -23655,6 +24052,17 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -23687,6 +24095,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -24334,6 +24743,17 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -24366,6 +24786,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -24992,6 +25413,17 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -25024,6 +25456,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -25648,6 +26081,17 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -25680,6 +26124,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -26313,6 +26758,17 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -26345,6 +26801,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -26969,6 +27426,17 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -27001,6 +27469,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -27625,6 +28094,17 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -27657,6 +28137,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -28282,6 +28763,17 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -28314,6 +28806,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -28943,6 +29436,17 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -28975,6 +29479,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -29599,6 +30104,17 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -29631,6 +30147,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -30255,6 +30772,17 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -30287,6 +30815,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -30911,6 +31440,17 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -30943,6 +31483,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -31567,6 +32108,17 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -31599,6 +32151,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -32230,6 +32783,17 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -32262,6 +32826,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -32887,6 +33452,17 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -32919,6 +33495,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -33542,6 +34119,17 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -33574,6 +34162,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -34216,6 +34805,17 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -34248,6 +34848,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
@@ -34871,6 +35472,17 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore: whatsappStoreRedis,
+		Clock:     clockClock,
+		Logger:    whatsappLogger,
+	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
 		RemoteIP:                  remoteIP,
@@ -34903,6 +35515,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,
