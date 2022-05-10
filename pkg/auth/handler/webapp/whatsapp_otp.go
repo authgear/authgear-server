@@ -84,10 +84,7 @@ func (h *WhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctrl.PostAction("verify", func() error {
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
-			// fixme(whatsapp): get the otp from redis which store by the webhook
-			input = &InputWhatsappOTP{
-				WhatsappOTP: "secret",
-			}
+			input = &InputVerifyWhatsappOTP{}
 			return
 		})
 		if err != nil {
