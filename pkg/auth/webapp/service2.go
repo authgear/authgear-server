@@ -236,6 +236,11 @@ func (s *Service2) doPost(
 				inputFn = func() (interface{}, error) {
 					return &inputSelectTOTP{}, nil
 				}
+			case *nodes.EdgeCreateAuthenticatorWhatsappOTPSetup:
+				session.Steps = append(session.Steps, NewSessionStep(
+					SessionStepSetupWhatsappOTP,
+					graph.InstanceID,
+				))
 			default:
 				panic(fmt.Errorf("webapp: unexpected edge: %T", defaultEdge))
 			}
@@ -452,12 +457,16 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 		default:
 			panic(fmt.Errorf("webapp: unexpected oob authenticator type: %s", currentNode.Authenticator.Type))
 		}
+	case *nodes.NodeCreateAuthenticatorWhatsappOTPSetup:
+		return SessionStepVerifyWhatsappOTP
 	case *nodes.NodeCreateAuthenticatorTOTPSetup:
 		return SessionStepSetupTOTP
 	case *nodes.NodeGenerateRecoveryCodeBegin:
 		return SessionStepSetupRecoveryCode
 	case *nodes.NodeVerifyIdentity:
 		return SessionStepVerifyIdentity
+	case *nodes.NodeVerifyIdentityViaWhatsapp:
+		return SessionStepVerifyIdentityViaWhatsapp
 	case *nodes.NodeValidateUser:
 		return SessionStepAccountStatus
 	case *nodes.NodeChangePasswordBegin:

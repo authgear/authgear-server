@@ -186,13 +186,26 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 
 			// check if identity login id type match oob type
 			if loginIDType == string(config.LoginIDKeyTypePhone) {
-				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
-					Stage:                n.Stage,
-					IsDefault:            isDefault,
-					Target:               loginID,
-					Channel:              model.AuthenticatorOOBChannelSMS,
-					OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
-				})
+
+				// Add whatsapp edge when it is enabled
+				if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
+					edges = append(edges, &EdgeCreateAuthenticatorWhatsappOTPSetup{
+						Stage:     n.Stage,
+						IsDefault: isDefault,
+					})
+				} else {
+					// Add oob setup edge only if whatsapp is not enabled.
+					// If whatsapp is enabled and the user wants to fallback to
+					// sms, the EdgeCreateAuthenticatorWhatsappFallbackSMS in
+					// EdgeCreateAuthenticatorWhatsappOTPSetup is used.
+					edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
+						Stage:                n.Stage,
+						IsDefault:            isDefault,
+						Target:               loginID,
+						Channel:              model.AuthenticatorOOBChannelSMS,
+						OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
+					})
+				}
 			}
 
 		case model.AuthenticatorTypeOOBEmail:
@@ -333,11 +346,23 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 		case model.AuthenticatorTypeOOBSMS:
 			// Condition B and C.
 			if oobSMSCount < *n.AuthenticatorConfig.OOB.SMS.Maximum {
-				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
-					Stage:                n.Stage,
-					IsDefault:            isDefault,
-					OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
-				})
+				// Add whatsapp edge when it is enabled
+				if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
+					edges = append(edges, &EdgeCreateAuthenticatorWhatsappOTPSetup{
+						Stage:     n.Stage,
+						IsDefault: isDefault,
+					})
+				} else {
+					// Add oob setup edge only if whatsapp is not enabled.
+					// If whatsapp is enabled and the user wants to fallback to
+					// sms, the EdgeCreateAuthenticatorWhatsappFallbackSMS in
+					// EdgeCreateAuthenticatorWhatsappOTPSetup is used.
+					edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
+						Stage:                n.Stage,
+						IsDefault:            isDefault,
+						OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
+					})
+				}
 			}
 		default:
 			panic("interaction: unknown authenticator type: " + typ)

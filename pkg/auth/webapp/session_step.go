@@ -8,26 +8,29 @@ import (
 type SessionStepKind string
 
 const (
-	SessionStepOAuthRedirect           SessionStepKind = "oauth-redirect"
-	SessionStepPromoteUser             SessionStepKind = "promote-user"
-	SessionStepAuthenticate            SessionStepKind = "authenticate"
-	SessionStepCreateAuthenticator     SessionStepKind = "create-authenticator"
-	SessionStepEnterPassword           SessionStepKind = "enter-password"
-	SessionStepCreatePassword          SessionStepKind = "create-password"
-	SessionStepChangePrimaryPassword   SessionStepKind = "change-primary-password"
-	SessionStepChangeSecondaryPassword SessionStepKind = "change-secondary-password"
-	SessionStepEnterOOBOTPAuthnEmail   SessionStepKind = "enter-oob-otp-authn-email"
-	SessionStepEnterOOBOTPAuthnSMS     SessionStepKind = "enter-oob-otp-authn-sms"
-	SessionStepEnterOOBOTPSetupEmail   SessionStepKind = "enter-oob-otp-setup-email"
-	SessionStepEnterOOBOTPSetupSMS     SessionStepKind = "enter-oob-otp-setup-sms"
-	SessionStepSetupOOBOTPEmail        SessionStepKind = "setup-oob-otp-email"
-	SessionStepSetupOOBOTPSMS          SessionStepKind = "setup-oob-otp-sms"
-	SessionStepEnterTOTP               SessionStepKind = "enter-totp"
-	SessionStepSetupTOTP               SessionStepKind = "setup-totp"
-	SessionStepEnterRecoveryCode       SessionStepKind = "enter-recovery-code"
-	SessionStepSetupRecoveryCode       SessionStepKind = "setup-recovery-code"
-	SessionStepVerifyIdentity          SessionStepKind = "verify-identity"
-	SessionStepAccountStatus           SessionStepKind = "account-status"
+	SessionStepOAuthRedirect             SessionStepKind = "oauth-redirect"
+	SessionStepPromoteUser               SessionStepKind = "promote-user"
+	SessionStepAuthenticate              SessionStepKind = "authenticate"
+	SessionStepCreateAuthenticator       SessionStepKind = "create-authenticator"
+	SessionStepEnterPassword             SessionStepKind = "enter-password"
+	SessionStepCreatePassword            SessionStepKind = "create-password"
+	SessionStepChangePrimaryPassword     SessionStepKind = "change-primary-password"
+	SessionStepChangeSecondaryPassword   SessionStepKind = "change-secondary-password"
+	SessionStepEnterOOBOTPAuthnEmail     SessionStepKind = "enter-oob-otp-authn-email"
+	SessionStepEnterOOBOTPAuthnSMS       SessionStepKind = "enter-oob-otp-authn-sms"
+	SessionStepEnterOOBOTPSetupEmail     SessionStepKind = "enter-oob-otp-setup-email"
+	SessionStepEnterOOBOTPSetupSMS       SessionStepKind = "enter-oob-otp-setup-sms"
+	SessionStepSetupOOBOTPEmail          SessionStepKind = "setup-oob-otp-email"
+	SessionStepSetupOOBOTPSMS            SessionStepKind = "setup-oob-otp-sms"
+	SessionStepSetupWhatsappOTP          SessionStepKind = "setup-whatsapp-otp"
+	SessionStepVerifyWhatsappOTP         SessionStepKind = "verify-whatsapp-otp"
+	SessionStepEnterTOTP                 SessionStepKind = "enter-totp"
+	SessionStepSetupTOTP                 SessionStepKind = "setup-totp"
+	SessionStepEnterRecoveryCode         SessionStepKind = "enter-recovery-code"
+	SessionStepSetupRecoveryCode         SessionStepKind = "setup-recovery-code"
+	SessionStepVerifyIdentity            SessionStepKind = "verify-identity"
+	SessionStepVerifyIdentityViaWhatsapp SessionStepKind = "verify-identity-via-whatsapp"
+	SessionStepAccountStatus             SessionStepKind = "account-status"
 )
 
 func NewSessionStep(kind SessionStepKind, graphID string) SessionStep {
@@ -59,6 +62,10 @@ func (k SessionStepKind) Path() string {
 		return "/setup_oob_otp_email"
 	case SessionStepSetupOOBOTPSMS:
 		return "/setup_oob_otp_sms"
+	case SessionStepSetupWhatsappOTP:
+		return "/setup_whatsapp_otp"
+	case SessionStepVerifyWhatsappOTP:
+		return "/whatsapp_otp"
 	case SessionStepEnterTOTP:
 		return "/enter_totp"
 	case SessionStepSetupTOTP:
@@ -69,6 +76,8 @@ func (k SessionStepKind) Path() string {
 		return "/setup_recovery_code"
 	case SessionStepVerifyIdentity:
 		return "/verify_identity"
+	case SessionStepVerifyIdentityViaWhatsapp:
+		return "/verify_identity_via_whatsapp"
 	case SessionStepAccountStatus:
 		return "/account_status"
 	case SessionStepOAuthRedirect,

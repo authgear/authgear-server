@@ -95,7 +95,7 @@
   "save-button-label": "儲存",
   "more-button-label": "更多",
   "done-button-label": "完成",
-  "resend-verification-code-button-label": "發送驗證碼",
+  "verify-via-button-label": "通過{loginIDType, select, email {電郵} phone {電話號碼} other {loginIDType}}驗證",
   "verification-status-label--unverified": "未驗證",
   "verification-status-label--verified": "已驗證",
   "activated-label": "已啟用",
@@ -147,6 +147,11 @@
   "oob-otp-sms-is-not-supported": "不支援發送短信，請聯繫管理員",
   "oob-otp-sms-is-not-supported-with-customer-support": "不支援發送短信，請聯繫<a class=\"link\" target=\"_blank\" href={customerSupportLink}>客戶服務</a>",
 
+  "whatsapp-otp-page-title": "Whatsapp one-time password",
+  "whatsapp-otp-description": "Please send the following one-time password to number {whatsappNumber}.",
+  "whatsapp-otp-confirm": "Confirm after sent the one-time password",
+  "whatsapp-otp-fallback-sms": "Fallback using SMS",
+
   "verify-user-page-title--sms": "短訊驗證",
   "verify-user-page-title--email": "驗證你的電郵地址",
   "verify-user-placeholder": "驗證碼",
@@ -157,6 +162,11 @@
 
   "verify-user-success-page-title": "帳號驗證",
   "verify-user-success-description": "你的帳號已完成驗證",
+
+  "verify-identity-via-whatsapp-page-title": "Phone verification via WhatsApp",
+  "verify-identity-via-whatsapp-description": "Please send the following one-time password to number {whatsappNumber}.",
+  "verify-identity-via-whatsapp-confirm": "Confirm after sent the one-time password",
+  "verify-identity-via-whatsapp-fallback-sms": "Fallback using SMS",
 
   "use-login-id-key": "改為用{key, select, email{電郵地址} username{用戶名稱} phone{電話號碼} other{{key}}}",
 
@@ -285,6 +295,7 @@
   "setup-totp-instead": "改為使用驗證器應用程式／裝置",
   "setup-oob-otp-email-instead": "改為使用電郵作雙重驗證",
   "setup-oob-otp-sms-instead": "改為使用短訊作雙重驗證",
+  "setup-whatsapp-otp-instead": "Setup phone 2-step verification instead",
   "setup-password-instead": "改為設置密碼",
   "enter-totp-instead": "改為輸入6位驗證器碼",
   "enter-password-instead": "改為輸入密碼",
@@ -296,6 +307,8 @@
 
   "setup-oob-otp-title--sms": "設置短訊雙重驗證",
   "setup-oob-otp-title--email": "設置電郵雙重驗證",
+
+  "setup-whatsapp-otp-title": "Setup phone 2-step verification",
 
   "setup-totp-title": "設置驗證器",
   "setup-totp-code-placeholder": "6位碼",

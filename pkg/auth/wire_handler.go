@@ -227,6 +227,20 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.SetupWhatsappOTPHandler)),
+	))
+}
+
+func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.WhatsappOTPHandler)),
+	))
+}
+
 func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
@@ -252,6 +266,13 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebapp.VerifyIdentitySuccessHandler)),
+	))
+}
+
+func newWebAppVerifyIdentityViaWhatsappHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.VerifyIdentityViaWhatsappHandler)),
 	))
 }
 

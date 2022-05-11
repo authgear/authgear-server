@@ -248,3 +248,34 @@ var _ nodes.InputResetPasswordByCode = &InputResetPassword{}
 
 func (i *InputResetPassword) GetCode() string        { return i.Code }
 func (i *InputResetPassword) GetNewPassword() string { return i.Password }
+
+type InputWhatsappOTP struct {
+	WhatsappOTP string
+}
+
+func (i *InputWhatsappOTP) GetWhatsappOTP() string { return i.WhatsappOTP }
+
+var _ nodes.InputCreateAuthenticatorWhatsappOTP = &InputWhatsappOTP{}
+
+type InputSetupWhatsappFallbackSMS struct {
+	InputSetupOOB
+}
+
+func (i *InputSetupWhatsappFallbackSMS) FallbackSMS() {}
+
+var _ nodes.InputCreateAuthenticatorOOBSetup = &InputSetupWhatsappFallbackSMS{}
+var _ nodes.InputCreateAuthenticatorWhatsappFallbackSMS = &InputSetupWhatsappFallbackSMS{}
+
+type InputSetupWhatsappOTP struct {
+	Phone string
+}
+
+func (i *InputSetupWhatsappOTP) GetWhatsappPhone() string { return i.Phone }
+
+var _ nodes.InputCreateAuthenticatorWhatsappOTPSetup = &InputSetupWhatsappOTP{}
+
+type InputVerifyIdentityViaWhatsappFallbackSMS struct{}
+
+func (i *InputVerifyIdentityViaWhatsappFallbackSMS) FallbackSMS() {}
+
+var _ nodes.InputCreateAuthenticatorWhatsappFallbackSMS = &InputVerifyIdentityViaWhatsappFallbackSMS{}
