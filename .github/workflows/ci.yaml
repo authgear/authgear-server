@@ -14,11 +14,8 @@ jobs:
   portal-test:
     runs-on: ubuntu-20.04
     steps:
-    - run: sudo add-apt-repository -y ppa:strukturag/libde265
-    - run: sudo add-apt-repository -y ppa:strukturag/libheif
-    - run: sudo add-apt-repository ppa:tonimelisma/ppa
-    - run: sudo apt -y install libvips-dev
     - uses: actions/checkout@v3
+    - uses: ./.github/actions/libvips
     - uses: actions/setup-node@v3
       with:
         node-version: "16.14.0"
@@ -53,11 +50,8 @@ jobs:
       TARGET: portal
       IMAGE_NAME: authgear-portal
     steps:
-    - run: sudo add-apt-repository -y ppa:strukturag/libde265
-    - run: sudo add-apt-repository -y ppa:strukturag/libheif
-    - run: sudo add-apt-repository ppa:tonimelisma/ppa
-    - run: sudo apt -y install libvips-dev
     - uses: actions/checkout@v3
+    - uses: ./.github/actions/libvips
     - run: make build-image TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
     - run: make tag-image IMAGE_NAME=$IMAGE_NAME
     - name: docker login
@@ -72,11 +66,8 @@ jobs:
   authgear-test:
     runs-on: ubuntu-20.04
     steps:
-    - run: sudo add-apt-repository -y ppa:strukturag/libde265
-    - run: sudo add-apt-repository -y ppa:strukturag/libheif
-    - run: sudo add-apt-repository ppa:tonimelisma/ppa
-    - run: sudo apt -y install libvips-dev
     - uses: actions/checkout@v3
+    - uses: ./.github/actions/libvips
     - uses: actions/setup-go@v3
       with:
         go-version: "1.17.7"
@@ -98,11 +89,8 @@ jobs:
       TARGET: authgear
       IMAGE_NAME: authgear-server
     steps:
-    - run: sudo add-apt-repository -y ppa:strukturag/libde265
-    - run: sudo add-apt-repository -y ppa:strukturag/libheif
-    - run: sudo add-apt-repository ppa:tonimelisma/ppa
-    - run: sudo apt -y install libvips-dev
     - uses: actions/checkout@v3
+    - uses: ./.github/actions/libvips
     - run: make build-image TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
     - run: make tag-image IMAGE_NAME=$IMAGE_NAME
     - name: docker login
