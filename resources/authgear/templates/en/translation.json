@@ -148,10 +148,29 @@
   "oob-otp-sms-is-not-supported": "Sending SMS is not supported. Please contact administrator.",
   "oob-otp-sms-is-not-supported-with-customer-support": "Sending SMS is not supported. Please contact <a class=\"link\" target=\"_blank\" href={customerSupportLink}>customer support</a>.",
 
-  "whatsapp-otp-page-title": "Whatsapp one-time password",
-  "whatsapp-otp-description": "Please send the following one-time password to number {whatsappNumber}.",
-  "whatsapp-otp-confirm": "Confirm after sent the one-time password",
-  "whatsapp-otp-fallback-sms": "Fallback using SMS",
+  "whatsapp-otp-page-title": "Verify phone number with WhatsApp",
+  "whatsapp-otp-description": "Is your WhatsApp installed on this device?",
+
+  "whatsapp-otp-send-code-to-whatsapp-title": "Send Code to WhatsApp",
+  "whatsapp-otp-copy-and-send-code-to-whatsapp-description": "Copy the 6-digit code and send in WhatsApp",
+  "whatsapp-otp-send-code-to-whatsapp-description": "Send the 6-digit code in WhatsApp",
+
+  "whatsapp-otp-waiting-for-your-message": "Waiting for your message",
+  "whatsapp-otp-no-code-description": "We didn''t see a message from you. \nDo you want to resend it?",
+  "whatsapp-otp-invalid-code-description": "You have entered a wrong code. \nDo you want to resend it?",
+  "whatsapp-otp-code-matched-description": "Message Received!",
+
+  "whatsapp-otp-on-this-device-button-label": "WhatsApp on this device",
+  "whatsapp-otp-on-another-device-button-label": "WhatsApp on another device",
+  "whatsapp-otp-fallback-sms-button-label": "Verify with SMS instead",
+  "whatsapp-otp-open-in-whatsapp-button-label": "Open in WhatsApp",
+  "whatsapp-otp-i-have-sent-the-code-button-label": "I''ve sent the code",
+  "whatsapp-otp-try-again-button-label": "Try again",
+  "whatsapp-otp-next-button": "Next",
+  "whatsapp-otp-redirecting-button": "Redirecting... (%ds)",
+  "whatsapp-otp-show-qr-code-link-label": "Show QR Code to WhatsApp",
+  "whatsapp-otp-show-open-in-whatsapp-link-label": "My WhatsApp is installed on this device",
+  "whatsapp-otp-fallback-sms-link-label":"Receive one-time password via SMS instead",
 
   "verify-user-page-title--sms": "SMS Verification",
   "verify-user-page-title--email": "Email Verification",

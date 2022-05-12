@@ -1,11 +1,14 @@
 package webapp
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -29,28 +32,25 @@ type WhatsappOTPNode interface {
 	GetPhone() string
 }
 
-type WhatsappOTPViewModel struct {
-	PhoneOTPMode config.AuthenticatorPhoneOTPMode
-	WhatsappOTP  string
-}
-
 type WhatsappOTPHandler struct {
-	ControllerFactory ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	Renderer          Renderer
+	ControllerFactory    ControllerFactory
+	BaseViewModel        *viewmodels.BaseViewModeler
+	Renderer             Renderer
+	WhatsappCodeProvider WhatsappCodeProvider
 }
 
 func (h *WhatsappOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	viewModel := WhatsappOTPViewModel{}
-	var n WhatsappOTPNode
-	if graph.FindLastNode(&n) {
-		viewModel.PhoneOTPMode = n.GetPhoneOTPMode()
-		viewModel.WhatsappOTP = n.GetWhatsappOTP()
+	whatsappViewModel := WhatsappOTPViewModel{
+		MethodQuery: getMethodFromQuery(r),
+		StateQuery:  getStateFromQuery(r),
+	}
+	if err := whatsappViewModel.AddData(r, graph); err != nil {
+		return nil, err
 	}
 	viewmodels.Embed(data, baseViewModel)
-	viewmodels.Embed(data, viewModel)
+	viewmodels.Embed(data, whatsappViewModel)
 	return data, nil
 }
 
@@ -61,6 +61,22 @@ func (h *WhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer ctrl.Serve()
+
+	getPhoneFromGraph := func() (string, error) {
+		graph, err := ctrl.InteractionGet()
+		if err != nil {
+			return "", err
+		}
+		var phone string
+		var n WhatsappOTPNode
+		if graph.FindLastNode(&n) {
+			phone = n.GetPhone()
+		} else {
+			panic(fmt.Errorf("webapp: unexpected node for sms fallback: %T", n))
+		}
+
+		return phone, nil
+	}
 
 	ctrl.Get(func() error {
 		session, err := ctrl.InteractionSession()
@@ -79,6 +95,41 @@ func (h *WhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		h.Renderer.RenderHTML(w, r, TemplateWebWhatsappHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("dryrun_verify", func() error {
+		webSession := webapp.GetSession(r.Context())
+		phone, err := getPhoneFromGraph()
+		if err != nil {
+			return err
+		}
+
+		method := getMethodFromQuery(r)
+		var state WhatsappOTPPageQueryState
+		_, err = h.WhatsappCodeProvider.VerifyCode(phone, webSession.ID, false)
+		if err == nil {
+			state = WhatsappOTPPageQueryStateMatched
+		} else if errors.Is(err, whatsapp.ErrInvalidCode) {
+			state = WhatsappOTPPageQueryStateInvalidCode
+		} else if errors.Is(err, whatsapp.ErrInputRequired) {
+			state = WhatsappOTPPageQueryStateNoCode
+		} else {
+			return err
+		}
+
+		q := r.URL.Query()
+		q.Set(WhatsappOTPPageQueryMethodKey, string(method))
+		q.Set(WhatsappOTPPageQueryStateKey, string(state))
+
+		u := url.URL{}
+		u.Path = r.URL.Path
+		u.RawQuery = q.Encode()
+		result := webapp.Result{
+			RedirectURI:      u.String(),
+			NavigationAction: "replace",
+		}
+		result.WriteResponse(w, r)
 		return nil
 	})
 
