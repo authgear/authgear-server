@@ -256,14 +256,15 @@ func (i *InputVerifyWhatsappOTP) VerifyWhatsappOTP() {}
 var _ nodes.InputCreateAuthenticatorWhatsappOTP = &InputVerifyWhatsappOTP{}
 var _ nodes.InputVerifyIdentityViaWhatsappCheckCode = &InputVerifyWhatsappOTP{}
 
-type InputSetupWhatsappFallbackSMS struct {
+type InputWhatsappFallbackSMS struct {
 	InputSetupOOB
 }
 
-func (i *InputSetupWhatsappFallbackSMS) FallbackSMS() {}
+func (i *InputWhatsappFallbackSMS) FallbackSMS() {}
 
-var _ nodes.InputCreateAuthenticatorOOBSetup = &InputSetupWhatsappFallbackSMS{}
-var _ nodes.InputCreateAuthenticatorWhatsappFallbackSMS = &InputSetupWhatsappFallbackSMS{}
+var _ nodes.InputCreateAuthenticatorOOBSetup = &InputWhatsappFallbackSMS{}
+var _ nodes.InputCreateAuthenticatorWhatsappFallbackSMS = &InputWhatsappFallbackSMS{}
+var _ nodes.InputCreateAuthenticatorWhatsappFallbackSMS = &InputWhatsappFallbackSMS{}
 
 type InputSetupWhatsappOTP struct {
 	Phone string
