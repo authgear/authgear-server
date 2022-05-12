@@ -67,6 +67,15 @@
   {{ end }}
 {{ end }}
 
+<button
+  form="dryrun-verify-form"
+  class="hidden"
+  type="submit"
+  name="x_action"
+  value="dryrun_verify"
+  data-submit-when-refresh="true"
+></button>
+
 {{ template "__watermark.html" . }}
 </div>
 {{ end }}
