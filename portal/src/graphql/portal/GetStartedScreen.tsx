@@ -68,35 +68,76 @@ type Progress = keyof TutorialStatusData["progress"];
 interface CardSpec {
   key: Progress;
   iconSrc: string;
-  internalHref?: string;
+  internalHref: string | undefined;
+  externalHref: string | undefined;
+  canSkip: boolean;
+  isDone: boolean;
 }
 
-const cards: CardSpec[] = [
-  {
+interface MakeCardSpecsOptions {
+  publicOrigin?: string;
+  numberOfClients: number;
+  tutorialStatusData: TutorialStatusData;
+}
+
+function makeCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
+  const { publicOrigin, numberOfClients, tutorialStatusData } = options;
+
+  const authui: CardSpec = {
     key: "authui",
     iconSrc: iconKey,
-  },
-  {
+    internalHref: undefined,
+    externalHref:
+      publicOrigin != null ? `${publicOrigin}?x_tutorial=true` : undefined,
+    canSkip: false,
+    isDone: tutorialStatusData.progress["authui"] === true,
+  };
+
+  const customize_ui: CardSpec = {
     key: "customize_ui",
     iconSrc: iconCustomize,
     internalHref: "../configuration/ui-settings",
-  },
-  {
+    externalHref: undefined,
+    canSkip: false,
+    isDone: tutorialStatusData.progress["customize_ui"] === true,
+  };
+
+  // Special handling for apps with applications.
+  // https://github.com/authgear/authgear-server/issues/1976
+  const create_application: CardSpec = {
     key: "create_application",
     iconSrc: iconApplication,
-    internalHref: "../configuration/apps/add",
-  },
-  {
+    internalHref: undefined,
+    externalHref: undefined,
+    canSkip: false,
+    isDone:
+      numberOfClients > 0 ||
+      tutorialStatusData.progress["create_application"] === true,
+  };
+  create_application.internalHref = create_application.isDone
+    ? "../configuration/apps"
+    : "../configuration/apps/add";
+
+  const sso: CardSpec = {
     key: "sso",
     iconSrc: iconSSO,
     internalHref: "../configuration/single-sign-on",
-  },
-  {
+    externalHref: undefined,
+    canSkip: true,
+    isDone: tutorialStatusData.progress["sso"] === true,
+  };
+
+  const invite: CardSpec = {
     key: "invite",
     iconSrc: iconTeam,
     internalHref: "../portal-admins/invite",
-  },
-];
+    externalHref: undefined,
+    canSkip: false,
+    isDone: tutorialStatusData.progress["invite"] === true,
+  };
+
+  return [authui, customize_ui, create_application, sso, invite];
+}
 
 function Title() {
   return (
@@ -115,18 +156,16 @@ function Description() {
 }
 
 interface CounterProps {
-  tutorialStatusData: TutorialStatusData;
+  cardSpecs: CardSpec[];
 }
 
 function Counter(props: CounterProps) {
-  const total = 5;
-  const { tutorialStatusData } = props;
-  let done = 0;
-  for (const [, val] of Object.entries(tutorialStatusData.progress)) {
-    if (val === true) {
-      ++done;
-    }
-  }
+  const { cardSpecs } = props;
+  const total = cardSpecs.length;
+  const done = cardSpecs.reduce(
+    (count, card) => count + (card.isDone ? 1 : 0),
+    0
+  );
   const remaining = total - done;
   return (
     <Text block={true} className={styles.counter}>
@@ -249,7 +288,7 @@ function Card(props: CardProps) {
           {" >"}
         </Link>
       )}
-      {skipProgress != null && (
+      {skipProgress != null && !isDone && (
         <Link
           className={styles.cardSkipButton}
           as="button"
@@ -265,46 +304,27 @@ function Card(props: CardProps) {
 }
 
 interface CardsProps {
-  publicOrigin?: string;
-  numberOfClients: number;
-  tutorialStatusData: TutorialStatusData;
+  cardSpecs: CardSpec[];
   skipProgress: (progress: Progress) => Promise<void>;
-  skipDisabled: boolean;
+  loading: boolean;
 }
 
 function Cards(props: CardsProps) {
-  const {
-    publicOrigin,
-    numberOfClients,
-    tutorialStatusData,
-    skipProgress,
-    skipDisabled,
-  } = props;
+  const { cardSpecs, skipProgress, loading } = props;
 
   return (
     <div className={styles.cards}>
-      {cards.map((card) => {
-        // Special handling for apps with applications.
-        // https://github.com/authgear/authgear-server/issues/1976
-        const isDone = card.key === "create_application" && numberOfClients > 0;
-        const internalHref =
-          card.key === "create_application" && isDone
-            ? "../configuration/apps"
-            : undefined;
+      {cardSpecs.map((card) => {
         return (
           <Card
             key={card.key}
             cardKey={card.key}
-            isDone={isDone || tutorialStatusData.progress[card.key] === true}
-            skipProgress={card.key === "sso" ? skipProgress : undefined}
-            skipDisabled={skipDisabled}
+            isDone={card.isDone}
+            skipProgress={card.canSkip ? skipProgress : undefined}
+            skipDisabled={loading}
             iconSrc={card.iconSrc}
-            externalHref={
-              card.internalHref == null && publicOrigin != null
-                ? `${publicOrigin}?x_tutorial=true`
-                : undefined
-            }
-            internalHref={internalHref ?? card.internalHref}
+            externalHref={card.externalHref}
+            internalHref={card.internalHref}
           />
         );
       })}
@@ -346,25 +366,23 @@ function DismissButton(props: DismissButtonProps) {
   );
 }
 
-export default function GetStartedScreen(): React.ReactElement {
+interface GetStartedScreenContentProps {
+  loading: boolean;
+  publicOrigin?: string;
+  numberOfClients: number;
+  tutorialStatusData: TutorialStatusData;
+}
+
+function GetStartedScreenContent(props: GetStartedScreenContentProps) {
   const { appID } = useParams();
   const navigate = useNavigate();
 
   const {
-    effectiveAppConfig,
-    loading: appConfigLoading,
-    error,
-    refetch,
-  } = useAppAndSecretConfigQuery(appID);
-
-  const queryResult = useQuery<ScreenNavQuery>(query, {
-    client,
-    variables: {
-      id: appID,
-    },
-    // Refresh each time this screen is visited.
-    fetchPolicy: "network-only",
-  });
+    loading: propLoading,
+    publicOrigin,
+    numberOfClients,
+    tutorialStatusData,
+  } = props;
 
   const [
     skipAppTutorialMutationFunction,
@@ -376,6 +394,8 @@ export default function GetStartedScreen(): React.ReactElement {
       refetchQueries: [{ query }],
     }
   );
+
+  const loading = propLoading || skipAppTutorialMutationLoading;
 
   const [
     skipAppTutorialProgressMutationFuction,
@@ -400,11 +420,6 @@ export default function GetStartedScreen(): React.ReactElement {
     [appID, skipAppTutorialProgressMutationFuction]
   );
 
-  const app =
-    queryResult.data?.node?.__typename === "App" ? queryResult.data.node : null;
-
-  const tutorialStatusData = app?.tutorialStatus.data;
-
   const onClickDismissButton = useCallback(
     (e) => {
       e.preventDefault();
@@ -424,8 +439,55 @@ export default function GetStartedScreen(): React.ReactElement {
     [appID, skipAppTutorialMutationFunction, navigate]
   );
 
-  const loading =
-    queryResult.loading || appConfigLoading || skipAppTutorialMutationLoading;
+  const cardSpecs = makeCardSpecs({
+    publicOrigin,
+    numberOfClients,
+    tutorialStatusData,
+  });
+
+  return (
+    <div className={styles.root}>
+      <Title />
+      <div className={styles.descriptionRow}>
+        <Description />
+        <Counter cardSpecs={cardSpecs} />
+      </div>
+      <Cards
+        cardSpecs={cardSpecs}
+        skipProgress={skipProgress}
+        loading={skipAppTutorialProgressMutationLoading}
+      />
+      <HelpText />
+      <DismissButton onClick={onClickDismissButton} disabled={loading} />
+    </div>
+  );
+}
+
+export default function GetStartedScreen(): React.ReactElement {
+  const { appID } = useParams();
+
+  const {
+    effectiveAppConfig,
+    loading: appConfigLoading,
+    error,
+    refetch,
+  } = useAppAndSecretConfigQuery(appID);
+
+  const queryResult = useQuery<ScreenNavQuery>(query, {
+    client,
+    variables: {
+      id: appID,
+    },
+    // Refresh each time this screen is visited.
+    fetchPolicy: "network-only",
+  });
+
+  const app =
+    queryResult.data?.node?.__typename === "App" ? queryResult.data.node : null;
+
+  const tutorialStatusData = app?.tutorialStatus.data;
+
+  const loading = queryResult.loading || appConfigLoading;
 
   if (loading || !tutorialStatusData || !effectiveAppConfig) {
     return <ShowLoading />;
@@ -436,21 +498,11 @@ export default function GetStartedScreen(): React.ReactElement {
   }
 
   return (
-    <div className={styles.root}>
-      <Title />
-      <div className={styles.descriptionRow}>
-        <Description />
-        <Counter tutorialStatusData={tutorialStatusData} />
-      </div>
-      <Cards
-        numberOfClients={effectiveAppConfig.oauth?.clients?.length ?? 0}
-        publicOrigin={effectiveAppConfig.http?.public_origin}
-        tutorialStatusData={tutorialStatusData}
-        skipProgress={skipProgress}
-        skipDisabled={skipAppTutorialProgressMutationLoading}
-      />
-      <HelpText />
-      <DismissButton onClick={onClickDismissButton} disabled={loading} />
-    </div>
+    <GetStartedScreenContent
+      loading={loading}
+      publicOrigin={effectiveAppConfig.http?.public_origin}
+      numberOfClients={effectiveAppConfig.oauth?.clients?.length ?? 0}
+      tutorialStatusData={tutorialStatusData}
+    />
   );
 }
