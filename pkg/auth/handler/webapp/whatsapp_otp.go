@@ -161,7 +161,7 @@ func (h *WhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
-			input = &InputSetupWhatsappFallbackSMS{
+			input = &InputWhatsappFallbackSMS{
 				InputSetupOOB{
 					InputType: "phone",
 					Target:    phone,
