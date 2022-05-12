@@ -38,6 +38,12 @@ export function setupWebsocket(): () => void {
       // if there is refresh link in the page, don't refresh automatically
       return;
     }
+    const btn = document.querySelector('[data-submit-when-refresh="true"]');
+    if (btn instanceof HTMLElement) {
+      btn.click();
+      return;
+    }
+
     refreshPage();
   }
 
