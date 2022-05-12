@@ -16112,9 +16112,10 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		ControllerDeps: controllerDeps,
 	}
 	whatsappOTPHandler := &webapp2.WhatsappOTPHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
+		ControllerFactory:    controllerFactory,
+		BaseViewModel:        baseViewModeler,
+		Renderer:             responseRenderer,
+		WhatsappCodeProvider: whatsappProvider,
 	}
 	return whatsappOTPHandler
 }
