@@ -64,7 +64,8 @@ func (k SessionStepKind) Path() string {
 		return "/setup_oob_otp_sms"
 	case SessionStepSetupWhatsappOTP:
 		return "/setup_whatsapp_otp"
-	case SessionStepVerifyWhatsappOTP:
+	case SessionStepVerifyWhatsappOTP,
+		SessionStepVerifyIdentityViaWhatsapp:
 		return "/whatsapp_otp"
 	case SessionStepEnterTOTP:
 		return "/enter_totp"
@@ -76,8 +77,6 @@ func (k SessionStepKind) Path() string {
 		return "/setup_recovery_code"
 	case SessionStepVerifyIdentity:
 		return "/verify_identity"
-	case SessionStepVerifyIdentityViaWhatsapp:
-		return "/verify_identity_via_whatsapp"
 	case SessionStepAccountStatus:
 		return "/account_status"
 	case SessionStepOAuthRedirect,
