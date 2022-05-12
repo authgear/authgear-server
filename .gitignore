@@ -1,4 +1,5 @@
 /tmp
+/dist
 .env
 /var/authgear.yaml
 /var/authgear.secrets.yaml
