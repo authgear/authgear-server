@@ -105,6 +105,7 @@ jobs:
   release:
     runs-on: ubuntu-20.04
     needs: ["portal-test", "authgear-test"]
+    if: ${{ github.ref == 'refs/heads/build-binary' }}
     steps:
     - uses: actions/checkout@v3
     - uses: ./.github/actions/libvips
@@ -116,3 +117,8 @@ jobs:
         node-version: "16.14.0"
     - run: make vendor
     - run: make binary
+    - uses: softprops/action-gh-release@v1
+      with:
+        draft: true
+        files: |
+          ./dist/*
