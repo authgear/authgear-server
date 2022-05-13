@@ -12,19 +12,21 @@
   {{ end }}
 </h1>
 
-<div class="text-sm break-words primary-txt text-center">
-  {{ if eq .MethodQuery "" }}
+{{ if eq .MethodQuery "" }}
+  <div class="text-sm break-words primary-txt text-center">
     {{ template "whatsapp-otp-description" }}
-  {{ else }}
-    {{ if not (eq .StateQuery "matched") }}
+  </div>
+{{ else }}
+  {{ if not (eq .StateQuery "matched") }}
+    <div class="text-sm break-words primary-txt text-center">
       {{ if eq .MethodQuery "open_whatsapp" }}
         {{ template "whatsapp-otp-copy-and-send-code-to-whatsapp-description" }}
       {{ else if eq .MethodQuery "qr_code" }}
         {{ template "whatsapp-otp-send-code-to-whatsapp-description" }}
       {{ end }}
-    {{ end }}
+    </div>
   {{ end }}
-</div>
+{{ end }}
 
 <form id="main-form" class="hidden" method="post" novalidate>
 {{ $.CSRFField }}
@@ -148,7 +150,7 @@
 {{ end }}
 
 {{ define "__state_matched.html" }}
-  <div class="grid grid-cols-1 auto-rows-auto bg-gray-100 py-16 px-4 text-center">
+  <div class="grid grid-cols-1 auto-rows-auto bg-gray-100 py-18 px-4 text-center">
     <i class="good-txt text-base ti ti-check" aria-hidden="true"></i>
     <p class="text-sm text-black whitespace-pre-wrap">{{ template "whatsapp-otp-code-matched-description" }}</p>
   </div>
