@@ -1,0 +1,13 @@
+name: "Install libvips"
+description: "Install libvips on Ubuntu"
+runs:
+  using: "composite"
+  steps:
+  - run: sudo add-apt-repository -y ppa:strukturag/libde265
+    shell: bash
+  - run: sudo add-apt-repository -y ppa:strukturag/libheif
+    shell: bash
+  - run: sudo add-apt-repository ppa:tonimelisma/ppa
+    shell: bash
+  - run: sudo apt -y install libvips-dev
+    shell: bash
