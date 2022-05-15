@@ -80,6 +80,7 @@ type WhatsappOTPViewModel struct {
 	OpenWhatsappPath           string // Path of Auth UI to show open whatsapp link
 	ShowQRCodePath             string // Path of Auth UI to open auth ui page to show qr code
 	TryAgainPath               string // Path of Auth UI to current method which the state is reset
+	VerifyFormSubmitPath       string // Path of Auth UI for verify form submission which the state is reset
 	OpenWhatsappQRCodeImageURI htmltemplate.URL
 }
 
@@ -97,6 +98,7 @@ func (m *WhatsappOTPViewModel) AddData(r *http.Request, graph *interaction.Graph
 	getPath := func(method string) string {
 		q := r.URL.Query()
 		q.Set(WhatsappOTPPageQueryMethodKey, method)
+		// delete the state in query is intended
 		q.Del(WhatsappOTPPageQueryStateKey)
 		u := url.URL{}
 		u.Path = r.URL.Path
@@ -108,6 +110,9 @@ func (m *WhatsappOTPViewModel) AddData(r *http.Request, graph *interaction.Graph
 	m.ShowQRCodePath = getPath(string(WhatsappOTPPageQueryMethodQRCode))
 	currentMethod := getMethodFromQuery(r)
 	m.TryAgainPath = getPath(string(currentMethod))
+	// verify code form has auto redirect mechanism
+	// reset the state of VerifyFormSubmitPath to avoid infinite redirect
+	m.VerifyFormSubmitPath = getPath(string(currentMethod))
 
 	waURL := url.URL{}
 	waURL.Scheme = "https"

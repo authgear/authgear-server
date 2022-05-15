@@ -10,6 +10,7 @@ import { AccountDelectionController } from "./accountdeletion";
 import { ResendButtonController } from "./resendButton";
 import { MessageBarController } from "./messageBar";
 import { IntlTelInputController } from "./intlTelInput";
+import { DelayedAutoSubmitController } from "./delayedAutoSubmit";
 import { SelectEmptyValueController, GenderSelectController } from "./select";
 import { ImagePickerController } from "./imagepicker";
 import { WebSocketController } from "./websocket";
@@ -38,6 +39,7 @@ Stimulus.register(
 );
 Stimulus.register("password-policy", PasswordPolicyController);
 Stimulus.register("click-to-switch", ClickToSwitchController);
+Stimulus.register("delayed-auto-submit", DelayedAutoSubmitController);
 
 Stimulus.register("copy-button", CopyButtonController);
 
