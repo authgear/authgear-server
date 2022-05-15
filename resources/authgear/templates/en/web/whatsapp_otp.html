@@ -85,7 +85,10 @@
 {{ define "__state_initial.html" }}
   {{ template "__whatsapp_otp_block.html" . }}
   {{ if eq .MethodQuery "qr_code" }}
-    <img class="w-48 place-self-center" src="{{ $.OpenWhatsappQRCodeImageURI }}"/>
+    <div class="relative grid justify-center">
+      <img class="w-48" src="{{ $.OpenWhatsappQRCodeImageURI }}"/>
+      <div class="absolute inset-0 whatsapp-icon qr-overlay"></div>
+    </div>
   {{ end }}
   {{ template "__wait_for_your_message_block.html" . }}
   {{ if eq .MethodQuery "open_whatsapp" }}
