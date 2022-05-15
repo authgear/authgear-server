@@ -28,7 +28,7 @@
   {{ end }}
 {{ end }}
 
-<form id="main-form" class="hidden" method="post" novalidate>
+<form id="main-form" class="hidden" method="post" action="{{ $.VerifyFormSubmitPath }}" novalidate>
 {{ $.CSRFField }}
 </form>
 
@@ -154,13 +154,19 @@
     <i class="good-txt text-base ti ti-check" aria-hidden="true"></i>
     <p class="text-sm text-black whitespace-pre-wrap">{{ template "whatsapp-otp-code-matched-description" }}</p>
   </div>
-  <button
-    form="main-form"
-    class="btn primary-btn"
-    type="submit"
-    name="x_action"
-    value="verify"
-  >{{ template "whatsapp-otp-next-button" }}</button>
+  <div class="grid grid-cols-1" data-controller="delayed-auto-submit">
+    <button
+      form="main-form"
+      class="btn primary-btn"
+      type="submit"
+      name="x_action"
+      value="verify"
+      data-delayed-auto-submit-target="button"
+      data-countdown-sec="2"
+      data-label="{{ template "whatsapp-otp-next-button" }}"
+      data-label-unit="{{ template "whatsapp-otp-redirecting-button" }}"
+    >{{ template "whatsapp-otp-next-button" }}</button>
+  </div>
 {{ end }}
 
 {{ define "__whatsapp_otp_block.html" }}

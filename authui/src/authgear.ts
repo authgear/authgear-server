@@ -22,6 +22,8 @@ import { CopyButtonController } from "./copy";
 import { PasswordVisibilityToggleController } from "./passwordVisibility";
 import { PasswordPolicyController } from "./password-policy";
 import { ClickToSwitchController } from "./clickToSwitch";
+import { DelayedAutoSubmitController } from "./delayedAutoSubmit";
+
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
 
@@ -36,6 +38,7 @@ Stimulus.register(
 );
 Stimulus.register("password-policy", PasswordPolicyController);
 Stimulus.register("click-to-switch", ClickToSwitchController);
+Stimulus.register("delayed-auto-submit", DelayedAutoSubmitController);
 
 Stimulus.register("copy-button", CopyButtonController);
 
