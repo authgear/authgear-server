@@ -124,7 +124,8 @@ func (m *WhatsappOTPViewModel) AddData(r *http.Request, graph *interaction.Graph
 	waURL.RawQuery = q.Encode()
 	m.OpenWhatsappLink = waURL.String()
 
-	img, err := createQRCodeImage(m.OpenWhatsappLink, 512, 512, qr.M)
+	// Using H error correction level for adding logo
+	img, err := createQRCodeImage(m.OpenWhatsappLink, 512, 512, qr.H)
 	if err != nil {
 		return err
 	}
