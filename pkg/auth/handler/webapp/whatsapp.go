@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	coreimage "github.com/authgear/authgear-server/pkg/util/image"
+	"github.com/boombuler/barcode/qr"
 )
 
 const WhatsappOTPPageQueryMethodKey = "method"
@@ -123,7 +124,7 @@ func (m *WhatsappOTPViewModel) AddData(r *http.Request, graph *interaction.Graph
 	waURL.RawQuery = q.Encode()
 	m.OpenWhatsappLink = waURL.String()
 
-	img, err := createQRCodeImage(m.OpenWhatsappLink, 512, 512)
+	img, err := createQRCodeImage(m.OpenWhatsappLink, 512, 512, qr.M)
 	if err != nil {
 		return err
 	}
