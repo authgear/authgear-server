@@ -207,6 +207,13 @@ func (s *Service2) doPost(
 					}
 					return
 				}
+			case *nodes.EdgeAuthenticationWhatsappTrigger:
+				inputFn = func() (input interface{}, err error) {
+					input = &inputTriggerWhatsapp{
+						AuthenticatorIndex: 0,
+					}
+					return
+				}
 			default:
 				panic(fmt.Errorf("webapp: unexpected edge: %T", defaultEdge))
 			}
@@ -448,6 +455,8 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 		default:
 			panic(fmt.Errorf("webapp: unexpected oob authenticator type: %s", currentNode.Authenticator.Type))
 		}
+	case *nodes.NodeAuthenticationWhatsappTrigger:
+		return SessionStepVerifyWhatsappOTPAuthn
 	case *nodes.NodeCreateAuthenticatorOOBSetup:
 		switch currentNode.Authenticator.Type {
 		case model.AuthenticatorTypeOOBEmail:
@@ -458,7 +467,7 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 			panic(fmt.Errorf("webapp: unexpected oob authenticator type: %s", currentNode.Authenticator.Type))
 		}
 	case *nodes.NodeCreateAuthenticatorWhatsappOTPSetup:
-		return SessionStepVerifyWhatsappOTP
+		return SessionStepVerifyWhatsappOTPSetup
 	case *nodes.NodeCreateAuthenticatorTOTPSetup:
 		return SessionStepSetupTOTP
 	case *nodes.NodeGenerateRecoveryCodeBegin:

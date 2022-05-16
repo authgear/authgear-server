@@ -12,6 +12,14 @@ var _ nodes.InputAuthenticationOOBTrigger = &inputTriggerOOB{}
 func (i *inputTriggerOOB) GetOOBAuthenticatorIndex() int   { return i.AuthenticatorIndex }
 func (i *inputTriggerOOB) GetOOBAuthenticatorType() string { return i.AuthenticatorType }
 
+type inputTriggerWhatsapp struct {
+	AuthenticatorIndex int
+}
+
+var _ nodes.InputAuthenticationWhatsappTrigger = &inputTriggerWhatsapp{}
+
+func (i *inputTriggerWhatsapp) GetWhatsappAuthenticatorIndex() int { return i.AuthenticatorIndex }
+
 type inputSelectTOTP struct{}
 
 var _ nodes.InputCreateAuthenticatorTOTPSetup = &inputSelectTOTP{}

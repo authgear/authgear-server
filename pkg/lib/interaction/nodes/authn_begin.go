@@ -29,6 +29,7 @@ type NodeAuthenticationBegin struct {
 	Stage                authn.AuthenticationStage    `json:"stage"`
 	Identity             *identity.Info               `json:"-"`
 	AuthenticationConfig *config.AuthenticationConfig `json:"-"`
+	AuthenticatorConfig  *config.AuthenticatorConfig  `json:"-"`
 	Authenticators       []*authenticator.Info        `json:"-"`
 }
 
@@ -40,6 +41,7 @@ func (n *NodeAuthenticationBegin) Prepare(ctx *interaction.Context, graph *inter
 
 	n.Identity = graph.MustGetUserLastIdentity()
 	n.AuthenticationConfig = ctx.Config.Authentication
+	n.AuthenticatorConfig = ctx.Config.Authenticator
 	n.Authenticators = ais
 	return nil
 }
@@ -179,11 +181,18 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 	}
 
 	if len(smsoobs) > 0 {
-		edges = append(edges, &EdgeAuthenticationOOBTrigger{
-			Stage:                n.Stage,
-			Authenticators:       smsoobs,
-			OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
-		})
+		if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
+			edges = append(edges, &EdgeAuthenticationWhatsappTrigger{
+				Stage:          n.Stage,
+				Authenticators: smsoobs,
+			})
+		} else {
+			edges = append(edges, &EdgeAuthenticationOOBTrigger{
+				Stage:                n.Stage,
+				Authenticators:       smsoobs,
+				OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
+			})
+		}
 	}
 
 	// No authenticators found, skip the authentication stage if not required.
