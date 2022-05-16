@@ -60,6 +60,17 @@ func handleAlternativeSteps(ctrl *Controller) {
 					AuthenticatorIndex: index,
 				}, nil
 			}
+		case webapp.SessionStepVerifyWhatsappOTPAuthn:
+			choiceStep = webapp.SessionStepAuthenticate
+			index, err := strconv.Atoi(ctrl.request.Form.Get("x_authenticator_index"))
+			if err != nil {
+				index = 0
+			}
+			inputFn = func() (interface{}, error) {
+				return &InputTriggerWhatsApp{
+					AuthenticatorIndex: index,
+				}, nil
+			}
 		}
 
 		// Rewind session back to the choosing step.

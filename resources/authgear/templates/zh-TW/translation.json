@@ -315,6 +315,7 @@
   "enter-password-instead": "改為輸入密碼",
   "enter-oob-otp-email-instead": "以電郵發送驗證碼至 {target}",
   "enter-oob-otp-sms-instead": "以短訊發送驗證碼至 {target}",
+  "verify-whatsapp-otp-instead": "改為通過 WhatsApp 驗證 {target}",
 
   "enter-recovery-code-instead-v1": "遇到問題? <button class=\"btn secondary-btn\" type=\"submit\">改為輸入備用碼</button>",
   "enter-recovery-code-instead-with-customer-support-v1": "遇到問題? <button class=\"btn secondary-btn\" type=\"submit\">改為輸入備用碼</button> 或 聯繫<a class=\"link\" target=\"_blank\" href={customerSupportLink}>客戶服務</a>",
