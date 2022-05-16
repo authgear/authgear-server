@@ -74,6 +74,8 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interac
 					Step: webapp.SessionStepEnterTOTP,
 				})
 			}
+		case *nodes.EdgeAuthenticationWhatsappTrigger:
+			// fixme(whatsapp): handle whatsapp otp alternative
 		case *nodes.EdgeAuthenticationOOBTrigger:
 			show := false
 			oobAuthenticatorType := edge.OOBAuthenticatorType

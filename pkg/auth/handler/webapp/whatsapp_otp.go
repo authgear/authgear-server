@@ -32,6 +32,10 @@ type WhatsappOTPNode interface {
 	GetPhone() string
 }
 
+type WhatsappOTPAuthnNode interface {
+	GetAuthenticatorIndex() int
+}
+
 type WhatsappOTPHandler struct {
 	ControllerFactory    ControllerFactory
 	BaseViewModel        *viewmodels.BaseViewModeler
@@ -160,12 +164,22 @@ func (h *WhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			panic(fmt.Errorf("webapp: unexpected node for sms fallback: %T", n))
 		}
 
+		authenticatorIndex := 0
+		var n2 WhatsappOTPAuthnNode
+		// authenticatorIndex is used in the authn flow only
+		// so in the create authenticator or verify identity flow,
+		// the nodes should not have GetAuthenticatorIndex implemented
+		if graph.FindLastNode(&n2) {
+			authenticatorIndex = n2.GetAuthenticatorIndex()
+		}
+
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
 			input = &InputWhatsappFallbackSMS{
-				InputSetupOOB{
+				InputSetupOOB: InputSetupOOB{
 					InputType: "phone",
 					Target:    phone,
 				},
+				AuthenticatorIndex: authenticatorIndex,
 			}
 			return
 		})

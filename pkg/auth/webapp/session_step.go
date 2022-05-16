@@ -23,7 +23,8 @@ const (
 	SessionStepSetupOOBOTPEmail          SessionStepKind = "setup-oob-otp-email"
 	SessionStepSetupOOBOTPSMS            SessionStepKind = "setup-oob-otp-sms"
 	SessionStepSetupWhatsappOTP          SessionStepKind = "setup-whatsapp-otp"
-	SessionStepVerifyWhatsappOTP         SessionStepKind = "verify-whatsapp-otp"
+	SessionStepVerifyWhatsappOTPAuthn    SessionStepKind = "verify-whatsapp-otp-authn"
+	SessionStepVerifyWhatsappOTPSetup    SessionStepKind = "verify-whatsapp-otp-setup"
 	SessionStepEnterTOTP                 SessionStepKind = "enter-totp"
 	SessionStepSetupTOTP                 SessionStepKind = "setup-totp"
 	SessionStepEnterRecoveryCode         SessionStepKind = "enter-recovery-code"
@@ -64,7 +65,8 @@ func (k SessionStepKind) Path() string {
 		return "/setup_oob_otp_sms"
 	case SessionStepSetupWhatsappOTP:
 		return "/setup_whatsapp_otp"
-	case SessionStepVerifyWhatsappOTP,
+	case SessionStepVerifyWhatsappOTPSetup,
+		SessionStepVerifyWhatsappOTPAuthn,
 		SessionStepVerifyIdentityViaWhatsapp:
 		return "/whatsapp_otp"
 	case SessionStepEnterTOTP:
