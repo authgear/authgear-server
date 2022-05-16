@@ -27,6 +27,10 @@ type OOBOTPTriggerNode interface {
 	GetOOBOTPTarget() string
 }
 
+type WhatsappOTPTriggerNode interface {
+	GetPhone() string
+}
+
 type AlternativeStep struct {
 	Step  webapp.SessionStepKind
 	Input map[string]string
@@ -75,7 +79,32 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interac
 				})
 			}
 		case *nodes.EdgeAuthenticationWhatsappTrigger:
-			// fixme(whatsapp): handle whatsapp otp alternative
+			if currentStepKind != webapp.SessionStepEnterOOBOTPAuthnSMS &&
+				currentStepKind != webapp.SessionStepVerifyWhatsappOTPAuthn {
+
+				currentPhone := ""
+				var node WhatsappOTPTriggerNode
+				if graph.FindLastNode(&node) {
+					currentPhone = node.GetPhone()
+				}
+
+				for i := range edge.Authenticators {
+					phone := edge.GetPhone(i)
+					if currentPhone == phone {
+						continue
+					}
+					maskedPhone := corephone.Mask(phone)
+					m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
+						Step: webapp.SessionStepVerifyWhatsappOTPAuthn,
+						Input: map[string]string{
+							"x_authenticator_index": strconv.Itoa(i),
+						},
+						Data: map[string]string{
+							"target": maskedPhone,
+						},
+					})
+				}
+			}
 		case *nodes.EdgeAuthenticationOOBTrigger:
 			show := false
 			oobAuthenticatorType := edge.OOBAuthenticatorType

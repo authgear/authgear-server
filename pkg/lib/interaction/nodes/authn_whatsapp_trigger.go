@@ -29,6 +29,14 @@ func (e *EdgeAuthenticationWhatsappTrigger) getAuthenticator(idx int) (*authenti
 	return e.Authenticators[idx], nil
 }
 
+func (e *EdgeAuthenticationWhatsappTrigger) GetPhone(idx int) string {
+	info, err := e.getAuthenticator(idx)
+	if err != nil {
+		return ""
+	}
+	return info.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string)
+}
+
 func (e *EdgeAuthenticationWhatsappTrigger) AuthenticatorType() model.AuthenticatorType {
 	return model.AuthenticatorTypeOOBSMS
 }

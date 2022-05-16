@@ -316,6 +316,7 @@
   "enter-password-instead": "Enter password instead",
   "enter-oob-otp-email-instead": "Send code to {target} instead via Email",
   "enter-oob-otp-sms-instead": "Send code to {target} instead via SMS",
+  "verify-whatsapp-otp-instead": "Verify {target} via WhatsApp instead",
 
   "enter-recovery-code-instead-v1": "Having Trouble? <button class=\"btn secondary-btn\" type=\"submit\">Use recovery code</button>",
   "enter-recovery-code-instead-with-customer-support-v1": "Having Trouble? <button class=\"btn secondary-btn\" type=\"submit\">Use recovery code</button> or contact <a class=\"link\" target=\"_blank\" href={customerSupportLink}>customer support</a>",
