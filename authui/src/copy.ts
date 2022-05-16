@@ -1,3 +1,5 @@
+import { Controller } from "@hotwired/stimulus";
+
 function copyToClipboard(str: string): void {
   const el = document.createElement("textarea");
   el.value = str;
@@ -13,21 +15,22 @@ function copyToClipboard(str: string): void {
   document.body.removeChild(el);
 }
 
-export function setupCopyButton(): () => void {
-  function copy(e: Event) {
+export class CopyButtonController extends Controller {
+  static targets = ["source", "button"];
+
+  declare sourceTarget: HTMLElement;
+  declare buttonTarget: HTMLButtonElement;
+
+  copy(e: Event) {
     e.preventDefault();
     e.stopPropagation();
 
-    const button = e.currentTarget as HTMLElement;
-    const targetSelector = button.getAttribute("data-copy-button-target");
-    if (targetSelector == null) {
-      return;
-    }
+    const button = this.buttonTarget;
 
     const copyLabel = button.getAttribute("data-copy-button-copy-label");
     const copiedLabel = button.getAttribute("data-copy-button-copied-label");
 
-    const target = document.querySelector(targetSelector);
+    const target = this.sourceTarget;
     if (target == null) {
       return;
     }
@@ -63,21 +66,4 @@ export function setupCopyButton(): () => void {
     }, 1000);
     button.setAttribute("data-copy-button-timeout-handle", String(newHandle));
   }
-
-  const elems = document.querySelectorAll("[data-copy-button-target]");
-  const buttons: HTMLElement[] = [];
-  for (let i = 0; i < elems.length; i++) {
-    const elem = elems[i];
-    if (elem instanceof HTMLElement) {
-      buttons.push(elem);
-    }
-  }
-  for (const button of buttons) {
-    button.addEventListener("click", copy);
-  }
-  return () => {
-    for (const button of buttons) {
-      button.removeEventListener("click", copy);
-    }
-  };
 }
