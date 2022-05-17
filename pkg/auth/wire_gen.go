@@ -16140,6 +16140,32 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	return whatsappOTPHandler
 }
 
+func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
+	request := p.Request
+	contextContext := deps.ProvideRequestContext(request)
+	appProvider := p.AppProvider
+	handle := appProvider.Redis
+	clockClock := _wireSystemClockValue
+	storeRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		Clock:   clockClock,
+	}
+	factory := appProvider.LoggerFactory
+	logger := whatsapp.NewLogger(factory)
+	provider := &whatsapp.Provider{
+		CodeStore: storeRedis,
+		Clock:     clockClock,
+		Logger:    logger,
+	}
+	whatsappWATICallbackHandlerLogger := webapp2.NewWhatsappWATICallbackHandlerLogger(factory)
+	whatsappWATICallbackHandler := &webapp2.WhatsappWATICallbackHandler{
+		WhatsappCodeProvider: provider,
+		Logger:               whatsappWATICallbackHandlerLogger,
+	}
+	return whatsappWATICallbackHandler
+}
+
 func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
