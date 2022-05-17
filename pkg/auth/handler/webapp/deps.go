@@ -12,6 +12,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(ControllerFactory), "*"),
 
 	NewPublisher,
+	wire.Struct(new(GlobalSessionServiceFactory), "*"),
 
 	NewPanicMiddlewareLogger,
 	wire.Struct(new(PanicMiddleware), "*"),

@@ -74,9 +74,10 @@ func ConfigureWhatsappWATICallbackRoute(route httproute.Route) httproute.Route {
 }
 
 type WhatsappWATICallbackHandler struct {
-	WhatsappCodeProvider WhatsappCodeProvider
-	Logger               WhatsappWATICallbackHandlerLogger
-	WATICredentials      *config.WATICredentials
+	WhatsappCodeProvider        WhatsappCodeProvider
+	Logger                      WhatsappWATICallbackHandlerLogger
+	WATICredentials             *config.WATICredentials
+	GlobalSessionServiceFactory *GlobalSessionServiceFactory
 }
 
 type WhatsappWATICallbackHandlerLogger struct{ *log.Logger }
@@ -132,11 +133,24 @@ func (h *WhatsappWATICallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		phone = fmt.Sprintf("+%s", phone)
 	}
 	code := message.Text.Body
-	_, err = h.WhatsappCodeProvider.SetUserInputtedCode(phone, code)
+	codeModel, err := h.WhatsappCodeProvider.SetUserInputtedCode(phone, code)
 	if err != nil {
 		if errors.Is(err, whatsapp.ErrCodeNotFound) {
 			err = errors.New("whatsapp code not found")
 		}
+		return
+	}
+
+	// Update the web session and trigger the refresh event
+	webSessionProvider := h.GlobalSessionServiceFactory.NewGlobalSessionService(
+		config.AppID(codeModel.AppID),
+	)
+	webSession, err := webSessionProvider.GetSession(codeModel.WebSessionID)
+	if err != nil {
+		return
+	}
+	err = webSessionProvider.UpdateSession(webSession)
+	if err != nil {
 		return
 	}
 }
