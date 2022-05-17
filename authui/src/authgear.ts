@@ -11,7 +11,6 @@ import {
 } from "./form";
 import { setupSelectEmptyValue, setupGenderSelect } from "./select";
 import { formatDateRelative, formatInputDate } from "./date";
-import { setupAccountDeletion } from "./accountdeletion";
 import { setupImagePicker } from "./imagepicker";
 import { setupWebsocket } from "./websocket";
 import { setupModal } from "./modal";
@@ -22,6 +21,7 @@ import { PasswordVisibilityToggleController } from "./passwordVisibility";
 import { PasswordPolicyController } from "./password-policy";
 import { ClickToSwitchController } from "./clickToSwitch";
 import { PreventDoubleTapController } from "./preventDoubleTap";
+import { AccountDelectionController } from "./accountdeletion";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
 
@@ -41,6 +41,8 @@ Stimulus.register("copy-button", CopyButtonController);
 
 Stimulus.register("prevent-double-tap", PreventDoubleTapController);
 
+Stimulus.register("account-delection", AccountDelectionController);
+
 window.api.onLoad(() => {
   document.body.classList.add("js");
 });
@@ -52,8 +54,6 @@ window.api.onLoad(setupGenderSelect);
 
 window.api.onLoad(formatDateRelative);
 window.api.onLoad(formatInputDate);
-
-window.api.onLoad(setupAccountDeletion);
 
 window.api.onLoad(setupImagePicker);
 
