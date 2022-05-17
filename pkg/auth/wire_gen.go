@@ -16139,9 +16139,13 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    logger,
 	}
 	whatsappWATICallbackHandlerLogger := webapp2.NewWhatsappWATICallbackHandlerLogger(factory)
+	config := appProvider.Config
+	secretConfig := config.SecretConfig
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappWATICallbackHandler := &webapp2.WhatsappWATICallbackHandler{
 		WhatsappCodeProvider: provider,
 		Logger:               whatsappWATICallbackHandlerLogger,
+		WATICredentials:      watiCredentials,
 	}
 	return whatsappWATICallbackHandler
 }

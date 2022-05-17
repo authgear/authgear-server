@@ -1,11 +1,13 @@
 package webapp
 
 import (
+	"crypto/subtle"
 	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -73,6 +75,7 @@ func ConfigureWhatsappWATICallbackRoute(route httproute.Route) httproute.Route {
 type WhatsappWATICallbackHandler struct {
 	WhatsappCodeProvider WhatsappCodeProvider
 	Logger               WhatsappWATICallbackHandlerLogger
+	WATICredentials      *config.WATICredentials
 }
 
 type WhatsappWATICallbackHandlerLogger struct{ *log.Logger }
@@ -92,6 +95,18 @@ func (h *WhatsappWATICallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		}
 		w.WriteHeader(http.StatusOK)
 	}()
+
+	// check if the auth query matched the one in the secret config
+	if h.WATICredentials == nil || h.WATICredentials.WebhookAuth == "" {
+		err = errors.New("missing whatsapp.wati secret config")
+		return
+	}
+	authQuery := r.URL.Query().Get("auth")
+	if subtle.ConstantTimeCompare([]byte(h.WATICredentials.WebhookAuth), []byte(authQuery)) != 1 {
+		err = errors.New("invalid auth query parameters")
+		return
+	}
+
 	var payload WhatsappWATICallbackRequest
 	err = httputil.BindJSONBody(r, w, WhatsappWATICallbackSchema.Validator(), &payload)
 	if err != nil {
