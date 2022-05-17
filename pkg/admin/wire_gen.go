@@ -696,10 +696,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
