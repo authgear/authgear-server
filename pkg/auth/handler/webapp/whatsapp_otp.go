@@ -50,7 +50,7 @@ func (h *WhatsappOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 		MethodQuery: getMethodFromQuery(r),
 		StateQuery:  getStateFromQuery(r),
 	}
-	if err := whatsappViewModel.AddData(r, graph); err != nil {
+	if err := whatsappViewModel.AddData(r, graph, h.WhatsappCodeProvider); err != nil {
 		return nil, err
 	}
 	viewmodels.Embed(data, baseViewModel)

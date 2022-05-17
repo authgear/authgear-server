@@ -68,6 +68,7 @@ func getStateFromQuery(r *http.Request) WhatsappOTPPageQueryState {
 }
 
 type WhatsappCodeProvider interface {
+	GetServerWhatsappPhone() string
 	VerifyCode(phone string, webSessionID string, consume bool) (*whatsapp.Code, error)
 	SetUserInputtedCode(phone string, userInputtedCode string) (*whatsapp.Code, error)
 }
@@ -86,15 +87,14 @@ type WhatsappOTPViewModel struct {
 	OpenWhatsappQRCodeImageURI htmltemplate.URL
 }
 
-func (m *WhatsappOTPViewModel) AddData(r *http.Request, graph *interaction.Graph) error {
+func (m *WhatsappOTPViewModel) AddData(r *http.Request, graph *interaction.Graph, codeProvider WhatsappCodeProvider) error {
 	m.MethodQuery = getMethodFromQuery(r)
 	m.StateQuery = getStateFromQuery(r)
 	var n WhatsappOTPNode
 	if graph.FindLastNode(&n) {
 		m.PhoneOTPMode = n.GetPhoneOTPMode()
 		m.WhatsappOTP = n.GetWhatsappOTP()
-		// fixme(whatsapp): get whatsapp phone number from config
-		m.WhatsappOTPPhone = "+85212345678"
+		m.WhatsappOTPPhone = codeProvider.GetServerWhatsappPhone()
 	}
 
 	getPath := func(method string) string {
