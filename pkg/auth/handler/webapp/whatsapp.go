@@ -69,6 +69,7 @@ func getStateFromQuery(r *http.Request) WhatsappOTPPageQueryState {
 
 type WhatsappCodeProvider interface {
 	VerifyCode(phone string, webSessionID string, consume bool) (*whatsapp.Code, error)
+	SetUserInputtedCode(phone string, userInputtedCode string) (*whatsapp.Code, error)
 }
 
 type WhatsappOTPViewModel struct {
