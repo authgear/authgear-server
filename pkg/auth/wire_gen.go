@@ -652,10 +652,12 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -1337,10 +1339,12 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -2000,10 +2004,12 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -3909,10 +3915,12 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -4555,10 +4563,12 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -5207,10 +5217,12 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -5938,10 +5950,12 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -6627,10 +6641,12 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -7316,10 +7332,12 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -7988,10 +8006,12 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -8661,10 +8681,12 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -9326,10 +9348,12 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -9994,10 +10018,12 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -10665,10 +10691,12 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -11333,10 +11361,12 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -12000,10 +12030,12 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -12668,10 +12700,12 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -13337,10 +13371,12 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -14004,10 +14040,12 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -14671,10 +14709,12 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -15340,10 +15380,12 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -16007,10 +16049,12 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -16133,15 +16177,16 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	factory := appProvider.LoggerFactory
 	logger := whatsapp.NewLogger(factory)
-	provider := &whatsapp.Provider{
-		CodeStore: storeRedis,
-		Clock:     clockClock,
-		Logger:    logger,
-	}
-	whatsappWATICallbackHandlerLogger := webapp2.NewWhatsappWATICallbackHandlerLogger(factory)
 	config := appProvider.Config
 	secretConfig := config.SecretConfig
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
+	provider := &whatsapp.Provider{
+		CodeStore:       storeRedis,
+		Clock:           clockClock,
+		Logger:          logger,
+		WATICredentials: watiCredentials,
+	}
+	whatsappWATICallbackHandlerLogger := webapp2.NewWhatsappWATICallbackHandlerLogger(factory)
 	globalSessionServiceFactory := &webapp2.GlobalSessionServiceFactory{
 		Clock:       clockClock,
 		RedisHandle: handle,
@@ -16710,10 +16755,12 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -17377,10 +17424,12 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -18044,10 +18093,12 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -18714,10 +18765,12 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -19381,10 +19434,12 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -20053,10 +20108,12 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -20720,10 +20777,12 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -21388,10 +21447,12 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -22055,10 +22116,12 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -22749,10 +22812,12 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -23427,10 +23492,12 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -24118,10 +24185,12 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -24788,10 +24857,12 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -25456,10 +25527,12 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -26133,10 +26206,12 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -26801,10 +26876,12 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -27469,10 +27546,12 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -28138,10 +28217,12 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -28811,10 +28892,12 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -29479,10 +29562,12 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -30147,10 +30232,12 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -30815,10 +30902,12 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -31483,10 +31572,12 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -32158,10 +32249,12 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -32827,10 +32920,12 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -33494,10 +33589,12 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -34180,10 +34277,12 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -34847,10 +34946,12 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore: whatsappStoreRedis,
-		Clock:     clockClock,
-		Logger:    whatsappLogger,
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
