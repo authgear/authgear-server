@@ -70,9 +70,7 @@ func (p *Provider) VerifyCode(phone string, webSessionID string, consume bool) (
 
 func (p *Provider) SetUserInputtedCode(phone string, userInputtedCode string) (*Code, error) {
 	codeModel, err := p.CodeStore.Get(phone)
-	if errors.Is(err, ErrCodeNotFound) {
-		return nil, ErrInvalidCode
-	} else if err != nil {
+	if err != nil {
 		return nil, err
 	}
 
