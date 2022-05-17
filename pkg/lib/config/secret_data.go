@@ -417,3 +417,27 @@ func (c *ImagesKeyMaterials) UnmarshalJSON(b []byte) error {
 func (c *ImagesKeyMaterials) SensitiveStrings() []string {
 	return nil
 }
+
+var _ = SecretConfigSchema.Add("WATICredentials", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"whatsapp_phone_number": { "type": "string" },
+		"webhook_auth": { "type": "string" }
+	},
+	"required": ["whatsapp_phone_number", "webhook_auth"]
+}
+`)
+
+type WATICredentials struct {
+	WhatsappPhoneNumber string `json:"whatsapp_phone_number,omitempty"`
+	WebhookAuth         string `json:"webhook_auth,omitempty"`
+}
+
+func (c *WATICredentials) SensitiveStrings() []string {
+	return []string{
+		c.WhatsappPhoneNumber,
+		c.WebhookAuth,
+	}
+}
