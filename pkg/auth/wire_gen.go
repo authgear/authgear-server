@@ -16142,10 +16142,15 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	secretConfig := config.SecretConfig
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
+	globalSessionServiceFactory := &webapp2.GlobalSessionServiceFactory{
+		Clock:       clockClock,
+		RedisHandle: handle,
+	}
 	whatsappWATICallbackHandler := &webapp2.WhatsappWATICallbackHandler{
-		WhatsappCodeProvider: provider,
-		Logger:               whatsappWATICallbackHandlerLogger,
-		WATICredentials:      watiCredentials,
+		WhatsappCodeProvider:        provider,
+		Logger:                      whatsappWATICallbackHandlerLogger,
+		WATICredentials:             watiCredentials,
+		GlobalSessionServiceFactory: globalSessionServiceFactory,
 	}
 	return whatsappWATICallbackHandler
 }
