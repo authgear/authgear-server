@@ -17,8 +17,8 @@ import { setupWebsocket } from "./websocket";
 import { setupModal } from "./modal";
 import { setupResendButton } from "./resendButton";
 import { setupPreventDoubleTap } from "./preventDoubleTap";
-import { setupCopyButton } from "./copy";
 import { setupMessageBar } from "./messageBar";
+import { CopyButtonController } from "./copy";
 import { PasswordVisibilityToggleController } from "./passwordVisibility";
 import { PasswordPolicyController } from "./password-policy";
 import { ClickToSwitchController } from "./clickToSwitch";
@@ -36,6 +36,8 @@ Stimulus.register(
 );
 Stimulus.register("password-policy", PasswordPolicyController);
 Stimulus.register("click-to-switch", ClickToSwitchController);
+
+Stimulus.register("copy-button", CopyButtonController);
 
 window.api.onLoad(() => {
   document.body.classList.add("js");
@@ -58,8 +60,6 @@ window.api.onLoad(setupPreventDoubleTap);
 window.api.onLoad(setupWebsocket);
 
 window.api.onLoad(setupModal);
-
-window.api.onLoad(setupCopyButton);
 
 window.api.onLoad(autoSubmitForm);
 window.api.onLoad(clickLinkSubmitForm);

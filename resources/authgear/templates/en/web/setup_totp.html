@@ -15,9 +15,13 @@
 
 <img class="w-48 place-self-center" src="{{ $.ImageURI }}">
 
-<div class="text-sm primary-txt border border-color border-solid font-mono flex flex-row items-center">
-	<span id="totp-code-key" class="flex-1 mx-3 break-all">{{ template "setup-totp-raw-secret" (dict "secret" $.Secret) }}</span>
-	<button type="button" class="btn secondary-btn w-11 h-11 flex items-center justify-center" data-copy-button-target="#totp-code-key">
+<div class="text-sm primary-txt border border-color border-solid font-mono flex flex-row items-center" data-controller="copy-button">
+	<span class="flex-1 mx-3 break-all" data-copy-button-target="source">{{ template "setup-totp-raw-secret" (dict "secret" $.Secret) }}</span>
+	<button
+		type="button"
+		class="btn secondary-btn w-11 h-11 flex items-center justify-center"
+		data-copy-button-target="button"
+		data-action="copy-button#copy">
 		<i class="ti ti-copy"></i>
 	</button>
 </div>
