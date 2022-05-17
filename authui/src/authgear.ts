@@ -14,7 +14,6 @@ import { formatDateRelative, formatInputDate } from "./date";
 import { setupImagePicker } from "./imagepicker";
 import { setupWebsocket } from "./websocket";
 import { setupModal } from "./modal";
-import { setupResendButton } from "./resendButton";
 import { setupMessageBar } from "./messageBar";
 import { CopyButtonController } from "./copy";
 import { PasswordVisibilityToggleController } from "./passwordVisibility";
@@ -22,6 +21,7 @@ import { PasswordPolicyController } from "./password-policy";
 import { ClickToSwitchController } from "./clickToSwitch";
 import { PreventDoubleTapController } from "./preventDoubleTap";
 import { AccountDelectionController } from "./accountdeletion";
+import { ResendButtonController } from "./resendButton";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
 
@@ -42,6 +42,8 @@ Stimulus.register("copy-button", CopyButtonController);
 Stimulus.register("prevent-double-tap", PreventDoubleTapController);
 
 Stimulus.register("account-delection", AccountDelectionController);
+
+Stimulus.register("resend-button", ResendButtonController);
 
 window.api.onLoad(() => {
   document.body.classList.add("js");
@@ -65,7 +67,5 @@ window.api.onLoad(autoSubmitForm);
 window.api.onLoad(clickLinkSubmitForm);
 window.api.onLoad(xhrSubmitForm);
 window.api.onLoad(restoreForm);
-
-window.api.onLoad(setupResendButton);
 
 window.api.onLoad(setupMessageBar);

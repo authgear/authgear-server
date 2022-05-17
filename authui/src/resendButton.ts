@@ -1,40 +1,45 @@
-export function setupResendButton(): () => void {
-  const el = document.querySelector("#resend-button") as HTMLButtonElement;
-  if (el == null) {
-    return () => {};
+import { Controller } from "@hotwired/stimulus";
+
+export class ResendButtonController extends Controller {
+  static targets = ["button"];
+
+  declare buttonTarget: HTMLButtonElement;
+  declare animHandle: number | null;
+
+  connect() {
+    const button = this.buttonTarget;
+
+    const scheduledAt = new Date();
+    const cooldown = Number(button.getAttribute("data-cooldown")) * 1000;
+    const label = button.getAttribute("data-label");
+    const labelUnit = button.getAttribute("data-label-unit")!;
+
+    const tick = () => {
+      const now = new Date();
+      const timeElapsed = now.getTime() - scheduledAt.getTime();
+
+      let displaySeconds = 0;
+      if (timeElapsed <= cooldown) {
+        displaySeconds = Math.round((cooldown - timeElapsed) / 1000);
+      }
+
+      if (displaySeconds === 0) {
+        button.disabled = false;
+        button.textContent = label;
+        this.animHandle = null;
+      } else {
+        button.disabled = true;
+        button.textContent = labelUnit.replace("%d", String(displaySeconds));
+        this.animHandle = requestAnimationFrame(tick);
+      }
+    };
+
+    this.animHandle = requestAnimationFrame(tick);
   }
 
-  const scheduledAt = new Date();
-  const cooldown = Number(el.getAttribute("data-cooldown")) * 1000;
-  const label = el.getAttribute("data-label");
-  const labelUnit = el.getAttribute("data-label-unit")!;
-  let animHandle: number | null = null;
-
-  function tick() {
-    const now = new Date();
-    const timeElapsed = now.getTime() - scheduledAt.getTime();
-
-    let displaySeconds = 0;
-    if (timeElapsed <= cooldown) {
-      displaySeconds = Math.round((cooldown - timeElapsed) / 1000);
-    }
-
-    if (displaySeconds === 0) {
-      el.disabled = false;
-      el.textContent = label;
-      animHandle = null;
-    } else {
-      el.disabled = true;
-      el.textContent = labelUnit.replace("%d", String(displaySeconds));
-      animHandle = requestAnimationFrame(tick);
+  disconnect() {
+    if (this.animHandle != null) {
+      cancelAnimationFrame(this.animHandle);
     }
   }
-
-  animHandle = requestAnimationFrame(tick);
-
-  return () => {
-    if (animHandle != null) {
-      cancelAnimationFrame(animHandle);
-    }
-  };
 }
