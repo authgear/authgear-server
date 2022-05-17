@@ -22,7 +22,7 @@
         {{ $display_error = false }}
     {{ end }}
 {{ end }}
-<div id="error-message-bar" class="messages-bar flex flew-row errors {{ if not $display_error }}hidden{{ end }}">
+<div class="messages-bar flex flew-row errors {{ if not $display_error }}hidden{{ end }}" data-controller="message-bar" data-message-bar-target="bar">
     <div class="w-8 h-8 flex justify-center items-center error-txt"><i class="ti ti-alert-circle"></i></div>
     <ul class="messages-txt list-none flex flex-col flex-1 mx-0 my-1.5 p-0 text-sm">
         <li id="error-message-server" class="hidden">{{ template "error-server" }}</li>
@@ -189,7 +189,13 @@
             {{ end }}
         {{ end }}
     </ul>
-    <button data-close-button-target="error-message-bar" type="button" class="w-8 h-8 flex justify-center items-center"><i class="ti ti-x"></i></button>
+    <button type="button"
+        class="w-8 h-8 flex justify-center items-center"
+        data-message-bar-target="button"
+        data-action="click->message-bar#close"
+    >
+        <i class="ti ti-x"></i>
+    </button>
 </div>
 {{ end }}
 {{ define "__error_account" }}
