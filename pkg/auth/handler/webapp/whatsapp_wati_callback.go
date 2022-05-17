@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -133,6 +134,9 @@ func (h *WhatsappWATICallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	code := message.Text.Body
 	_, err = h.WhatsappCodeProvider.SetUserInputtedCode(phone, code)
 	if err != nil {
+		if errors.Is(err, whatsapp.ErrCodeNotFound) {
+			err = errors.New("whatsapp code not found")
+		}
 		return
 	}
 }
