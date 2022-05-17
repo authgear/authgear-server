@@ -246,6 +246,7 @@ const (
 	CSRFKeyMaterialsKey         SecretKey = "csrf"
 	WebhookKeyMaterialsKey      SecretKey = "webhook"
 	ImagesKeyMaterialsKey       SecretKey = "images"
+	WATICredentialsKey          SecretKey = "whatsapp.wati"
 )
 
 func (key SecretKey) IsUpdatable() bool {
@@ -282,6 +283,7 @@ var secretItemKeys = map[SecretKey]secretKeyDef{
 	CSRFKeyMaterialsKey:         {"CSRFKeyMaterials", func() SecretItemData { return &CSRFKeyMaterials{} }},
 	WebhookKeyMaterialsKey:      {"WebhookKeyMaterials", func() SecretItemData { return &WebhookKeyMaterials{} }},
 	ImagesKeyMaterialsKey:       {"ImagesKeyMaterials", func() SecretItemData { return &ImagesKeyMaterials{} }},
+	WATICredentialsKey:          {"WATICredentials", func() SecretItemData { return &WATICredentials{} }},
 }
 
 var _ = SecretConfigSchema.AddJSON("SecretKey", map[string]interface{}{
