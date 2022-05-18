@@ -12,7 +12,7 @@ declare type IntlTelInputPlaceholderNumberType = "MOBILE" | "FIXED_LINE";
 
 declare interface IntlTelInputInstance {
   getExtension(): string | undefined | null;
-  getNumber(): string | undefined | null;
+  getNumber(a?: any): string | undefined | null;
   getNumberType(): number | undefined | null;
   getSelectedCountryData(): IntlTelInputCountryData;
   getValidationError(): number | undefined | null;
@@ -75,4 +75,9 @@ declare interface IntlTelInputGlobals {
 declare interface Window {
   intlTelInputGlobals: IntlTelInputGlobals;
   intlTelInput: IntlTelInputInitFunction;
+  intlTelInputUtils: {
+    numberFormat: {
+      E164: number;
+    };
+  };
 }
