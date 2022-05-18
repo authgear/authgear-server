@@ -8,7 +8,7 @@ import {
   xhrSubmitForm,
   restoreForm,
 } from "./form";
-import { setupSelectEmptyValue, setupGenderSelect } from "./select";
+import { setupGenderSelect } from "./select";
 import { formatDateRelative, formatInputDate } from "./date";
 import { setupImagePicker } from "./imagepicker";
 import { setupWebsocket } from "./websocket";
@@ -22,6 +22,7 @@ import { AccountDelectionController } from "./accountdeletion";
 import { ResendButtonController } from "./resendButton";
 import { MessageBarController } from "./messageBar";
 import { IntlTelInputController } from "./intlTelInput";
+import { SelectEmptyValueController } from "./select";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
 
@@ -49,11 +50,12 @@ Stimulus.register("message-bar", MessageBarController);
 
 Stimulus.register("intl-tel-input", IntlTelInputController);
 
+Stimulus.register("select-empty-value", SelectEmptyValueController);
+
 window.api.onLoad(() => {
   document.body.classList.add("js");
 });
 
-window.api.onLoad(setupSelectEmptyValue);
 window.api.onLoad(setupGenderSelect);
 
 window.api.onLoad(formatDateRelative);

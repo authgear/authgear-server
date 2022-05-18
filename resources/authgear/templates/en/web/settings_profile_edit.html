@@ -216,7 +216,13 @@
   </label>
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-country" }}
-    <select class="primary-txt select" name="/address/country">
+    <select
+      class="primary-txt select"
+      name="/address/country"
+      data-controller="select-empty-value"
+      data-select-empty-value-target="select"
+      data-action="change->select-empty-value#toggleClass"
+    >
       <option value="" {{ if not $.AddressCountry }}selected{{ end }}>{{ template "unset-label" }}</option>
       {{ range $.Alpha2 }}
       {{ $label := (print "territory-" . ) }}
@@ -240,7 +246,14 @@
   {{ if (call $.IsEditable "/gender") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-gender" }}
-    <select class="primary-txt select" name="gender-select" data-gender-select="gender-input">
+    <select
+      class="primary-txt select"
+      name="gender-select"
+      data-gender-select="gender-input"
+      data-controller="select-empty-value"
+      data-select-empty-value-target="select"
+      data-action="change->select-empty-value#toggleClass"
+    >
       <option value="" {{ if not $.Gender }}selected{{ end }}>{{ template "unset-label" }}</option>
       <option value="female" {{ if (eq $.Gender "female") }}selected{{ end }}>{{ template "gender-female" }}</option>
       <option value="male" {{ if (eq $.Gender "male") }}selected{{ end }}>{{ template "gender-male" }}</option>
@@ -255,7 +268,13 @@
   {{ if (call $.IsEditable "/zoneinfo") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-zoneinfo" }}
-    <select class="primary-txt select" name="/zoneinfo">
+    <select 
+      class="primary-txt select" 
+      name="/zoneinfo"
+      data-controller="select-empty-value"
+      data-select-empty-value-target="select"
+      data-action="change->select-empty-value#toggleClass"
+    >
       <option value="" {{ if not $.Zoneinfo }}selected{{ end }}>{{ template "unset-label" }}</option>
       {{ range $.Timezones }}
       <option value="{{ .Name }}" {{ if (eq $.Zoneinfo .Name) }}selected{{ end }}>{{ .DisplayLabel }}</option>
@@ -269,7 +288,13 @@
   {{ if (call $.IsEditable "/locale") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-locale" }}
-    <select class="primary-txt select" name="/locale">
+    <select
+      class="primary-txt select"
+      name="/locale"
+      data-controller="select-empty-value"
+      data-select-empty-value-target="select"
+      data-action="change->select-empty-value#toggleClass"
+    >
       <option value="" {{ if not $.Locale }}selected{{ end }}>{{ template "unset-label" }}</option>
       {{ range $.Languages }}
       {{ $label := (print "language-" . ) }}
@@ -313,7 +338,11 @@
     {{ if (eq $ca.Type "enum") }}
     <select
       class="primary-txt select"
-      name="{{ $ca.Pointer }}">
+      name="{{ $ca.Pointer }}"
+      data-controller="select-empty-value"
+      data-select-empty-value-target="select"
+      data-action="change->select-empty-value#toggleClass"
+    >
       <option value="" {{ if not $ca.Value }}selected{{ end }}>{{ template "unset-label" }}</option>
       {{ range $ca.Enum }}
       {{ $label_key := printf "custom-attribute-enum-label-%s-%s" $ca.Pointer .Value }}
@@ -365,7 +394,11 @@
     {{ if (eq $ca.Type "country_code") }}
     <select
       class="primary-txt select"
-      name="{{ $ca.Pointer }}">
+      name="{{ $ca.Pointer }}"
+      data-controller="select-empty-value"
+      data-select-empty-value-target="select"
+      data-action="change->select-empty-value#toggleClass"
+    >
       <option value="" {{ if not $ca.Value }}selected{{ end }}>{{ template "unset-label" }}</option>
       {{ range $.Alpha2 }}
       {{ $label := (print "territory-" . ) }}
