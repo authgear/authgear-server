@@ -230,9 +230,7 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 		return nil, interaction.InvalidConfiguration.New("no primary authenticator can be created for identity")
 	}
 
-	// TODO(interaction): support switching of primary authenticator type to create
-	// Return first edge for now.
-	return edges[:1], nil
+	return edges, nil
 }
 
 // nolint: gocyclo
