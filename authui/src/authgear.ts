@@ -2,7 +2,6 @@ import Turbolinks from "turbolinks";
 import { Application } from "@hotwired/stimulus";
 import axios from "axios";
 import { init } from "./core";
-import { setupIntlTelInput } from "./intlTelInput";
 import {
   clickLinkSubmitForm,
   autoSubmitForm,
@@ -22,6 +21,7 @@ import { PreventDoubleTapController } from "./preventDoubleTap";
 import { AccountDelectionController } from "./accountdeletion";
 import { ResendButtonController } from "./resendButton";
 import { MessageBarController } from "./messageBar";
+import { IntlTelInputController } from "./intlTelInput";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
 
@@ -47,11 +47,11 @@ Stimulus.register("resend-button", ResendButtonController);
 
 Stimulus.register("message-bar", MessageBarController);
 
+Stimulus.register("intl-tel-input", IntlTelInputController);
+
 window.api.onLoad(() => {
   document.body.classList.add("js");
 });
-
-window.api.onLoad(setupIntlTelInput);
 
 window.api.onLoad(setupSelectEmptyValue);
 window.api.onLoad(setupGenderSelect);

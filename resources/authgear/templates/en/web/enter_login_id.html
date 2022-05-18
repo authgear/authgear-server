@@ -17,7 +17,7 @@
 </p>
 {{ end }}
 
-<form id="main-form" class="twc-container-vertical" method="post" novalidate>
+<form id="main-form" class="twc-container-vertical" method="post" novalidate data-controller="intl-tel-input">
 
 {{ $.CSRFField }}
 
@@ -34,7 +34,10 @@
 	autocapitalize="none"
 	name="x_login_id"
 	placeholder="{{ template "phone-number-placeholder" }}"
+	data-intl-tel-input-target="input"
 >
+
+<input type="hidden" name="x_login_id_hidden" data-intl-tel-input-target="hiddenInput">
 {{ else }}
 <input
 	tabindex="0"

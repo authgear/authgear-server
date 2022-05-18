@@ -282,7 +282,7 @@
 
   {{ if $ca }}
   {{ if $ca.IsEditable }}
-  <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
+  <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt" data-controller="intl-tel-input">
     {{/* The label */}}
     {{ $caLabel }}
 
@@ -337,7 +337,11 @@
       inputmode="tel"
       class="primary-txt input text-input text-base w-full"
       name="{{ $ca.Pointer }}"
-      value="{{ showAttributeValue $ca.Value }}">
+      value="{{ showAttributeValue $ca.Value }}"
+      data-intl-tel-input-target="input"
+    >
+
+    <input type="hidden" name="x_login_id_hidden" data-intl-tel-input-target="hiddenInput">
     {{ end }}
 
     {{ if (eq $ca.Type "email") }}
