@@ -30,6 +30,7 @@ type TranslationService interface {
 // BaseViewModel contains data that are common to all pages.
 type BaseViewModel struct {
 	RequestURI                  string
+	ColorScheme                 string
 	CSPNonce                    string
 	CSRFField                   htmltemplate.HTML
 	Translations                TranslationService
@@ -162,6 +163,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	}
 
 	model := BaseViewModel{
+		ColorScheme:  webapp.GetColorScheme(r.Context()),
 		RequestURI:   r.URL.RequestURI(),
 		CSPNonce:     cspNonce,
 		CSRFField:    csrf.TemplateField(r),

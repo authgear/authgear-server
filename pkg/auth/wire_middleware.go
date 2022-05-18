@@ -102,6 +102,13 @@ func newWebAppUILocalesMiddleware(p *deps.RequestProvider) httproute.Middleware 
 	))
 }
 
+func newWebAppColorSchemeMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*webapp.ColorSchemeMiddleware)),
+	))
+}
+
 func newWebAppClientIDMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,

@@ -33600,6 +33600,22 @@ func newWebAppUILocalesMiddleware(p *deps.RequestProvider) httproute.Middleware 
 	return uiLocalesMiddleware
 }
 
+func newWebAppColorSchemeMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	request := p.Request
+	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	colorSchemeMiddleware := &webapp.ColorSchemeMiddleware{
+		Cookies: cookieManager,
+	}
+	return colorSchemeMiddleware
+}
+
 func newWebAppClientIDMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	config := appProvider.Config
