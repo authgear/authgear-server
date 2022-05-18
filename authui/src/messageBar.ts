@@ -6,6 +6,9 @@ export class MessageBarController extends Controller {
   declare buttonTarget: HTMLButtonElement;
   declare barTarget: HTMLElement;
 
+  // Close the message bar before cache the page.
+  // So that the cached page does not have the message bar shown.
+  // See https://github.com/authgear/authgear-server/issues/1424
   beforeCache = () => {
     const button = this.buttonTarget;
     button.click();
