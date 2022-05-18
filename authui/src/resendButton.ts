@@ -40,6 +40,7 @@ export class ResendButtonController extends Controller {
   disconnect() {
     if (this.animHandle != null) {
       cancelAnimationFrame(this.animHandle);
+      this.animHandle = null;
     }
   }
 }
