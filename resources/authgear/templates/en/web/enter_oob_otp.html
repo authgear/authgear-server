@@ -40,7 +40,7 @@
 {{ end }}
 </form>
 
-<form class="link" method="post" novalidate data-controller="resend-button">
+<form class="link" method="post" novalidate>
 {{ $.CSRFField }}
 <span class="primary-txt text-sm">{{ template "oob-otp-resend-button-hint" }}</span>
 <button class="btn secondary-btn text-sm" type="submit" name="x_action" value="resend"
@@ -48,6 +48,7 @@
 	data-label="{{ template "oob-otp-resend-button-label" }}"
 	data-label-unit="{{ template "oob-otp-resend-button-label--unit" }}"
 	data-authgear-event="authgear.button.resend_oob_otp"
+	data-controller="resend-button"
 	data-resend-button-target="button"
 >{{ template "oob-otp-resend-button-label" }}</button>
 </form>

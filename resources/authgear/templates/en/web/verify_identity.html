@@ -45,7 +45,7 @@
 </button>
 </form>
 
-<form class="link mb-5" method="post" novalidate data-controller="resend-button">
+<form class="link mb-5" method="post" novalidate>
 {{ $.CSRFField }}
 
 {{ if not (eq $.Action "update_session_step") }}
@@ -56,6 +56,7 @@
 	data-label-unit="{{ template "verify-user-resend-button-label--unit" }}"
 	data-submit-form="verify-identity-resend"
 	data-authgear-event="authgear.button.resend_verification_code"
+	data-controller="resend-button"
 	data-resend-button-target="button"
 >{{ template "verify-user-resend-button-label" }}</button>
 {{ end }}
