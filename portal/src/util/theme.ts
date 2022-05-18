@@ -4,7 +4,7 @@ import {
   ThemeGenerator,
   BaseSlots,
 } from "@fluentui/react";
-import { Root, Node, Rule, AtRule, Declaration } from "postcss";
+import { Root, Node, Rule, Declaration } from "postcss";
 
 export interface LightTheme {
   isDarkTheme: false;
@@ -203,28 +203,21 @@ export function getDarkTheme(nodes: Node[]): DarkTheme | null {
   let textColor;
   let backgroundColor;
 
-  for (const atRule of nodes) {
-    if (
-      atRule instanceof AtRule &&
-      atRule.params === "(prefers-color-scheme: dark)"
-    ) {
-      for (const rule of atRule.nodes) {
-        // Extract theme
-        if (rule instanceof Rule && rule.selector === ":root") {
-          for (const decl of rule.nodes) {
-            if (decl instanceof Declaration) {
-              switch (decl.prop) {
-                case "--color-primary-unshaded":
-                  primaryColor = decl.value;
-                  break;
-                case "--color-text-unshaded":
-                  textColor = decl.value;
-                  break;
-                case "--color-background-unshaded":
-                  backgroundColor = decl.value;
-                  break;
-              }
-            }
+  for (const rule of nodes) {
+    if (rule instanceof Rule && rule.selector === ":root.dark") {
+      // Extract theme
+      for (const decl of rule.nodes) {
+        if (decl instanceof Declaration) {
+          switch (decl.prop) {
+            case "--color-primary-unshaded":
+              primaryColor = decl.value;
+              break;
+            case "--color-text-unshaded":
+              textColor = decl.value;
+              break;
+            case "--color-background-unshaded":
+              backgroundColor = decl.value;
+              break;
           }
         }
       }
@@ -255,45 +248,41 @@ export function getDarkBannerConfiguration(
   let paddingLeft;
   let backgroundColor;
 
-  for (const atRule of nodes) {
-    if (
-      atRule instanceof AtRule &&
-      atRule.params === "(prefers-color-scheme: dark)"
-    ) {
-      for (const rule of atRule.nodes) {
-        if (rule instanceof Rule) {
-          for (const decl of rule.nodes) {
-            if (decl instanceof Declaration) {
-              if (rule.selector === ".banner") {
-                switch (decl.prop) {
-                  case "width":
-                    width = decl.value;
-                    break;
-                  case "height":
-                    height = decl.value;
-                    break;
-                }
-              }
-              if (rule.selector === ".banner-frame") {
-                switch (decl.prop) {
-                  case "padding-top":
-                    paddingTop = decl.value;
-                    break;
-                  case "padding-right":
-                    paddingRight = decl.value;
-                    break;
-                  case "padding-bottom":
-                    paddingBottom = decl.value;
-                    break;
-                  case "padding-left":
-                    paddingLeft = decl.value;
-                    break;
-                  case "background-color":
-                    backgroundColor = decl.value;
-                    break;
-                }
-              }
-            }
+  for (const rule of nodes) {
+    if (rule instanceof Rule && rule.selector === ".dark .banner-frame") {
+      for (const decl of rule.nodes) {
+        if (decl instanceof Declaration) {
+          switch (decl.prop) {
+            case "padding-top":
+              paddingTop = decl.value;
+              break;
+            case "padding-right":
+              paddingRight = decl.value;
+              break;
+            case "padding-bottom":
+              paddingBottom = decl.value;
+              break;
+            case "padding-left":
+              paddingLeft = decl.value;
+              break;
+            case "background-color":
+              backgroundColor = decl.value;
+              break;
+          }
+        }
+      }
+    }
+
+    if (rule instanceof Rule && rule.selector === ".dark .banner") {
+      for (const decl of rule.nodes) {
+        if (decl instanceof Declaration) {
+          switch (decl.prop) {
+            case "width":
+              width = decl.value;
+              break;
+            case "height":
+              height = decl.value;
+              break;
           }
         }
       }
@@ -353,11 +342,7 @@ export function addLightTheme(root: Root, lightTheme: LightTheme): void {
 }
 
 export function addDarkTheme(root: Root, darkTheme: DarkTheme): void {
-  const atRule = new AtRule({
-    name: "media",
-    params: "(prefers-color-scheme: dark)",
-  });
-  const darkPseudoRoot = new Rule({ selector: ":root" });
+  const darkPseudoRoot = new Rule({ selector: ":root.dark" });
   addShadeDeclarations(
     darkPseudoRoot,
     getShades(darkTheme.primaryColor),
@@ -369,8 +354,7 @@ export function addDarkTheme(root: Root, darkTheme: DarkTheme): void {
     getShades(darkTheme.backgroundColor),
     "background"
   );
-  atRule.append(darkPseudoRoot);
-  root.append(atRule);
+  root.append(darkPseudoRoot);
 }
 
 export function addLightBannerConfiguration(
@@ -406,15 +390,11 @@ export function addDarkBannerConfiguration(
   root: Root,
   c: BannerConfiguration
 ): void {
-  const atRule = new AtRule({
-    name: "media",
-    params: "(prefers-color-scheme: dark)",
-  });
-  const bannerRule = new Rule({ selector: ".banner" });
+  const bannerRule = new Rule({ selector: ".dark .banner" });
   bannerRule.append(new Declaration({ prop: "width", value: c.width }));
   bannerRule.append(new Declaration({ prop: "height", value: c.height }));
 
-  const bannerFrameRule = new Rule({ selector: ".banner-frame" });
+  const bannerFrameRule = new Rule({ selector: ".dark .banner-frame" });
   bannerFrameRule.append(
     new Declaration({ prop: "padding-top", value: c.paddingTop })
   );
@@ -431,9 +411,8 @@ export function addDarkBannerConfiguration(
     new Declaration({ prop: "background-color", value: c.backgroundColor })
   );
 
-  atRule.append(bannerRule);
-  atRule.append(bannerFrameRule);
-  root.append(atRule);
+  root.append(bannerRule);
+  root.append(bannerFrameRule);
 }
 
 export function isLightThemeEqual(a: LightTheme, b: LightTheme): boolean {

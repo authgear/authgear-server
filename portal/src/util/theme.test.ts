@@ -80,38 +80,36 @@ const CSS = `
   --color-background-shaded-8: #f8f8f8;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-primary-unshaded: #317BF4;
-    --color-primary-shaded-1: #f6faff;
-    --color-primary-shaded-2: #dde9fd;
-    --color-primary-shaded-3: #bfd7fc;
-    --color-primary-shaded-4: #81aff9;
-    --color-primary-shaded-5: #498bf6;
-    --color-primary-shaded-6: #2c70dc;
-    --color-primary-shaded-7: #255eba;
-    --color-primary-shaded-8: #1b4589;
+:root.dark {
+  --color-primary-unshaded: #317BF4;
+  --color-primary-shaded-1: #f6faff;
+  --color-primary-shaded-2: #dde9fd;
+  --color-primary-shaded-3: #bfd7fc;
+  --color-primary-shaded-4: #81aff9;
+  --color-primary-shaded-5: #498bf6;
+  --color-primary-shaded-6: #2c70dc;
+  --color-primary-shaded-7: #255eba;
+  --color-primary-shaded-8: #1b4589;
 
-    --color-text-unshaded: #ffffff;
-    --color-text-shaded-1: #767676;
-    --color-text-shaded-2: #a6a6a6;
-    --color-text-shaded-3: #c8c8c8;
-    --color-text-shaded-4: #d0d0d0;
-    --color-text-shaded-5: #dadada;
-    --color-text-shaded-6: #eaeaea;
-    --color-text-shaded-7: #f4f4f4;
-    --color-text-shaded-8: #f8f8f8;
+  --color-text-unshaded: #ffffff;
+  --color-text-shaded-1: #767676;
+  --color-text-shaded-2: #a6a6a6;
+  --color-text-shaded-3: #c8c8c8;
+  --color-text-shaded-4: #d0d0d0;
+  --color-text-shaded-5: #dadada;
+  --color-text-shaded-6: #eaeaea;
+  --color-text-shaded-7: #f4f4f4;
+  --color-text-shaded-8: #f8f8f8;
 
-    --color-background-unshaded: #000000;
-    --color-background-shaded-1: #898989;
-    --color-background-shaded-2: #737373;
-    --color-background-shaded-3: #595959;
-    --color-background-shaded-4: #373737;
-    --color-background-shaded-5: #2f2f2f;
-    --color-background-shaded-6: #252525;
-    --color-background-shaded-7: #151515;
-    --color-background-shaded-8: #0b0b0b;
-  }
+  --color-background-unshaded: #000000;
+  --color-background-shaded-1: #898989;
+  --color-background-shaded-2: #737373;
+  --color-background-shaded-3: #595959;
+  --color-background-shaded-4: #373737;
+  --color-background-shaded-5: #2f2f2f;
+  --color-background-shaded-6: #252525;
+  --color-background-shaded-7: #151515;
+  --color-background-shaded-8: #0b0b0b;
 }
 
 .banner-frame {
@@ -126,18 +124,16 @@ const CSS = `
   height: 1px;
 }
 
-@media (prefers-color-scheme: dark) {
-  .banner-frame {
-    background-color: blue;
-    padding-top: 3px;
-    padding-right: 4px;
-    padding-bottom: 5px;
-    padding-left: 6px;
-  }
-  .banner {
-    width: initial;
-    height: 2px;
-  }
+.dark .banner-frame {
+  background-color: blue;
+  padding-top: 3px;
+  padding-right: 4px;
+  padding-bottom: 5px;
+  padding-left: 6px;
+}
+.dark .banner {
+  width: initial;
+  height: 2px;
 }
 `;
 
@@ -282,18 +278,16 @@ describe("addDarkBannerConfiguration", () => {
     const root = new Root();
     addDarkBannerConfiguration(root, DEFAULT_BANNER_CONFIGURATION);
     const actual = root.toResult().css;
-    const expected = `@media (prefers-color-scheme: dark) {
-    .banner {
-        width: initial;
-        height: 55px
-    }
-    .banner-frame {
-        padding-top: 16px;
-        padding-right: 16px;
-        padding-bottom: 16px;
-        padding-left: 16px;
-        background-color: transparent
-    }
+    const expected = `.dark .banner {
+    width: initial;
+    height: 55px
+}
+.dark .banner-frame {
+    padding-top: 16px;
+    padding-right: 16px;
+    padding-bottom: 16px;
+    padding-left: 16px;
+    background-color: transparent
 }`;
     expect(actual).toEqual(expected);
   });
@@ -304,36 +298,34 @@ describe("addDarkTheme", () => {
     const root = new Root();
     addDarkTheme(root, DEFAULT_DARK_THEME);
     const actual = root.toResult().css;
-    const expected = `@media (prefers-color-scheme: dark) {
-    :root {
-        --color-primary-unshaded: #317BF4;
-        --color-primary-shaded-1: #f6faff;
-        --color-primary-shaded-2: #dde9fd;
-        --color-primary-shaded-3: #bfd7fc;
-        --color-primary-shaded-4: #81aff9;
-        --color-primary-shaded-5: #498bf6;
-        --color-primary-shaded-6: #2c70dc;
-        --color-primary-shaded-7: #255eba;
-        --color-primary-shaded-8: #1b4589;
-        --color-text-unshaded: #ffffff;
-        --color-text-shaded-1: #767676;
-        --color-text-shaded-2: #a6a6a6;
-        --color-text-shaded-3: #c8c8c8;
-        --color-text-shaded-4: #d0d0d0;
-        --color-text-shaded-5: #dadada;
-        --color-text-shaded-6: #eaeaea;
-        --color-text-shaded-7: #f4f4f4;
-        --color-text-shaded-8: #f8f8f8;
-        --color-background-unshaded: #000000;
-        --color-background-shaded-1: #898989;
-        --color-background-shaded-2: #737373;
-        --color-background-shaded-3: #595959;
-        --color-background-shaded-4: #373737;
-        --color-background-shaded-5: #2f2f2f;
-        --color-background-shaded-6: #252525;
-        --color-background-shaded-7: #151515;
-        --color-background-shaded-8: #0b0b0b
-    }
+    const expected = `:root.dark {
+    --color-primary-unshaded: #317BF4;
+    --color-primary-shaded-1: #f6faff;
+    --color-primary-shaded-2: #dde9fd;
+    --color-primary-shaded-3: #bfd7fc;
+    --color-primary-shaded-4: #81aff9;
+    --color-primary-shaded-5: #498bf6;
+    --color-primary-shaded-6: #2c70dc;
+    --color-primary-shaded-7: #255eba;
+    --color-primary-shaded-8: #1b4589;
+    --color-text-unshaded: #ffffff;
+    --color-text-shaded-1: #767676;
+    --color-text-shaded-2: #a6a6a6;
+    --color-text-shaded-3: #c8c8c8;
+    --color-text-shaded-4: #d0d0d0;
+    --color-text-shaded-5: #dadada;
+    --color-text-shaded-6: #eaeaea;
+    --color-text-shaded-7: #f4f4f4;
+    --color-text-shaded-8: #f8f8f8;
+    --color-background-unshaded: #000000;
+    --color-background-shaded-1: #898989;
+    --color-background-shaded-2: #737373;
+    --color-background-shaded-3: #595959;
+    --color-background-shaded-4: #373737;
+    --color-background-shaded-5: #2f2f2f;
+    --color-background-shaded-6: #252525;
+    --color-background-shaded-7: #151515;
+    --color-background-shaded-8: #0b0b0b
 }`;
     expect(actual).toEqual(expected);
   });
