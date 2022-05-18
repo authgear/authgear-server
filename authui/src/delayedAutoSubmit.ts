@@ -26,15 +26,18 @@ export class DelayedAutoSubmitController extends Controller {
   disconnect() {
     if (this.animationReq) {
       cancelAnimationFrame(this.animationReq);
+      this.animationReq = null;
     }
     if (this.intervalReq) {
-      cancelAnimationFrame;
+      clearInterval(this.intervalReq);
+      this.intervalReq = null;
     }
     if (this.visibilityChangeListener) {
       document.removeEventListener(
         "visibilitychange",
         this.visibilityChangeListener
       );
+      this.visibilityChangeListener = null;
     }
   }
 
@@ -54,8 +57,8 @@ export class DelayedAutoSubmitController extends Controller {
       } else {
         that.buttonTarget.textContent =
           labelUnit && labelUnit.replace("%d", String(displaySeconds));
+        that.animationReq = requestAnimationFrame(count);
       }
-      that.animationReq = requestAnimationFrame(count);
     }
     this.animationReq = requestAnimationFrame(count);
   }
@@ -63,6 +66,7 @@ export class DelayedAutoSubmitController extends Controller {
   setupAutoSubmit() {
     this.intervalReq = setInterval(() => {
       this.buttonTarget.click();
+      this.intervalReq = null;
     }, this.countDownSec * 1000);
   }
 
@@ -70,6 +74,14 @@ export class DelayedAutoSubmitController extends Controller {
     if (document.visibilityState == "visible") {
       this.startCounter();
       this.setupAutoSubmit();
+      // remove the listener once the counter is started
+      if (this.visibilityChangeListener) {
+        document.removeEventListener(
+          "visibilitychange",
+          this.visibilityChangeListener
+        );
+        this.visibilityChangeListener = null;
+      }
       return true;
     }
     return false;
