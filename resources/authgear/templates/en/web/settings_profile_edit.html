@@ -244,23 +244,29 @@
 
   {{ if (eq $.Variant "gender") }}
   {{ if (call $.IsEditable "/gender") }}
-  <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
+  <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt" data-controller="gender-select">
     {{ template "standard-attribute-gender" }}
     <select
       class="primary-txt select"
       name="gender-select"
-      data-gender-select="gender-input"
       data-controller="select-empty-value"
       data-select-empty-value-target="select"
-      data-action="change->select-empty-value#toggleClass"
+      data-gender-select-target="select"
+      data-gender-select-fromListener-param="true"
+      data-action="change->select-empty-value#toggleClass change->gender-select#toggle"
     >
       <option value="" {{ if not $.Gender }}selected{{ end }}>{{ template "unset-label" }}</option>
       <option value="female" {{ if (eq $.Gender "female") }}selected{{ end }}>{{ template "gender-female" }}</option>
       <option value="male" {{ if (eq $.Gender "male") }}selected{{ end }}>{{ template "gender-male" }}</option>
       <option value="other" {{ if (and (not (eq $.Gender "female")) (not (eq $.Gender "male")) $.Gender) }}selected{{ end }}>{{ template "settings-profile-edit-gender-other" }}</option>
     </select>
+    <input
+    class="primary-txt input text-input text-base"
+    name="gender-input"
+    value="{{ $.Gender }}"
+    data-gender-select-target="input"
+    >
   </label>
-  <input id="gender-input" class="primary-txt input text-input text-base" name="gender-input" value="{{ $.Gender }}">
   {{ end }}
   {{ end }}
 

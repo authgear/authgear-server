@@ -20,18 +20,17 @@ export class SelectEmptyValueController extends Controller {
   }
 }
 
-interface GenderSelect {
-  selectElement: HTMLSelectElement;
-  inputElement: HTMLInputElement;
-  listener: (e: Event) => void;
-}
+export class GenderSelectController extends Controller {
+  static targets = ["select", "input"];
 
-export function setupGenderSelect(): () => void {
-  function toggle(
-    selectElement: HTMLSelectElement,
-    inputElement: HTMLInputElement,
-    fromListener: boolean
-  ) {
+  declare selectTarget: HTMLSelectElement;
+  declare inputTarget: HTMLInputElement;
+
+  toggle({ params }: { params?: { fromlistener: boolean } }) {
+    const selectElement = this.selectTarget;
+    const inputElement = this.inputTarget;
+    const fromListener: boolean = params?.fromlistener ?? false;
+
     if (selectElement.value === "other") {
       inputElement.classList.remove("hidden");
       if (fromListener) {
@@ -42,40 +41,8 @@ export function setupGenderSelect(): () => void {
     }
   }
 
-  const genderSelects: GenderSelect[] = [];
-
-  const elems = document.querySelectorAll("select[data-gender-select]");
-  for (let i = 0; i < elems.length; i++) {
-    const selectElement = elems[i];
-    if (!(selectElement instanceof HTMLSelectElement)) {
-      continue;
-    }
-    const genderInputID = selectElement.getAttribute("data-gender-select");
-    if (genderInputID == null) {
-      continue;
-    }
-    const inputElement = document.getElementById(genderInputID);
-    if (!(inputElement instanceof HTMLInputElement)) {
-      continue;
-    }
-
-    const listener = () => {
-      toggle(selectElement, inputElement, true);
-    };
-
-    selectElement.addEventListener("change", listener);
-    toggle(selectElement, inputElement, false);
-
-    genderSelects.push({
-      selectElement,
-      inputElement,
-      listener,
-    });
+  connect() {
+    // passing empty object to indicate this operation is not calling from listener
+    this.toggle({});
   }
-
-  return () => {
-    for (const s of genderSelects) {
-      s.selectElement.removeEventListener("change", s.listener);
-    }
-  };
 }
