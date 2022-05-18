@@ -11,17 +11,17 @@ import {
 } from "./form";
 import { setupSelectEmptyValue, setupGenderSelect } from "./select";
 import { formatDateRelative, formatInputDate } from "./date";
-import { setupAccountDeletion } from "./accountdeletion";
 import { setupImagePicker } from "./imagepicker";
 import { setupWebsocket } from "./websocket";
 import { setupModal } from "./modal";
-import { setupResendButton } from "./resendButton";
-import { setupPreventDoubleTap } from "./preventDoubleTap";
-import { setupMessageBar } from "./messageBar";
 import { CopyButtonController } from "./copy";
 import { PasswordVisibilityToggleController } from "./passwordVisibility";
 import { PasswordPolicyController } from "./password-policy";
 import { ClickToSwitchController } from "./clickToSwitch";
+import { PreventDoubleTapController } from "./preventDoubleTap";
+import { AccountDelectionController } from "./accountdeletion";
+import { ResendButtonController } from "./resendButton";
+import { MessageBarController } from "./messageBar";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
 
@@ -39,6 +39,14 @@ Stimulus.register("click-to-switch", ClickToSwitchController);
 
 Stimulus.register("copy-button", CopyButtonController);
 
+Stimulus.register("prevent-double-tap", PreventDoubleTapController);
+
+Stimulus.register("account-delection", AccountDelectionController);
+
+Stimulus.register("resend-button", ResendButtonController);
+
+Stimulus.register("message-bar", MessageBarController);
+
 window.api.onLoad(() => {
   document.body.classList.add("js");
 });
@@ -51,11 +59,7 @@ window.api.onLoad(setupGenderSelect);
 window.api.onLoad(formatDateRelative);
 window.api.onLoad(formatInputDate);
 
-window.api.onLoad(setupAccountDeletion);
-
 window.api.onLoad(setupImagePicker);
-
-window.api.onLoad(setupPreventDoubleTap);
 
 window.api.onLoad(setupWebsocket);
 
@@ -65,7 +69,3 @@ window.api.onLoad(autoSubmitForm);
 window.api.onLoad(clickLinkSubmitForm);
 window.api.onLoad(xhrSubmitForm);
 window.api.onLoad(restoreForm);
-
-window.api.onLoad(setupResendButton);
-
-window.api.onLoad(setupMessageBar);

@@ -1,46 +1,33 @@
-export function setupMessageBar(): () => void {
-  const disposers: Array<() => void> = [];
-  const closeButtons = document.querySelectorAll("[data-close-button-target]");
+import { Controller } from "@hotwired/stimulus";
 
-  for (let i = 0; i < closeButtons.length; i++) {
-    const closeButton = closeButtons[i];
+export class MessageBarController extends Controller {
+  static targets = ["button", "bar"];
 
-    const targetID = closeButton.getAttribute("data-close-button-target");
-    if (targetID == null) {
-      continue;
-    }
+  declare buttonTarget: HTMLButtonElement;
+  declare barTarget: HTMLElement;
 
-    const target = document.getElementById(targetID);
-    if (target == null) {
-      continue;
-    }
+  // Close the message bar before cache the page.
+  // So that the cached page does not have the message bar shown.
+  // See https://github.com/authgear/authgear-server/issues/1424
+  beforeCache = () => {
+    const button = this.buttonTarget;
+    button.click();
+  };
 
-    const onCloseButtonClick = (e: Event) => {
-      e.preventDefault();
-      e.stopPropagation();
-      target.classList.add("hidden");
-    };
-
-    // Close the message bar before cache the page.
-    // So that the cached page does not have the message bar shown.
-    // See https://github.com/authgear/authgear-server/issues/1424
-    const beforeCache = () => {
-      if (closeButton instanceof HTMLElement) {
-        closeButton.click();
-      }
-    };
-
-    closeButton.addEventListener("click", onCloseButtonClick);
-    document.addEventListener("turbolinks:before-cache", beforeCache);
-    disposers.push(() => {
-      closeButton.removeEventListener("click", onCloseButtonClick);
-      document.removeEventListener("turbolinks:before-cache", beforeCache);
-    });
+  connect() {
+    document.addEventListener("turbolinks:before-cache", this.beforeCache);
   }
 
-  return () => {
-    for (const disposer of disposers) {
-      disposer();
-    }
-  };
+  close(e: Event) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const barTarget = this.barTarget;
+
+    barTarget.classList.add("hidden");
+  }
+
+  disconnect() {
+    document.removeEventListener("turbolinks:before-cache", this.beforeCache);
+  }
 }

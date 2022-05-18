@@ -11,23 +11,27 @@
   {{ template "account-deletion-description" (dict "date" $.ExpectedAccountDeletionTime "rfc3339" (rfc3339 $.ExpectedAccountDeletionTime)) }}
 </p>
 
-<form class="twc-container-vertical" method="post" novalidate>
+<form class="twc-container-vertical" method="post" novalidate data-controller="account-delection">
   {{ $.CSRFField }}
   <label class="flex flex-col">
     <span class="secondary-txt text-sm">
       {{ template "account-deletion-confirmation-label" }}
     </span>
-    <input class="primary-txt input text-input" name="delete" data-account-deletion-delete-button="delete-account-button">
+    <input class="primary-txt input text-input"
+      name="delete"
+      data-account-delection-target="input"
+      data-action="input->account-delection#delete"
+    >
   </label>
 
   <button
-    id="delete-account-button"
     class="btn destructive-btn mt-5"
     type="submit"
     name="x_action"
     value="delete"
     disabled
     data-authgear-event="authgear.button.schedule_account_deletion"
+    data-account-delection-target="button"
   >
     {{ template "account-deletion-delete-account-button-label" }}
   </button>

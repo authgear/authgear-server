@@ -4,14 +4,20 @@
 {{ template "__error.html" . }}
 
 {{ if .FlashMessageType }}
-<div id="message-bar" class="messages-bar flex flex-row success">
+<div class="messages-bar flex flex-row success" data-controller="message-bar" data-message-bar-target="bar">
     <div class="w-8 h-8 flex justify-center items-center good-txt"><i class="ti ti-circle-check"></i></div>
     <ul class="messages-txt list-none flex flex-col flex-1 p-0 mx-0 my-1.5 text-sm">
         {{ if (eq .FlashMessageType "resend_code_success") }}
             <li>{{ template "success-resend-code" }}</li>
         {{ end }}
     </ul>
-    <button data-close-button-target="message-bar" type="button" class="w-8 h-8 flex justify-center items-center"><i class="ti ti-x"></i></button>
+    <button type="button"
+        class="w-8 h-8 flex justify-center items-center"
+        data-message-bar-target="button"
+        data-action="click->message-bar#close"
+    >
+        <i class="ti ti-x"></i>
+    </button>
 </div>
 </div>
 {{ end }}
