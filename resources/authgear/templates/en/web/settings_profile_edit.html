@@ -1,7 +1,7 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<div class="pane twc-container-vertical pt-3 pb-5 px-6 tablet:px-8 desktop:px-8">
+<div class="pane twc-container-vertical pt-3 pb-5 px-6 tablet:px-8 desktop:px-8" data-controller="image-picker">
   {{ template "__nav_bar.html" "/settings/profile" }}
 
   {{ $ca := false }}
@@ -36,9 +36,9 @@
   {{/* Back button is clicked after the upload was initiated */}}
   {{/* When the upload finishes, this form is submitted to the URL of the previous page */}}
   {{/* The previous page does not support POST method, hence we see the error described in the issue */}}
-  <form id="imagepicker-form-upload" class="hidden" method="post" action="{{ $.RequestURI }}" novalidate>
+  <form id="imagepicker-form-upload" class="hidden" method="post" action="{{ $.RequestURI }}" novalidate data-image-picker-target="formUpload">
     {{ $.CSRFField }}
-    <input id="imagepicker-input-value" type="hidden" name="/picture" value="">
+    <input id="imagepicker-input-value" type="hidden" name="/picture" value="" data-image-picker-target="inputValue">
     <input type="hidden" name="x_action" value="save">
   </form>
 
@@ -149,12 +149,31 @@
       {{ else }}
 	src="{{ call $.StaticAssetURL "avatar-placeholder" }}"
       {{ end }}
+      data-image-picker-target="imgPreview"
     >
     <div>
-      <img id="imagepicker-img-cropper" class="w-full h-60 hidden">
+      <img
+        id="imagepicker-img-cropper"
+        class="w-full h-60 hidden"
+        data-image-picker-target="imgCropper"
+        data-action="error->image-picker#onError"
+      >
     </div>
-    <input id="imagepicker-input-file" type="file" class="hidden" accept="image/png, image/jpeg">
-    <button id="imagepicker-button-file" type="button" class="btn primary-btn text-base mt-10">
+    <input
+      id="imagepicker-input-file"
+      type="file"
+      class="hidden"
+      accept="image/png, image/jpeg"
+      data-image-picker-target="inputFile"
+      data-action="input->image-picker#onChange"
+    >
+    <button
+      id="imagepicker-button-file"
+      type="button"
+      class="btn primary-btn text-base mt-10"
+      data-image-picker-target="buttonFile"
+      data-action="click->image-picker#onClickFile"
+    >
       {{ template "settings-profile-edit-upload-picture-label" }}
     </button>
     <button
@@ -170,6 +189,7 @@
       data-modal-body="{{ template "settings-profile-edit-remove-confirmation-desc" }}"
       data-modal-action-label="{{ template "settings-profile-edit-remove-confirmation-action-label" }}"
       data-modal-cancel-label="{{ template "settings-profile-edit-remove-confirmation-cancel-label" }}"
+      data-image-picker-target="buttonRemove"
     >
       {{ template "settings-profile-edit-remove-picture-label" }}
     </button>
@@ -178,6 +198,8 @@
       class="btn primary-btn text-base mt-10 hidden"
       type="button"
       data-authgear-event="authgear.button.update_profile"
+      data-image-picker-target="buttonSave"
+      data-action="click->image-picker#onClickSave"
     >
       {{ template "save-button-label" }}
     </button>
