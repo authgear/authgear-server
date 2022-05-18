@@ -21,6 +21,7 @@ import {
 import { TransferClickController } from "./click";
 import { XHRSubmitFormController, RestoreFormController } from "./form";
 import { ModalController } from "./modal";
+import { ColorSchemeController } from "./colorscheme";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
 
@@ -29,6 +30,8 @@ axios.defaults.withCredentials = true;
 init();
 
 const Stimulus = Application.start();
+Stimulus.register("color-scheme", ColorSchemeController);
+
 Stimulus.register(
   "password-visibility-toggle",
   PasswordVisibilityToggleController
