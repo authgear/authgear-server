@@ -172,7 +172,7 @@ export class ImagePickerController extends Controller {
           onUploadProgress: progressEventHandler,
         });
         const body = resp.data;
-        console.log(body);
+
         const {
           result: { upload_url },
         } = body;
