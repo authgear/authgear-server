@@ -199,12 +199,13 @@
       value="save"
       form="imagepicker-form-remove"
       data-authgear-event="authgear.button.update_profile"
-      data-modal="confirmation"
       data-modal-title="{{ template "settings-profile-edit-remove-confirmation-title" }}"
       data-modal-body="{{ template "settings-profile-edit-remove-confirmation-desc" }}"
       data-modal-action-label="{{ template "settings-profile-edit-remove-confirmation-action-label" }}"
       data-modal-cancel-label="{{ template "settings-profile-edit-remove-confirmation-cancel-label" }}"
       data-image-picker-target="buttonRemove"
+      data-modal-target="submitButton"
+      data-action="click->modal#confirmFormSubmit"
     >
       {{ template "settings-profile-edit-remove-picture-label" }}
     </button>

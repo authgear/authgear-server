@@ -1,15 +1,15 @@
 {{ define "__modal.html" }}
-<div class="modal closed" data-modal-ele="true">
-<div class="modal-overlay" data-modal-overlay-ele="true"></div>
+<div class="modal closed" data-modal-target="modalEle">
+<div class="modal-overlay" data-modal-target="modalOverlayEle" data-action="click->modal#onClickModalCancel"></div>
 <div class="modal-container">
     <div class="modal-content py-4 text-left px-6">
         <div class="flex justify-between items-center mb-5">
-            <h1 class="model-title m-0 primary-txt text-xl" data-modal-title-ele="true"></h1>
+            <h1 class="model-title m-0 primary-txt text-xl" data-modal-target="modalTitleEle"></h1>
         </div>
-        <p class="model-body mt-0 mb-5 secondary-txt" data-modal-body-ele="true"></p>
+        <p class="model-body mt-0 mb-5 secondary-txt" data-modal-target="modalBodyEle"></p>
         <div class="flex justify-end space-x-4">
-            <button class="btn primary-btn" data-modal-action-btn-ele="true"></button>
-            <button class="btn light-btn" data-modal-cancel-btn-ele="true"></button>
+            <button class="btn primary-btn" data-modal-target="modalActionBtnEle" data-action="click->modal#onClickModalAction"></button>
+            <button class="btn light-btn" data-modal-target="modalCancelBtnEle" data-action="click->modal#onClickModalCancel"></button>
         </div>
     </div>
 </div>

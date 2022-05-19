@@ -2,7 +2,6 @@ import Turbolinks from "turbolinks";
 import { Application } from "@hotwired/stimulus";
 import axios from "axios";
 import { init } from "./core";
-import { setupModal } from "./modal";
 import { CopyButtonController } from "./copy";
 import { PasswordVisibilityToggleController } from "./passwordVisibility";
 import { PasswordPolicyController } from "./password-policy";
@@ -24,6 +23,7 @@ import {
   XHRSubmitFormController,
   RestoreFormController,
 } from "./form";
+import { ModalController } from "./modal";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
 
@@ -65,8 +65,8 @@ Stimulus.register("click-link-submit-form", ClickLinkSubmitFormController);
 Stimulus.register("xhr-submit-form", XHRSubmitFormController);
 Stimulus.register("restore-form", RestoreFormController);
 
+Stimulus.register("modal", ModalController);
+
 window.api.onLoad(() => {
   document.body.classList.add("js");
 });
-
-window.api.onLoad(setupModal);

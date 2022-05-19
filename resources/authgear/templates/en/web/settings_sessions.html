@@ -51,12 +51,13 @@
         name="x_action"
         value="revoke"
         aria-label="{{ template "settings-sessions-revoke-label" }}"
-        data-modal="confirmation"
         data-modal-title="{{ template "settings-sessions-confirmation-title" }}"
         data-modal-body="{{ template "settings-sessions-confirmation-desc" }}"
         data-modal-action-label="{{ template "settings-sessions-confirmation-action-label" }}"
         data-modal-cancel-label="{{ template "settings-sessions-confirmation-cancel-label" }}"
         data-authgear-event="authgear.button.revoke_session"
+        data-modal-target="submitButton"
+        data-action="click->modal#confirmFormSubmit"
       >
         <i class="ti ti-x"></i>
       </button>
@@ -74,12 +75,13 @@
         type="submit"
         name="x_action"
         value="revoke_group"
-        data-modal="confirmation"
         data-modal-title="{{ template "settings-sessions-confirmation-title" }}"
         data-modal-body="{{ template "settings-sessions-confirmation-group-desc" }}"
         data-modal-action-label="{{ template "settings-sessions-confirmation-action-label" }}"
         data-modal-cancel-label="{{ template "settings-sessions-confirmation-cancel-label" }}"
         data-authgear-event="authgear.button.revoke_session_group"
+        data-modal-target="submitButton"
+        data-action="click->modal#confirmFormSubmit"
       >
         {{ template "settings-sessions-revoke-group-label" }}
       </button>
@@ -98,12 +100,13 @@
       type="submit"
       name="x_action"
       value="revoke_all"
-      data-modal="confirmation"
       data-modal-title="{{ template "settings-sessions-confirmation-title" }}"
       data-modal-body="{{ template "settings-sessions-confirmation-all-desc" }}"
       data-modal-action-label="{{ template "settings-sessions-confirmation-action-label" }}"
       data-modal-cancel-label="{{ template "settings-sessions-confirmation-cancel-label" }}"
       data-authgear-event="authgear.button.revoke_all_sessions"
+      data-modal-target="submitButton"
+      data-action="click->modal#confirmFormSubmit"
     >
       {{ template "settings-sessions-revoke-all-label" }}
     </button>
