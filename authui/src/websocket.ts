@@ -13,6 +13,7 @@ function refreshPage() {
 }
 
 export class WebSocketController extends Controller {
+  timeDelay: number = -1;
   ws: WebSocket | null = null;
 
   dispose = () => {
@@ -34,10 +35,13 @@ export class WebSocketController extends Controller {
 
   reconnectWebSocket = () => {
     this.dispose();
-    this.connectWebSocket();
+    if (this.timeDelay < 2) {
+      this.timeDelay += 1;
+    }
+    setTimeout(this.connectWebSocket, Math.pow(2, this.timeDelay) * 1000);
   };
 
-  connectWebSocket() {
+  connectWebSocket = () => {
     const scheme = window.location.protocol === "https:" ? "wss:" : "ws:";
     const host = window.location.host;
     var meta: HTMLMetaElement | null = document.querySelector(
@@ -85,7 +89,7 @@ export class WebSocketController extends Controller {
           this.refreshIfNeeded();
       }
     };
-  }
+  };
 
   connect() {
     this.connectWebSocket();
