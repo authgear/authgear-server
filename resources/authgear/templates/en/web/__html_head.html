@@ -7,7 +7,7 @@
 <meta name="x-intl-tel-input-only-countries" content="{{ $.AllowedPhoneCountryCodeJSON }}">
 <meta name="x-intl-tel-input-preferred-countries" content="{{ $.PinnedPhoneCountryCodeJSON }}">
 <meta name="x-geoip-country-code" content="{{ $.GeoIPCountryCode }}">
-<meta name="x-form-json" content="{{ $.FormJSON }}">
+<meta name="x-form-json" content="{{ $.FormJSON }}" data-controller="restore-form" data-restore-form-target="metaTag">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- Tell turbolinks not to use stale page for application visit -->
 <!-- See https://github.com/turbolinks/turbolinks#opting-out-of-caching -->

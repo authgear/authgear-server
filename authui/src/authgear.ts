@@ -2,7 +2,6 @@ import Turbolinks from "turbolinks";
 import { Application } from "@hotwired/stimulus";
 import axios from "axios";
 import { init } from "./core";
-import { restoreForm } from "./form";
 import { setupModal } from "./modal";
 import { CopyButtonController } from "./copy";
 import { PasswordVisibilityToggleController } from "./passwordVisibility";
@@ -20,7 +19,11 @@ import {
   FormatDateRelativeController,
   FormatInputDateController,
 } from "./date";
-import { ClickLinkSubmitFormController, XHRSubmitFormController } from "./form";
+import {
+  ClickLinkSubmitFormController,
+  XHRSubmitFormController,
+  RestoreFormController,
+} from "./form";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
 
@@ -60,11 +63,10 @@ Stimulus.register("format-input-date", FormatInputDateController);
 
 Stimulus.register("click-link-submit-form", ClickLinkSubmitFormController);
 Stimulus.register("xhr-submit-form", XHRSubmitFormController);
+Stimulus.register("restore-form", RestoreFormController);
 
 window.api.onLoad(() => {
   document.body.classList.add("js");
 });
 
 window.api.onLoad(setupModal);
-
-window.api.onLoad(restoreForm);
