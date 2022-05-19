@@ -84,7 +84,13 @@
   {{ if (call $.IsEditable "/email") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-email" }}
-    <select class="primary-txt select" name="/email" {{ if not $.Emails }}disabled{{ end }}>
+    <select
+      class="primary-txt select"
+      name="/email" {{ if not $.Emails }}disabled{{ end }}
+      data-controller="select-empty-value"
+      data-select-empty-value-target="select"
+      data-action="change->select-empty-value#toggleClass"
+    >
       {{ range $.Emails }}
       <option value="{{ . }}" {{ if (eq $.Email .) }}selected{{ end }}>{{ . }}</option>
       {{ end }}
@@ -101,7 +107,13 @@
   {{ if (call $.IsEditable "/phone_number") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-phone-number" }}
-    <select class="primary-txt select" name="/phone_number" {{ if not $.PhoneNumbers }}disabled{{ end }}>
+    <select
+      class="primary-txt select"
+      name="/phone_number" {{ if not $.PhoneNumbers }}disabled{{ end }}
+      data-controller="select-empty-value"
+      data-select-empty-value-target="select"
+      data-action="change->select-empty-value#toggleClass"
+    >
       {{ range $.PhoneNumbers }}
       <option value="{{ . }}" {{ if (eq $.PhoneNumber .) }}selected{{ end }}>{{ . }}</option>
       {{ end }}
@@ -118,7 +130,13 @@
   {{ if (call $.IsEditable "/preferred_username") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-preferred-username" }}
-    <select class="primary-txt select" name="/preferred_username" {{ if not $.PreferredUsernames }}disabled{{ end }}>
+    <select
+      class="primary-txt select"
+      name="/preferred_username" {{ if not $.PreferredUsernames }}disabled{{ end }}
+      data-controller="select-empty-value"
+      data-select-empty-value-target="select"
+      data-action="change->select-empty-value#toggleClass"
+    >
       {{ range $.PreferredUsernames }}
       <option value="{{ . }}" {{ if (eq $.PreferredUsername .) }}selected{{ end }}>{{ . }}</option>
       {{ end }}
