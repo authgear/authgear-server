@@ -1,7 +1,7 @@
 {{ define "__use_recovery_code.html" }}
     {{ range .AlternativeSteps }}
         {{ if eq .Step "enter-recovery-code" }}
-            <form method="post" novalidate>
+            <form method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
                 {{ $.CSRFField }}
                 <input type="hidden" name="x_step_kind" value="{{ .Step }}">
                 {{ range $name, $value := .Input }}

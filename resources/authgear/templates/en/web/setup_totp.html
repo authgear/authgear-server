@@ -9,7 +9,7 @@
 
 <p class="text-sm primary-txt text-center m-0">{{ template "setup-totp-description" }}</p>
 
-<form class="twc-container-vertical" method="post" novalidate>
+<form class="twc-container-vertical" method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
 
 {{ $.CSRFField }}
 

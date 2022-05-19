@@ -22,7 +22,7 @@
 </div>
 
 <div class="twc-container-vertical mt-5">
-    <form class="flex flex-col" method="post" novalidate>
+    <form class="flex flex-col" method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
     {{ $.CSRFField }}
     <button
         class="btn primary-btn submit-btn"
@@ -34,7 +34,7 @@
     >{{ template "select-account-continue-label" }}</button>
     </form>
 
-    <form class="flex flex-col" method="post" novalidate>
+    <form class="flex flex-col" method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
     {{ $.CSRFField }}
     <button
         class="btn light-btn submit-btn"

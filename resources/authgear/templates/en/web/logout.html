@@ -6,7 +6,7 @@
     {{ template "logout-button-hint" }}
   </h2>
   <!-- We need to disable XHR for this request because after logout it could possibly redirect to external website with post_logout_uri -->
-  <form class="flex flex-col" method="post" novalidate>
+  <form class="flex flex-col" method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
     {{ $.CSRFField }}
     <button
       class="btn primary-btn my-5"

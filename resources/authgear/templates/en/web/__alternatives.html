@@ -15,7 +15,7 @@
                     <span class="primary-txt mx-1.5 text-sm">{{ template "or-label" }}</span>
                 </div>
             {{ end }}
-            <form method="post" novalidate>
+            <form method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
                 {{ $.CSRFField }}
                 <input type="hidden" name="x_step_kind" value="{{ .Step }}">
                 {{ range $name, $value := .Input }}

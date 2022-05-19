@@ -57,7 +57,7 @@
     <p class="col-start-1 col-span-2 m-0 warn-txt text-sm">
       {{ template "inactive-label" }}
     </p>
-    <form class="col-start-3 col-span-1 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate>
+    <form class="col-start-3 col-span-1 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
       {{ $.CSRFField }}
       <button class="btn secondary-btn flex-1 flex flex-col items-end justify-center" type="submit" name="x_action" value="add_secondary_totp">
         <i class="ti ti-edit"></i>
@@ -85,7 +85,7 @@
     <p class="col-start-1 col-span-2 m-0 warn-txt text-sm">
       {{ template "inactive-label" }}
     </p>
-    <form class="col-start-3 col-span-1 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate>
+    <form class="col-start-3 col-span-1 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
       {{ $.CSRFField }}
       <button class="btn secondary-btn flex-1 flex flex-col items-end justify-center" type="submit" name="x_action" value="add_secondary_oob_otp_email">
         <i class="ti ti-edit"></i>
@@ -112,7 +112,7 @@
     <p class="col-start-1 col-span-2 m-0 warn-txt text-sm">
       {{ template "inactive-label" }}
     </p>
-    <form class="col-start-3 col-span-1 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate>
+    <form class="col-start-3 col-span-1 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
       {{ $.CSRFField }}
       <button class="btn secondary-btn flex-1 flex flex-col items-end justify-center" type="submit" name="x_action" value="add_secondary_oob_otp_sms">
         <i class="ti ti-edit"></i>
@@ -138,7 +138,7 @@
     <a class="link w-6 col-start-3 col-span-1 row-start-1 row-span-2 flex flex-col items-end justify-center btn secondary-btn" href="/settings/mfa/change_secondary_password">
       <i class="ti ti-edit"></i>
     </a>
-    <form class="col-start-4 col-span-1 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate>
+    <form class="col-start-4 col-span-1 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
       {{ $.CSRFField }}
       <input type="hidden" name="x_authenticator_id" value="{{ $secondary_password.ID }}">
       <button class="btn destructive-secondary-btn flex-1 flex flex-col items-end justify-center" type="submit" name="x_action" value="remove_secondary_password">
@@ -146,7 +146,7 @@
       </button>
     </form>
     {{ else }}
-    <form class="link col-start-3 col-span-1 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate>
+    <form class="link col-start-3 col-span-1 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
       {{ $.CSRFField }}
       <button class="btn secondary-btn flex-1 flex flex-col items-end justify-center" type="submit" name="x_action" value="setup_secondary_password">
         <i class="ti ti-edit"></i>
@@ -180,7 +180,7 @@
       {{ template "settings-page-trusted-devices-title" }}
     </p>
   {{ if $.HasDeviceTokens }}
-  <form class="col-start-1 col-span-2 m-0" method="post" novalidate>
+  <form class="col-start-1 col-span-2 m-0" method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
     {{ $.CSRFField }}
     <button class="justify-self-start btn destructive-secondary-btn text-sm" type="submit" name="x_action" value="revoke_devices">
       {{ template "revoke-all-device-tokens-button-label" }}

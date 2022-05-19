@@ -16,7 +16,7 @@
 {{ if $.IdentityDisplayID }}
 <div class="text-sm break-words primary-txt text-center">{{ template "verify-user-description" (dict "length" $.VerificationCodeLength "target" $.IdentityDisplayID) }}</div>
 
-<form class="twc-container-vertical" method="post" novalidate>
+<form class="twc-container-vertical" method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
 {{ $.CSRFField }}
 
 <input
@@ -44,7 +44,7 @@
 </button>
 </form>
 
-<form class="link mb-5" method="post" novalidate>
+<form class="link mb-5" method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
 {{ $.CSRFField }}
 
 {{ if not (eq $.Action "update_session_step") }}

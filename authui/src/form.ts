@@ -33,10 +33,22 @@ export class ClickLinkSubmitFormController extends Controller {
   }
 }
 
-export function xhrSubmitForm(): () => void {
-  let revertDisabledButtons: { (): void } | null;
+export class XHRSubmitFormController extends Controller {
+  revertDisabledButtons: { (): void } | null = null;
 
-  async function submitForm(e: Event) {
+  beforeCache = () => {
+    if (this.revertDisabledButtons) {
+      this.revertDisabledButtons();
+    }
+  };
+
+  async submitForm(e: Event) {
+    const form = e.target as HTMLFormElement;
+
+    if (form.querySelector('[data-form-xhr="false"]')) {
+      return;
+    }
+
     if (e.defaultPrevented) {
       return;
     }
@@ -44,7 +56,6 @@ export function xhrSubmitForm(): () => void {
     // Do not stop propagation so that GTM can recognize the event as Form Submission trigger.
     // e.stopPropagation();
 
-    const form = e.currentTarget as HTMLFormElement;
     const formData = new FormData(form);
 
     const params = new URLSearchParams();
@@ -68,7 +79,7 @@ export function xhrSubmitForm(): () => void {
       }
     }
 
-    revertDisabledButtons = disableAllButtons();
+    this.revertDisabledButtons = disableAllButtons();
     showProgressBar();
     try {
       const resp = await axios(form.action, {
@@ -97,45 +108,27 @@ export function xhrSubmitForm(): () => void {
           break;
       }
     } catch (e: unknown) {
+      console.log(e);
       handleAxiosError(e);
       // revert is only called for error branch because
       // The success branch also loads a new page.
       // Keeping the buttons in disabled state reduce flickering in the UI.
-      if (revertDisabledButtons) {
-        revertDisabledButtons();
-        revertDisabledButtons = null;
+      if (this.revertDisabledButtons) {
+        this.revertDisabledButtons();
+        this.revertDisabledButtons = null;
       }
     } finally {
       hideProgressBar();
     }
   }
 
-  const elems = document.querySelectorAll("form");
-  const forms: HTMLFormElement[] = [];
-  for (let i = 0; i < elems.length; i++) {
-    if (elems[i].querySelector('[data-form-xhr="false"]')) {
-      continue;
-    }
-    forms.push(elems[i] as HTMLFormElement);
-  }
-  for (const form of forms) {
-    form.addEventListener("submit", submitForm);
+  connect() {
+    document.addEventListener("turbolinks:before-cache", this.beforeCache);
   }
 
-  // Revert disabled buttons before turbolinks cache the page
-  // To avoid flickering in the UI
-  const beforeCache = () => {
-    if (revertDisabledButtons) {
-      revertDisabledButtons();
-    }
-  };
-  document.addEventListener("turbolinks:before-cache", beforeCache);
-  return () => {
-    document.removeEventListener("turbolinks:before-cache", beforeCache);
-    for (const form of forms) {
-      form.removeEventListener("submit", submitForm);
-    }
-  };
+  disconnect() {
+    document.removeEventListener("turbolinks:before-cache", this.beforeCache);
+  }
 }
 
 export function restoreForm() {
