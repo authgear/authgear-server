@@ -9,8 +9,6 @@ function swapElementsName(
   secondElement.name = originalName;
 }
 
-const inputNameSuffix = "_intl_tel_input";
-
 export class IntlTelInputController extends Controller {
   static targets = ["input", "hiddenInput"];
 
