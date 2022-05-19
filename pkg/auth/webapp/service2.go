@@ -226,28 +226,40 @@ func (s *Service2) doPost(
 					graph.InstanceID,
 				))
 			case *nodes.EdgeCreateAuthenticatorOOBSetup:
-				var stepKind SessionStepKind
-				switch defaultEdge.AuthenticatorType() {
-				case model.AuthenticatorTypeOOBEmail:
-					stepKind = SessionStepSetupOOBOTPEmail
-				case model.AuthenticatorTypeOOBSMS:
-					stepKind = SessionStepSetupOOBOTPSMS
-				default:
-					panic(fmt.Errorf("webapp: unexpected authenticator type in oob edge: %s", defaultEdge.AuthenticatorType()))
+				if defaultEdge.Stage == authn.AuthenticationStagePrimary {
+					inputFn = func() (interface{}, error) {
+						return &inputSelectOOB{}, nil
+					}
+				} else {
+					var stepKind SessionStepKind
+					switch defaultEdge.AuthenticatorType() {
+					case model.AuthenticatorTypeOOBEmail:
+						stepKind = SessionStepSetupOOBOTPEmail
+					case model.AuthenticatorTypeOOBSMS:
+						stepKind = SessionStepSetupOOBOTPSMS
+					default:
+						panic(fmt.Errorf("webapp: unexpected authenticator type in oob edge: %s", defaultEdge.AuthenticatorType()))
+					}
+					session.Steps = append(session.Steps, NewSessionStep(
+						stepKind,
+						graph.InstanceID,
+					))
 				}
-				session.Steps = append(session.Steps, NewSessionStep(
-					stepKind,
-					graph.InstanceID,
-				))
 			case *nodes.EdgeCreateAuthenticatorTOTPSetup:
 				inputFn = func() (interface{}, error) {
 					return &inputSelectTOTP{}, nil
 				}
 			case *nodes.EdgeCreateAuthenticatorWhatsappOTPSetup:
-				session.Steps = append(session.Steps, NewSessionStep(
-					SessionStepSetupWhatsappOTP,
-					graph.InstanceID,
-				))
+				if defaultEdge.Stage == authn.AuthenticationStagePrimary {
+					inputFn = func() (interface{}, error) {
+						return &inputSelectWhatsappOTP{}, nil
+					}
+				} else {
+					session.Steps = append(session.Steps, NewSessionStep(
+						SessionStepSetupWhatsappOTP,
+						graph.InstanceID,
+					))
+				}
 			default:
 				panic(fmt.Errorf("webapp: unexpected edge: %T", defaultEdge))
 			}
