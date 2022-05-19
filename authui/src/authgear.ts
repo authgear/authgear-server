@@ -9,7 +9,6 @@ import {
   restoreForm,
 } from "./form";
 import { formatDateRelative, formatInputDate } from "./date";
-import { setupWebsocket } from "./websocket";
 import { setupModal } from "./modal";
 import { CopyButtonController } from "./copy";
 import { PasswordVisibilityToggleController } from "./passwordVisibility";
@@ -22,6 +21,7 @@ import { MessageBarController } from "./messageBar";
 import { IntlTelInputController } from "./intlTelInput";
 import { SelectEmptyValueController, GenderSelectController } from "./select";
 import { ImagePickerController } from "./imagepicker";
+import { WebSocketController } from "./websocket";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
 
@@ -54,14 +54,14 @@ Stimulus.register("gender-select", GenderSelectController);
 
 Stimulus.register("image-picker", ImagePickerController);
 
+Stimulus.register("websocket", WebSocketController);
+
 window.api.onLoad(() => {
   document.body.classList.add("js");
 });
 
 window.api.onLoad(formatDateRelative);
 window.api.onLoad(formatInputDate);
-
-window.api.onLoad(setupWebsocket);
 
 window.api.onLoad(setupModal);
 
