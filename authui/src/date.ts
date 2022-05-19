@@ -3,6 +3,7 @@ import {
   intlRelativeTimeFormatIsSupported,
 } from "./feature";
 import { DateTime } from "luxon";
+import { Controller } from "@hotwired/stimulus";
 
 // In order to be backward compatible,
 // <span data-date> is equivalent to
@@ -130,15 +131,18 @@ export function formatDateRelative() {
 // So the comprimise is to make the display format of such value matches that of <input type="date">.
 // The display format of <input type="date"> is in browser locale for Safari and Firefox.
 // For Chrome, the display format is somehow arbitrary :(
-export function formatInputDate() {
-  const hasAbs = intlDateTimeFormatIsSupported();
-  if (!hasAbs) {
-    return;
-  }
+export class FormatInputDateController extends Controller {
+  static targets = ["inputDate"];
 
-  const dateSpans = document.querySelectorAll("[data-input-date-value]");
-  for (let i = 0; i < dateSpans.length; i++) {
-    const dateSpan = dateSpans[i];
+  declare inputDateTarget: HTMLSpanElement;
+
+  connect() {
+    const hasAbs = intlDateTimeFormatIsSupported();
+    if (!hasAbs) {
+      return;
+    }
+
+    const dateSpan = this.inputDateTarget;
     const rfc3339 = dateSpan.getAttribute("data-input-date-value");
     if (typeof rfc3339 === "string") {
       const jsDate = new Date(rfc3339);
