@@ -24,6 +24,10 @@ type EdgeCreateAuthenticatorWhatsappOTPSetup struct {
 	IsDefault bool
 }
 
+type InputCreateAuthenticatorWhatsappOTPSetupSelect interface {
+	SetupPrimaryAuthenticatorWhatsappOTP()
+}
+
 func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) IsDefaultAuthenticator() bool {
 	return false
 }
@@ -36,12 +40,12 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(ctx *interaction.C
 	var userID string
 	var phone string
 	if e.Stage == authn.AuthenticationStagePrimary {
-		// Primary OOB authenticators must be bound to login ID identity
-		// No input is needed for primary authenticator, login ID is used
-		identityInfo := graph.MustGetUserLastIdentity()
-		if identityInfo.Type != model.IdentityTypeLoginID {
-			panic("interaction: OOB authenticator identity must be login ID")
+		var input InputCreateAuthenticatorWhatsappOTPSetupSelect
+		matchedInput := interaction.Input(rawInput, &input)
+		if !matchedInput && !interaction.IsAdminAPI(rawInput) {
+			return nil, interaction.ErrIncompatibleInput
 		}
+		identityInfo := graph.MustGetUserLastIdentity()
 		userID = identityInfo.UserID
 		phone = identityInfo.Claims[identity.IdentityClaimLoginIDValue].(string)
 	} else {
@@ -51,17 +55,18 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(ctx *interaction.C
 		}
 		userID = graph.MustGetUserID()
 		phone = input.GetWhatsappPhone()
-		err := validation.FormatPhone{}.CheckFormat(phone)
-		if err != nil {
-			validationCtx := &validation.Context{}
-			validationCtx.EmitError("format", map[string]interface{}{"format": "phone"})
-			return nil, validationCtx.Error("invalid target")
-		}
-		phone, err = ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypePhone).
-			Normalize(phone)
-		if err != nil {
-			return nil, err
-		}
+	}
+
+	err := validation.FormatPhone{}.CheckFormat(phone)
+	if err != nil {
+		validationCtx := &validation.Context{}
+		validationCtx.EmitError("format", map[string]interface{}{"format": "phone"})
+		return nil, validationCtx.Error("invalid target")
+	}
+	phone, err = ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypePhone).
+		Normalize(phone)
+	if err != nil {
+		return nil, err
 	}
 
 	spec := &authenticator.Spec{
