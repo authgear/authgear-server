@@ -7,37 +7,30 @@ import {
   progressEventHandler,
 } from "./loading";
 import { handleAxiosError } from "./error";
+import { Controller } from "@hotwired/stimulus";
 
 // Handle click link to submit form
 // When clicking element with `data-submit-link`, it will perform click on
 // element with `data-submit-form` that contains the same value
 // e.g. data-submit-link="verify-identity-resend" and
 //      data-submit-form="verify-identity-resend"
-export function clickLinkSubmitForm(): () => void {
-  const links = document.querySelectorAll("[data-submit-link]");
-  const disposers: Array<() => void> = [];
-  for (let i = 0; i < links.length; i++) {
-    const link = links[i];
+export class ClickLinkSubmitFormController extends Controller {
+  static targets = ["link"];
+
+  declare linkTarget: HTMLAnchorElement;
+
+  submit(e: Event) {
+    const link = this.linkTarget;
     const formName = link.getAttribute("data-submit-link");
     const formButton = document.querySelector(
       `[data-submit-form="${formName}"]`
     );
+
     if (formButton instanceof HTMLElement) {
-      const submitForm = (e: Event) => {
-        e.preventDefault();
-        formButton.click();
-      };
-      link.addEventListener("click", submitForm);
-      disposers.push(() => {
-        link.removeEventListener("click", submitForm);
-      });
+      e.preventDefault();
+      formButton.click();
     }
   }
-  return () => {
-    for (const disposer of disposers) {
-      disposer();
-    }
-  };
 }
 
 export function xhrSubmitForm(): () => void {
