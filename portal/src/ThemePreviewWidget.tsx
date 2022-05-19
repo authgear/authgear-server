@@ -206,8 +206,8 @@ function getDarkModeStyle(options: GetStyleOptions) {
     "--color-google-shaded-6": "#3b79dc",
     "--color-google-shaded-7": "#3266ba",
     "--color-google-shaded-8": "#254b89",
-    "--color-pane-background": "#252525",
-    "--color-separator": "#3e3e3e",
+    "--color-pane-background": "#353535",
+    "--color-separator": "#595653",
     "--color-password-strength-meter-0": "#8a8886",
   };
 
