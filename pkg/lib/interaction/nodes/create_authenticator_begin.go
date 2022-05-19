@@ -182,7 +182,6 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 
 		case model.AuthenticatorTypeOOBSMS:
 			loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
-			loginID := n.Identity.Claims[identity.IdentityClaimLoginIDValue].(string)
 
 			// check if identity login id type match oob type
 			if loginIDType == string(config.LoginIDKeyTypePhone) {
@@ -198,8 +197,6 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 					edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
 						Stage:                n.Stage,
 						IsDefault:            isDefault,
-						Target:               loginID,
-						Channel:              model.AuthenticatorOOBChannelSMS,
 						OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
 					})
 				}
@@ -207,15 +204,12 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 
 		case model.AuthenticatorTypeOOBEmail:
 			loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
-			loginID := n.Identity.Claims[identity.IdentityClaimLoginIDValue].(string)
 
 			// check if identity login id type match oob type
 			if loginIDType == string(config.LoginIDKeyTypeEmail) {
 				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
 					Stage:                n.Stage,
 					IsDefault:            isDefault,
-					Target:               loginID,
-					Channel:              model.AuthenticatorOOBChannelEmail,
 					OOBAuthenticatorType: model.AuthenticatorTypeOOBEmail,
 				})
 			}

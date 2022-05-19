@@ -1,6 +1,8 @@
 package webapp
 
-import "github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
+import (
+	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
+)
 
 type inputTriggerOOB struct {
 	AuthenticatorIndex int
@@ -33,3 +35,15 @@ type inputAuthDeviceToken struct {
 var _ nodes.InputUseDeviceToken = &inputAuthDeviceToken{}
 
 func (i *inputAuthDeviceToken) GetDeviceToken() string { return i.DeviceToken }
+
+type inputSelectWhatsappOTP struct{}
+
+func (i *inputSelectWhatsappOTP) SetupPrimaryAuthenticatorWhatsappOTP() {}
+
+var _ nodes.InputCreateAuthenticatorWhatsappOTPSetupSelect = &inputSelectWhatsappOTP{}
+
+type inputSelectOOB struct{}
+
+func (i *inputSelectOOB) SetupPrimaryAuthenticatorOOB() {}
+
+var _ nodes.InputCreateAuthenticatorOOBSetupSelect = &inputSelectOOB{}
