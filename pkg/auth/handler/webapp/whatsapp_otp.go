@@ -149,45 +149,4 @@ func (h *WhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		result.WriteResponse(w, r)
 		return nil
 	})
-
-	ctrl.PostAction("fallback_sms", func() error {
-		graph, err := ctrl.InteractionGet()
-		if err != nil {
-			return err
-		}
-
-		var phone string
-		var n WhatsappOTPNode
-		if graph.FindLastNode(&n) {
-			phone = n.GetPhone()
-		} else {
-			panic(fmt.Errorf("webapp: unexpected node for sms fallback: %T", n))
-		}
-
-		authenticatorIndex := 0
-		var n2 WhatsappOTPAuthnNode
-		// authenticatorIndex is used in the authn flow only
-		// so in the create authenticator or verify identity flow,
-		// the nodes should not have GetAuthenticatorIndex implemented
-		if graph.FindLastNode(&n2) {
-			authenticatorIndex = n2.GetAuthenticatorIndex()
-		}
-
-		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
-			input = &InputWhatsappFallbackSMS{
-				InputSetupOOB: InputSetupOOB{
-					InputType: "phone",
-					Target:    phone,
-				},
-				AuthenticatorIndex: authenticatorIndex,
-			}
-			return
-		})
-		if err != nil {
-			return err
-		}
-
-		result.WriteResponse(w, r)
-		return nil
-	})
 }

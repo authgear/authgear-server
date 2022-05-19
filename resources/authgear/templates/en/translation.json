@@ -162,7 +162,6 @@
 
   "whatsapp-otp-on-this-device-button-label": "WhatsApp on this device",
   "whatsapp-otp-on-another-device-button-label": "WhatsApp on another device",
-  "whatsapp-otp-fallback-sms-button-label": "Verify with SMS instead",
   "whatsapp-otp-open-in-whatsapp-button-label": "Open in WhatsApp",
   "whatsapp-otp-i-have-sent-the-code-button-label": "I''ve sent the code",
   "whatsapp-otp-try-again-button-label": "Try again",
@@ -170,7 +169,6 @@
   "whatsapp-otp-redirecting-button": "Redirecting... (%ds)",
   "whatsapp-otp-show-qr-code-link-label": "Show QR Code to WhatsApp",
   "whatsapp-otp-show-open-in-whatsapp-link-label": "My WhatsApp is installed on this device",
-  "whatsapp-otp-fallback-sms-link-label":"Receive one-time password via SMS instead",
 
   "verify-user-page-title--sms": "SMS Verification",
   "verify-user-page-title--email": "Email Verification",
