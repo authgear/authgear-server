@@ -6,6 +6,7 @@ import {
   progressEventHandler,
 } from "./loading";
 import { handleAxiosError, showErrorMessage, hideErrorMessage } from "./error";
+import { Controller } from "@hotwired/stimulus";
 
 function destroyCropper(img: HTMLImageElement) {
   // The namespace .cropper is known by reading the source code.
@@ -36,205 +37,170 @@ function getCropper(img: HTMLImageElement): Cropper | undefined {
   return cropper;
 }
 
-function onChange(e: Event) {
-  const target = e.currentTarget;
-  if (!(target instanceof HTMLInputElement)) {
-    return;
-  }
+export class ImagePickerController extends Controller {
+  static targets = [
+    "inputFile",
+    "buttonFile",
+    "buttonSave",
+    "buttonRemove",
+    "imgCropper",
+    "imgPreview",
+    "inputValue",
+    "formUpload",
+  ];
 
-  const file = target.files?.[0];
-  if (file == null) {
-    return;
-  }
+  declare inputFileTarget: HTMLInputElement;
+  declare buttonFileTarget: HTMLButtonElement;
+  declare buttonSaveTarget: HTMLButtonElement;
+  declare buttonRemoveTarget: HTMLButtonElement;
+  declare imgCropperTarget: HTMLImageElement;
+  declare imgPreviewTarget: HTMLButtonElement;
+  declare inputValueTarget: HTMLInputElement;
+  declare formUploadTarget: HTMLFormElement;
 
-  const imgCropper = document.getElementById("imagepicker-img-cropper");
-  if (!(imgCropper instanceof HTMLImageElement)) {
-    return;
-  }
+  onChange(e: Event) {
+    const target = this.inputFileTarget;
 
-  hideErrorMessage("error-message-invalid-selected-image");
-
-  imgCropper?.classList.remove("hidden");
-  const buttonFile = document.getElementById("imagepicker-button-file");
-  buttonFile?.classList.add("hidden");
-  const buttonRemove = document.getElementById("imagepicker-button-remove");
-  buttonRemove?.classList.add("hidden");
-  const imgPreview = document.getElementById("imagepicker-img-preview");
-  imgPreview?.classList.add("hidden");
-  const buttonSave = document.getElementById("imagepicker-button-save");
-  buttonSave?.classList.remove("hidden");
-
-  const reader = new FileReader();
-  reader.addEventListener("load", () => {
-    if (typeof reader.result === "string") {
-      imgCropper.src = reader.result;
-      destroyCropper(imgCropper);
-      initCropper(imgCropper);
+    const file = target.files?.[0];
+    if (file == null) {
+      return;
     }
-  });
-  reader.readAsDataURL(file);
-}
 
-function onError(e: Event) {
-  const target = e.currentTarget;
-  if (!(target instanceof HTMLImageElement)) {
-    return;
+    const imgCropper = this.imgCropperTarget;
+
+    hideErrorMessage("error-message-invalid-selected-image");
+
+    imgCropper.classList.remove("hidden");
+    const buttonFile = this.buttonFileTarget;
+    buttonFile.classList.add("hidden");
+    const buttonRemove = this.buttonRemoveTarget;
+    buttonRemove.classList.add("hidden");
+    const imgPreview = this.imgPreviewTarget;
+    imgPreview.classList.add("hidden");
+    const buttonSave = this.buttonSaveTarget;
+    buttonSave.classList.remove("hidden");
+
+    const reader = new FileReader();
+    reader.addEventListener("load", () => {
+      if (typeof reader.result === "string") {
+        imgCropper.src = reader.result;
+        destroyCropper(imgCropper);
+        initCropper(imgCropper);
+      }
+    });
+    reader.readAsDataURL(file);
   }
 
-  const src = target.src;
-  // It is a file from the file system and it does not load.
-  // It is probably the file is broken.
-  if (/^data:/.test(src)) {
-    const buttonFile = document.getElementById("imagepicker-button-file");
-    buttonFile?.classList.remove("hidden");
-    const buttonSave = document.getElementById("imagepicker-button-save");
-    buttonSave?.classList.add("hidden");
-    showErrorMessage("error-message-invalid-selected-image");
-  }
-}
+  onError() {
+    const target = this.imgCropperTarget;
 
-function onClickFile(e: Event) {
-  e.preventDefault();
-  e.stopPropagation();
-
-  const inputFile = document.getElementById("imagepicker-input-file");
-  inputFile?.click();
-}
-
-function onClickSave(e: Event) {
-  e.preventDefault();
-  e.stopPropagation();
-
-  const imgCropper = document.getElementById("imagepicker-img-cropper");
-  if (!(imgCropper instanceof HTMLImageElement)) {
-    return;
+    const src = target.src;
+    // It is a file from the file system and it does not load.
+    // It is probably the file is broken.
+    if (/^data:/.test(src)) {
+      const buttonFile = this.buttonFileTarget;
+      buttonFile.classList.remove("hidden");
+      const buttonSave = this.buttonSaveTarget;
+      buttonSave.classList.add("hidden");
+      showErrorMessage("error-message-invalid-selected-image");
+    }
   }
 
-  const cropper = getCropper(imgCropper);
-  if (cropper == null) {
-    return;
+  onClickFile(e: Event) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const inputFile = this.inputFileTarget;
+    inputFile.click();
   }
 
-  const maxDimensions = 1024;
-  const dimensionsOptions = (function () {
-    const imageData = cropper.getImageData();
-    const cropBoxData = cropper.getCropBoxData();
-    // assume the cropped area is square
-    if (
-      imageData.naturalWidth > 0 &&
-      imageData.width > 0 &&
-      cropBoxData.width > 0
-    ) {
-      const imageScale = imageData.naturalWidth / imageData.width;
-      const croppedImageWidth = Math.floor(cropBoxData.width * imageScale);
-      const resultDimensions = Math.min(croppedImageWidth, maxDimensions);
+  onClickSave(e: Event) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const imgCropper = this.imgCropperTarget;
+
+    const cropper = getCropper(imgCropper);
+    if (cropper == null) {
+      return;
+    }
+
+    const maxDimensions = 1024;
+    const dimensionsOptions = (function () {
+      const imageData = cropper.getImageData();
+      const cropBoxData = cropper.getCropBoxData();
+      // assume the cropped area is square
+      if (
+        imageData.naturalWidth > 0 &&
+        imageData.width > 0 &&
+        cropBoxData.width > 0
+      ) {
+        const imageScale = imageData.naturalWidth / imageData.width;
+        const croppedImageWidth = Math.floor(cropBoxData.width * imageScale);
+        const resultDimensions = Math.min(croppedImageWidth, maxDimensions);
+        return {
+          width: resultDimensions,
+          height: resultDimensions,
+        };
+      }
+
+      // last resort when any of the image or crop box data is unavailable
       return {
-        width: resultDimensions,
-        height: resultDimensions,
+        maxWidth: maxDimensions,
+        maxHeight: maxDimensions,
       };
-    }
+    })();
 
-    // last resort when any of the image or crop box data is unavailable
-    return {
-      maxWidth: maxDimensions,
-      maxHeight: maxDimensions,
-    };
-  })();
+    const canvas = cropper.getCroppedCanvas({
+      ...dimensionsOptions,
+      imageSmoothingQuality: "high",
+    });
+    canvas.toBlob(async (blob) => {
+      if (blob == null) {
+        return;
+      }
 
-  const canvas = cropper.getCroppedCanvas({
-    ...dimensionsOptions,
-    imageSmoothingQuality: "high",
-  });
-  canvas.toBlob(async (blob) => {
-    if (blob == null) {
-      return;
-    }
+      const inputValue = this.inputValueTarget;
+      const formUpload = this.formUploadTarget;
 
-    const inputValue = document.getElementById("imagepicker-input-value");
-    if (!(inputValue instanceof HTMLInputElement)) {
-      return;
-    }
+      const revert = disableAllButtons();
+      showProgressBar();
+      try {
+        const resp = await axios("/api/images/upload", {
+          method: "POST",
+          onDownloadProgress: progressEventHandler,
+          onUploadProgress: progressEventHandler,
+        });
+        const body = resp.data;
 
-    const formUpload = document.getElementById("imagepicker-form-upload");
-    if (!(formUpload instanceof HTMLFormElement)) {
-      return;
-    }
+        const {
+          result: { upload_url },
+        } = body;
 
-    const revert = disableAllButtons();
-    showProgressBar();
-    try {
-      const resp = await axios("/api/images/upload", {
-        method: "POST",
-        onDownloadProgress: progressEventHandler,
-        onUploadProgress: progressEventHandler,
-      });
-      const body = resp.data;
+        const formData = new FormData();
+        formData.append("file", blob);
+        const uploadResp = await axios(upload_url, {
+          method: "POST",
+          data: formData,
+          onDownloadProgress: progressEventHandler,
+          onUploadProgress: progressEventHandler,
+        });
+        const uploadRespBody = uploadResp.data;
+        const {
+          result: { url },
+        } = uploadRespBody;
 
-      const {
-        result: { upload_url },
-      } = body;
-
-      const formData = new FormData();
-      formData.append("file", blob);
-      const uploadResp = await axios(upload_url, {
-        method: "POST",
-        data: formData,
-        onDownloadProgress: progressEventHandler,
-        onUploadProgress: progressEventHandler,
-      });
-      const uploadRespBody = uploadResp.data;
-      const {
-        result: { url },
-      } = uploadRespBody;
-
-      inputValue.value = url;
-      formUpload.submit();
-    } catch (e) {
-      // revert is only called for error branch because
-      // The success branch also loads a new page.
-      // Keeping the buttons in disabled state reduce flickering in the UI.
-      revert();
-      handleAxiosError(e);
-    } finally {
-      hideProgressBar();
-    }
-  });
-}
-
-export function setupImagePicker(): () => void {
-  // The image picker recognizes the following elements:
-  // #imagepicker-form-remove
-  //   The form that unsets picture.
-  // #imagepicker-button-remove
-  //   The submit button of #imagepicker-form-remove
-  //
-  // #imagepicker-form-upload
-  //   The form that sets picture.
-  // #imagepicker-input-value
-  //   The input to hold the authgearimages: URI.
-  //
-  // #imagepicker-img-cropper
-  //   The <img> to inject cropperjs
-  //
-  // #imagepicker-input-file
-  //   The hidden <input type="file"> to let the end-user to select a file.
-  // #imageicker-button-file
-  //   The button visually represents #imagepicker-input-file
-  //
-  // #imagepicker-button-save
-  //   The button that crops the image, requests signed url, uploads the image, and submit #imagepicker-form-upload.
-  const inputFile = document.getElementById("imagepicker-input-file");
-  const buttonFile = document.getElementById("imagepicker-button-file");
-  const buttonSave = document.getElementById("imagepicker-button-save");
-  const img = document.getElementById("imagepicker-img-cropper");
-  inputFile?.addEventListener("change", onChange);
-  img?.addEventListener("error", onError);
-  buttonFile?.addEventListener("click", onClickFile);
-  buttonSave?.addEventListener("click", onClickSave);
-  return () => {
-    inputFile?.removeEventListener("change", onChange);
-    img?.addEventListener("error", onError);
-    buttonFile?.removeEventListener("click", onClickFile);
-    buttonSave?.removeEventListener("click", onClickSave);
-  };
+        inputValue.value = url;
+        formUpload.submit();
+      } catch (e) {
+        // revert is only called for error branch because
+        // The success branch also loads a new page.
+        // Keeping the buttons in disabled state reduce flickering in the UI.
+        revert();
+        handleAxiosError(e);
+      } finally {
+        hideProgressBar();
+      }
+    });
+  }
 }

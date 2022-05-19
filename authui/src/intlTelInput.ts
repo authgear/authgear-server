@@ -1,58 +1,77 @@
-export function setupIntlTelInput() {
-  const onlyCountries =
-    JSON.parse(
-      document
-        .querySelector("meta[name=x-intl-tel-input-only-countries]")
-        ?.getAttribute("content") ?? "null"
-    ) ?? [];
-  const preferredCountries =
-    JSON.parse(
-      document
-        .querySelector("meta[name=x-intl-tel-input-preferred-countries]")
-        ?.getAttribute("content") ?? "null"
-    ) ?? [];
+import { Controller } from "@hotwired/stimulus";
 
-  let initialCountry =
-    document
-      .querySelector("meta[name=x-geoip-country-code]")
-      ?.getAttribute("content") ?? "";
-  // The detected country is not allowed.
-  if (onlyCountries.indexOf(initialCountry) < 0) {
-    initialCountry = "";
+function swapElementsName(
+  firstElement: HTMLInputElement,
+  secondElement: HTMLInputElement
+) {
+  const originalName = firstElement.name;
+  firstElement.name = secondElement.name;
+  secondElement.name = originalName;
+}
+
+export class IntlTelInputController extends Controller {
+  static targets = ["input", "hiddenInput"];
+
+  declare inputTarget: HTMLInputElement;
+  declare hiddenInputTarget: HTMLInputElement;
+  declare instance: IntlTelInputInstance | null;
+
+  input() {
+    this.hiddenInputTarget.value =
+      this.instance?.getNumber(window.intlTelInputUtils.numberFormat.E164) ??
+      "";
   }
 
-  const instances: ReturnType<typeof window.intlTelInput>[] = [];
-  const elements = document.querySelectorAll("[data-intl-tel-input]");
-  for (let i = 0; i < elements.length; i++) {
-    const element = elements[i];
-    if (element instanceof HTMLInputElement) {
-      // Store the original form field name.
-      let originalName = element.getAttribute("data-intl-tel-input-name");
-      if (originalName == null || originalName === "") {
-        originalName = element.name;
-      }
+  connect() {
+    const onlyCountries =
+      JSON.parse(
+        document
+          .querySelector("meta[name=x-intl-tel-input-only-countries]")
+          ?.getAttribute("content") ?? "null"
+      ) ?? [];
 
-      // Rename the name of this form field,
-      // because the actual input being used is hiddenInput.
-      element.name = originalName + "_intl_tel_input";
+    const preferredCountries =
+      JSON.parse(
+        document
+          .querySelector("meta[name=x-intl-tel-input-preferred-countries]")
+          ?.getAttribute("content") ?? "null"
+      ) ?? [];
 
-      const customContainer =
-        element.getAttribute("data-intl-tel-input-class") ?? undefined;
-      const instance = window.intlTelInput(element, {
-        hiddenInput: originalName,
-        autoPlaceholder: "aggressive",
-        onlyCountries,
-        preferredCountries,
-        initialCountry,
-        customContainer,
-      });
-      instances.push(instance);
+    let initialCountry =
+      document
+        .querySelector("meta[name=x-geoip-country-code]")
+        ?.getAttribute("content") ?? "";
+    // The detected country is not allowed.
+    if (onlyCountries.indexOf(initialCountry) < 0) {
+      initialCountry = "";
     }
+
+    const input = this.inputTarget;
+    const hiddenInput = this.hiddenInputTarget;
+
+    swapElementsName(input, hiddenInput);
+
+    const customContainer =
+      input.getAttribute("data-intl-tel-input-class") ?? undefined;
+
+    this.instance = window.intlTelInput(input, {
+      autoPlaceholder: "aggressive",
+      onlyCountries,
+      preferredCountries,
+      initialCountry,
+      customContainer,
+    });
   }
 
-  return () => {
-    for (const instance of instances) {
-      instance.destroy();
-    }
-  };
+  disconnect() {
+    const input = this.inputTarget;
+    const hiddenInput = this.hiddenInputTarget;
+
+    swapElementsName(input, hiddenInput);
+
+    input.value = this.hiddenInputTarget.value;
+
+    this.instance?.destroy();
+    this.instance = null;
+  }
 }

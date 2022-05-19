@@ -1,7 +1,7 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<div class="pane twc-container-vertical pt-3 pb-5 px-6 tablet:px-8 desktop:px-8">
+<div class="pane twc-container-vertical pt-3 pb-5 px-6 tablet:px-8 desktop:px-8" data-controller="image-picker">
   {{ template "__nav_bar.html" "/settings/profile" }}
 
   {{ $ca := false }}
@@ -36,9 +36,9 @@
   {{/* Back button is clicked after the upload was initiated */}}
   {{/* When the upload finishes, this form is submitted to the URL of the previous page */}}
   {{/* The previous page does not support POST method, hence we see the error described in the issue */}}
-  <form id="imagepicker-form-upload" class="hidden" method="post" action="{{ $.RequestURI }}" novalidate>
+  <form class="hidden" method="post" action="{{ $.RequestURI }}" novalidate data-image-picker-target="formUpload">
     {{ $.CSRFField }}
-    <input id="imagepicker-input-value" type="hidden" name="/picture" value="">
+    <input type="hidden" name="/picture" value="" data-image-picker-target="inputValue">
     <input type="hidden" name="x_action" value="save">
   </form>
 
@@ -84,7 +84,13 @@
   {{ if (call $.IsEditable "/email") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-email" }}
-    <select class="primary-txt select" name="/email" {{ if not $.Emails }}disabled{{ end }}>
+    <select
+      class="primary-txt select"
+      name="/email" {{ if not $.Emails }}disabled{{ end }}
+      data-controller="select-empty-value"
+      data-select-empty-value-target="select"
+      data-action="change->select-empty-value#toggleClass"
+    >
       {{ range $.Emails }}
       <option value="{{ . }}" {{ if (eq $.Email .) }}selected{{ end }}>{{ . }}</option>
       {{ end }}
@@ -101,7 +107,13 @@
   {{ if (call $.IsEditable "/phone_number") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-phone-number" }}
-    <select class="primary-txt select" name="/phone_number" {{ if not $.PhoneNumbers }}disabled{{ end }}>
+    <select
+      class="primary-txt select"
+      name="/phone_number" {{ if not $.PhoneNumbers }}disabled{{ end }}
+      data-controller="select-empty-value"
+      data-select-empty-value-target="select"
+      data-action="change->select-empty-value#toggleClass"
+    >
       {{ range $.PhoneNumbers }}
       <option value="{{ . }}" {{ if (eq $.PhoneNumber .) }}selected{{ end }}>{{ . }}</option>
       {{ end }}
@@ -118,7 +130,13 @@
   {{ if (call $.IsEditable "/preferred_username") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-preferred-username" }}
-    <select class="primary-txt select" name="/preferred_username" {{ if not $.PreferredUsernames }}disabled{{ end }}>
+    <select
+      class="primary-txt select"
+      name="/preferred_username" {{ if not $.PreferredUsernames }}disabled{{ end }}
+      data-controller="select-empty-value"
+      data-select-empty-value-target="select"
+      data-action="change->select-empty-value#toggleClass"
+    >
       {{ range $.PreferredUsernames }}
       <option value="{{ . }}" {{ if (eq $.PreferredUsername .) }}selected{{ end }}>{{ . }}</option>
       {{ end }}
@@ -143,22 +161,38 @@
   {{ if (eq $.Variant "picture") }}
   {{ if (call $.IsEditable "/picture") }}
   <div class="grid grid-cols-1 auto-rows-auto">
-    <img id="imagepicker-img-preview" class="w-60 h-60 rounded-full place-self-center"
+    <img
+      class="w-60 h-60 rounded-full place-self-center"
       {{ if $.Picture }}
-	src="{{ $.Picture }}"
+	      src="{{ $.Picture }}"
       {{ else }}
-	src="{{ call $.StaticAssetURL "avatar-placeholder" }}"
+	      src="{{ call $.StaticAssetURL "avatar-placeholder" }}"
       {{ end }}
+      data-image-picker-target="imgPreview"
     >
     <div>
-      <img id="imagepicker-img-cropper" class="w-full h-60 hidden">
+      <img
+        class="w-full h-60 hidden"
+        data-image-picker-target="imgCropper"
+        data-action="error->image-picker#onError"
+      >
     </div>
-    <input id="imagepicker-input-file" type="file" class="hidden" accept="image/png, image/jpeg">
-    <button id="imagepicker-button-file" type="button" class="btn primary-btn text-base mt-10">
+    <input
+      type="file"
+      class="hidden"
+      accept="image/png, image/jpeg"
+      data-image-picker-target="inputFile"
+      data-action="input->image-picker#onChange"
+    >
+    <button
+      type="button"
+      class="btn primary-btn text-base mt-10"
+      data-image-picker-target="buttonFile"
+      data-action="click->image-picker#onClickFile"
+    >
       {{ template "settings-profile-edit-upload-picture-label" }}
     </button>
     <button
-      id="imagepicker-button-remove"
       class="btn secondary-btn text-base mt-3 {{ if not $.Picture }}hidden{{ end }}"
       type="submit"
       name="x_action"
@@ -170,14 +204,16 @@
       data-modal-body="{{ template "settings-profile-edit-remove-confirmation-desc" }}"
       data-modal-action-label="{{ template "settings-profile-edit-remove-confirmation-action-label" }}"
       data-modal-cancel-label="{{ template "settings-profile-edit-remove-confirmation-cancel-label" }}"
+      data-image-picker-target="buttonRemove"
     >
       {{ template "settings-profile-edit-remove-picture-label" }}
     </button>
     <button
-      id="imagepicker-button-save"
       class="btn primary-btn text-base mt-10 hidden"
       type="button"
       data-authgear-event="authgear.button.update_profile"
+      data-image-picker-target="buttonSave"
+      data-action="click->image-picker#onClickSave"
     >
       {{ template "save-button-label" }}
     </button>
@@ -216,7 +252,13 @@
   </label>
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-country" }}
-    <select class="primary-txt select" name="/address/country">
+    <select
+      class="primary-txt select"
+      name="/address/country"
+      data-controller="select-empty-value"
+      data-select-empty-value-target="select"
+      data-action="change->select-empty-value#toggleClass"
+    >
       <option value="" {{ if not $.AddressCountry }}selected{{ end }}>{{ template "unset-label" }}</option>
       {{ range $.Alpha2 }}
       {{ $label := (print "territory-" . ) }}
@@ -238,16 +280,29 @@
 
   {{ if (eq $.Variant "gender") }}
   {{ if (call $.IsEditable "/gender") }}
-  <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
+  <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt" data-controller="gender-select">
     {{ template "standard-attribute-gender" }}
-    <select class="primary-txt select" name="gender-select" data-gender-select="gender-input">
+    <select
+      class="primary-txt select"
+      name="gender-select"
+      data-controller="select-empty-value"
+      data-select-empty-value-target="select"
+      data-gender-select-target="select"
+      data-gender-select-fromListener-param="true"
+      data-action="change->select-empty-value#toggleClass change->gender-select#onChange"
+    >
       <option value="" {{ if not $.Gender }}selected{{ end }}>{{ template "unset-label" }}</option>
       <option value="female" {{ if (eq $.Gender "female") }}selected{{ end }}>{{ template "gender-female" }}</option>
       <option value="male" {{ if (eq $.Gender "male") }}selected{{ end }}>{{ template "gender-male" }}</option>
       <option value="other" {{ if (and (not (eq $.Gender "female")) (not (eq $.Gender "male")) $.Gender) }}selected{{ end }}>{{ template "settings-profile-edit-gender-other" }}</option>
     </select>
+    <input
+    class="primary-txt input text-input text-base"
+    name="gender-input"
+    value="{{ $.Gender }}"
+    data-gender-select-target="input"
+    >
   </label>
-  <input id="gender-input" class="primary-txt input text-input text-base" name="gender-input" value="{{ $.Gender }}">
   {{ end }}
   {{ end }}
 
@@ -255,7 +310,13 @@
   {{ if (call $.IsEditable "/zoneinfo") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-zoneinfo" }}
-    <select class="primary-txt select" name="/zoneinfo">
+    <select 
+      class="primary-txt select" 
+      name="/zoneinfo"
+      data-controller="select-empty-value"
+      data-select-empty-value-target="select"
+      data-action="change->select-empty-value#toggleClass"
+    >
       <option value="" {{ if not $.Zoneinfo }}selected{{ end }}>{{ template "unset-label" }}</option>
       {{ range $.Timezones }}
       <option value="{{ .Name }}" {{ if (eq $.Zoneinfo .Name) }}selected{{ end }}>{{ .DisplayLabel }}</option>
@@ -269,7 +330,13 @@
   {{ if (call $.IsEditable "/locale") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-locale" }}
-    <select class="primary-txt select" name="/locale">
+    <select
+      class="primary-txt select"
+      name="/locale"
+      data-controller="select-empty-value"
+      data-select-empty-value-target="select"
+      data-action="change->select-empty-value#toggleClass"
+    >
       <option value="" {{ if not $.Locale }}selected{{ end }}>{{ template "unset-label" }}</option>
       {{ range $.Languages }}
       {{ $label := (print "language-" . ) }}
@@ -282,7 +349,7 @@
 
   {{ if $ca }}
   {{ if $ca.IsEditable }}
-  <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
+  <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt" data-controller="intl-tel-input">
     {{/* The label */}}
     {{ $caLabel }}
 
@@ -313,7 +380,11 @@
     {{ if (eq $ca.Type "enum") }}
     <select
       class="primary-txt select"
-      name="{{ $ca.Pointer }}">
+      name="{{ $ca.Pointer }}"
+      data-controller="select-empty-value"
+      data-select-empty-value-target="select"
+      data-action="change->select-empty-value#toggleClass"
+    >
       <option value="" {{ if not $ca.Value }}selected{{ end }}>{{ template "unset-label" }}</option>
       {{ range $ca.Enum }}
       {{ $label_key := printf "custom-attribute-enum-label-%s-%s" $ca.Pointer .Value }}
@@ -337,7 +408,12 @@
       inputmode="tel"
       class="primary-txt input text-input text-base w-full"
       name="{{ $ca.Pointer }}"
-      value="{{ showAttributeValue $ca.Value }}">
+      value="{{ showAttributeValue $ca.Value }}"
+      data-intl-tel-input-target="input"
+      data-action="input->intl-tel-input#input"
+    >
+
+    <input type="hidden" name="x_login_id_hidden" data-intl-tel-input-target="hiddenInput">
     {{ end }}
 
     {{ if (eq $ca.Type "email") }}
@@ -361,7 +437,11 @@
     {{ if (eq $ca.Type "country_code") }}
     <select
       class="primary-txt select"
-      name="{{ $ca.Pointer }}">
+      name="{{ $ca.Pointer }}"
+      data-controller="select-empty-value"
+      data-select-empty-value-target="select"
+      data-action="change->select-empty-value#toggleClass"
+    >
       <option value="" {{ if not $ca.Value }}selected{{ end }}>{{ template "unset-label" }}</option>
       {{ range $.Alpha2 }}
       {{ $label := (print "territory-" . ) }}
