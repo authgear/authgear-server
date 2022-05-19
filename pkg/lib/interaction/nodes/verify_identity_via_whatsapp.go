@@ -11,7 +11,6 @@ import (
 
 func init() {
 	interaction.RegisterNode(&NodeVerifyIdentityViaWhatsapp{})
-	interaction.RegisterNode(&NodeVerifyIdentityViaWhatsappFallbackSMS{})
 }
 
 type EdgeVerifyIdentityViaWhatsapp struct {
@@ -77,13 +76,6 @@ func (n *NodeVerifyIdentityViaWhatsapp) DeriveEdges(graph *interaction.Graph) ([
 		&EdgeVerifyIdentityViaWhatsappCheckCode{Identity: n.Identity},
 	}
 
-	if n.PhoneOTPMode == config.AuthenticatorPhoneOTPModeWhatsappSMS {
-		edges = append(edges, &EdgeVerifyIdentityViaWhatsappFallbackSMS{
-			Identity:        n.Identity,
-			RequestedByUser: n.RequestedByUser,
-		})
-	}
-
 	return edges, nil
 }
 
@@ -119,49 +111,6 @@ func (e *EdgeVerifyIdentityViaWhatsappCheckCode) Instantiate(ctx *interaction.Co
 	return &NodeEnsureVerificationEnd{
 		Identity:         e.Identity,
 		NewVerifiedClaim: verifiedClaim,
-	}, nil
-}
-
-type InputVerifyIdentityViaWhatsappFallbackSMS interface {
-	FallbackSMS()
-}
-
-type EdgeVerifyIdentityViaWhatsappFallbackSMS struct {
-	Identity        *identity.Info
-	RequestedByUser bool
-}
-
-func (e *EdgeVerifyIdentityViaWhatsappFallbackSMS) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	var input InputVerifyIdentityViaWhatsappFallbackSMS
-	if !interaction.Input(rawInput, &input) {
-		return nil, interaction.ErrIncompatibleInput
-	}
-
-	return &NodeVerifyIdentityViaWhatsappFallbackSMS{
-		Identity:        e.Identity,
-		RequestedByUser: e.RequestedByUser,
-	}, nil
-}
-
-type NodeVerifyIdentityViaWhatsappFallbackSMS struct {
-	Identity        *identity.Info
-	RequestedByUser bool
-}
-
-func (n *NodeVerifyIdentityViaWhatsappFallbackSMS) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
-	return nil
-}
-
-func (n *NodeVerifyIdentityViaWhatsappFallbackSMS) GetEffects() ([]interaction.Effect, error) {
-	return nil, nil
-}
-
-func (n *NodeVerifyIdentityViaWhatsappFallbackSMS) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	return []interaction.Edge{
-		&EdgeVerifyIdentity{
-			Identity:        n.Identity,
-			RequestedByUser: n.RequestedByUser,
-		},
 	}, nil
 }
 

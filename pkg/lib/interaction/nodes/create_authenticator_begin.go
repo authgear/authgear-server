@@ -195,9 +195,6 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 					})
 				} else {
 					// Add oob setup edge only if whatsapp is not enabled.
-					// If whatsapp is enabled and the user wants to fallback to
-					// sms, the EdgeCreateAuthenticatorWhatsappFallbackSMS in
-					// EdgeCreateAuthenticatorWhatsappOTPSetup is used.
 					edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
 						Stage:                n.Stage,
 						IsDefault:            isDefault,
@@ -354,9 +351,6 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 					})
 				} else {
 					// Add oob setup edge only if whatsapp is not enabled.
-					// If whatsapp is enabled and the user wants to fallback to
-					// sms, the EdgeCreateAuthenticatorWhatsappFallbackSMS in
-					// EdgeCreateAuthenticatorWhatsappOTPSetup is used.
 					edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
 						Stage:                n.Stage,
 						IsDefault:            isDefault,

@@ -32,10 +32,6 @@
 {{ $.CSRFField }}
 </form>
 
-<form id="fallback-sms-form" class="hidden" method="post" novalidate>
-{{ $.CSRFField }}
-</form>
-
 <form id="dryrun-verify-form" class="hidden" method="post" novalidate>
 {{ $.CSRFField }}
 </form>
@@ -48,15 +44,6 @@
   <a href="{{ $.ShowQRCodePath }}" class="as-btn not-a btn primary-btn outline">
     {{ template "whatsapp-otp-on-another-device-button-label" }}
   </a>
-  {{ if eq .PhoneOTPMode "whatsapp_sms" }}
-    <button
-      form="fallback-sms-form"
-      class="btn primary-btn outline"
-      type="submit"
-      name="x_action"
-      value="fallback_sms"
-    >{{ template "whatsapp-otp-fallback-sms-button-label" }}</button>
-  {{ end }}
 {{ else }}
   {{ if eq .StateQuery "" }}
     {{ template "__state_initial.html" . }}
@@ -187,28 +174,16 @@
   </div>
 {{ end }}
 
-
 {{ define "__whatsapp_alternatives.html" }}
-  {{ if eq .PhoneOTPMode "whatsapp_sms" }}
-    <div class="text-sm grid grid-cols-1 auto-rows-auto gap-y-5">
-      {{ if eq .MethodQuery "open_whatsapp" }}
-        <a href="{{ $.ShowQRCodePath }}" class="link text-left">
-          {{ template "whatsapp-otp-show-qr-code-link-label" }}
-        </a>
-      {{ else if eq .MethodQuery "qr_code" }}
-        <a href="{{ $.OpenWhatsappPath }}" class="link text-left">
-          {{ template "whatsapp-otp-show-open-in-whatsapp-link-label" }}
-        </a>
-      {{ end }}
-      <button
-        form="fallback-sms-form"
-        class="btn secondary-btn text-left"
-        type="submit"
-        name="x_action"
-        value="fallback_sms"
-      >
-        {{ template "whatsapp-otp-fallback-sms-link-label" }}
-      </button>
-    </div>
-  {{ end }}
+  <div class="text-sm grid grid-cols-1 auto-rows-auto gap-y-5">
+    {{ if eq .MethodQuery "open_whatsapp" }}
+      <a href="{{ $.ShowQRCodePath }}" class="link text-left">
+        {{ template "whatsapp-otp-show-qr-code-link-label" }}
+      </a>
+    {{ else if eq .MethodQuery "qr_code" }}
+      <a href="{{ $.OpenWhatsappPath }}" class="link text-left">
+        {{ template "whatsapp-otp-show-open-in-whatsapp-link-label" }}
+      </a>
+    {{ end }}
+  </div>
 {{ end }}

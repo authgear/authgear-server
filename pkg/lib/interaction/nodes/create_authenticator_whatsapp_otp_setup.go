@@ -144,12 +144,5 @@ func (n *NodeCreateAuthenticatorWhatsappOTPSetup) DeriveEdges(graph *interaction
 	edges := []interaction.Edge{
 		&EdgeCreateAuthenticatorWhatsappOTP{Stage: n.Stage, Authenticator: n.Authenticator},
 	}
-	if n.PhoneOTPMode == config.AuthenticatorPhoneOTPModeWhatsappSMS {
-		// sms fallback
-		edges = append(edges, &EdgeCreateAuthenticatorWhatsappFallbackSMS{
-			Stage:     n.Stage,
-			IsDefault: n.Authenticator.IsDefault,
-		})
-	}
 	return edges, nil
 }

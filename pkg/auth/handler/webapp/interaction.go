@@ -264,25 +264,6 @@ func (i *InputVerifyWhatsappOTP) VerifyWhatsappOTP() {}
 var _ nodes.InputCreateAuthenticatorWhatsappOTP = &InputVerifyWhatsappOTP{}
 var _ nodes.InputVerifyIdentityViaWhatsappCheckCode = &InputVerifyWhatsappOTP{}
 
-type InputWhatsappFallbackSMS struct {
-	InputSetupOOB
-	AuthenticatorIndex int
-}
-
-func (i *InputWhatsappFallbackSMS) FallbackSMS() {}
-func (i *InputWhatsappFallbackSMS) GetOOBAuthenticatorType() string {
-	return string(model.AuthenticatorTypeOOBSMS)
-}
-func (i *InputWhatsappFallbackSMS) GetOOBAuthenticatorIndex() int {
-	return i.AuthenticatorIndex
-}
-
-var _ nodes.InputCreateAuthenticatorOOBSetup = &InputWhatsappFallbackSMS{}
-var _ nodes.InputCreateAuthenticatorWhatsappFallbackSMS = &InputWhatsappFallbackSMS{}
-var _ nodes.InputCreateAuthenticatorWhatsappFallbackSMS = &InputWhatsappFallbackSMS{}
-var _ nodes.InputAuthenticationWhatsappFallbackSMS = &InputWhatsappFallbackSMS{}
-var _ nodes.InputAuthenticationOOBTrigger = &InputWhatsappFallbackSMS{}
-
 type InputSetupWhatsappOTP struct {
 	Phone string
 }
@@ -290,9 +271,3 @@ type InputSetupWhatsappOTP struct {
 func (i *InputSetupWhatsappOTP) GetWhatsappPhone() string { return i.Phone }
 
 var _ nodes.InputCreateAuthenticatorWhatsappOTPSetup = &InputSetupWhatsappOTP{}
-
-type InputVerifyIdentityViaWhatsappFallbackSMS struct{}
-
-func (i *InputVerifyIdentityViaWhatsappFallbackSMS) FallbackSMS() {}
-
-var _ nodes.InputCreateAuthenticatorWhatsappFallbackSMS = &InputVerifyIdentityViaWhatsappFallbackSMS{}
