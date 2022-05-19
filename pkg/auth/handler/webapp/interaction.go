@@ -3,7 +3,6 @@ package webapp
 import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 )
 
@@ -36,21 +35,9 @@ type InputNewLoginID struct {
 }
 
 var _ nodes.InputUseIdentityLoginID = &InputNewLoginID{}
-var _ nodes.InputCreateAuthenticatorOOBSetup = &InputNewLoginID{}
 
 func (i *InputNewLoginID) GetLoginIDKey() string { return i.LoginIDKey }
 func (i *InputNewLoginID) GetLoginID() string    { return i.LoginIDValue }
-func (i *InputNewLoginID) GetOOBChannel() model.AuthenticatorOOBChannel {
-	switch i.LoginIDType {
-	case string(config.LoginIDKeyTypeEmail):
-		return model.AuthenticatorOOBChannelEmail
-	case string(config.LoginIDKeyTypePhone):
-		return model.AuthenticatorOOBChannelSMS
-	default:
-		return ""
-	}
-}
-func (i *InputNewLoginID) GetOOBTarget() string { return i.LoginIDValue }
 
 type InputCreateAuthenticator struct{}
 

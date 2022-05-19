@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"fmt"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -20,14 +22,15 @@ type InputCreateAuthenticatorOOBSetup interface {
 	GetOOBTarget() string
 }
 
+type InputCreateAuthenticatorOOBSetupSelect interface {
+	SetupPrimaryAuthenticatorOOB()
+}
+
 type EdgeCreateAuthenticatorOOBSetup struct {
 	Stage     authn.AuthenticationStage
 	IsDefault bool
 
 	OOBAuthenticatorType model.AuthenticatorType
-	// Either have Channel and Target
-	Channel model.AuthenticatorOOBChannel
-	Target  string
 }
 
 func (e *EdgeCreateAuthenticatorOOBSetup) AuthenticatorType() model.AuthenticatorType {
@@ -42,10 +45,23 @@ func (e *EdgeCreateAuthenticatorOOBSetup) IsDefaultAuthenticator() bool {
 func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var target string
 	var channel model.AuthenticatorOOBChannel
-
-	if e.Channel != "" && e.Target != "" {
-		channel = e.Channel
-		target = e.Target
+	if e.Stage == authn.AuthenticationStagePrimary {
+		var input InputCreateAuthenticatorOOBSetupSelect
+		matchedInput := interaction.Input(rawInput, &input)
+		if !matchedInput && !interaction.IsAdminAPI(rawInput) {
+			return nil, interaction.ErrIncompatibleInput
+		}
+		identityInfo := graph.MustGetUserLastIdentity()
+		target = identityInfo.Claims[identity.IdentityClaimLoginIDValue].(string)
+		loginIDType := identityInfo.Claims[identity.IdentityClaimLoginIDType].(string)
+		switch config.LoginIDKeyType(loginIDType) {
+		case config.LoginIDKeyTypePhone:
+			channel = model.AuthenticatorOOBChannelSMS
+		case config.LoginIDKeyTypeEmail:
+			channel = model.AuthenticatorOOBChannelEmail
+		default:
+			panic(fmt.Sprintf("interaction: unexpected login id type: %s", loginIDType))
+		}
 	} else {
 		var input InputCreateAuthenticatorOOBSetup
 		if !interaction.Input(rawInput, &input) {
