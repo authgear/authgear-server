@@ -201,6 +201,7 @@ func (h *AuthorizationHandler) doHandle(
 		SuppressIDPSessionCookie: r.SuppressIDPSessionCookie(),
 	}
 	uiLocales := strings.Join(r.UILocales(), " ")
+	colorScheme := r.ColorScheme()
 
 	if idToken != nil {
 		sessionOptions.UserIDHint = idToken.Subject()
@@ -233,6 +234,7 @@ func (h *AuthorizationHandler) doHandle(
 			SessionOptions:      sessionOptions,
 			LoginHint:           loginHint,
 			UILocales:           uiLocales,
+			ColorScheme:         colorScheme,
 			OriginalRedirectURI: redirectURI.String(),
 		})
 		if err != nil {
@@ -247,6 +249,7 @@ func (h *AuthorizationHandler) doHandle(
 		resp, err := h.WebAppURLs.AuthenticateURL(webapp.AuthenticateURLOptions{
 			SessionOptions: sessionOptions,
 			UILocales:      uiLocales,
+			ColorScheme:    colorScheme,
 		})
 		if apierrors.IsKind(err, interaction.InvalidCredentials) {
 			return nil, protocol.NewError("invalid_request", err.Error())

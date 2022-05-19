@@ -10,6 +10,7 @@ import (
 
 type Result struct {
 	UILocales        string
+	ColorScheme      string
 	RedirectURI      string
 	NavigationAction string
 	Cookies          []*http.Cookie
@@ -21,11 +22,15 @@ func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		panic(err)
 	}
+
+	q := redirectURI.Query()
 	if r.UILocales != "" {
-		q := redirectURI.Query()
 		q.Set("ui_locales", r.UILocales)
-		redirectURI.RawQuery = q.Encode()
 	}
+	if r.ColorScheme != "" {
+		q.Set("x_color_scheme", r.ColorScheme)
+	}
+	redirectURI.RawQuery = q.Encode()
 
 	for _, cookie := range r.Cookies {
 		httputil.UpdateCookie(w, cookie)
