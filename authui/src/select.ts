@@ -26,10 +26,9 @@ export class GenderSelectController extends Controller {
   declare selectTarget: HTMLSelectElement;
   declare inputTarget: HTMLInputElement;
 
-  toggle({ params }: { params?: { fromlistener: boolean } }) {
+  toggle(fromListener: boolean) {
     const selectElement = this.selectTarget;
     const inputElement = this.inputTarget;
-    const fromListener: boolean = params?.fromlistener ?? false;
 
     if (selectElement.value === "other") {
       inputElement.classList.remove("hidden");
@@ -41,8 +40,11 @@ export class GenderSelectController extends Controller {
     }
   }
 
+  onChange() {
+    this.toggle(true);
+  }
+
   connect() {
-    // passing empty object to indicate this operation is not calling from listener
-    this.toggle({});
+    this.toggle(false);
   }
 }
