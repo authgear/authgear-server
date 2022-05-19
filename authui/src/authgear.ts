@@ -2,12 +2,7 @@ import Turbolinks from "turbolinks";
 import { Application } from "@hotwired/stimulus";
 import axios from "axios";
 import { init } from "./core";
-import {
-  clickLinkSubmitForm,
-  autoSubmitForm,
-  xhrSubmitForm,
-  restoreForm,
-} from "./form";
+import { clickLinkSubmitForm, xhrSubmitForm, restoreForm } from "./form";
 import { setupModal } from "./modal";
 import { CopyButtonController } from "./copy";
 import { PasswordVisibilityToggleController } from "./passwordVisibility";
@@ -68,7 +63,6 @@ window.api.onLoad(() => {
 
 window.api.onLoad(setupModal);
 
-window.api.onLoad(autoSubmitForm);
 window.api.onLoad(clickLinkSubmitForm);
 window.api.onLoad(xhrSubmitForm);
 window.api.onLoad(restoreForm);

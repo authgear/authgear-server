@@ -38,7 +38,6 @@
 	type="submit"
 	name="x_action"
 	value="{{ $.Action }}"
-	{{ if eq $.Action "submit" }}{{ if $.VerificationCode }}data-auto-submit="true"{{ end }}{{ end }}
 	data-authgear-event="authgear.button.enter_verification_code"
 >
 {{ template "next-button-label" }}

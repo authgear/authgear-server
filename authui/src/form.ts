@@ -40,15 +40,6 @@ export function clickLinkSubmitForm(): () => void {
   };
 }
 
-// Handle auto form submission
-export function autoSubmitForm() {
-  const e = document.querySelector('[data-auto-submit="true"]');
-  if (e instanceof HTMLElement) {
-    e.removeAttribute("data-auto-submit");
-    e.click();
-  }
-}
-
 export function xhrSubmitForm(): () => void {
   let revertDisabledButtons: { (): void } | null;
 
