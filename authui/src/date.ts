@@ -97,12 +97,6 @@ export class FormatDateRelativeController extends Controller {
             })
           : null;
 
-        // Store the original textContent.
-        const textContent = dateSpan.textContent;
-        if (textContent != null) {
-          dateSpan.setAttribute("data-original-text-content", textContent);
-        }
-
         if (dateSpan instanceof HTMLElement) {
           // Display the absolute date time as title (tooltip).
           // This is how GitHub shows date time.
@@ -149,12 +143,6 @@ export class FormatInputDateController extends Controller {
     if (typeof rfc3339 === "string") {
       const jsDate = new Date(rfc3339);
       if (!isNaN(jsDate.getTime())) {
-        // Store the original textContent.
-        const textContent = dateSpan.textContent;
-        if (textContent != null) {
-          dateSpan.setAttribute("data-original-text-content", textContent);
-        }
-
         dateSpan.textContent = new Intl.DateTimeFormat().format(jsDate);
       }
     }
