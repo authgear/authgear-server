@@ -15,7 +15,6 @@ export class ModalController extends Controller {
     "modalActionBtnEle",
     "modalCancelBtnEle",
     "modalOverlayEle",
-    "submitButton",
   ];
 
   declare modalEleTarget: HTMLElement;
@@ -24,8 +23,8 @@ export class ModalController extends Controller {
   declare modalActionBtnEleTarget: HTMLElement;
   declare modalCancelBtnEleTarget: HTMLElement;
   declare modalOverlayEleTarget: HTMLElement;
-  declare submitButtonTarget: HTMLButtonElement;
 
+  submitButton: HTMLButtonElement | null = null;
   confirmed: boolean = false;
 
   closeModal = () => {
@@ -35,7 +34,7 @@ export class ModalController extends Controller {
 
   onClickModalAction(e: Event) {
     this.confirmed = true;
-    this.submitButtonTarget.click();
+    this.submitButton?.click();
   }
 
   onClickModalCancel(e: Event) {
@@ -50,7 +49,9 @@ export class ModalController extends Controller {
     }
     e.preventDefault();
 
-    const button = this.submitButtonTarget;
+    this.submitButton = e.currentTarget as HTMLButtonElement;
+
+    const button = this.submitButton;
     const modalTitleEle = this.modalTitleEleTarget;
     const modalBodyEle = this.modalBodyEleTarget;
     const modalActionBtnEle = this.modalActionBtnEleTarget;
