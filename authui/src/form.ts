@@ -21,6 +21,10 @@ export class XHRSubmitFormController extends Controller {
     }
   };
 
+  onSubmit = (e: Event) => {
+    this.submitForm(e);
+  };
+
   async submitForm(e: Event) {
     const form = e.currentTarget as HTMLFormElement;
 
@@ -109,7 +113,7 @@ export class XHRSubmitFormController extends Controller {
       this.forms.push(elems[i] as HTMLFormElement);
     }
     for (const form of this.forms) {
-      form.addEventListener("submit", this.submitForm);
+      form.addEventListener("submit", this.onSubmit);
     }
 
     document.addEventListener("turbolinks:before-cache", this.beforeCache);
@@ -117,7 +121,7 @@ export class XHRSubmitFormController extends Controller {
 
   disconnect() {
     for (const form of this.forms) {
-      form.removeEventListener("submit", this.submitForm);
+      form.removeEventListener("submit", this.onSubmit);
     }
 
     document.removeEventListener("turbolinks:before-cache", this.beforeCache);
