@@ -9,30 +9,6 @@ import {
 import { handleAxiosError } from "./error";
 import { Controller } from "@hotwired/stimulus";
 
-// Handle click link to submit form
-// When clicking element with `data-submit-link`, it will perform click on
-// element with `data-submit-form` that contains the same value
-// e.g. data-submit-link="verify-identity-resend" and
-//      data-submit-form="verify-identity-resend"
-export class ClickLinkSubmitFormController extends Controller {
-  static targets = ["link"];
-
-  declare linkTarget: HTMLAnchorElement;
-
-  submit(e: Event) {
-    const link = this.linkTarget;
-    const formName = link.getAttribute("data-submit-link");
-    const formButton = document.querySelector(
-      `[data-submit-form="${formName}"]`
-    );
-
-    if (formButton instanceof HTMLElement) {
-      e.preventDefault();
-      formButton.click();
-    }
-  }
-}
-
 export class XHRSubmitFormController extends Controller {
   revertDisabledButtons: { (): void } | null = null;
 

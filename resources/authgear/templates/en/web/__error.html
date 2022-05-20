@@ -150,10 +150,9 @@
                     {{ template "error-verification-code-invalid" }}
                     <a
                         href="#"
-                        data-submit-link="verify-identity-resend"
-                        data-controller="click-link-submit-form"
-                        data-click-link-submit-form-target="link"
-                        data-action="click->click-link-submit-form#submit"
+                        data-transfer-click-click="#verify-identity-resend-button"
+                        data-controller="transfer-click"
+                        data-action="transfer-click#click"
                     >
                         {{ template "error-verification-code-invalid-click-to-resend" }}
                     </a>

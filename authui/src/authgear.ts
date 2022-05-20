@@ -18,11 +18,8 @@ import {
   FormatDateRelativeController,
   FormatInputDateController,
 } from "./date";
-import {
-  ClickLinkSubmitFormController,
-  XHRSubmitFormController,
-  RestoreFormController,
-} from "./form";
+import { TransferClickController } from "./click";
+import { XHRSubmitFormController, RestoreFormController } from "./form";
 import { ModalController } from "./modal";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
@@ -61,7 +58,8 @@ Stimulus.register("websocket", WebSocketController);
 Stimulus.register("format-date-relative", FormatDateRelativeController);
 Stimulus.register("format-input-date", FormatInputDateController);
 
-Stimulus.register("click-link-submit-form", ClickLinkSubmitFormController);
+Stimulus.register("transfer-click", TransferClickController);
+
 Stimulus.register("xhr-submit-form", XHRSubmitFormController);
 Stimulus.register("restore-form", RestoreFormController);
 
