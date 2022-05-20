@@ -7,52 +7,31 @@ import {
   progressEventHandler,
 } from "./loading";
 import { handleAxiosError } from "./error";
+import { Controller } from "@hotwired/stimulus";
 
-// Handle click link to submit form
-// When clicking element with `data-submit-link`, it will perform click on
-// element with `data-submit-form` that contains the same value
-// e.g. data-submit-link="verify-identity-resend" and
-//      data-submit-form="verify-identity-resend"
-export function clickLinkSubmitForm(): () => void {
-  const links = document.querySelectorAll("[data-submit-link]");
-  const disposers: Array<() => void> = [];
-  for (let i = 0; i < links.length; i++) {
-    const link = links[i];
-    const formName = link.getAttribute("data-submit-link");
-    const formButton = document.querySelector(
-      `[data-submit-form="${formName}"]`
-    );
-    if (formButton instanceof HTMLElement) {
-      const submitForm = (e: Event) => {
-        e.preventDefault();
-        formButton.click();
-      };
-      link.addEventListener("click", submitForm);
-      disposers.push(() => {
-        link.removeEventListener("click", submitForm);
-      });
-    }
-  }
-  return () => {
-    for (const disposer of disposers) {
-      disposer();
+export class XHRSubmitFormController extends Controller {
+  revertDisabledButtons: { (): void } | null = null;
+  forms: HTMLFormElement[] = [];
+
+  // Revert disabled buttons before turbolinks cache the page
+  // To avoid flickering in the UI
+  beforeCache = () => {
+    if (this.revertDisabledButtons) {
+      this.revertDisabledButtons();
     }
   };
-}
 
-// Handle auto form submission
-export function autoSubmitForm() {
-  const e = document.querySelector('[data-auto-submit="true"]');
-  if (e instanceof HTMLElement) {
-    e.removeAttribute("data-auto-submit");
-    e.click();
-  }
-}
+  onSubmit = (e: Event) => {
+    this.submitForm(e);
+  };
 
-export function xhrSubmitForm(): () => void {
-  let revertDisabledButtons: { (): void } | null;
+  async submitForm(e: Event) {
+    const form = e.currentTarget as HTMLFormElement;
 
-  async function submitForm(e: Event) {
+    if (form.querySelector('[data-form-xhr="false"]')) {
+      return;
+    }
+
     if (e.defaultPrevented) {
       return;
     }
@@ -60,7 +39,6 @@ export function xhrSubmitForm(): () => void {
     // Do not stop propagation so that GTM can recognize the event as Form Submission trigger.
     // e.stopPropagation();
 
-    const form = e.currentTarget as HTMLFormElement;
     const formData = new FormData(form);
 
     const params = new URLSearchParams();
@@ -84,7 +62,7 @@ export function xhrSubmitForm(): () => void {
       }
     }
 
-    revertDisabledButtons = disableAllButtons();
+    this.revertDisabledButtons = disableAllButtons();
     showProgressBar();
     try {
       const resp = await axios(form.action, {
@@ -117,84 +95,83 @@ export function xhrSubmitForm(): () => void {
       // revert is only called for error branch because
       // The success branch also loads a new page.
       // Keeping the buttons in disabled state reduce flickering in the UI.
-      if (revertDisabledButtons) {
-        revertDisabledButtons();
-        revertDisabledButtons = null;
+      if (this.revertDisabledButtons) {
+        this.revertDisabledButtons();
+        this.revertDisabledButtons = null;
       }
     } finally {
       hideProgressBar();
     }
   }
 
-  const elems = document.querySelectorAll("form");
-  const forms: HTMLFormElement[] = [];
-  for (let i = 0; i < elems.length; i++) {
-    if (elems[i].querySelector('[data-form-xhr="false"]')) {
-      continue;
+  connect() {
+    const elems = document.querySelectorAll("form");
+    for (let i = 0; i < elems.length; i++) {
+      if (elems[i].querySelector('[data-form-xhr="false"]')) {
+        continue;
+      }
+      this.forms.push(elems[i] as HTMLFormElement);
     }
-    forms.push(elems[i] as HTMLFormElement);
-  }
-  for (const form of forms) {
-    form.addEventListener("submit", submitForm);
+    for (const form of this.forms) {
+      form.addEventListener("submit", this.onSubmit);
+    }
+
+    document.addEventListener("turbolinks:before-cache", this.beforeCache);
   }
 
-  // Revert disabled buttons before turbolinks cache the page
-  // To avoid flickering in the UI
-  const beforeCache = () => {
-    if (revertDisabledButtons) {
-      revertDisabledButtons();
+  disconnect() {
+    for (const form of this.forms) {
+      form.removeEventListener("submit", this.onSubmit);
     }
-  };
-  document.addEventListener("turbolinks:before-cache", beforeCache);
-  return () => {
-    document.removeEventListener("turbolinks:before-cache", beforeCache);
-    for (const form of forms) {
-      form.removeEventListener("submit", submitForm);
-    }
-  };
+
+    document.removeEventListener("turbolinks:before-cache", this.beforeCache);
+  }
 }
 
-export function restoreForm() {
-  const metaTag = document.querySelector(`meta[name="x-form-json"]`);
-  if (!(metaTag instanceof HTMLMetaElement)) {
-    return;
-  }
+export class RestoreFormController extends Controller {
+  static targets = ["metaTag"];
 
-  const content = metaTag.content;
-  if (content === "") {
-    return;
-  }
+  declare metaTagTarget: HTMLMetaElement;
 
-  // Clear the content to avoid restoring twice.
-  metaTag.content = "";
+  connect() {
+    const metaTag = this.metaTagTarget;
 
-  const formDataJSON = JSON.parse(content);
-
-  // Find the form.
-  let form: HTMLFormElement | null = null;
-  const xAction = formDataJSON["x_action"];
-  const elementsWithXAction = document.querySelectorAll(`[name="x_action"]`);
-  for (let i = 0; i < elementsWithXAction.length; i++) {
-    const elem = elementsWithXAction[i];
-    if (elem instanceof HTMLButtonElement && elem.value === xAction) {
-      form = elem.form;
-      break;
+    const content = metaTag.content;
+    if (content === "") {
+      return;
     }
-  }
-  if (form == null) {
-    return;
-  }
 
-  for (let i = 0; i < form.elements.length; i++) {
-    const elem = form.elements[i];
-    if (
-      elem instanceof HTMLInputElement ||
-      elem instanceof HTMLSelectElement ||
-      elem instanceof HTMLTextAreaElement
-    ) {
-      const value = formDataJSON[elem.name];
-      if (value != null) {
-        elem.value = value;
+    // Clear the content to avoid restoring twice.
+    metaTag.content = "";
+
+    const formDataJSON = JSON.parse(content);
+
+    // Find the form.
+    let form: HTMLFormElement | null = null;
+    const xAction = formDataJSON["x_action"];
+    const elementsWithXAction = document.querySelectorAll(`[name="x_action"]`);
+    for (let i = 0; i < elementsWithXAction.length; i++) {
+      const elem = elementsWithXAction[i];
+      if (elem instanceof HTMLButtonElement && elem.value === xAction) {
+        form = elem.form;
+        break;
+      }
+    }
+    if (form == null) {
+      return;
+    }
+
+    for (let i = 0; i < form.elements.length; i++) {
+      const elem = form.elements[i];
+      if (
+        elem instanceof HTMLInputElement ||
+        elem instanceof HTMLSelectElement ||
+        elem instanceof HTMLTextAreaElement
+      ) {
+        const value = formDataJSON[elem.name];
+        if (value != null) {
+          elem.value = value;
+        }
       }
     }
   }

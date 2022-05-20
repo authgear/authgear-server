@@ -38,7 +38,6 @@
 	type="submit"
 	name="x_action"
 	value="{{ $.Action }}"
-	{{ if eq $.Action "submit" }}{{ if $.VerificationCode }}data-auto-submit="true"{{ end }}{{ end }}
 	data-authgear-event="authgear.button.enter_verification_code"
 >
 {{ template "next-button-label" }}
@@ -50,11 +49,10 @@
 
 {{ if not (eq $.Action "update_session_step") }}
 <span class="primary-txt text-sm">{{ template "verify-user-resend-button-hint" }}</span>
-<button class="btn secondary-btn text-sm" type="submit" name="x_action" value="resend"
+<button id="verify-identity-resend-button" class="btn secondary-btn text-sm" type="submit" name="x_action" value="resend"
 	data-cooldown="{{ $.VerificationCodeSendCooldown }}"
 	data-label="{{ template "verify-user-resend-button-label" }}"
 	data-label-unit="{{ template "verify-user-resend-button-label--unit" }}"
-	data-submit-form="verify-identity-resend"
 	data-authgear-event="authgear.button.resend_verification_code"
 	data-controller="resend-button"
 	data-resend-button-target="button"

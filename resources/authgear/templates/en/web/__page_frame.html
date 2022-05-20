@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="{{ $.ResolvedLanguageTag }}" data-controller="format-date-relative">
 {{ template "__html_head.html" . }}
-<body class="page" data-controller="prevent-double-tap websocket" data-action="dblclick->prevent-double-tap#action">
+<body class="page" data-controller="prevent-double-tap websocket xhr-submit-form modal" data-action="dblclick->prevent-double-tap#action">
 
 <!-- Google Tag Manager (noscript) -->
 {{ if $.GoogleTagManagerContainerID }}

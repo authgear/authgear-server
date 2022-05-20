@@ -148,7 +148,12 @@
             {{ else if eq .Error.reason "InvalidVerificationCode" }}
                 <li>
                     {{ template "error-verification-code-invalid" }}
-                    <a href="#" data-submit-link="verify-identity-resend">
+                    <a
+                        href="#"
+                        data-transfer-click-click="#verify-identity-resend-button"
+                        data-controller="transfer-click"
+                        data-action="transfer-click#click"
+                    >
                         {{ template "error-verification-code-invalid-click-to-resend" }}
                     </a>
                 </li>
@@ -191,7 +196,6 @@
     </ul>
     <button type="button"
         class="w-8 h-8 flex justify-center items-center"
-        data-message-bar-target="button"
         data-action="click->message-bar#close"
     >
         <i class="ti ti-x"></i>

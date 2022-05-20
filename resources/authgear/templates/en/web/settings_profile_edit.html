@@ -199,12 +199,12 @@
       value="save"
       form="imagepicker-form-remove"
       data-authgear-event="authgear.button.update_profile"
-      data-modal="confirmation"
       data-modal-title="{{ template "settings-profile-edit-remove-confirmation-title" }}"
       data-modal-body="{{ template "settings-profile-edit-remove-confirmation-desc" }}"
       data-modal-action-label="{{ template "settings-profile-edit-remove-confirmation-action-label" }}"
       data-modal-cancel-label="{{ template "settings-profile-edit-remove-confirmation-cancel-label" }}"
       data-image-picker-target="buttonRemove"
+      data-action="click->modal#confirmFormSubmit"
     >
       {{ template "settings-profile-edit-remove-picture-label" }}
     </button>
@@ -349,7 +349,7 @@
 
   {{ if $ca }}
   {{ if $ca.IsEditable }}
-  <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt" data-controller="intl-tel-input">
+  <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{/* The label */}}
     {{ $caLabel }}
 
@@ -409,11 +409,9 @@
       class="primary-txt input text-input text-base w-full"
       name="{{ $ca.Pointer }}"
       value="{{ showAttributeValue $ca.Value }}"
-      data-intl-tel-input-target="input"
+      data-controller="intl-tel-input"
       data-action="input->intl-tel-input#input"
     >
-
-    <input type="hidden" name="x_login_id_hidden" data-intl-tel-input-target="hiddenInput">
     {{ end }}
 
     {{ if (eq $ca.Type "email") }}
