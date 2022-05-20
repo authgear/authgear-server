@@ -13,8 +13,9 @@ function refreshPage() {
 }
 
 export class WebSocketController extends Controller {
-  timeDelay: number = -1;
+  backoffIndex: number = 0;
   ws: WebSocket | null = null;
+  reconnectSetTimeoutHandle: number | null = null;
 
   dispose = () => {
     if (this.ws != null) {
@@ -22,6 +23,11 @@ export class WebSocketController extends Controller {
       this.ws.close();
     }
     this.ws = null;
+
+    if (this.reconnectSetTimeoutHandle != null) {
+      clearTimeout(this.reconnectSetTimeoutHandle);
+    }
+    this.reconnectSetTimeoutHandle = null;
   };
 
   refreshIfNeeded = () => {
@@ -35,10 +41,16 @@ export class WebSocketController extends Controller {
 
   reconnectWebSocket = () => {
     this.dispose();
-    if (this.timeDelay < 2) {
-      this.timeDelay += 1;
+
+    const index = this.backoffIndex;
+    if (this.backoffIndex < 2) {
+      this.backoffIndex += 1;
     }
-    setTimeout(this.connectWebSocket, Math.pow(2, this.timeDelay) * 1000);
+
+    this.reconnectSetTimeoutHandle = setTimeout(() => {
+      this.reconnectSetTimeoutHandle = null;
+      this.connectWebSocket();
+    }, Math.pow(2, index) * 1000);
   };
 
   connectWebSocket = () => {
@@ -66,6 +78,7 @@ export class WebSocketController extends Controller {
       // reconnect
       // clear the checking parameter
       sessionUpdatedAfter = "";
+      this.backoffIndex = 0;
     };
 
     this.ws.onclose = (e) => {
