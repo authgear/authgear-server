@@ -19,7 +19,7 @@ export class XHRSubmitFormController extends Controller {
   };
 
   async submitForm(e: Event) {
-    const form = e.target as HTMLFormElement;
+    const form = e.currentTarget as HTMLFormElement;
 
     if (form.querySelector('[data-form-xhr="false"]')) {
       return;
@@ -84,7 +84,6 @@ export class XHRSubmitFormController extends Controller {
           break;
       }
     } catch (e: unknown) {
-      console.log(e);
       handleAxiosError(e);
       // revert is only called for error branch because
       // The success branch also loads a new page.
