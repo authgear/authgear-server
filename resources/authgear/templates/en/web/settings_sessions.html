@@ -42,7 +42,7 @@
       {{ template "settings-sessions-item-description" (dict "time" .LastAccessedAt "rfc3339" (rfc3339 .LastAccessedAt) "desc" $desc "isCurrent" (eq .ID $.CurrentSessionID)) }}
     </p>
     {{ if not (eq .ID $.CurrentSessionID) }}
-    <form class="col-start-2 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
+    <form class="col-start-2 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate>
       {{ $.CSRFField }}
       <input type="hidden" name="x_session_id" value="{{ .ID }}">
       <button
@@ -66,7 +66,7 @@
   {{ end }}
   {{ if .OfflineGrantIDs }}
   <div class="grid py-2">
-    <form method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
+    <form method="post" novalidate>
       {{ $.CSRFField }}
       <input type="hidden" name="x_session_id" value="{{ index .OfflineGrantIDs 0 }}">
       <button
@@ -91,7 +91,7 @@
 </div>
 
 <div class="p-5 row-sep">
-  <form method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
+  <form method="post" novalidate>
     {{ $.CSRFField }}
     <button
       class="btn destructive-secondary-btn text-sm"

@@ -11,7 +11,10 @@ import { Controller } from "@hotwired/stimulus";
 
 export class XHRSubmitFormController extends Controller {
   revertDisabledButtons: { (): void } | null = null;
+  forms: HTMLFormElement[] = [];
 
+  // Revert disabled buttons before turbolinks cache the page
+  // To avoid flickering in the UI
   beforeCache = () => {
     if (this.revertDisabledButtons) {
       this.revertDisabledButtons();
@@ -98,10 +101,25 @@ export class XHRSubmitFormController extends Controller {
   }
 
   connect() {
+    const elems = document.querySelectorAll("form");
+    for (let i = 0; i < elems.length; i++) {
+      if (elems[i].querySelector('[data-form-xhr="false"]')) {
+        continue;
+      }
+      this.forms.push(elems[i] as HTMLFormElement);
+    }
+    for (const form of this.forms) {
+      form.addEventListener("submit", this.submitForm);
+    }
+
     document.addEventListener("turbolinks:before-cache", this.beforeCache);
   }
 
   disconnect() {
+    for (const form of this.forms) {
+      form.removeEventListener("submit", this.submitForm);
+    }
+
     document.removeEventListener("turbolinks:before-cache", this.beforeCache);
   }
 }

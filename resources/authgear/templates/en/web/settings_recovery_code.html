@@ -18,7 +18,7 @@
 	<p class="text-sm primary-txt text-center m-0">{{ template "recovery-code-consumption-description" }}</p>
 
 	<div class="mt-5 grid gap-4 grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-2">
-		<form method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
+		<form method="post" novalidate>
 			{{ $.CSRFField }}
 			<button
 				class="btn primary-btn w-full"
@@ -45,7 +45,7 @@
 				</button>
 			</div>
 		{{ else }}
-			<form method="post" novalidate target="_blank" data-action="submit->xhr-submit-form#submitForm">
+			<form method="post" novalidate target="_blank">
 				{{ $.CSRFField }}
 				<button
 					class="btn primary-btn w-full"

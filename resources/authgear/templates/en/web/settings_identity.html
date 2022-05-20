@@ -100,7 +100,7 @@
       {{ if eq .type "login_id" }}
       {{ if .identity_id }}
       {{ if or (eq $verification_status "pending") (eq $verification_status "required") }}
-      <form class="" method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
+      <form class="" method="post" novalidate>
       {{ $.CSRFField }}
       <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
       <button
@@ -119,7 +119,7 @@
 
     {{/* Action */}}
     {{ if eq .type "oauth" }}
-    <form class="w-8 flex flex-col" method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
+    <form class="w-8 flex flex-col" method="post" novalidate>
       {{ $.CSRFField }}
       <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
       <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">

@@ -11,7 +11,7 @@
   {{ template "account-deletion-description" (dict "date" $.ExpectedAccountDeletionTime "rfc3339" (rfc3339 $.ExpectedAccountDeletionTime)) }}
 </p>
 
-<form class="twc-container-vertical" method="post" novalidate data-controller="account-delection" data-action="submit->xhr-submit-form#submitForm">
+<form class="twc-container-vertical" method="post" novalidate data-controller="account-delection">
   {{ $.CSRFField }}
   <label class="flex flex-col">
     <span class="secondary-txt text-sm">

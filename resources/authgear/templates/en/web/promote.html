@@ -21,7 +21,7 @@
 	{{ else }}
 
 	<div class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
-			<form class="twc-container-vertical" method="post" novalidate data-controller="intl-tel-input" data-action="submit->xhr-submit-form#submitForm">
+			<form class="twc-container-vertical" method="post" novalidate data-controller="intl-tel-input">
 				{{ $.CSRFField }}
 
 				<h1 class="m-0 primary-txt text-center text-xl font-bold">
@@ -101,7 +101,7 @@
 			<div class="grid grid-cols-1 auto-rows-auto gap-y-2">
 				{{ range $.IdentityCandidates }}
 				{{ if eq .type "oauth" }}
-				<form class="flex flex-col" method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
+				<form class="flex flex-col" method="post" novalidate>
 				{{ $.CSRFField }}
 				{{ $skip := false }}
 				{{- if (and (eq .provider_type "wechat") (eq .provider_app_type "mobile") (not $.IsNativePlatform)) -}}

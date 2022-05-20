@@ -40,7 +40,7 @@
 {{ end }}
 </form>
 
-<form class="link" method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
+<form class="link" method="post" novalidate>
 {{ $.CSRFField }}
 <span class="primary-txt text-sm">{{ template "oob-otp-resend-button-hint" }}</span>
 <button class="btn secondary-btn text-sm" type="submit" name="x_action" value="resend"

@@ -7,7 +7,7 @@
 
 <p class="text-sm break-words primary-txt text-center m-0">{{ template "enter-totp-description" }}</p>
 
-<form id="main-form" class="twc-container-vertical" method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
+<form id="main-form" class="twc-container-vertical" method="post" novalidate>
 {{ $.CSRFField }}
 
 <input

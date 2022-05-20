@@ -17,7 +17,7 @@
 </p>
 {{ end }}
 
-<form id="main-form" class="twc-container-vertical" method="post" novalidate data-controller="intl-tel-input" data-action="submit->xhr-submit-form#submitForm">
+<form id="main-form" class="twc-container-vertical" method="post" novalidate data-controller="intl-tel-input">
 
 {{ $.CSRFField }}
 
@@ -82,7 +82,7 @@
 
 </form>
 
-<form id="remove-form" class="hidden" method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
+<form id="remove-form" class="hidden" method="post" novalidate>
 {{ $.CSRFField }}
 </form>
 

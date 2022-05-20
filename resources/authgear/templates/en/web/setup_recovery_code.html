@@ -30,14 +30,14 @@
 				</button>
 			</div>
 		{{ else }}
-			<form method="post" novalidate target="_blank" data-action="submit->xhr-submit-form#submitForm" data-action="submit->xhr-submit-form#submitForm">
+			<form method="post" novalidate target="_blank">
 				{{ $.CSRFField }}
 				<button class="btn primary-btn w-full" type="submit" name="x_action" value="download" data-form-xhr="false">
 					{{ template "download-button-label" }}
 				</button>
 			</form>
 		{{ end }}
-		<form method="post" novalidate data-action="submit->xhr-submit-form#submitForm">
+		<form method="post" novalidate>
 			{{ $.CSRFField }}
 			<button class="btn primary-btn w-full" type="submit" name="x_action" value="proceed">
 				{{ template "next-button-label" }}
