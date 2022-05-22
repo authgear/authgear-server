@@ -316,6 +316,10 @@
   "enter-oob-otp-sms-instead": "Send code to {target} instead via SMS",
   "verify-whatsapp-otp-instead": "Verify {target} via WhatsApp instead",
 
+  "phone-otp-verify-with-sms-instead-button": "Verify with SMS instead",
+  "phone-otp-verify-with-sms-instead":"Receive one-time password via SMS instead",
+  "phone-otp-verify-with-whatsapp-instead": "Verify via WhatsApp instead",
+
   "enter-recovery-code-instead-v1": "Having Trouble? <button class=\"btn secondary-btn\" type=\"submit\">Use recovery code</button>",
   "enter-recovery-code-instead-with-customer-support-v1": "Having Trouble? <button class=\"btn secondary-btn\" type=\"submit\">Use recovery code</button> or contact <a class=\"link\" target=\"_blank\" href={customerSupportLink}>customer support</a>",
 

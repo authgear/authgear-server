@@ -1,10 +1,16 @@
 package webapp
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 )
+
+type CreateAuthenticatorBeginNode interface {
+	GetCreateAuthenticatorStage() authn.AuthenticationStage
+}
 
 func handleAlternativeSteps(ctrl *Controller) {
 	ctrl.PostAction("choose_step", func() (err error) {
@@ -25,13 +31,58 @@ func handleAlternativeSteps(ctrl *Controller) {
 			inputFn = nil
 
 		case webapp.SessionStepSetupOOBOTPEmail,
-			webapp.SessionStepSetupOOBOTPSMS,
-			webapp.SessionStepCreatePassword,
-			webapp.SessionStepSetupWhatsappOTP:
+			webapp.SessionStepCreatePassword:
 			// Simple redirect.
 			choiceStep = webapp.SessionStepCreateAuthenticator
 			inputFn = nil
 
+		case webapp.SessionStepSetupOOBOTPSMS:
+			graph, err := ctrl.InteractionGet()
+			if err != nil {
+				return err
+			}
+			var node CreateAuthenticatorBeginNode
+			if !graph.FindLastNode(&node) {
+				// expected there is CreateAuthenticatorBeginNode before the steps
+				return webapp.ErrSessionStepMismatch
+			}
+			switch node.GetCreateAuthenticatorStage() {
+			case authn.AuthenticationStagePrimary:
+				choiceStep = webapp.SessionStepCreateAuthenticator
+				inputFn = func() (interface{}, error) {
+					return &InputSelectOOB{}, nil
+				}
+			case authn.AuthenticationStageSecondary:
+				// Simple redirect.
+				choiceStep = webapp.SessionStepCreateAuthenticator
+				inputFn = nil
+			default:
+				panic(fmt.Sprintf("webapp: unexpected authentication stage: %s", node.GetCreateAuthenticatorStage()))
+			}
+
+		case webapp.SessionStepSetupWhatsappOTP:
+			graph, err := ctrl.InteractionGet()
+			if err != nil {
+				return err
+			}
+			var node CreateAuthenticatorBeginNode
+			if !graph.FindLastNode(&node) {
+				// expected there is CreateAuthenticatorBeginNode before the steps
+				return webapp.ErrSessionStepMismatch
+			}
+			switch node.GetCreateAuthenticatorStage() {
+			case authn.AuthenticationStagePrimary:
+				choiceStep = webapp.SessionStepCreateAuthenticator
+				inputFn = func() (interface{}, error) {
+					return &InputSelectWhatsappOTP{}, nil
+				}
+			case authn.AuthenticationStageSecondary:
+				// Simple redirect.
+				choiceStep = webapp.SessionStepCreateAuthenticator
+				inputFn = nil
+			default:
+				panic(fmt.Sprintf("webapp: unexpected authentication stage: %s", node.GetCreateAuthenticatorStage()))
+			}
 		case webapp.SessionStepSetupTOTP:
 			// Generate TOTP secret.
 			choiceStep = webapp.SessionStepCreateAuthenticator

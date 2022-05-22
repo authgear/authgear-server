@@ -1,0 +1,25 @@
+{{ define "__phone_otp_alternatives.html" }}
+ {{ range .PhoneOTPAlternativeSteps }}
+    {{ if (or (eq .Step "setup-oob-otp-sms")
+          (eq .Step "setup-whatsapp-otp")) }}
+      <form method="post" novalidate>
+        {{ $.CSRFField }}
+        <input type="hidden" name="x_step_kind" value="{{ .Step }}">
+        {{ range $name, $value := .Input }}
+          <input type="hidden" name="{{ $name }}" value="{{ $value }}">
+        {{ end }}
+        <input type="hidden" name="x_action" value="choose_step"/>
+        <div class="text-sm">
+        <button class="btn secondary-btn" type="submit">
+          {{ if eq .Step "setup-oob-otp-sms" }}
+            {{ template "phone-otp-verify-with-sms-instead" .Data }}
+          {{ end }}
+          {{ if eq .Step "setup-whatsapp-otp" }}
+            {{ template "phone-otp-verify-with-whatsapp-instead" .Data }}
+          {{ end }}
+        </button>
+        </div>
+      </form>
+    {{ end }}
+  {{ end }}
+{{ end }}
