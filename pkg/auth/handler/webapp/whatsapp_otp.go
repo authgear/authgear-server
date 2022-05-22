@@ -53,8 +53,13 @@ func (h *WhatsappOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 	if err := whatsappViewModel.AddData(r, graph, h.WhatsappCodeProvider); err != nil {
 		return nil, err
 	}
+	phoneOTPAlternatives := viewmodels.PhoneOTPAlternativeStepsViewModel{}
+	if err := phoneOTPAlternatives.AddAlternatives(graph, session.CurrentStep().Kind); err != nil {
+		return nil, err
+	}
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, whatsappViewModel)
+	viewmodels.Embed(data, phoneOTPAlternatives)
 	return data, nil
 }
 
@@ -149,4 +154,6 @@ func (h *WhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		result.WriteResponse(w, r)
 		return nil
 	})
+
+	handleAlternativeSteps(ctrl)
 }

@@ -87,6 +87,18 @@ var _ nodes.InputCreateAuthenticatorTOTPSetup = &InputSelectTOTP{}
 
 func (i *InputSelectTOTP) SetupTOTP() {}
 
+type InputSelectWhatsappOTP struct{}
+
+func (i *InputSelectWhatsappOTP) SetupPrimaryAuthenticatorWhatsappOTP() {}
+
+var _ nodes.InputCreateAuthenticatorWhatsappOTPSetupSelect = &InputSelectWhatsappOTP{}
+
+type InputSelectOOB struct{}
+
+func (i *InputSelectOOB) SetupPrimaryAuthenticatorOOB() {}
+
+var _ nodes.InputCreateAuthenticatorOOBSetupSelect = &InputSelectOOB{}
+
 type InputSetupPassword struct {
 	Stage    string
 	Password string
