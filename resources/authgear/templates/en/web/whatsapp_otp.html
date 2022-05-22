@@ -38,10 +38,10 @@
 
 {{ if eq .MethodQuery "" }}
   {{/* Open whatsapp or show qr code options */}}
-  <a href="{{ $.OpenWhatsappPath }}" class="as-btn not-a btn primary-btn">
+  <a href="{{ $.OpenWhatsappPath }}" class="as-btn not-a btn primary-btn" data-turbolinks-action="replace">
     {{ template "whatsapp-otp-on-this-device-button-label" }}
   </a>
-  <a href="{{ $.ShowQRCodePath }}" class="as-btn not-a btn primary-btn outline">
+  <a href="{{ $.ShowQRCodePath }}" class="as-btn not-a btn primary-btn outline" data-turbolinks-action="replace">
     {{ template "whatsapp-otp-on-another-device-button-label" }}
   </a>
 {{ else }}
@@ -177,13 +177,14 @@
 {{ define "__whatsapp_alternatives.html" }}
   <div class="text-sm grid grid-cols-1 auto-rows-auto gap-y-5">
     {{ if eq .MethodQuery "open_whatsapp" }}
-      <a href="{{ $.ShowQRCodePath }}" class="link text-left">
+      <a href="{{ $.ShowQRCodePath }}" class="link text-left" data-turbolinks-action="replace">
         {{ template "whatsapp-otp-show-qr-code-link-label" }}
       </a>
     {{ else if eq .MethodQuery "qr_code" }}
-      <a href="{{ $.OpenWhatsappPath }}" class="link text-left">
+      <a href="{{ $.OpenWhatsappPath }}" class="link text-left" data-turbolinks-action="replace">
         {{ template "whatsapp-otp-show-open-in-whatsapp-link-label" }}
       </a>
     {{ end }}
+    {{ template "__phone_otp_alternatives.html" . }}
   </div>
 {{ end }}

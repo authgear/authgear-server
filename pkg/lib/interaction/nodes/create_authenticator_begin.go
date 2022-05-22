@@ -192,14 +192,13 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 						Stage:     n.Stage,
 						IsDefault: isDefault,
 					})
-				} else {
-					// Add oob setup edge only if whatsapp is not enabled.
-					edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
-						Stage:                n.Stage,
-						IsDefault:            isDefault,
-						OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
-					})
 				}
+
+				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
+					Stage:                n.Stage,
+					IsDefault:            isDefault,
+					OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
+				})
 			}
 
 		case model.AuthenticatorTypeOOBEmail:

@@ -122,9 +122,15 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 		panic(fmt.Errorf("enter_oob_otp: unexpected node: %T", currentNode))
 	}
 
+	phoneOTPAlternatives := viewmodels.PhoneOTPAlternativeStepsViewModel{}
+	if err := phoneOTPAlternatives.AddAlternatives(graph, session.CurrentStep().Kind); err != nil {
+		return nil, err
+	}
+
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, viewModel)
 	viewmodels.Embed(data, alternatives)
+	viewmodels.Embed(data, phoneOTPAlternatives)
 
 	return data, nil
 }
