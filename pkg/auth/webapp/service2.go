@@ -485,7 +485,7 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 	case *nodes.NodeGenerateRecoveryCodeBegin:
 		return SessionStepSetupRecoveryCode
 	case *nodes.NodeVerifyIdentity:
-		return SessionStepVerifyIdentity
+		return SessionStepVerifyIdentityViaOOBOTP
 	case *nodes.NodeVerifyIdentityViaWhatsapp:
 		return SessionStepVerifyIdentityViaWhatsapp
 	case *nodes.NodeValidateUser:
