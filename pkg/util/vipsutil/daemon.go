@@ -6,16 +6,6 @@ import (
 	"github.com/davidbyttow/govips/v2/vips"
 )
 
-type Input struct {
-	Reader  io.Reader
-	Options Options
-}
-
-type Output struct {
-	FileExtension string
-	Data          []byte
-}
-
 type task struct {
 	Input      Input
 	OutputChan chan interface{}
