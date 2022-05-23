@@ -299,14 +299,6 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 0 0 6px 6px;
 }
 
-.back-btn {
-  visibility: hidden;
-}
-
-.js .back-btn {
-  visibility: visible;
-}
-
 .password-strength-meter {
   -webkit-appearance: none;
   display: block;

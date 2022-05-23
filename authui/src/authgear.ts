@@ -1,7 +1,6 @@
 import Turbolinks from "turbolinks";
 import { Application } from "@hotwired/stimulus";
 import axios from "axios";
-import { init } from "./core";
 import { CopyButtonController } from "./copy";
 import { PasswordVisibilityToggleController } from "./passwordVisibility";
 import { PasswordPolicyController } from "./password-policy";
@@ -22,12 +21,13 @@ import { TransferClickController } from "./click";
 import { XHRSubmitFormController, RestoreFormController } from "./form";
 import { ModalController } from "./modal";
 import { ColorSchemeController } from "./colorscheme";
+import { BackButtonController } from "./back";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
 
 axios.defaults.withCredentials = true;
 
-init();
+Turbolinks.start();
 
 const Stimulus = Application.start();
 Stimulus.register("color-scheme", ColorSchemeController);
@@ -68,6 +68,4 @@ Stimulus.register("restore-form", RestoreFormController);
 
 Stimulus.register("modal", ModalController);
 
-window.api.onLoad(() => {
-  document.body.classList.add("js");
-});
+Stimulus.register("back-button", BackButtonController);
