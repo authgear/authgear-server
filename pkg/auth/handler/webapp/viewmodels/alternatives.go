@@ -43,6 +43,7 @@ type AlternativeStepsViewModel struct {
 	CanRequestDeviceToken bool
 }
 
+// nolint: gocyclo
 func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interaction.Graph, currentStepKind webapp.SessionStepKind) error {
 	var node AuthenticationBeginNode
 	if !graph.FindLastNode(&node) {
@@ -56,6 +57,7 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interac
 		return err
 	}
 
+	phoneOTPStepAdded := false
 	for _, edge := range edges {
 		switch edge := edge.(type) {
 		case *nodes.EdgeUseDeviceToken:
@@ -79,8 +81,10 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interac
 				})
 			}
 		case *nodes.EdgeAuthenticationWhatsappTrigger:
-			if currentStepKind != webapp.SessionStepEnterOOBOTPAuthnSMS &&
+			if !phoneOTPStepAdded &&
+				currentStepKind != webapp.SessionStepEnterOOBOTPAuthnSMS &&
 				currentStepKind != webapp.SessionStepVerifyWhatsappOTPAuthn {
+				phoneOTPStepAdded = true
 
 				currentPhone := ""
 				var node WhatsappOTPTriggerNode
@@ -108,9 +112,12 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interac
 		case *nodes.EdgeAuthenticationOOBTrigger:
 			show := false
 			oobAuthenticatorType := edge.OOBAuthenticatorType
-			if oobAuthenticatorType == model.AuthenticatorTypeOOBSMS &&
-				currentStepKind != webapp.SessionStepEnterOOBOTPAuthnSMS {
+			if !phoneOTPStepAdded &&
+				oobAuthenticatorType == model.AuthenticatorTypeOOBSMS &&
+				currentStepKind != webapp.SessionStepEnterOOBOTPAuthnSMS &&
+				currentStepKind != webapp.SessionStepVerifyWhatsappOTPAuthn {
 				show = true
+				phoneOTPStepAdded = true
 			}
 
 			if oobAuthenticatorType == model.AuthenticatorTypeOOBEmail &&

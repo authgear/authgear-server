@@ -180,13 +180,13 @@ func (n *NodeReauthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge
 					Stage:          n.Stage,
 					Authenticators: []*authenticator.Info{a},
 				})
-			} else {
-				edges = append(edges, &EdgeAuthenticationOOBTrigger{
-					Stage:                n.Stage,
-					Authenticators:       []*authenticator.Info{a},
-					OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
-				})
 			}
+
+			edges = append(edges, &EdgeAuthenticationOOBTrigger{
+				Stage:                n.Stage,
+				Authenticators:       []*authenticator.Info{a},
+				OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
+			})
 		}
 	}
 

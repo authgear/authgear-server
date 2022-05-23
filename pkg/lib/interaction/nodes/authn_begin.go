@@ -186,13 +186,13 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 				Stage:          n.Stage,
 				Authenticators: smsoobs,
 			})
-		} else {
-			edges = append(edges, &EdgeAuthenticationOOBTrigger{
-				Stage:                n.Stage,
-				Authenticators:       smsoobs,
-				OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
-			})
 		}
+
+		edges = append(edges, &EdgeAuthenticationOOBTrigger{
+			Stage:                n.Stage,
+			Authenticators:       smsoobs,
+			OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
+		})
 	}
 
 	// No authenticators found, skip the authentication stage if not required.

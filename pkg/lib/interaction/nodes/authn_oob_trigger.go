@@ -130,6 +130,14 @@ func (n *NodeAuthenticationOOBTrigger) GetOOBOTPChannel() string {
 	return n.Channel
 }
 
+// GetSelectedPhoneNumberForPhoneOTPAuthentication implements AuthenticationPhoneOTPTriggerNode
+func (n *NodeAuthenticationOOBTrigger) GetSelectedPhoneNumberForPhoneOTPAuthentication() string {
+	if n.Channel == string(model.AuthenticatorOOBChannelSMS) {
+		return n.Target
+	}
+	return ""
+}
+
 // GetOOBOTPOOBType implements OOBOTPNode.
 func (n *NodeAuthenticationOOBTrigger) GetOOBOTPOOBType() interaction.OOBType {
 	switch n.Stage {
