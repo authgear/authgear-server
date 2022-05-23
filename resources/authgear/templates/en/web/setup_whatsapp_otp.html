@@ -23,6 +23,9 @@
 	autocapitalize="none"
 	name="x_e164"
 	placeholder="{{ template "phone-number-placeholder" }}"
+	data-controller="intl-tel-input"
+	data-intl-tel-input-target="input"
+	data-action="input->intl-tel-input#input"
 >
 
 <button
