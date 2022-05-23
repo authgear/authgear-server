@@ -1,5 +1,12 @@
 {{ define "__phone_otp_alternatives.html" }}
- {{ range .PhoneOTPAlternativeSteps }}
+  {{/* Show as link by default */}}
+  {{ $containerClass := "text-sm" }}
+  {{ $buttonClass := "btn secondary-btn" }}
+  {{ if $.buttonStyleEnabled }}
+    {{ $containerClass = "text-base grid grid-cols-1 auto-rows-auto" }}
+    {{ $buttonClass = "btn primary-btn outline" }}
+  {{ end }}
+  {{ range .PhoneOTPAlternativeSteps }}
     {{ if (or (eq .Step "setup-oob-otp-sms")
           (eq .Step "setup-whatsapp-otp")) }}
       <form method="post" novalidate>
@@ -9,10 +16,14 @@
           <input type="hidden" name="{{ $name }}" value="{{ $value }}">
         {{ end }}
         <input type="hidden" name="x_action" value="choose_step"/>
-        <div class="text-sm">
-        <button class="btn secondary-btn" type="submit">
+        <div class="{{ $containerClass }}">
+        <button class="{{ $buttonClass }}" type="submit">
           {{ if eq .Step "setup-oob-otp-sms" }}
-            {{ template "phone-otp-verify-with-sms-instead" .Data }}
+            {{ if $.buttonStyleEnabled }}
+              {{ template "phone-otp-verify-with-sms-instead-button" .Data }}
+            {{ else }}
+              {{ template "phone-otp-verify-with-sms-instead" .Data }}
+            {{ end }}
           {{ end }}
           {{ if eq .Step "setup-whatsapp-otp" }}
             {{ template "phone-otp-verify-with-whatsapp-instead" .Data }}
