@@ -1,7 +1,6 @@
 import Turbolinks from "turbolinks";
 import { Application } from "@hotwired/stimulus";
 import axios from "axios";
-import { init } from "./core";
 import { CopyButtonController } from "./copy";
 import { PasswordVisibilityToggleController } from "./passwordVisibility";
 import { PasswordPolicyController } from "./password-policy";
@@ -28,7 +27,7 @@ import { BackButtonController } from "./back";
 
 axios.defaults.withCredentials = true;
 
-init();
+Turbolinks.start();
 
 const Stimulus = Application.start();
 Stimulus.register("color-scheme", ColorSchemeController);
