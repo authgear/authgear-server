@@ -44,6 +44,8 @@
   <a href="{{ $.ShowQRCodePath }}" class="as-btn not-a btn primary-btn outline" data-turbolinks-action="replace">
     {{ template "whatsapp-otp-on-another-device-button-label" }}
   </a>
+  {{ $options := (set (deepCopy .) "buttonStyleEnabled" true) }}
+  {{ template "__phone_otp_alternatives.html" $options }}
 {{ else }}
   {{ if eq .StateQuery "" }}
     {{ template "__state_initial.html" . }}
