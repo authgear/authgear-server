@@ -2,6 +2,8 @@ import { Controller } from "@hotwired/stimulus";
 
 export class BackButtonController extends Controller {
   connect() {
-    this.element.classList.add("js");
+    const button = this.element as HTMLButtonElement;
+
+    button.style.visibility = "visible";
   }
 }
