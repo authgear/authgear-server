@@ -58,17 +58,21 @@ type Service struct {
 	RateLimiter RateLimiter
 }
 
-func (s *Service) Get(userID string, typ model.AuthenticatorType, id string) (*authenticator.Info, error) {
-	switch typ {
+func (s *Service) Get(id string) (*authenticator.Info, error) {
+	ref, err := s.Store.GetRefByID(id)
+	if err != nil {
+		return nil, err
+	}
+	switch ref.Type {
 	case model.AuthenticatorTypePassword:
-		p, err := s.Password.Get(userID, id)
+		p, err := s.Password.Get(ref.UserID, id)
 		if err != nil {
 			return nil, err
 		}
 		return passwordToAuthenticatorInfo(p), nil
 
 	case model.AuthenticatorTypeTOTP:
-		t, err := s.TOTP.Get(userID, id)
+		t, err := s.TOTP.Get(ref.UserID, id)
 		if err != nil {
 			return nil, err
 		}
@@ -76,17 +80,22 @@ func (s *Service) Get(userID string, typ model.AuthenticatorType, id string) (*a
 
 	// FIXME(oob): handle getting different channel
 	case model.AuthenticatorTypeOOBEmail, model.AuthenticatorTypeOOBSMS:
-		o, err := s.OOBOTP.Get(userID, id)
+		o, err := s.OOBOTP.Get(ref.UserID, id)
 		if err != nil {
 			return nil, err
 		}
 		return oobotpToAuthenticatorInfo(o), nil
 	}
 
-	panic("authenticator: unknown authenticator type " + typ)
+	panic("authenticator: unknown authenticator type " + ref.Type)
 }
 
-func (s *Service) GetMany(refs []*authenticator.Ref) ([]*authenticator.Info, error) {
+func (s *Service) GetMany(ids []string) ([]*authenticator.Info, error) {
+	refs, err := s.Store.ListRefsByIDs(ids)
+	if err != nil {
+		return nil, err
+	}
+
 	var passwordIDs, totpIDs, oobIDs []string
 	for _, ref := range refs {
 		switch ref.Type {

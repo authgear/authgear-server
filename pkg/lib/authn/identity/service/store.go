@@ -4,6 +4,7 @@ import (
 	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 )
 
@@ -36,6 +37,37 @@ func (s *Store) ListRefsByUsers(userIDs []string) ([]*model.IdentityRef, error) 
 		Where("user_id = ANY (?)", pq.Array(userIDs)).
 		From(s.SQLBuilder.TableName("_auth_identity"))
 
+	return s.listRefs(builder)
+}
+func (s *Store) ListRefsByIDs(ids []string) ([]*model.IdentityRef, error) {
+	builder := s.SQLBuilder.
+		Select("id", "type", "user_id", "created_at", "updated_at").
+		Where("id = ANY (?)", pq.Array(ids)).
+		From(s.SQLBuilder.TableName("_auth_identity"))
+
+	return s.listRefs(builder)
+}
+
+func (s *Store) GetRefByID(id string) (*model.IdentityRef, error) {
+	builder := s.SQLBuilder.
+		Select("id", "type", "user_id", "created_at", "updated_at").
+		Where("id = ?", id).
+		From(s.SQLBuilder.TableName("_auth_identity"))
+
+	row, err := s.SQLExecutor.QueryRowWith(builder)
+	if err != nil {
+		return nil, err
+	}
+
+	ref, err := s.scan(row)
+	if err != nil {
+		return nil, err
+	}
+
+	return ref, nil
+}
+
+func (s *Store) listRefs(builder db.SelectBuilder) ([]*model.IdentityRef, error) {
 	rows, err := s.SQLExecutor.QueryWith(builder)
 	if err != nil {
 		return nil, err
@@ -44,18 +76,29 @@ func (s *Store) ListRefsByUsers(userIDs []string) ([]*model.IdentityRef, error) 
 
 	var refs []*model.IdentityRef
 	for rows.Next() {
-		ref := &model.IdentityRef{}
-		if err := rows.Scan(
-			&ref.ID,
-			&ref.Type,
-			&ref.UserID,
-			&ref.CreatedAt,
-			&ref.UpdatedAt,
-		); err != nil {
+		var ref *model.IdentityRef
+		ref, err = s.scan(rows)
+		if err != nil {
 			return nil, err
 		}
 		refs = append(refs, ref)
 	}
 
 	return refs, nil
+}
+
+func (s *Store) scan(scanner db.Scanner) (*model.IdentityRef, error) {
+	ref := &model.IdentityRef{}
+	err := scanner.Scan(
+		&ref.ID,
+		&ref.Type,
+		&ref.UserID,
+		&ref.CreatedAt,
+		&ref.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return ref, nil
 }

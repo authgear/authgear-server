@@ -1,7 +1,6 @@
 package facade
 
 import (
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
 
@@ -9,8 +8,8 @@ type IdentityFacade struct {
 	Coordinator *Coordinator
 }
 
-func (i IdentityFacade) Get(userID string, typ model.IdentityType, id string) (*identity.Info, error) {
-	return i.Coordinator.IdentityGet(userID, typ, id)
+func (i IdentityFacade) Get(id string) (*identity.Info, error) {
+	return i.Coordinator.IdentityGet(id)
 }
 
 func (i IdentityFacade) SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, otherMatches []*identity.Info, err error) {

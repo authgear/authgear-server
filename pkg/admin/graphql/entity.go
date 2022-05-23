@@ -41,13 +41,10 @@ type EntityRef interface {
 	GetMeta() model.Meta
 }
 
-func entityIDField(typeName string, idFn func(obj interface{}) (string, error)) *graphql.Field {
+func entityIDField(typeName string) *graphql.Field {
 	return relay.GlobalIDField(
 		typeName,
 		func(obj interface{}, info graphql.ResolveInfo, ctx context.Context) (string, error) {
-			if idFn != nil {
-				return idFn(obj)
-			}
 			meta := obj.(EntityRef).GetMeta()
 			return meta.ID, nil
 		},

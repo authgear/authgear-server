@@ -4,7 +4,6 @@ import (
 	"github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
-	"github.com/authgear/authgear-server/pkg/admin/loader"
 	"github.com/authgear/authgear-server/pkg/admin/model"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -47,14 +46,10 @@ var _ = registerMutationField(
 			if resolvedNodeID == nil || resolvedNodeID.Type != typeIdentity {
 				return nil, apierrors.NewInvalid("invalid identity ID")
 			}
-			identityRef, err := loader.DecodeIdentityID(resolvedNodeID.ID)
-			if err != nil {
-				return nil, apierrors.NewInvalid("invalid identity ID")
-			}
 
 			gqlCtx := GQLContext(p.Context)
 
-			info, err := gqlCtx.IdentityFacade.Get(identityRef)
+			info, err := gqlCtx.IdentityFacade.Get(resolvedNodeID.ID)
 			if err != nil {
 				return nil, err
 			}

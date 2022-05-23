@@ -83,40 +83,49 @@ type Service struct {
 	Biometric             BiometricIdentityProvider
 }
 
-func (s *Service) Get(userID string, typ model.IdentityType, id string) (*identity.Info, error) {
-	switch typ {
+func (s *Service) Get(id string) (*identity.Info, error) {
+	ref, err := s.Store.GetRefByID(id)
+	if err != nil {
+		return nil, err
+	}
+	switch ref.Type {
 	case model.IdentityTypeLoginID:
-		l, err := s.LoginID.Get(userID, id)
+		l, err := s.LoginID.Get(ref.UserID, id)
 		if err != nil {
 			return nil, err
 		}
 		return loginIDToIdentityInfo(l), nil
 
 	case model.IdentityTypeOAuth:
-		o, err := s.OAuth.Get(userID, id)
+		o, err := s.OAuth.Get(ref.UserID, id)
 		if err != nil {
 			return nil, err
 		}
 		return s.toIdentityInfo(o), nil
 
 	case model.IdentityTypeAnonymous:
-		a, err := s.Anonymous.Get(userID, id)
+		a, err := s.Anonymous.Get(ref.UserID, id)
 		if err != nil {
 			return nil, err
 		}
 		return anonymousToIdentityInfo(a), nil
 	case model.IdentityTypeBiometric:
-		b, err := s.Biometric.Get(userID, id)
+		b, err := s.Biometric.Get(ref.UserID, id)
 		if err != nil {
 			return nil, err
 		}
 		return biometricToIdentityInfo(b), nil
 	}
 
-	panic("identity: unknown identity type " + typ)
+	panic("identity: unknown identity type " + ref.Type)
 }
 
-func (s *Service) GetMany(refs []*model.IdentityRef) ([]*identity.Info, error) {
+func (s *Service) GetMany(ids []string) ([]*identity.Info, error) {
+	refs, err := s.Store.ListRefsByIDs(ids)
+	if err != nil {
+		return nil, err
+	}
+
 	var loginIDs, oauthIDs, anonymousIDs, biometricIDs []string
 	for _, ref := range refs {
 		switch ref.Type {

@@ -23,8 +23,6 @@ func (e *EdgeRemoveAuthenticator) Instantiate(ctx *interaction.Context, graph *i
 		return nil, interaction.ErrIncompatibleInput
 	}
 
-	userID := graph.MustGetUserID()
-	authenticatorType := input.GetAuthenticatorType()
 	authenticatorID := input.GetAuthenticatorID()
 	bypassMFARequirement := false
 	var bypassInput interface{ BypassMFARequirement() bool }
@@ -32,7 +30,7 @@ func (e *EdgeRemoveAuthenticator) Instantiate(ctx *interaction.Context, graph *i
 		bypassMFARequirement = bypassInput.BypassMFARequirement()
 	}
 
-	info, err := ctx.Authenticators.Get(userID, authenticatorType, authenticatorID)
+	info, err := ctx.Authenticators.Get(authenticatorID)
 	if err != nil {
 		return nil, err
 	}

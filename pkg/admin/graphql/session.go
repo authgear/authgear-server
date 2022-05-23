@@ -29,7 +29,7 @@ var nodeSession = node(
 			entityInterface,
 		},
 		Fields: graphql.Fields{
-			"id":        entityIDField(typeSession, nil),
+			"id":        entityIDField(typeSession),
 			"createdAt": entityCreatedAtField(nil),
 			"updatedAt": entityUpdatedAtField(nil),
 			"type": &graphql.Field{

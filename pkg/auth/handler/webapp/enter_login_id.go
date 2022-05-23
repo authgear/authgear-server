@@ -29,7 +29,7 @@ type EnterLoginIDViewModel struct {
 }
 
 type EnterLoginIDService interface {
-	Get(userID string, typ model.IdentityType, id string) (*identity.Info, error)
+	Get(id string) (*identity.Info, error)
 	ListCandidates(userID string) ([]identity.Candidate, error)
 }
 
@@ -91,7 +91,7 @@ func (h *EnterLoginIDHandler) GetData(userID string, r *http.Request, rw http.Re
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	var enterLoginIDViewModel EnterLoginIDViewModel
 	if identityID != "" {
-		idnInfo, err := h.Identities.Get(userID, model.IdentityTypeLoginID, identityID)
+		idnInfo, err := h.Identities.Get(identityID)
 		if errors.Is(err, identity.ErrIdentityNotFound) {
 			return nil, webapp.ErrInvalidSession
 		} else if err != nil {

@@ -1,36 +1,12 @@
 package loader
 
 import (
-	"strings"
-
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
-func EncodeAuthenticatorID(ref *authenticator.Ref) string {
-	return strings.Join([]string{
-		ref.UserID,
-		string(ref.Type),
-		ref.ID,
-	}, "|")
-}
-
-func DecodeAuthenticatorID(id string) (*authenticator.Ref, error) {
-	parts := strings.Split(id, "|")
-	if len(parts) != 3 {
-		return nil, apierrors.NewInvalid("invalid ID")
-	}
-	return &authenticator.Ref{
-		UserID: parts[0],
-		Type:   model.AuthenticatorType(parts[1]),
-		Meta:   model.Meta{ID: parts[2]},
-	}, nil
-}
-
 type AuthenticatorLoaderAuthenticatorService interface {
-	GetMany(refs []*authenticator.Ref) ([]*authenticator.Info, error)
+	GetMany(ids []string) ([]*authenticator.Info, error)
 }
 
 type AuthenticatorLoader struct {
@@ -48,18 +24,14 @@ func NewAuthenticatorLoader(authenticators AuthenticatorLoaderAuthenticatorServi
 }
 
 func (l *AuthenticatorLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
-	// Prepare refs.
-	refs := make([]*authenticator.Ref, len(keys))
+	// Prepare IDs.
+	ids := make([]string, len(keys))
 	for i, key := range keys {
-		ref, err := DecodeAuthenticatorID(key.(string))
-		if err != nil {
-			return nil, err
-		}
-		refs[i] = ref
+		ids[i] = key.(string)
 	}
 
 	// Get entities.
-	entities, err := l.Authenticators.GetMany(refs)
+	entities, err := l.Authenticators.GetMany(ids)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +39,7 @@ func (l *AuthenticatorLoader) LoadFunc(keys []interface{}) ([]interface{}, error
 	// Create map.
 	entityMap := make(map[string]*authenticator.Info)
 	for _, entity := range entities {
-		entityMap[EncodeAuthenticatorID(entity.ToRef())] = entity
+		entityMap[entity.ID] = entity
 	}
 
 	// Ensure output is in correct order.
