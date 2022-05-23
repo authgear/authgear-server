@@ -12,7 +12,7 @@ type Input struct {
 }
 
 type Output struct {
-	ImageMetadata *vips.ImageMetadata
+	FileExtension string
 	Data          []byte
 }
 
@@ -72,19 +72,20 @@ func (v *Daemon) runInput(i Input) (o *Output, err error) {
 			Width:  imageRef.Metadata().Width,
 			Height: imageRef.Metadata().Height,
 		}
-		err = resizeMode.Resize(imageDimen, resizeDimen).ApplyTo(imageRef, vips.KernelAuto)
+		resizeResult := resizeMode.Resize(imageDimen, resizeDimen)
+		err = applyResize(resizeResult, imageRef, vips.KernelAuto)
 		if err != nil {
 			return
 		}
 	}
 
-	data, metadata, err := Export(imageRef)
+	data, metadata, err := export(imageRef)
 	if err != nil {
 		return
 	}
 
 	o = &Output{
-		ImageMetadata: metadata,
+		FileExtension: metadata.Format.FileExt(),
 		Data:          data,
 	}
 	return
@@ -112,4 +113,57 @@ func (v *Daemon) Process(i Input) (*Output, error) {
 	default:
 		panic("unreachable")
 	}
+}
+
+func export(imageRef *vips.ImageRef) ([]byte, *vips.ImageMetadata, error) {
+	imageType := imageRef.Format()
+	switch imageType {
+	case vips.ImageTypeJPEG:
+		return imageRef.ExportJpeg(&vips.JpegExportParams{
+			StripMetadata: true,
+			Quality:       80,
+			Interlace:     true,
+			SubsampleMode: vips.VipsForeignSubsampleOn,
+		})
+	case vips.ImageTypePNG:
+		return imageRef.ExportPng(&vips.PngExportParams{
+			StripMetadata: true,
+			Compression:   6,
+		})
+	case vips.ImageTypeGIF:
+		return imageRef.ExportGIF(&vips.GifExportParams{
+			StripMetadata: true,
+			Quality:       75,
+		})
+	case vips.ImageTypeWEBP:
+		return imageRef.ExportWebp(&vips.WebpExportParams{
+			StripMetadata:   true,
+			Quality:         75,
+			ReductionEffort: 4,
+		})
+	default:
+		return imageRef.ExportNative()
+	}
+}
+
+func applyResize(r ResizeResult, imageRef *vips.ImageRef, kernel vips.Kernel) (err error) {
+	if r.Scale != 1.0 {
+		err = imageRef.Resize(r.Scale, kernel)
+		if err != nil {
+			return
+		}
+	}
+
+	if r.Crop != nil {
+		dx := r.Crop.Dx()
+		dy := r.Crop.Dy()
+		x := r.Crop.Min.X
+		y := r.Crop.Min.Y
+		err = imageRef.ExtractArea(x, y, dx, dy)
+		if err != nil {
+			return
+		}
+	}
+
+	return nil
 }

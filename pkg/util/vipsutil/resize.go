@@ -3,8 +3,6 @@ package vipsutil
 import (
 	"image"
 	"math"
-
-	"github.com/davidbyttow/govips/v2/vips"
 )
 
 // ImageDimensions is the dimensions of the source image.
@@ -34,29 +32,6 @@ type ResizeResult struct {
 
 var NoopResizeResult = ResizeResult{
 	Scale: 1.0,
-}
-
-// ApplyTo applies r to imageRef using kernel.
-func (r ResizeResult) ApplyTo(imageRef *vips.ImageRef, kernel vips.Kernel) (err error) {
-	if r.Scale != 1.0 {
-		err = imageRef.Resize(r.Scale, kernel)
-		if err != nil {
-			return
-		}
-	}
-
-	if r.Crop != nil {
-		dx := r.Crop.Dx()
-		dy := r.Crop.Dy()
-		x := r.Crop.Min.X
-		y := r.Crop.Min.Y
-		err = imageRef.ExtractArea(x, y, dx, dy)
-		if err != nil {
-			return
-		}
-	}
-
-	return nil
 }
 
 // ResizingMode is the abstraction of different resizing flavors.
