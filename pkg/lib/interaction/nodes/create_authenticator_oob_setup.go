@@ -247,6 +247,19 @@ func (n *NodeCreateAuthenticatorOOBSetup) GetOOBOTPCodeLength() int {
 	return n.CodeLength
 }
 
+// GetCreateAuthenticatorStage implements CreateAuthenticatorPhoneOTPNode
+func (n *NodeCreateAuthenticatorOOBSetup) GetCreateAuthenticatorStage() authn.AuthenticationStage {
+	return n.Stage
+}
+
+// GetSelectedPhoneNumberForPhoneOTP implements CreateAuthenticatorPhoneOTPNode
+func (n *NodeCreateAuthenticatorOOBSetup) GetSelectedPhoneNumberForPhoneOTP() string {
+	if n.Channel == string(model.AuthenticatorOOBChannelSMS) {
+		return n.Target
+	}
+	return ""
+}
+
 func (n *NodeCreateAuthenticatorOOBSetup) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }

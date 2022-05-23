@@ -108,7 +108,7 @@ func (k SessionStepKind) MatchPath(path string) bool {
 		}
 	case SessionStepCreateAuthenticator:
 		switch path {
-		case "/setup_totp", "/setup_oob_otp", "/create_password":
+		case "/setup_totp", "/setup_oob_otp", "/create_password", "/setup_whatsapp_otp":
 			return true
 		default:
 			return false
