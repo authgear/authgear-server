@@ -51,10 +51,10 @@
                         {{ template "enter-oob-otp-sms-instead" .Data }}
                     {{ end }}
                     {{ if eq .Step "setup-whatsapp-otp" }}
-                        {{ template "setup-whatsapp-otp-instead" .Data }}
+                        {{ template "setup-phone-otp-instead" .Data }}
                     {{ end }}
                     {{ if eq .Step "verify-whatsapp-otp-authn" }}
-                        {{  template "verify-whatsapp-otp-instead" .Data }}
+                        {{  template "verify-phone-otp-instead" .Data }}
                     {{ end }}
                 </button>
                 </div>

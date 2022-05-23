@@ -99,6 +99,11 @@ func (n *NodeAuthenticationWhatsappTrigger) GetPhone() string {
 	return n.Phone
 }
 
+// GetSelectedPhoneNumberForPhoneOTPAuthentication implements AuthenticationPhoneOTPTriggerNode
+func (n *NodeAuthenticationWhatsappTrigger) GetSelectedPhoneNumberForPhoneOTPAuthentication() string {
+	return n.Phone
+}
+
 // GetAuthenticatorIndex implements WhatsappOTPAuthnNode.
 func (n *NodeAuthenticationWhatsappTrigger) GetAuthenticatorIndex() int {
 	return n.AuthenticatorIndex
