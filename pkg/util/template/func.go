@@ -7,7 +7,8 @@ import (
 	"time"
 
 	"github.com/Masterminds/sprig"
-	messageformat "github.com/iawaknahc/gomessageformat"
+
+	"github.com/authgear/authgear-server/pkg/util/messageformat"
 )
 
 func MakeTemplateFuncMap() map[string]interface{} {

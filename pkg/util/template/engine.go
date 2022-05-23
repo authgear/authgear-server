@@ -7,8 +7,9 @@ import (
 	texttemplate "text/template"
 	"text/template/parse"
 
-	messageformat "github.com/iawaknahc/gomessageformat"
 	"golang.org/x/text/language"
+
+	"github.com/authgear/authgear-server/pkg/util/messageformat"
 )
 
 type EngineTemplateResolver interface {
