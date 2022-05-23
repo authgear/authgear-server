@@ -2,10 +2,9 @@
 <div class="flex flex-row">
 	{{ if . }}
 	<a
-		class="not-a btn icon-btn py-5"
+		class="not-a btn icon-btn py-5 invisible"
 		title="{{ template "back-button-title" }}"
 		href="{{ . }}"
-		style="visibility: hidden;"
 		data-turbolinks-action="replace"
 		data-controller="back-button"
 	>
