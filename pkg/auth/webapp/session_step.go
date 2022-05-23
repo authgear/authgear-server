@@ -29,7 +29,7 @@ const (
 	SessionStepSetupTOTP                 SessionStepKind = "setup-totp"
 	SessionStepEnterRecoveryCode         SessionStepKind = "enter-recovery-code"
 	SessionStepSetupRecoveryCode         SessionStepKind = "setup-recovery-code"
-	SessionStepVerifyIdentity            SessionStepKind = "verify-identity"
+	SessionStepVerifyIdentityViaOOBOTP   SessionStepKind = "verify-identity"
 	SessionStepVerifyIdentityViaWhatsapp SessionStepKind = "verify-identity-via-whatsapp"
 	SessionStepAccountStatus             SessionStepKind = "account-status"
 )
@@ -77,7 +77,7 @@ func (k SessionStepKind) Path() string {
 		return "/enter_recovery_code"
 	case SessionStepSetupRecoveryCode:
 		return "/setup_recovery_code"
-	case SessionStepVerifyIdentity:
+	case SessionStepVerifyIdentityViaOOBOTP:
 		return "/verify_identity"
 	case SessionStepAccountStatus:
 		return "/account_status"
