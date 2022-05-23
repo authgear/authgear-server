@@ -137,6 +137,16 @@ func (n *NodeCreateAuthenticatorWhatsappOTPSetup) GetPhone() string {
 	return n.Phone
 }
 
+// GetCreateAuthenticatorStage implements CreateAuthenticatorPhoneOTPNode
+func (n *NodeCreateAuthenticatorWhatsappOTPSetup) GetCreateAuthenticatorStage() authn.AuthenticationStage {
+	return n.Stage
+}
+
+// GetSelectedPhoneNumberForPhoneOTP implements CreateAuthenticatorPhoneOTPNode
+func (n *NodeCreateAuthenticatorWhatsappOTPSetup) GetSelectedPhoneNumberForPhoneOTP() string {
+	return n.Phone
+}
+
 func (n *NodeCreateAuthenticatorWhatsappOTPSetup) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }

@@ -12,6 +12,12 @@ type CreateAuthenticatorBeginNode interface {
 	GetCreateAuthenticatorStage() authn.AuthenticationStage
 }
 
+type CreateAuthenticatorPhoneOTPNode interface {
+	GetCreateAuthenticatorStage() authn.AuthenticationStage
+	GetSelectedPhoneNumberForPhoneOTP() string
+}
+
+// nolint: gocyclo
 func handleAlternativeSteps(ctrl *Controller) {
 	ctrl.PostAction("choose_step", func() (err error) {
 		session, err := ctrl.InteractionSession()
@@ -53,9 +59,27 @@ func handleAlternativeSteps(ctrl *Controller) {
 					return &InputSelectOOB{}, nil
 				}
 			case authn.AuthenticationStageSecondary:
-				// Simple redirect.
 				choiceStep = webapp.SessionStepCreateAuthenticator
-				inputFn = nil
+				// if the user has inputted the phone number when setting up mfa
+				// use the selected phone as the input
+				// so user doesn't have to input phone number again
+				selectedPhone := ""
+				var node2 CreateAuthenticatorPhoneOTPNode
+				if graph.FindLastNode(&node2) {
+					if node2.GetCreateAuthenticatorStage() == authn.AuthenticationStageSecondary {
+						selectedPhone = node2.GetSelectedPhoneNumberForPhoneOTP()
+					}
+				}
+				if selectedPhone != "" {
+					inputFn = func() (interface{}, error) {
+						return &InputSetupOOB{
+							InputType: "phone",
+							Target:    selectedPhone,
+						}, nil
+					}
+				} else {
+					inputFn = nil
+				}
 			default:
 				panic(fmt.Sprintf("webapp: unexpected authentication stage: %s", node.GetCreateAuthenticatorStage()))
 			}
@@ -77,9 +101,26 @@ func handleAlternativeSteps(ctrl *Controller) {
 					return &InputSelectWhatsappOTP{}, nil
 				}
 			case authn.AuthenticationStageSecondary:
-				// Simple redirect.
 				choiceStep = webapp.SessionStepCreateAuthenticator
-				inputFn = nil
+				// if the user has inputted the phone number when setting up mfa
+				// use the selected phone as the input
+				// so user doesn't have to input phone number again
+				selectedPhone := ""
+				var node2 CreateAuthenticatorPhoneOTPNode
+				if graph.FindLastNode(&node2) {
+					if node2.GetCreateAuthenticatorStage() == authn.AuthenticationStageSecondary {
+						selectedPhone = node2.GetSelectedPhoneNumberForPhoneOTP()
+					}
+				}
+				if selectedPhone != "" {
+					inputFn = func() (interface{}, error) {
+						return &InputSetupWhatsappOTP{
+							Phone: selectedPhone,
+						}, nil
+					}
+				} else {
+					inputFn = nil
+				}
 			default:
 				panic(fmt.Sprintf("webapp: unexpected authentication stage: %s", node.GetCreateAuthenticatorStage()))
 			}
