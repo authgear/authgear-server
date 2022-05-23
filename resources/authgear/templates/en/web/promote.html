@@ -15,7 +15,7 @@
 	{{ if $.PublicSignupDisabled }}
 	<div class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
 		<p class="primary-txt m-0 text-base">{{ template "public-signup-disabled-notice" }}</p>
-		<a class="as-btn not-a btn primary-btn my-5" href="/login" data-turbolinks="false">{{ template "login-label" }}</a>
+		<a class="as-btn not-a btn primary-btn my-5" href="/login" data-turbo="false">{{ template "login-label" }}</a>
 		{{ template "__watermark.html" . }}
 	</div>
 	{{ else }}
@@ -71,7 +71,7 @@
 
 				{{ range $.IdentityCandidates }}
 				{{ if eq .type "login_id" }}{{ if not (eq .login_id_key $.x_login_id_key) }}
-					<a class="link text-sm self-start block" data-turbolinks-action="replace"
+					<a class="link text-sm self-start block" data-turbo-action="replace"
 						href="{{ call $.MakeCurrentStepURL "x_login_id_key" .login_id_key "x_login_id_input_type" .login_id_input_type}}">
 						{{ template "use-login-id-key" (dict "key" .login_id_key) }}
 					</a>

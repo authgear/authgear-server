@@ -18,7 +18,7 @@ export class MessageBarController extends Controller {
   };
 
   connect() {
-    document.addEventListener("turbolinks:before-cache", this.beforeCache);
+    document.addEventListener("turbo:before-cache", this.beforeCache);
   }
 
   close(e: Event) {
@@ -29,6 +29,6 @@ export class MessageBarController extends Controller {
   }
 
   disconnect() {
-    document.removeEventListener("turbolinks:before-cache", this.beforeCache);
+    document.removeEventListener("turbo:before-cache", this.beforeCache);
   }
 }

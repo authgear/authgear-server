@@ -11,7 +11,6 @@
   },
   "devDependencies": {
     "@types/luxon": "2.0.9",
-    "@types/turbolinks": "5.2.0",
     "@types/zxcvbn": "4.4.1",
     "autoprefixer": "10.4.2",
     "parcel": "2.3.1",
@@ -23,9 +22,9 @@
   },
   "dependencies": {
     "@hotwired/stimulus": "3.0.1",
+    "@hotwired/turbo": "7.1.0",
     "axios": "0.26.1",
     "luxon": "2.3.0",
-    "turbolinks": "5.2.0",
     "zxcvbn": "4.4.2"
   }
 }

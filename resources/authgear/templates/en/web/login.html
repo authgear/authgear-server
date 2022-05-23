@@ -15,8 +15,8 @@
 	<div class="pane flex flex-col">
 		{{ if $has_login_id }}{{ if (not (or $.PublicSignupDisabled $.AllowLoginOnly)) }}
 		<div class="flex flex-row">
-			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt current" href="/login" data-turbolinks-action="replace">{{ template "login-label" }}</a>
-			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt" href="/signup" data-turbolinks-action="replace">{{ template "signup-label" }}</a>
+			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt current" href="/login" data-turbo-action="replace">{{ template "login-label" }}</a>
+			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt" href="/signup" data-turbo-action="replace">{{ template "signup-label" }}</a>
 		</div>
 		{{ end }}{{ end }}
 
@@ -67,11 +67,11 @@
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if (or $.EmailLoginIDEnabled $.UsernameLoginIDEnabled) }}
-				<a class="link text-sm self-start block" href="{{ call $.MakeURL "" "x_login_id_input_type" $.TextLoginIDInputType }}" data-turbolinks-action="replace">{{ template "use-text-login-id-description" (dict "variant" $.LoginIDInputVariant) }}</a>
+				<a class="link text-sm self-start block" href="{{ call $.MakeURL "" "x_login_id_input_type" $.TextLoginIDInputType }}" data-turbo-action="replace">{{ template "use-text-login-id-description" (dict "variant" $.LoginIDInputVariant) }}</a>
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if $.PhoneLoginIDEnabled }}
-				<a class="link text-sm self-start block" href="{{ call $.MakeURL "" "x_login_id_input_type" "phone" }}" data-turbolinks-action="replace">{{ template "use-phone-login-id-description" }}</a>
+				<a class="link text-sm self-start block" href="{{ call $.MakeURL "" "x_login_id_input_type" "phone" }}" data-turbo-action="replace">{{ template "use-phone-login-id-description" }}</a>
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if not $.LoginIDDisabled }}
