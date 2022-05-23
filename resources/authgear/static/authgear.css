@@ -279,13 +279,11 @@ h1, h2, h3, h4, h5, h6 {
 .banner.dark {
   display: none;
 }
-@media (prefers-color-scheme: dark) {
-  .banner.light {
-    display: none;
-  }
-  .banner.dark {
-    display: initial;
-  }
+.dark .banner.light {
+  display: none;
+}
+.dark .banner.dark {
+  display: initial;
 }
 
 .pane {

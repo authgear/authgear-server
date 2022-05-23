@@ -1,6 +1,6 @@
 module.exports = {
   purge: ["../resources/authgear/templates/en/web/**/*.html"],
-  darkMode: false, // or 'media' or 'class'
+  darkMode: "class",
   theme: {
     extend: {
       spacing: {

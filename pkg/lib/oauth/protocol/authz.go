@@ -64,6 +64,7 @@ func (r AuthorizationRequest) Page() string              { return r["x_page"] }
 func (r AuthorizationRequest) SuppressIDPSessionCookie() bool {
 	return r["x_suppress_idp_session_cookie"] == "true"
 }
+func (r AuthorizationRequest) ColorScheme() string { return r["x_color_scheme"] }
 
 type AuthorizationResponse map[string]string
 

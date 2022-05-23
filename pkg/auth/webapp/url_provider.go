@@ -72,6 +72,7 @@ type AuthenticateURLProvider struct {
 type AuthenticateURLOptions struct {
 	SessionOptions SessionOptions
 	UILocales      string
+	ColorScheme    string
 }
 
 func (p *AuthenticateURLProvider) AuthenticateURL(options AuthenticateURLOptions) (httputil.Result, error) {
@@ -87,6 +88,7 @@ func (p *AuthenticateURLProvider) AuthenticateURL(options AuthenticateURLOptions
 
 	if result != nil {
 		result.UILocales = options.UILocales
+		result.ColorScheme = options.ColorScheme
 	}
 	return result, nil
 }
