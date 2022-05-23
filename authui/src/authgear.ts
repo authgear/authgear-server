@@ -22,6 +22,7 @@ import { TransferClickController } from "./click";
 import { XHRSubmitFormController, RestoreFormController } from "./form";
 import { ModalController } from "./modal";
 import { ColorSchemeController } from "./colorscheme";
+import { BackButtonController } from "./back";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
 
@@ -68,6 +69,4 @@ Stimulus.register("restore-form", RestoreFormController);
 
 Stimulus.register("modal", ModalController);
 
-window.api.onLoad(() => {
-  document.body.classList.add("js");
-});
+Stimulus.register("back-button", BackButtonController);
