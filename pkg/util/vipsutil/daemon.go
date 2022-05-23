@@ -1,3 +1,6 @@
+//go:build !authgearlite
+// +build !authgearlite
+
 package vipsutil
 
 import (
