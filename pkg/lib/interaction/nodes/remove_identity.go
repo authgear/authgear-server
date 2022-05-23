@@ -23,11 +23,9 @@ func (e *EdgeRemoveIdentity) Instantiate(ctx *interaction.Context, graph *intera
 		return nil, interaction.ErrIncompatibleInput
 	}
 
-	userID := graph.MustGetUserID()
-	identityType := input.GetIdentityType()
 	identityID := input.GetIdentityID()
 
-	info, err := ctx.Identities.Get(userID, identityType, identityID)
+	info, err := ctx.Identities.Get(identityID)
 	if err != nil {
 		return nil, err
 	}

@@ -6,7 +6,6 @@ import (
 
 	"github.com/graphql-go/graphql"
 
-	"github.com/authgear/authgear-server/pkg/admin/loader"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -51,10 +50,7 @@ var nodeAuthenticator = node(
 			entityInterface,
 		},
 		Fields: graphql.Fields{
-			"id": entityIDField(typeAuthenticator, func(obj interface{}) (string, error) {
-				ref := obj.(interface{ ToRef() *authenticator.Ref }).ToRef()
-				return loader.EncodeAuthenticatorID(ref), nil
-			}),
+			"id":        entityIDField(typeAuthenticator),
 			"createdAt": entityCreatedAtField(loadAuthenticator),
 			"updatedAt": entityUpdatedAtField(loadAuthenticator),
 			"type": &graphql.Field{
@@ -124,7 +120,7 @@ func loadAuthenticator(ctx context.Context, obj interface{}) *graphqlutil.Lazy {
 	case *authenticator.Info:
 		return graphqlutil.NewLazyValue(obj)
 	case *authenticator.Ref:
-		return GQLContext(ctx).Authenticators.Load(loader.EncodeAuthenticatorID(obj))
+		return GQLContext(ctx).Authenticators.Load(obj.ID)
 	default:
 		panic(fmt.Sprintf("graphql: unknown authenticator type: %T", obj))
 	}

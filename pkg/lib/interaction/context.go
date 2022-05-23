@@ -30,7 +30,7 @@ import (
 )
 
 type IdentityService interface {
-	Get(userID string, typ model.IdentityType, id string) (*identity.Info, error)
+	Get(id string) (*identity.Info, error)
 	SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, otherMatches []*identity.Info, err error)
 	ListByUser(userID string) ([]*identity.Info, error)
 	New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
@@ -42,7 +42,7 @@ type IdentityService interface {
 }
 
 type AuthenticatorService interface {
-	Get(userID string, typ model.AuthenticatorType, id string) (*authenticator.Info, error)
+	Get(id string) (*authenticator.Info, error)
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
 	WithSecret(authenticatorInfo *authenticator.Info, secret string) (changed bool, info *authenticator.Info, err error)

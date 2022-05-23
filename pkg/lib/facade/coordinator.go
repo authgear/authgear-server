@@ -20,7 +20,7 @@ type EventService interface {
 }
 
 type IdentityService interface {
-	Get(userID string, typ model.IdentityType, id string) (*identity.Info, error)
+	Get(id string) (*identity.Info, error)
 	SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, otherMatches []*identity.Info, err error)
 	ListByUser(userID string) ([]*identity.Info, error)
 	ListByClaim(name string, value string) ([]*identity.Info, error)
@@ -33,7 +33,7 @@ type IdentityService interface {
 }
 
 type AuthenticatorService interface {
-	Get(userID string, typ model.AuthenticatorType, id string) (*authenticator.Info, error)
+	Get(id string) (*authenticator.Info, error)
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
 	WithSecret(authenticatorInfo *authenticator.Info, secret string) (changed bool, info *authenticator.Info, err error)
@@ -112,8 +112,8 @@ type Coordinator struct {
 	Clock                 clock.Clock
 }
 
-func (c *Coordinator) IdentityGet(userID string, typ model.IdentityType, id string) (*identity.Info, error) {
-	return c.Identities.Get(userID, typ, id)
+func (c *Coordinator) IdentityGet(id string) (*identity.Info, error) {
+	return c.Identities.Get(id)
 }
 
 func (c *Coordinator) IdentitySearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, otherMatches []*identity.Info, err error) {
@@ -202,8 +202,8 @@ func (c *Coordinator) IdentityCheckDuplicated(info *identity.Info) (*identity.In
 	return c.Identities.CheckDuplicated(info)
 }
 
-func (c *Coordinator) AuthenticatorGet(userID string, typ model.AuthenticatorType, id string) (*authenticator.Info, error) {
-	return c.Authenticators.Get(userID, typ, id)
+func (c *Coordinator) AuthenticatorGet(id string) (*authenticator.Info, error) {
+	return c.Authenticators.Get(id)
 }
 
 func (c *Coordinator) AuthenticatorList(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error) {

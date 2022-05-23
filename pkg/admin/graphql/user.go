@@ -20,7 +20,7 @@ var nodeUser = node(
 			entityInterface,
 		},
 		Fields: graphql.Fields{
-			"id":        entityIDField(typeUser, nil),
+			"id":        entityIDField(typeUser),
 			"createdAt": entityCreatedAtField(nil),
 			"updatedAt": entityUpdatedAtField(nil),
 			"lastLoginAt": &graphql.Field{

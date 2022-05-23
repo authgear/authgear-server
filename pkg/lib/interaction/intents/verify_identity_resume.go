@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -31,10 +30,7 @@ func (i *IntentVerifyIdentityResume) InstantiateRootNode(ctx *interaction.Contex
 		return nil, err
 	}
 
-	identityInfo, err := ctx.Identities.Get(
-		code.UserID,
-		model.IdentityType(code.IdentityType),
-		code.IdentityID)
+	identityInfo, err := ctx.Identities.Get(code.IdentityID)
 	if errors.Is(err, identity.ErrIdentityNotFound) {
 		// Identity not found -> treat as if code is invalid
 		return nil, verification.ErrCodeNotFound

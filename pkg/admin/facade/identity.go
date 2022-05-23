@@ -13,7 +13,7 @@ import (
 )
 
 type IdentityService interface {
-	Get(userID string, typ apimodel.IdentityType, id string) (*identity.Info, error)
+	Get(id string) (*identity.Info, error)
 	ListRefsByUsers(userIDs []string) ([]*apimodel.IdentityRef, error)
 }
 
@@ -22,8 +22,8 @@ type IdentityFacade struct {
 	Interaction InteractionService
 }
 
-func (f *IdentityFacade) Get(ref *apimodel.IdentityRef) (*identity.Info, error) {
-	return f.Identities.Get(ref.UserID, ref.Type, ref.ID)
+func (f *IdentityFacade) Get(id string) (*identity.Info, error) {
+	return f.Identities.Get(id)
 }
 
 func (f *IdentityFacade) List(userID string) ([]*apimodel.IdentityRef, error) {

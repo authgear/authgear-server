@@ -14,16 +14,14 @@ type EdgeUpdateIdentityEnd struct {
 }
 
 func (e *EdgeUpdateIdentityEnd) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	userID := graph.MustGetUserID()
-	identityType := e.IdentitySpec.Type
 	identityID := graph.MustGetUpdateIdentityID()
 
-	oldInfo, err := ctx.Identities.Get(userID, identityType, identityID)
+	oldInfo, err := ctx.Identities.Get(identityID)
 	if err != nil {
 		return nil, err
 	}
 
-	newInfo, err := ctx.Identities.Get(userID, identityType, identityID)
+	newInfo, err := ctx.Identities.Get(identityID)
 	if err != nil {
 		return nil, err
 	}
