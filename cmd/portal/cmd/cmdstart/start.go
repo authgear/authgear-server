@@ -1,8 +1,9 @@
-package main
+package cmdstart
 
 import (
 	"github.com/spf13/cobra"
 
+	portalcmd "github.com/authgear/authgear-server/cmd/portal/cmd"
 	"github.com/authgear/authgear-server/cmd/portal/server"
 )
 
@@ -13,4 +14,8 @@ var cmdStart = &cobra.Command{
 		ctrl := &server.Controller{}
 		ctrl.Start()
 	},
+}
+
+func init() {
+	portalcmd.Root.AddCommand(cmdStart)
 }

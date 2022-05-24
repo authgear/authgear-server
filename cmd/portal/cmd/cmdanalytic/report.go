@@ -1,54 +1,32 @@
-package main
+package cmdanalytic
 
 import (
 	"context"
 	"fmt"
 	"log"
 
+	"github.com/spf13/cobra"
+
 	"github.com/authgear/authgear-server/cmd/portal/analytic"
+	portalcmd "github.com/authgear/authgear-server/cmd/portal/cmd"
 	analyticlib "github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/util/periodical"
-	"github.com/spf13/cobra"
 )
-
-func init() {
-	binder := getBinder()
-	cmdAnalytic.AddCommand(cmdAnalyticReport)
-	binder.BindString(cmdAnalyticReport.Flags(), ArgDatabaseURL)
-	binder.BindString(cmdAnalyticReport.Flags(), ArgDatabaseSchema)
-	binder.BindString(cmdAnalyticReport.Flags(), ArgAuditDatabaseURL)
-	binder.BindString(cmdAnalyticReport.Flags(), ArgAuditDatabaseSchema)
-
-	binder.BindString(cmdAnalyticReport.Flags(), ArgAnalyticPortalAppID)
-	binder.BindString(cmdAnalyticReport.Flags(), ArgAnalyticPeriod)
-
-	binder.BindString(cmdAnalyticReport.Flags(), ArgAnalyticOutputType)
-	binder.BindString(cmdAnalyticReport.Flags(), ArgAnalyticCSVOutputFilePath)
-	binder.BindString(cmdAnalyticReport.Flags(), ArgAnalyticGoogleOAuthClientCredentialsJSONFilePath)
-	binder.BindString(cmdAnalyticReport.Flags(), ArgAnalyticGoogleOAuthTokenFilePath)
-	binder.BindString(cmdAnalyticReport.Flags(), ArgAnalyticGoogleSpreadsheetID)
-	binder.BindString(cmdAnalyticReport.Flags(), ArgAnalyticGoogleSpreadsheetRange)
-}
-
-var cmdAnalytic = &cobra.Command{
-	Use:   "analytic",
-	Short: "Analytic report",
-}
 
 var cmdAnalyticReport = &cobra.Command{
 	Use:   "report [report-type]",
 	Short: "Analytic report",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		binder := getBinder()
-		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
+		binder := portalcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
 		if err != nil {
 			return err
 		}
 
-		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseSchema)
 		if err != nil {
 			return err
 		}
@@ -58,17 +36,17 @@ var cmdAnalyticReport = &cobra.Command{
 			DatabaseSchema: dbSchema,
 		}
 
-		portalAppID, err := binder.GetRequiredString(cmd, ArgAnalyticPortalAppID)
+		portalAppID, err := binder.GetRequiredString(cmd, portalcmd.ArgAnalyticPortalAppID)
 		if err != nil {
 			return err
 		}
 
-		outputType, err := binder.GetRequiredString(cmd, ArgAnalyticOutputType)
+		outputType, err := binder.GetRequiredString(cmd, portalcmd.ArgAnalyticOutputType)
 		if err != nil {
 			return err
 		}
 
-		period, err := binder.GetRequiredString(cmd, ArgAnalyticPeriod)
+		period, err := binder.GetRequiredString(cmd, portalcmd.ArgAnalyticPeriod)
 		if err != nil {
 			return err
 		}
@@ -87,29 +65,29 @@ var cmdAnalyticReport = &cobra.Command{
 
 		switch outputType {
 		case analytic.ReportOutputTypeCSV:
-			csvOutputFilePath = binder.GetString(cmd, ArgAnalyticCSVOutputFilePath)
+			csvOutputFilePath = binder.GetString(cmd, portalcmd.ArgAnalyticCSVOutputFilePath)
 			// if the csv output file path is not provided
 			// use the report type as the default file name
 			if csvOutputFilePath == "" {
 				csvOutputFilePath = fmt.Sprintf("%s-%s-report.csv", reportType, periodicalType)
 			}
 		case analytic.ReportOutputTypeGoogleSheets:
-			clientCredentialsJSONFilePath, err = binder.GetRequiredString(cmd, ArgAnalyticGoogleOAuthClientCredentialsJSONFilePath)
+			clientCredentialsJSONFilePath, err = binder.GetRequiredString(cmd, portalcmd.ArgAnalyticGoogleOAuthClientCredentialsJSONFilePath)
 			if err != nil {
 				return err
 			}
 
-			tokenJSONFilePath, err = binder.GetRequiredString(cmd, ArgAnalyticGoogleOAuthTokenFilePath)
+			tokenJSONFilePath, err = binder.GetRequiredString(cmd, portalcmd.ArgAnalyticGoogleOAuthTokenFilePath)
 			if err != nil {
 				return err
 			}
 
-			googleSpreadsheetID, err = binder.GetRequiredString(cmd, ArgAnalyticGoogleSpreadsheetID)
+			googleSpreadsheetID, err = binder.GetRequiredString(cmd, portalcmd.ArgAnalyticGoogleSpreadsheetID)
 			if err != nil {
 				return err
 			}
 
-			googleSpreadsheetRange, err = binder.GetRequiredString(cmd, ArgAnalyticGoogleSpreadsheetRange)
+			googleSpreadsheetRange, err = binder.GetRequiredString(cmd, portalcmd.ArgAnalyticGoogleSpreadsheetRange)
 			if err != nil {
 				return err
 			}
@@ -118,12 +96,12 @@ var cmdAnalyticReport = &cobra.Command{
 		}
 
 		getAuditDBCredentials := func() (*config.AuditDatabaseCredentials, error) {
-			dbURL, err := binder.GetRequiredString(cmd, ArgAuditDatabaseURL)
+			dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgAuditDatabaseURL)
 			if err != nil {
 				return nil, err
 			}
 
-			dbSchema, err := binder.GetRequiredString(cmd, ArgAuditDatabaseSchema)
+			dbSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgAuditDatabaseSchema)
 			if err != nil {
 				return nil, err
 			}

@@ -1,10 +1,11 @@
-package main
+package cmdinternal
 
 import (
 	"log"
 
 	"github.com/spf13/cobra"
 
+	portalcmd "github.com/authgear/authgear-server/cmd/portal/cmd"
 	"github.com/authgear/authgear-server/cmd/portal/internal"
 )
 
@@ -17,20 +18,20 @@ var cmdInternalSetupPortal = &cobra.Command{
 	Use:   "setup-portal",
 	Short: "Initialize app configuration",
 	Run: func(cmd *cobra.Command, args []string) {
-		binder := getBinder()
-		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
+		binder := portalcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
-		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseSchema)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
-		defaultAuthgearDomain, err := binder.GetRequiredString(cmd, ArgDefaultAuthgearDomain)
+		defaultAuthgearDomain, err := binder.GetRequiredString(cmd, portalcmd.ArgDefaultAuthgearDomain)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
-		customAuthgearDomain, err := binder.GetRequiredString(cmd, ArgCustomAuthgearDomain)
+		customAuthgearDomain, err := binder.GetRequiredString(cmd, portalcmd.ArgCustomAuthgearDomain)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
@@ -59,19 +60,19 @@ var cmdInternalBreakingChangeMigrateK8SToDB = &cobra.Command{
 	Use:   "migrate-k8s-to-db",
 	Short: "Migrate config source from Kubernetes to database",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		binder := getBinder()
-		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
+		binder := portalcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
 		if err != nil {
 			return err
 		}
-		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseSchema)
 		if err != nil {
 			return err
 		}
 
-		kubeConfigPath := binder.GetString(cmd, ArgKubeconfig)
+		kubeConfigPath := binder.GetString(cmd, portalcmd.ArgKubeconfig)
 
-		namespace, err := binder.GetRequiredString(cmd, ArgNamespace)
+		namespace, err := binder.GetRequiredString(cmd, portalcmd.ArgNamespace)
 		if err != nil {
 			return err
 		}
@@ -88,19 +89,21 @@ var cmdInternalBreakingChangeMigrateK8SToDB = &cobra.Command{
 }
 
 func init() {
-	binder := getBinder()
+	binder := portalcmd.GetBinder()
 	cmdInternal.AddCommand(cmdInternalSetupPortal)
 	cmdInternal.AddCommand(cmdInternalBreakingChange)
 	cmdInternalBreakingChange.AddCommand(cmdInternalBreakingChangeMigrateK8SToDB)
 	cmdInternalBreakingChange.AddCommand(cmdInternalBreakingChangeMigrateResources)
 
-	binder.BindString(cmdInternalSetupPortal.Flags(), ArgDatabaseURL)
-	binder.BindString(cmdInternalSetupPortal.Flags(), ArgDatabaseSchema)
-	binder.BindString(cmdInternalSetupPortal.Flags(), ArgDefaultAuthgearDomain)
-	binder.BindString(cmdInternalSetupPortal.Flags(), ArgCustomAuthgearDomain)
+	binder.BindString(cmdInternalSetupPortal.Flags(), portalcmd.ArgDatabaseURL)
+	binder.BindString(cmdInternalSetupPortal.Flags(), portalcmd.ArgDatabaseSchema)
+	binder.BindString(cmdInternalSetupPortal.Flags(), portalcmd.ArgDefaultAuthgearDomain)
+	binder.BindString(cmdInternalSetupPortal.Flags(), portalcmd.ArgCustomAuthgearDomain)
 
-	binder.BindString(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), ArgDatabaseURL)
-	binder.BindString(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), ArgDatabaseSchema)
-	binder.BindString(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), ArgKubeconfig)
-	binder.BindString(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), ArgNamespace)
+	binder.BindString(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), portalcmd.ArgDatabaseURL)
+	binder.BindString(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), portalcmd.ArgDatabaseSchema)
+	binder.BindString(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), portalcmd.ArgKubeconfig)
+	binder.BindString(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), portalcmd.ArgNamespace)
+
+	portalcmd.Root.AddCommand(cmdInternal)
 }

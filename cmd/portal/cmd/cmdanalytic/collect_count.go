@@ -1,41 +1,33 @@
-package main
+package cmdanalytic
 
 import (
 	"context"
 	"fmt"
 	"log"
 
+	"github.com/spf13/cobra"
+
 	"github.com/authgear/authgear-server/cmd/portal/analytic"
+	portalcmd "github.com/authgear/authgear-server/cmd/portal/cmd"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/util/periodical"
 	"github.com/authgear/authgear-server/pkg/util/timeutil"
-	"github.com/spf13/cobra"
 )
-
-func init() {
-	binder := getBinder()
-	cmdAnalytic.AddCommand(cmdAnalyticCollectCount)
-	binder.BindString(cmdAnalyticCollectCount.Flags(), ArgDatabaseURL)
-	binder.BindString(cmdAnalyticCollectCount.Flags(), ArgDatabaseSchema)
-	binder.BindString(cmdAnalyticCollectCount.Flags(), ArgAuditDatabaseURL)
-	binder.BindString(cmdAnalyticCollectCount.Flags(), ArgAuditDatabaseSchema)
-	binder.BindString(cmdAnalyticCollectCount.Flags(), ArgAnalyticRedisURL)
-}
 
 var cmdAnalyticCollectCount = &cobra.Command{
 	Use:   "collect-count [period]",
 	Short: "Collect analytic count to the audit db",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		binder := getBinder()
-		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
+		binder := portalcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
 		if err != nil {
 			return err
 		}
 
-		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseSchema)
 		if err != nil {
 			return err
 		}
@@ -45,12 +37,12 @@ var cmdAnalyticCollectCount = &cobra.Command{
 			DatabaseSchema: dbSchema,
 		}
 
-		auditDBURL, err := binder.GetRequiredString(cmd, ArgAuditDatabaseURL)
+		auditDBURL, err := binder.GetRequiredString(cmd, portalcmd.ArgAuditDatabaseURL)
 		if err != nil {
 			return err
 		}
 
-		auditDBSchema, err := binder.GetRequiredString(cmd, ArgAuditDatabaseSchema)
+		auditDBSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgAuditDatabaseSchema)
 		if err != nil {
 			return err
 		}
@@ -61,7 +53,7 @@ var cmdAnalyticCollectCount = &cobra.Command{
 		}
 
 		var analyticRedisCredentials *config.AnalyticRedisCredentials
-		analyticRedisURL := binder.GetString(cmd, ArgAnalyticRedisURL)
+		analyticRedisURL := binder.GetString(cmd, portalcmd.ArgAnalyticRedisURL)
 		if analyticRedisURL != "" {
 			analyticRedisCredentials = &config.AnalyticRedisCredentials{
 				RedisURL: analyticRedisURL,

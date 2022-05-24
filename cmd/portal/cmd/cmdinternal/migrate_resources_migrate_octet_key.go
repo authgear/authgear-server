@@ -1,4 +1,4 @@
-package main
+package cmdinternal
 
 import (
 	"encoding/base64"
@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 
+	portalcmd "github.com/authgear/authgear-server/cmd/portal/cmd"
 	"github.com/authgear/authgear-server/cmd/portal/internal"
 	"github.com/authgear/authgear-server/pkg/util/rand"
 	utilsecrets "github.com/authgear/authgear-server/pkg/util/secrets"
@@ -19,14 +20,14 @@ var cmdInternalMigrateOctetKey = &cobra.Command{
 	Use:   "migrate-octet-key",
 	Short: "Re-generate octet key in new alphabet",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		binder := getBinder()
+		binder := portalcmd.GetBinder()
 
-		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
+		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
 		if err != nil {
 			return err
 		}
 
-		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseSchema)
 		if err != nil {
 			return err
 		}

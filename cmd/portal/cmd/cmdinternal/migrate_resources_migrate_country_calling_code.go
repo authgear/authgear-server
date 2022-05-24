@@ -1,4 +1,4 @@
-package main
+package cmdinternal
 
 import (
 	"encoding/base64"
@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 
+	portalcmd "github.com/authgear/authgear-server/cmd/portal/cmd"
 	"github.com/authgear/authgear-server/cmd/portal/internal"
 )
 
@@ -15,14 +16,14 @@ var cmdInternalMigrateCountryCallingCode = &cobra.Command{
 	Use:   "migrate-country-calling-code",
 	Short: "Remove legacy country_calling_code config",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		binder := getBinder()
+		binder := portalcmd.GetBinder()
 
-		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
+		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
 		if err != nil {
 			return err
 		}
 
-		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseSchema)
 		if err != nil {
 			return err
 		}

@@ -6,25 +6,16 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-	"github.com/spf13/cobra"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
+	"github.com/authgear/authgear-server/cmd/portal/cmd"
+	_ "github.com/authgear/authgear-server/cmd/portal/cmd/cmdanalytic"
+	_ "github.com/authgear/authgear-server/cmd/portal/cmd/cmddatabase"
+	_ "github.com/authgear/authgear-server/cmd/portal/cmd/cmdinternal"
+	_ "github.com/authgear/authgear-server/cmd/portal/cmd/cmdpricing"
+	_ "github.com/authgear/authgear-server/cmd/portal/cmd/cmdstart"
 	"github.com/authgear/authgear-server/pkg/util/debug"
-	"github.com/authgear/authgear-server/pkg/version"
 )
-
-var cmdRoot = &cobra.Command{
-	Use:     "authgear-portal",
-	Version: version.Version,
-}
-
-func init() {
-	cmdRoot.AddCommand(cmdStart)
-	cmdRoot.AddCommand(cmdDatabase)
-	cmdRoot.AddCommand(cmdInternal)
-	cmdRoot.AddCommand(cmdPricing)
-	cmdRoot.AddCommand(cmdAnalytic)
-}
 
 func main() {
 	debug.TrapSIGQUIT()
@@ -34,5 +25,5 @@ func main() {
 		log.Printf("failed to load .env file: %s", err)
 	}
 
-	_ = cmdRoot.Execute()
+	_ = cmd.Root.Execute()
 }

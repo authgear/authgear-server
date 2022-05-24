@@ -1,4 +1,4 @@
-package main
+package cmdinternal
 
 import (
 	"bytes"
@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 
+	portalcmd "github.com/authgear/authgear-server/cmd/portal/cmd"
 	"github.com/authgear/authgear-server/cmd/portal/internal"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/theme"
@@ -16,12 +17,12 @@ var cmdInternalMigrateMediaQueryDarkTheme = &cobra.Command{
 	Use:   "migrate-media-query-dark-theme",
 	Short: "Migrate media query dark theme",
 	Run: func(cmd *cobra.Command, args []string) {
-		binder := getBinder()
-		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
+		binder := portalcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
-		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseSchema)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}

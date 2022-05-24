@@ -1,4 +1,4 @@
-package main
+package cmdinternal
 
 import (
 	"encoding/base64"
@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 
+	portalcmd "github.com/authgear/authgear-server/cmd/portal/cmd"
 	"github.com/authgear/authgear-server/cmd/portal/internal"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/rand"
@@ -21,14 +22,14 @@ var cmdInternalMigrateImagesSecret = &cobra.Command{
 	Use:   "migrate-images-secret",
 	Short: "Generate images secret to existing apps",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		binder := getBinder()
+		binder := portalcmd.GetBinder()
 
-		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
+		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
 		if err != nil {
 			return err
 		}
 
-		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseSchema)
 		if err != nil {
 			return err
 		}

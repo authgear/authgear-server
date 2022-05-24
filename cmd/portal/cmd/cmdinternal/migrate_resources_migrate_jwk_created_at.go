@@ -1,4 +1,4 @@
-package main
+package cmdinternal
 
 import (
 	"encoding/base64"
@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 
+	portalcmd "github.com/authgear/authgear-server/cmd/portal/cmd"
 	"github.com/authgear/authgear-server/cmd/portal/internal"
 )
 
@@ -18,14 +19,14 @@ var cmdInternalMigrateJWKCreatedAt = &cobra.Command{
 	Use:   "migrate-jwk-created-at",
 	Short: "Add created_at to the JWK if not exist",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		binder := getBinder()
+		binder := portalcmd.GetBinder()
 
-		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
+		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
 		if err != nil {
 			return err
 		}
 
-		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseSchema)
 		if err != nil {
 			return err
 		}

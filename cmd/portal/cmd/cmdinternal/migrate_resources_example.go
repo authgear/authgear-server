@@ -1,4 +1,4 @@
-package main
+package cmdinternal
 
 import (
 	"encoding/base64"
@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 
+	portalcmd "github.com/authgear/authgear-server/cmd/portal/cmd"
 	"github.com/authgear/authgear-server/cmd/portal/internal"
 )
 
@@ -15,12 +16,12 @@ var cmdInternalMigrateExample = &cobra.Command{
 	Use:   "example",
 	Short: "Migrate resources example",
 	Run: func(cmd *cobra.Command, args []string) {
-		binder := getBinder()
-		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
+		binder := portalcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
-		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseSchema)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}

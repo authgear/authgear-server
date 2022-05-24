@@ -1,4 +1,4 @@
-package main
+package cmdinternal
 
 import (
 	"encoding/base64"
@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 
+	portalcmd "github.com/authgear/authgear-server/cmd/portal/cmd"
 	"github.com/authgear/authgear-server/cmd/portal/internal"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -20,19 +21,19 @@ var cmdInternalMigrateCookieDomain = &cobra.Command{
 	Use:   "migrate-cookie-domain",
 	Short: "Set cookie domain for apps which are using custom domain",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		binder := getBinder()
+		binder := portalcmd.GetBinder()
 
-		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
+		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
 		if err != nil {
 			return err
 		}
 
-		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseSchema)
 		if err != nil {
 			return err
 		}
 
-		migrateCookieDomainAppHostSuffix, err = binder.GetRequiredString(cmd, ArgAppHostSuffix)
+		migrateCookieDomainAppHostSuffix, err = binder.GetRequiredString(cmd, portalcmd.ArgAppHostSuffix)
 		if err != nil {
 			return err
 		}
@@ -113,7 +114,7 @@ func migrateCookieDomain(appID string, configSourceData map[string]string, dryRu
 }
 
 func init() {
-	binder := getBinder()
+	binder := portalcmd.GetBinder()
 	cmdInternalBreakingChangeMigrateResources.AddCommand(cmdInternalMigrateCookieDomain)
-	binder.BindString(cmdInternalMigrateCookieDomain.Flags(), ArgAppHostSuffix)
+	binder.BindString(cmdInternalMigrateCookieDomain.Flags(), portalcmd.ArgAppHostSuffix)
 }

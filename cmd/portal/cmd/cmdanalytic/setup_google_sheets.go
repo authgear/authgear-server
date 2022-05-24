@@ -1,29 +1,23 @@
-package main
+package cmdanalytic
 
 import (
 	"github.com/spf13/cobra"
 
+	portalcmd "github.com/authgear/authgear-server/cmd/portal/cmd"
 	"github.com/authgear/authgear-server/cmd/portal/util/google"
 )
-
-func init() {
-	binder := getBinder()
-	cmdAnalytic.AddCommand(cmdAnalyticSetupGoogleSheetsToken)
-	binder.BindString(cmdAnalyticSetupGoogleSheetsToken.Flags(), ArgAnalyticGoogleOAuthClientCredentialsJSONFilePath)
-	binder.BindString(cmdAnalyticSetupGoogleSheetsToken.Flags(), ArgAnalyticGoogleOAuthTokenFilePath)
-}
 
 var cmdAnalyticSetupGoogleSheetsToken = &cobra.Command{
 	Use:   "setup-google-sheets-token",
 	Short: "Setup token file for accessing google sheets",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		binder := getBinder()
-		clientCredentialsJSONFilePath, err := binder.GetRequiredString(cmd, ArgAnalyticGoogleOAuthClientCredentialsJSONFilePath)
+		binder := portalcmd.GetBinder()
+		clientCredentialsJSONFilePath, err := binder.GetRequiredString(cmd, portalcmd.ArgAnalyticGoogleOAuthClientCredentialsJSONFilePath)
 		if err != nil {
 			return err
 		}
 
-		tokenJSONFilePath, err := binder.GetRequiredString(cmd, ArgAnalyticGoogleOAuthTokenFilePath)
+		tokenJSONFilePath, err := binder.GetRequiredString(cmd, portalcmd.ArgAnalyticGoogleOAuthTokenFilePath)
 		if err != nil {
 			return err
 		}

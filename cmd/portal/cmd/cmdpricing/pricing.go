@@ -1,4 +1,4 @@
-package main
+package cmdpricing
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 
+	portalcmd "github.com/authgear/authgear-server/cmd/portal/cmd"
 	"github.com/authgear/authgear-server/cmd/portal/plan"
 	"github.com/authgear/authgear-server/cmd/portal/util/editor"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -18,7 +19,7 @@ import (
 )
 
 func init() {
-	binder := getBinder()
+	binder := portalcmd.GetBinder()
 	cmdPricing.AddCommand(cmdPricingPlan)
 	cmdPricing.AddCommand(cmdPricingApp)
 	cmdPricingPlan.AddCommand(cmdPricingPlanCreate)
@@ -32,16 +33,18 @@ func init() {
 		cmdPricingAppSetPlan,
 		cmdPricingAppUpdate,
 	} {
-		binder.BindString(cmd.Flags(), ArgDatabaseURL)
-		binder.BindString(cmd.Flags(), ArgDatabaseSchema)
+		binder.BindString(cmd.Flags(), portalcmd.ArgDatabaseURL)
+		binder.BindString(cmd.Flags(), portalcmd.ArgDatabaseSchema)
 	}
 
-	binder.BindString(cmdPricingPlanUpdate.Flags(), ArgFeatureConfigFilePath)
+	binder.BindString(cmdPricingPlanUpdate.Flags(), portalcmd.ArgFeatureConfigFilePath)
 
-	binder.BindString(cmdPricingAppSetPlan.Flags(), ArgPlanName)
+	binder.BindString(cmdPricingAppSetPlan.Flags(), portalcmd.ArgPlanName)
 
-	binder.BindString(cmdPricingAppUpdate.Flags(), ArgFeatureConfigFilePath)
-	binder.BindString(cmdPricingAppUpdate.Flags(), ArgPlanNameForAppUpdate)
+	binder.BindString(cmdPricingAppUpdate.Flags(), portalcmd.ArgFeatureConfigFilePath)
+	binder.BindString(cmdPricingAppUpdate.Flags(), portalcmd.ArgPlanNameForAppUpdate)
+
+	portalcmd.Root.AddCommand(cmdPricing)
 }
 
 var cmdPricing = &cobra.Command{
@@ -65,13 +68,13 @@ var cmdPricingPlanCreate = &cobra.Command{
 	Short: "Create plan",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		binder := getBinder()
-		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
+		binder := portalcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
 		if err != nil {
 			return err
 		}
 
-		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseSchema)
 		if err != nil {
 			return err
 		}
@@ -95,13 +98,13 @@ var cmdPricingPlanUpdate = &cobra.Command{
 	Short: "Update plan's feature config",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		binder := getBinder()
-		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
+		binder := portalcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
 		if err != nil {
 			return err
 		}
 
-		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseSchema)
 		if err != nil {
 			return err
 		}
@@ -116,7 +119,7 @@ var cmdPricingPlanUpdate = &cobra.Command{
 
 		planName := args[0]
 		var featureConfigYAML []byte
-		featureConfigPath := binder.GetString(cmd, ArgFeatureConfigFilePath)
+		featureConfigPath := binder.GetString(cmd, portalcmd.ArgFeatureConfigFilePath)
 		if featureConfigPath != "" {
 			// update feature config from file
 			featureConfigYAML, err = ioutil.ReadFile(featureConfigPath)
@@ -174,13 +177,13 @@ var cmdPricingAppSetPlan = &cobra.Command{
 	Short: "Set the app to the plan",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		binder := getBinder()
-		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
+		binder := portalcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
 		if err != nil {
 			return err
 		}
 
-		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseSchema)
 		if err != nil {
 			return err
 		}
@@ -194,7 +197,7 @@ var cmdPricingAppSetPlan = &cobra.Command{
 		planService := plan.NewService(context.Background(), dbPool, dbCredentials)
 
 		appID := args[0]
-		planName, err := binder.GetRequiredString(cmd, ArgPlanName)
+		planName, err := binder.GetRequiredString(cmd, portalcmd.ArgPlanName)
 		if err != nil {
 			return err
 		}
@@ -216,13 +219,13 @@ var cmdPricingAppUpdate = &cobra.Command{
 	Short: "Update app's feature config and plan name",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		binder := getBinder()
-		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
+		binder := portalcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
 		if err != nil {
 			return err
 		}
 
-		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseSchema)
 		if err != nil {
 			return err
 		}
@@ -236,13 +239,13 @@ var cmdPricingAppUpdate = &cobra.Command{
 		planService := plan.NewService(context.Background(), dbPool, dbCredentials)
 
 		appID := args[0]
-		planName, err := binder.GetRequiredString(cmd, ArgPlanNameForAppUpdate)
+		planName, err := binder.GetRequiredString(cmd, portalcmd.ArgPlanNameForAppUpdate)
 		if err != nil {
 			return err
 		}
 
 		var featureConfigYAML []byte
-		featureConfigPath := binder.GetString(cmd, ArgFeatureConfigFilePath)
+		featureConfigPath := binder.GetString(cmd, portalcmd.ArgFeatureConfigFilePath)
 		if featureConfigPath != "" {
 			// update feature config from file
 			featureConfigYAML, err = ioutil.ReadFile(featureConfigPath)
