@@ -11,7 +11,7 @@
                   (eq .Step "enter-oob-otp-authn-sms")
                   (eq .Step "setup-whatsapp-otp")
                   (eq .Step "verify-whatsapp-otp-authn")) }}
-            {{ if not $rendered_separator }}
+            {{ if (and (not $.separatorDisabled) (not $rendered_separator)) }}
                 {{ $rendered_separator = true }}
                 <div class="alternative-separator flex flex-row items-center">
                     <span class="primary-txt mx-1.5 text-sm">{{ template "or-label" }}</span>
