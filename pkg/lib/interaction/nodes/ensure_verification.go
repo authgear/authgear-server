@@ -40,6 +40,11 @@ type NodeEnsureVerificationBegin struct {
 	VerificationStatus verification.Status              `json:"-"`
 }
 
+// GetVerifyIdentityEdges implements EnsureVerificationBeginNode
+func (n *NodeEnsureVerificationBegin) GetVerifyIdentityEdges() ([]interaction.Edge, error) {
+	return n.deriveEdges()
+}
+
 func (n *NodeEnsureVerificationBegin) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
 	claims, err := ctx.Verification.GetIdentityVerificationStatus(n.Identity)
 	if err != nil {
@@ -60,43 +65,35 @@ func (n *NodeEnsureVerificationBegin) GetEffects() ([]interaction.Effect, error)
 }
 
 func (n *NodeEnsureVerificationBegin) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+	return n.deriveEdges()
+}
+
+func (n *NodeEnsureVerificationBegin) deriveEdges() ([]interaction.Edge, error) {
 	isPhoneIdentity := ensurePhoneLoginIDIdentity(n.Identity) == nil
+	verifyIdentityEdges := func() (edges []interaction.Edge) {
+		if n.PhoneOTPMode.IsWhatsappEnabled() && isPhoneIdentity {
+			edges = append(edges, &EdgeVerifyIdentityViaWhatsapp{
+				Identity:        n.Identity,
+				RequestedByUser: n.RequestedByUser,
+			})
+		}
+
+		edges = append(edges, &EdgeVerifyIdentity{
+			Identity:        n.Identity,
+			RequestedByUser: n.RequestedByUser,
+		})
+		return edges
+	}
 	switch n.VerificationStatus {
 	case verification.StatusDisabled, verification.StatusVerified:
 		break
 	case verification.StatusPending:
 		if n.RequestedByUser && !n.SkipVerification {
-			if n.PhoneOTPMode.IsWhatsappEnabled() && isPhoneIdentity {
-				return []interaction.Edge{
-					&EdgeVerifyIdentityViaWhatsapp{
-						Identity:        n.Identity,
-						RequestedByUser: n.RequestedByUser,
-					},
-				}, nil
-			}
-			return []interaction.Edge{
-				&EdgeVerifyIdentity{
-					Identity:        n.Identity,
-					RequestedByUser: n.RequestedByUser,
-				},
-			}, nil
+			return verifyIdentityEdges(), nil
 		}
 	case verification.StatusRequired:
 		if !n.SkipVerification {
-			if n.PhoneOTPMode.IsWhatsappEnabled() && isPhoneIdentity {
-				return []interaction.Edge{
-					&EdgeVerifyIdentityViaWhatsapp{
-						Identity:        n.Identity,
-						RequestedByUser: n.RequestedByUser,
-					},
-				}, nil
-			}
-			return []interaction.Edge{
-				&EdgeVerifyIdentity{
-					Identity:        n.Identity,
-					RequestedByUser: n.RequestedByUser,
-				},
-			}, nil
+			return verifyIdentityEdges(), nil
 		}
 	}
 

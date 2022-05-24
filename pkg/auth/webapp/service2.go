@@ -263,6 +263,20 @@ func (s *Service2) doPost(
 			default:
 				panic(fmt.Errorf("webapp: unexpected edge: %T", defaultEdge))
 			}
+
+		case SessionStepVerifyIdentityBegin:
+			switch defaultEdge := edges[0].(type) {
+			case *nodes.EdgeVerifyIdentity:
+				inputFn = func() (interface{}, error) {
+					return &inputSelectVerifyIdentityViaOOBOTP{}, nil
+				}
+			case *nodes.EdgeVerifyIdentityViaWhatsapp:
+				inputFn = func() (interface{}, error) {
+					return &inputSelectVerifyIdentityViaWhatsapp{}, nil
+				}
+			default:
+				panic(fmt.Errorf("webapp: unexpected edge: %T", defaultEdge))
+			}
 		}
 
 		if inputFn == nil {
@@ -484,6 +498,8 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 		return SessionStepSetupTOTP
 	case *nodes.NodeGenerateRecoveryCodeBegin:
 		return SessionStepSetupRecoveryCode
+	case *nodes.NodeEnsureVerificationBegin:
+		return SessionStepVerifyIdentityBegin
 	case *nodes.NodeVerifyIdentity:
 		return SessionStepVerifyIdentityViaOOBOTP
 	case *nodes.NodeVerifyIdentityViaWhatsapp:
