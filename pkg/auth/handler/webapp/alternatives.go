@@ -6,9 +6,16 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
+type AuthenticationBeginNode interface {
+	GetAuthenticationEdges() ([]interaction.Edge, error)
+	GetAuthenticationStage() authn.AuthenticationStage
+}
+
 type CreateAuthenticatorBeginNode interface {
+	GetCreateAuthenticatorEdges() ([]interaction.Edge, error)
 	GetCreateAuthenticatorStage() authn.AuthenticationStage
 }
 

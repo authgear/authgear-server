@@ -53,13 +53,38 @@ func (h *WhatsappOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 	if err := whatsappViewModel.AddData(r, graph, h.WhatsappCodeProvider); err != nil {
 		return nil, err
 	}
+	currentStepKind := session.CurrentStep().Kind
 	phoneOTPAlternatives := viewmodels.PhoneOTPAlternativeStepsViewModel{}
-	if err := phoneOTPAlternatives.AddAlternatives(graph, session.CurrentStep().Kind); err != nil {
+	if err := phoneOTPAlternatives.AddAlternatives(graph, currentStepKind); err != nil {
 		return nil, err
 	}
+	// alternatives
+	alternatives := viewmodels.AlternativeStepsViewModel{}
+	var node1 CreateAuthenticatorBeginNode
+	var node2 AuthenticationBeginNode
+	nodesInf := []interface{}{
+		&node1,
+		&node2,
+	}
+	node := graph.FindLastNodeFromList(nodesInf)
+	switch node.(type) {
+	case *CreateAuthenticatorBeginNode:
+		if err := alternatives.AddCreateAuthenticatorAlternatives(graph, currentStepKind); err != nil {
+			return nil, err
+		}
+	case *AuthenticationBeginNode:
+		if err := alternatives.AddAuthenticationAlternatives(graph, currentStepKind); err != nil {
+			return nil, err
+		}
+	default:
+		// identity verification
+		// alternatives are provided in PhoneOTPAlternativeStepsViewModel
+	}
+
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, whatsappViewModel)
 	viewmodels.Embed(data, phoneOTPAlternatives)
+	viewmodels.Embed(data, alternatives)
 	return data, nil
 }
 
