@@ -64,9 +64,18 @@
 	data-authgear-event="authgear.button.enter_oob_otp"
 >{{ template "next-button-label" }}</button>
 
+{{/* Since the page has two alternatives list, so we need to handle the display of separator separately*/}}
+{{ $needSeparator := not (and (empty .AlternativeSteps) (empty .PhoneOTPAlternativeSteps)) }}
+{{ if $needSeparator }}
+	<div class="alternative-separator flex flex-row items-center">
+ 		<span class="primary-txt mx-1.5 text-sm">{{ template "or-label" }}</span>
+	</div>
+{{ end }}
+
 {{ template "__phone_otp_alternatives.html" . }}
 
-{{ template "__alternatives.html" . }}
+{{ $altOptions := (set (deepCopy .) "separatorDisabled" true) }}
+{{ template "__alternatives.html" $altOptions }}
 
 {{ template "__watermark.html" . }}
 </div>
