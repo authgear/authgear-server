@@ -5,7 +5,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/davidbyttow/govips/v2/vips"
 	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
 	. "github.com/smartystreets/goconvey/convey"
@@ -66,7 +65,7 @@ func TestGetHandler(t *testing.T) {
 			directorMaker.EXPECT().MakeDirector(gomock.Any()).AnyTimes().Return(func(r *http.Request) {})
 			vipsDaemon.EXPECT().Process(gomock.Any()).Times(1).Return(&vipsutil.Output{
 				Data:          nil,
-				ImageMetadata: &vips.ImageMetadata{},
+				FileExtension: "",
 			}, nil)
 			gock.New("http://localhost:3004").
 				Reply(200).
@@ -84,10 +83,8 @@ func TestGetHandler(t *testing.T) {
 
 			directorMaker.EXPECT().MakeDirector(gomock.Any()).AnyTimes().Return(func(r *http.Request) {})
 			vipsDaemon.EXPECT().Process(gomock.Any()).Times(1).Return(&vipsutil.Output{
-				Data: nil,
-				ImageMetadata: &vips.ImageMetadata{
-					Format: vips.ImageTypeJPEG,
-				},
+				Data:          nil,
+				FileExtension: ".jpeg",
 			}, nil)
 			gock.New("http://localhost:3004").
 				Reply(200)

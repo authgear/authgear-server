@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"regexp"
 
-	messageformat "github.com/iawaknahc/gomessageformat"
 	"golang.org/x/text/language"
 
 	"github.com/authgear/authgear-server/pkg/util/intlresource"
+	"github.com/authgear/authgear-server/pkg/util/messageformat"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 

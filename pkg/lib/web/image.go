@@ -11,10 +11,9 @@ import (
 	"regexp"
 	"sort"
 
-	"github.com/vimeo/go-magic/magic"
-
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/util/intlresource"
+	"github.com/authgear/authgear-server/pkg/util/libmagic"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -123,7 +122,7 @@ func (a ImageDescriptor) ViewResources(resources []resource.ResourceFile, rawVie
 
 func (a ImageDescriptor) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
 	if len(data) > 0 {
-		typ := magic.MimeFromBytes(data)
+		typ := libmagic.MimeFromBytes(data)
 		_, ok := preferredExtensions[typ]
 		if !ok {
 			return nil, UnsupportedImageFile.NewWithDetails("unsupported image file", apierrors.Details{

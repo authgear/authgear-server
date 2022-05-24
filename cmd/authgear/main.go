@@ -6,10 +6,19 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-	"github.com/spf13/cobra"
 
+	"github.com/authgear/authgear-server/cmd/authgear/cmd"
+	_ "github.com/authgear/authgear-server/cmd/authgear/cmd/cmdaudit"
+	_ "github.com/authgear/authgear-server/cmd/authgear/cmd/cmdbackground"
+	_ "github.com/authgear/authgear-server/cmd/authgear/cmd/cmddatabase"
+	_ "github.com/authgear/authgear-server/cmd/authgear/cmd/cmdimages"
+	_ "github.com/authgear/authgear-server/cmd/authgear/cmd/cmdimages/cmddatabase"
+	_ "github.com/authgear/authgear-server/cmd/authgear/cmd/cmdimages/cmdstart"
+	_ "github.com/authgear/authgear-server/cmd/authgear/cmd/cmdimport"
+	_ "github.com/authgear/authgear-server/cmd/authgear/cmd/cmdinit"
+	_ "github.com/authgear/authgear-server/cmd/authgear/cmd/cmdinternal"
+	_ "github.com/authgear/authgear-server/cmd/authgear/cmd/cmdstart"
 	"github.com/authgear/authgear-server/pkg/util/debug"
-	"github.com/authgear/authgear-server/pkg/version"
 )
 
 func main() {
@@ -20,21 +29,5 @@ func main() {
 		log.Printf("failed to load .env file: %s", err)
 	}
 
-	_ = cmdRoot.Execute()
-}
-
-var cmdRoot = &cobra.Command{
-	Use:     "authgear",
-	Version: version.Version,
-}
-
-func init() {
-	cmdRoot.AddCommand(cmdStart)
-	cmdRoot.AddCommand(cmdInit)
-	cmdRoot.AddCommand(cmdDatabase)
-	cmdRoot.AddCommand(cmdInternal)
-	cmdRoot.AddCommand(cmdAudit)
-	cmdRoot.AddCommand(cmdBackground)
-	cmdRoot.AddCommand(cmdImport)
-	cmdRoot.AddCommand(cmdImages)
+	_ = cmd.Root.Execute()
 }

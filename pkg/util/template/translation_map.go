@@ -7,7 +7,7 @@ import (
 	texttemplate "text/template"
 	"text/template/parse"
 
-	messageformat "github.com/iawaknahc/gomessageformat"
+	"github.com/authgear/authgear-server/pkg/util/messageformat"
 )
 
 type TranslationMap struct {

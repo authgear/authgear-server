@@ -64,14 +64,14 @@ fmt:
 # timetzdata: https://golang.org/doc/go1.15#time/tzdata
 .PHONY: build
 build:
-	go build -o $(BIN_NAME) -tags 'osusergo netgo static_build timetzdata' -ldflags ${LDFLAGS} ./cmd/$(TARGET)
+	go build -o $(BIN_NAME) -tags "osusergo netgo static_build timetzdata $(GO_BUILD_TAGS)" -ldflags ${LDFLAGS} ./cmd/$(TARGET)
 
 .PHONY: binary
 binary:
 	rm -rf ./dist
 	mkdir ./dist
-	$(MAKE) build TARGET=authgear BIN_NAME=./dist/authgear-"$(shell go env GOOS)"-"$(shell go env GOARCH)"-${GIT_HASH}
-	$(MAKE) build TARGET=portal BIN_NAME=./dist/authgear-portal-"$(shell go env GOOS)"-"$(shell go env GOARCH)"-${GIT_HASH}
+	$(MAKE) build GO_BUILD_TAGS=authgearlite TARGET=authgear BIN_NAME=./dist/authgear-lite-"$(shell go env GOOS)"-"$(shell go env GOARCH)"-${GIT_HASH}
+	$(MAKE) build GO_BUILD_TAGS=authgearlite TARGET=portal BIN_NAME=./dist/authgear-portal-lite-"$(shell go env GOOS)"-"$(shell go env GOARCH)"-${GIT_HASH}
 
 .PHONY: check-tidy
 check-tidy:

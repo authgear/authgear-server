@@ -134,7 +134,7 @@ func (h *GetHandler) modifyResponse(resp *http.Response) error {
 	resp.Header.Set("Content-Length", strconv.Itoa(len(output.Data)))
 
 	// Set Content-Type
-	mediaType := mime.TypeByExtension(output.ImageMetadata.Format.FileExt())
+	mediaType := mime.TypeByExtension(output.FileExtension)
 	if mediaType != "" {
 		resp.Header.Set("Content-Type", mediaType)
 	} else {
