@@ -15,12 +15,21 @@ func init() {
 	interaction.RegisterNode(&NodeVerifyIdentity{})
 }
 
+type InputVerifyIdentity interface {
+	SelectVerifyIdentityViaOOBOTP()
+}
+
 type EdgeVerifyIdentity struct {
 	Identity        *identity.Info
 	RequestedByUser bool
 }
 
 func (e *EdgeVerifyIdentity) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+	var input InputVerifyIdentity
+	if !interaction.Input(rawInput, &input) {
+		return nil, interaction.ErrIncompatibleInput
+	}
+
 	node := &NodeVerifyIdentity{
 		Identity:        e.Identity,
 		CodeID:          verification.NewCodeID(),

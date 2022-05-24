@@ -133,8 +133,14 @@ func (h *VerifyIdentityHandler) GetData(r *http.Request, rw http.ResponseWriter,
 		}
 	}
 
+	phoneOTPAlternatives := viewmodels.PhoneOTPAlternativeStepsViewModel{}
+	if err := phoneOTPAlternatives.AddAlternatives(graph, webapp.SessionStepVerifyIdentityViaOOBOTP); err != nil {
+		return nil, err
+	}
+
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, viewModel)
+	viewmodels.Embed(data, phoneOTPAlternatives)
 
 	return data, nil
 }
@@ -315,4 +321,6 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		result.WriteResponse(w, r)
 		return nil
 	})
+
+	handleAlternativeSteps(ctrl)
 }

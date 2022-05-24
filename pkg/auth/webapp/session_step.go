@@ -29,6 +29,7 @@ const (
 	SessionStepSetupTOTP                 SessionStepKind = "setup-totp"
 	SessionStepEnterRecoveryCode         SessionStepKind = "enter-recovery-code"
 	SessionStepSetupRecoveryCode         SessionStepKind = "setup-recovery-code"
+	SessionStepVerifyIdentityBegin       SessionStepKind = "verify-identity-begin"
 	SessionStepVerifyIdentityViaOOBOTP   SessionStepKind = "verify-identity"
 	SessionStepVerifyIdentityViaWhatsapp SessionStepKind = "verify-identity-via-whatsapp"
 	SessionStepAccountStatus             SessionStepKind = "account-status"
@@ -83,7 +84,8 @@ func (k SessionStepKind) Path() string {
 		return "/account_status"
 	case SessionStepOAuthRedirect,
 		SessionStepAuthenticate,
-		SessionStepCreateAuthenticator:
+		SessionStepCreateAuthenticator,
+		SessionStepVerifyIdentityBegin:
 		// No path for step.
 		return ""
 	default:

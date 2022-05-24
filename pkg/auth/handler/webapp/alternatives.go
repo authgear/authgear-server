@@ -163,6 +163,16 @@ func handleAlternativeSteps(ctrl *Controller) {
 					AuthenticatorIndex: index,
 				}, nil
 			}
+		case webapp.SessionStepVerifyIdentityViaOOBOTP:
+			choiceStep = webapp.SessionStepVerifyIdentityBegin
+			inputFn = func() (interface{}, error) {
+				return &InputSelectVerifyIdentityViaOOBOTP{}, nil
+			}
+		case webapp.SessionStepVerifyIdentityViaWhatsapp:
+			choiceStep = webapp.SessionStepVerifyIdentityBegin
+			inputFn = func() (interface{}, error) {
+				return &InputSelectVerifyIdentityViaWhatsapp{}, nil
+			}
 		}
 
 		// Rewind session back to the choosing step.

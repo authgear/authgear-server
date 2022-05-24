@@ -1,6 +1,7 @@
 package viewmodels
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -14,24 +15,39 @@ type AuthenticationPhoneOTPTriggerNode interface {
 	GetSelectedPhoneNumberForPhoneOTPAuthentication() string
 }
 
+type EnsureVerificationBeginNode interface {
+	GetVerifyIdentityEdges() ([]interaction.Edge, error)
+}
+
 type PhoneOTPAlternativeStepsViewModel struct {
 	PhoneOTPAlternativeSteps []AlternativeStep
 }
 
 func (m *PhoneOTPAlternativeStepsViewModel) AddAlternatives(graph *interaction.Graph, currentStepKind webapp.SessionStepKind) error {
-	// authenticator creation
-	var node CreateAuthenticatorBeginNode
-	if graph.FindLastNode(&node) {
-		return m.addCreateAuthenticatorAlternatives(node, graph, currentStepKind)
-	}
-
-	// authentication
+	var node1 CreateAuthenticatorBeginNode
 	var node2 AuthenticationBeginNode
-	if graph.FindLastNode(&node2) {
-		return m.addAuthenticationAlternatives(node2, graph, currentStepKind)
+	var node3 EnsureVerificationBeginNode
+	nodesInf := []interface{}{
+		&node1,
+		&node2,
+		&node3,
 	}
 
-	return nil
+	// Find the last node from the list to determine what is the ongoing interaction
+	node := graph.FindLastNodeFromList(nodesInf)
+	switch n := node.(type) {
+	case *CreateAuthenticatorBeginNode:
+		// authenticator creation
+		return m.addCreateAuthenticatorAlternatives(*n, graph, currentStepKind)
+	case *AuthenticationBeginNode:
+		// authentication
+		return m.addAuthenticationAlternatives(*n, graph, currentStepKind)
+	case *EnsureVerificationBeginNode:
+		// verification
+		return m.addVerifyIdentityAlternatives(*n, graph, currentStepKind)
+	default:
+		panic(fmt.Errorf("viewmodels: unexpected node type: %T", n))
+	}
 }
 
 func (m *PhoneOTPAlternativeStepsViewModel) addCreateAuthenticatorAlternatives(node CreateAuthenticatorBeginNode, graph *interaction.Graph, currentStepKind webapp.SessionStepKind) error {
@@ -142,5 +158,34 @@ func (m *PhoneOTPAlternativeStepsViewModel) addAuthenticationAlternatives(node A
 
 		}
 	}
+	return nil
+}
+
+func (m *PhoneOTPAlternativeStepsViewModel) addVerifyIdentityAlternatives(node EnsureVerificationBeginNode, graph *interaction.Graph, currentStepKind webapp.SessionStepKind) error {
+	edges, err := node.GetVerifyIdentityEdges()
+	if err != nil {
+		return err
+	}
+
+	for _, edge := range edges {
+		switch edge.(type) {
+		case *nodes.EdgeVerifyIdentityViaWhatsapp:
+			if currentStepKind == webapp.SessionStepVerifyIdentityViaWhatsapp {
+				continue
+			}
+			m.PhoneOTPAlternativeSteps = append(m.PhoneOTPAlternativeSteps, AlternativeStep{
+				Step: webapp.SessionStepVerifyIdentityViaWhatsapp,
+			})
+		case *nodes.EdgeVerifyIdentity:
+			if currentStepKind == webapp.SessionStepVerifyIdentityViaOOBOTP {
+				continue
+			}
+			m.PhoneOTPAlternativeSteps = append(m.PhoneOTPAlternativeSteps, AlternativeStep{
+				Step: webapp.SessionStepVerifyIdentityViaOOBOTP,
+			})
+		default:
+		}
+	}
+
 	return nil
 }

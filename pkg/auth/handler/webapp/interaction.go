@@ -270,3 +270,15 @@ type InputSetupWhatsappOTP struct {
 func (i *InputSetupWhatsappOTP) GetWhatsappPhone() string { return i.Phone }
 
 var _ nodes.InputCreateAuthenticatorWhatsappOTPSetup = &InputSetupWhatsappOTP{}
+
+type InputSelectVerifyIdentityViaOOBOTP struct{}
+
+func (i *InputSelectVerifyIdentityViaOOBOTP) SelectVerifyIdentityViaOOBOTP() {}
+
+var _ nodes.InputVerifyIdentity = &InputSelectVerifyIdentityViaOOBOTP{}
+
+type InputSelectVerifyIdentityViaWhatsapp struct{}
+
+func (i *InputSelectVerifyIdentityViaWhatsapp) SelectVerifyIdentityViaWhatsapp() {}
+
+var _ nodes.InputVerifyIdentityViaWhatsapp = &InputSelectVerifyIdentityViaWhatsapp{}
