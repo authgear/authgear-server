@@ -44,7 +44,7 @@
 </button>
 </form>
 
-<form class="link mb-5" method="post" novalidate>
+<form class="link" method="post" novalidate>
 {{ $.CSRFField }}
 
 {{ if not (eq $.Action "update_session_step") }}
@@ -61,6 +61,8 @@
 
 </form>
 {{ end }}
+
+{{ template "__phone_otp_alternatives.html" . }}
 
 {{ template "__watermark.html" . }}
 </div>
