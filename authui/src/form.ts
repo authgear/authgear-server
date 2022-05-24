@@ -1,4 +1,4 @@
-import * as Turbo from "@hotwired/turbo";
+import { visit, clearCache } from "@hotwired/turbo";
 import axios, { Method } from "axios";
 import {
   disableAllButtons,
@@ -78,7 +78,7 @@ export class XHRSubmitFormController extends Controller {
 
       const { redirect_uri, action } = resp.data;
 
-      Turbo.clearCache();
+      clearCache();
       switch (action) {
         case "redirect":
           // Perform full redirect.
@@ -87,7 +87,7 @@ export class XHRSubmitFormController extends Controller {
 
         case "replace":
         case "advance":
-          Turbo.visit(redirect_uri, { action });
+          visit(redirect_uri, { action });
           break;
       }
     } catch (e: unknown) {

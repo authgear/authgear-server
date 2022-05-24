@@ -1,4 +1,4 @@
-import * as Turbo from "@hotwired/turbo";
+import { start } from "@hotwired/turbo";
 import { Application } from "@hotwired/stimulus";
 import axios from "axios";
 import { CopyButtonController } from "./copy";
@@ -27,7 +27,7 @@ import { BackButtonController } from "./back";
 
 axios.defaults.withCredentials = true;
 
-Turbo.start();
+start();
 
 const Stimulus = Application.start();
 Stimulus.register("color-scheme", ColorSchemeController);

@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus";
-import * as Turbo from "@hotwired/turbo";
+import { visit } from "@hotwired/turbo";
 
 function refreshPage() {
   let url = window.location.pathname;
@@ -9,7 +9,7 @@ function refreshPage() {
   if (window.location.hash !== "") {
     url += window.location.hash;
   }
-  Turbo.visit(url, { action: "replace" });
+  visit(url, { action: "replace" });
 }
 
 export class WebSocketController extends Controller {
