@@ -188,11 +188,13 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 			})
 		}
 
-		edges = append(edges, &EdgeAuthenticationOOBTrigger{
-			Stage:                n.Stage,
-			Authenticators:       smsoobs,
-			OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
-		})
+		if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsSMSEnabled() {
+			edges = append(edges, &EdgeAuthenticationOOBTrigger{
+				Stage:                n.Stage,
+				Authenticators:       smsoobs,
+				OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
+			})
+		}
 	}
 
 	// No authenticators found, skip the authentication stage if not required.
