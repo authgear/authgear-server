@@ -44,6 +44,11 @@ func newGraph(intent Intent) *Graph {
 }
 
 func (g *Graph) FindLastNode(node interface{}) bool {
+	idx := g.FindLastNodeAndPosition(node)
+	return idx >= 0
+}
+
+func (g *Graph) FindLastNodeAndPosition(node interface{}) int {
 	val := reflect.ValueOf(node)
 	typ := val.Type()
 	if typ.Kind() != reflect.Ptr || val.IsNil() {
@@ -57,10 +62,27 @@ func (g *Graph) FindLastNode(node interface{}) bool {
 		n := g.Nodes[i]
 		if reflect.TypeOf(n).AssignableTo(targetType) {
 			val.Elem().Set(reflect.ValueOf(n))
-			return true
+			return i
 		}
 	}
-	return false
+	return -1
+}
+
+// FindLastNodeFromList find the last node from a list of node interface
+func (g *Graph) FindLastNodeFromList(nodes []interface{}) (node interface{}) {
+	maxNodePosition := -1
+	nodeIdx := -1
+	for i, n := range nodes {
+		nodePosition := g.FindLastNodeAndPosition(n)
+		if nodePosition > maxNodePosition {
+			maxNodePosition = nodePosition
+			nodeIdx = i
+		}
+	}
+	if nodeIdx < 0 {
+		return nil
+	}
+	return nodes[nodeIdx]
 }
 
 func (g *Graph) CurrentNode() Node {
