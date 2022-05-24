@@ -71,17 +71,26 @@ func (n *NodeEnsureVerificationBegin) DeriveEdges(graph *interaction.Graph) ([]i
 func (n *NodeEnsureVerificationBegin) deriveEdges() ([]interaction.Edge, error) {
 	isPhoneIdentity := ensurePhoneLoginIDIdentity(n.Identity) == nil
 	verifyIdentityEdges := func() (edges []interaction.Edge) {
-		if n.PhoneOTPMode.IsWhatsappEnabled() && isPhoneIdentity {
-			edges = append(edges, &EdgeVerifyIdentityViaWhatsapp{
+		if isPhoneIdentity {
+			if n.PhoneOTPMode.IsWhatsappEnabled() {
+				edges = append(edges, &EdgeVerifyIdentityViaWhatsapp{
+					Identity:        n.Identity,
+					RequestedByUser: n.RequestedByUser,
+				})
+			}
+
+			if n.PhoneOTPMode.IsSMSEnabled() {
+				edges = append(edges, &EdgeVerifyIdentity{
+					Identity:        n.Identity,
+					RequestedByUser: n.RequestedByUser,
+				})
+			}
+		} else {
+			edges = append(edges, &EdgeVerifyIdentity{
 				Identity:        n.Identity,
 				RequestedByUser: n.RequestedByUser,
 			})
 		}
-
-		edges = append(edges, &EdgeVerifyIdentity{
-			Identity:        n.Identity,
-			RequestedByUser: n.RequestedByUser,
-		})
 		return edges
 	}
 	switch n.VerificationStatus {
