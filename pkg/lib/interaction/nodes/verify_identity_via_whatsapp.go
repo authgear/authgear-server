@@ -13,12 +13,21 @@ func init() {
 	interaction.RegisterNode(&NodeVerifyIdentityViaWhatsapp{})
 }
 
+type InputVerifyIdentityViaWhatsapp interface {
+	SelectVerifyIdentityViaWhatsapp()
+}
+
 type EdgeVerifyIdentityViaWhatsapp struct {
 	Identity        *identity.Info
 	RequestedByUser bool
 }
 
 func (e *EdgeVerifyIdentityViaWhatsapp) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+	var input InputVerifyIdentityViaWhatsapp
+	if !interaction.Input(rawInput, &input) {
+		return nil, interaction.ErrIncompatibleInput
+	}
+
 	if err := ensurePhoneLoginIDIdentity(e.Identity); err != nil {
 		panic(err)
 	}

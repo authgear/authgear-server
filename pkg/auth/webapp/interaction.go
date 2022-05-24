@@ -47,3 +47,15 @@ type inputSelectOOB struct{}
 func (i *inputSelectOOB) SetupPrimaryAuthenticatorOOB() {}
 
 var _ nodes.InputCreateAuthenticatorOOBSetupSelect = &inputSelectOOB{}
+
+type inputSelectVerifyIdentityViaOOBOTP struct{}
+
+func (i *inputSelectVerifyIdentityViaOOBOTP) SelectVerifyIdentityViaOOBOTP() {}
+
+var _ nodes.InputVerifyIdentity = &inputSelectVerifyIdentityViaOOBOTP{}
+
+type inputSelectVerifyIdentityViaWhatsapp struct{}
+
+func (i *inputSelectVerifyIdentityViaWhatsapp) SelectVerifyIdentityViaWhatsapp() {}
+
+var _ nodes.InputVerifyIdentityViaWhatsapp = &inputSelectVerifyIdentityViaWhatsapp{}

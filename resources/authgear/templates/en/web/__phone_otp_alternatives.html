@@ -11,6 +11,8 @@
               (eq .Step "setup-whatsapp-otp")
               (eq .Step "enter-oob-otp-authn-sms")
               (eq .Step "verify-whatsapp-otp-authn")
+              (eq .Step "verify-identity")
+              (eq .Step "verify-identity-via-whatsapp")
           ) }}
       <form method="post" novalidate>
         {{ $.CSRFField }}
@@ -21,14 +23,14 @@
         <input type="hidden" name="x_action" value="choose_step"/>
         <div class="{{ $containerClass }}">
         <button class="{{ $buttonClass }}" type="submit">
-          {{ if (or (eq .Step "setup-oob-otp-sms") (eq .Step "enter-oob-otp-authn-sms")) }}
+          {{ if (or (eq .Step "setup-oob-otp-sms") (eq .Step "enter-oob-otp-authn-sms") (eq .Step "verify-identity")) }}
             {{ if $.buttonStyleEnabled }}
               {{ template "phone-otp-verify-with-sms-instead-button" .Data }}
             {{ else }}
               {{ template "phone-otp-verify-with-sms-instead" .Data }}
             {{ end }}
           {{ end }}
-          {{ if (or (eq .Step "setup-whatsapp-otp") (eq .Step "verify-whatsapp-otp-authn")) }}
+          {{ if (or (eq .Step "setup-whatsapp-otp") (eq .Step "verify-whatsapp-otp-authn") (eq .Step "verify-identity-via-whatsapp")) }}
             {{ template "phone-otp-verify-with-whatsapp-instead" .Data }}
           {{ end }}
         </button>
