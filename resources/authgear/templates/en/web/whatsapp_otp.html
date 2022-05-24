@@ -46,6 +46,9 @@
   </a>
   {{ $options := (set (deepCopy .) "buttonStyleEnabled" true) }}
   {{ template "__phone_otp_alternatives.html" $options }}
+
+  {{ $altOptions := (set (deepCopy .) "separatorDisabled" true) }}
+  {{ template "__alternatives.html" $altOptions }}
 {{ else }}
   {{ if eq .StateQuery "" }}
     {{ template "__state_initial.html" . }}
@@ -188,5 +191,8 @@
       </a>
     {{ end }}
     {{ template "__phone_otp_alternatives.html" . }}
+
+    {{ $altOptions := (set (deepCopy .) "separatorDisabled" true) }}
+    {{ template "__alternatives.html" $altOptions }}
   </div>
 {{ end }}
