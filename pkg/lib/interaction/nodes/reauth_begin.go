@@ -182,11 +182,13 @@ func (n *NodeReauthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge
 				})
 			}
 
-			edges = append(edges, &EdgeAuthenticationOOBTrigger{
-				Stage:                n.Stage,
-				Authenticators:       []*authenticator.Info{a},
-				OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
-			})
+			if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsSMSEnabled() {
+				edges = append(edges, &EdgeAuthenticationOOBTrigger{
+					Stage:                n.Stage,
+					Authenticators:       []*authenticator.Info{a},
+					OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
+				})
+			}
 		}
 	}
 
