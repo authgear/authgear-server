@@ -13,7 +13,7 @@ export class XHRSubmitFormController extends Controller {
   revertDisabledButtons: { (): void } | null = null;
   forms: HTMLFormElement[] = [];
 
-  // Revert disabled buttons before turbolinks cache the page
+  // Revert disabled buttons before Turbo caches the page
   // To avoid flickering in the UI
   beforeCache = () => {
     if (this.revertDisabledButtons) {
