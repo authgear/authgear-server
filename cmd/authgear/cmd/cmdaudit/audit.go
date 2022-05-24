@@ -1,4 +1,4 @@
-package main
+package cmdaudit
 
 import (
 	"fmt"
@@ -8,11 +8,12 @@ import (
 
 	"github.com/spf13/cobra"
 
+	authgearcmd "github.com/authgear/authgear-server/cmd/authgear/cmd"
 	"github.com/authgear/authgear-server/pkg/util/sqlmigrate"
 )
 
 func init() {
-	binder := getBinder()
+	binder := authgearcmd.GetBinder()
 	cmdAudit.AddCommand(cmdAuditDatabase)
 	cmdAuditDatabase.AddCommand(cmdAuditDatabaseMigrate)
 	cmdAuditDatabase.AddCommand(cmdAuditDatabaseMaintain)
@@ -23,9 +24,11 @@ func init() {
 	cmdAuditDatabaseMigrate.AddCommand(cmdAuditDatabaseMigrateStatus)
 
 	for _, cmd := range []*cobra.Command{cmdAuditDatabaseMigrateUp, cmdAuditDatabaseMigrateDown, cmdAuditDatabaseMigrateStatus, cmdAuditDatabaseMaintain} {
-		binder.BindString(cmd.Flags(), ArgDatabaseURL)
-		binder.BindString(cmd.Flags(), ArgDatabaseSchema)
+		binder.BindString(cmd.Flags(), authgearcmd.ArgDatabaseURL)
+		binder.BindString(cmd.Flags(), authgearcmd.ArgDatabaseSchema)
 	}
+
+	authgearcmd.Root.AddCommand(cmdAudit)
 }
 
 var AuditMigrationSet = sqlmigrate.NewMigrateSet("_audit_migration", "migrations/audit")
@@ -49,12 +52,12 @@ var cmdAuditDatabaseMaintain = &cobra.Command{
 	Use:   "maintain",
 	Short: "Run pg_partman maintain procedure",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		binder := getBinder()
-		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
+		binder := authgearcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseURL)
 		if err != nil {
 			return
 		}
-		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseSchema)
 		if err != nil {
 			return
 		}
@@ -91,12 +94,12 @@ var cmdAuditDatabaseMigrateUp = &cobra.Command{
 	Use:   "up",
 	Short: "Migrate database schema to latest version",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		binder := getBinder()
-		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
+		binder := authgearcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseURL)
 		if err != nil {
 			return
 		}
-		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseSchema)
 		if err != nil {
 			return
 		}
@@ -117,12 +120,12 @@ var cmdAuditDatabaseMigrateDown = &cobra.Command{
 	Use:    "down",
 	Hidden: true,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		binder := getBinder()
-		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
+		binder := authgearcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseURL)
 		if err != nil {
 			return
 		}
-		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseSchema)
 		if err != nil {
 			return
 		}
@@ -162,12 +165,12 @@ var cmdAuditDatabaseMigrateStatus = &cobra.Command{
 	Use:   "status",
 	Short: "Get database schema migration status",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		binder := getBinder()
-		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
+		binder := authgearcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseURL)
 		if err != nil {
 			return
 		}
-		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseSchema)
 		if err != nil {
 			return
 		}

@@ -1,4 +1,4 @@
-package main
+package cmdinit
 
 import (
 	"log"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	authgearcmd "github.com/authgear/authgear-server/cmd/authgear/cmd"
 	"github.com/authgear/authgear-server/cmd/authgear/config"
 	libconfig "github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/rand"
@@ -20,8 +21,8 @@ var cmdInitConfig = &cobra.Command{
 	Use:   "authgear.yaml",
 	Short: "Initialize app configuration",
 	Run: func(cmd *cobra.Command, args []string) {
-		binder := getBinder()
-		outputPath := binder.GetString(cmd, ArgOutput)
+		binder := authgearcmd.GetBinder()
+		outputPath := binder.GetString(cmd, authgearcmd.ArgOutput)
 		if outputPath == "" {
 			outputPath = cmd.Use
 		}
@@ -39,8 +40,8 @@ var cmdInitSecrets = &cobra.Command{
 	Use:   "authgear.secrets.yaml",
 	Short: "Initialize app secrets",
 	Run: func(cmd *cobra.Command, args []string) {
-		binder := getBinder()
-		outputPath := binder.GetString(cmd, ArgOutput)
+		binder := authgearcmd.GetBinder()
+		outputPath := binder.GetString(cmd, authgearcmd.ArgOutput)
 		if outputPath == "" {
 			outputPath = cmd.Use
 		}
@@ -56,9 +57,11 @@ var cmdInitSecrets = &cobra.Command{
 }
 
 func init() {
-	binder := getBinder()
-	binder.BindString(cmdInit.PersistentFlags(), ArgOutput)
+	binder := authgearcmd.GetBinder()
+	binder.BindString(cmdInit.PersistentFlags(), authgearcmd.ArgOutput)
 
 	cmdInit.AddCommand(cmdInitConfig)
 	cmdInit.AddCommand(cmdInitSecrets)
+
+	authgearcmd.Root.AddCommand(cmdInit)
 }

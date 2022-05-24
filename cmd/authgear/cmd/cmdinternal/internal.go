@@ -1,4 +1,4 @@
-package main
+package cmdinternal
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	authgearcmd "github.com/authgear/authgear-server/cmd/authgear/cmd"
 	cmdes "github.com/authgear/authgear-server/cmd/authgear/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -25,8 +26,8 @@ var cmdInternalElasticsearchCreateIndex = &cobra.Command{
 	Use:   "create-index",
 	Short: "Create the search index of all apps",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		binder := getBinder()
-		esURL, err := binder.GetRequiredString(cmd, ArgElasticsearchURL)
+		binder := authgearcmd.GetBinder()
+		esURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgElasticsearchURL)
 		if err != nil {
 			return err
 		}
@@ -49,9 +50,9 @@ var cmdInternalElasticsearchDeleteIndex = &cobra.Command{
 	Use:   "delete-index",
 	Short: "Delete the search index of all apps",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		binder := getBinder()
+		binder := authgearcmd.GetBinder()
 
-		esURL, err := binder.GetRequiredString(cmd, ArgElasticsearchURL)
+		esURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgElasticsearchURL)
 		if err != nil {
 			return err
 		}
@@ -87,19 +88,19 @@ var cmdInternalElasticsearchReindex = &cobra.Command{
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		binder := getBinder()
+		binder := authgearcmd.GetBinder()
 
-		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
+		dbURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseURL)
 		if err != nil {
 			return err
 		}
 
-		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseSchema)
 		if err != nil {
 			return err
 		}
 
-		esURL, err := binder.GetRequiredString(cmd, ArgElasticsearchURL)
+		esURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgElasticsearchURL)
 		if err != nil {
 			return err
 		}
@@ -149,15 +150,17 @@ var cmdInternalElasticsearchReindex = &cobra.Command{
 }
 
 func init() {
-	binder := getBinder()
+	binder := authgearcmd.GetBinder()
 
 	cmdInternal.AddCommand(cmdInternalElasticsearch)
-	binder.BindString(cmdInternalElasticsearch.PersistentFlags(), ArgElasticsearchURL)
+	binder.BindString(cmdInternalElasticsearch.PersistentFlags(), authgearcmd.ArgElasticsearchURL)
 	cmdInternalElasticsearch.AddCommand(cmdInternalElasticsearchCreateIndex)
 	cmdInternalElasticsearch.AddCommand(cmdInternalElasticsearchDeleteIndex)
 	cmdInternalElasticsearch.AddCommand(cmdInternalElasticsearchReindex)
 
-	binder.BindString(cmdInternalElasticsearchReindex.PersistentFlags(), ArgDatabaseURL)
-	binder.BindString(cmdInternalElasticsearchReindex.PersistentFlags(), ArgDatabaseSchema)
+	binder.BindString(cmdInternalElasticsearchReindex.PersistentFlags(), authgearcmd.ArgDatabaseURL)
+	binder.BindString(cmdInternalElasticsearchReindex.PersistentFlags(), authgearcmd.ArgDatabaseSchema)
 	_ = cmdInternalElasticsearchReindex.Flags().Bool("all", false, "All apps")
+
+	authgearcmd.Root.AddCommand(cmdInternal)
 }

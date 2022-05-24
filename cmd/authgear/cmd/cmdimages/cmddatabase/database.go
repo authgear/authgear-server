@@ -1,4 +1,4 @@
-package main
+package cmddatabase
 
 import (
 	"fmt"
@@ -8,12 +8,13 @@ import (
 
 	"github.com/spf13/cobra"
 
+	authgearcmd "github.com/authgear/authgear-server/cmd/authgear/cmd"
+	"github.com/authgear/authgear-server/cmd/authgear/cmd/cmdimages"
 	"github.com/authgear/authgear-server/pkg/util/sqlmigrate"
 )
 
 func init() {
-	binder := getBinder()
-	cmdImages.AddCommand(cmdImagesDatabase)
+	binder := authgearcmd.GetBinder()
 	cmdImagesDatabase.AddCommand(cmdImagesDatabaseMigrate)
 
 	cmdImagesDatabaseMigrate.AddCommand(cmdImagesDatabaseMigrateNew)
@@ -26,9 +27,11 @@ func init() {
 		cmdImagesDatabaseMigrateDown,
 		cmdImagesDatabaseMigrateStatus,
 	} {
-		binder.BindString(cmd.Flags(), ArgDatabaseURL)
-		binder.BindString(cmd.Flags(), ArgDatabaseSchema)
+		binder.BindString(cmd.Flags(), authgearcmd.ArgDatabaseURL)
+		binder.BindString(cmd.Flags(), authgearcmd.ArgDatabaseSchema)
 	}
+
+	cmdimages.CmdImages.AddCommand(cmdImagesDatabase)
 }
 
 var ImagesMigrationSet = sqlmigrate.NewMigrateSet("_images_migrations", "migrations/images")
@@ -60,12 +63,12 @@ var cmdImagesDatabaseMigrateUp = &cobra.Command{
 	Use:   "up",
 	Short: "Migrate database schema to latest version",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		binder := getBinder()
-		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
+		binder := authgearcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseURL)
 		if err != nil {
 			return
 		}
-		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseSchema)
 		if err != nil {
 			return
 		}
@@ -84,12 +87,12 @@ var cmdImagesDatabaseMigrateDown = &cobra.Command{
 	Use:    "down",
 	Hidden: true,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		binder := getBinder()
-		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
+		binder := authgearcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseURL)
 		if err != nil {
 			return
 		}
-		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseSchema)
 		if err != nil {
 			return
 		}
@@ -129,12 +132,12 @@ var cmdImagesDatabaseMigrateStatus = &cobra.Command{
 	Use:   "status",
 	Short: "Get database schema migration status",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		binder := getBinder()
-		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
+		binder := authgearcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseURL)
 		if err != nil {
 			return
 		}
-		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseSchema)
 		if err != nil {
 			return
 		}

@@ -1,9 +1,10 @@
-package main
+package cmdbackground
 
 import (
 	"github.com/spf13/cobra"
 
 	"github.com/authgear/authgear-server/cmd/authgear/background"
+	authgearcmd "github.com/authgear/authgear-server/cmd/authgear/cmd"
 )
 
 var cmdBackground = &cobra.Command{
@@ -13,4 +14,8 @@ var cmdBackground = &cobra.Command{
 		ctrl := &background.Controller{}
 		ctrl.Start()
 	},
+}
+
+func init() {
+	authgearcmd.Root.AddCommand(cmdBackground)
 }

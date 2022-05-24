@@ -1,10 +1,11 @@
-package main
+package cmdstart
 
 import (
 	"log"
 
 	"github.com/spf13/cobra"
 
+	"github.com/authgear/authgear-server/cmd/authgear/cmd"
 	"github.com/authgear/authgear-server/cmd/authgear/server"
 )
 
@@ -34,4 +35,8 @@ var cmdStart = &cobra.Command{
 
 		ctrl.Start()
 	},
+}
+
+func init() {
+	cmd.Root.AddCommand(cmdStart)
 }

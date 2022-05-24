@@ -1,18 +1,11 @@
-package main
+package cmdstart
 
 import (
-	"github.com/authgear/authgear-server/cmd/authgear/images/server"
 	"github.com/spf13/cobra"
+
+	"github.com/authgear/authgear-server/cmd/authgear/cmd/cmdimages"
+	"github.com/authgear/authgear-server/cmd/authgear/images/server"
 )
-
-func init() {
-	cmdImages.AddCommand(cmdImagesStart)
-}
-
-var cmdImages = &cobra.Command{
-	Use:   "images",
-	Short: " commands",
-}
 
 var cmdImagesStart = &cobra.Command{
 	Use:   "start",
@@ -21,4 +14,8 @@ var cmdImagesStart = &cobra.Command{
 		ctrl := &server.Controller{}
 		ctrl.Start()
 	},
+}
+
+func init() {
+	cmdimages.CmdImages.AddCommand(cmdImagesStart)
 }

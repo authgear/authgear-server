@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"github.com/authgear/authgear-server/pkg/util/cobraviper"
@@ -6,7 +6,7 @@ import (
 
 var cvbinder *cobraviper.Binder
 
-func getBinder() *cobraviper.Binder {
+func GetBinder() *cobraviper.Binder {
 	if cvbinder == nil {
 		cvbinder = cobraviper.NewBinder()
 	}
