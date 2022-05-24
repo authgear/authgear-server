@@ -12,7 +12,7 @@
 <div class="twc-container-vertical my-5" data-controller="click-to-switch">
 <a class="as-btn not-a btn primary-btn"
     href="{{ $.WeChatRedirectURI }}"
-    data-turbolinks-action="replace"
+    data-turbo-action="replace"
     data-click-to-switch-target="clickToHide"
     data-action="click-to-switch#click"
 >
@@ -20,7 +20,7 @@
 </a>
 <a class="as-btn not-a btn primary-btn wechat hidden"
     href="{{ $.CurrentURI }}"
-    data-turbolinks-action="replace"
+    data-turbo-action="replace"
     data-is-refresh-link="true"
     data-click-to-switch-target="clickToShow"
 >

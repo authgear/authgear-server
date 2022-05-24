@@ -84,7 +84,7 @@ export class IntlTelInputController extends Controller {
 
     input.setAttribute("data-intl-tel-input-connecting", "false");
 
-    document.addEventListener("turbolinks:before-cache", this.beforeCache);
+    document.addEventListener("turbo:before-cache", this.beforeCache);
   }
 
   disconnect() {
@@ -99,6 +99,6 @@ export class IntlTelInputController extends Controller {
 
     input.value = this.hiddenInputElement.value;
 
-    document.removeEventListener("turbolinks:before-cache", this.beforeCache);
+    document.removeEventListener("turbo:before-cache", this.beforeCache);
   }
 }

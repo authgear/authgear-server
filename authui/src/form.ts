@@ -1,4 +1,4 @@
-import Turbolinks from "turbolinks";
+import { visit, clearCache } from "@hotwired/turbo";
 import axios, { Method } from "axios";
 import {
   disableAllButtons,
@@ -13,7 +13,7 @@ export class XHRSubmitFormController extends Controller {
   revertDisabledButtons: { (): void } | null = null;
   forms: HTMLFormElement[] = [];
 
-  // Revert disabled buttons before turbolinks cache the page
+  // Revert disabled buttons before Turbo caches the page
   // To avoid flickering in the UI
   beforeCache = () => {
     if (this.revertDisabledButtons) {
@@ -78,7 +78,7 @@ export class XHRSubmitFormController extends Controller {
 
       const { redirect_uri, action } = resp.data;
 
-      Turbolinks.clearCache();
+      clearCache();
       switch (action) {
         case "redirect":
           // Perform full redirect.
@@ -87,7 +87,7 @@ export class XHRSubmitFormController extends Controller {
 
         case "replace":
         case "advance":
-          Turbolinks.visit(redirect_uri, { action });
+          visit(redirect_uri, { action });
           break;
       }
     } catch (e: unknown) {
@@ -116,7 +116,7 @@ export class XHRSubmitFormController extends Controller {
       form.addEventListener("submit", this.onSubmit);
     }
 
-    document.addEventListener("turbolinks:before-cache", this.beforeCache);
+    document.addEventListener("turbo:before-cache", this.beforeCache);
   }
 
   disconnect() {
@@ -124,7 +124,7 @@ export class XHRSubmitFormController extends Controller {
       form.removeEventListener("submit", this.onSubmit);
     }
 
-    document.removeEventListener("turbolinks:before-cache", this.beforeCache);
+    document.removeEventListener("turbo:before-cache", this.beforeCache);
   }
 }
 

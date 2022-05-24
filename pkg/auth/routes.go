@@ -95,7 +95,9 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	webappPageChain := httproute.Chain(
 		webappChain,
 		p.Middleware(newCSRFMiddleware),
-		webapp.TurbolinksMiddleware{},
+		// Turbo no longer requires us to tell the redirected location.
+		// It can now determine redirection from the response.
+		// https://github.com/hotwired/turbo/blob/daabebb0575fffbae1b2582dc458967cd638e899/src/core/drive/visit.ts#L316
 		web.StaticSecurityHeadersMiddleware{},
 		p.Middleware(newDynamicCSPMiddleware),
 	)

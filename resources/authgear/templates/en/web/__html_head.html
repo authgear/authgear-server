@@ -10,14 +10,14 @@
 <meta name="x-form-json" content="{{ $.FormJSON }}" data-controller="restore-form" data-restore-form-target="metaTag">
 <meta name="x-color-scheme" content="{{ $.ColorScheme }}">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- Tell turbolinks not to use stale page for application visit -->
-<!-- See https://github.com/turbolinks/turbolinks#opting-out-of-caching -->
+<!-- Tell Turbo not to use stale page for application visit -->
+<!-- See https://turbo.hotwired.dev/handbook/building#opting-out-of-caching -->
 <!-- This issue is particularly noticeable in the following situation -->
 <!-- 1. Go to picture screen, see the profile picture screen -->
 <!-- 2. Remove the picture screen, be redirected to profile screen -->
 <!-- 3. Go back to picture screen, see the stale profile picture screen with the removed picture for a very short period -->
 <!-- Stale page is still available for navigating back -->
-<meta name="turbolinks-cache-control" content="no-preview">
+<meta name="turbo-cache-control" content="no-preview">
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "tabler-icons.min.css" }}">
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "tailwind.css" }}">
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "intl-tel-input/css/intlTelInput.min.css" }}">

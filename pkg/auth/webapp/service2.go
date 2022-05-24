@@ -358,7 +358,7 @@ func (s *Service2) afterPost(
 			// Use the default navigation action for any other intents.
 			// That is, "advance" will be used.
 			// This is more suitable because interactions started in settings will have finish URI within settings.
-			// Keep using Turbolinks make sure "popstate" will be fired properly.
+			// Keep using Turbo make sure "popstate" will be fired properly.
 			// If "redirect" is used, "popstate" will NOT be fired.
 			break
 		}
