@@ -5244,13 +5244,33 @@ func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 	jsonResponseWriter := &httputil.JSONResponseWriter{
 		Logger: jsonResponseWriterLogger,
 	}
+	manager := appProvider.Resources
+	config := appProvider.Config
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	responseWriter := &webapp2.ResponseWriter{
+		JSONResponseWriter: jsonResponseWriter,
+		Renderer:           responseRenderer,
+	}
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	logger := ratelimit.NewLogger(factory)
@@ -5274,7 +5294,7 @@ func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 	}
 	presignImagesUploadHandlerLogger := api.NewPresignImagesUploadHandlerLogger(factory)
 	presignImagesUploadHandler := &api.PresignImagesUploadHandler{
-		JSON:            jsonResponseWriter,
+		Turbo:           responseWriter,
 		HTTPProto:       httpProto,
 		HTTPHost:        httpHost,
 		AppID:           appID,

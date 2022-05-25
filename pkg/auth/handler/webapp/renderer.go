@@ -14,6 +14,7 @@ type Renderer interface {
 	Render(w http.ResponseWriter, r *http.Request, tpl template.Resource, data interface{})
 	// RenderHTML is a shorthand of Render that renders HTML.
 	RenderHTML(w http.ResponseWriter, r *http.Request, tpl *template.HTML, data interface{})
+	RenderStatus(w http.ResponseWriter, req *http.Request, status int, tpl template.Resource, data interface{})
 }
 
 type ResponseRendererLogger struct{ *log.Logger }
@@ -28,6 +29,10 @@ type ResponseRenderer struct {
 }
 
 func (r *ResponseRenderer) Render(w http.ResponseWriter, req *http.Request, tpl template.Resource, data interface{}) {
+	r.RenderStatus(w, req, http.StatusOK, tpl, data)
+}
+
+func (r *ResponseRenderer) RenderStatus(w http.ResponseWriter, req *http.Request, status int, tpl template.Resource, data interface{}) {
 	r.Logger.WithFields(map[string]interface{}{
 		"data": data,
 	}).Debug("render with data")
@@ -44,7 +49,7 @@ func (r *ResponseRenderer) Render(w http.ResponseWriter, req *http.Request, tpl 
 
 	body := []byte(out)
 	w.Header().Set("Content-Length", strconv.Itoa(len(body)))
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(status)
 	_, err = w.Write(body)
 	if err != nil {
 		panic(err)

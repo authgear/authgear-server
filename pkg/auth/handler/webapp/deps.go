@@ -63,4 +63,6 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(WebsocketHandler), "*"),
 	wire.Struct(new(WechatAuthHandler), "*"),
 	wire.Struct(new(WechatCallbackHandler), "*"),
+
+	wire.Struct(new(ResponseWriter), "*"),
 )

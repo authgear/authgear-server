@@ -168,6 +168,9 @@ export class ImagePickerController extends Controller {
       try {
         const resp = await axios("/api/images/upload", {
           method: "POST",
+          headers: {
+            Accept: "text/vnd.turbo-stream.html, application/json",
+          },
           onDownloadProgress: progressEventHandler,
           onUploadProgress: progressEventHandler,
         });
@@ -182,6 +185,9 @@ export class ImagePickerController extends Controller {
         const uploadResp = await axios(upload_url, {
           method: "POST",
           data: formData,
+          headers: {
+            Accept: "text/vnd.turbo-stream.html, application/json",
+          },
           onDownloadProgress: progressEventHandler,
           onUploadProgress: progressEventHandler,
         });

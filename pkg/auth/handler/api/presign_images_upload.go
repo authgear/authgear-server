@@ -36,12 +36,16 @@ type PresignImagesUploadResponse struct {
 
 type PresignImagesUploadHandlerLogger struct{ *log.Logger }
 
+type TurboResponseWriter interface {
+	WriteResponse(rw http.ResponseWriter, req *http.Request, resp *api.Response)
+}
+
 func NewPresignImagesUploadHandlerLogger(lf *log.Factory) PresignImagesUploadHandlerLogger {
 	return PresignImagesUploadHandlerLogger{lf.New("api-presign-images-upload")}
 }
 
 type PresignImagesUploadHandler struct {
-	JSON            JSONResponseWriter
+	Turbo           TurboResponseWriter
 	HTTPProto       httputil.HTTPProto
 	HTTPHost        httputil.HTTPHost
 	AppID           config.AppID
@@ -54,7 +58,7 @@ func (h *PresignImagesUploadHandler) ServeHTTP(resp http.ResponseWriter, req *ht
 	userID := session.GetUserID(req.Context())
 	err := h.RateLimiter.TakeToken(PresignImagesUploadRateLimitBucket(*userID))
 	if err != nil {
-		h.JSON.WriteResponse(resp, &api.Response{Error: err})
+		h.Turbo.WriteResponse(resp, req, &api.Response{Error: err})
 		return
 	}
 
@@ -65,7 +69,7 @@ func (h *PresignImagesUploadHandler) ServeHTTP(resp http.ResponseWriter, req *ht
 	encodedData, err := images.EncodeFileMetaData(metadata)
 	if err != nil {
 		h.Logger.WithError(err).Error("failed to encode metadata")
-		h.JSON.WriteResponse(resp, &api.Response{Error: err})
+		h.Turbo.WriteResponse(resp, req, &api.Response{Error: err})
 		return
 	}
 
@@ -81,11 +85,11 @@ func (h *PresignImagesUploadHandler) ServeHTTP(resp http.ResponseWriter, req *ht
 
 	err = h.PresignProvider.PresignPostRequest(u)
 	if err != nil {
-		h.JSON.WriteResponse(resp, &api.Response{Error: err})
+		h.Turbo.WriteResponse(resp, req, &api.Response{Error: err})
 		return
 	}
 
-	h.JSON.WriteResponse(resp, &api.Response{Result: &PresignImagesUploadResponse{
+	h.Turbo.WriteResponse(resp, req, &api.Response{Result: &PresignImagesUploadResponse{
 		UploadURL: u.String(),
 	}})
 }
