@@ -10,24 +10,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	coreimage "github.com/authgear/authgear-server/pkg/util/image"
+	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/boombuler/barcode/qr"
 )
-
-const WhatsappOTPPageQueryMethodKey = "method"
-
-type WhatsappOTPPageQueryMethod string
-
-const (
-	WhatsappOTPPageQueryMethodInitial      WhatsappOTPPageQueryMethod = ""
-	WhatsappOTPPageQueryMethodOpenWhatsapp WhatsappOTPPageQueryMethod = "open_whatsapp"
-	WhatsappOTPPageQueryMethodQRCode       WhatsappOTPPageQueryMethod = "qr_code"
-)
-
-func (m *WhatsappOTPPageQueryMethod) IsValid() bool {
-	return *m == WhatsappOTPPageQueryMethodInitial ||
-		*m == WhatsappOTPPageQueryMethodOpenWhatsapp ||
-		*m == WhatsappOTPPageQueryMethodQRCode
-}
 
 const WhatsappOTPPageQueryStateKey = "state"
 
@@ -45,16 +30,6 @@ func (s *WhatsappOTPPageQueryState) IsValid() bool {
 		*s == WhatsappOTPPageQueryStateNoCode ||
 		*s == WhatsappOTPPageQueryStateInvalidCode ||
 		*s == WhatsappOTPPageQueryStateMatched
-}
-
-func getMethodFromQuery(r *http.Request) WhatsappOTPPageQueryMethod {
-	p := WhatsappOTPPageQueryMethod(
-		r.URL.Query().Get(WhatsappOTPPageQueryMethodKey),
-	)
-	if p.IsValid() {
-		return p
-	}
-	return WhatsappOTPPageQueryMethodInitial
 }
 
 func getStateFromQuery(r *http.Request) WhatsappOTPPageQueryState {
@@ -77,29 +52,25 @@ type WhatsappOTPViewModel struct {
 	PhoneOTPMode               config.AuthenticatorPhoneOTPMode
 	WhatsappOTPPhone           string
 	WhatsappOTP                string
-	MethodQuery                WhatsappOTPPageQueryMethod
+	UserPhone                  string
 	StateQuery                 WhatsappOTPPageQueryState
 	OpenWhatsappLink           string // Link to open whatsapp with phone number
-	OpenWhatsappPath           string // Path of Auth UI to show open whatsapp link
-	ShowQRCodePath             string // Path of Auth UI to open auth ui page to show qr code
-	TryAgainPath               string // Path of Auth UI to current method which the state is reset
 	VerifyFormSubmitPath       string // Path of Auth UI for verify form submission which the state is reset
 	OpenWhatsappQRCodeImageURI htmltemplate.URL
 }
 
 func (m *WhatsappOTPViewModel) AddData(r *http.Request, graph *interaction.Graph, codeProvider WhatsappCodeProvider) error {
-	m.MethodQuery = getMethodFromQuery(r)
 	m.StateQuery = getStateFromQuery(r)
 	var n WhatsappOTPNode
 	if graph.FindLastNode(&n) {
 		m.PhoneOTPMode = n.GetPhoneOTPMode()
 		m.WhatsappOTP = n.GetWhatsappOTP()
 		m.WhatsappOTPPhone = codeProvider.GetServerWhatsappPhone()
+		m.UserPhone = phone.Mask(n.GetPhone())
 	}
 
-	getPath := func(method string) string {
+	getPath := func() string {
 		q := r.URL.Query()
-		q.Set(WhatsappOTPPageQueryMethodKey, method)
 		// delete the state in query is intended
 		q.Del(WhatsappOTPPageQueryStateKey)
 		u := url.URL{}
@@ -108,13 +79,9 @@ func (m *WhatsappOTPViewModel) AddData(r *http.Request, graph *interaction.Graph
 		return u.String()
 	}
 
-	m.OpenWhatsappPath = getPath(string(WhatsappOTPPageQueryMethodOpenWhatsapp))
-	m.ShowQRCodePath = getPath(string(WhatsappOTPPageQueryMethodQRCode))
-	currentMethod := getMethodFromQuery(r)
-	m.TryAgainPath = getPath(string(currentMethod))
 	// verify code form has auto redirect mechanism
 	// reset the state of VerifyFormSubmitPath to avoid infinite redirect
-	m.VerifyFormSubmitPath = getPath(string(currentMethod))
+	m.VerifyFormSubmitPath = getPath()
 
 	waURL := url.URL{}
 	waURL.Scheme = "https"

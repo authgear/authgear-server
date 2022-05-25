@@ -627,8 +627,8 @@ h1, h2, h3, h4, h5, h6 {
   width: 4px;
   height: 4px;
   border-radius: 2px;
-  background-color: var(--color-primary-unshaded);
-  color: var(--color-primary-unshaded);
+  background-color: var(--color-text-unshaded);
+  color: var(--color-text-unshaded);
   animation: dotFlashing 1s infinite linear alternate;
   animation-delay: .5s;
 }
@@ -645,8 +645,8 @@ h1, h2, h3, h4, h5, h6 {
   width: 4px;
   height: 4px;
   border-radius: 2px;
-  background-color: var(--color-primary-unshaded);
-  color: var(--color-primary-unshaded);
+  background-color: var(--color-text-unshaded);
+  color: var(--color-text-unshaded);
   animation: dotFlashing 1s infinite alternate;
   animation-delay: 0s;
 }
@@ -656,18 +656,18 @@ h1, h2, h3, h4, h5, h6 {
   width: 4px;
   height: 4px;
   border-radius: 2px;
-  background-color: var(--color-primary-unshaded);
-  color: var(--color-primary-unshaded);
+  background-color: var(--color-text-unshaded);
+  color: var(--color-text-unshaded);
   animation: dotFlashing 1s infinite alternate;
   animation-delay: 1s;
 }
 
 @keyframes dotFlashing {
   0% {
-    background-color: var(--color-primary-unshaded);
+    background-color: var(--color-text-unshaded);
   }
   50%,
   100% {
-    background-color: var(--color-primary-shaded-1);
+    background-color: var(--color-text-shaded-1);
   }
 }
