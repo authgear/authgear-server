@@ -46,24 +46,6 @@ func (e *EdgeVerifyIdentity) Instantiate(ctx *interaction.Context, graph *intera
 	return node, nil
 }
 
-type EdgeVerifyIdentityResume struct {
-	Code     *verification.Code
-	Identity *identity.Info
-}
-
-func (e *EdgeVerifyIdentityResume) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	r := e.Code.SendResult()
-	return &NodeVerifyIdentity{
-		Identity:   e.Identity,
-		CodeID:     e.Code.ID,
-		Target:     r.Target,
-		Channel:    r.Channel,
-		CodeLength: r.CodeLength,
-		// VerifyIdentityResume is always requested by user.
-		RequestedByUser: true,
-	}, nil
-}
-
 type NodeVerifyIdentity struct {
 	Identity        *identity.Info `json:"identity"`
 	CodeID          string         `json:"code_id"`

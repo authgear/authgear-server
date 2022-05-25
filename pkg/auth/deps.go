@@ -84,7 +84,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(oidchandler.WebAppURLsProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(sso.RedirectURLProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(forgotpassword.URLProvider), new(*webapp.URLProvider)),
-	wire.Bind(new(verification.WebAppURLProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(sso.WechatURLProvider), new(*webapp.WechatURLProvider)),
 
 	wire.Bind(new(webapp.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
@@ -140,7 +139,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.LogoutSessionManager), new(*session.Manager)),
 	wire.Bind(new(handlerwebapp.PageService), new(*webapp.Service2)),
 	wire.Bind(new(handlerwebapp.ResourceManager), new(*resource.Manager)),
-	wire.Bind(new(handlerwebapp.VerifyIdentityVerificationService), new(*verification.Service)),
 	wire.Bind(new(handlerwebapp.RateLimiter), new(*ratelimit.Limiter)),
 	wire.Bind(new(handlerwebapp.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
 	wire.Bind(new(handlerwebapp.FlashMessage), new(*httputil.FlashMessage)),

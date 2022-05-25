@@ -650,7 +650,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
-		WebAppURLs:       webEndpoints,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
