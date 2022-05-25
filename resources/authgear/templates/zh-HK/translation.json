@@ -147,27 +147,20 @@
   "oob-otp-sms-is-not-supported": "不支援發送短信，請聯繫管理員",
   "oob-otp-sms-is-not-supported-with-customer-support": "不支援發送短信，請聯繫<a class=\"link\" target=\"_blank\" href={customerSupportLink}>客戶服務</a>",
 
-  "whatsapp-otp-page-title": "使用 WhatsApp 驗證電話號碼",
-  "whatsapp-otp-description": "你的 WhatsApp 是否安裝在此裝置上?",
-  
-  "whatsapp-otp-send-code-to-whatsapp-title": "向 WhatsApp 發送驗證碼",
-  "whatsapp-otp-copy-and-send-code-to-whatsapp-description": "複製6位數驗證碼並在 WhatsApp 中發送",
-  "whatsapp-otp-send-code-to-whatsapp-description": "在 WhatsApp 中發送6位數驗證碼",
-
+  "whatsapp-otp-page-title": "向 WhatsApp 發送驗證碼",
+  "whatsapp-otp-description": "使用您的手機號碼 ({target}) 在 WhatsApp 中發送此 6 位數驗證碼",
   "whatsapp-otp-waiting-for-your-message": "等待你的訊息",
   "whatsapp-otp-no-code-description": "我們沒有看到你的訊息。 \n你要重新發送嗎？",
   "whatsapp-otp-invalid-code-description": "您輸入了錯誤的驗證碼。 \n你要重新發送嗎？",
+  "whatsapp-otp-refresh-button-label": "刷新",
+  "whatsapp-otp-installed-on-this-device-hint" : "在此裝置上安裝了 WhatsApp？",
+  "whatsapp-otp-open-in-whatsapp-button-label": "是，在 WhatsApp 中打開",
+  "whatsapp-otp-scan-code-button-label": "否，在其他設備上掃碼",
   "whatsapp-otp-code-matched-description": "收到訊息！",
-
-  "whatsapp-otp-on-this-device-button-label": "WhatsApp 在此裝置上",
-  "whatsapp-otp-on-another-device-button-label": "WhatsApp 在其他裝置上",
-  "whatsapp-otp-open-in-whatsapp-button-label": "在 WhatsApp 中打開",
-  "whatsapp-otp-i-have-sent-the-code-button-label": "我已經發送了驗證碼",
-  "whatsapp-otp-try-again-button-label": "再試一次",
+  "whatsapp-otp-redirect-description": "正在重新導向",
+  "whatsapp-otp-next-description": "沒有重新導向?",
   "whatsapp-otp-next-button": "繼續",
   "whatsapp-otp-redirecting-button": "Redirecting... (%ds)",
-  "whatsapp-otp-show-qr-code-link-label": "顯示前往 WhatsApp 的二維碼",
-  "whatsapp-otp-show-open-in-whatsapp-link-label": "我的 WhatsApp 已安裝在此設備上",
 
   "verify-user-page-title--sms": "短訊驗證",
   "verify-user-page-title--email": "驗證你的電郵地址",
@@ -315,7 +308,6 @@
   "enter-oob-otp-sms-instead": "以短訊發送驗證碼至 {target}",
   "verify-phone-otp-instead": "改為通過手機驗證 {target}",
 
-  "phone-otp-verify-with-sms-instead-button": "改為使用短信驗證",
   "phone-otp-verify-with-sms-instead":"改為通過短信接收一次性密碼",
   "phone-otp-verify-with-whatsapp-instead": "改為通過 WhatsApp 驗證",
 

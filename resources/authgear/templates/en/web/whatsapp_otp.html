@@ -4,28 +4,17 @@
 <div class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
 
 <h1 class="m-0 primary-txt text-center text-xl font-bold">
-  {{ if eq .MethodQuery "" }}
-    {{ template "whatsapp-otp-page-title" }}
-  {{ else }}
-    {{ template "whatsapp-otp-send-code-to-whatsapp-title" }}
-    <span class="phone-label whatsapp-icon mt-1">{{ $.WhatsappOTPPhone }}</span>
-  {{ end }}
+  {{ template "whatsapp-otp-page-title" }}
+  <span class="phone-label whatsapp-icon mt-1">{{ $.WhatsappOTPPhone }}</span>
 </h1>
 
-{{ if eq .MethodQuery "" }}
-  <div class="text-sm break-words primary-txt text-center">
-    {{ template "whatsapp-otp-description" }}
-  </div>
-{{ else }}
-  {{ if not (eq .StateQuery "matched") }}
-    <div class="text-sm break-words primary-txt text-center">
-      {{ if eq .MethodQuery "open_whatsapp" }}
-        {{ template "whatsapp-otp-copy-and-send-code-to-whatsapp-description" }}
-      {{ else if eq .MethodQuery "qr_code" }}
-        {{ template "whatsapp-otp-send-code-to-whatsapp-description" }}
-      {{ end }}
-    </div>
-  {{ end }}
+{{ if not (eq .StateQuery "matched") }}
+<div class="text-sm break-words primary-txt text-center">
+  {{ template "whatsapp-otp-description" (dict "target" .UserPhone) }}
+</div>
+<p class="primary-txt text-center text-3xl font-bold py-2.5">
+  {{ $.WhatsappOTP }}
+</p>
 {{ end }}
 
 <form id="main-form" class="hidden" method="post" action="{{ $.VerifyFormSubmitPath }}" novalidate>
@@ -36,31 +25,6 @@
 {{ $.CSRFField }}
 </form>
 
-{{ if eq .MethodQuery "" }}
-  {{/* Open whatsapp or show qr code options */}}
-  <a href="{{ $.OpenWhatsappPath }}" class="as-btn not-a btn primary-btn" data-turbo-action="replace">
-    {{ template "whatsapp-otp-on-this-device-button-label" }}
-  </a>
-  <a href="{{ $.ShowQRCodePath }}" class="as-btn not-a btn primary-btn outline" data-turbo-action="replace">
-    {{ template "whatsapp-otp-on-another-device-button-label" }}
-  </a>
-  {{ $options := (set (deepCopy .) "buttonStyleEnabled" true) }}
-  {{ template "__phone_otp_alternatives.html" $options }}
-
-  {{ $altOptions := (set (deepCopy .) "separatorDisabled" true) }}
-  {{ template "__alternatives.html" $altOptions }}
-{{ else }}
-  {{ if eq .StateQuery "" }}
-    {{ template "__state_initial.html" . }}
-  {{ else if eq .StateQuery "no_code" }}
-    {{ template "__state_no_code.html" . }}
-  {{ else if eq .StateQuery "invalid_code" }}
-    {{ template "__state_invalid_code.html" . }}
-  {{ else if eq .StateQuery "matched" }}
-    {{ template "__state_matched.html" . }}
-  {{ end }}
-{{ end }}
-
 <button
   form="dryrun-verify-form"
   class="hidden"
@@ -70,85 +34,55 @@
   data-submit-when-refresh="true"
 ></button>
 
-{{ template "__watermark.html" . }}
-</div>
-{{ end }}
-
-{{ define "__state_initial.html" }}
-  {{ template "__whatsapp_otp_block.html" . }}
-  {{ if eq .MethodQuery "qr_code" }}
-    <div class="relative grid justify-center">
-      <img class="w-48" src="{{ $.OpenWhatsappQRCodeImageURI }}"/>
-      <div class="absolute inset-0 whatsapp-icon qr-overlay"></div>
-    </div>
-  {{ end }}
-  {{ template "__wait_for_your_message_block.html" . }}
-  {{ if eq .MethodQuery "open_whatsapp" }}
-    <div class="grid grid-cols-1 auto-rows-auto" data-controller="click-to-switch">
-      <a href="{{ $.OpenWhatsappLink }}"
-        target="_blank"
-        class="as-btn not-a btn primary-btn"
-        data-click-to-switch-target="clickToHide"
-        data-action="click-to-switch#click"
-      >
-        {{ template "whatsapp-otp-open-in-whatsapp-button-label" }}
-      </a>
-      <button
-        form="dryrun-verify-form"
-        class="btn primary-btn outline hidden"
-        type="submit"
-        name="x_action"
-        value="dryrun_verify"
-        data-click-to-switch-target="clickToShow"
-      >
-      {{ template "whatsapp-otp-i-have-sent-the-code-button-label" }}
-      </button>
-    </div>
-  {{ else if eq .MethodQuery "qr_code" }}
+{{ if not (eq .StateQuery "matched") }}
+  <div class="grid grid-cols-1 auto-rows-auto bg-gray-100 dark:bg-gray-800 py-4 px-4 text-center">
+    {{ if eq .StateQuery "" }}
+      <div class="flex justify-center items-center h-5"><div class="dot-flashing"></div></div>
+      <p class="text-sm primary-txt whitespace-pre-wrap">{{ template "whatsapp-otp-waiting-for-your-message" }}</p>
+    {{ else if eq .StateQuery "no_code" }}
+      <p class="text-sm primary-txt whitespace-pre-wrap">{{ template "whatsapp-otp-no-code-description" }}</p>
+    {{ else if eq .StateQuery "invalid_code" }}
+      <p class="text-sm primary-txt whitespace-pre-wrap">{{ template "whatsapp-otp-invalid-code-description" }}</p>
+    {{ end }}
     <button
       form="dryrun-verify-form"
-      class="btn primary-btn outline"
+      class="btn secondary-btn pt-3"
       type="submit"
       name="x_action"
       value="dryrun_verify"
     >
-      {{ template "whatsapp-otp-i-have-sent-the-code-button-label" }}
+    <i class="text-base ti ti-refresh" aria-hidden="true"></i>
+      {{ template "whatsapp-otp-refresh-button-label" }}
     </button>
-  {{ end }}
-  {{ template "__whatsapp_alternatives.html" . }}
-{{ end }}
-
-{{ define "__state_no_code.html" }}
-  {{ template "__whatsapp_otp_block.html" . }}
-  <div class="grid grid-cols-1 auto-rows-auto bg-gray-100 py-4 px-4 text-center">
-    <p class="text-sm text-black whitespace-pre-wrap">{{ template "whatsapp-otp-no-code-description" }}</p>
   </div>
-  <a
-    href="{{ $.TryAgainPath }}"
+  <div class="alternative-separator flex flex-row items-center"></div>
+  <p class="text-sm break-words primary-txt text-center">
+    {{ template "whatsapp-otp-installed-on-this-device-hint" }}
+  </p>
+  <a href="{{ $.OpenWhatsappLink }}"
+    target="_blank"
     class="as-btn not-a btn primary-btn"
-    data-turbo-action="replace"
-  >{{ template "whatsapp-otp-try-again-button-label" }}</a>
-  {{ template "__whatsapp_alternatives.html" . }}
-{{ end }}
-
-{{ define "__state_invalid_code.html" }}
-  {{ template "__whatsapp_otp_block.html" . }}
-  <div class="grid grid-cols-1 auto-rows-auto bg-gray-100 py-4 px-4 text-center">
-    <p class="text-sm text-black whitespace-pre-wrap">{{ template "whatsapp-otp-invalid-code-description" }}</p>
-  </div>
+  >
+    {{ template "whatsapp-otp-open-in-whatsapp-button-label" }}
+  </a>
+  {{/* fixme(whatsapp): qr code modal */}}
   <a
-    href="{{ $.TryAgainPath }}"
-    class="as-btn not-a btn primary-btn"
-    data-turbo-action="replace"
-  >{{ template "whatsapp-otp-try-again-button-label" }}</a>
+    href="#"
+    class="as-btn not-a btn primary-btn outline"
+  >
+    {{ template "whatsapp-otp-scan-code-button-label" }}
+  </a>
   {{ template "__whatsapp_alternatives.html" . }}
-{{ end }}
-
-{{ define "__state_matched.html" }}
-  <div class="grid grid-cols-1 auto-rows-auto bg-gray-100 py-18 px-4 text-center">
+{{ else }}
+  <div class="grid grid-cols-1 auto-rows-auto bg-gray-100 dark:bg-gray-800 py-18 px-4 text-center">
     <i class="good-txt text-base ti ti-check" aria-hidden="true"></i>
-    <p class="text-sm text-black whitespace-pre-wrap">{{ template "whatsapp-otp-code-matched-description" }}</p>
+    <p class="text-sm primary-txt whitespace-pre-wrap">{{ template "whatsapp-otp-code-matched-description" }}</p>
+    <p class="text-xs primary-txt whitespace-pre-wrap mt-2">{{ template "whatsapp-otp-redirect-description" }}</p>
   </div>
+  <div class="alternative-separator flex flex-row items-center"></div>
+  <p class="text-sm break-words primary-txt text-center">
+    {{ template "whatsapp-otp-next-description" }}
+  </p>
   <div class="grid grid-cols-1" data-controller="delayed-auto-submit">
     <button
       form="main-form"
@@ -164,32 +98,18 @@
   </div>
 {{ end }}
 
-{{ define "__whatsapp_otp_block.html" }}
-<p class="primary-txt text-center text-3xl font-bold py-2.5">
-  {{ $.WhatsappOTP }}
-</p>
-{{ end }}
-
-{{ define "__wait_for_your_message_block.html" }}
-  <div class="grid grid-cols-1 auto-rows-auto gap-y-4 bg-gray-100 py-4 px-4 text-center">
-    <p class="text-sm text-black">
-      {{ template "whatsapp-otp-waiting-for-your-message" }}
-    </p>
-    <div class="flex justify-center items-center"><div class="dot-flashing"></div></div>
-  </div>
+{{ template "__watermark.html" . }}
+</div>
 {{ end }}
 
 {{ define "__whatsapp_alternatives.html" }}
+  {{ $needSeparator := not (and (empty .AlternativeSteps) (empty .PhoneOTPAlternativeSteps)) }}
+  {{ if $needSeparator }}
+    <div class="alternative-separator flex flex-row items-center">
+      <span class="primary-txt mx-1.5 text-sm">{{ template "or-label" }}</span>
+    </div>
+  {{ end }}
   <div class="text-sm grid grid-cols-1 auto-rows-auto gap-y-5">
-    {{ if eq .MethodQuery "open_whatsapp" }}
-      <a href="{{ $.ShowQRCodePath }}" class="link text-left" data-turbo-action="replace">
-        {{ template "whatsapp-otp-show-qr-code-link-label" }}
-      </a>
-    {{ else if eq .MethodQuery "qr_code" }}
-      <a href="{{ $.OpenWhatsappPath }}" class="link text-left" data-turbo-action="replace">
-        {{ template "whatsapp-otp-show-open-in-whatsapp-link-label" }}
-      </a>
-    {{ end }}
     {{ template "__phone_otp_alternatives.html" . }}
 
     {{ $altOptions := (set (deepCopy .) "separatorDisabled" true) }}

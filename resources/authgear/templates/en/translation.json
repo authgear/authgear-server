@@ -148,27 +148,20 @@
   "oob-otp-sms-is-not-supported": "Sending SMS is not supported. Please contact administrator.",
   "oob-otp-sms-is-not-supported-with-customer-support": "Sending SMS is not supported. Please contact <a class=\"link\" target=\"_blank\" href={customerSupportLink}>customer support</a>.",
 
-  "whatsapp-otp-page-title": "Verify phone number with WhatsApp",
-  "whatsapp-otp-description": "Is your WhatsApp installed on this device?",
-
-  "whatsapp-otp-send-code-to-whatsapp-title": "Send Code to WhatsApp",
-  "whatsapp-otp-copy-and-send-code-to-whatsapp-description": "Copy the 6-digit code and send in WhatsApp",
-  "whatsapp-otp-send-code-to-whatsapp-description": "Send the 6-digit code in WhatsApp",
-
+  "whatsapp-otp-page-title": "Send Code to WhatsApp",
+  "whatsapp-otp-description": "Use your number ({target}) to send this 6-digit code in WhatsApp",
   "whatsapp-otp-waiting-for-your-message": "Waiting for your message",
   "whatsapp-otp-no-code-description": "We didn''t see a message from you. \nDo you want to resend it?",
   "whatsapp-otp-invalid-code-description": "You have entered a wrong code. \nDo you want to resend it?",
+  "whatsapp-otp-refresh-button-label": "Refresh",
+  "whatsapp-otp-installed-on-this-device-hint" : "Installed WhatsApp on this device?",
+  "whatsapp-otp-open-in-whatsapp-button-label": "Yes, open in WhatsApp",
+  "whatsapp-otp-scan-code-button-label": "No, scan code on other device",
   "whatsapp-otp-code-matched-description": "Message Received!",
-
-  "whatsapp-otp-on-this-device-button-label": "WhatsApp on this device",
-  "whatsapp-otp-on-another-device-button-label": "WhatsApp on another device",
-  "whatsapp-otp-open-in-whatsapp-button-label": "Open in WhatsApp",
-  "whatsapp-otp-i-have-sent-the-code-button-label": "I''ve sent the code",
-  "whatsapp-otp-try-again-button-label": "Try again",
+  "whatsapp-otp-redirect-description": "You will be redirected.",
+  "whatsapp-otp-next-description": "Didn''t reload?",
   "whatsapp-otp-next-button": "Next",
   "whatsapp-otp-redirecting-button": "Redirecting... (%ds)",
-  "whatsapp-otp-show-qr-code-link-label": "Show QR Code to WhatsApp",
-  "whatsapp-otp-show-open-in-whatsapp-link-label": "My WhatsApp is installed on this device",
 
   "verify-user-page-title--sms": "SMS Verification",
   "verify-user-page-title--email": "Email Verification",
@@ -316,8 +309,7 @@
   "enter-oob-otp-sms-instead": "Send code to {target} instead via SMS",
   "verify-phone-otp-instead": "Verify {target} via phone instead",
 
-  "phone-otp-verify-with-sms-instead-button": "Verify with SMS instead",
-  "phone-otp-verify-with-sms-instead":"Receive one-time password via SMS instead",
+  "phone-otp-verify-with-sms-instead":"Verify with SMS instead",
   "phone-otp-verify-with-whatsapp-instead": "Verify via WhatsApp instead",
 
   "enter-recovery-code-instead-v1": "Having Trouble? <button class=\"btn secondary-btn\" type=\"submit\">Use recovery code</button>",

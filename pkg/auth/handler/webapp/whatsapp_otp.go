@@ -47,8 +47,7 @@ func (h *WhatsappOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	whatsappViewModel := WhatsappOTPViewModel{
-		MethodQuery: getMethodFromQuery(r),
-		StateQuery:  getStateFromQuery(r),
+		StateQuery: getStateFromQuery(r),
 	}
 	if err := whatsappViewModel.AddData(r, graph, h.WhatsappCodeProvider); err != nil {
 		return nil, err
@@ -139,7 +138,6 @@ func (h *WhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
-		method := getMethodFromQuery(r)
 		var state WhatsappOTPPageQueryState
 		_, err = h.WhatsappCodeProvider.VerifyCode(phone, webSession.ID, false)
 		if err == nil {
@@ -153,7 +151,6 @@ func (h *WhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		q := r.URL.Query()
-		q.Set(WhatsappOTPPageQueryMethodKey, string(method))
 		q.Set(WhatsappOTPPageQueryStateKey, string(state))
 
 		u := url.URL{}

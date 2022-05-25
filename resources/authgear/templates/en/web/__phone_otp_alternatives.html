@@ -1,11 +1,4 @@
 {{ define "__phone_otp_alternatives.html" }}
-  {{/* Show as link by default */}}
-  {{ $containerClass := "text-sm" }}
-  {{ $buttonClass := "btn secondary-btn" }}
-  {{ if $.buttonStyleEnabled }}
-    {{ $containerClass = "text-base grid grid-cols-1 auto-rows-auto" }}
-    {{ $buttonClass = "btn primary-btn outline" }}
-  {{ end }}
   {{ range .PhoneOTPAlternativeSteps }}
     {{ if (or (eq .Step "setup-oob-otp-sms")
               (eq .Step "setup-whatsapp-otp")
@@ -21,14 +14,10 @@
           <input type="hidden" name="{{ $name }}" value="{{ $value }}">
         {{ end }}
         <input type="hidden" name="x_action" value="choose_step"/>
-        <div class="{{ $containerClass }}">
-        <button class="{{ $buttonClass }}" type="submit">
+        <div class="text-sm">
+        <button class="btn secondary-btn" type="submit">
           {{ if (or (eq .Step "setup-oob-otp-sms") (eq .Step "enter-oob-otp-authn-sms") (eq .Step "verify-identity")) }}
-            {{ if $.buttonStyleEnabled }}
-              {{ template "phone-otp-verify-with-sms-instead-button" .Data }}
-            {{ else }}
-              {{ template "phone-otp-verify-with-sms-instead" .Data }}
-            {{ end }}
+            {{ template "phone-otp-verify-with-sms-instead" .Data }}
           {{ end }}
           {{ if (or (eq .Step "setup-whatsapp-otp") (eq .Step "verify-whatsapp-otp-authn") (eq .Step "verify-identity-via-whatsapp")) }}
             {{ template "phone-otp-verify-with-whatsapp-instead" .Data }}
