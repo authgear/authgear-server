@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
 
 func init() {
@@ -34,7 +35,7 @@ func (e *EdgeVerifyIdentity) Instantiate(ctx *interaction.Context, graph *intera
 		Identity:        e.Identity,
 		RequestedByUser: e.RequestedByUser,
 	}
-	result, err := node.SendCode(ctx)
+	result, err := node.SendCode(ctx, true)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +95,7 @@ func (n *NodeVerifyIdentity) DeriveEdges(graph *interaction.Graph) ([]interactio
 	}, nil
 }
 
-func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context) (*otp.CodeSendResult, error) {
+func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context, ignoreRatelimitError bool) (*otp.CodeSendResult, error) {
 	code, err := ctx.Verification.GetCode(ctx.WebSessionID, n.Identity)
 	if errors.Is(err, verification.ErrCodeNotFound) {
 		code = nil
@@ -121,8 +122,12 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context) (*otp.CodeSendRe
 		}
 	}
 
+	result := code.SendResult()
 	err = ctx.RateLimiter.TakeToken(interaction.SendVerificationCodeRateLimitBucket(code.LoginID))
-	if err != nil {
+	if ignoreRatelimitError && errors.Is(err, ratelimit.ErrTooManyRequests) {
+		// Ignore the rate limit error and do NOT send the code.
+		return result, nil
+	} else if err != nil {
 		return nil, err
 	}
 
@@ -131,7 +136,7 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context) (*otp.CodeSendRe
 		return nil, err
 	}
 
-	return code.SendResult(), nil
+	return result, nil
 }
 
 type InputVerifyIdentityCheckCode interface {
@@ -186,7 +191,7 @@ func (e *EdgeVerifyIdentityResendCode) Instantiate(ctx *interaction.Context, gra
 		return nil, interaction.ErrIncompatibleInput
 	}
 
-	_, err := e.Node.SendCode(ctx)
+	_, err := e.Node.SendCode(ctx, false)
 	if err != nil {
 		return nil, err
 	}
