@@ -38,14 +38,17 @@ func (p *Provider) List(userID string) ([]*Authenticator, error) {
 	return authenticators, nil
 }
 
-func (p *Provider) New(userID string, displayName string, isDefault bool, kind string) *Authenticator {
+func (p *Provider) New(id string, userID string, displayName string, isDefault bool, kind string) *Authenticator {
 	secret, err := otp.GenerateTOTPSecret()
 	if err != nil {
 		panic(fmt.Errorf("totp: failed to generate secret: %w", err))
 	}
 
+	if id == "" {
+		id = uuid.New()
+	}
 	a := &Authenticator{
-		ID:          uuid.New(),
+		ID:          id,
 		UserID:      userID,
 		Secret:      secret,
 		DisplayName: displayName,

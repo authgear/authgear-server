@@ -20,8 +20,9 @@ type InputCreateAuthenticatorWhatsappOTPSetup interface {
 }
 
 type EdgeCreateAuthenticatorWhatsappOTPSetup struct {
-	Stage     authn.AuthenticationStage
-	IsDefault bool
+	NewAuthenticatorID string
+	Stage              authn.AuthenticationStage
+	IsDefault          bool
 }
 
 type InputCreateAuthenticatorWhatsappOTPSetupSelect interface {
@@ -79,7 +80,7 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(ctx *interaction.C
 		},
 	}
 
-	info, err := ctx.Authenticators.New(spec, "")
+	info, err := ctx.Authenticators.NewWithAuthenticatorID(e.NewAuthenticatorID, spec, "")
 	if err != nil {
 		return nil, err
 	}
