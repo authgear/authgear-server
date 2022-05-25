@@ -19,6 +19,7 @@ func CSPDirectives(publicOrigin string, nonce string) ([]string, error) {
 	return []string{
 		"default-src 'self'",
 		fmt.Sprintf("script-src 'self' 'nonce-%s' www.googletagmanager.com", nonce),
+		"frame-src 'self' www.googletagmanager.com",
 		"font-src 'self' cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com",
 		"style-src 'self' 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com",
 		// We use data URI to show QR image.
