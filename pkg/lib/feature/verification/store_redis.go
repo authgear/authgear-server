@@ -27,7 +27,7 @@ func (s *StoreRedis) Create(code *Code) error {
 	}
 
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
-		codeKey := redisCodeKey(s.AppID, code.ID)
+		codeKey := redisCodeKey(s.AppID, code.CodeKey())
 		ttl := code.ExpireAt.Sub(s.Clock.NowUTC())
 		_, err := conn.Set(ctx, codeKey, data, ttl).Result()
 		if errors.Is(err, goredis.Nil) {
@@ -40,9 +40,9 @@ func (s *StoreRedis) Create(code *Code) error {
 	})
 }
 
-func (s *StoreRedis) Get(id string) (*Code, error) {
+func (s *StoreRedis) Get(codeKey *CodeKey) (*Code, error) {
 	ctx := context.Background()
-	key := redisCodeKey(s.AppID, id)
+	key := redisCodeKey(s.AppID, codeKey)
 	var codeModel *Code
 	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
 		data, err := conn.Get(ctx, key).Bytes()
@@ -62,10 +62,10 @@ func (s *StoreRedis) Get(id string) (*Code, error) {
 	return codeModel, err
 }
 
-func (s *StoreRedis) Delete(id string) error {
+func (s *StoreRedis) Delete(codeKey *CodeKey) error {
 	ctx := context.Background()
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
-		key := redisCodeKey(s.AppID, id)
+		key := redisCodeKey(s.AppID, codeKey)
 		_, err := conn.Del(ctx, key).Result()
 		if err != nil {
 			return err
@@ -74,6 +74,6 @@ func (s *StoreRedis) Delete(id string) error {
 	})
 }
 
-func redisCodeKey(appID config.AppID, id string) string {
-	return fmt.Sprintf("app:%s:verification-code:%s", appID, id)
+func redisCodeKey(appID config.AppID, codeKey *CodeKey) string {
+	return fmt.Sprintf("app:%s:verification-code:%s:%s:%s", appID, codeKey.WebSessionID, codeKey.LoginIDType, codeKey.LoginID)
 }

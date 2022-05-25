@@ -32,7 +32,6 @@ func (e *EdgeVerifyIdentity) Instantiate(ctx *interaction.Context, graph *intera
 
 	node := &NodeVerifyIdentity{
 		Identity:        e.Identity,
-		CodeID:          verification.NewCodeID(),
 		RequestedByUser: e.RequestedByUser,
 	}
 	result, err := node.SendCode(ctx)
@@ -48,7 +47,6 @@ func (e *EdgeVerifyIdentity) Instantiate(ctx *interaction.Context, graph *intera
 
 type NodeVerifyIdentity struct {
 	Identity        *identity.Info `json:"identity"`
-	CodeID          string         `json:"code_id"`
 	RequestedByUser bool           `json:"requested_by_user"`
 
 	Channel    string `json:"channel"`
@@ -91,13 +89,13 @@ func (n *NodeVerifyIdentity) GetEffects() ([]interaction.Effect, error) {
 
 func (n *NodeVerifyIdentity) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
 	return []interaction.Edge{
-		&EdgeVerifyIdentityCheckCode{Identity: n.Identity, ID: n.CodeID},
+		&EdgeVerifyIdentityCheckCode{Identity: n.Identity},
 		&EdgeVerifyIdentityResendCode{Node: n},
 	}, nil
 }
 
 func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context) (*otp.CodeSendResult, error) {
-	code, err := ctx.Verification.GetCode(n.CodeID)
+	code, err := ctx.Verification.GetCode(ctx.WebSessionID, n.Identity)
 	if errors.Is(err, verification.ErrCodeNotFound) {
 		code = nil
 	} else if err != nil {
@@ -106,7 +104,6 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context) (*otp.CodeSendRe
 
 	if code == nil || ctx.Clock.NowUTC().After(code.ExpireAt) {
 		code, err = ctx.Verification.CreateNewCode(
-			n.CodeID,
 			n.Identity,
 			ctx.WebSessionID,
 			n.RequestedByUser,
@@ -143,7 +140,6 @@ type InputVerifyIdentityCheckCode interface {
 
 type EdgeVerifyIdentityCheckCode struct {
 	Identity *identity.Info
-	ID       string
 }
 
 func (e *EdgeVerifyIdentityCheckCode) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
@@ -152,7 +148,7 @@ func (e *EdgeVerifyIdentityCheckCode) Instantiate(ctx *interaction.Context, grap
 		return nil, interaction.ErrIncompatibleInput
 	}
 
-	code, err := ctx.Verification.VerifyCode(e.ID, input.GetVerificationCode())
+	code, err := ctx.Verification.VerifyCode(ctx.WebSessionID, e.Identity, input.GetVerificationCode())
 	if err != nil {
 		return nil, err
 	}
