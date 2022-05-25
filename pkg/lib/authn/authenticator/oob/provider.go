@@ -53,9 +53,12 @@ func (p *Provider) List(userID string) ([]*Authenticator, error) {
 	return authenticators, nil
 }
 
-func (p *Provider) New(userID string, oobAuthenticatorType model.AuthenticatorType, target string, isDefault bool, kind string) *Authenticator {
+func (p *Provider) New(id string, userID string, oobAuthenticatorType model.AuthenticatorType, target string, isDefault bool, kind string) *Authenticator {
+	if id == "" {
+		id = uuid.New()
+	}
 	a := &Authenticator{
-		ID:                   uuid.New(),
+		ID:                   id,
 		UserID:               userID,
 		OOBAuthenticatorType: oobAuthenticatorType,
 		IsDefault:            isDefault,

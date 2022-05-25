@@ -16,8 +16,9 @@ type InputCreateAuthenticatorPassword interface {
 }
 
 type EdgeCreateAuthenticatorPassword struct {
-	Stage     authn.AuthenticationStage
-	IsDefault bool
+	NewAuthenticatorID string
+	Stage              authn.AuthenticationStage
+	IsDefault          bool
 }
 
 func (e *EdgeCreateAuthenticatorPassword) AuthenticatorType() model.AuthenticatorType {
@@ -52,7 +53,7 @@ func (e *EdgeCreateAuthenticatorPassword) Instantiate(ctx *interaction.Context, 
 		Claims:    map[string]interface{}{},
 	}
 
-	info, err := ctx.Authenticators.New(spec, input.GetPassword())
+	info, err := ctx.Authenticators.NewWithAuthenticatorID(e.NewAuthenticatorID, spec, input.GetPassword())
 	if err != nil {
 		return nil, err
 	}

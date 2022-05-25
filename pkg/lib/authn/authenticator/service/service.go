@@ -16,7 +16,7 @@ type PasswordAuthenticatorProvider interface {
 	Get(userID, id string) (*password.Authenticator, error)
 	GetMany(ids []string) ([]*password.Authenticator, error)
 	List(userID string) ([]*password.Authenticator, error)
-	New(userID string, password string, isDefault bool, kind string) (*password.Authenticator, error)
+	New(id string, userID string, password string, isDefault bool, kind string) (*password.Authenticator, error)
 	// WithPassword returns new authenticator pointer if password is changed
 	// Otherwise original authenticator will be returned
 	WithPassword(a *password.Authenticator, password string) (*password.Authenticator, error)
@@ -30,7 +30,7 @@ type TOTPAuthenticatorProvider interface {
 	Get(userID, id string) (*totp.Authenticator, error)
 	GetMany(ids []string) ([]*totp.Authenticator, error)
 	List(userID string) ([]*totp.Authenticator, error)
-	New(userID string, displayName string, isDefault bool, kind string) *totp.Authenticator
+	New(id string, userID string, displayName string, isDefault bool, kind string) *totp.Authenticator
 	Create(*totp.Authenticator) error
 	Delete(*totp.Authenticator) error
 	Authenticate(a *totp.Authenticator, code string) error
@@ -40,7 +40,7 @@ type OOBOTPAuthenticatorProvider interface {
 	Get(userID, id string) (*oob.Authenticator, error)
 	GetMany(ids []string) ([]*oob.Authenticator, error)
 	List(userID string) ([]*oob.Authenticator, error)
-	New(userID string, oobAuthenticatorType model.AuthenticatorType, target string, isDefault bool, kind string) *oob.Authenticator
+	New(id string, userID string, oobAuthenticatorType model.AuthenticatorType, target string, isDefault bool, kind string) *oob.Authenticator
 	Create(*oob.Authenticator) error
 	Delete(*oob.Authenticator) error
 	VerifyCode(authenticatorID string, code string) (*oob.Code, error)
@@ -195,9 +195,13 @@ func (s *Service) ListRefsByUsers(userIDs []string) ([]*authenticator.Ref, error
 }
 
 func (s *Service) New(spec *authenticator.Spec, secret string) (*authenticator.Info, error) {
+	return s.NewWithAuthenticatorID("", spec, secret)
+}
+
+func (s *Service) NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec, secret string) (*authenticator.Info, error) {
 	switch spec.Type {
 	case model.AuthenticatorTypePassword:
-		p, err := s.Password.New(spec.UserID, secret, spec.IsDefault, string(spec.Kind))
+		p, err := s.Password.New(authenticatorID, spec.UserID, secret, spec.IsDefault, string(spec.Kind))
 		if err != nil {
 			return nil, err
 		}
@@ -205,17 +209,17 @@ func (s *Service) New(spec *authenticator.Spec, secret string) (*authenticator.I
 
 	case model.AuthenticatorTypeTOTP:
 		displayName := spec.Claims[authenticator.AuthenticatorClaimTOTPDisplayName].(string)
-		t := s.TOTP.New(spec.UserID, displayName, spec.IsDefault, string(spec.Kind))
+		t := s.TOTP.New(authenticatorID, spec.UserID, displayName, spec.IsDefault, string(spec.Kind))
 		return totpToAuthenticatorInfo(t), nil
 
 	case model.AuthenticatorTypeOOBEmail:
 		email := spec.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string)
-		o := s.OOBOTP.New(spec.UserID, model.AuthenticatorTypeOOBEmail, email, spec.IsDefault, string(spec.Kind))
+		o := s.OOBOTP.New(authenticatorID, spec.UserID, model.AuthenticatorTypeOOBEmail, email, spec.IsDefault, string(spec.Kind))
 		return oobotpToAuthenticatorInfo(o), nil
 
 	case model.AuthenticatorTypeOOBSMS:
 		phone := spec.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string)
-		o := s.OOBOTP.New(spec.UserID, model.AuthenticatorTypeOOBSMS, phone, spec.IsDefault, string(spec.Kind))
+		o := s.OOBOTP.New(authenticatorID, spec.UserID, model.AuthenticatorTypeOOBSMS, phone, spec.IsDefault, string(spec.Kind))
 		return oobotpToAuthenticatorInfo(o), nil
 	}
 
