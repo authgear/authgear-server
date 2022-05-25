@@ -1,10 +1,24 @@
 package web
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"strings"
 )
+
+type dynamicCSPContextKeyType struct{}
+
+var dynamicCSPContextKey = dynamicCSPContextKeyType{}
+
+func WithCSPNonce(ctx context.Context, nonce string) context.Context {
+	return context.WithValue(ctx, dynamicCSPContextKey, nonce)
+}
+
+func GetCSPNonce(ctx context.Context) string {
+	nonce, _ := ctx.Value(dynamicCSPContextKey).(string)
+	return nonce
+}
 
 func CSPJoin(directives []string) string {
 	return strings.Join(directives, "; ")
