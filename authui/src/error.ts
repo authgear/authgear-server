@@ -1,15 +1,17 @@
 import { AxiosResponse } from "axios";
+import { session } from "@hotwired/turbo";
 
 export function handleAxiosError(e: unknown) {
   const err = e as any;
   if (err.response != null) {
     const response: AxiosResponse = err.response;
-    const reason = response.data?.error.reason;
-    if (reason === "RateLimited") {
-      showErrorMessage("error-message-rate-limited");
-    } else {
-      showErrorMessage("error-message-server");
+
+    if (typeof response.data === "string") {
+      session.renderStreamMessage(response.data);
+      return;
     }
+
+    showErrorMessage("error-message-server");
   } else if (err.request != null) {
     showErrorMessage("error-message-network");
   } else {
