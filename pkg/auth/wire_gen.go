@@ -5244,6 +5244,9 @@ func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 	jsonResponseWriter := &httputil.JSONResponseWriter{
 		Logger: jsonResponseWriterLogger,
 	}
+	responseWriter := &webapp2.ResponseWriter{
+		JSONResponseWriter: jsonResponseWriter,
+	}
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -5274,7 +5277,7 @@ func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 	}
 	presignImagesUploadHandlerLogger := api.NewPresignImagesUploadHandlerLogger(factory)
 	presignImagesUploadHandler := &api.PresignImagesUploadHandler{
-		JSON:            jsonResponseWriter,
+		Turbo:           responseWriter,
 		HTTPProto:       httpProto,
 		HTTPHost:        httpHost,
 		AppID:           appID,

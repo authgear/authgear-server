@@ -107,6 +107,7 @@ var DependencySet = wire.NewSet(
 
 	handlerapi.DependencySet,
 	wire.Bind(new(handlerapi.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
+	wire.Bind(new(handlerapi.TurboResponseWriter), new(*handlerwebapp.ResponseWriter)),
 	wire.Bind(new(handlerapi.AnonymousUserHandler), new(*oauthhandler.AnonymousUserHandler)),
 	wire.Bind(new(handlerapi.PromotionCodeIssuer), new(*oauthhandler.AnonymousUserHandler)),
 	wire.Bind(new(handlerapi.RateLimiter), new(*ratelimit.Limiter)),
