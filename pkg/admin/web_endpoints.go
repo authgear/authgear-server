@@ -16,10 +16,6 @@ func (WebEndpoints) BaseURL() *url.URL {
 	panic("not implemented")
 }
 
-func (WebEndpoints) VerifyIdentityURL(code string, webStateID string) *url.URL {
-	panic("not implemented")
-}
-
 func (WebEndpoints) ResetPasswordURL(code string) *url.URL {
 	panic("not implemented")
 }
