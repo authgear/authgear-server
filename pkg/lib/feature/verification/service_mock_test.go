@@ -49,32 +49,32 @@ func (mr *MockCodeStoreMockRecorder) Create(code interface{}) *gomock.Call {
 }
 
 // Delete mocks base method.
-func (m *MockCodeStore) Delete(id string) error {
+func (m *MockCodeStore) Delete(codeKey *CodeKey) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", id)
+	ret := m.ctrl.Call(m, "Delete", codeKey)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockCodeStoreMockRecorder) Delete(id interface{}) *gomock.Call {
+func (mr *MockCodeStoreMockRecorder) Delete(codeKey interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockCodeStore)(nil).Delete), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockCodeStore)(nil).Delete), codeKey)
 }
 
 // Get mocks base method.
-func (m *MockCodeStore) Get(id string) (*Code, error) {
+func (m *MockCodeStore) Get(codeKey *CodeKey) (*Code, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", id)
+	ret := m.ctrl.Call(m, "Get", codeKey)
 	ret0, _ := ret[0].(*Code)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockCodeStoreMockRecorder) Get(id interface{}) *gomock.Call {
+func (mr *MockCodeStoreMockRecorder) Get(codeKey interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockCodeStore)(nil).Get), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockCodeStore)(nil).Get), codeKey)
 }
 
 // MockClaimStore is a mock of ClaimStore interface.

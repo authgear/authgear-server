@@ -151,13 +151,12 @@ type VerificationService interface {
 	GetIdentityVerificationStatus(i *identity.Info) ([]verification.ClaimStatus, error)
 	GetAuthenticatorVerificationStatus(a *authenticator.Info) (verification.AuthenticatorStatus, error)
 	CreateNewCode(
-		id string,
 		info *identity.Info,
 		webSessionID string,
 		requestedByUser bool,
 	) (*verification.Code, error)
-	GetCode(id string) (*verification.Code, error)
-	VerifyCode(id string, code string) (*verification.Code, error)
+	GetCode(webSessionID string, info *identity.Info) (*verification.Code, error)
+	VerifyCode(webSessionID string, info *identity.Info, code string) (*verification.Code, error)
 	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
 	MarkClaimVerified(claim *verification.Claim) error
 }
