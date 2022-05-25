@@ -46,6 +46,7 @@ type AuthenticatorService interface {
 	Get(id string) (*authenticator.Info, error)
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
+	NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec, secret string) (*authenticator.Info, error)
 	WithSecret(authenticatorInfo *authenticator.Info, secret string) (changed bool, info *authenticator.Info, err error)
 	Create(authenticatorInfo *authenticator.Info) error
 	Update(authenticatorInfo *authenticator.Info) error

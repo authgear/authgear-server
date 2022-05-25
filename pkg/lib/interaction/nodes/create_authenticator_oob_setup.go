@@ -27,8 +27,9 @@ type InputCreateAuthenticatorOOBSetupSelect interface {
 }
 
 type EdgeCreateAuthenticatorOOBSetup struct {
-	Stage     authn.AuthenticationStage
-	IsDefault bool
+	NewAuthenticatorID string
+	Stage              authn.AuthenticationStage
+	IsDefault          bool
 
 	OOBAuthenticatorType model.AuthenticatorType
 }
@@ -172,7 +173,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 		spec.Claims[authenticator.AuthenticatorClaimOOBOTPEmail] = target
 	}
 
-	info, err := ctx.Authenticators.New(spec, "")
+	info, err := ctx.Authenticators.NewWithAuthenticatorID(e.NewAuthenticatorID, spec, "")
 	if err != nil {
 		return nil, err
 	}

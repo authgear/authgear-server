@@ -16,8 +16,9 @@ type InputCreateAuthenticatorTOTPSetup interface {
 }
 
 type EdgeCreateAuthenticatorTOTPSetup struct {
-	Stage     authn.AuthenticationStage
-	IsDefault bool
+	NewAuthenticatorID string
+	Stage              authn.AuthenticationStage
+	IsDefault          bool
 }
 
 func (e *EdgeCreateAuthenticatorTOTPSetup) AuthenticatorType() model.AuthenticatorType {
@@ -46,7 +47,7 @@ func (e *EdgeCreateAuthenticatorTOTPSetup) Instantiate(ctx *interaction.Context,
 		},
 	}
 
-	info, err := ctx.Authenticators.New(spec, "")
+	info, err := ctx.Authenticators.NewWithAuthenticatorID(e.NewAuthenticatorID, spec, "")
 	if err != nil {
 		return nil, err
 	}

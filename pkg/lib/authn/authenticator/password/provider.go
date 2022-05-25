@@ -47,9 +47,12 @@ func (p *Provider) List(userID string) ([]*Authenticator, error) {
 	return authenticators, nil
 }
 
-func (p *Provider) New(userID string, password string, isDefault bool, kind string) (*Authenticator, error) {
+func (p *Provider) New(id string, userID string, password string, isDefault bool, kind string) (*Authenticator, error) {
+	if id == "" {
+		id = uuid.New()
+	}
 	authen := &Authenticator{
-		ID:        uuid.New(),
+		ID:        id,
 		UserID:    userID,
 		IsDefault: isDefault,
 		Kind:      kind,

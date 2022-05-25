@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 func init() {
@@ -34,18 +35,20 @@ func (e *EdgeCreateAuthenticatorBegin) Instantiate(ctx *interaction.Context, gra
 	}
 
 	return &NodeCreateAuthenticatorBegin{
-		Stage:             e.Stage,
-		AuthenticatorType: e.AuthenticatorType,
-		SkipMFASetup:      skipMFASetup,
-		RequestedByUser:   requestedByUser,
+		NewAuthenticatorID: uuid.New(),
+		Stage:              e.Stage,
+		AuthenticatorType:  e.AuthenticatorType,
+		SkipMFASetup:       skipMFASetup,
+		RequestedByUser:    requestedByUser,
 	}, nil
 }
 
 type NodeCreateAuthenticatorBegin struct {
-	Stage             authn.AuthenticationStage `json:"stage"`
-	AuthenticatorType *model.AuthenticatorType  `json:"authenticator_type"`
-	SkipMFASetup      bool                      `json:"skip_mfa_setup"`
-	RequestedByUser   bool                      `json:"requested_by_user"`
+	NewAuthenticatorID string                    `json:"new_authenticator_id"`
+	Stage              authn.AuthenticationStage `json:"stage"`
+	AuthenticatorType  *model.AuthenticatorType  `json:"authenticator_type"`
+	SkipMFASetup       bool                      `json:"skip_mfa_setup"`
+	RequestedByUser    bool                      `json:"requested_by_user"`
 
 	Identity             *identity.Info               `json:"-"`
 	AuthenticationConfig *config.AuthenticationConfig `json:"-"`
@@ -170,14 +173,16 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 		switch t {
 		case model.AuthenticatorTypePassword:
 			edges = append(edges, &EdgeCreateAuthenticatorPassword{
-				Stage:     n.Stage,
-				IsDefault: isDefault,
+				NewAuthenticatorID: n.NewAuthenticatorID,
+				Stage:              n.Stage,
+				IsDefault:          isDefault,
 			})
 
 		case model.AuthenticatorTypeTOTP:
 			edges = append(edges, &EdgeCreateAuthenticatorTOTPSetup{
-				Stage:     n.Stage,
-				IsDefault: isDefault,
+				NewAuthenticatorID: n.NewAuthenticatorID,
+				Stage:              n.Stage,
+				IsDefault:          isDefault,
 			})
 
 		case model.AuthenticatorTypeOOBSMS:
@@ -188,13 +193,15 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 
 				if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
 					edges = append(edges, &EdgeCreateAuthenticatorWhatsappOTPSetup{
-						Stage:     n.Stage,
-						IsDefault: isDefault,
+						NewAuthenticatorID: n.NewAuthenticatorID,
+						Stage:              n.Stage,
+						IsDefault:          isDefault,
 					})
 				}
 
 				if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsSMSEnabled() {
 					edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
+						NewAuthenticatorID:   n.NewAuthenticatorID,
 						Stage:                n.Stage,
 						IsDefault:            isDefault,
 						OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
@@ -208,6 +215,7 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 			// check if identity login id type match oob type
 			if loginIDType == string(config.LoginIDKeyTypeEmail) {
 				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
+					NewAuthenticatorID:   n.NewAuthenticatorID,
 					Stage:                n.Stage,
 					IsDefault:            isDefault,
 					OOBAuthenticatorType: model.AuthenticatorTypeOOBEmail,
@@ -312,21 +320,24 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 		case model.AuthenticatorTypePassword:
 			// Condition B.
 			edges = append(edges, &EdgeCreateAuthenticatorPassword{
-				Stage:     n.Stage,
-				IsDefault: isDefault,
+				NewAuthenticatorID: n.NewAuthenticatorID,
+				Stage:              n.Stage,
+				IsDefault:          isDefault,
 			})
 		case model.AuthenticatorTypeTOTP:
 			// Condition B and C.
 			if totpCount < *n.AuthenticatorConfig.TOTP.Maximum {
 				edges = append(edges, &EdgeCreateAuthenticatorTOTPSetup{
-					Stage:     n.Stage,
-					IsDefault: isDefault,
+					NewAuthenticatorID: n.NewAuthenticatorID,
+					Stage:              n.Stage,
+					IsDefault:          isDefault,
 				})
 			}
 		case model.AuthenticatorTypeOOBEmail:
 			// Condition B and C.
 			if oobEmailCount < *n.AuthenticatorConfig.OOB.Email.Maximum {
 				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
+					NewAuthenticatorID:   n.NewAuthenticatorID,
 					Stage:                n.Stage,
 					IsDefault:            isDefault,
 					OOBAuthenticatorType: model.AuthenticatorTypeOOBEmail,
@@ -337,13 +348,15 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 			if oobSMSCount < *n.AuthenticatorConfig.OOB.SMS.Maximum {
 				if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
 					edges = append(edges, &EdgeCreateAuthenticatorWhatsappOTPSetup{
-						Stage:     n.Stage,
-						IsDefault: isDefault,
+						NewAuthenticatorID: n.NewAuthenticatorID,
+						Stage:              n.Stage,
+						IsDefault:          isDefault,
 					})
 				}
 
 				if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsSMSEnabled() {
 					edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
+						NewAuthenticatorID:   n.NewAuthenticatorID,
 						Stage:                n.Stage,
 						IsDefault:            isDefault,
 						OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
