@@ -1,8 +1,6 @@
 package verification
 
 import (
-	"net/url"
-
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -12,19 +10,14 @@ type OTPMessageSender interface {
 	SendSMS(phone string, opts otp.SendOptions) error
 }
 
-type WebAppURLProvider interface {
-	VerifyIdentityURL(code string, webStateID string) *url.URL
-}
-
 type CodeSender struct {
 	OTPMessageSender OTPMessageSender
-	WebAppURLs       WebAppURLProvider
 }
 
 func (s *CodeSender) SendCode(code *Code) (err error) {
 	opts := otp.SendOptions{
 		OTP:         code.Code,
-		URL:         s.WebAppURLs.VerifyIdentityURL(code.Code, code.ID).String(),
+		URL:         "", // TODO(verification): Support verification link in future.
 		MessageType: otp.MessageTypeVerification,
 	}
 

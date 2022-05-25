@@ -18,7 +18,6 @@ type EndpointsProvider interface {
 	LogoutEndpointURL() *url.URL
 	SettingsEndpointURL() *url.URL
 	ResetPasswordEndpointURL() *url.URL
-	VerifyIdentityEndpointURL() *url.URL
 	SSOCallbackEndpointURL() *url.URL
 	WeChatAuthorizeEndpointURL() *url.URL
 	WeChatCallbackEndpointURL() *url.URL
@@ -43,13 +42,6 @@ func (p *URLProvider) ResetPasswordURL(code string) *url.URL {
 	return urlutil.WithQueryParamsAdded(
 		p.Endpoints.ResetPasswordEndpointURL(),
 		map[string]string{"code": code},
-	)
-}
-
-func (p *URLProvider) VerifyIdentityURL(code string, id string) *url.URL {
-	return urlutil.WithQueryParamsAdded(
-		p.Endpoints.VerifyIdentityEndpointURL(),
-		map[string]string{"code": code, "id": id},
 	)
 }
 

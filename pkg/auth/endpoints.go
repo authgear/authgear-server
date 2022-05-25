@@ -37,22 +37,21 @@ func (p *EndpointsProvider) urlOf(relPath string) *url.URL {
 	return u
 }
 
-func (p *EndpointsProvider) AuthorizeEndpointURL() *url.URL      { return p.urlOf("oauth2/authorize") }
-func (p *EndpointsProvider) FromWebAppEndpointURL() *url.URL     { return p.urlOf("oauth2/_from_webapp") }
-func (p *EndpointsProvider) TokenEndpointURL() *url.URL          { return p.urlOf("oauth2/token") }
-func (p *EndpointsProvider) RevokeEndpointURL() *url.URL         { return p.urlOf("oauth2/revoke") }
-func (p *EndpointsProvider) JWKSEndpointURL() *url.URL           { return p.urlOf("oauth2/jwks") }
-func (p *EndpointsProvider) UserInfoEndpointURL() *url.URL       { return p.urlOf("oauth2/userinfo") }
-func (p *EndpointsProvider) EndSessionEndpointURL() *url.URL     { return p.urlOf("oauth2/end_session") }
-func (p *EndpointsProvider) OAuthEntrypointURL() *url.URL        { return p.urlOf("./_oauth_entrypoint") }
-func (p *EndpointsProvider) LoginEndpointURL() *url.URL          { return p.urlOf("./login") }
-func (p *EndpointsProvider) SignupEndpointURL() *url.URL         { return p.urlOf("./signup") }
-func (p *EndpointsProvider) PromoteUserEndpointURL() *url.URL    { return p.urlOf("./promote_user") }
-func (p *EndpointsProvider) LogoutEndpointURL() *url.URL         { return p.urlOf("./logout") }
-func (p *EndpointsProvider) SettingsEndpointURL() *url.URL       { return p.urlOf("./settings") }
-func (p *EndpointsProvider) ResetPasswordEndpointURL() *url.URL  { return p.urlOf("./reset_password") }
-func (p *EndpointsProvider) VerifyIdentityEndpointURL() *url.URL { return p.urlOf("./verify_identity") }
-func (p *EndpointsProvider) SSOCallbackEndpointURL() *url.URL    { return p.urlOf("sso/oauth2/callback") }
+func (p *EndpointsProvider) AuthorizeEndpointURL() *url.URL     { return p.urlOf("oauth2/authorize") }
+func (p *EndpointsProvider) FromWebAppEndpointURL() *url.URL    { return p.urlOf("oauth2/_from_webapp") }
+func (p *EndpointsProvider) TokenEndpointURL() *url.URL         { return p.urlOf("oauth2/token") }
+func (p *EndpointsProvider) RevokeEndpointURL() *url.URL        { return p.urlOf("oauth2/revoke") }
+func (p *EndpointsProvider) JWKSEndpointURL() *url.URL          { return p.urlOf("oauth2/jwks") }
+func (p *EndpointsProvider) UserInfoEndpointURL() *url.URL      { return p.urlOf("oauth2/userinfo") }
+func (p *EndpointsProvider) EndSessionEndpointURL() *url.URL    { return p.urlOf("oauth2/end_session") }
+func (p *EndpointsProvider) OAuthEntrypointURL() *url.URL       { return p.urlOf("./_oauth_entrypoint") }
+func (p *EndpointsProvider) LoginEndpointURL() *url.URL         { return p.urlOf("./login") }
+func (p *EndpointsProvider) SignupEndpointURL() *url.URL        { return p.urlOf("./signup") }
+func (p *EndpointsProvider) PromoteUserEndpointURL() *url.URL   { return p.urlOf("./promote_user") }
+func (p *EndpointsProvider) LogoutEndpointURL() *url.URL        { return p.urlOf("./logout") }
+func (p *EndpointsProvider) SettingsEndpointURL() *url.URL      { return p.urlOf("./settings") }
+func (p *EndpointsProvider) ResetPasswordEndpointURL() *url.URL { return p.urlOf("./reset_password") }
+func (p *EndpointsProvider) SSOCallbackEndpointURL() *url.URL   { return p.urlOf("sso/oauth2/callback") }
 
 func (p *EndpointsProvider) WeChatAuthorizeEndpointURL() *url.URL { return p.urlOf("sso/wechat/auth") }
 func (p *EndpointsProvider) WeChatCallbackEndpointURL() *url.URL {
