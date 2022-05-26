@@ -33196,11 +33196,17 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 }
 
 func newDynamicCSPMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	request := p.Request
 	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
-	dynamicCSPMiddleware := &web.DynamicCSPMiddleware{
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	dynamicCSPMiddleware := &webapp.DynamicCSPMiddleware{
+		Cookies:    cookieManager,
 		HTTPConfig: httpConfig,
 	}
 	return dynamicCSPMiddleware

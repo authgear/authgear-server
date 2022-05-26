@@ -23,6 +23,7 @@ func TestCSPDirectives(t *testing.T) {
 		test("http://localhost:3000", "N0NC5", []string{
 			"default-src 'self'",
 			"script-src 'self' 'nonce-N0NC5' www.googletagmanager.com",
+			"frame-src 'self' www.googletagmanager.com",
 			"font-src 'self' cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com",
 			"style-src 'self' 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com",
 			"img-src 'self' http: https: data:",
