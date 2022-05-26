@@ -83,19 +83,16 @@
   <p class="text-sm break-words primary-txt text-center">
     {{ template "whatsapp-otp-next-description" }}
   </p>
-  <div class="grid grid-cols-1" data-controller="delayed-auto-submit">
-    <button
-      form="main-form"
-      class="btn primary-btn"
-      type="submit"
-      name="x_action"
-      value="verify"
-      data-delayed-auto-submit-target="button"
-      data-countdown-sec="2"
-      data-label="{{ template "whatsapp-otp-next-button" }}"
-      data-label-unit="{{ template "whatsapp-otp-redirecting-button" }}"
-    >{{ template "whatsapp-otp-next-button" }}</button>
-  </div>
+  <button
+    form="main-form"
+    class="btn primary-btn"
+    type="submit"
+    name="x_action"
+    value="verify"
+    data-controller="delayed-auto-submit" 
+    data-countdown-sec="2"
+    data-action="click->delayed-auto-submit#onClick"
+  >{{ template "whatsapp-otp-next-button" }}</button>
 {{ end }}
 
 {{ template "__watermark.html" . }}
