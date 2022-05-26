@@ -161,7 +161,6 @@
   "whatsapp-otp-redirect-description": "You will be redirected.",
   "whatsapp-otp-next-description": "Didn''t reload?",
   "whatsapp-otp-next-button": "Next",
-  "whatsapp-otp-redirecting-button": "Redirecting... (%ds)",
 
   "verify-user-page-title--sms": "SMS Verification",
   "verify-user-page-title--email": "Email Verification",
