@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/secretcode"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -39,7 +39,7 @@ func (p *Provider) List(userID string) ([]*Authenticator, error) {
 }
 
 func (p *Provider) New(userID string, displayName string, isDefault bool, kind string) *Authenticator {
-	secret, err := otp.GenerateTOTPSecret()
+	totp, err := secretcode.NewTOTPFromRNG()
 	if err != nil {
 		panic(fmt.Errorf("totp: failed to generate secret: %w", err))
 	}
@@ -47,7 +47,7 @@ func (p *Provider) New(userID string, displayName string, isDefault bool, kind s
 	a := &Authenticator{
 		ID:          uuid.New(),
 		UserID:      userID,
-		Secret:      secret,
+		Secret:      totp.Secret,
 		DisplayName: displayName,
 		IsDefault:   isDefault,
 		Kind:        kind,
@@ -64,7 +64,8 @@ func (p *Provider) Create(a *Authenticator) error {
 
 func (p *Provider) Authenticate(a *Authenticator, code string) error {
 	now := p.Clock.NowUTC()
-	if otp.ValidateTOTP(a.Secret, code, now, otp.ValidateOptsTOTP) {
+	totp := secretcode.NewTOTPFromSecret(a.Secret)
+	if totp.ValidateCode(now, code) {
 		return nil
 	}
 
