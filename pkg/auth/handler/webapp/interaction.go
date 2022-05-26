@@ -256,12 +256,17 @@ var _ nodes.InputResetPasswordByCode = &InputResetPassword{}
 func (i *InputResetPassword) GetCode() string        { return i.Code }
 func (i *InputResetPassword) GetNewPassword() string { return i.Password }
 
-type InputVerifyWhatsappOTP struct{}
+type InputVerifyWhatsappOTP struct {
+	DeviceToken bool
+}
 
-func (i *InputVerifyWhatsappOTP) VerifyWhatsappOTP() {}
+func (i *InputVerifyWhatsappOTP) VerifyWhatsappOTP()      {}
+func (i *InputVerifyWhatsappOTP) CreateDeviceToken() bool { return i.DeviceToken }
 
 var _ nodes.InputCreateAuthenticatorWhatsappOTP = &InputVerifyWhatsappOTP{}
+var _ nodes.InputAuthenticationWhatsapp = &InputVerifyWhatsappOTP{}
 var _ nodes.InputVerifyIdentityViaWhatsappCheckCode = &InputVerifyWhatsappOTP{}
+var _ nodes.InputCreateDeviceToken = &InputVerifyWhatsappOTP{}
 
 type InputSetupWhatsappOTP struct {
 	Phone string

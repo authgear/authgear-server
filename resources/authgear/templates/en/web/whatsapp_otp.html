@@ -17,11 +17,11 @@
 </p>
 {{ end }}
 
-<form id="main-form" class="hidden" method="post" action="{{ $.VerifyFormSubmitPath }}" novalidate>
+<form id="main-form" class="hidden" method="post" action="{{ $.FormActionPath }}" novalidate>
 {{ $.CSRFField }}
 </form>
 
-<form id="dryrun-verify-form" class="hidden" method="post" novalidate>
+<form id="dryrun-verify-form" class="hidden" method="post" action="{{ $.FormActionPath }}" novalidate>
 {{ $.CSRFField }}
 </form>
 
@@ -73,6 +73,20 @@
   >
     {{ template "whatsapp-otp-scan-code-button-label" }}
   </a>
+  {{ if $.CanRequestDeviceToken }}
+  <div class="flex flex-row items-center self-start">
+    <input
+      id="device-token"
+      type="checkbox"
+      name="x_device_token"
+      value="true"
+      form="dryrun-verify-form"
+      {{ if $.XDeviceToken }}checked{{end}}
+    >
+    <label class="p-1 text-sm primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
+  </div>
+  {{ end }}
+  {{ template "__use_recovery_code.html" . }}
   {{ template "__whatsapp_alternatives.html" . }}
 {{ else }}
   <div class="grid grid-cols-1 auto-rows-auto bg-gray-100 dark:bg-gray-800 py-18 px-4 text-center">
@@ -94,6 +108,10 @@
     data-countdown-sec="2"
     data-action="click->delayed-auto-submit#onClick"
   >{{ template "whatsapp-otp-next-button" }}</button>
+  {{ if (and $.CanRequestDeviceToken $.XDeviceToken) }}
+    {{/* The value is provided by the checkbox from the previous state */}}
+    <input type="hidden" name="x_device_token" value="true" form="main-form">
+  {{ end }}
 {{ end }}
 
 {{ template "__watermark.html" . }}

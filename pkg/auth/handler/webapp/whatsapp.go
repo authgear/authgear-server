@@ -14,6 +14,7 @@ import (
 	"github.com/boombuler/barcode/qr"
 )
 
+const WhatsappOTPPageQueryXDeviceTokenKey = "x_device_token"
 const WhatsappOTPPageQueryStateKey = "state"
 
 type WhatsappOTPPageQueryState string
@@ -55,8 +56,9 @@ type WhatsappOTPViewModel struct {
 	UserPhone                  string
 	StateQuery                 WhatsappOTPPageQueryState
 	OpenWhatsappLink           string // Link to open whatsapp with phone number
-	VerifyFormSubmitPath       string // Path of Auth UI for verify form submission which the state is reset
+	FormActionPath             string
 	OpenWhatsappQRCodeImageURI htmltemplate.URL
+	XDeviceToken               bool // value of x_device_token query is used to preserve the checkbox value between whatsapp otp pages
 }
 
 func (m *WhatsappOTPViewModel) AddData(r *http.Request, graph *interaction.Graph, codeProvider WhatsappCodeProvider) error {
@@ -69,25 +71,22 @@ func (m *WhatsappOTPViewModel) AddData(r *http.Request, graph *interaction.Graph
 		m.UserPhone = phone.Mask(n.GetPhone())
 	}
 
-	getPath := func() string {
-		q := r.URL.Query()
-		// delete the state in query is intended
-		q.Del(WhatsappOTPPageQueryStateKey)
-		u := url.URL{}
-		u.Path = r.URL.Path
-		u.RawQuery = q.Encode()
-		return u.String()
-	}
-
+	q := r.URL.Query()
 	// verify code form has auto redirect mechanism
-	// reset the state of VerifyFormSubmitPath to avoid infinite redirect
-	m.VerifyFormSubmitPath = getPath()
+	// clear the state to avoid infinite redirect
+	q.Del(WhatsappOTPPageQueryStateKey)
+	// clear the x_device_token query to ensure the value is provided by the form data
+	q.Del(WhatsappOTPPageQueryXDeviceTokenKey)
+	u := url.URL{}
+	u.Path = r.URL.Path
+	u.RawQuery = q.Encode()
+	m.FormActionPath = u.String()
 
 	waURL := url.URL{}
 	waURL.Scheme = "https"
 	waURL.Host = "wa.me"
 	waURL.Path = strings.TrimPrefix(m.WhatsappOTPPhone, "+")
-	q := waURL.Query()
+	q = waURL.Query()
 	q.Set("text", m.WhatsappOTP)
 	waURL.RawQuery = q.Encode()
 	m.OpenWhatsappLink = waURL.String()
@@ -105,6 +104,8 @@ func (m *WhatsappOTPViewModel) AddData(r *http.Request, graph *interaction.Graph
 	// so it is safe to use htmltemplate.URL with it.
 	// nolint:gosec
 	m.OpenWhatsappQRCodeImageURI = htmltemplate.URL(dataURI)
+
+	m.XDeviceToken = r.URL.Query().Get(WhatsappOTPPageQueryXDeviceTokenKey) == "true"
 
 	return nil
 }
