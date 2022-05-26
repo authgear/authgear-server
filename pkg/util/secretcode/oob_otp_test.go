@@ -16,6 +16,8 @@ func TestOOBOTPSecretCode(t *testing.T) {
 			So(f(""), ShouldBeError, "unexpected OOB OTP code length: 0")
 			So(f("1234a6"), ShouldBeError, `unexpected OOB OTP code character at index 4: "a"`)
 			So(f("123456"), ShouldBeNil)
+			So(f(" 123456 "), ShouldBeNil)
+			So(f(" 123 456 "), ShouldBeError, "unexpected OOB OTP code length: 7")
 		})
 	})
 }

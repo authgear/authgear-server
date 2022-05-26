@@ -3,6 +3,7 @@ package secretcode
 import (
 	"crypto/subtle"
 	"fmt"
+	"strings"
 
 	"github.com/authgear/authgear-server/pkg/util/rand"
 )
@@ -17,7 +18,9 @@ func (OOBOTPSecretCodeType) Generate() string {
 }
 
 func (OOBOTPSecretCodeType) Compare(a, b string) bool {
-	return subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1
+	formattedCode := strings.TrimSpace(a)
+	targetCode := strings.TrimSpace(b)
+	return subtle.ConstantTimeCompare([]byte(formattedCode), []byte(targetCode)) == 1
 }
 
 func (OOBOTPSecretCodeType) CheckFormat(value interface{}) error {
@@ -25,6 +28,8 @@ func (OOBOTPSecretCodeType) CheckFormat(value interface{}) error {
 	if !ok {
 		return nil
 	}
+
+	str = strings.TrimSpace(str)
 
 	codeLength := len(str)
 	if codeLength != 6 {

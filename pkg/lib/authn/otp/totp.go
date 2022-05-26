@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/pquerna/otp"
@@ -49,7 +50,8 @@ func GenerateTOTPSecret() (string, error) {
 
 // ValidateTOTP validates the TOTP code against the secret at the given time t.
 func ValidateTOTP(secret string, code string, t time.Time, opts ValidateOpts) bool {
-	ok, err := totp.ValidateCustom(code, secret, t, opts)
+	formattedCode := strings.TrimSpace(code)
+	ok, err := totp.ValidateCustom(formattedCode, secret, t, opts)
 	if err != nil {
 		return false
 	}
