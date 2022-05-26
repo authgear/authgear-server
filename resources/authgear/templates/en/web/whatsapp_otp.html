@@ -65,10 +65,11 @@
   >
     {{ template "whatsapp-otp-open-in-whatsapp-button-label" }}
   </a>
-  {{/* fixme(whatsapp): qr code modal */}}
   <a
     href="#"
     class="as-btn not-a btn primary-btn outline"
+    data-action="click->simple-modal#showModal"
+    data-simple-modal-id="whatsapp-qr-code"
   >
     {{ template "whatsapp-otp-scan-code-button-label" }}
   </a>
@@ -96,6 +97,23 @@
 {{ end }}
 
 {{ template "__watermark.html" . }}
+</div>
+
+{{/* QR code modal */}}
+<div class="modal closed" data-simple-modal-target="modal" data-simple-modal-id="whatsapp-qr-code">
+<div class="modal-overlay" data-action="click->simple-modal#closeModal" data-simple-modal-id="whatsapp-qr-code"></div>
+<div class="modal-container max-w-sm">
+  <div class="twc-container-vertical py-5 px-6 text-center">
+    <p class="primary-txt text-sm">{{ template "whatsapp-otp-scan-code-description" }}</p>
+    <div class="relative grid justify-center">
+      <img class="w-auto" src="{{ $.OpenWhatsappQRCodeImageURI }}"/>
+      <div class="absolute inset-0 whatsapp-icon qr-overlay"></div>
+    </div>
+    <button class="btn primary-btn" data-action="click->simple-modal#closeModal" data-simple-modal-id="whatsapp-qr-code">
+      {{ template "whatsapp-otp-done-button" }}
+    </button>
+  </div>
+</div>
 </div>
 {{ end }}
 
