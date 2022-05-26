@@ -150,8 +150,14 @@ func (h *WhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
+		deviceToken := r.Form.Get("x_device_token") == "true"
 		q := r.URL.Query()
 		q.Set(WhatsappOTPPageQueryStateKey, string(state))
+		if deviceToken {
+			q.Set(WhatsappOTPPageQueryXDeviceTokenKey, "true")
+		} else {
+			q.Del(WhatsappOTPPageQueryXDeviceTokenKey)
+		}
 
 		u := url.URL{}
 		u.Path = r.URL.Path
@@ -165,8 +171,11 @@ func (h *WhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	})
 
 	ctrl.PostAction("verify", func() error {
+		deviceToken := r.Form.Get("x_device_token") == "true"
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
-			input = &InputVerifyWhatsappOTP{}
+			input = &InputVerifyWhatsappOTP{
+				DeviceToken: deviceToken,
+			}
 			return
 		})
 		if err != nil {
