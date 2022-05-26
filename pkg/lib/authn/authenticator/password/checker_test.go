@@ -468,3 +468,17 @@ func TestPasswordPolicy(t *testing.T) {
 		})
 	})
 }
+
+func TestPasswordRules(t *testing.T) {
+	Convey("PasswordRules", t, func() {
+		Convey("validate passwordrules", func() {
+			pc := &Checker{
+				PwMinLength:         20,
+				PwUppercaseRequired: true,
+				PwDigitRequired:     true,
+				PwSymbolRequired:    true,
+			}
+			So(pc.PasswordRules(), ShouldEqual, "minlength: 20; required: upper; required: digit; required: special;")
+		})
+	})
+}
