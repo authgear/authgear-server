@@ -10,11 +10,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	coreimage "github.com/authgear/authgear-server/pkg/util/image"
+	"github.com/authgear/authgear-server/pkg/util/secretcode"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -56,7 +56,6 @@ type SetupTOTPNode interface {
 type SetupTOTPEndpointsProvider interface {
 	BaseURL() *url.URL
 }
-
 type SetupTOTPHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
@@ -73,23 +72,21 @@ func (h *SetupTOTPHandler) MakeViewModel(session *webapp.Session, graph *interac
 
 	a := node.GetTOTPAuthenticator()
 	secret := a.Secret
+	totp := secretcode.NewTOTPFromSecret(secret)
 
 	issuer := h.Endpoints.BaseURL().String()
 	// FIXME(mfa): decide a proper account name.
 	// We cannot use graph.MustGetUserLastIdentity because
 	// In settings, the interaction may not have identity.
 	accountName := "user"
-	opts := otp.MakeTOTPKeyOptions{
+	opts := secretcode.QRCodeImageOptions{
 		Issuer:      issuer,
 		AccountName: accountName,
-		Secret:      secret,
-	}
-	key, err := otp.MakeTOTPKey(opts)
-	if err != nil {
-		return nil, err
+		Width:       512,
+		Height:      512,
 	}
 
-	img, err := key.Image(512, 512)
+	img, err := totp.QRCodeImage(opts)
 	if err != nil {
 		return nil, err
 	}
