@@ -6,8 +6,9 @@ import (
 )
 
 type PasswordPolicyViewModel struct {
-	PasswordPolicies []password.Policy
-	IsNew            bool
+	PasswordPolicies    []password.Policy
+	IsNew               bool
+	PasswordRulesString string
 }
 
 type PasswordPolicyViewModelOptions struct {
@@ -20,7 +21,7 @@ func GetDefaultPasswordPolicyViewModelOptions() *PasswordPolicyViewModelOptions 
 	}
 }
 
-func NewPasswordPolicyViewModel(policies []password.Policy, apiError *apierrors.APIError, opt *PasswordPolicyViewModelOptions) PasswordPolicyViewModel {
+func NewPasswordPolicyViewModel(policies []password.Policy, rules string, apiError *apierrors.APIError, opt *PasswordPolicyViewModelOptions) PasswordPolicyViewModel {
 	if apiError != nil {
 		if apiError.Reason == "PasswordPolicyViolated" {
 			for i, policy := range policies {
@@ -44,5 +45,5 @@ func NewPasswordPolicyViewModel(policies []password.Policy, apiError *apierrors.
 			}
 		}
 	}
-	return PasswordPolicyViewModel{PasswordPolicies: policies, IsNew: opt.IsNew}
+	return PasswordPolicyViewModel{PasswordPolicies: policies, IsNew: opt.IsNew, PasswordRulesString: rules}
 }
