@@ -1,6 +1,7 @@
 package password
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -282,6 +283,28 @@ func (pc *Checker) ValidateCurrentPassword(plainPassword string) error {
 	}
 
 	return PasswordPolicyViolated.NewWithCauses("password policy violated", violations)
+}
+
+func (pc *Checker) PasswordRules() string {
+	var builder strings.Builder
+
+	if pc.PwMinLength > 0 {
+		builder.WriteString(fmt.Sprintf("minlength: %v; ", pc.PwMinLength))
+	}
+	if pc.PwUppercaseRequired {
+		builder.WriteString("required: upper; ")
+	}
+	if pc.PwLowercaseRequired {
+		builder.WriteString("required: lower; ")
+	}
+	if pc.PwDigitRequired {
+		builder.WriteString("required: digit; ")
+	}
+	if pc.PwSymbolRequired {
+		builder.WriteString("required: special;")
+	}
+
+	return strings.TrimSpace(builder.String())
 }
 
 // PasswordPolicy outputs a list of PasswordPolicy to reflect the password policy.

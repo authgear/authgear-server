@@ -40,6 +40,7 @@ func (h *SettingsChangeSecondaryPasswordHandler) GetData(r *http.Request, rw htt
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModel(
 		h.PasswordPolicy.PasswordPolicy(),
+		h.PasswordPolicy.PasswordRules(),
 		baseViewModel.RawError,
 		viewmodels.GetDefaultPasswordPolicyViewModelOptions(),
 	)

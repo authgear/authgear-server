@@ -42,6 +42,7 @@ type CreatePasswordViewModel struct {
 
 type PasswordPolicy interface {
 	PasswordPolicy() []password.Policy
+	PasswordRules() string
 }
 
 type CreatePasswordHandler struct {
@@ -68,6 +69,7 @@ func (h *CreatePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter,
 
 	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModel(
 		h.PasswordPolicy.PasswordPolicy(),
+		h.PasswordPolicy.PasswordRules(),
 		baseViewModel.RawError,
 		&viewmodels.PasswordPolicyViewModelOptions{
 			// Hide reuse password policy when creating new
