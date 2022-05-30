@@ -690,10 +690,10 @@
 
   "AuthenticatorType.primary.password": "Password",
   "AuthenticatorType.primary.oob-otp-email": "Passwordless via Email",
-  "AuthenticatorType.primary.oob-otp-sms": "Passwordless via SMS",
+  "AuthenticatorType.primary.oob-otp-phone": "Passwordless via Phone",
   "AuthenticatorType.secondary.totp": "Authenticator Apps / Devices",
-  "AuthenticatorType.secondary.oob-otp-email": "Verification code via Email",
-  "AuthenticatorType.secondary.oob-otp-sms": "Verification code via SMS",
+  "AuthenticatorType.secondary.oob-otp-email": "Verify via Email",
+  "AuthenticatorType.secondary.oob-otp-phone": "Verify via Phone",
   "AuthenticatorType.secondary.password": "Additional Password",
 
   "ShowUnhandledValidationErrorCause.title": "Validation error",
