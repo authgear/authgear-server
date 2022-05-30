@@ -55,11 +55,11 @@ export class WebSocketController extends Controller {
 
     this.reconnectSetTimeoutHandle = setTimeout(() => {
       this.reconnectSetTimeoutHandle = null;
-      this.connectWebSocket();
+      this.connectWebSocket(true);
     }, Math.pow(2, index) * 1000);
   };
 
-  connectWebSocket = () => {
+  connectWebSocket = (isReconnect: boolean) => {
     const scheme = window.location.protocol === "https:" ? "wss:" : "ws:";
     const host = window.location.host;
     var meta: HTMLMetaElement | null = document.querySelector(
@@ -70,9 +70,13 @@ export class WebSocketController extends Controller {
       sessionUpdatedAfter = meta.content || "";
     }
 
+    // We only pass session_updated_after in case of reconnection.
+    // If we also pass session_updated_after in first connection,
+    // we will receive a refresh message which will refresh the page immediately.
+    // This will cause the page to load twice.
     const url =
       `${scheme}//${host}/ws` +
-      (sessionUpdatedAfter
+      (isReconnect && sessionUpdatedAfter != ""
         ? `?session_updated_after=${sessionUpdatedAfter}`
         : "");
 
@@ -80,10 +84,6 @@ export class WebSocketController extends Controller {
 
     this.ws.onopen = (e) => {
       console.log("ws onopen", e);
-      // after connected, we don't need to check session updated again when
-      // reconnect
-      // clear the checking parameter
-      sessionUpdatedAfter = "";
       this.backoffIndex = 0;
     };
 
@@ -111,7 +111,7 @@ export class WebSocketController extends Controller {
   };
 
   connect() {
-    this.connectWebSocket();
+    this.connectWebSocket(false);
   }
 
   disconnect() {
