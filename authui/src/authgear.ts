@@ -10,6 +10,7 @@ import { AccountDelectionController } from "./accountdeletion";
 import { ResendButtonController } from "./resendButton";
 import { MessageBarController } from "./messageBar";
 import { IntlTelInputController } from "./intlTelInput";
+import { DelayedAutoSubmitController } from "./delayedAutoSubmit";
 import { SelectEmptyValueController, GenderSelectController } from "./select";
 import { ImagePickerController } from "./imagepicker";
 import { WebSocketController } from "./websocket";
@@ -22,6 +23,7 @@ import { XHRSubmitFormController, RestoreFormController } from "./form";
 import { ModalController } from "./modal";
 import { ColorSchemeController } from "./colorscheme";
 import { BackButtonController } from "./back";
+import { SimpleModalController } from "./simpleModal";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
 
@@ -38,6 +40,7 @@ Stimulus.register(
 );
 Stimulus.register("password-policy", PasswordPolicyController);
 Stimulus.register("click-to-switch", ClickToSwitchController);
+Stimulus.register("delayed-auto-submit", DelayedAutoSubmitController);
 
 Stimulus.register("copy-button", CopyButtonController);
 
@@ -67,5 +70,6 @@ Stimulus.register("xhr-submit-form", XHRSubmitFormController);
 Stimulus.register("restore-form", RestoreFormController);
 
 Stimulus.register("modal", ModalController);
+Stimulus.register("simple-modal", SimpleModalController);
 
 Stimulus.register("back-button", BackButtonController);

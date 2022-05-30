@@ -9,10 +9,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
 
 func init() {
 	interaction.RegisterNode(&NodeVerifyIdentity{})
+}
+
+type InputVerifyIdentity interface {
+	SelectVerifyIdentityViaOOBOTP()
 }
 
 type EdgeVerifyIdentity struct {
@@ -21,12 +26,16 @@ type EdgeVerifyIdentity struct {
 }
 
 func (e *EdgeVerifyIdentity) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+	var input InputVerifyIdentity
+	if !interaction.Input(rawInput, &input) {
+		return nil, interaction.ErrIncompatibleInput
+	}
+
 	node := &NodeVerifyIdentity{
 		Identity:        e.Identity,
-		CodeID:          verification.NewCodeID(),
 		RequestedByUser: e.RequestedByUser,
 	}
-	result, err := node.SendCode(ctx)
+	result, err := node.SendCode(ctx, true)
 	if err != nil {
 		return nil, err
 	}
@@ -37,27 +46,8 @@ func (e *EdgeVerifyIdentity) Instantiate(ctx *interaction.Context, graph *intera
 	return node, nil
 }
 
-type EdgeVerifyIdentityResume struct {
-	Code     *verification.Code
-	Identity *identity.Info
-}
-
-func (e *EdgeVerifyIdentityResume) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	r := e.Code.SendResult()
-	return &NodeVerifyIdentity{
-		Identity:   e.Identity,
-		CodeID:     e.Code.ID,
-		Target:     r.Target,
-		Channel:    r.Channel,
-		CodeLength: r.CodeLength,
-		// VerifyIdentityResume is always requested by user.
-		RequestedByUser: true,
-	}, nil
-}
-
 type NodeVerifyIdentity struct {
 	Identity        *identity.Info `json:"identity"`
-	CodeID          string         `json:"code_id"`
 	RequestedByUser bool           `json:"requested_by_user"`
 
 	Channel    string `json:"channel"`
@@ -100,13 +90,13 @@ func (n *NodeVerifyIdentity) GetEffects() ([]interaction.Effect, error) {
 
 func (n *NodeVerifyIdentity) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
 	return []interaction.Edge{
-		&EdgeVerifyIdentityCheckCode{Identity: n.Identity, ID: n.CodeID},
+		&EdgeVerifyIdentityCheckCode{Identity: n.Identity},
 		&EdgeVerifyIdentityResendCode{Node: n},
 	}, nil
 }
 
-func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context) (*otp.CodeSendResult, error) {
-	code, err := ctx.Verification.GetCode(n.CodeID)
+func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context, ignoreRatelimitError bool) (*otp.CodeSendResult, error) {
+	code, err := ctx.Verification.GetCode(ctx.WebSessionID, n.Identity)
 	if errors.Is(err, verification.ErrCodeNotFound) {
 		code = nil
 	} else if err != nil {
@@ -115,7 +105,6 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context) (*otp.CodeSendRe
 
 	if code == nil || ctx.Clock.NowUTC().After(code.ExpireAt) {
 		code, err = ctx.Verification.CreateNewCode(
-			n.CodeID,
 			n.Identity,
 			ctx.WebSessionID,
 			n.RequestedByUser,
@@ -133,8 +122,12 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context) (*otp.CodeSendRe
 		}
 	}
 
+	result := code.SendResult()
 	err = ctx.RateLimiter.TakeToken(interaction.SendVerificationCodeRateLimitBucket(code.LoginID))
-	if err != nil {
+	if ignoreRatelimitError && errors.Is(err, ratelimit.ErrTooManyRequests) {
+		// Ignore the rate limit error and do NOT send the code.
+		return result, nil
+	} else if err != nil {
 		return nil, err
 	}
 
@@ -143,7 +136,7 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context) (*otp.CodeSendRe
 		return nil, err
 	}
 
-	return code.SendResult(), nil
+	return result, nil
 }
 
 type InputVerifyIdentityCheckCode interface {
@@ -152,7 +145,6 @@ type InputVerifyIdentityCheckCode interface {
 
 type EdgeVerifyIdentityCheckCode struct {
 	Identity *identity.Info
-	ID       string
 }
 
 func (e *EdgeVerifyIdentityCheckCode) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
@@ -161,7 +153,7 @@ func (e *EdgeVerifyIdentityCheckCode) Instantiate(ctx *interaction.Context, grap
 		return nil, interaction.ErrIncompatibleInput
 	}
 
-	code, err := ctx.Verification.VerifyCode(e.ID, input.GetVerificationCode())
+	code, err := ctx.Verification.VerifyCode(ctx.WebSessionID, e.Identity, input.GetVerificationCode())
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +191,7 @@ func (e *EdgeVerifyIdentityResendCode) Instantiate(ctx *interaction.Context, gra
 		return nil, interaction.ErrIncompatibleInput
 	}
 
-	_, err := e.Node.SendCode(ctx)
+	_, err := e.Node.SendCode(ctx, false)
 	if err != nil {
 		return nil, err
 	}

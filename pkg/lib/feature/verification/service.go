@@ -19,8 +19,8 @@ import (
 
 type CodeStore interface {
 	Create(code *Code) error
-	Get(id string) (*Code, error)
-	Delete(id string) error
+	Get(codeKey *CodeKey) (*Code, error)
+	Delete(codeKey *CodeKey) error
 }
 
 type ClaimStore interface {
@@ -227,7 +227,7 @@ func (s *Service) IsUserVerified(identities []*identity.Info) (bool, error) {
 	}
 }
 
-func (s *Service) CreateNewCode(id string, info *identity.Info, webSessionID string, requestedByUser bool) (*Code, error) {
+func (s *Service) CreateNewCode(info *identity.Info, webSessionID string, requestedByUser bool) (*Code, error) {
 	if info.Type != model.IdentityTypeLoginID {
 		panic("verification: expect login ID identity")
 	}
@@ -236,7 +236,6 @@ func (s *Service) CreateNewCode(id string, info *identity.Info, webSessionID str
 
 	code := secretcode.OOBOTPSecretCode.Generate()
 	codeModel := &Code{
-		ID:              id,
 		UserID:          info.UserID,
 		IdentityID:      info.ID,
 		IdentityType:    string(info.Type),
@@ -256,17 +255,31 @@ func (s *Service) CreateNewCode(id string, info *identity.Info, webSessionID str
 	return codeModel, nil
 }
 
-func (s *Service) GetCode(id string) (*Code, error) {
-	return s.CodeStore.Get(id)
+func (s *Service) GetCode(webSessionID string, info *identity.Info) (*Code, error) {
+	loginIDType := info.Claims[identity.IdentityClaimLoginIDType].(string)
+	loginID := info.Claims[identity.IdentityClaimLoginIDValue].(string)
+	return s.CodeStore.Get(&CodeKey{
+		WebSessionID: webSessionID,
+		LoginIDType:  loginIDType,
+		LoginID:      loginID,
+	})
 }
 
-func (s *Service) VerifyCode(id string, code string) (*Code, error) {
+func (s *Service) VerifyCode(webSessionID string, info *identity.Info, code string) (*Code, error) {
+	loginIDType := info.Claims[identity.IdentityClaimLoginIDType].(string)
+	loginID := info.Claims[identity.IdentityClaimLoginIDValue].(string)
+	codeKey := &CodeKey{
+		WebSessionID: webSessionID,
+		LoginIDType:  loginIDType,
+		LoginID:      loginID,
+	}
+
 	err := s.RateLimiter.TakeToken(VerifyRateLimitBucket(string(s.RemoteIP)))
 	if err != nil {
 		return nil, err
 	}
 
-	codeModel, err := s.CodeStore.Get(id)
+	codeModel, err := s.CodeStore.Get(codeKey)
 	if errors.Is(err, ErrCodeNotFound) {
 		return nil, ErrInvalidVerificationCode
 	} else if err != nil {
@@ -277,7 +290,7 @@ func (s *Service) VerifyCode(id string, code string) (*Code, error) {
 		return nil, ErrInvalidVerificationCode
 	}
 
-	if err = s.CodeStore.Delete(id); err != nil {
+	if err = s.CodeStore.Delete(codeKey); err != nil {
 		s.Logger.WithError(err).Error("failed to delete code after verification")
 	}
 

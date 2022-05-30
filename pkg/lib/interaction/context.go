@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
@@ -45,6 +46,7 @@ type AuthenticatorService interface {
 	Get(id string) (*authenticator.Info, error)
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
+	NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec, secret string) (*authenticator.Info, error)
 	WithSecret(authenticatorInfo *authenticator.Info, secret string) (changed bool, info *authenticator.Info, err error)
 	Create(authenticatorInfo *authenticator.Info) error
 	Update(authenticatorInfo *authenticator.Info) error
@@ -64,6 +66,11 @@ type OOBCodeSender interface {
 		code string,
 		messageType otp.MessageType,
 	) error
+}
+
+type WhatsappCodeProvider interface {
+	CreateCode(phone string, appID string, webSessionID string) (*whatsapp.Code, error)
+	VerifyCode(phone string, webSessionID string, consume bool) (*whatsapp.Code, error)
 }
 
 type AnonymousIdentityProvider interface {
@@ -145,13 +152,12 @@ type VerificationService interface {
 	GetIdentityVerificationStatus(i *identity.Info) ([]verification.ClaimStatus, error)
 	GetAuthenticatorVerificationStatus(a *authenticator.Info) (verification.AuthenticatorStatus, error)
 	CreateNewCode(
-		id string,
 		info *identity.Info,
 		webSessionID string,
 		requestedByUser bool,
 	) (*verification.Code, error)
-	GetCode(id string) (*verification.Code, error)
-	VerifyCode(id string, code string) (*verification.Code, error)
+	GetCode(webSessionID string, info *identity.Info) (*verification.Code, error)
+	VerifyCode(webSessionID string, info *identity.Info, code string) (*verification.Code, error)
 	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
 	MarkClaimVerified(claim *verification.Claim) error
 }
@@ -218,6 +224,7 @@ type Context struct {
 	SessionManager            SessionManager
 	SessionCookie             session.CookieDef
 	MFADeviceTokenCookie      mfa.CookieDef
+	WhatsappCodeProvider      WhatsappCodeProvider
 }
 
 var interactionGraphSavePoint savePoint = "interaction_graph"

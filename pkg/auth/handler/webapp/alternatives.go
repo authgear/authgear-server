@@ -1,11 +1,30 @@
 package webapp
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
+type AuthenticationBeginNode interface {
+	GetAuthenticationEdges() ([]interaction.Edge, error)
+	GetAuthenticationStage() authn.AuthenticationStage
+}
+
+type CreateAuthenticatorBeginNode interface {
+	GetCreateAuthenticatorEdges() ([]interaction.Edge, error)
+	GetCreateAuthenticatorStage() authn.AuthenticationStage
+}
+
+type CreateAuthenticatorPhoneOTPNode interface {
+	GetCreateAuthenticatorStage() authn.AuthenticationStage
+	GetSelectedPhoneNumberForPhoneOTP() string
+}
+
+// nolint: gocyclo
 func handleAlternativeSteps(ctrl *Controller) {
 	ctrl.PostAction("choose_step", func() (err error) {
 		session, err := ctrl.InteractionSession()
@@ -25,12 +44,93 @@ func handleAlternativeSteps(ctrl *Controller) {
 			inputFn = nil
 
 		case webapp.SessionStepSetupOOBOTPEmail,
-			webapp.SessionStepSetupOOBOTPSMS,
 			webapp.SessionStepCreatePassword:
 			// Simple redirect.
 			choiceStep = webapp.SessionStepCreateAuthenticator
 			inputFn = nil
 
+		case webapp.SessionStepSetupOOBOTPSMS:
+			graph, err := ctrl.InteractionGet()
+			if err != nil {
+				return err
+			}
+			var node CreateAuthenticatorBeginNode
+			if !graph.FindLastNode(&node) {
+				// expected there is CreateAuthenticatorBeginNode before the steps
+				return webapp.ErrSessionStepMismatch
+			}
+			switch node.GetCreateAuthenticatorStage() {
+			case authn.AuthenticationStagePrimary:
+				choiceStep = webapp.SessionStepCreateAuthenticator
+				inputFn = func() (interface{}, error) {
+					return &InputSelectOOB{}, nil
+				}
+			case authn.AuthenticationStageSecondary:
+				choiceStep = webapp.SessionStepCreateAuthenticator
+				// if the user has inputted the phone number when setting up mfa
+				// use the selected phone as the input
+				// so user doesn't have to input phone number again
+				selectedPhone := ""
+				var node2 CreateAuthenticatorPhoneOTPNode
+				if graph.FindLastNode(&node2) {
+					if node2.GetCreateAuthenticatorStage() == authn.AuthenticationStageSecondary {
+						selectedPhone = node2.GetSelectedPhoneNumberForPhoneOTP()
+					}
+				}
+				if selectedPhone != "" {
+					inputFn = func() (interface{}, error) {
+						return &InputSetupOOB{
+							InputType: "phone",
+							Target:    selectedPhone,
+						}, nil
+					}
+				} else {
+					inputFn = nil
+				}
+			default:
+				panic(fmt.Sprintf("webapp: unexpected authentication stage: %s", node.GetCreateAuthenticatorStage()))
+			}
+
+		case webapp.SessionStepSetupWhatsappOTP:
+			graph, err := ctrl.InteractionGet()
+			if err != nil {
+				return err
+			}
+			var node CreateAuthenticatorBeginNode
+			if !graph.FindLastNode(&node) {
+				// expected there is CreateAuthenticatorBeginNode before the steps
+				return webapp.ErrSessionStepMismatch
+			}
+			switch node.GetCreateAuthenticatorStage() {
+			case authn.AuthenticationStagePrimary:
+				choiceStep = webapp.SessionStepCreateAuthenticator
+				inputFn = func() (interface{}, error) {
+					return &InputSelectWhatsappOTP{}, nil
+				}
+			case authn.AuthenticationStageSecondary:
+				choiceStep = webapp.SessionStepCreateAuthenticator
+				// if the user has inputted the phone number when setting up mfa
+				// use the selected phone as the input
+				// so user doesn't have to input phone number again
+				selectedPhone := ""
+				var node2 CreateAuthenticatorPhoneOTPNode
+				if graph.FindLastNode(&node2) {
+					if node2.GetCreateAuthenticatorStage() == authn.AuthenticationStageSecondary {
+						selectedPhone = node2.GetSelectedPhoneNumberForPhoneOTP()
+					}
+				}
+				if selectedPhone != "" {
+					inputFn = func() (interface{}, error) {
+						return &InputSetupWhatsappOTP{
+							Phone: selectedPhone,
+						}, nil
+					}
+				} else {
+					inputFn = nil
+				}
+			default:
+				panic(fmt.Sprintf("webapp: unexpected authentication stage: %s", node.GetCreateAuthenticatorStage()))
+			}
 		case webapp.SessionStepSetupTOTP:
 			// Generate TOTP secret.
 			choiceStep = webapp.SessionStepCreateAuthenticator
@@ -58,6 +158,27 @@ func handleAlternativeSteps(ctrl *Controller) {
 					AuthenticatorType:  ctrl.request.Form.Get("x_authenticator_type"),
 					AuthenticatorIndex: index,
 				}, nil
+			}
+		case webapp.SessionStepVerifyWhatsappOTPAuthn:
+			choiceStep = webapp.SessionStepAuthenticate
+			index, err := strconv.Atoi(ctrl.request.Form.Get("x_authenticator_index"))
+			if err != nil {
+				index = 0
+			}
+			inputFn = func() (interface{}, error) {
+				return &InputTriggerWhatsApp{
+					AuthenticatorIndex: index,
+				}, nil
+			}
+		case webapp.SessionStepVerifyIdentityViaOOBOTP:
+			choiceStep = webapp.SessionStepVerifyIdentityBegin
+			inputFn = func() (interface{}, error) {
+				return &InputSelectVerifyIdentityViaOOBOTP{}, nil
+			}
+		case webapp.SessionStepVerifyIdentityViaWhatsapp:
+			choiceStep = webapp.SessionStepVerifyIdentityBegin
+			inputFn = func() (interface{}, error) {
+				return &InputSelectVerifyIdentityViaWhatsapp{}, nil
 			}
 		}
 

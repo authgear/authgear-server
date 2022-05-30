@@ -12,6 +12,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(ControllerFactory), "*"),
 
 	NewPublisher,
+	wire.Struct(new(GlobalSessionServiceFactory), "*"),
 
 	NewPanicMiddlewareLogger,
 	wire.Struct(new(PanicMiddleware), "*"),
@@ -32,6 +33,8 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(EnterTOTPHandler), "*"),
 	wire.Struct(new(SetupOOBOTPHandler), "*"),
 	wire.Struct(new(EnterOOBOTPHandler), "*"),
+	wire.Struct(new(SetupWhatsappOTPHandler), "*"),
+	wire.Struct(new(WhatsappOTPHandler), "*"),
 	wire.Struct(new(EnterRecoveryCodeHandler), "*"),
 	wire.Struct(new(SetupRecoveryCodeHandler), "*"),
 	wire.Struct(new(VerifyIdentityHandler), "*"),
@@ -63,6 +66,8 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(WebsocketHandler), "*"),
 	wire.Struct(new(WechatAuthHandler), "*"),
 	wire.Struct(new(WechatCallbackHandler), "*"),
+	wire.Struct(new(WhatsappWATICallbackHandler), "*"),
+	NewWhatsappWATICallbackHandlerLogger,
 
 	wire.Struct(new(ResponseWriter), "*"),
 )

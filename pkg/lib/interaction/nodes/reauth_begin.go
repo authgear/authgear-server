@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -117,8 +118,9 @@ func (e *EdgeReauthenticationBegin) getAuthenticators(ctx *interaction.Context, 
 }
 
 type NodeReauthenticationBegin struct {
-	Stage          authn.AuthenticationStage `json:"stage"`
-	Authenticators []*authenticator.Info     `json:"-"`
+	Stage               authn.AuthenticationStage   `json:"stage"`
+	Authenticators      []*authenticator.Info       `json:"-"`
+	AuthenticatorConfig *config.AuthenticatorConfig `json:"-"`
 }
 
 func (n *NodeReauthenticationBegin) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -133,6 +135,7 @@ func (n *NodeReauthenticationBegin) Prepare(ctx *interaction.Context, graph *int
 	}
 
 	n.Authenticators = authenticators
+	n.AuthenticatorConfig = ctx.Config.Authenticator
 	return nil
 }
 
@@ -172,11 +175,20 @@ func (n *NodeReauthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge
 				OOBAuthenticatorType: model.AuthenticatorTypeOOBEmail,
 			})
 		case model.AuthenticatorTypeOOBSMS:
-			edges = append(edges, &EdgeAuthenticationOOBTrigger{
-				Stage:                n.Stage,
-				Authenticators:       []*authenticator.Info{a},
-				OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
-			})
+			if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
+				edges = append(edges, &EdgeAuthenticationWhatsappTrigger{
+					Stage:          n.Stage,
+					Authenticators: []*authenticator.Info{a},
+				})
+			}
+
+			if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsSMSEnabled() {
+				edges = append(edges, &EdgeAuthenticationOOBTrigger{
+					Stage:                n.Stage,
+					Authenticators:       []*authenticator.Info{a},
+					OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
+				})
+			}
 		}
 	}
 

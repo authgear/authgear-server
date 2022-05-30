@@ -20,6 +20,10 @@ func (a AuthenticatorFacade) New(spec *authenticator.Spec, secret string) (*auth
 	return a.Coordinator.AuthenticatorNew(spec, secret)
 }
 
+func (a AuthenticatorFacade) NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec, secret string) (*authenticator.Info, error) {
+	return a.Coordinator.AuthenticatorNewWithAuthenticatorID(authenticatorID, spec, secret)
+}
+
 func (a AuthenticatorFacade) WithSecret(authenticatorInfo *authenticator.Info, secret string) (changed bool, info *authenticator.Info, err error) {
 	return a.Coordinator.AuthenticatorWithSecret(authenticatorInfo, secret)
 }

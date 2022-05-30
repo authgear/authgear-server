@@ -27,6 +27,10 @@ type OOBOTPTriggerNode interface {
 	GetOOBOTPTarget() string
 }
 
+type WhatsappOTPTriggerNode interface {
+	GetPhone() string
+}
+
 type AlternativeStep struct {
 	Step  webapp.SessionStepKind
 	Input map[string]string
@@ -39,6 +43,7 @@ type AlternativeStepsViewModel struct {
 	CanRequestDeviceToken bool
 }
 
+// nolint: gocyclo
 func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interaction.Graph, currentStepKind webapp.SessionStepKind) error {
 	var node AuthenticationBeginNode
 	if !graph.FindLastNode(&node) {
@@ -52,6 +57,7 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interac
 		return err
 	}
 
+	phoneOTPStepAdded := false
 	for _, edge := range edges {
 		switch edge := edge.(type) {
 		case *nodes.EdgeUseDeviceToken:
@@ -74,12 +80,44 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interac
 					Step: webapp.SessionStepEnterTOTP,
 				})
 			}
+		case *nodes.EdgeAuthenticationWhatsappTrigger:
+			if !phoneOTPStepAdded &&
+				currentStepKind != webapp.SessionStepEnterOOBOTPAuthnSMS &&
+				currentStepKind != webapp.SessionStepVerifyWhatsappOTPAuthn {
+				phoneOTPStepAdded = true
+
+				currentPhone := ""
+				var node WhatsappOTPTriggerNode
+				if graph.FindLastNode(&node) {
+					currentPhone = node.GetPhone()
+				}
+
+				for i := range edge.Authenticators {
+					phone := edge.GetPhone(i)
+					if currentPhone == phone {
+						continue
+					}
+					maskedPhone := corephone.Mask(phone)
+					m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
+						Step: webapp.SessionStepVerifyWhatsappOTPAuthn,
+						Input: map[string]string{
+							"x_authenticator_index": strconv.Itoa(i),
+						},
+						Data: map[string]string{
+							"target": maskedPhone,
+						},
+					})
+				}
+			}
 		case *nodes.EdgeAuthenticationOOBTrigger:
 			show := false
 			oobAuthenticatorType := edge.OOBAuthenticatorType
-			if oobAuthenticatorType == model.AuthenticatorTypeOOBSMS &&
-				currentStepKind != webapp.SessionStepEnterOOBOTPAuthnSMS {
+			if !phoneOTPStepAdded &&
+				oobAuthenticatorType == model.AuthenticatorTypeOOBSMS &&
+				currentStepKind != webapp.SessionStepEnterOOBOTPAuthnSMS &&
+				currentStepKind != webapp.SessionStepVerifyWhatsappOTPAuthn {
 				show = true
+				phoneOTPStepAdded = true
 			}
 
 			if oobAuthenticatorType == model.AuthenticatorTypeOOBEmail &&
@@ -146,6 +184,14 @@ func (m *AlternativeStepsViewModel) AddCreateAuthenticatorAlternatives(graph *in
 		return err
 	}
 
+	// TODO(webapp): support switching of primary authenticator type to create
+	// Return first edge for now.
+	if m.AuthenticationStage == authn.AuthenticationStagePrimary {
+		edges = edges[:1]
+	}
+
+	phoneOTPStepAdded := false
+
 	for _, edge := range edges {
 		switch edge := edge.(type) {
 		case *nodes.EdgeCreateAuthenticatorPassword:
@@ -165,8 +211,12 @@ func (m *AlternativeStepsViewModel) AddCreateAuthenticatorAlternatives(graph *in
 					})
 				}
 			case model.AuthenticatorTypeOOBSMS:
-				if currentStepKind != webapp.SessionStepSetupOOBOTPSMS &&
-					currentStepKind != webapp.SessionStepEnterOOBOTPSetupSMS {
+				if !phoneOTPStepAdded &&
+					currentStepKind != webapp.SessionStepSetupOOBOTPSMS &&
+					currentStepKind != webapp.SessionStepEnterOOBOTPSetupSMS &&
+					currentStepKind != webapp.SessionStepSetupWhatsappOTP &&
+					currentStepKind != webapp.SessionStepVerifyWhatsappOTPSetup {
+					phoneOTPStepAdded = true
 					m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
 						Step: webapp.SessionStepSetupOOBOTPSMS,
 					})
@@ -178,6 +228,17 @@ func (m *AlternativeStepsViewModel) AddCreateAuthenticatorAlternatives(graph *in
 			if currentStepKind != webapp.SessionStepSetupTOTP {
 				m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
 					Step: webapp.SessionStepSetupTOTP,
+				})
+			}
+		case *nodes.EdgeCreateAuthenticatorWhatsappOTPSetup:
+			if !phoneOTPStepAdded &&
+				currentStepKind != webapp.SessionStepSetupWhatsappOTP &&
+				currentStepKind != webapp.SessionStepVerifyWhatsappOTPSetup &&
+				currentStepKind != webapp.SessionStepSetupOOBOTPSMS &&
+				currentStepKind != webapp.SessionStepEnterOOBOTPSetupSMS {
+				phoneOTPStepAdded = true
+				m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
+					Step: webapp.SessionStepSetupWhatsappOTP,
 				})
 			}
 		default:

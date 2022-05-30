@@ -2,12 +2,8 @@ package webapp
 
 import (
 	htmltemplate "html/template"
-	"image"
 	"net/http"
 	"net/url"
-
-	"github.com/boombuler/barcode"
-	"github.com/boombuler/barcode/qr"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -19,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/urlutil"
 	"github.com/authgear/authgear-server/pkg/util/wechat"
+	"github.com/boombuler/barcode/qr"
 )
 
 var TemplateWebWechatAuthHandlerHTML = template.RegisterHTML(
@@ -54,7 +51,7 @@ func (h *WechatAuthHandler) GetData(r *http.Request, w http.ResponseWriter, sess
 		return nil, apierrors.NewInvalid("missing authorization url")
 	}
 
-	img, err := createQRCodeImage(authURL, 512, 512)
+	img, err := createQRCodeImage(authURL, 512, 512, qr.M)
 	if err != nil {
 		return nil, err
 	}
@@ -147,22 +144,6 @@ func (h *WechatAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.Renderer.RenderHTML(w, r, TemplateWebWechatAuthHandlerHTML, data)
 		return nil
 	})
-}
-
-func createQRCodeImage(content string, width int, height int) (image.Image, error) {
-	b, err := qr.Encode(content, qr.M, qr.Auto)
-
-	if err != nil {
-		return nil, err
-	}
-
-	b, err = barcode.Scale(b, width, height)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return b, nil
 }
 
 func parseWeChatRedirectURI(identityConfig *config.IdentityConfig, alias string, weChatRedirectURI string) (*url.URL, error) {

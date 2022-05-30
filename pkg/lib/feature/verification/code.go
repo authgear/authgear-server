@@ -6,12 +6,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/base32"
-	"github.com/authgear/authgear-server/pkg/util/rand"
 )
 
+type CodeKey struct {
+	WebSessionID string
+	LoginIDType  string
+	LoginID      string
+}
+
 type Code struct {
-	ID           string `json:"id"`
 	UserID       string `json:"user_id"`
 	IdentityID   string `json:"identity_id"`
 	IdentityType string `json:"identity_type"`
@@ -24,6 +27,14 @@ type Code struct {
 	WebSessionID string `json:"web_session_id"`
 
 	RequestedByUser bool `json:"requested_by_user"`
+}
+
+func (c *Code) CodeKey() *CodeKey {
+	return &CodeKey{
+		WebSessionID: c.WebSessionID,
+		LoginIDType:  c.LoginIDType,
+		LoginID:      c.LoginID,
+	}
 }
 
 func (c *Code) SendResult() *otp.CodeSendResult {
@@ -42,9 +53,4 @@ func (c *Code) SendResult() *otp.CodeSendResult {
 		Channel:    channel,
 		CodeLength: len(c.Code),
 	}
-}
-
-func NewCodeID() string {
-	code := rand.StringWithAlphabet(16, base32.Alphabet, rand.SecureRand)
-	return code
 }

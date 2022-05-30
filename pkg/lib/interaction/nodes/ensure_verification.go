@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -27,14 +28,21 @@ func (e *EdgeEnsureVerificationBegin) Instantiate(ctx *interaction.Context, grap
 		Identity:         e.Identity,
 		RequestedByUser:  e.RequestedByUser,
 		SkipVerification: skipVerification,
+		PhoneOTPMode:     ctx.Config.Authenticator.OOB.SMS.PhoneOTPMode,
 	}, nil
 }
 
 type NodeEnsureVerificationBegin struct {
-	Identity           *identity.Info      `json:"identity"`
-	RequestedByUser    bool                `json:"requested_by_user"`
-	SkipVerification   bool                `json:"skip_verification"`
-	VerificationStatus verification.Status `json:"-"`
+	Identity           *identity.Info                   `json:"identity"`
+	RequestedByUser    bool                             `json:"requested_by_user"`
+	SkipVerification   bool                             `json:"skip_verification"`
+	PhoneOTPMode       config.AuthenticatorPhoneOTPMode `json:"phone_otp_mode"`
+	VerificationStatus verification.Status              `json:"-"`
+}
+
+// GetVerifyIdentityEdges implements EnsureVerificationBeginNode
+func (n *NodeEnsureVerificationBegin) GetVerifyIdentityEdges() ([]interaction.Edge, error) {
+	return n.deriveEdges()
 }
 
 func (n *NodeEnsureVerificationBegin) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -57,26 +65,44 @@ func (n *NodeEnsureVerificationBegin) GetEffects() ([]interaction.Effect, error)
 }
 
 func (n *NodeEnsureVerificationBegin) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+	return n.deriveEdges()
+}
+
+func (n *NodeEnsureVerificationBegin) deriveEdges() ([]interaction.Edge, error) {
+	isPhoneIdentity := ensurePhoneLoginIDIdentity(n.Identity) == nil
+	verifyIdentityEdges := func() (edges []interaction.Edge) {
+		if isPhoneIdentity {
+			if n.PhoneOTPMode.IsWhatsappEnabled() {
+				edges = append(edges, &EdgeVerifyIdentityViaWhatsapp{
+					Identity:        n.Identity,
+					RequestedByUser: n.RequestedByUser,
+				})
+			}
+
+			if n.PhoneOTPMode.IsSMSEnabled() {
+				edges = append(edges, &EdgeVerifyIdentity{
+					Identity:        n.Identity,
+					RequestedByUser: n.RequestedByUser,
+				})
+			}
+		} else {
+			edges = append(edges, &EdgeVerifyIdentity{
+				Identity:        n.Identity,
+				RequestedByUser: n.RequestedByUser,
+			})
+		}
+		return edges
+	}
 	switch n.VerificationStatus {
 	case verification.StatusDisabled, verification.StatusVerified:
 		break
 	case verification.StatusPending:
 		if n.RequestedByUser && !n.SkipVerification {
-			return []interaction.Edge{
-				&EdgeVerifyIdentity{
-					Identity:        n.Identity,
-					RequestedByUser: n.RequestedByUser,
-				},
-			}, nil
+			return verifyIdentityEdges(), nil
 		}
 	case verification.StatusRequired:
 		if !n.SkipVerification {
-			return []interaction.Edge{
-				&EdgeVerifyIdentity{
-					Identity:        n.Identity,
-					RequestedByUser: n.RequestedByUser,
-				},
-			}, nil
+			return verifyIdentityEdges(), nil
 		}
 	}
 

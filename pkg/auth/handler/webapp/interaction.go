@@ -3,7 +3,6 @@ package webapp
 import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 )
 
@@ -36,21 +35,9 @@ type InputNewLoginID struct {
 }
 
 var _ nodes.InputUseIdentityLoginID = &InputNewLoginID{}
-var _ nodes.InputCreateAuthenticatorOOBSetup = &InputNewLoginID{}
 
 func (i *InputNewLoginID) GetLoginIDKey() string { return i.LoginIDKey }
 func (i *InputNewLoginID) GetLoginID() string    { return i.LoginIDValue }
-func (i *InputNewLoginID) GetOOBChannel() model.AuthenticatorOOBChannel {
-	switch i.LoginIDType {
-	case string(config.LoginIDKeyTypeEmail):
-		return model.AuthenticatorOOBChannelEmail
-	case string(config.LoginIDKeyTypePhone):
-		return model.AuthenticatorOOBChannelSMS
-	default:
-		return ""
-	}
-}
-func (i *InputNewLoginID) GetOOBTarget() string { return i.LoginIDValue }
 
 type InputCreateAuthenticator struct{}
 
@@ -86,11 +73,31 @@ var _ nodes.InputAuthenticationOOBTrigger = &InputTriggerOOB{}
 func (i *InputTriggerOOB) GetOOBAuthenticatorType() string { return i.AuthenticatorType }
 func (i *InputTriggerOOB) GetOOBAuthenticatorIndex() int   { return i.AuthenticatorIndex }
 
+type InputTriggerWhatsApp struct {
+	AuthenticatorIndex int
+}
+
+var _ nodes.InputAuthenticationWhatsappTrigger = &InputTriggerWhatsApp{}
+
+func (i *InputTriggerWhatsApp) GetWhatsappAuthenticatorIndex() int { return i.AuthenticatorIndex }
+
 type InputSelectTOTP struct{}
 
 var _ nodes.InputCreateAuthenticatorTOTPSetup = &InputSelectTOTP{}
 
 func (i *InputSelectTOTP) SetupTOTP() {}
+
+type InputSelectWhatsappOTP struct{}
+
+func (i *InputSelectWhatsappOTP) SetupPrimaryAuthenticatorWhatsappOTP() {}
+
+var _ nodes.InputCreateAuthenticatorWhatsappOTPSetupSelect = &InputSelectWhatsappOTP{}
+
+type InputSelectOOB struct{}
+
+func (i *InputSelectOOB) SetupPrimaryAuthenticatorOOB() {}
+
+var _ nodes.InputCreateAuthenticatorOOBSetupSelect = &InputSelectOOB{}
 
 type InputSetupPassword struct {
 	Stage    string
@@ -248,3 +255,35 @@ var _ nodes.InputResetPasswordByCode = &InputResetPassword{}
 
 func (i *InputResetPassword) GetCode() string        { return i.Code }
 func (i *InputResetPassword) GetNewPassword() string { return i.Password }
+
+type InputVerifyWhatsappOTP struct {
+	DeviceToken bool
+}
+
+func (i *InputVerifyWhatsappOTP) VerifyWhatsappOTP()      {}
+func (i *InputVerifyWhatsappOTP) CreateDeviceToken() bool { return i.DeviceToken }
+
+var _ nodes.InputCreateAuthenticatorWhatsappOTP = &InputVerifyWhatsappOTP{}
+var _ nodes.InputAuthenticationWhatsapp = &InputVerifyWhatsappOTP{}
+var _ nodes.InputVerifyIdentityViaWhatsappCheckCode = &InputVerifyWhatsappOTP{}
+var _ nodes.InputCreateDeviceToken = &InputVerifyWhatsappOTP{}
+
+type InputSetupWhatsappOTP struct {
+	Phone string
+}
+
+func (i *InputSetupWhatsappOTP) GetWhatsappPhone() string { return i.Phone }
+
+var _ nodes.InputCreateAuthenticatorWhatsappOTPSetup = &InputSetupWhatsappOTP{}
+
+type InputSelectVerifyIdentityViaOOBOTP struct{}
+
+func (i *InputSelectVerifyIdentityViaOOBOTP) SelectVerifyIdentityViaOOBOTP() {}
+
+var _ nodes.InputVerifyIdentity = &InputSelectVerifyIdentityViaOOBOTP{}
+
+type InputSelectVerifyIdentityViaWhatsapp struct{}
+
+func (i *InputSelectVerifyIdentityViaWhatsapp) SelectVerifyIdentityViaWhatsapp() {}
+
+var _ nodes.InputVerifyIdentityViaWhatsapp = &InputSelectVerifyIdentityViaWhatsapp{}
