@@ -1,6 +1,6 @@
 {{ define "__wide_page_frame.html" }}
 <!DOCTYPE html>
-<html lang="{{ $.ResolvedLanguageTag }}" data-controller="format-date-relative color-scheme">
+<html lang="{{ $.ResolvedLanguageTag }}" data-controller="format-date-relative color-scheme" data-color-scheme-dark-theme-enabled-value="{{ $.DarkThemeEnabled }}">
 {{ template "__html_head.html" . }}
 
 <body class="page" data-controller="prevent-double-tap websocket xhr-submit-form modal simple-modal" data-action="dblclick->prevent-double-tap#action">
