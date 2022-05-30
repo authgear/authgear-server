@@ -82,9 +82,11 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 				)
 			}
 
-			if _, err := ctx.Identities.CheckDuplicated(n.Identity); err != nil {
+			if existing, err := ctx.Identities.CheckDuplicated(n.Identity); err != nil {
 				if errors.Is(err, identity.ErrIdentityAlreadyExists) {
-					return interaction.ErrDuplicatedIdentity
+					s1 := n.Identity.ToSpec()
+					s2 := existing.ToSpec()
+					return identityFillDetails(interaction.ErrDuplicatedIdentity, &s1, &s2)
 				}
 				return err
 			}
