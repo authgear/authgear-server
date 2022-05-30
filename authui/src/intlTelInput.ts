@@ -9,25 +9,61 @@ function swapElementsName(
   secondElement.name = originalName;
 }
 
+function buildE164Value(countryCallingCode: string, rawValue: string): string {
+  const trimmedValue = rawValue.replace(/[^+0-9]/g, "");
+  const prefix = trimmedValue.slice(0, countryCallingCode.length);
+  if (prefix === countryCallingCode) {
+    return trimmedValue;
+  }
+  return `${countryCallingCode}${trimmedValue}`;
+}
+
 export class IntlTelInputController extends Controller {
   declare instance: IntlTelInputInstance | null;
-  declare inputElement: HTMLInputElement;
   declare hiddenInputElement: HTMLInputElement;
 
-  beforeCache = () => {
-    this.inputElement.value = "";
-    this.instance?.destroy();
-    this.instance = null;
-  };
+  // When we call window.intlTelInput,
+  // disconnect will be called immediately, followed by a connect.
+  // We have to detect this situation, otherwise we will stick in a infinite loop.
+  // The initialization sequence looks like connect,disconnect,connect
+  // Therefore, the first time we enter connect, we expect 1 disconnect and 1 connect to be followed.
+  // Here we use two booleans to keep track of that.
+  ignoreConnect: boolean = false;
+  ignoreDisconnect: boolean = false;
 
   input() {
-    this.hiddenInputElement.value =
-      this.instance?.getNumber(window.intlTelInputUtils.numberFormat.E164) ??
-      "";
+    const instance = this.instance;
+    if (instance == null) {
+      return;
+    }
+
+    // If it is a valid number, then getNumber() returns a E.164 number already.
+    // Otherwise we build a value that is a prefix of a E164 number.
+    const isValid = instance.isValidNumber();
+    if (isValid) {
+      const s = instance.getNumber();
+      if (typeof s === "string") {
+        this.hiddenInputElement.value = s;
+      }
+    } else {
+      const { dialCode } = instance.getSelectedCountryData();
+      if (dialCode != null) {
+        const countryCallingCode = `+${dialCode}`;
+        const value = this.inputElement.value;
+        const s = buildE164Value(countryCallingCode, value);
+        this.hiddenInputElement.value = s;
+      }
+    }
+  }
+
+  // @ts-expect-error
+  get inputElement(): HTMLInputElement {
+    return this.element as HTMLInputElement;
   }
 
   connect() {
-    if (this.instance != null) {
+    if (this.ignoreConnect) {
+      this.ignoreConnect = false;
       return;
     }
 
@@ -54,10 +90,7 @@ export class IntlTelInputController extends Controller {
       initialCountry = "";
     }
 
-    const input = this.element as HTMLInputElement;
-    const form = input.form;
-
-    input.setAttribute("data-intl-tel-input-connecting", "true");
+    const form = this.inputElement.form;
 
     // Create hidden input to the form
     const hiddenInput = document.createElement("input");
@@ -66,15 +99,16 @@ export class IntlTelInputController extends Controller {
     form?.appendChild(hiddenInput);
 
     // Save the reference of input and hidden input elements
-    this.inputElement = input;
     this.hiddenInputElement = hiddenInput;
 
-    swapElementsName(input, hiddenInput);
+    swapElementsName(this.inputElement, hiddenInput);
 
     const customContainer =
-      input.getAttribute("data-intl-tel-input-class") ?? undefined;
+      this.inputElement.getAttribute("data-intl-tel-input-class") ?? undefined;
 
-    this.instance = window.intlTelInput(input, {
+    this.ignoreConnect = true;
+    this.ignoreDisconnect = true;
+    this.instance = window.intlTelInput(this.inputElement, {
       autoPlaceholder: "aggressive",
       onlyCountries,
       preferredCountries,
@@ -82,23 +116,26 @@ export class IntlTelInputController extends Controller {
       customContainer,
     });
 
-    input.setAttribute("data-intl-tel-input-connecting", "false");
-
-    document.addEventListener("turbo:before-cache", this.beforeCache);
+    this.input();
   }
 
   disconnect() {
-    const input = this.inputElement;
-    if (input.getAttribute("data-intl-tel-input-connecting")) {
+    if (this.ignoreDisconnect) {
+      this.ignoreDisconnect = false;
       return;
     }
 
+    // When we disconnect, we store the value in the value attribute.
+    // Next time when we connect again, the value is used to initialize the input.
+    const input = this.inputElement;
+    const value = this.hiddenInputElement.value;
+    input.setAttribute("value", value);
+    input.value = value;
     const hiddenInput = this.hiddenInputElement;
-
     swapElementsName(input, hiddenInput);
+    hiddenInput.parentNode?.removeChild(hiddenInput);
 
-    input.value = this.hiddenInputElement.value;
-
-    document.removeEventListener("turbo:before-cache", this.beforeCache);
+    this.instance?.destroy();
+    this.instance = null;
   }
 }

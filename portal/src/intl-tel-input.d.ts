@@ -3,9 +3,9 @@
 declare type IntlTelInputAlpha2 = string;
 
 declare interface IntlTelInputCountryData {
-  name: string;
-  iso2: IntlTelInputAlpha2;
-  dialCode: string;
+  name?: string;
+  iso2?: IntlTelInputAlpha2;
+  dialCode?: string;
 }
 
 declare type IntlTelInputPlaceholderNumberType = "MOBILE" | "FIXED_LINE";

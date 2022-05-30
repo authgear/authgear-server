@@ -3,25 +3,25 @@
 declare type IntlTelInputAlpha2 = string;
 
 declare interface IntlTelInputCountryData {
-  name: string;
-  iso2: IntlTelInputAlpha2;
-  dialCode: string;
+  name?: string;
+  iso2?: IntlTelInputAlpha2;
+  dialCode?: string;
 }
 
 declare type IntlTelInputPlaceholderNumberType = "MOBILE" | "FIXED_LINE";
 
 declare interface IntlTelInputInstance {
   getExtension(): string | undefined | null;
-  getNumber(a?: number): string | undefined | null;
+  getNumber(): string | undefined | null;
   getNumberType(): number | undefined | null;
   getSelectedCountryData(): IntlTelInputCountryData;
   getValidationError(): number | undefined | null;
   isValidNumber(): boolean;
 
-  destroy();
-  setCountry(alpha2: IntlTelInputAlpha2);
-  setNumber(e164: string);
-  setPlaceholderNumberType(typ: IntlTelInputPlaceholderNumberType);
+  destroy(): void;
+  setCountry(alpha2: IntlTelInputAlpha2): void;
+  setNumber(e164: string): void;
+  setPlaceholderNumberType(typ: IntlTelInputPlaceholderNumberType): void;
 }
 
 declare interface IntlTelInputInitOptions {
