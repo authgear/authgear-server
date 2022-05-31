@@ -50,6 +50,7 @@
       type="submit"
       name="x_action"
       value="dryrun_verify"
+      data-authgear-event="authgear.button.refresh_whatsapp_result"
     >
     <i class="text-base ti ti-refresh" aria-hidden="true"></i>
       {{ template "whatsapp-otp-refresh-button-label" }}
@@ -62,6 +63,7 @@
   <a href="{{ $.OpenWhatsappLink }}"
     target="_blank"
     class="as-btn not-a btn primary-btn"
+    data-authgear-event="authgear.button.open_in_whatsapp"
   >
     {{ template "whatsapp-otp-open-in-whatsapp-button-label" }}
   </a>
@@ -70,6 +72,7 @@
     class="as-btn not-a btn primary-btn outline"
     data-action="click->simple-modal#showModal"
     data-simple-modal-id="whatsapp-qr-code"
+    data-authgear-event="authgear.button.show_whatsapp_qr_code"
   >
     {{ template "whatsapp-otp-scan-code-button-label" }}
   </a>
@@ -107,6 +110,7 @@
     data-controller="delayed-auto-submit" 
     data-countdown-sec="2"
     data-action="click->delayed-auto-submit#onClick"
+    data-authgear-event="authgear.button.redirect_whatsapp_result"
   >{{ template "whatsapp-otp-next-button" }}</button>
   {{ if (and $.CanRequestDeviceToken $.XDeviceToken) }}
     {{/* The value is provided by the checkbox from the previous state */}}

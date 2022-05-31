@@ -117,7 +117,7 @@ const primaryAuthenticatorTypeLocaleKeyMap: {
 } = {
   PASSWORD: "AuthenticatorType.primary.password",
   OOB_OTP_EMAIL: "AuthenticatorType.primary.oob-otp-email",
-  OOB_OTP_SMS: "AuthenticatorType.primary.oob-otp-sms",
+  OOB_OTP_SMS: "AuthenticatorType.primary.oob-otp-phone",
 };
 
 const secondaryAuthenticatorTypeLocaleKeyMap: {
@@ -126,7 +126,7 @@ const secondaryAuthenticatorTypeLocaleKeyMap: {
   PASSWORD: "AuthenticatorType.secondary.password",
   TOTP: "AuthenticatorType.secondary.totp",
   OOB_OTP_EMAIL: "AuthenticatorType.secondary.oob-otp-email",
-  OOB_OTP_SMS: "AuthenticatorType.secondary.oob-otp-sms",
+  OOB_OTP_SMS: "AuthenticatorType.secondary.oob-otp-phone",
 };
 
 function getLocaleKeyWithAuthenticatorType(
@@ -645,7 +645,7 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
                   as="h3"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
                 >
-                  <FormattedMessage id="AuthenticatorType.primary.oob-otp-sms" />
+                  <FormattedMessage id="AuthenticatorType.primary.oob-otp-phone" />
                 </Text>
                 <List
                   className={cn(styles.list, styles.oobOtpList)}
@@ -704,7 +704,7 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
                   as="h3"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
                 >
-                  <FormattedMessage id="AuthenticatorType.secondary.oob-otp-sms" />
+                  <FormattedMessage id="AuthenticatorType.secondary.oob-otp-phone" />
                 </Text>
                 <List
                   className={cn(styles.list, styles.oobOtpList)}
