@@ -72,7 +72,7 @@ jobs:
     - uses: ./.github/actions/libvips
     - uses: actions/setup-go@v3
       with:
-        go-version: "1.17.7"
+        go-version: "1.18.2"
     - uses: actions/setup-node@v3
       with:
         node-version: "16.14.0"
@@ -113,7 +113,7 @@ jobs:
     - uses: ./.github/actions/libvips
     - uses: actions/setup-go@v3
       with:
-        go-version: "1.17.7"
+        go-version: "1.18.2"
     - uses: actions/setup-node@v3
       with:
         node-version: "16.14.0"
