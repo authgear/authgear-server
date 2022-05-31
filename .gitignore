@@ -18,9 +18,9 @@ docker-compose.override.yaml
 node_modules/
 
 # compiled static files
-resources/authgear/static/build.*.js
-resources/authgear/static/build.*.js.map
-resources/authgear/static/build.*.css
-resources/authgear/static/build.*.css.map
+resources/authgear/static/*.*.js
+resources/authgear/static/*.*.js.map
+resources/authgear/static/*.*.css
+resources/authgear/static/*.*.css.map
 resources/portal/static/
 !resources/portal/static/img/logo.png

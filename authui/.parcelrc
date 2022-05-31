@@ -1,4 +1,5 @@
 {
   "extends": "@parcel/config-default",
-  "reporters": ["...", "parcel-reporter-bundle-manifest"]
+  "reporters": ["...", "parcel-reporter-bundle-manifest"],
+  "namers": ["parcel-namer-rewrite", "..."]
 }

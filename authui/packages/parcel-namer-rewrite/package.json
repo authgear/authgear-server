@@ -1,0 +1,39 @@
+{
+  "name": "parcel-namer-rewrite",
+  "version": "2.0.0-rc.2",
+  "description": "",
+  "scripts": {
+    "build": "rimraf ./target && babel src/ -d lib/",
+    "flow": "flow",
+    "prepare": "npm run build"
+  },
+  "author": "",
+  "license": "ISC",
+  "repository": {
+    "url": "https://github.com/ol-loginov/parcel-namer-rewrite"
+  },
+  "source": "src/Namer.js",
+  "main": "lib/Namer.js",
+  "devDependencies": {
+    "@babel/cli": "^7.12.1",
+    "@babel/core": "^7.12.3",
+    "@babel/preset-flow": "^7.12.1",
+    "@parcel/babel-preset": "^2.0.0-alpha.2",
+    "flow-bin": "^0.136.0"
+  },
+  "dependencies": {
+    "@parcel/logger": "^2.0.0",
+    "@parcel/namer-default": "^2.0.0",
+    "@parcel/package-manager": "^2.0.0",
+    "@parcel/plugin": "^2.0.0",
+    "@parcel/types": "^2.0.0",
+    "assert": "^2.0.0"
+  },
+  "files": [
+    "lib/*.js"
+  ],
+  "engines": {
+    "parcel": "^2.0.0",
+    "node": ">= 10.0.0"
+  }
+}

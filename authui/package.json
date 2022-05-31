@@ -10,6 +10,13 @@
   "alias": {
     "process": false
   },
+  "parcel-namer-rewrite": {
+    "chain": "@parcel/namer-default",
+    "rules": {
+        "(.*).css": "$1.{hash}.css",
+        "(.*).js": "$1.{hash}.js"
+    }
+  },
   "devDependencies": {
     "@types/luxon": "2.0.9",
     "@types/zxcvbn": "4.4.1",
