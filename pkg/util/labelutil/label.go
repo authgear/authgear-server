@@ -2,6 +2,9 @@ package labelutil
 
 import (
 	"strings"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 var minorWords = []string{
@@ -48,7 +51,7 @@ func titlecase(word string, index int, length int) string {
 	}
 
 	if shouldCapitalize {
-		return strings.Title(word)
+		return cases.Title(language.English).String(word)
 	}
 
 	return word
