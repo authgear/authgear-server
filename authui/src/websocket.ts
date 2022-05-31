@@ -53,7 +53,7 @@ export class WebSocketController extends Controller {
       this.backoffIndex += 1;
     }
 
-    this.reconnectSetTimeoutHandle = setTimeout(() => {
+    this.reconnectSetTimeoutHandle = window.setTimeout(() => {
       this.reconnectSetTimeoutHandle = null;
       this.connectWebSocket();
     }, Math.pow(2, index) * 1000);

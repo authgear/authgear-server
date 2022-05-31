@@ -37,7 +37,7 @@ export class DelayedAutoSubmitController extends Controller {
     let countDownSec = Number(
       this.buttonTarget.getAttribute("data-countdown-sec")
     );
-    this.intervalReq = setInterval(() => {
+    this.intervalReq = window.setInterval(() => {
       this.buttonTarget.click();
       this.intervalReq = null;
     }, countDownSec * 1000);
