@@ -11,6 +11,7 @@ import { useSystemConfig } from "../../context/SystemConfigContext";
 import ErrorDialog from "../../error/ErrorDialog";
 import { useDeleteUserMutation } from "./mutations/deleteUserMutation";
 import { useScheduleAccountDeletionMutation } from "./mutations/scheduleAccountDeletion";
+import { extractRawID } from "../../util/graphql";
 
 interface DeleteUserDialogProps {
   isHidden: boolean;
@@ -75,7 +76,7 @@ const DeleteUserDialog: React.FC<DeleteUserDialogProps> = React.memo(
       () => ({
         title: renderToString("DeleteUserDialog.title"),
         subText: renderToString("DeleteUserDialog.text", {
-          username: endUserAccountIdentifier ?? userID,
+          username: endUserAccountIdentifier ?? extractRawID(userID),
         }),
       }),
       [renderToString, endUserAccountIdentifier, userID]
