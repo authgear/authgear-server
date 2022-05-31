@@ -11,14 +11,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
-type JavaScriptDescriptor struct {
+type SourceMapDescriptor struct {
 	Path     string
 	IsHashed bool
 }
 
-var _ resource.Descriptor = JavaScriptDescriptor{}
+var _ resource.Descriptor = SourceMapDescriptor{}
 
-func (d JavaScriptDescriptor) MatchResource(resourcePath string) (*resource.Match, bool) {
+func (d SourceMapDescriptor) MatchResource(resourcePath string) (*resource.Match, bool) {
 	if d.IsHashed && path.Ext(resourcePath) == path.Ext(d.Path) && resourcePath[:strings.IndexByte(resourcePath, '.')] == d.Path[:strings.IndexByte(d.Path, '.')] {
 		return &resource.Match{}, true
 	}
@@ -29,7 +29,7 @@ func (d JavaScriptDescriptor) MatchResource(resourcePath string) (*resource.Matc
 	return nil, false
 }
 
-func (d JavaScriptDescriptor) FindResources(fs resource.Fs) ([]resource.Location, error) {
+func (d SourceMapDescriptor) FindResources(fs resource.Fs) ([]resource.Location, error) {
 	location := resource.Location{
 		Fs:   fs,
 		Path: d.Path,
@@ -43,7 +43,7 @@ func (d JavaScriptDescriptor) FindResources(fs resource.Fs) ([]resource.Location
 	return []resource.Location{location}, nil
 }
 
-func (d JavaScriptDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
+func (d SourceMapDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
 	output := bytes.Buffer{}
 
 	app := func() error {
@@ -97,7 +97,7 @@ func (d JavaScriptDescriptor) ViewResources(resources []resource.ResourceFile, r
 	}
 }
 
-func (d JavaScriptDescriptor) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
+func (d SourceMapDescriptor) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
 	return &resource.ResourceFile{
 		Location: resrc.Location,
 		Data:     data,

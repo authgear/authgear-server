@@ -71,5 +71,25 @@ func TestHasedPath(t *testing.T) {
 		filePath, hash = ParsePathWithHash("logo")
 		So(filePath, ShouldEqual, "")
 		So(hash, ShouldEqual, "")
+
+		filePath, hash = ParsePathWithHash("script.hash.js.map")
+		So(filePath, ShouldEqual, "script.js.map")
+		So(hash, ShouldEqual, "hash")
+	})
+
+	Convey("IsAssetPathHashed", t, func() {
+		result := IsAssetPathHashed("static/authgear.js")
+		So(result, ShouldEqual, true)
+
+		result = IsAssetPathHashed("static/image.png")
+		So(result, ShouldEqual, false)
+	})
+
+	Convey("IsSourceMapPath", t, func() {
+		result := IsSourceMapPath("script.hash.js.map")
+		So(result, ShouldEqual, true)
+
+		result = IsSourceMapPath("style.css")
+		So(result, ShouldEqual, false)
 	})
 }

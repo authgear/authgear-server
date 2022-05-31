@@ -71,12 +71,14 @@ func (h *StaticAssetsHandler) Open(name string) (http.File, error) {
 	}
 
 	bytes := result.([]byte)
-	// check the hash
-	// md5 is used to compute the hash in the filename for caching purpose only
-	// nolint:gosec
-	dataHash := md5.Sum(bytes)
-	if fmt.Sprintf("%x", dataHash) != hashInPath {
-		return nil, os.ErrNotExist
+	if !web.IsAssetPathHashed(filePath) {
+		// check the hash
+		// md5 is used to compute the hash in the filename for caching purpose only
+		// nolint:gosec
+		dataHash := md5.Sum(bytes)
+		if fmt.Sprintf("%x", dataHash) != hashInPath {
+			return nil, os.ErrNotExist
+		}
 	}
 
 	data := aferomem.CreateFile(p)

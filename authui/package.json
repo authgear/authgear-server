@@ -1,7 +1,9 @@
 {
   "name": "authui",
   "private": true,
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "typecheck": "tsc -b",
     "format": "prettier --write --list-different ./src/*.ts",

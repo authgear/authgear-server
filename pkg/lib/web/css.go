@@ -5,18 +5,25 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path"
+	"strings"
 
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
 type CSSDescriptor struct {
-	Path string
+	Path     string
+	IsHashed bool
 }
 
 var _ resource.Descriptor = CSSDescriptor{}
 
-func (d CSSDescriptor) MatchResource(path string) (*resource.Match, bool) {
-	if path == d.Path {
+func (d CSSDescriptor) MatchResource(resourcePath string) (*resource.Match, bool) {
+	if d.IsHashed && path.Ext(resourcePath) == path.Ext(d.Path) && resourcePath[:strings.IndexByte(resourcePath, '.')] == d.Path[:strings.IndexByte(d.Path, '.')] {
+		return &resource.Match{}, true
+	}
+
+	if resourcePath == d.Path {
 		return &resource.Match{}, true
 	}
 	return nil, false

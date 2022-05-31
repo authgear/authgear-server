@@ -12,8 +12,14 @@ type StaticAsset struct {
 	Data []byte
 }
 
-var WebJS = resource.RegisterResource(JavaScriptDescriptor{
-	Path: StaticAssetResourcePrefix + "authgear.js",
+var AuthgearJS = resource.RegisterResource(JavaScriptDescriptor{
+	Path:     StaticAssetResourcePrefix + GetHashedName("authgear.ts"),
+	IsHashed: true,
+})
+
+var AuthgearJSMap = resource.RegisterResource(SourceMapDescriptor{
+	Path:     StaticAssetResourcePrefix + GetHashedName("authgear.ts") + ".map",
+	IsHashed: true,
 })
 
 var AuthgearLightThemeCSS = resource.RegisterResource(CSSDescriptor{
@@ -30,11 +36,13 @@ var AuthgearCSS = resource.RegisterResource(CSSDescriptor{
 
 // TailwindCSS - it is build every time.
 var TailwindCSS = resource.RegisterResource(CSSDescriptor{
-	Path: StaticAssetResourcePrefix + "tailwind.css",
+	Path:     StaticAssetResourcePrefix + GetHashedName("tailwind.css"),
+	IsHashed: true,
 })
 
-var TailwindCSSMap = resource.RegisterResource(resource.SimpleDescriptor{
-	Path: StaticAssetResourcePrefix + "tailwind.css.map",
+var TailwindCSSMap = resource.RegisterResource(SourceMapDescriptor{
+	Path:     StaticAssetResourcePrefix + GetHashedName("tailwind.css") + ".map",
+	IsHashed: true,
 })
 
 // IconsCSS - Tabler Icons 1.41.1 by tabler - https://tabler.io
