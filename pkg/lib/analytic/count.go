@@ -18,9 +18,10 @@ const (
 	DailySignupUniquePageViewCountType = "daily.unique_page_view.signup"
 	DailyLoginPageViewCountType        = "daily.page_view.login"
 	DailyLoginUniquePageViewCountType  = "daily.unique_page_view.login"
-	DailySignupWithLoginIDCountType    = "daily.signup.login_id.%s"
-	DailySignupWithOAuthCountType      = "daily.signup.oauth.%s"
-	DailySignupAnonymouslyCountType    = "daily.signup.anonymous"
+	// nolint: gosec
+	DailySignupWithLoginIDCountType = "daily.signup.login_id.%s"
+	DailySignupWithOAuthCountType   = "daily.signup.oauth.%s"
+	DailySignupAnonymouslyCountType = "daily.signup.anonymous"
 )
 
 type DailySignupCountTypeByMethod struct {

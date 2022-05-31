@@ -236,17 +236,21 @@ const (
 	AuditDatabaseCredentialsKey SecretKey = "audit.db"
 	ElasticsearchCredentialsKey SecretKey = "elasticsearch"
 	RedisCredentialsKey         SecretKey = "redis"
+	// nolint: gosec
 	AnalyticRedisCredentialsKey SecretKey = "analytic.redis"
 	AdminAPIAuthKeyKey          SecretKey = "admin-api.auth"
-	OAuthClientCredentialsKey   SecretKey = "sso.oauth.client"
-	SMTPServerCredentialsKey    SecretKey = "mail.smtp"
-	TwilioCredentialsKey        SecretKey = "sms.twilio"
-	NexmoCredentialsKey         SecretKey = "sms.nexmo"
-	OAuthKeyMaterialsKey        SecretKey = "oauth"
-	CSRFKeyMaterialsKey         SecretKey = "csrf"
-	WebhookKeyMaterialsKey      SecretKey = "webhook"
-	ImagesKeyMaterialsKey       SecretKey = "images"
-	WATICredentialsKey          SecretKey = "whatsapp.wati"
+	// nolint: gosec
+	OAuthClientCredentialsKey SecretKey = "sso.oauth.client"
+	SMTPServerCredentialsKey  SecretKey = "mail.smtp"
+	// nolint: gosec
+	TwilioCredentialsKey SecretKey = "sms.twilio"
+	// nolint: gosec
+	NexmoCredentialsKey    SecretKey = "sms.nexmo"
+	OAuthKeyMaterialsKey   SecretKey = "oauth"
+	CSRFKeyMaterialsKey    SecretKey = "csrf"
+	WebhookKeyMaterialsKey SecretKey = "webhook"
+	ImagesKeyMaterialsKey  SecretKey = "images"
+	WATICredentialsKey     SecretKey = "whatsapp.wati"
 )
 
 func (key SecretKey) IsUpdatable() bool {
