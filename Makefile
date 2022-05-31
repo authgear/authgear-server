@@ -114,6 +114,8 @@ authui:
 	npm run --silent --prefix ./authui typecheck
 	npm run --silent --prefix ./authui format
 	npm run --silent --prefix ./authui build
+	rm ./resources/authgear/static/build.html
+	rm ./resources/authgear/static/parcel-manifest.json
 
 .PHONY: portal
 portal:

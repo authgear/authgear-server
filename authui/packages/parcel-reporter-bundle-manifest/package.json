@@ -1,0 +1,39 @@
+{
+  "name": "parcel-reporter-bundle-manifest",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "parcel build src/BundleManifestReporter.ts",
+    "test": "jest",
+    "prepare": "npm run build",
+    "format": "prettier --write ."
+  },
+  "author": "Kanitkorn S.",
+  "license": "MIT",
+  "main": "lib/BundleManifestReporter.js",
+  "source": "src/BundleManifestReporter.ts",
+  "engines": {
+    "node": ">= 12.0.0",
+    "parcel": "^2.0.0"
+  },
+  "peerDependencies": {
+    "parcel": "^2.0.0"
+  },
+  "dependencies": {
+    "@parcel/plugin": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.3",
+    "parcel": "^2.0.0",
+    "prettier": "^2.4.1",
+    "typescript": "4.5.5"
+  },
+  "targets": {
+    "main": {
+      "context": "node",
+      "engines": {
+        "node": ">= 12.0.0"
+      },
+      "isLibrary": true
+    }
+  }
+}

@@ -6,6 +6,7 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true  /* Disallow inconsistently-cased references to the same file. */
+    "forceConsistentCasingInFileNames": true  /* Disallow inconsistently-cased references to the same file. */,
+    "downlevelIteration": true /* Provide full support for iterables in 'for-of', spread, and destructuring when targeting 'ES5' or 'ES3'. */,
   }
 }

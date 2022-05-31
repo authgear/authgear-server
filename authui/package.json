@@ -1,10 +1,11 @@
 {
   "name": "authui",
   "private": true,
+  "workspaces": ["packages/*"],
   "scripts": {
     "typecheck": "tsc -b",
     "format": "prettier --write --list-different ./src/*.ts",
-    "build": "parcel build --no-cache src/authgear.ts src/tailwind.css --dist-dir ../resources/authgear/static"
+    "build": "parcel build --no-cache src/build.html --dist-dir ../resources/authgear/static"
   },
   "alias": {
     "process": false
