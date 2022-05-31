@@ -1,9 +1,19 @@
 import { Controller } from "@hotwired/stimulus";
 
 export class ColorSchemeController extends Controller {
+  static values = {
+    darkThemeEnabled: Boolean,
+  };
+
   queryResult = window.matchMedia("(prefers-color-scheme: dark)");
 
+  declare darkThemeEnabledValue: Boolean;
+
   onChange = () => {
+    if (!this.darkThemeEnabledValue) {
+      return;
+    }
+
     let explicitColorScheme = "";
     const metaElement = document.querySelector("meta[name=x-color-scheme]");
     if (metaElement instanceof HTMLMetaElement) {
