@@ -1,9 +1,15 @@
 {{ define "__watermark.html" }}
 <div class="flex justify-center mt-5">
   {{ if $.WatermarkEnabled }}
-  <a href="https://www.authgear.com/?utm_campaign=uibrand" target="_blank">
-    <span class="footer-watermark"></span>
-  </a>
+    {{ if $.IsNativePlatform }}
+    <div>
+      <span class="footer-watermark"></span>
+    </div>
+    {{ else }}
+    <a href="https://www.authgear.com/?utm_campaign=uibrand" target="_blank">
+      <span class="footer-watermark"></span>
+    </a>
+    {{ end }}
   {{ end }}
 </div>
 {{ end }}
