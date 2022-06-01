@@ -1,0 +1,16 @@
+{
+  "name": "parcel-namer-authgear",
+  "version": "1.0.0",
+  "source": "src/index.js",
+  "main": "src/index.js",
+  "dependencies": {
+    "@parcel/plugin": "2.3.1"
+  },
+  "files": [
+    "src/*.js"
+  ],
+  "engines": {
+    "parcel": "^2",
+    "node": ">= 10.0.0"
+  }
+}
