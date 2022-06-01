@@ -4,9 +4,7 @@ import {
   Checkbox,
   Dropdown,
   IDropdownOption,
-  ITag,
   Label,
-  TagPicker,
   TextField,
   Toggle,
 } from "@fluentui/react";
@@ -25,6 +23,7 @@ import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
+import { useTagPickerWithNewTags } from "../../hook/useInput";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
@@ -33,6 +32,7 @@ import ScreenDescription from "../../ScreenDescription";
 import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
 import FormContainer from "../../FormContainer";
+import CustomTagPicker from "../../CustomTagPicker";
 import { fixTagPickerStyles } from "../../bugs";
 
 import styles from "./PasswordPolicyConfigurationScreen.module.scss";
@@ -156,15 +156,6 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
       }));
     }, [state.policy.minimum_guessable_level, renderToString]);
 
-    const defaultSelectedExcludedKeywordItems: ITag[] = useMemo(() => {
-      return (
-        state.policy.excluded_keywords?.map((keyword) => ({
-          key: keyword,
-          name: keyword,
-        })) ?? []
-      );
-    }, [state.policy.excluded_keywords]);
-
     const setPolicy = useCallback(
       (policy: PasswordPolicyConfig) =>
         setState((state) => ({
@@ -274,25 +265,6 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
       [setPolicy]
     );
 
-    const onResolveExcludedKeywordSuggestions = useCallback(
-      (filterText: string, _tagList?: ITag[]): ITag[] => {
-        return [{ key: filterText, name: filterText }];
-      },
-      []
-    );
-
-    const onExcludedKeywordsChange = useCallback(
-      (items?: ITag[]) => {
-        if (items == null) {
-          return;
-        }
-        setPolicy({
-          excluded_keywords: items.map((item) => item.name),
-        });
-      },
-      [setPolicy]
-    );
-
     const onForceChangeChange = useCallback(
       (_, checked?: boolean) => {
         if (checked == null) {
@@ -304,6 +276,29 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
         }));
       },
       [setState]
+    );
+
+    const valueForExcludedKeywords = useMemo(() => {
+      return state.policy.excluded_keywords ?? [];
+    }, [state.policy.excluded_keywords]);
+
+    const updateExcludedKeywords = useCallback(
+      (value: string[]) => {
+        setPolicy({
+          excluded_keywords: value,
+        });
+      },
+      [setPolicy]
+    );
+
+    const {
+      selectedItems: excludedKeywords,
+      onChange: onExcludedKeywordsChange,
+      onResolveSuggestions: onExcludedKeywordsSuggestions,
+      onAdd: onExcludedKeywordsAdd,
+    } = useTagPickerWithNewTags(
+      valueForExcludedKeywords,
+      updateExcludedKeywords
     );
 
     return (
@@ -408,16 +403,17 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
             <Label>
               <FormattedMessage id="PasswordPolicyConfigurationScreen.excluded-keywords.label" />
             </Label>
-            <TagPicker
+            <CustomTagPicker
               styles={fixTagPickerStyles}
               inputProps={{
                 "aria-label": renderToString(
                   "PasswordPolicyConfigurationScreen.excluded-keywords.label"
                 ),
               }}
-              defaultSelectedItems={defaultSelectedExcludedKeywordItems}
-              onResolveSuggestions={onResolveExcludedKeywordSuggestions}
+              selectedItems={excludedKeywords}
               onChange={onExcludedKeywordsChange}
+              onResolveSuggestions={onExcludedKeywordsSuggestions}
+              onAdd={onExcludedKeywordsAdd}
             />
           </div>
         </Widget>
