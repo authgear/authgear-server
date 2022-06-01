@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus";
 
 export class DelayedAutoSubmitController extends Controller {
   declare buttonTarget: HTMLButtonElement;
-  intervalReq: number | null = null;
+  intervalReq: ReturnType<typeof setInterval> | null = null;
 
   connect() {
     this.buttonTarget = this.element as HTMLButtonElement;
