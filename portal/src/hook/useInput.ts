@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 import { IDropdownOption, ITag } from "@fluentui/react";
+import { deduplicate } from "../util/array";
 
 export function useTextField(onChange: (value: string) => void): {
   onChange: (_event: any, value?: string) => void;
@@ -44,7 +45,9 @@ export const useTagPickerWithNewTags = (
       if (items == null) {
         return;
       }
-      const listItems = items.map((item) => item.name);
+      const listItems = deduplicate(items.map((item) => item.name)).filter(
+        Boolean
+      );
       onListChange(listItems);
     },
     [onListChange]
