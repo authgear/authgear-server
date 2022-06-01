@@ -93,7 +93,7 @@ func (h *WhatsappWATICallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	defer func() {
 		// always return OK and logs the error if any
 		if err != nil {
-			h.Logger.WithError(err).Warn("failed to consume message")
+			h.Logger.WithError(err).Info("failed to consume message")
 		}
 		w.WriteHeader(http.StatusOK)
 	}()
