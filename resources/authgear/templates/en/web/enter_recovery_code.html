@@ -21,6 +21,13 @@
 	placeholder="{{ template "enter-recovery-code-placeholder" }}"
 >
 
+{{ if $.CanRequestDeviceToken }}
+<div class="flex flex-row items-center self-start">
+<input id="device-token" type="checkbox" name="x_device_token" value="true">
+<label class="p-1 text-sm primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
+</div>
+{{ end }}
+
 <button
 	class="btn primary-btn mt-5"
 	type="submit"

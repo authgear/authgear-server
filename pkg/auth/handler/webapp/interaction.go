@@ -155,12 +155,15 @@ func (i *InputAuthPassword) GetAuthenticationStage() authn.AuthenticationStage {
 }
 
 type InputAuthRecoveryCode struct {
-	Code string
+	Code        string
+	DeviceToken bool
 }
 
 var _ nodes.InputConsumeRecoveryCode = &InputAuthRecoveryCode{}
+var _ nodes.InputCreateDeviceToken = &InputAuthRecoveryCode{}
 
 func (i *InputAuthRecoveryCode) GetRecoveryCode() string { return i.Code }
+func (i *InputAuthRecoveryCode) CreateDeviceToken() bool { return i.DeviceToken }
 
 type InputSetupOOB struct {
 	InputType string

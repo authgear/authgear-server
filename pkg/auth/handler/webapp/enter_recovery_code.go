@@ -35,10 +35,6 @@ func ConfigureEnterRecoveryCodeRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/enter_recovery_code")
 }
 
-type EnterRecoveryCodeViewModel struct {
-	AlternativeSteps []viewmodels.AlternativeStep
-}
-
 type EnterRecoveryCodeHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
@@ -56,12 +52,8 @@ func (h *EnterRecoveryCodeHandler) GetData(r *http.Request, rw http.ResponseWrit
 		return nil, err
 	}
 
-	viewModel := EnterRecoveryCodeViewModel{
-		AlternativeSteps: alternatives.AlternativeSteps,
-	}
-
 	viewmodels.Embed(data, baseViewModel)
-	viewmodels.Embed(data, viewModel)
+	viewmodels.Embed(data, alternatives)
 
 	return data, nil
 }
@@ -102,9 +94,11 @@ func (h *EnterRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 			}
 
 			code := r.Form.Get("x_recovery_code")
+			deviceToken := r.Form.Get("x_device_token") == "true"
 
 			input = &InputAuthRecoveryCode{
-				Code: code,
+				Code:        code,
+				DeviceToken: deviceToken,
 			}
 			return
 		})
