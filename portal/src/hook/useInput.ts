@@ -39,6 +39,7 @@ export const useTagPickerWithNewTags = (
   selectedItems: ITag[];
   onChange: (items?: ITag[]) => void;
   onResolveSuggestions: (filterText: string, _tagList?: ITag[]) => ITag[];
+  onAdd: (value: string) => void;
 } => {
   const onChange = React.useCallback(
     (items?: ITag[]) => {
@@ -51,6 +52,14 @@ export const useTagPickerWithNewTags = (
       onListChange(listItems);
     },
     [onListChange]
+  );
+
+  const onAdd = React.useCallback(
+    (value: string) => {
+      const listItems = deduplicate([...list, value]).filter(Boolean);
+      onListChange(listItems);
+    },
+    [onListChange, list]
   );
 
   const selectedItems = React.useMemo(
@@ -73,6 +82,7 @@ export const useTagPickerWithNewTags = (
     selectedItems,
     onChange,
     onResolveSuggestions,
+    onAdd,
   };
 };
 
