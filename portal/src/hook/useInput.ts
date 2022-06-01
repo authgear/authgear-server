@@ -33,8 +33,7 @@ export function useCheckbox(onChange: (checked: boolean) => void): {
 
 export const useTagPickerWithNewTags = (
   list: string[],
-  onListChange: (list: string[]) => void,
-  suggestionList?: ITag[]
+  onListChange: (list: string[]) => void
 ): {
   selectedItems: ITag[];
   onChange: (items?: ITag[]) => void;
@@ -62,15 +61,9 @@ export const useTagPickerWithNewTags = (
 
   const onResolveSuggestions = React.useCallback(
     (filterText: string, _tagList?: ITag[]): ITag[] => {
-      if (!suggestionList) {
-        return [{ key: filterText, name: filterText }];
-      }
-      const matches = suggestionList.filter((tag) =>
-        tag.name.toLowerCase().includes(filterText)
-      );
-      return matches.concat({ key: filterText, name: filterText });
+      return [{ key: filterText, name: filterText }];
     },
-    [suggestionList]
+    []
   );
 
   return {
