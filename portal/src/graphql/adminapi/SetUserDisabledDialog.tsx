@@ -11,6 +11,7 @@ import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useSetDisabledStatusMutation } from "./mutations/setDisabledStatusMutation";
 import { useUnscheduleAccountDeletionMutation } from "./mutations/unscheduleAccountDeletion";
 import ErrorDialog from "../../error/ErrorDialog";
+import { extractRawID } from "../../util/graphql";
 
 interface SetUserDisabledDialogProps {
   isHidden: boolean;
@@ -79,7 +80,7 @@ const SetUserDisabledDialog: React.FC<SetUserDisabledDialogProps> = React.memo(
 
     const dialogContentProps: IDialogContentProps = useMemo(() => {
       const args = {
-        username: endUserAccountIdentifier ?? userID,
+        username: endUserAccountIdentifier ?? extractRawID(userID),
       };
 
       return userDeleteAt != null
