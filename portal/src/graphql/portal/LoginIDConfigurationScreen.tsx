@@ -660,13 +660,6 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
       [setState]
     );
 
-    const addDomainToEmailDomainBlocklist = useCallback(
-      (value: string) => {
-        updateEmailDomainBlocklist([...valueForDomainBlocklist, value]);
-      },
-      [valueForDomainBlocklist, updateEmailDomainBlocklist]
-    );
-
     const updateEmailDomainAllowlist = useCallback(
       (value: string[]) => {
         setState((prev) => {
@@ -687,17 +680,11 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
       [setState]
     );
 
-    const addDomainToEmailDomainAllowlist = useCallback(
-      (value: string) => {
-        updateEmailDomainAllowlist([...valueForDomainAllowlist, value]);
-      },
-      [valueForDomainAllowlist, updateEmailDomainAllowlist]
-    );
-
     const {
       selectedItems: domainBlocklist,
       onChange: onDomainBlocklistChange,
       onResolveSuggestions: onDomainBlocklistSuggestions,
+      onAdd: onDomainBlocklistAdd,
     } = useTagPickerWithNewTags(
       valueForDomainBlocklist,
       updateEmailDomainBlocklist
@@ -707,6 +694,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
       selectedItems: domainAllowlist,
       onChange: onDomainAllowlistChange,
       onResolveSuggestions: onDomainAllowlistSuggestions,
+      onAdd: onDomainAllowlistAdd,
     } = useTagPickerWithNewTags(
       valueForDomainAllowlist,
       updateEmailDomainAllowlist
@@ -759,7 +747,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
             selectedItems={domainBlocklist}
             onChange={onDomainBlocklistChange}
             onResolveSuggestions={onDomainBlocklistSuggestions}
-            onAdd={addDomainToEmailDomainBlocklist}
+            onAdd={onDomainBlocklistAdd}
           />
         </CheckboxWithContentLayout>
         <CheckboxWithTooltip
@@ -793,7 +781,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
             selectedItems={domainAllowlist}
             onChange={onDomainAllowlistChange}
             onResolveSuggestions={onDomainAllowlistSuggestions}
-            onAdd={addDomainToEmailDomainAllowlist}
+            onAdd={onDomainAllowlistAdd}
           />
         </CheckboxWithContentLayout>
         <Checkbox
@@ -874,20 +862,11 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
       [setState]
     );
 
-    const addKeywordToUsernameExcludeKeywords = useCallback(
-      (value: string) => {
-        updateUsernameExcludeKeywords([
-          ...valueForUsernameExcludedKeywords,
-          value,
-        ]);
-      },
-      [valueForUsernameExcludedKeywords, updateUsernameExcludeKeywords]
-    );
-
     const {
       selectedItems: excludedKeywordItems,
       onChange: onExcludedKeywordsChange,
       onResolveSuggestions: onResolveExcludedKeywordSuggestions,
+      onAdd: onExcludedKeywordsAdd,
     } = useTagPickerWithNewTags(
       valueForUsernameExcludedKeywords,
       updateUsernameExcludeKeywords
@@ -926,7 +905,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
             selectedItems={excludedKeywordItems}
             onChange={onExcludedKeywordsChange}
             onResolveSuggestions={onResolveExcludedKeywordSuggestions}
-            onAdd={addKeywordToUsernameExcludeKeywords}
+            onAdd={onExcludedKeywordsAdd}
           />
         </CheckboxWithContentLayout>
         <Checkbox

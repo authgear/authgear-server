@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 import { IDropdownOption, ITag } from "@fluentui/react";
+import { deduplicate } from "../util/array";
 
 export function useTextField(onChange: (value: string) => void): {
   onChange: (_event: any, value?: string) => void;
@@ -33,22 +34,32 @@ export function useCheckbox(onChange: (checked: boolean) => void): {
 
 export const useTagPickerWithNewTags = (
   list: string[],
-  onListChange: (list: string[]) => void,
-  suggestionList?: ITag[]
+  onListChange: (list: string[]) => void
 ): {
   selectedItems: ITag[];
   onChange: (items?: ITag[]) => void;
   onResolveSuggestions: (filterText: string, _tagList?: ITag[]) => ITag[];
+  onAdd: (value: string) => void;
 } => {
   const onChange = React.useCallback(
     (items?: ITag[]) => {
       if (items == null) {
         return;
       }
-      const listItems = items.map((item) => item.name);
+      const listItems = deduplicate(items.map((item) => item.name)).filter(
+        Boolean
+      );
       onListChange(listItems);
     },
     [onListChange]
+  );
+
+  const onAdd = React.useCallback(
+    (value: string) => {
+      const listItems = deduplicate([...list, value]).filter(Boolean);
+      onListChange(listItems);
+    },
+    [onListChange, list]
   );
 
   const selectedItems = React.useMemo(
@@ -62,21 +73,16 @@ export const useTagPickerWithNewTags = (
 
   const onResolveSuggestions = React.useCallback(
     (filterText: string, _tagList?: ITag[]): ITag[] => {
-      if (!suggestionList) {
-        return [{ key: filterText, name: filterText }];
-      }
-      const matches = suggestionList.filter((tag) =>
-        tag.name.toLowerCase().includes(filterText)
-      );
-      return matches.concat({ key: filterText, name: filterText });
+      return [{ key: filterText, name: filterText }];
     },
-    [suggestionList]
+    []
   );
 
   return {
     selectedItems,
     onChange,
     onResolveSuggestions,
+    onAdd,
   };
 };
 
