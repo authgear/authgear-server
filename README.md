@@ -204,13 +204,11 @@ otherwise, `npm run gentype` will fail.
 
 react-router-dom>6.0.0-beta.0 introduces a lot of breaking changes. It is better to wait for the RC version.
 
-Parcel 2 uses SWC by default. SWC cannot compile file with tagged string template literal.
-See [https://github.com/parcel-bundler/parcel/issues/7101](https://github.com/parcel-bundler/parcel/issues/7101).
-As of Parcel 2.4.0, this problem is still unsolved.
-
-Parcel 2.3.1 cannot resolve nodejs globals such as `process` and `Buffer`.
-See [https://github.com/parcel-bundler/parcel/issues/7697](https://github.com/parcel-bundler/parcel/issues/7697).
+When Parcel cannot resolve nodejs globals such as `process` and `Buffer`,
+it installs them for us.
+But we do not want to do that.
 The workaround is to add `alias` to package.json.
+See [https://github.com/parcel-bundler/parcel/issues/7697](https://github.com/parcel-bundler/parcel/issues/7697).
 
 ### Setup environment variable
 
