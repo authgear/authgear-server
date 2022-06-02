@@ -12,8 +12,20 @@ type StaticAsset struct {
 	Data []byte
 }
 
-var WebJS = resource.RegisterResource(JavaScriptDescriptor{
-	Path: StaticAssetResourcePrefix + "authgear.js",
+var AuthgearClassicJS = resource.RegisterResource(JavaScriptDescriptor{
+	Path: StaticAssetResourcePrefix + GetHashedName("authgear-classic.js"),
+})
+
+var AuthgearClassicJSMap = resource.RegisterResource(SourceMapDescriptor{
+	Path: StaticAssetResourcePrefix + GetHashedName("authgear-classic.js") + ".map",
+})
+
+var AuthgearModuleJS = resource.RegisterResource(JavaScriptDescriptor{
+	Path: StaticAssetResourcePrefix + GetHashedName("authgear-module.js"),
+})
+
+var AuthgearModuleJSMap = resource.RegisterResource(SourceMapDescriptor{
+	Path: StaticAssetResourcePrefix + GetHashedName("authgear-module.js") + ".map",
 })
 
 var AuthgearLightThemeCSS = resource.RegisterResource(CSSDescriptor{
@@ -30,11 +42,11 @@ var AuthgearCSS = resource.RegisterResource(CSSDescriptor{
 
 // TailwindCSS - it is build every time.
 var TailwindCSS = resource.RegisterResource(CSSDescriptor{
-	Path: StaticAssetResourcePrefix + "tailwind.css",
+	Path: StaticAssetResourcePrefix + GetHashedName("tailwind.css"),
 })
 
-var TailwindCSSMap = resource.RegisterResource(resource.SimpleDescriptor{
-	Path: StaticAssetResourcePrefix + "tailwind.css.map",
+var TailwindCSSMap = resource.RegisterResource(SourceMapDescriptor{
+	Path: StaticAssetResourcePrefix + GetHashedName("tailwind.css") + ".map",
 })
 
 // IconsCSS - Tabler Icons 1.41.1 by tabler - https://tabler.io

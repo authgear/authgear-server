@@ -15,7 +15,7 @@ function refreshPage() {
 export class WebSocketController extends Controller {
   backoffIndex: number = 0;
   ws: WebSocket | null = null;
-  reconnectSetTimeoutHandle: number | null = null;
+  reconnectSetTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
 
   dispose = () => {
     if (this.ws != null) {

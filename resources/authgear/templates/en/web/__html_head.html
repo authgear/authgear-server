@@ -41,6 +41,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <script src="{{ call $.StaticAssetURL "intl-tel-input/js/intlTelInput.min.js" }}"></script>
 <script src="{{ call $.StaticAssetURL "intl-tel-input/js/utils.js" }}"></script>
 <script src="{{ call $.StaticAssetURL "cropperjs/js/cropper.min.js" }}"></script>
-<script src="{{ call $.StaticAssetURL "web-js" }}"></script>
+<script nomodule src="{{ call $.StaticAssetURL "authgear-classic.js" }}"></script>
+<script type="module" src="{{ call $.StaticAssetURL "authgear-module.js" }}"></script>
 </head>
 {{ end }}

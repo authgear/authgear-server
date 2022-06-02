@@ -14,8 +14,21 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
+var StaticAssetResourcesIsHashed = map[resource.Descriptor]bool{
+	AuthgearClassicJS:    true,
+	AuthgearClassicJSMap: true,
+	AuthgearModuleJS:     true,
+	AuthgearModuleJSMap:  true,
+	TailwindCSS:          true,
+	TailwindCSSMap:       true,
+}
+
 var StaticAssetResources = map[string]resource.Descriptor{
-	"web-js":             WebJS,
+	"authgear-classic.js":     AuthgearClassicJS,
+	"authgear-classic.js.map": AuthgearClassicJSMap,
+	"authgear-module.js":      AuthgearModuleJS,
+	"authgear-module.js.map":  AuthgearModuleJSMap,
+
 	"app-logo":           AppLogo,
 	"app-logo-dark":      AppLogoDark,
 	"favicon":            Favicon,
@@ -74,6 +87,12 @@ func (r *StaticAssetResolver) StaticAssetURL(id string) (string, error) {
 	}
 
 	asset := result.(*StaticAsset)
+
+	if StaticAssetResourcesIsHashed[desc] {
+		assetPath := strings.TrimPrefix(asset.Path, StaticAssetResourcePrefix)
+		return staticAssetURL(r.Config.PublicOrigin, string(r.StaticAssetsPrefix), assetPath)
+	}
+
 	assetPath := strings.TrimPrefix(asset.Path, StaticAssetResourcePrefix)
 	// md5 is used to compute the hash in the filename for caching purpose only
 	// nolint:gosec
@@ -108,6 +127,10 @@ func ParsePathWithHash(hashedPath string) (filePath string, hash string) {
 		return "", ""
 	}
 
+	if IsSourceMapPath(hashedPath) {
+		extension = fmt.Sprintf("%s%s", path.Ext(strings.TrimSuffix(hashedPath, extension)), extension)
+	}
+
 	nameWithHash := strings.TrimSuffix(hashedPath, extension)
 	dotIdx := strings.LastIndex(nameWithHash, ".")
 	if dotIdx == -1 {
@@ -124,4 +147,18 @@ func ParsePathWithHash(hashedPath string) (filePath string, hash string) {
 	filePath = fmt.Sprintf("%s%s", nameOnly, extension)
 
 	return
+}
+
+func IsAssetPathHashed(assetPath string) bool {
+	id := strings.TrimPrefix(assetPath, StaticAssetResourcePrefix)
+	desc, ok := StaticAssetResources[id]
+	if !ok {
+		return false
+	}
+	return StaticAssetResourcesIsHashed[desc]
+}
+
+func IsSourceMapPath(hashedPath string) bool {
+	mapExtension := path.Ext(hashedPath)
+	return mapExtension == ".map"
 }
