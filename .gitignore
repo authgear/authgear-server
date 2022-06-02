@@ -24,3 +24,6 @@ resources/authgear/static/*.map
 resources/authgear/static/build.html
 resources/portal/static/
 !resources/portal/static/img/logo.png
+
+# generated code
+pkg/lib/webparcel/parcel_gen.go
