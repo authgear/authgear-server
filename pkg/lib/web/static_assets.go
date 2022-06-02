@@ -12,12 +12,20 @@ type StaticAsset struct {
 	Data []byte
 }
 
-var AuthgearJS = resource.RegisterResource(JavaScriptDescriptor{
-	Path: StaticAssetResourcePrefix + GetHashedName("authgear.js"),
+var AuthgearClassicJS = resource.RegisterResource(JavaScriptDescriptor{
+	Path: StaticAssetResourcePrefix + GetHashedName("authgear-classic.js"),
 })
 
-var AuthgearJSMap = resource.RegisterResource(SourceMapDescriptor{
-	Path: StaticAssetResourcePrefix + GetHashedName("authgear.js") + ".map",
+var AuthgearClassicJSMap = resource.RegisterResource(SourceMapDescriptor{
+	Path: StaticAssetResourcePrefix + GetHashedName("authgear-classic.js") + ".map",
+})
+
+var AuthgearModuleJS = resource.RegisterResource(JavaScriptDescriptor{
+	Path: StaticAssetResourcePrefix + GetHashedName("authgear-module.js"),
+})
+
+var AuthgearModuleJSMap = resource.RegisterResource(SourceMapDescriptor{
+	Path: StaticAssetResourcePrefix + GetHashedName("authgear-module.js") + ".map",
 })
 
 var AuthgearLightThemeCSS = resource.RegisterResource(CSSDescriptor{

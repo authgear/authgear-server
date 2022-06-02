@@ -15,15 +15,20 @@ import (
 )
 
 var StaticAssetResourcesIsHashed = map[resource.Descriptor]bool{
-	AuthgearJS:     true,
-	AuthgearJSMap:  true,
-	TailwindCSS:    true,
-	TailwindCSSMap: true,
+	AuthgearClassicJS:    true,
+	AuthgearClassicJSMap: true,
+	AuthgearModuleJS:     true,
+	AuthgearModuleJSMap:  true,
+	TailwindCSS:          true,
+	TailwindCSSMap:       true,
 }
 
 var StaticAssetResources = map[string]resource.Descriptor{
-	"authgear.js":        AuthgearJS,
-	"authgear.js.map":    AuthgearJSMap,
+	"authgear-classic.js":     AuthgearClassicJS,
+	"authgear-classic.js.map": AuthgearClassicJSMap,
+	"authgear-module.js":      AuthgearModuleJS,
+	"authgear-module.js.map":  AuthgearModuleJSMap,
+
 	"app-logo":           AppLogo,
 	"app-logo-dark":      AppLogoDark,
 	"favicon":            Favicon,
