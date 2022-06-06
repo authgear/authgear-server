@@ -134,6 +134,7 @@ var _ = Schema.Add("RecoveryCodeConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
+		"disabled": { "type": "boolean" },
 		"count": { "type": "integer", "minimum": 10, "maximum": 50 },
 		"list_enabled": { "type": "boolean" }
 	}
@@ -141,11 +142,15 @@ var _ = Schema.Add("RecoveryCodeConfig", `
 `)
 
 type RecoveryCodeConfig struct {
-	Count       int  `json:"count,omitempty"`
-	ListEnabled bool `json:"list_enabled,omitempty"`
+	Disabled    *bool `json:"disabled,omitempty"`
+	Count       int   `json:"count,omitempty"`
+	ListEnabled bool  `json:"list_enabled,omitempty"`
 }
 
 func (c *RecoveryCodeConfig) SetDefaults() {
+	if c.Disabled == nil {
+		c.Disabled = newBool(false)
+	}
 	if c.Count == 0 {
 		c.Count = 16
 	}

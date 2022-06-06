@@ -279,6 +279,7 @@ authentication:
   device_token:
     expire_in_days: 30
   recovery_code:
+    disabled: false
     count: 16
 session:
   lifetime_seconds: 31449600
