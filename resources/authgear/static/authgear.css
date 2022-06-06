@@ -217,18 +217,6 @@ h1, h2, h3, h4, h5, h6 {
   padding: 0;
 }
 
-.btn.primary-btn, .btn.light-btn, .btn.destructive-btn {
-  border-radius: 2px;
-  padding: 6px 20px;
-  text-align: center;
-}
-
-.btn.action-btn {
-  border-radius: 2px;
-  padding: 4px 12px;
-  text-align: center;
-}
-
 .destructive-btn {
   color: var(--color-white-shaded-8);
   background-color: var(--color-error-unshaded);
@@ -416,31 +404,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 .password-strength-meter-description[data-value="5"] {
   color: var(--color-password-strength-meter-5);
-}
-
-.btn.sso-btn {
-  border-radius: 2px;
-  text-align: center;
-}
-/* Safari button cannot have display being set to other value */
-/* Therefore we have to wrap the content in a span */
-/* However, other sizing properties still need to be declared on the button itself */
-/* Otherwise, the content will overflow the button */
-.sso-btn-content {
-  display: block;
-  padding: 6px 36px;
-  position: relative;
-}
-
-.sso-btn-icon {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 36px;
-  height: 36px;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 50%;
 }
 
 .sso-btn-icon.google-icon {
