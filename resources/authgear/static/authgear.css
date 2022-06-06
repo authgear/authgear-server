@@ -218,15 +218,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn.primary-btn, .btn.light-btn, .btn.destructive-btn {
-  height: 36px;
   border-radius: 2px;
-  padding: 0 20px;
+  padding: 6px 20px;
+  text-align: center;
 }
 
 .btn.action-btn {
-  height: 28px;
   border-radius: 2px;
-  padding: 0 12px;
+  padding: 4px 12px;
+  text-align: center;
 }
 
 .destructive-btn {
@@ -419,30 +419,28 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn.sso-btn {
-  height: 36px;
   border-radius: 2px;
+  text-align: center;
 }
 /* Safari button cannot have display being set to other value */
 /* Therefore we have to wrap the content in a span */
 /* However, other sizing properties still need to be declared on the button itself */
 /* Otherwise, the content will overflow the button */
 .sso-btn-content {
-  display: grid;
-  grid: "icon title" 36px
-      /  40px 1fr;
+  display: block;
+  padding: 6px 36px;
+  position: relative;
 }
 
-.sso-btn .sso-btn-icon {
-  grid-area: icon;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.sso-btn-icon.image-icon {
+.sso-btn-icon {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 36px;
+  height: 36px;
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 17px;
+  background-size: 50%;
 }
 
 .sso-btn-icon.google-icon {
@@ -471,13 +469,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .sso-btn-icon.wechat-icon {
   background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTciIGhlaWdodD0iMTUiIHZpZXdCb3g9IjAgMCAxNyAxNSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMi4wNzgyIDQuNjMzMTdDMTEuOTkzNiA0LjYyODQ5IDExLjkwODYgNC42Mjc2NCAxMS44MjI3IDQuNjI3NjRDOC43Njc4MyA0LjYyNzY0IDYuMjg5NTkgNi43MDM2MSA2LjI4OTU5IDkuMjY1NjNDNi4yODk1OSA5LjY4NDkgNi4zNTgwNSAxMC4wOTEgNi40ODI2NCAxMC40Nzc1QzYuMzQ3NDIgMTAuNDg0MyA2LjIxMTM0IDEwLjQ4OTkgNi4wNzQ0MiAxMC40ODk5QzUuNDAyOTggMTAuNDg5OSA0Ljc1NTc4IDEwLjM5ODkgNC4xNTIzOCAxMC4yMzA5QzQuMTE3OTMgMTAuMjIwNyA0LjA0OTA1IDEwLjIwMTEgNC4wNDkwNSAxMC4yMDExTDEuODUzMTUgMTEuMzE5NUwyLjQzOTk3IDkuNDgxMjJMMi4zODQyNyA5LjQ0NTkyQzAuOTM0NjU3IDguNTE3NjUgMCA3LjA1NTI4IDAgNS40MTAwNkMwIDIuNjA0MzkgMi43MTkzNSAwLjMyOTgzNCA2LjA3NDQyIDAuMzI5ODM0QzkuMTEzMTIgMC4zMjk4MzQgMTEuNjMwOSAyLjE5NTMyIDEyLjA3ODIgNC42MzMxN1pNMy45NjA2MyA0LjQ4NjNDMy40ODk0NyA0LjQ4NjMgMy4xMDc2MiA0LjExNTkyIDMuMTA3NjIgMy42NjAwN0MzLjEwNzYyIDMuMjAzOCAzLjQ4OTQ3IDIuODM0NyAzLjk2MDYzIDIuODM0N0M0LjQzMTc4IDIuODM0NyA0LjgxNDQ5IDMuMjAzOCA0LjgxNDQ5IDMuNjYwMDdDNC44MTQ0OSA0LjExNTkyIDQuNDMxNzggNC40ODYzIDMuOTYwNjMgNC40ODYzWk04LjE4ODI1IDIuODM0N0M4LjY1OTQxIDIuODM0NyA5LjA0MDg0IDMuMjAzOCA5LjA0MDg0IDMuNjYwMDdDOS4wNDA4NCA0LjExNTkyIDguNjU5NDEgNC40ODYzIDguMTg4MjUgNC40ODYzQzcuNzE2NjcgNC40ODYzIDcuMzM1NjcgNC4xMTU5MiA3LjMzNTY3IDMuNjYwMDdDNy4zMzU2NyAzLjIwMzggNy43MTY2NyAyLjgzNDcgOC4xODgyNSAyLjgzNDdaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTExLjg2OTMgMTMuNTg3N0M5LjAzNDcgMTMuNTg3NyA2LjczNjMzIDExLjY2NjEgNi43MzYzMyA5LjI5NTQ1QzYuNzM2MzMgNi45MjU2NCA5LjAzNDcgNS4wMDQwMyAxMS44NjkzIDUuMDA0MDNDMTQuNzAyNiA1LjAwNDAzIDE3LjAwMDEgNi45MjU2NCAxNy4wMDAxIDkuMjk1NDVDMTcuMDAwMSAxMC42ODYgMTYuMjEgMTEuOTIxMyAxNC45ODU4IDEyLjcwNTRMMTQuOTM4NiAxMi43MzQ3TDE1LjQzNDQgMTQuMjg4NUwxMy41OCAxMy4zNDI4QzEzLjU4IDEzLjM0MjggMTMuNTIxNyAxMy4zNjAyIDEzLjQ5MjQgMTMuMzY3OUMxMi45ODMgMTMuNTEwMyAxMi40MzYxIDEzLjU4NzcgMTEuODY5MyAxMy41ODc3Wk05LjM2MjEgNy44MTcwMUM5LjM2MjEgNy40MzI2IDkuNjg1MjcgNy4xMjAwNiAxMC4wODI5IDcuMTIwMDZDMTAuNDgxMyA3LjEyMDA2IDEwLjgwNDEgNy40MzI2IDEwLjgwNDEgNy44MTcwMUMxMC44MDQxIDguMjAzMTIgMTAuNDgxMyA4LjUxNjA5IDEwLjA4MjkgOC41MTYwOUM5LjY4NTI3IDguNTE2MDkgOS4zNjIxIDguMjAzMTIgOS4zNjIxIDcuODE3MDFaTTEyLjkzMzcgNy44MTcwMUMxMi45MzM3IDcuNDMyNiAxMy4yNTYgNy4xMjAwNiAxMy42NTQgNy4xMjAwNkMxNC4wNTI1IDcuMTIwMDYgMTQuMzc0OCA3LjQzMjYgMTQuMzc0OCA3LjgxNzAxQzE0LjM3NDggOC4yMDMxMiAxNC4wNTI1IDguNTE2MDkgMTMuNjU0IDguNTE2MDlDMTMuMjU2IDguNTE2MDkgMTIuOTMzNyA4LjIwMzEyIDEyLjkzMzcgNy44MTcwMVoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=');
-}
-
-.sso-btn .title {
-  grid-area: title;
-  align-self: center;
-  justify-self: center;
-  margin: 0 0 0 -36px;
 }
 
 .alternative-separator::before, .alternative-separator::after {

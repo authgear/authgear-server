@@ -139,8 +139,8 @@
 					{{- $icon_class = "microsoft-icon" }}
 					{{- end -}}
 
-					<div class="sso-btn-icon image-icon {{ $icon_class }}"></div>
-					<span class="title text-base">{{ $.Translations.RenderText (printf "oauth-branding-%s" .provider_type) nil }}</span>
+					<div class="sso-btn-icon {{ $icon_class }}"></div>
+					<span class="text-base">{{ $.Translations.RenderText (printf "oauth-branding-%s" .provider_type) nil }}</span>
 					</span>
 				</button>
 				</form>
