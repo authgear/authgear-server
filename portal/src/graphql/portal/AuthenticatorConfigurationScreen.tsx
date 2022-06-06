@@ -57,6 +57,7 @@ interface FormState {
   secondary: AuthenticatorTypeFormState<SecondaryAuthenticatorType>[];
 
   mfaMode: SecondaryAuthenticationMode;
+  recoveryCodeEnabled: boolean;
   numRecoveryCode: number | undefined;
   allowListRecoveryCode: boolean;
   disableDeviceToken: boolean;
@@ -93,6 +94,9 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     mfaMode:
       config.authentication?.secondary_authentication_mode ?? "if_exists",
     numRecoveryCode: config.authentication?.recovery_code?.count,
+    recoveryCodeEnabled: !(
+      config.authentication?.recovery_code?.disabled ?? false
+    ),
     allowListRecoveryCode:
       config.authentication?.recovery_code?.list_enabled ?? false,
     disableDeviceToken: config.authentication?.device_token?.disabled ?? false,
@@ -142,6 +146,14 @@ function constructConfig(
     if (initialState.mfaMode !== currentState.mfaMode) {
       config.authentication.secondary_authentication_mode =
         currentState.mfaMode;
+    }
+
+    if (initialState.recoveryCodeEnabled !== currentState.recoveryCodeEnabled) {
+      if (!currentState.recoveryCodeEnabled) {
+        config.authentication.recovery_code.disabled = true;
+      } else {
+        delete config.authentication.recovery_code.disabled;
+      }
     }
     if (initialState.numRecoveryCode !== currentState.numRecoveryCode) {
       config.authentication.recovery_code.count = currentState.numRecoveryCode;
@@ -327,6 +339,15 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
         }));
       },
       [setState]
+    );
+
+    const { onChange: onChangeRecoveryCodeEnabled } = useCheckbox(
+      (checked: boolean) => {
+        setState((prev) => ({
+          ...prev,
+          recoveryCodeEnabled: checked,
+        }));
+      }
     );
 
     const { onChange: onAllowRetrieveRecoveryCodeChange } = useCheckbox(
@@ -624,7 +645,16 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
           <WidgetDescription>
             <FormattedMessage id="AuthenticatorConfigurationScreen.recovery-code.description" />
           </WidgetDescription>
+          <Toggle
+            inlineLabel={true}
+            label={
+              <FormattedMessage id="AuthenticatorConfigurationScreen.recovery-code.enable-recovery-code" />
+            }
+            checked={state.recoveryCodeEnabled}
+            onChange={onChangeRecoveryCodeEnabled}
+          />
           <FormTextField
+            disabled={!state.recoveryCodeEnabled}
             parentJSONPointer="/authentication/recovery_code"
             fieldName="count"
             label={renderToString(
@@ -634,6 +664,7 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
             onChange={onRecoveryCodeNumberChange}
           />
           <Toggle
+            disabled={!state.recoveryCodeEnabled}
             inlineLabel={true}
             label={
               <FormattedMessage id="AuthenticatorConfigurationScreen.recovery-code.allow-retrieve-recovery-code" />

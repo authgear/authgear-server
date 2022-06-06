@@ -236,6 +236,7 @@ export type SecondaryAuthenticationMode =
   typeof secondaryAuthenticationModes[number];
 
 export interface RecoveryCodeConfig {
+  disabled?: boolean;
   count?: number;
   list_enabled?: boolean;
 }
