@@ -6,6 +6,7 @@ This document describes
 - How Authgear stores usage.
 - How Authgear imposes rate limit.
 - How Authgear reports usage to Stripe.
+- How Authgear allows the developer to interact with Stripe.
 
 ## The Meter
 
@@ -143,9 +144,9 @@ If the usage exceeds the limits, an alert is sent.
 The column `alert_data` is reserved for usage alert to store its state.
 So it does not send alert every time it runs.
 
-## The Stripe integration
+## The Stripe Integration
 
-The Stripe integration reads from [the usage record table](#the-usage-record-table) and calls Stripe API to reports usage to Stripe.
+Authgear integrates with Stripe with [Checkout](https://stripe.com/docs/payments/checkout), [Customer Portal](https://stripe.com/docs/billing/subscriptions/integrating-customer-portal) and [webhooks](https://stripe.com/docs/webhooks).
 
 ### The subscription table
 
@@ -158,6 +159,37 @@ CREATE _portal_subscription (
 );
 ```
 
+### Prepare Stripe Products and Stripe Prices
+
+Create the necessary Products and Prices in Dashboard.
+Save the IDs of the Products and Prices and provide them to Authgear.
+
+### Create Stripe Subscription
+
+When the developer clicks to subscribe one of the plan, the portal does the following:
+
+> Should we associate a Stripe Customer with a Authgear account, or a Stripe Customer with a Authgear project?
+
+- Create Stripe Customer for the developer if they do not have an associated Stripe Customer already.
+- Create Checkout session link with the correct Stripe Prices.
+- Redirect the developer to the Checkout session link.
+- Listen `checkout.session.completed` and insert a row into `_portal_subscription`.
+
+See https://stripe.com/docs/billing/subscriptions/build-subscriptions?ui=checkout#create-session
+
+### Switch plan
+
+When the developer switches plan, the portal does the following:
+
+- Update the Stripe Subscription Item's underlying Stripe Prices.
+- Update the plan of the app.
+
+Fixed Standard Price is subject to proration.
+However, metered usage is billed using the updated price.
+Therefore, if the prices are different, the developer could pay more or less.
+
+See https://stripe.com/docs/billing/subscriptions/upgrade-downgrade
+
 ### Stable usage reporting to Stripe
 
 When the reporting job reports the usage for a specific app, it does the following.
@@ -167,12 +199,9 @@ When the reporting job reports the usage for a specific app, it does the followi
 - Get the `_portal_subscription`
 - Fetch the Stripe Subscription
 - If `midnight` is NOT within [current\_period\_start](https://stripe.com/docs/api/subscriptions/object#subscription_object-current_period_start) and [current\_period\_end](https://stripe.com/docs/api/subscriptions/object#subscription_object-current_period_end), exit.
-- Fetch the daily usage records where `stripe_timestamp` is NULL and `end_time` is less than `now`. Those records are finalized and ready for reporting.
-- Report the records to Stripe using [set](https://stripe.com/docs/api/usage_records/create#usage_record_create-action) with timestamp equal to `midnight`.
-- Update the records to set `stripe_timestamp` to `midnight`.
-
-> Figure out how to identify the correct subscription item to report usage to
-> It is possible that Sales want to have different pricing for different apps.
-> For example, App A may get a pricing of first 100 SMS for free, and USD N per message thereafter.
-> While App B has a different pricing of USD N per message at the time.
-> In Stripe this situation is modeled as different Stripe Price objects.
+- For each kind of usage we keep track of, do the following
+  - Identify the Stripe Subscription Item that contains the target Stripe Price for this usage. This is done via `metadata`. If the Stripe Subscription Item cannot be found, log an error telling the Stripe Subscription of which app is missing a Stripe Price for usage reporting, and then exit.
+  - Fetch the daily usage records from [the usage record table](#the-usage-record-table) where `stripe_timestamp` is NULL and `end_time` is less than `now`. Those records are finalized and ready for reporting.
+  - Set `quantity` to the sum of the count of the usage records.
+  - Create a single Stripe Usage Record with `quantity=${quantity}`, `action=set` and `timestamp=${midnight}`.
+  - Update the records to set `stripe_timestamp` to `midnight`.
