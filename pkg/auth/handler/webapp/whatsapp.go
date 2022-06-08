@@ -1,11 +1,14 @@
 package webapp
 
 import (
+	"fmt"
 	htmltemplate "html/template"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -13,6 +16,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/boombuler/barcode/qr"
 )
+
+const WhatsappMessageOTPPrefix = "#"
+
+var WhatsappMessageOTPRegex = regexp.MustCompile(`#(\d{6})`)
 
 const WhatsappOTPPageQueryXDeviceTokenKey = "x_device_token"
 const WhatsappOTPPageQueryStateKey = "state"
@@ -61,7 +68,7 @@ type WhatsappOTPViewModel struct {
 	XDeviceToken               bool // value of x_device_token query is used to preserve the checkbox value between whatsapp otp pages
 }
 
-func (m *WhatsappOTPViewModel) AddData(r *http.Request, graph *interaction.Graph, codeProvider WhatsappCodeProvider) error {
+func (m *WhatsappOTPViewModel) AddData(r *http.Request, graph *interaction.Graph, codeProvider WhatsappCodeProvider, translations viewmodels.TranslationService) error {
 	m.StateQuery = getStateFromQuery(r)
 	var n WhatsappOTPNode
 	if graph.FindLastNode(&n) {
@@ -86,8 +93,19 @@ func (m *WhatsappOTPViewModel) AddData(r *http.Request, graph *interaction.Graph
 	waURL.Scheme = "https"
 	waURL.Host = "wa.me"
 	waURL.Path = strings.TrimPrefix(m.WhatsappOTPPhone, "+")
+	preFilledMessage, err := translations.RenderText(
+		"whatsapp-otp-pre-filled-message",
+		map[string]interface{}{
+			"target": m.UserPhone,
+			"otp":    fmt.Sprintf("%s%s", WhatsappMessageOTPPrefix, m.WhatsappOTP),
+		},
+	)
+	if err != nil {
+		return err
+	}
+
 	q = waURL.Query()
-	q.Set("text", m.WhatsappOTP)
+	q.Set("text", preFilledMessage)
 	waURL.RawQuery = q.Encode()
 	m.OpenWhatsappLink = waURL.String()
 

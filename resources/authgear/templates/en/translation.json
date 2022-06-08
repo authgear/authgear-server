@@ -163,6 +163,7 @@
   "whatsapp-otp-next-button": "Next",
   "whatsapp-otp-scan-code-description": "Scan the QR code with WhatsApp on your device to start the chat",
   "whatsapp-otp-done-button": "Done",
+  "whatsapp-otp-pre-filled-message": "Verify {target} with OTP {otp} \nPress send on WhatsApp then return to the App",
 
   "verify-user-page-title--sms": "SMS Verification",
   "verify-user-page-title--email": "Email Verification",
