@@ -3,6 +3,7 @@ const path = require("path");
 
 const NAMING_LIST = [
   { asset: "src/authgear.ts", newName: "authgear", type: "js" },
+  { asset: "src/colorscheme.ts", newName: "colorscheme", type: "js" },
   { asset: "src/tailwind.css", newName: "tailwind", type: "css" },
 
   {
