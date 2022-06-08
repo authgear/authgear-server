@@ -21,7 +21,6 @@ import {
 import { TransferClickController } from "./click";
 import { XHRSubmitFormController, RestoreFormController } from "./form";
 import { ModalController } from "./modal";
-import { ColorSchemeController } from "./colorscheme";
 import { BackButtonController } from "./back";
 import { SimpleModalController } from "./simpleModal";
 // FIXME(css): Build CSS files one by one with another tool
@@ -32,7 +31,6 @@ axios.defaults.withCredentials = true;
 start();
 
 const Stimulus = Application.start();
-Stimulus.register("color-scheme", ColorSchemeController);
 
 Stimulus.register(
   "password-visibility-toggle",

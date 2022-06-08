@@ -55,9 +55,6 @@ func (h *StaticAssetsHandler) Open(name string) (http.File, error) {
 	}
 
 	resolvePath := filePath
-	if web.IsAssetPathHashed(filePath) {
-		resolvePath = p
-	}
 
 	desc, ok := h.Resources.Resolve(resolvePath)
 	if !ok {
@@ -76,7 +73,7 @@ func (h *StaticAssetsHandler) Open(name string) (http.File, error) {
 	}
 
 	bytes := result.([]byte)
-	if !web.IsAssetPathHashed(filePath) {
+	if !web.LookLikeAHash(hashInPath) {
 		// check the hash
 		// md5 is used to compute the hash in the filename for caching purpose only
 		// nolint:gosec

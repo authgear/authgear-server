@@ -1,16 +1,13 @@
-import { Controller } from "@hotwired/stimulus";
+(function () {
+  const queryResult = window.matchMedia("(prefers-color-scheme: dark)");
 
-export class ColorSchemeController extends Controller {
-  static values = {
-    darkThemeEnabled: Boolean,
-  };
+  function onChange() {
+    const htmlElement = document.documentElement;
+    const darkThemeEnabledValue = htmlElement.getAttribute(
+      "data-dark-theme-enabled"
+    );
 
-  queryResult = window.matchMedia("(prefers-color-scheme: dark)");
-
-  declare darkThemeEnabledValue: Boolean;
-
-  onChange = () => {
-    if (!this.darkThemeEnabledValue) {
+    if (!darkThemeEnabledValue) {
       return;
     }
 
@@ -20,24 +17,18 @@ export class ColorSchemeController extends Controller {
       explicitColorScheme = metaElement.content;
     }
 
-    const implicitColorScheme = this.queryResult.matches ? "dark" : "light";
+    const implicitColorScheme = queryResult.matches ? "dark" : "light";
 
     const colorScheme =
       explicitColorScheme !== "" ? explicitColorScheme : implicitColorScheme;
 
     if (colorScheme === "dark") {
-      this.element.classList.add("dark");
+      htmlElement.classList.add("dark");
     } else {
-      this.element.classList.remove("dark");
+      htmlElement.classList.remove("dark");
     }
-  };
-
-  connect() {
-    this.queryResult.addEventListener("change", this.onChange);
-    this.onChange();
   }
 
-  disconnect() {
-    this.queryResult.removeEventListener("change", this.onChange);
-  }
-}
+  queryResult.addEventListener("change", onChange);
+  onChange();
+})();

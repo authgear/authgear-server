@@ -5,6 +5,7 @@ import (
 )
 
 const StaticAssetResourcePrefix = "static/"
+const GeneratedStaticAssetResourcePrefix = "static/generated/"
 const StaticAssetFontResourcePrefix = "static/fonts/"
 
 type StaticAsset struct {
@@ -12,21 +13,7 @@ type StaticAsset struct {
 	Data []byte
 }
 
-var AuthgearClassicJS = resource.RegisterResource(JavaScriptDescriptor{
-	Path: StaticAssetResourcePrefix + GetHashedName("authgear-classic.js"),
-})
-
-var AuthgearClassicJSMap = resource.RegisterResource(SourceMapDescriptor{
-	Path: StaticAssetResourcePrefix + GetHashedName("authgear-classic.js") + ".map",
-})
-
-var AuthgearModuleJS = resource.RegisterResource(JavaScriptDescriptor{
-	Path: StaticAssetResourcePrefix + GetHashedName("authgear-module.js"),
-})
-
-var AuthgearModuleJSMap = resource.RegisterResource(SourceMapDescriptor{
-	Path: StaticAssetResourcePrefix + GetHashedName("authgear-module.js") + ".map",
-})
+var GeneratedAsset = resource.RegisterResource(NewGeneratedAssetDescriptor())
 
 var AuthgearLightThemeCSS = resource.RegisterResource(CSSDescriptor{
 	Path: StaticAssetResourcePrefix + "authgear-light-theme.css",
@@ -38,65 +25,6 @@ var AuthgearDarkThemeCSS = resource.RegisterResource(CSSDescriptor{
 
 var AuthgearCSS = resource.RegisterResource(CSSDescriptor{
 	Path: StaticAssetResourcePrefix + "authgear.css",
-})
-
-// TailwindCSS - it is build every time.
-var TailwindCSS = resource.RegisterResource(CSSDescriptor{
-	Path: StaticAssetResourcePrefix + GetHashedName("tailwind.css"),
-})
-
-var TailwindCSSMap = resource.RegisterResource(SourceMapDescriptor{
-	Path: StaticAssetResourcePrefix + GetHashedName("tailwind.css") + ".map",
-})
-
-// IconsCSS - Tabler Icons 1.41.1 by tabler - https://tabler.io
-var IconsCSS = resource.RegisterResource(CSSDescriptor{
-	Path: StaticAssetResourcePrefix + "tabler-icons.min.css",
-})
-
-var IconsFontEOT = resource.RegisterResource(resource.SimpleDescriptor{
-	Path: StaticAssetFontResourcePrefix + "tabler-icons.eot",
-})
-
-var IconsFontSVG = resource.RegisterResource(resource.SimpleDescriptor{
-	Path: StaticAssetFontResourcePrefix + "tabler-icons.svg",
-})
-
-var IconsFontTTF = resource.RegisterResource(resource.SimpleDescriptor{
-	Path: StaticAssetFontResourcePrefix + "tabler-icons.ttf",
-})
-
-var IconsFontWOFF = resource.RegisterResource(resource.SimpleDescriptor{
-	Path: StaticAssetFontResourcePrefix + "tabler-icons.woff",
-})
-
-var IconsFontWOFF2 = resource.RegisterResource(resource.SimpleDescriptor{
-	Path: StaticAssetFontResourcePrefix + "tabler-icons.woff2",
-})
-
-// IntlTelInputCSS - intl-tel-input v17.0.13
-var IntlTelInputCSS = resource.RegisterResource(CSSDescriptor{
-	Path: StaticAssetResourcePrefix + "intl-tel-input/css/intlTelInput.min.css",
-})
-var IntlTelInputImage = resource.RegisterResource(resource.SimpleDescriptor{
-	Path: StaticAssetResourcePrefix + "intl-tel-input/img/flags.png",
-})
-var IntlTelInputImage2X = resource.RegisterResource(resource.SimpleDescriptor{
-	Path: StaticAssetResourcePrefix + "intl-tel-input/img/flags@2x.png",
-})
-var IntlTelInputRuntime = resource.RegisterResource(JavaScriptDescriptor{
-	Path: StaticAssetResourcePrefix + "intl-tel-input/js/intlTelInput.min.js",
-})
-var IntlTelInputRealRuntime = resource.RegisterResource(JavaScriptDescriptor{
-	Path: StaticAssetResourcePrefix + "intl-tel-input/js/utils.js",
-})
-
-// CropperjsJS - cropperjs v1.5.12
-var CropperjsJS = resource.RegisterResource(JavaScriptDescriptor{
-	Path: StaticAssetResourcePrefix + "cropperjs/js/cropper.min.js",
-})
-var CropperjsCSS = resource.RegisterResource(CSSDescriptor{
-	Path: StaticAssetResourcePrefix + "cropperjs/css/cropper.min.css",
 })
 
 var AppLogo = resource.RegisterResource(ImageDescriptor{Name: "app_logo"})

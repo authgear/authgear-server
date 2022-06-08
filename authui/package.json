@@ -7,7 +7,7 @@
   "scripts": {
     "typecheck": "tsc -b",
     "format": "prettier --write --list-different ./src ./packages",
-    "build": "parcel build --no-cache src/build.html --dist-dir ../resources/authgear/static"
+    "build": "parcel build --no-cache 'src/*.html' --dist-dir ../resources/authgear/static/generated"
   },
   "alias": {
     "process": false
@@ -26,7 +26,10 @@
   "dependencies": {
     "@hotwired/stimulus": "3.0.1",
     "@hotwired/turbo": "7.1.0",
+    "@tabler/icons": "1.41.1",
     "axios": "0.26.1",
+    "cropperjs": "1.5.12",
+    "intl-tel-input": "17.0.13",
     "luxon": "2.3.0",
     "zxcvbn": "4.4.2"
   }
