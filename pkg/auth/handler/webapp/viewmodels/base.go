@@ -35,6 +35,7 @@ type BaseViewModel struct {
 	CSRFField                   htmltemplate.HTML
 	Translations                TranslationService
 	StaticAssetURL              func(id string) (url string)
+	GeneratedStaticAssetURL     func(id string) (url string)
 	DarkThemeEnabled            bool
 	WatermarkEnabled            bool
 	AllowedPhoneCountryCodeJSON string
@@ -100,6 +101,7 @@ func (m *BaseViewModel) SetTutorial(name httputil.TutorialCookieName) {
 
 type StaticAssetResolver interface {
 	StaticAssetURL(id string) (url string, err error)
+	GeneratedStaticAssetURL(id string) (url string, err error)
 }
 
 type ErrorCookie interface {
@@ -175,6 +177,10 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		// is NOT supported at all.
 		StaticAssetURL: func(id string) (url string) {
 			url, _ = m.StaticAssets.StaticAssetURL(id)
+			return
+		},
+		GeneratedStaticAssetURL: func(id string) (url string) {
+			url, _ = m.StaticAssets.GeneratedStaticAssetURL(id)
 			return
 		},
 		DarkThemeEnabled: !m.AuthUI.DarkThemeDisabled,

@@ -77,11 +77,11 @@ func TestHasedPath(t *testing.T) {
 		So(hash, ShouldEqual, "hash")
 	})
 
-	Convey("IsAssetPathHashed", t, func() {
-		result := IsAssetPathHashed("static/authgear.js")
-		So(result, ShouldEqual, false)
+	Convey("LookLikeAHash", t, func() {
+		result := LookLikeAHash("c90cf340")
+		So(result, ShouldEqual, true)
 
-		result = IsAssetPathHashed("static/image.png")
+		result = LookLikeAHash("123")
 		So(result, ShouldEqual, false)
 	})
 

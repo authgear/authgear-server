@@ -5,6 +5,7 @@ import (
 )
 
 var TemplateWebHTMLHeadHTML = template.RegisterHTML("web/__html_head.html")
+var TemplateWebGeneratedAssetHTML = template.RegisterHTML("web/__generated_asset.html")
 var TemplateWebHeaderHTML = template.RegisterHTML("web/__header.html")
 var TemplateWebNavBarHTML = template.RegisterHTML("web/__nav_bar.html")
 var TemplateWebErrorHTML = template.RegisterHTML("web/__error.html")
@@ -24,6 +25,7 @@ var TemplateWebTutorialHTML = template.RegisterHTML("web/__tutorial.html")
 
 var components = []*template.HTML{
 	TemplateWebHTMLHeadHTML,
+	TemplateWebGeneratedAssetHTML,
 	TemplateWebHeaderHTML,
 	TemplateWebNavBarHTML,
 	TemplateWebErrorHTML,

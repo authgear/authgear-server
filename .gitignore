@@ -19,7 +19,8 @@ node_modules/
 
 # compiled static files
 resources/authgear/templates/en/web/__generated_asset.html
-resources/authgear/static/generated/
+resources/authgear/static/generated/*
+!resources/authgear/static/generated/.gitkeep
 resources/portal/static/
 !resources/portal/static/img/logo.png
 
