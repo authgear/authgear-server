@@ -14,4 +14,31 @@
   .as-btn {
     @apply flex flex-row justify-center items-center;
   }
+
+  .btn.primary-btn,
+  .btn.light-btn,
+  .btn.destructive-btn {
+    @apply rounded-sm px-5 py-1.5 text-center;
+  }
+
+  .btn.action-btn {
+    @apply rounded-sm px-3 py-1 text-center;
+  }
+
+  .btn.sso-btn {
+    @apply rounded-sm text-center;
+  }
+
+  /* Safari button cannot have display being set to other value */
+  /* Therefore we have to wrap the content in a span */
+  /* However, other sizing properties still need to be declared on the button itself */
+  /* Otherwise, the content will overflow the button */
+  .sso-btn-content {
+    @apply block relative px-9 py-1.5;
+  }
+
+  .sso-btn-icon {
+    @apply absolute top-0 left-0 w-9 h-9 bg-no-repeat bg-center;
+    background-size: 50%;
+  }
 }
