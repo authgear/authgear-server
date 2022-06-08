@@ -12,6 +12,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import ReactRouterLink from "../../ReactRouterLink";
+import ScreenTitle from "../../ScreenTitle";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import { useSystemConfig } from "../../context/SystemConfigContext";
@@ -141,9 +142,9 @@ function makeCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
 
 function Title() {
   return (
-    <Text as="h1" variant="large" block={true} className={styles.title}>
+    <ScreenTitle>
       <FormattedMessage id="GetStartedScreen.title" />
-    </Text>
+    </ScreenTitle>
   );
 }
 

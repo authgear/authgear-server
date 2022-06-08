@@ -1,14 +1,9 @@
 .root {
-  padding: 32px;
+  padding: 24px;
   min-width: 480px;
   display: flex;
   flex-direction: column;
   row-gap: 16px;
-}
-
-.title {
-  margin: 0;
-  font-weight: 600;
 }
 
 .descriptionRow {
