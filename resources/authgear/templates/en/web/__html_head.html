@@ -18,15 +18,12 @@
 <!-- 3. Go back to picture screen, see the stale profile picture screen with the removed picture for a very short period -->
 <!-- Stale page is still available for navigating back -->
 <meta name="turbo-cache-control" content="no-preview">
-<link rel="stylesheet" href="{{ call $.StaticAssetURL "tabler-icons.min.css" }}">
-<link rel="stylesheet" href="{{ call $.StaticAssetURL "tailwind.css" }}">
-<link rel="stylesheet" href="{{ call $.StaticAssetURL "intl-tel-input/css/intlTelInput.min.css" }}">
-<link rel="stylesheet" href="{{ call $.StaticAssetURL "cropperjs/css/cropper.min.css" }}">
+<link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear.css" }}">
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-light-theme.css" }}">
 {{ if $.DarkThemeEnabled }}
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-dark-theme.css" }}">
 {{ end }}
-<link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear.css" }}">
+{{ template "__generated_asset.html" . }}
 
 <!-- Google Tag Manager -->
 {{ if $.GoogleTagManagerContainerID }}
@@ -38,10 +35,5 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 {{ end }}
 <!-- End Google Tag Manager -->
 
-<script src="{{ call $.StaticAssetURL "intl-tel-input/js/intlTelInput.min.js" }}"></script>
-<script src="{{ call $.StaticAssetURL "intl-tel-input/js/utils.js" }}"></script>
-<script src="{{ call $.StaticAssetURL "cropperjs/js/cropper.min.js" }}"></script>
-<script nomodule src="{{ call $.StaticAssetURL "authgear-classic.js" }}"></script>
-<script type="module" src="{{ call $.StaticAssetURL "authgear-module.js" }}"></script>
 </head>
 {{ end }}
