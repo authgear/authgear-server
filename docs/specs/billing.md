@@ -68,7 +68,7 @@ CREATE _portal_usage_record (
     alert_data jsonb,
     stripe_timestamp timestamp without time zone
 
-    UNIQUE (app_id, tag, period, date)
+    UNIQUE (app_id, name, period, date)
 );
 ```
 
@@ -129,7 +129,7 @@ For example
 The Whatsapp OTP aggregator reads from the event data written by [the non-blocking event sink](#the-non-blocking-event-sink), and writes to [the usage record table](#the-usage-record-table).
 
 Since junk messages can be sent to our Whatsapp number,
-only valid TOP code is counted as 1.
+only valid OTP code is counted as 1.
 
 For example
 
