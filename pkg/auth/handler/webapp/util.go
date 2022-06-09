@@ -57,10 +57,33 @@ func (p *FormPrefiller) Prefill(form url.Values) {
 		}
 	}
 
-	// Set x_login_id_key to the key of the first login ID.
-	if _, ok := form["x_login_id_key"]; !ok {
-		if len(p.LoginID.Keys) > 0 {
-			form.Set("x_login_id_key", p.LoginID.Keys[0].Key)
+	// Set x_login_id_key to match x_login_id_input_type
+	if inKey := form.Get("x_login_id_key"); inKey == "" {
+	Switch:
+		switch form.Get("x_login_id_input_type") {
+		case "phone":
+			for _, k := range p.LoginID.Keys {
+				if k.Type == config.LoginIDKeyTypePhone {
+					form.Set("x_login_id_key", k.Key)
+					break Switch
+				}
+			}
+		case "email":
+			for _, k := range p.LoginID.Keys {
+				if k.Type == config.LoginIDKeyTypeEmail {
+					form.Set("x_login_id_key", k.Key)
+					break Switch
+				}
+			}
+		case "text":
+			fallthrough
+		default:
+			for _, k := range p.LoginID.Keys {
+				if k.Type != config.LoginIDKeyTypePhone {
+					form.Set("x_login_id_key", k.Key)
+					break Switch
+				}
+			}
 		}
 	}
 }

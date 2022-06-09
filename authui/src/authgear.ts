@@ -19,7 +19,12 @@ import {
   FormatInputDateController,
 } from "./date";
 import { TransferClickController } from "./click";
-import { XHRSubmitFormController, RestoreFormController } from "./form";
+import {
+  XHRSubmitFormController,
+  RestoreFormController,
+  RetainFormFormController,
+  RetainFormInputController,
+} from "./form";
 import { ModalController } from "./modal";
 import { BackButtonController } from "./back";
 import { SimpleModalController } from "./simpleModal";
@@ -66,6 +71,8 @@ Stimulus.register("transfer-click", TransferClickController);
 
 Stimulus.register("xhr-submit-form", XHRSubmitFormController);
 Stimulus.register("restore-form", RestoreFormController);
+Stimulus.register("retain-form-form", RetainFormFormController);
+Stimulus.register("retain-form-input", RetainFormInputController);
 
 Stimulus.register("modal", ModalController);
 Stimulus.register("simple-modal", SimpleModalController);

@@ -15,13 +15,19 @@
 	<div class="pane flex flex-col">
 		{{ if $has_login_id }}{{ if (not (or $.PublicSignupDisabled $.AllowLoginOnly)) }}
 		<div class="flex flex-row">
-			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt current" href="/login" data-turbo-action="replace">{{ template "login-label" }}</a>
-			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt" href="/signup" data-turbo-action="replace">{{ template "signup-label" }}</a>
+			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt current" href="{{ call $.MakeURL "/login" "x_login_id_input_type" $.x_login_id_input_type }}" data-turbo-action="replace">{{ template "login-label" }}</a>
+			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt" href="{{ call $.MakeURL "/signup" "x_login_id_input_type" $.x_login_id_input_type }}" data-turbo-action="replace">{{ template "signup-label" }}</a>
 		</div>
 		{{ end }}{{ end }}
 
 		<div class="twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
-			<form class="twc-container-vertical" method="post" novalidate>
+			<form
+				class="twc-container-vertical"
+				method="post"
+				novalidate
+				data-controller="retain-form-form"
+				data-retain-form-form-id-value="auth-form"
+				>
 				{{ $.CSRFField }}
 
 				<h1 class="m-0 primary-txt text-center text-xl font-bold">
@@ -47,7 +53,9 @@
 					name="x_login_id"
 					placeholder="{{ template "phone-number-placeholder" }}"
 					data-controller="intl-tel-input"
-					data-action="input->intl-tel-input#input"
+					data-action="input->intl-tel-input#input countrychange->intl-tel-input#input intl-tel-input:input->retain-form-form#input"
+					data-retain-form-form-target="input"
+					data-retain-form-form-name-param="phone"
 				>
 				{{ end }}{{ end }}{{ end }}
 
@@ -61,6 +69,10 @@
 					autocapitalize="none"
 					name="x_login_id"
 					placeholder="{{ template "login-id-placeholder" (dict "variant" $.LoginIDInputVariant) }}"
+					data-controller="retain-form-input"
+					data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
+					data-retain-form-form-target="input"
+					data-retain-form-form-name-param="text"
 				>
 				<!-- This field is for Chrome and Safari to consider the above field as username for autocomplete -->
 				<input style="display: none" aria-hidden="true" type="password" autocomplete="current-password" name="">
