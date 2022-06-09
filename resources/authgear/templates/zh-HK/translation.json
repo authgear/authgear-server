@@ -87,7 +87,7 @@
   "next-button-label": "繼續",
   "copy-button-label": "複製",
   "copied-button-label": "已複製",
-  "get-new-code-button-label": "取得新的驗證碼",
+  "get-new-recovery-codes-button-label": "取得新的備用碼",
   "download-button-label": "下載",
   "disconnect-button-label": "移除連結",
   "add-button-label": "增加",
@@ -245,7 +245,7 @@
   "settings-page-session-section-description": "管理你已登入的裝置",
   "settings-page-biometric-section-title": "生物驗證登入",
   "settings-page-biometric-section-description": "管理你裝置上的生物驗證登入",
-  "show-recovery-code-button-label": "顯示代碼",
+  "show-recovery-code-button-label": "顯示備用碼",
   "settings-page-trusted-devices-title": "受信任裝置",
   "revoke-all-device-tokens-button-label": "忘記所有受信任裝置",
   "no-device-tokens-description": "你沒有任何可以略過多重驗證的受信任裝置",
@@ -338,6 +338,7 @@
   "enter-recovery-code-placeholder": "10位的備用碼",
 
   "recovery-code-title": "備用碼",
+  "recovery-code-not-available-description": "你沒有任何備用碼。點擊以下按鈕以取得新的備用碼",
   "recovery-code-storage-description": "當無法使用你的驗證裝置時，你可以這些備用碼登入你的帳號，請保存至安全的地方",
   "recovery-code-consumption-description": "每個備用碼只可使用一次",
 

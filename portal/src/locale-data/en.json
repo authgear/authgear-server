@@ -333,6 +333,7 @@
 
   "AuthenticatorConfigurationScreen.recovery-code.title": "Recovery code",
   "AuthenticatorConfigurationScreen.recovery-code.description": "In the case of losing access to the Secondary Authenticators, the end-user can recover their account by using the Recovery Codes.",
+  "AuthenticatorConfigurationScreen.recovery-code.enable-recovery-code": "Enable Recovery Code",
   "AuthenticatorConfigurationScreen.recovery-code.recovery-code-number": "Number of Recovery Code",
   "AuthenticatorConfigurationScreen.recovery-code.allow-retrieve-recovery-code": "Allow user to retrieve or regenerate recovery code again",
   

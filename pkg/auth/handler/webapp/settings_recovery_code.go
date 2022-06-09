@@ -72,9 +72,11 @@ func (h *SettingsRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	redirectURI := httputil.HostRelative(r.URL).String()
 	userID := ctrl.RequireUserID()
 
+	listEnabled := !*h.Authentication.RecoveryCode.Disabled && h.Authentication.RecoveryCode.ListEnabled
+
 	ctrl.Get(func() error {
-		if !h.Authentication.RecoveryCode.ListEnabled {
-			http.Error(w, "listing recovery code is disabled", http.StatusForbidden)
+		if !listEnabled {
+			http.Redirect(w, r, "/settings/mfa", http.StatusFound)
 			return nil
 		}
 

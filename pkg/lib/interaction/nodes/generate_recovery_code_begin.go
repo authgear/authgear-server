@@ -14,7 +14,7 @@ type EdgeGenerateRecoveryCode struct {
 }
 
 func (e *EdgeGenerateRecoveryCode) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
-	// Regenerate recovery codes if requested
+	// Regenerate recovery codes if explicitly requested
 	doGenerate := e.IsRegenerate
 
 	if !doGenerate {
@@ -38,7 +38,7 @@ func (e *EdgeGenerateRecoveryCode) Instantiate(ctx *interaction.Context, graph *
 		doGenerate = len(newSecondary) != 0 && len(newSecondary) == len(ais)
 	}
 
-	if doGenerate {
+	if doGenerate && !*ctx.Config.Authentication.RecoveryCode.Disabled {
 		recoveryCodes := ctx.MFA.GenerateRecoveryCodes()
 		return &NodeGenerateRecoveryCodeBegin{
 			RecoveryCodes: recoveryCodes,

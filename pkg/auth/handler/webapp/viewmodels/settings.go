@@ -97,7 +97,7 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 		SecondaryOOBOTPSMSAllowed:       oobotpsms,
 		SecondaryPasswordAllowed:        password,
 		HasDeviceTokens:                 hasDeviceTokens,
-		ListRecoveryCodesAllowed:        m.Authentication.RecoveryCode.ListEnabled,
+		ListRecoveryCodesAllowed:        !*m.Authentication.RecoveryCode.Disabled && m.Authentication.RecoveryCode.ListEnabled,
 		ShowBiometric:                   showBiometric,
 	}
 	return viewModel, nil
