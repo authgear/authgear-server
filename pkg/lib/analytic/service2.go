@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/meter"
 )
 
 // CountResult includes the redis keys of the report
@@ -34,7 +35,7 @@ type MonthlyCountResult struct {
 type ReadCounterStore interface {
 	GetDailyPageViewCount(
 		appID config.AppID,
-		pageType PageType,
+		pageType meter.PageType,
 		date *time.Time,
 	) (pageView int, uniquePageView int, redisKeys []string, err error)
 	GetDailyActiveUserCount(appID config.AppID, date *time.Time) (count int, redisKey string, err error)
@@ -49,13 +50,13 @@ type Service2 struct {
 
 func (s *Service2) GetDailyCountResult(appID config.AppID, date *time.Time) (*DailyCountResult, error) {
 	redisKeys := []string{}
-	signupPageView, signupUniquePageView, keys, err := s.ReadCounter.GetDailyPageViewCount(appID, PageTypeSignup, date)
+	signupPageView, signupUniquePageView, keys, err := s.ReadCounter.GetDailyPageViewCount(appID, meter.PageTypeSignup, date)
 	if err != nil {
 		return nil, err
 	}
 	redisKeys = append(redisKeys, keys...)
 
-	loginPageView, loginUniquePageView, keys, err := s.ReadCounter.GetDailyPageViewCount(appID, PageTypeLogin, date)
+	loginPageView, loginUniquePageView, keys, err := s.ReadCounter.GetDailyPageViewCount(appID, meter.PageTypeLogin, date)
 	if err != nil {
 		return nil, err
 	}

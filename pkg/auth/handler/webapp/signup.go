@@ -6,9 +6,9 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
+	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -39,8 +39,8 @@ func ConfigureSignupRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/signup")
 }
 
-type AnalyticService interface {
-	TrackPageView(VisitorID string, pageType analytic.PageType) error
+type MeterService interface {
+	TrackPageView(VisitorID string, pageType meter.PageType) error
 }
 
 type SignupHandler struct {
@@ -48,7 +48,7 @@ type SignupHandler struct {
 	BaseViewModel     *viewmodels.BaseViewModeler
 	FormPrefiller     *FormPrefiller
 	Renderer          Renderer
-	AnalyticService   AnalyticService
+	MeterService      MeterService
 	TutorialCookie    TutorialCookie
 }
 
@@ -103,7 +103,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return fmt.Errorf("webapp: missing visitor id")
 		}
 
-		err := h.AnalyticService.TrackPageView(visitorID, analytic.PageTypeSignup)
+		err := h.MeterService.TrackPageView(visitorID, meter.PageTypeSignup)
 		if err != nil {
 			return err
 		}

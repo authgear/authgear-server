@@ -8,7 +8,6 @@ package resolver
 
 import (
 	"context"
-	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
@@ -27,6 +26,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/lib/meter"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
@@ -397,15 +397,15 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	middlewareLogger := session.NewMiddlewareLogger(factory)
 	analyticredisHandle := appProvider.AnalyticRedis
-	analyticStoreRedisLogger := analytic.NewStoreRedisLogger(factory)
-	writeStoreRedis := &analytic.WriteStoreRedis{
+	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
+	writeStoreRedis := &meter.WriteStoreRedis{
 		Context: contextContext,
 		Redis:   analyticredisHandle,
 		AppID:   appID,
 		Clock:   clock,
-		Logger:  analyticStoreRedisLogger,
+		Logger:  meterStoreRedisLogger,
 	}
-	analyticService := &analytic.Service{
+	meterService := &meter.Service{
 		Counter: writeStoreRedis,
 	}
 	sessionMiddleware := &session.Middleware{
@@ -417,7 +417,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Users:                      queries,
 		Database:                   appdbHandle,
 		Logger:                     middlewareLogger,
-		AnalyticService:            analyticService,
+		MeterService:               meterService,
 	}
 	return sessionMiddleware
 }
