@@ -32,18 +32,46 @@ type Bucket struct {
     Size        int
     ResetPeriod time.Duration
 }
-```
 
-A bucket is identified by a key.
-It has a size and a reset period.
-
-```golang
 type RateLimiter interface {
-    TakeToken(key string) error
+    TakeToken(bucket Bucket) error
 }
+
+// There are several ways to create Buckets.
+
+// The first way is define a static Bucket.
+var StaticBucket = Bucket{
+    Key: "static"
+}
+
+// The second way is define a function that returns a bucket.
+// This is the common way when we have the necessary argument in hand.
+
+function IPBucket(ip string) Bucket {
+    return Bucket{
+        Key: ip,
+    }
+}
+
+// The third way is define a struct that has a method to return a bucket.
+// This is preferrable when the bucket requires so many data to construct,
+// so dependency injection is required
+
+type ComplexBucketFactory struct {
+    InjectableA InjectableA
+    INjectableB InjectableB
+}
+func (f *ComplexBucketFactory) MakeBucket() Bucket
+
+// There is NO BucketMaker interface because
+// sometimes it is necessary to inject more than 1 factory.
+// Since Wire injects by type, having a single type is confusing.
+// It is suggested that different parts of the code define their own BucketMaker interfaces.
+// type BucketMaker interface {
+//     MakeBucket() Bucket
+// }
 ```
 
-The rate limiter reads app-specific bucket configuration.
 If the bucket does not exist in Redis, a full bucket is created first.
 The bucket has an expiration of the reset period.
 When the bucket expires, it disappear,
