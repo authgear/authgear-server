@@ -44,6 +44,12 @@ export class IntlTelInputController extends Controller {
       const s = instance.getNumber();
       if (typeof s === "string") {
         this.hiddenInputElement.value = s;
+        // Emit the custom event "input" to cooperate with RetainFormFormController
+        this.dispatch("input", {
+          detail: {
+            value: s,
+          },
+        });
       }
     } else {
       const { dialCode } = instance.getSelectedCountryData();
@@ -52,6 +58,12 @@ export class IntlTelInputController extends Controller {
         const value = this.inputElement.value;
         const s = buildE164Value(countryCallingCode, value);
         this.hiddenInputElement.value = s;
+        // Emit the custom event "input" to cooperate with RetainFormFormController
+        this.dispatch("input", {
+          detail: {
+            value: s,
+          },
+        });
       }
     }
   }
