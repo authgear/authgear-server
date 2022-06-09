@@ -14,5 +14,5 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(ProjectMonthlyReport), "*"),
 	wire.Struct(new(CountCollector), "*"),
 	wire.Struct(new(ChartService), "*"),
-	wire.Struct(new(Service2), "*"),
+	wire.Struct(new(Service), "*"),
 )

@@ -44,11 +44,11 @@ type ReadCounterStore interface {
 	SetKeysExpire(keys []string, expiration time.Duration) error
 }
 
-type Service2 struct {
+type Service struct {
 	ReadCounter ReadCounterStore
 }
 
-func (s *Service2) GetDailyCountResult(appID config.AppID, date *time.Time) (*DailyCountResult, error) {
+func (s *Service) GetDailyCountResult(appID config.AppID, date *time.Time) (*DailyCountResult, error) {
 	redisKeys := []string{}
 	signupPageView, signupUniquePageView, keys, err := s.ReadCounter.GetDailyPageViewCount(appID, meter.PageTypeSignup, date)
 	if err != nil {
@@ -80,7 +80,7 @@ func (s *Service2) GetDailyCountResult(appID config.AppID, date *time.Time) (*Da
 	}, nil
 }
 
-func (s *Service2) GetWeeklyCountResult(appID config.AppID, year int, week int) (*WeeklyCountResult, error) {
+func (s *Service) GetWeeklyCountResult(appID config.AppID, year int, week int) (*WeeklyCountResult, error) {
 	activeUserCount, weeklyActiveUserKey, err := s.ReadCounter.GetWeeklyActiveUserCount(appID, year, week)
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ func (s *Service2) GetWeeklyCountResult(appID config.AppID, year int, week int) 
 	}, nil
 }
 
-func (s *Service2) GetMonthlyCountResult(appID config.AppID, year int, month int) (*MonthlyCountResult, error) {
+func (s *Service) GetMonthlyCountResult(appID config.AppID, year int, month int) (*MonthlyCountResult, error) {
 	activeUserCount, monthlyActiveUserKey, err := s.ReadCounter.GetMonthlyActiveUserCount(appID, year, month)
 	if err != nil {
 		return nil, err
@@ -106,6 +106,6 @@ func (s *Service2) GetMonthlyCountResult(appID config.AppID, year int, month int
 	}, nil
 }
 
-func (s *Service2) SetKeysExpire(keys []string, expiration time.Duration) error {
+func (s *Service) SetKeysExpire(keys []string, expiration time.Duration) error {
 	return s.ReadCounter.SetKeysExpire(keys, expiration)
 }

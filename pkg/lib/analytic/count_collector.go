@@ -37,7 +37,7 @@ type CountCollector struct {
 	AuditDBReadStore   *AuditDBReadStore
 	AuditDBWriteHandle *auditdb.WriteHandle
 	AuditDBWriteStore  *AuditDBWriteStore
-	AnalyticService    *Service2
+	AnalyticService    *Service
 }
 
 func (c *CountCollector) CollectDaily(date *time.Time) (updatedCount int, err error) {
