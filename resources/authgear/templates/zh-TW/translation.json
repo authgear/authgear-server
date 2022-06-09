@@ -245,7 +245,7 @@
   "settings-page-session-section-description": "管理你已登入的裝置",
   "settings-page-biometric-section-title": "生物驗證登入",
   "settings-page-biometric-section-description": "管理你裝置上的生物驗證登入",
-  "show-recovery-code-button-label": "顯示代碼",
+  "show-recovery-code-button-label": "顯示備用碼",
   "settings-page-trusted-devices-title": "受信任裝置",
   "revoke-all-device-tokens-button-label": "忘記所有受信任裝置",
   "no-device-tokens-description": "你沒有任何可以略過多重驗證的受信任裝置",
