@@ -14,7 +14,6 @@ import (
 	webapp2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
@@ -49,6 +48,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
@@ -6074,15 +6074,15 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		UI:      uiConfig,
 	}
 	analyticredisHandle := appProvider.AnalyticRedis
-	analyticStoreRedisLogger := analytic.NewStoreRedisLogger(factory)
-	writeStoreRedis := &analytic.WriteStoreRedis{
+	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
+	writeStoreRedis := &meter.WriteStoreRedis{
 		Context: contextContext,
 		Redis:   analyticredisHandle,
 		AppID:   appID,
 		Clock:   clockClock,
-		Logger:  analyticStoreRedisLogger,
+		Logger:  meterStoreRedisLogger,
 	}
-	analyticService := &analytic.Service{
+	meterService := &meter.Service{
 		Counter: writeStoreRedis,
 	}
 	tutorialCookie := &httputil.TutorialCookie{
@@ -6093,7 +6093,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel:     baseViewModeler,
 		FormPrefiller:     formPrefiller,
 		Renderer:          responseRenderer,
-		AnalyticService:   analyticService,
+		MeterService:      meterService,
 		TutorialCookie:    tutorialCookie,
 	}
 	return loginHandler
@@ -6764,15 +6764,15 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		UI:      uiConfig,
 	}
 	analyticredisHandle := appProvider.AnalyticRedis
-	analyticStoreRedisLogger := analytic.NewStoreRedisLogger(factory)
-	writeStoreRedis := &analytic.WriteStoreRedis{
+	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
+	writeStoreRedis := &meter.WriteStoreRedis{
 		Context: contextContext,
 		Redis:   analyticredisHandle,
 		AppID:   appID,
 		Clock:   clockClock,
-		Logger:  analyticStoreRedisLogger,
+		Logger:  meterStoreRedisLogger,
 	}
-	analyticService := &analytic.Service{
+	meterService := &meter.Service{
 		Counter: writeStoreRedis,
 	}
 	tutorialCookie := &httputil.TutorialCookie{
@@ -6783,7 +6783,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel:     baseViewModeler,
 		FormPrefiller:     formPrefiller,
 		Renderer:          responseRenderer,
-		AnalyticService:   analyticService,
+		MeterService:      meterService,
 		TutorialCookie:    tutorialCookie,
 	}
 	return signupHandler
@@ -35557,15 +35557,15 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	middlewareLogger := session.NewMiddlewareLogger(factory)
 	analyticredisHandle := appProvider.AnalyticRedis
-	analyticStoreRedisLogger := analytic.NewStoreRedisLogger(factory)
-	writeStoreRedis := &analytic.WriteStoreRedis{
+	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
+	writeStoreRedis := &meter.WriteStoreRedis{
 		Context: contextContext,
 		Redis:   analyticredisHandle,
 		AppID:   appID,
 		Clock:   clockClock,
-		Logger:  analyticStoreRedisLogger,
+		Logger:  meterStoreRedisLogger,
 	}
-	analyticService := &analytic.Service{
+	meterService := &meter.Service{
 		Counter: writeStoreRedis,
 	}
 	sessionMiddleware := &session.Middleware{
@@ -35577,7 +35577,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Users:                      queries,
 		Database:                   appdbHandle,
 		Logger:                     middlewareLogger,
-		AnalyticService:            analyticService,
+		MeterService:               meterService,
 	}
 	return sessionMiddleware
 }

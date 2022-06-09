@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
+	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/periodical"
 )
@@ -145,7 +146,7 @@ func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *
 	}
 	redisEnvironmentConfig := config.NewDefaultRedisEnvironmentConfig()
 	analyticredisHandle := analyticredis.NewHandle(redisPool, redisEnvironmentConfig, credentials, factory)
-	readStoreRedis := &analytic.ReadStoreRedis{
+	readStoreRedis := &meter.ReadStoreRedis{
 		Context: ctx,
 		Redis:   analyticredisHandle,
 	}

@@ -26,7 +26,7 @@ func NewMiddlewareLogger(lf *log.Factory) MiddlewareLogger {
 	return MiddlewareLogger{lf.New("session-middleware")}
 }
 
-type AnalyticService interface {
+type MeterService interface {
 	TrackActiveUser(userID string) error
 }
 
@@ -39,7 +39,7 @@ type Middleware struct {
 	Users                      UserQuery
 	Database                   *appdb.Handle
 	Logger                     MiddlewareLogger
-	AnalyticService            AnalyticService
+	MeterService               MeterService
 }
 
 func (m *Middleware) Handle(next http.Handler) http.Handler {
@@ -95,7 +95,7 @@ func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (s Session
 			return
 		}
 
-		err = m.AnalyticService.TrackActiveUser(u.ID)
+		err = m.MeterService.TrackActiveUser(u.ID)
 		if err != nil {
 			return
 		}
