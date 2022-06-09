@@ -19,4 +19,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(CounterStore), new(*WriteStoreRedis)),
 	wire.Struct(new(CountCollector), "*"),
 	wire.Struct(new(ChartService), "*"),
+	wire.Bind(new(ReadCounterStore), new(*ReadStoreRedis)),
+	wire.Struct(new(Service2), "*"),
 )
