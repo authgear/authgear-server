@@ -96,7 +96,7 @@ CREATE _portal_usage_record (
     alert_data jsonb,
     stripe_timestamp timestamp without time zone
 
-    UNIQUE (app_id, name, period, date)
+    UNIQUE (app_id, name, period, start_time)
 );
 ```
 
@@ -184,6 +184,8 @@ CREATE _portal_subscription (
     app_id string NOT NULL,
     stripe_customer_id string NOT NULL,
     stripe_subscription_id string NOT NULL
+
+    UNIQUE (app_id)
 );
 ```
 
