@@ -1,4 +1,4 @@
-package analytic
+package meter
 
 type CounterStore interface {
 	TrackActiveUser(userID string) error
