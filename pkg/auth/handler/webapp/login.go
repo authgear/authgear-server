@@ -6,9 +6,9 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
+	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -50,7 +50,7 @@ type LoginHandler struct {
 	BaseViewModel     *viewmodels.BaseViewModeler
 	FormPrefiller     *FormPrefiller
 	Renderer          Renderer
-	AnalyticService   AnalyticService
+	MeterService      MeterService
 	TutorialCookie    TutorialCookie
 }
 
@@ -111,7 +111,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return fmt.Errorf("webapp: missing visitor id")
 		}
 
-		err := h.AnalyticService.TrackPageView(visitorID, analytic.PageTypeLogin)
+		err := h.MeterService.TrackPageView(visitorID, meter.PageTypeLogin)
 		if err != nil {
 			return err
 		}

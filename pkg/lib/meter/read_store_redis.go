@@ -1,4 +1,4 @@
-package analytic
+package meter
 
 import (
 	"context"
@@ -25,7 +25,7 @@ func (s *ReadStoreRedis) GetDailyPageViewCount(
 	date *time.Time,
 ) (pageView int, uniquePageView int, redisKeys []string, err error) {
 	if s.Redis == nil {
-		err = ErrAnalyticRedisIsNotConfigured
+		err = ErrMeterRedisIsNotConfigured
 		return
 	}
 	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
@@ -102,7 +102,7 @@ func (s *ReadStoreRedis) getPFCountWithConn(conn *goredis.Conn, key string) (cou
 
 func (s *ReadStoreRedis) getPFCount(key string) (count int, err error) {
 	if s.Redis == nil {
-		err = ErrAnalyticRedisIsNotConfigured
+		err = ErrMeterRedisIsNotConfigured
 		return
 	}
 	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
