@@ -87,7 +87,7 @@
   "next-button-label": "繼續",
   "copy-button-label": "複製",
   "copied-button-label": "已複製",
-  "get-new-code-button-label": "取得新的驗證碼",
+  "get-new-recovery-codes-button-label": "取得新的備用碼",
   "download-button-label": "下載",
   "disconnect-button-label": "移除連結",
   "add-button-label": "增加",
@@ -338,6 +338,7 @@
   "enter-recovery-code-placeholder": "10位的備用碼",
 
   "recovery-code-title": "備用碼",
+  "recovery-code-not-available-description": "你沒有任何備用碼。點擊以下按鈕以取得新的備用碼",
   "recovery-code-storage-description": "當無法使用你的驗證裝置時，你可以這些備用碼登入你的帳號，請保存至安全的地方",
   "recovery-code-consumption-description": "每個備用碼只可使用一次",
 

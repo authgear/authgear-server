@@ -7,17 +7,8 @@
 		{{ template "recovery-code-title" }}
 	</h1>
 
-	<p class="primary-txt text-center m-0 text-sm whitespace-pre-wrap">{{ template "recovery-code-storage-description" }}</p>
-	<ol class="recovery-code-list m-0 py-5 padding-inline-end-20 grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-2 gap-x-5">
-		{{ range $.RecoveryCodes }}
-			<li class="font-mono whitespace-pre text-base leading-none mx-5 place-self-center">{{ . }}</li>
-		{{ end }}
-	</ol>
-	<code class="hidden" data-copy-button-target="source">{{ template "__recovery_code.html" . }}</code>
-
-	<p class="text-sm primary-txt text-center m-0">{{ template "recovery-code-consumption-description" }}</p>
-
-	<div class="mt-5 grid gap-4 grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-2">
+	{{ if not $.RecoveryCodes }}
+		<p class="primary-txt text-center m-0 text-sm whitespace-pre-wrap">{{ template "recovery-code-not-available-description" }}</p>
 		<form method="post" novalidate>
 			{{ $.CSRFField }}
 			<button
@@ -27,39 +18,64 @@
 				value="regenerate"
 				data-authgear-event="authgear.button.regenerate_recovery_code"
 			>
-				{{ template "get-new-code-button-label" }}
+				{{ template "get-new-recovery-codes-button-label" }}
 			</button>
 		</form>
-		{{ if $.IsSupportedMobilePlatform }}
-			<div>
-				<button
-					class="btn primary-btn w-full"
-					type="button"
-					data-copy-button-target="button"
-					data-copy-button-copy-label="{{ template "copy-button-label" }}"
-					data-copy-button-copied-label="{{ template "copied-button-label" }}"
-					data-authgear-event="authgear.button.download_recovery_code"
-					data-action="copy-button#copy"
-				>
-					{{ template "copy-button-label" }}
-				</button>
-			</div>
-		{{ else }}
-			<form method="post" novalidate target="_blank">
+	{{ else }}
+		<p class="primary-txt text-center m-0 text-sm whitespace-pre-wrap">{{ template "recovery-code-storage-description" }}</p>
+		<ol class="recovery-code-list m-0 py-5 padding-inline-end-20 grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-2 gap-x-5">
+			{{ range $.RecoveryCodes }}
+				<li class="font-mono whitespace-pre text-base leading-none mx-5 place-self-center">{{ . }}</li>
+			{{ end }}
+		</ol>
+		<code class="hidden" data-copy-button-target="source">{{ template "__recovery_code.html" . }}</code>
+
+		<p class="text-sm primary-txt text-center m-0">{{ template "recovery-code-consumption-description" }}</p>
+
+		<div class="mt-5 grid gap-4 grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-2">
+			<form method="post" novalidate>
 				{{ $.CSRFField }}
 				<button
 					class="btn primary-btn w-full"
 					type="submit"
 					name="x_action"
-					value="download"
-					data-form-xhr="false"
-					data-authgear-event="authgear.button.download_recovery_code"
+					value="regenerate"
+					data-authgear-event="authgear.button.regenerate_recovery_code"
 				>
-					{{ template "download-button-label" }}
+					{{ template "get-new-recovery-codes-button-label" }}
 				</button>
 			</form>
-		{{ end }}
-	</div>
+			{{ if $.IsSupportedMobilePlatform }}
+				<div>
+					<button
+						class="btn primary-btn w-full"
+						type="button"
+						data-copy-button-target="button"
+						data-copy-button-copy-label="{{ template "copy-button-label" }}"
+						data-copy-button-copied-label="{{ template "copied-button-label" }}"
+						data-authgear-event="authgear.button.download_recovery_code"
+						data-action="copy-button#copy"
+					>
+						{{ template "copy-button-label" }}
+					</button>
+				</div>
+			{{ else }}
+				<form method="post" novalidate target="_blank">
+					{{ $.CSRFField }}
+					<button
+						class="btn primary-btn w-full"
+						type="submit"
+						name="x_action"
+						value="download"
+						data-form-xhr="false"
+						data-authgear-event="authgear.button.download_recovery_code"
+					>
+						{{ template "download-button-label" }}
+					</button>
+				</form>
+			{{ end }}
+		</div>
+	{{ end }}
 
 	{{ template "__watermark.html" . }}
 </div>

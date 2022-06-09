@@ -87,7 +87,7 @@
   "next-button-label": "Next",
   "copy-button-label": "Copy",
   "copied-button-label": "Copied",
-  "get-new-code-button-label": "Get new code",
+  "get-new-recovery-codes-button-label": "Get new codes",
   "download-button-label": "Download",
   "disconnect-button-label": "Disconnect",
   "add-button-label": "Add",
@@ -339,6 +339,7 @@
   "enter-recovery-code-placeholder": "10-letter recovery code",
 
   "recovery-code-title": "Recovery Code",
+  "recovery-code-not-available-description": "You do not have any recovery codes yet. Get new codes by clicking the button below.",
   "recovery-code-storage-description": "If you lost access to your authentication device, use these recovery codes to recover your account. \nKeep them somewhere safe but accessible.",
   "recovery-code-consumption-description": "You can only use each code once",
 
