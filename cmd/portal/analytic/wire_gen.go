@@ -149,6 +149,9 @@ func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *
 		Context: ctx,
 		Redis:   analyticredisHandle,
 	}
+	service2 := &analytic.Service2{
+		ReadCounter: readStoreRedis,
+	}
 	countCollector := &analytic.CountCollector{
 		GlobalHandle:       handle,
 		GlobalDBStore:      globalDBStore,
@@ -158,7 +161,7 @@ func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *
 		AuditDBReadStore:   auditDBReadStore,
 		AuditDBWriteHandle: writeHandle,
 		AuditDBWriteStore:  auditDBWriteStore,
-		CounterStore:       readStoreRedis,
+		AnalyticService:    service2,
 	}
 	return countCollector
 }

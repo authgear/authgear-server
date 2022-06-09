@@ -37,7 +37,7 @@ type CountCollector struct {
 	AuditDBReadStore   *AuditDBReadStore
 	AuditDBWriteHandle *auditdb.WriteHandle
 	AuditDBWriteStore  *AuditDBWriteStore
-	CounterStore       *ReadStoreRedis
+	AnalyticService    *Service2
 }
 
 func (c *CountCollector) CollectDaily(date *time.Time) (updatedCount int, err error) {
@@ -201,7 +201,7 @@ func (c *CountCollector) CollectDailyCountForApp(appID string, date time.Time, n
 	}
 
 	// Collect counts from redis
-	dailyCount, err := c.CounterStore.GetDailyCountResult(config.AppID(appID), &date)
+	dailyCount, err := c.AnalyticService.GetDailyCountResult(config.AppID(appID), &date)
 	if err != nil {
 		return
 	}
@@ -262,7 +262,7 @@ func (c *CountCollector) CollectWeeklyForApp(appID string, date *time.Time) (cou
 	if err != nil {
 		return
 	}
-	weeklyCount, err := c.CounterStore.GetWeeklyCountResult(config.AppID(appID), year, week)
+	weeklyCount, err := c.AnalyticService.GetWeeklyCountResult(config.AppID(appID), year, week)
 	if err != nil {
 		return
 	}
@@ -280,7 +280,7 @@ func (c *CountCollector) CollectMonthlyForApp(appID string, date *time.Time) (co
 	if err != nil {
 		return
 	}
-	monthlyCount, err := c.CounterStore.GetMonthlyCountResult(config.AppID(appID), firstDayOfTheMonth.Year(), int(firstDayOfTheMonth.Month()))
+	monthlyCount, err := c.AnalyticService.GetMonthlyCountResult(config.AppID(appID), firstDayOfTheMonth.Year(), int(firstDayOfTheMonth.Month()))
 	if err != nil {
 		return
 	}
@@ -412,5 +412,5 @@ func (c *CountCollector) saveCounts(counts []*Count) (updatedCount int, err erro
 }
 
 func (c *CountCollector) setRedisKeyExpiry(redisKeys []string) error {
-	return c.CounterStore.SetKeysExpire(redisKeys, duration.AnalyticRedisKeyExpiration)
+	return c.AnalyticService.SetKeysExpire(redisKeys, duration.AnalyticRedisKeyExpiration)
 }
