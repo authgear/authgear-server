@@ -162,6 +162,7 @@
   "whatsapp-otp-next-button": "繼續",
   "whatsapp-otp-scan-code-description": "在你的設備上使用 WhatsApp 掃描二維碼開始聊天",
   "whatsapp-otp-done-button": "完成",
+  "whatsapp-otp-pre-filled-message": "以一次性密碼 {otp} 驗證 {target} \n請在WhatsApp按傳送，然後返回App",
 
   "verify-user-page-title--sms": "短訊驗證",
   "verify-user-page-title--email": "驗證你的電郵地址",

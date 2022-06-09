@@ -132,7 +132,21 @@ func (h *WhatsappWATICallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	if !strings.HasPrefix(phone, "+") {
 		phone = fmt.Sprintf("+%s", phone)
 	}
-	code := message.Text.Body
+
+	textBody := message.Text.Body
+	code := ""
+	matched := WhatsappMessageOTPRegex.FindString(textBody)
+	if matched != "" {
+		code = strings.TrimPrefix(matched, WhatsappMessageOTPPrefix)
+	} else {
+		code = strings.TrimSpace(textBody)
+	}
+
+	if code == "" {
+		err = errors.New("empty code")
+		return
+	}
+
 	codeModel, err := h.WhatsappCodeProvider.SetUserInputtedCode(phone, code)
 	if err != nil {
 		if errors.Is(err, whatsapp.ErrCodeNotFound) {

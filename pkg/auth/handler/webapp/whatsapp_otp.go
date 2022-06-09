@@ -49,7 +49,7 @@ func (h *WhatsappOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 	whatsappViewModel := WhatsappOTPViewModel{
 		StateQuery: getStateFromQuery(r),
 	}
-	if err := whatsappViewModel.AddData(r, graph, h.WhatsappCodeProvider); err != nil {
+	if err := whatsappViewModel.AddData(r, graph, h.WhatsappCodeProvider, baseViewModel.Translations); err != nil {
 		return nil, err
 	}
 	currentStepKind := session.CurrentStep().Kind
