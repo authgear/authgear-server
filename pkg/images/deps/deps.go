@@ -59,6 +59,7 @@ var RootDependencySet = wire.NewSet(
 	wire.FieldsOf(new(*imagesconfig.EnvironmentConfig),
 		"TrustProxy",
 		"CORSAllowedOrigins",
+		"ImagesCDNHost",
 		"DatabaseConfig",
 	),
 )
