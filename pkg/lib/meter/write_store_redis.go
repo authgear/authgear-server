@@ -1,4 +1,4 @@
-package analytic
+package meter
 
 import (
 	"context"
