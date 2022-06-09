@@ -72,10 +72,19 @@ func newGetHandler(p *deps.RequestProvider) http.Handler {
 	}
 	factory := rootProvider.LoggerFactory
 	getHandlerLogger := handler.NewGetHandlerLogger(factory)
+	environmentConfig := &rootProvider.EnvironmentConfig
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	request := p.Request
+	trustProxy := environmentConfig.TrustProxy
+	httpHost := deps2.ProvideHTTPHost(request, trustProxy)
+	httpProto := deps2.ProvideHTTPProto(request, trustProxy)
 	daemon := rootProvider.VipsDaemon
 	getHandler := &handler.GetHandler{
 		DirectorMaker: provider,
 		Logger:        getHandlerLogger,
+		ImagesCDNHost: imagesCDNHost,
+		HTTPHost:      httpHost,
+		HTTPProto:     httpProto,
 		VipsDaemon:    daemon,
 	}
 	return getHandler

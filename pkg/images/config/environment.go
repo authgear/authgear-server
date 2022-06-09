@@ -7,6 +7,8 @@ import (
 
 type LogLevel string
 
+type ImagesCDNHost string
+
 type EnvironmentConfig struct {
 	// TrustProxy sets whether HTTP headers from proxy are to be trusted
 	TrustProxy config.TrustProxy `envconfig:"TRUST_PROXY" default:"false"`
@@ -24,6 +26,8 @@ type EnvironmentConfig struct {
 	GlobalDatabase *config.GlobalDatabaseCredentialsEnvironmentConfig `envconfig:"DATABASE"`
 	// DatabaseConfig configures the database connection config
 	DatabaseConfig *config.DatabaseEnvironmentConfig `envconfig:"DATABASE_CONFIG"`
+
+	ImagesCDNHost ImagesCDNHost `envconfig:"IMAGES_CDN_HOST"`
 	// CORSAllowOrigins configures a comma-separated list of allowed origins for CORSMiddleware
 	CORSAllowedOrigins config.CORSAllowedOrigins `envconfig:"CORS_ALLOWED_ORIGINS"`
 }

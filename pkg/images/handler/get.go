@@ -10,7 +10,9 @@ import (
 	"net/http/httputil"
 	"strconv"
 
+	imagesconfig "github.com/authgear/authgear-server/pkg/images/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	utilhttputil "github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/vipsutil"
 )
@@ -66,10 +68,23 @@ type DirectorMaker interface {
 type GetHandler struct {
 	DirectorMaker DirectorMaker
 	Logger        GetHandlerLogger
+	ImagesCDNHost imagesconfig.ImagesCDNHost
+	HTTPHost      utilhttputil.HTTPHost
+	HTTPProto     utilhttputil.HTTPProto
 	VipsDaemon    VipsDaemon
 }
 
 func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if h.ImagesCDNHost != "" {
+		if string(h.ImagesCDNHost) != string(h.HTTPHost) {
+			u := *r.URL
+			u.Scheme = string(h.HTTPProto)
+			u.Host = string(h.ImagesCDNHost)
+			http.Redirect(w, r, u.String(), http.StatusFound)
+			return
+		}
+	}
+
 	imageVariant, ok := ParseImageVariant(httproute.GetParam(r, "options"))
 	if !ok {
 		w.WriteHeader(http.StatusNotFound)
