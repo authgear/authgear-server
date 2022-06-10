@@ -12,9 +12,9 @@ import { Context, Values } from "@oursky/react-messageformat";
 import ReactRouterLink from "../../ReactRouterLink";
 import PaginationWidget from "../../PaginationWidget";
 import {
-  AuditLogListQuery_auditLogs,
-  AuditLogListQuery_auditLogs_edges_node,
-} from "./__generated__/AuditLogListQuery";
+  AuditLogListFragment,
+  AuditLogEdgesNodeFragment,
+} from "./query/auditLogListQuery.generated";
 import { formatDatetime } from "../../util/formatDatetime";
 import { extractRawID } from "../../util/graphql";
 import useDelayedValue from "../../hook/useDelayedValue";
@@ -26,7 +26,7 @@ const PLACEHOLDER = "-";
 export interface AuditLogListProps {
   className?: string;
   loading: boolean;
-  auditLogs: AuditLogListQuery_auditLogs | null;
+  auditLogs: AuditLogListFragment | null;
   offset: number;
   pageSize: number;
   totalCount?: number;
@@ -43,7 +43,7 @@ interface AuditLogListItem {
 
 function getRawUserIDFromAuditLog(
   renderToString: (id: string, values: Values | undefined) => string,
-  node: AuditLogListQuery_auditLogs_edges_node
+  node: AuditLogEdgesNodeFragment
 ): string | null {
   // The simple case is just use the user.id.
   const userID = node.user?.id ?? null;
@@ -52,7 +52,7 @@ function getRawUserIDFromAuditLog(
   }
 
   // Otherwise use the user ID in the payload.
-  const rawUserID = (node.data as any)?.payload?.user?.id;
+  const rawUserID = node.data?.payload?.user?.id;
   if (rawUserID != null) {
     return renderToString("AuditLogList.label.user-id", {
       id: rawUserID,

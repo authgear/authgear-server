@@ -34,7 +34,7 @@ import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useUpdateUserMutation } from "./mutations/updateUserMutation";
 import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
 import { useUserQuery } from "./query/userQuery";
-import { UserQuery_node_User } from "./query/__generated__/UserQuery";
+import { UserQueryNodeFragment } from "./query/userQuery.generated";
 import { usePivotNavigation } from "../../hook/usePivot";
 import { nonNullable } from "../../util/types";
 import {
@@ -51,7 +51,7 @@ import styles from "./UserDetailsScreen.module.scss";
 
 interface UserDetailsProps {
   form: SimpleFormModel<FormState>;
-  data: UserQuery_node_User | null;
+  data: UserQueryNodeFragment | null;
   appConfig: PortalAPIAppConfig | null;
 }
 
@@ -364,7 +364,7 @@ function useDeleteUserCommandBarItem(
 }
 
 function useSetUserDisabledCommandBarItem(
-  user: UserQuery_node_User,
+  user: UserQueryNodeFragment,
   onClick: IButtonProps["onClick"]
 ): ICommandBarItemProps {
   const { renderToString } = useContext(Context);
@@ -392,7 +392,7 @@ function useSetUserDisabledCommandBarItem(
 }
 
 interface WarnScheduledDeletionProps {
-  user: UserQuery_node_User;
+  user: UserQueryNodeFragment;
 }
 
 function WarnScheduledDeletion(props: WarnScheduledDeletionProps) {
@@ -416,7 +416,7 @@ function WarnScheduledDeletion(props: WarnScheduledDeletionProps) {
 }
 
 interface UserDetailsScreenContentProps {
-  user: UserQuery_node_User;
+  user: UserQueryNodeFragment;
   refreshUser?: () => void;
   effectiveAppConfig: PortalAPIAppConfig;
 }

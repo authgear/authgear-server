@@ -1,14 +1,9 @@
 import { useCallback } from "react";
-import { gql, useMutation } from "@apollo/client";
-import { DeleteUserMutation } from "./__generated__/DeleteUserMutation";
-
-const deleteUserMutation = gql`
-  mutation DeleteUserMutation($userID: ID!) {
-    deleteUser(input: { userID: $userID }) {
-      deletedUserID
-    }
-  }
-`;
+import { useMutation } from "@apollo/client";
+import {
+  DeleteUserMutationMutation,
+  DeleteUserMutationDocument,
+} from "./deleteUserMutation.generated";
 
 export function useDeleteUserMutation(): {
   deleteUser: (userID: string) => Promise<boolean>;
@@ -16,7 +11,7 @@ export function useDeleteUserMutation(): {
   error: unknown;
 } {
   const [mutationFunction, { loading, error }] =
-    useMutation<DeleteUserMutation>(deleteUserMutation);
+    useMutation<DeleteUserMutationMutation>(DeleteUserMutationDocument);
 
   const deleteUser = useCallback(
     async (userID: string) => {

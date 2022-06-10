@@ -27,7 +27,7 @@ import ScreenContent from "../../ScreenContent";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ReactCropperjs from "../../ReactCropperjs";
-import { UserQuery_node_User } from "./query/__generated__/UserQuery";
+import { UserQueryNodeFragment } from "./query/userQuery.generated";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useUserQuery } from "./query/userQuery";
 import { useSimpleForm } from "../../hook/useSimpleForm";
@@ -96,7 +96,7 @@ function RemoveDialog(props: RemoveDialogProps) {
 }
 
 interface EditPictureScreenContentProps {
-  user: UserQuery_node_User;
+  user: UserQueryNodeFragment;
   appID: string;
 }
 

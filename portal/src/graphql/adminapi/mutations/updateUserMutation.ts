@@ -1,30 +1,10 @@
 import { useCallback } from "react";
-import { gql, useMutation } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 import { StandardAttributes, CustomAttributes } from "../../../types";
-import { UpdateUserMutation } from "./__generated__/UpdateUserMutation";
-
-const updateUserMutation = gql`
-  mutation UpdateUserMutation(
-    $userID: ID!
-    $standardAttributes: UserStandardAttributes!
-    $customAttributes: UserCustomAttributes!
-  ) {
-    updateUser(
-      input: {
-        userID: $userID
-        standardAttributes: $standardAttributes
-        customAttributes: $customAttributes
-      }
-    ) {
-      user {
-        id
-        updatedAt
-        standardAttributes
-        customAttributes
-      }
-    }
-  }
-`;
+import {
+  UpdateUserMutationMutation,
+  UpdateUserMutationDocument,
+} from "./updateUserMutation.generated";
 
 export interface UseUpdateUserMutationReturnType {
   updateUser: (
@@ -38,7 +18,7 @@ export interface UseUpdateUserMutationReturnType {
 
 export function useUpdateUserMutation(): UseUpdateUserMutationReturnType {
   const [mutationFunction, { error, loading }] =
-    useMutation<UpdateUserMutation>(updateUserMutation);
+    useMutation<UpdateUserMutationMutation>(UpdateUserMutationDocument);
 
   const updateUser = useCallback(
     async (

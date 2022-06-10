@@ -4,10 +4,7 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import PasswordField from "../../PasswordField";
 import { useCreateLoginIDIdentityMutation } from "./mutations/createIdentityMutation";
 import { LoginIDKeyType, PortalAPIAppConfig } from "../../types";
-import {
-  AuthenticatorKind,
-  AuthenticatorType,
-} from "./__generated__/globalTypes";
+import { AuthenticatorKind, AuthenticatorType } from "./globalTypes.generated";
 
 import styles from "./AddIdentityForm.module.scss";
 import { useSimpleForm } from "../../hook/useSimpleForm";
@@ -16,7 +13,7 @@ import ScreenContent from "../../ScreenContent";
 import { ErrorParseRule } from "../../error/parse";
 import { canCreateLoginIDIdentity } from "../../util/loginID";
 import { Text } from "@fluentui/react";
-import { UserQuery_node_User } from "./query/__generated__/UserQuery";
+import { UserQueryNodeFragment } from "./query/userQuery.generated";
 import { validatePassword } from "../../error/password";
 
 interface FormState {
@@ -78,7 +75,7 @@ function isPasswordRequired(
       break;
   }
   const hasPrimaryPassword =
-    user?.primaryAuthenticators.includes(AuthenticatorType.PASSWORD) ?? false;
+    user?.primaryAuthenticators.includes(AuthenticatorType.Password) ?? false;
   return needPrimaryPassword && !hasPrimaryPassword;
 }
 
@@ -89,7 +86,7 @@ export interface LoginIDFieldProps {
 
 interface AddIdentityFormProps {
   appConfig: PortalAPIAppConfig | null;
-  rawUser: UserQuery_node_User | null;
+  rawUser: UserQueryNodeFragment | null;
   loginIDType: LoginIDKeyType;
   title: React.ReactNode;
   loginIDField: React.ComponentType<LoginIDFieldProps>;
@@ -120,7 +117,7 @@ const AddIdentityForm: React.FC<AddIdentityFormProps> =
       return {
         id: rawUser.id,
         primaryAuthenticators: authenticators
-          .filter((a) => a?.kind === AuthenticatorKind.PRIMARY)
+          .filter((a) => a?.kind === AuthenticatorKind.Primary)
           .map((a) => a!.type),
       };
     }, [rawUser]);

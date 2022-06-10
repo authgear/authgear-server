@@ -1,23 +1,9 @@
 import { useCallback } from "react";
-import { useMutation, gql } from "@apollo/client";
-import { RevokeSessionMutation } from "./__generated__/RevokeSessionMutation";
-
-const revokeSessionMutation = gql`
-  mutation RevokeSessionMutation($sessionID: ID!) {
-    revokeSession(input: { sessionID: $sessionID }) {
-      user {
-        id
-        sessions {
-          edges {
-            node {
-              id
-            }
-          }
-        }
-      }
-    }
-  }
-`;
+import { useMutation } from "@apollo/client";
+import {
+  RevokeSessionMutationMutation,
+  RevokeSessionMutationDocument,
+} from "./revokeSessionMutation.generated";
 
 export function useRevokeSessionMutation(): {
   revokeSession: (sessionID: string) => Promise<boolean>;
@@ -25,7 +11,7 @@ export function useRevokeSessionMutation(): {
   error: unknown;
 } {
   const [mutationFunction, { error, loading }] =
-    useMutation<RevokeSessionMutation>(revokeSessionMutation);
+    useMutation<RevokeSessionMutationMutation>(RevokeSessionMutationDocument);
 
   const revokeSession = useCallback(
     async (sessionID: string) => {

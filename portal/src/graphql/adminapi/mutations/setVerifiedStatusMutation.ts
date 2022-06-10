@@ -1,40 +1,9 @@
 import { useCallback } from "react";
-import { gql, useMutation } from "@apollo/client";
-import { SetVerifiedStatusMutation } from "./__generated__/SetVerifiedStatusMutation";
-
-const setVerifiedStatusMutation = gql`
-  mutation SetVerifiedStatusMutation(
-    $userID: ID!
-    $claimName: String!
-    $claimValue: String!
-    $isVerified: Boolean!
-  ) {
-    setVerifiedStatus(
-      input: {
-        userID: $userID
-        claimName: $claimName
-        claimValue: $claimValue
-        isVerified: $isVerified
-      }
-    ) {
-      user {
-        id
-        identities {
-          edges {
-            node {
-              id
-              claims
-            }
-          }
-        }
-        verifiedClaims {
-          name
-          value
-        }
-      }
-    }
-  }
-`;
+import { useMutation } from "@apollo/client";
+import {
+  SetVerifiedStatusMutationMutation,
+  SetVerifiedStatusMutationDocument,
+} from "./setVerifiedStatusMutation.generated";
 
 export function useSetVerifiedStatusMutation(userID: string): {
   setVerifiedStatus: (
@@ -46,7 +15,9 @@ export function useSetVerifiedStatusMutation(userID: string): {
   error: unknown;
 } {
   const [mutationFunction, { loading, error }] =
-    useMutation<SetVerifiedStatusMutation>(setVerifiedStatusMutation);
+    useMutation<SetVerifiedStatusMutationMutation>(
+      SetVerifiedStatusMutationDocument
+    );
 
   const setVerifiedStatus = useCallback(
     async (claimName: string, claimValue: string, isVerified: boolean) => {
