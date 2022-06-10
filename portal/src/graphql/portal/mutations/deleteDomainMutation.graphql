@@ -1,0 +1,19 @@
+mutation deleteDomainMutation($appID: ID!, $domainID: String!) {
+  deleteDomain(input: { appID: $appID, domainID: $domainID }) {
+    app {
+      id
+      domains {
+        id
+        createdAt
+        domain
+        cookieDomain
+        apexDomain
+        isCustom
+        isVerified
+        verificationDNSRecord
+      }
+      rawAppConfig
+      effectiveAppConfig
+    }
+  }
+}

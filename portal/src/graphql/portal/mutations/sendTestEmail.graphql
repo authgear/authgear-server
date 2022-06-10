@@ -1,0 +1,19 @@
+mutation sendTestEmailMutation(
+  $appID: ID!
+  $smtpHost: String!
+  $smtpPort: Int!
+  $smtpUsername: String!
+  $smtpPassword: String!
+  $to: String!
+) {
+  sendTestSMTPConfigurationEmail(
+    input: {
+      appID: $appID
+      smtpHost: $smtpHost
+      smtpPort: $smtpPort
+      smtpUsername: $smtpUsername
+      smtpPassword: $smtpPassword
+      to: $to
+    }
+  )
+}

@@ -1,0 +1,10 @@
+mutation skipAppTutorialProgressMutation($appID: String!, $progress: String!) {
+  skipAppTutorialProgress(input: { id: $appID, progress: $progress }) {
+    app {
+      id
+      tutorialStatus {
+        data
+      }
+    }
+  }
+}

@@ -1,0 +1,61 @@
+fragment UserQueryNode on User {
+  id
+  authenticators {
+    edges {
+      node {
+        id
+        type
+        kind
+        isDefault
+        claims
+        createdAt
+        updatedAt
+      }
+    }
+  }
+  identities {
+    edges {
+      node {
+        id
+        type
+        claims
+        createdAt
+        updatedAt
+      }
+    }
+  }
+  verifiedClaims {
+    name
+    value
+  }
+  standardAttributes
+  customAttributes
+  sessions {
+    edges {
+      node {
+        id
+        type
+        lastAccessedAt
+        lastAccessedByIP
+        displayName
+      }
+    }
+  }
+  formattedName
+  endUserAccountID
+  isAnonymous
+  isDisabled
+  disableReason
+  isDeactivated
+  deleteAt
+  lastLoginAt
+  createdAt
+  updatedAt
+}
+
+query userQuery($userID: ID!) {
+  node(id: $userID) {
+    __typename
+    ...UserQueryNode
+  }
+}

@@ -1,0 +1,27 @@
+mutation createDomainMutation($appID: ID!, $domain: String!) {
+  createDomain(input: { appID: $appID, domain: $domain }) {
+    app {
+      id
+      domains {
+        id
+        createdAt
+        domain
+        cookieDomain
+        apexDomain
+        isCustom
+        isVerified
+        verificationDNSRecord
+      }
+    }
+    domain {
+      id
+      createdAt
+      domain
+      cookieDomain
+      apexDomain
+      isCustom
+      isVerified
+      verificationDNSRecord
+    }
+  }
+}

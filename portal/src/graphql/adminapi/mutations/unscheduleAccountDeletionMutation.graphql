@@ -1,0 +1,11 @@
+mutation unscheduleAccountDeletionMutation($userID: ID!) {
+  unscheduleAccountDeletion(input: { userID: $userID }) {
+    user {
+      id
+      isDisabled
+      disableReason
+      isDeactivated
+      deleteAt
+    }
+  }
+}

@@ -1,0 +1,11 @@
+mutation scheduleAccountDeletionMutation($userID: ID!) {
+  scheduleAccountDeletion(input: { userID: $userID }) {
+    user {
+      id
+      isDisabled
+      disableReason
+      isDeactivated
+      deleteAt
+    }
+  }
+}

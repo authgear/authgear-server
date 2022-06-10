@@ -1,0 +1,15 @@
+mutation deleteCollaboratorMutation($collaboratorID: String!) {
+  deleteCollaborator(input: { collaboratorID: $collaboratorID }) {
+    app {
+      id
+      collaborators {
+        id
+        createdAt
+        user {
+          id
+          email
+        }
+      }
+    }
+  }
+}

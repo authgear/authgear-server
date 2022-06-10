@@ -1,0 +1,42 @@
+query analyticChartsQuery(
+  $appID: ID!
+  $periodical: Periodical!
+  $rangeFrom: Date!
+  $rangeTo: Date!
+) {
+  activeUserChart(
+    appID: $appID
+    periodical: $periodical
+    rangeFrom: $rangeFrom
+    rangeTo: $rangeTo
+  ) {
+    dataset {
+      label
+      data
+    }
+  }
+  totalUserCountChart(appID: $appID, rangeFrom: $rangeFrom, rangeTo: $rangeTo) {
+    dataset {
+      label
+      data
+    }
+  }
+  signupConversionRate(
+    appID: $appID
+    rangeFrom: $rangeFrom
+    rangeTo: $rangeTo
+  ) {
+    totalSignup
+    totalSignupUniquePageView
+  }
+  signupByMethodsChart(
+    appID: $appID
+    rangeFrom: $rangeFrom
+    rangeTo: $rangeTo
+  ) {
+    dataset {
+      label
+      data
+    }
+  }
+}

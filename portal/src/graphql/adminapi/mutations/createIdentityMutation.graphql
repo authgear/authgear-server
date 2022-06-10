@@ -1,0 +1,34 @@
+mutation createIdentityMutation(
+  $userID: ID!
+  $definition: IdentityDefinition!
+  $password: String
+) {
+  createIdentity(
+    input: { userID: $userID, definition: $definition, password: $password }
+  ) {
+    user {
+      id
+      authenticators {
+        edges {
+          node {
+            id
+          }
+        }
+      }
+      identities {
+        edges {
+          node {
+            id
+          }
+        }
+      }
+    }
+    identity {
+      id
+      type
+      claims
+      createdAt
+      updatedAt
+    }
+  }
+}

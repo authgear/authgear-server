@@ -1,0 +1,14 @@
+mutation deleteAuthenticatorMutation($authenticatorID: ID!) {
+  deleteAuthenticator(input: { authenticatorID: $authenticatorID }) {
+    user {
+      id
+      authenticators {
+        edges {
+          node {
+            id
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+query authenticatedForInvitationQuery($code: String!) {
+  viewer {
+    email
+  }
+  checkCollaboratorInvitation(code: $code) {
+    isInvitee
+    appID
+  }
+}

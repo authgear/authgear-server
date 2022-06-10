@@ -1,0 +1,17 @@
+query domainsQuery($appID: ID!) {
+  node(id: $appID) {
+    ... on App {
+      id
+      domains {
+        id
+        createdAt
+        apexDomain
+        domain
+        cookieDomain
+        isCustom
+        isVerified
+        verificationDNSRecord
+      }
+    }
+  }
+}

@@ -1,0 +1,36 @@
+fragment UsersList on UserConnection {
+  edges {
+    node {
+      id
+      createdAt
+      lastLoginAt
+      isAnonymous
+      isDisabled
+      disableReason
+      isDeactivated
+      deleteAt
+      standardAttributes
+      formattedName
+      endUserAccountID
+    }
+  }
+  totalCount
+}
+
+query UsersListQuery(
+  $searchKeyword: String!
+  $pageSize: Int!
+  $cursor: String
+  $sortBy: UserSortBy
+  $sortDirection: SortDirection
+) {
+  users(
+    first: $pageSize
+    after: $cursor
+    searchKeyword: $searchKeyword
+    sortBy: $sortBy
+    sortDirection: $sortDirection
+  ) {
+    ...UsersList
+  }
+}

@@ -1,0 +1,10 @@
+query appListQuery {
+  apps {
+    edges {
+      node {
+        id
+        effectiveAppConfig
+      }
+    }
+  }
+}

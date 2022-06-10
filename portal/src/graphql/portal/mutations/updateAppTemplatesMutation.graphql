@@ -1,0 +1,21 @@
+mutation updateAppTemplatesMutation(
+  $appID: ID!
+  $updates: [AppResourceUpdate!]!
+  $paths: [String!]!
+) {
+  updateApp(input: { appID: $appID, updates: $updates }) {
+    app {
+      id
+      resources(paths: $paths) {
+        path
+        languageTag
+        data
+        effectiveData
+      }
+      resourceLocales: resources {
+        path
+        languageTag
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+fragment AuditLogEntry on AuditLog {
+  id
+  createdAt
+  activityType
+  user {
+    id
+  }
+  ipAddress
+  userAgent
+  clientID
+  data
+}
+
+query AuditLogEntryQuery($logID: ID!) {
+  node(id: $logID) {
+    __typename
+    ...AuditLogEntry
+  }
+}
