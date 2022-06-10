@@ -1,0 +1,75 @@
+package cmdusage
+
+import (
+	"fmt"
+	"log"
+	"strings"
+	"time"
+
+	"github.com/spf13/cobra"
+
+	"github.com/authgear/authgear-server/cmd/portal/analytic"
+	portalcmd "github.com/authgear/authgear-server/cmd/portal/cmd"
+	libusage "github.com/authgear/authgear-server/pkg/lib/usage"
+	"github.com/authgear/authgear-server/pkg/util/periodical"
+)
+
+var cmdUsage = &cobra.Command{
+	Use:   "usage",
+	Short: "Usage Commands",
+}
+
+func init() {
+	binder := portalcmd.GetBinder()
+
+	cmdUsage.AddCommand(cmdUsageCollectCount)
+	binder.BindString(cmdUsageCollectCount.Flags(), portalcmd.ArgDatabaseURL)
+	binder.BindString(cmdUsageCollectCount.Flags(), portalcmd.ArgDatabaseSchema)
+	binder.BindString(cmdUsageCollectCount.Flags(), portalcmd.ArgAuditDatabaseURL)
+	binder.BindString(cmdUsageCollectCount.Flags(), portalcmd.ArgAuditDatabaseSchema)
+	binder.BindString(cmdUsageCollectCount.Flags(), portalcmd.ArgAnalyticRedisURL)
+
+	portalcmd.Root.AddCommand(cmdUsage)
+}
+
+var nameList = strings.Join([]string{
+	string(libusage.ActiveUser),
+	string(libusage.SMSSent),
+	string(libusage.EmailSent),
+	string(libusage.WhatsappOTPVerified),
+}, "|")
+
+var cmdUsageCollectCount = &cobra.Command{
+	Use:   fmt.Sprintf("collect-count [%s] [period]", nameList),
+	Short: "Collect usage count record",
+	Args:  cobra.ExactArgs(2),
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+
+		name := args[0]
+		period := args[1]
+		parser := analytic.NewPeriodicalArgumentParser()
+		periodicalType, date, err := parser.Parse(period)
+		if err != nil {
+			return err
+		}
+
+		type collectorFuncType func(date *time.Time) (updatedCount int, err error)
+		collectorFuncMap := map[libusage.UsageRecordName]map[periodical.Type]collectorFuncType{}
+
+		collectorFunc, ok := collectorFuncMap[libusage.UsageRecordName(name)][periodicalType]
+		if !ok {
+			return fmt.Errorf("invalid arguments; name: %s; period: %s", name, period)
+		}
+
+		log.Printf("Start collecting usage records")
+
+		updatedCount, err := collectorFunc(date)
+		if err != nil {
+			return err
+		}
+
+		log.Printf("Number of records have been updated: %d", updatedCount)
+
+		return nil
+	},
+}
