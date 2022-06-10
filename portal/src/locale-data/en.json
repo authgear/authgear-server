@@ -811,6 +811,7 @@
   "AuditLogActivityType.USER_DELETION_UNSCHEDULED": "Account deletion unscheduled",
   "AuditLogActivityType.EMAIL_SENT": "Email sent",
   "AuditLogActivityType.SMS_SENT": "SMS sent",
+  "AuditLogActivityType.WHATSAPP_OTP_VERIFIED": "Whatsapp OTP verified",
 
   "FeatureConfig.disabled": "The grayed out features are not available for your project plan. {ReactRouterLink, react, to{{planPagePath}} children{Upgrade your project plan} target{_blank}}.",
   "FeatureConfig.custom-domain.disabled": "Custom domains are not available for your project plan. {ReactRouterLink, react, to{{planPagePath}} children{Upgrade your project plan}}.",
