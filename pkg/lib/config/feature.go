@@ -19,7 +19,8 @@ var _ = FeatureConfigSchema.Add("FeatureConfig", `
 		"oauth": { "$ref": "#/$defs/OAuthFeatureConfig" },
 		"hook": { "$ref": "#/$defs/HookFeatureConfig" },
 		"audit_log": { "$ref": "#/$defs/AuditLogFeatureConfig" },
-		"google_tag_manager": { "$ref": "#/$defs/GoogleTagManagerFeatureConfig" }
+		"google_tag_manager": { "$ref": "#/$defs/GoogleTagManagerFeatureConfig" },
+		"rate_limit": { "$ref": "#/$defs/RateLimitFeatureConfig" }
 	}
 }
 `)
@@ -33,6 +34,7 @@ type FeatureConfig struct {
 	Hook             *HookFeatureConfig             `json:"hook,omitempty"`
 	AuditLog         *AuditLogFeatureConfig         `json:"audit_log,omitempty"`
 	GoogleTagManager *GoogleTagManagerFeatureConfig `json:"google_tag_manager,omitempty"`
+	RateLimit        *RateLimitFeatureConfig        `json:"rate_limit,omitempty"`
 }
 
 func ParseFeatureConfig(inputYAML []byte) (*FeatureConfig, error) {
