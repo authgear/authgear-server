@@ -10,13 +10,14 @@
     "fmt": "prettier --list-different --write './src/**/*.{js,ts,jsx,tsx,css,scss,html}'",
     "eslint": "eslint './src/**/*.{js,ts,jsx,tsx}'",
     "stylelint": "stylelint './src/**/*.{css,scss}'",
-    "gentype": "apollo client:codegen --config ./apollo.portal.config.js --target typescript --customScalarsPrefix GQL_ --globalTypesFile ./src/graphql/portal/__generated__/globalTypes.ts && apollo client:codegen --config ./apollo.adminapi.config.js --target typescript --customScalarsPrefix GQL_ --globalTypesFile ./src/graphql/adminapi/__generated__/globalTypes.ts"
+    "gentype": "graphql-codegen --config ./graphql.portal.codegen.yaml && graphql-codegen --config ./graphql.adminapi.codegen.yaml"
   },
   "alias": {
     "process": false,
     "buffer": false
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "2.6.2",
     "@oursky/eslint-plugin": "6.0.0",
     "@oursky/stylelint-oursky": "2.0.0",
     "@parcel/transformer-sass": "2.6.0",
@@ -28,7 +29,6 @@
     "@types/react-dom": "17.0.11",
     "@types/uuid": "8.3.4",
     "@types/zxcvbn": "4.4.1",
-    "apollo": "2.33.9",
     "eslint": "7.32.0",
     "jest": "27.5.1",
     "normalize.css": "8.0.1",
@@ -42,6 +42,10 @@
     "@apollo/client": "3.5.9",
     "@authgear/web": "0.17.1",
     "@fluentui/react": "8.55.2",
+    "@graphql-codegen/near-operation-file-preset": "2.2.13",
+    "@graphql-codegen/typescript": "2.5.0",
+    "@graphql-codegen/typescript-operations": "2.4.1",
+    "@graphql-codegen/typescript-react-apollo": "3.2.15",
     "@monaco-editor/react": "3.7.2",
     "@oursky/react-messageformat": "2.0.2",
     "axios": "0.26.1",

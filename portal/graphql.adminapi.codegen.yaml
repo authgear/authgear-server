@@ -1,0 +1,15 @@
+schema: ./src/graphql/adminapi/schema.graphql
+documents: "./src/graphql/adminapi/**/*.graphql"
+generates:
+  ./src/graphql/adminapi/globalTypes.generated.ts:
+    plugins:
+      - typescript
+
+  ./src/graphql/adminapi/:
+    preset: near-operation-file
+    presetConfig:
+      extension: .generated.ts
+      baseTypesPath: ./globalTypes.generated.ts
+    plugins:
+      - typescript-operations
+      - typescript-react-apollo
