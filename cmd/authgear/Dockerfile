@@ -51,9 +51,8 @@ RUN update-ca-certificates
 COPY ./GeoLite2-Country.mmdb ./GeoLite2-Country.mmdb
 COPY ./migrations ./migrations
 COPY --from=stage1 /src/authgear /usr/local/bin/
-COPY ./resources/authgear/ ./resources/authgear/
-COPY --from=stage2 /usr/src/app/resources/authgear/static/ ./resources/authgear/static/
-COPY --from=stage2 /usr/src/app/resources/authgear/templates/en/web/__generated_asset.html ./resources/authgear/templates/en/web/__generated_asset.html
+COPY ./resources/ ./resources/
+COPY --from=stage2 /usr/src/app/resources/authgear/ ./resources/authgear/
 USER nobody
 EXPOSE 3000
 CMD ["authgear", "start"]
