@@ -18,12 +18,14 @@
 <!-- 3. Go back to picture screen, see the stale profile picture screen with the removed picture for a very short period -->
 <!-- Stale page is still available for navigating back -->
 <meta name="turbo-cache-control" content="no-preview">
+
+<!-- Our CSS have to override the tailwind.css in __generated_asset.html -->
+{{ template "__generated_asset.html" . }}
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear.css" }}">
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-light-theme.css" }}">
 {{ if $.DarkThemeEnabled }}
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-dark-theme.css" }}">
 {{ end }}
-{{ template "__generated_asset.html" . }}
 
 <!-- Google Tag Manager -->
 {{ if $.GoogleTagManagerContainerID }}
