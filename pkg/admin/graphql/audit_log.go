@@ -113,6 +113,9 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"SMS_SENT": &graphql.EnumValueConfig{
 			Value: "sms.sent",
 		},
+		"WHATSAPP_OTP_VERIFIED": &graphql.EnumValueConfig{
+			Value: "whatsapp.otp.verified",
+		},
 	},
 })
 
