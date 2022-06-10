@@ -1,29 +1,12 @@
 import { useCallback } from "react";
-import { gql, useMutation } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 
 import { client } from "../apollo";
 import {
-  DeleteCollaboratorMutation,
-  DeleteCollaboratorMutationVariables,
-} from "./__generated__/DeleteCollaboratorMutation";
-
-const deleteCollaboratorMutation = gql`
-  mutation DeleteCollaboratorMutation($collaboratorID: String!) {
-    deleteCollaborator(input: { collaboratorID: $collaboratorID }) {
-      app {
-        id
-        collaborators {
-          id
-          createdAt
-          user {
-            id
-            email
-          }
-        }
-      }
-    }
-  }
-`;
+  DeleteCollaboratorMutationMutation,
+  DeleteCollaboratorMutationMutationVariables,
+  DeleteCollaboratorMutationDocument,
+} from "./deleteCollaboratorMutation.generated";
 
 export function useDeleteCollaboratorMutation(): {
   deleteCollaborator: (collaboratorID: string) => Promise<boolean>;
@@ -31,9 +14,9 @@ export function useDeleteCollaboratorMutation(): {
   error: unknown;
 } {
   const [mutationFunction, { error, loading }] = useMutation<
-    DeleteCollaboratorMutation,
-    DeleteCollaboratorMutationVariables
-  >(deleteCollaboratorMutation, {
+    DeleteCollaboratorMutationMutation,
+    DeleteCollaboratorMutationMutationVariables
+  >(DeleteCollaboratorMutationDocument, {
     client,
   });
 

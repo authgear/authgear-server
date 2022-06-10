@@ -1,11 +1,12 @@
 import { useMemo } from "react";
-import { gql, QueryResult, useQuery } from "@apollo/client";
+import { QueryResult, useQuery } from "@apollo/client";
 
 import { client } from "../apollo";
 import {
-  AppTemplatesQuery,
-  AppTemplatesQueryVariables,
-} from "./__generated__/AppTemplatesQuery";
+  AppTemplatesQueryQuery,
+  AppTemplatesQueryQueryVariables,
+  AppTemplatesQueryDocument,
+} from "./appTemplatesQuery.generated";
 import {
   Resource,
   ResourceSpecifier,
@@ -14,26 +15,9 @@ import {
   expandSpecifier,
 } from "../../../util/resource";
 
-export const appTemplatesQuery = gql`
-  query AppTemplatesQuery($id: ID!, $paths: [String!]!) {
-    node(id: $id) {
-      __typename
-      ... on App {
-        id
-        resources(paths: $paths) {
-          path
-          languageTag
-          data
-          effectiveData
-        }
-      }
-    }
-  }
-`;
-
 export interface AppTemplatesQueryResult
   extends Pick<
-    QueryResult<AppTemplatesQuery, AppTemplatesQueryVariables>,
+    QueryResult<AppTemplatesQueryQuery, AppTemplatesQueryQueryVariables>,
     "loading" | "error" | "refetch"
   > {
   resources: Resource[];
@@ -61,9 +45,9 @@ export function useAppTemplatesQuery(
   }, [specifiers]);
 
   const { data, loading, error, refetch } = useQuery<
-    AppTemplatesQuery,
-    AppTemplatesQueryVariables
-  >(appTemplatesQuery, {
+    AppTemplatesQueryQuery,
+    AppTemplatesQueryQueryVariables
+  >(AppTemplatesQueryDocument, {
     client,
     variables: {
       id: appID,

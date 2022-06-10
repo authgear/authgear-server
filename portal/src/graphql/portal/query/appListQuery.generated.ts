@@ -10,19 +10,23 @@ export type AppListQueryQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 export type AppListQueryQuery = { __typename?: 'Query', apps?: { __typename?: 'AppConnection', edges?: Array<{ __typename?: 'AppEdge', node?: { __typename?: 'App', id: string, effectiveAppConfig: any } | null } | null> | null } | null };
 
-
+export const AppListAppFragmentDoc = gql`
+    fragment AppListApp on App {
+  id
+  effectiveAppConfig
+}
+    `;
 export const AppListQueryDocument = gql`
     query appListQuery {
   apps {
     edges {
       node {
-        id
-        effectiveAppConfig
+        ...AppListApp
       }
     }
   }
 }
-    `;
+    ${AppListAppFragmentDoc}`;
 
 /**
  * __useAppListQueryQuery__

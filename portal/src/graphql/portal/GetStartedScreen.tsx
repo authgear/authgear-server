@@ -10,25 +10,29 @@ import {
 } from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FormattedMessage } from "@oursky/react-messageformat";
-import { gql, useQuery, useMutation } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
 import ReactRouterLink from "../../ReactRouterLink";
 import ScreenTitle from "../../ScreenTitle";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
-import query from "./query/ScreenNavQuery";
+import {
+  ScreenNavQueryQuery,
+  ScreenNavQueryDocument,
+} from "./query/screenNavQuery.generated";
 import { client } from "./apollo";
-import { ScreenNavQuery } from "./query/__generated__/ScreenNavQuery";
 import { TutorialStatusData } from "../../types";
 import {
-  SkipAppTutorialMutation,
-  SkipAppTutorialMutationVariables,
-} from "./__generated__/SkipAppTutorialMutation";
+  SkipAppTutorialMutationMutation,
+  SkipAppTutorialMutationMutationVariables,
+  SkipAppTutorialMutationDocument,
+} from "./mutations/skipAppTutorialMutation.generated";
 import {
-  SkipAppTutorialProgressMutation,
-  SkipAppTutorialProgressMutationVariables,
-} from "./__generated__/SkipAppTutorialProgressMutation";
+  SkipAppTutorialProgressMutationMutation,
+  SkipAppTutorialProgressMutationMutationVariables,
+  SkipAppTutorialProgressMutationDocument,
+} from "./mutations/skipAppTutorialProgressMutation.generated";
 
 import iconKey from "../../images/getting-started-icon-key.png";
 import iconCustomize from "../../images/getting-started-icon-customize.png";
@@ -37,32 +41,6 @@ import iconSSO from "../../images/getting-started-icon-sso.png";
 import iconTeam from "../../images/getting-started-icon-team.png";
 import iconTick from "../../images/getting-started-icon-tick.png";
 import styles from "./GetStartedScreen.module.scss";
-
-const skipAppTutorialMutation = gql`
-  mutation SkipAppTutorialMutation($appID: String!) {
-    skipAppTutorial(input: { id: $appID }) {
-      app {
-        id
-      }
-    }
-  }
-`;
-
-const skipAppTutorialProgressMutation = gql`
-  mutation SkipAppTutorialProgressMutation(
-    $appID: String!
-    $progress: String!
-  ) {
-    skipAppTutorialProgress(input: { id: $appID, progress: $progress }) {
-      app {
-        id
-        tutorialStatus {
-          data
-        }
-      }
-    }
-  }
-`;
 
 type Progress = keyof TutorialStatusData["progress"];
 
@@ -388,13 +366,13 @@ function GetStartedScreenContent(props: GetStartedScreenContentProps) {
   const [
     skipAppTutorialMutationFunction,
     { loading: skipAppTutorialMutationLoading },
-  ] = useMutation<SkipAppTutorialMutation, SkipAppTutorialMutationVariables>(
-    skipAppTutorialMutation,
-    {
-      client,
-      refetchQueries: [{ query }],
-    }
-  );
+  ] = useMutation<
+    SkipAppTutorialMutationMutation,
+    SkipAppTutorialMutationMutationVariables
+  >(SkipAppTutorialMutationDocument, {
+    client,
+    refetchQueries: [ScreenNavQueryDocument],
+  });
 
   const loading = propLoading || skipAppTutorialMutationLoading;
 
@@ -402,11 +380,11 @@ function GetStartedScreenContent(props: GetStartedScreenContentProps) {
     skipAppTutorialProgressMutationFuction,
     { loading: skipAppTutorialProgressMutationLoading },
   ] = useMutation<
-    SkipAppTutorialProgressMutation,
-    SkipAppTutorialProgressMutationVariables
-  >(skipAppTutorialProgressMutation, {
+    SkipAppTutorialProgressMutationMutation,
+    SkipAppTutorialProgressMutationMutationVariables
+  >(SkipAppTutorialProgressMutationDocument, {
     client,
-    refetchQueries: [{ query }],
+    refetchQueries: [ScreenNavQueryDocument],
   });
 
   const skipProgress = useCallback(
@@ -474,7 +452,7 @@ export default function GetStartedScreen(): React.ReactElement {
     refetch,
   } = useAppAndSecretConfigQuery(appID);
 
-  const queryResult = useQuery<ScreenNavQuery>(query, {
+  const queryResult = useQuery<ScreenNavQueryQuery>(ScreenNavQueryDocument, {
     client,
     variables: {
       id: appID,

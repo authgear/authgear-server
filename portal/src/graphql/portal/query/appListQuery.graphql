@@ -1,9 +1,13 @@
+fragment AppListApp on App {
+  id
+  effectiveAppConfig
+}
+
 query appListQuery {
   apps {
     edges {
       node {
-        id
-        effectiveAppConfig
+        ...AppListApp
       }
     }
   }

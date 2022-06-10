@@ -1,38 +1,11 @@
 import { useCallback } from "react";
-import { gql, useMutation } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 
 import { client } from "../../portal/apollo";
-import { CreateDomainMutation } from "./__generated__/CreateDomainMutation";
-
-const createDomainMutation = gql`
-  mutation CreateDomainMutation($appID: ID!, $domain: String!) {
-    createDomain(input: { appID: $appID, domain: $domain }) {
-      app {
-        id
-        domains {
-          id
-          createdAt
-          domain
-          cookieDomain
-          apexDomain
-          isCustom
-          isVerified
-          verificationDNSRecord
-        }
-      }
-      domain {
-        id
-        createdAt
-        domain
-        cookieDomain
-        apexDomain
-        isCustom
-        isVerified
-        verificationDNSRecord
-      }
-    }
-  }
-`;
+import {
+  CreateDomainMutationMutation,
+  CreateDomainMutationDocument,
+} from "./createDomainMutation.generated";
 
 export function useCreateDomainMutation(appID: string): {
   createDomain: (domain: string) => Promise<boolean>;
@@ -40,7 +13,7 @@ export function useCreateDomainMutation(appID: string): {
   error: unknown;
 } {
   const [mutationFunction, { error, loading }] =
-    useMutation<CreateDomainMutation>(createDomainMutation, {
+    useMutation<CreateDomainMutationMutation>(CreateDomainMutationDocument, {
       client,
     });
   const createDomain = useCallback(

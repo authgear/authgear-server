@@ -12,19 +12,21 @@ export type AppFeatureConfigQueryQueryVariables = Types.Exact<{
 
 export type AppFeatureConfigQueryQuery = { __typename?: 'Query', node?: { __typename: 'App', id: string, effectiveFeatureConfig: any, planName: string } | { __typename: 'User' } | null };
 
-
+export const AppFeatureConfigFragmentDoc = gql`
+    fragment AppFeatureConfig on App {
+  id
+  effectiveFeatureConfig
+  planName
+}
+    `;
 export const AppFeatureConfigQueryDocument = gql`
     query appFeatureConfigQuery($id: ID!) {
   node(id: $id) {
     __typename
-    ... on App {
-      id
-      effectiveFeatureConfig
-      planName
-    }
+    ...AppFeatureConfig
   }
 }
-    `;
+    ${AppFeatureConfigFragmentDoc}`;
 
 /**
  * __useAppFeatureConfigQueryQuery__

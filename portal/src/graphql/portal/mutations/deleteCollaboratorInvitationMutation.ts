@@ -1,35 +1,12 @@
 import { useCallback } from "react";
-import { gql, useMutation } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 
 import { client } from "../apollo";
 import {
-  DeleteCollaboratorInvitationMutation,
-  DeleteCollaboratorInvitationMutationVariables,
-} from "./__generated__/DeleteCollaboratorInvitationMutation";
-
-const deleteCollaboratorInvitationMutation = gql`
-  mutation DeleteCollaboratorInvitationMutation(
-    $collaboratorInvitationID: String!
-  ) {
-    deleteCollaboratorInvitation(
-      input: { collaboratorInvitationID: $collaboratorInvitationID }
-    ) {
-      app {
-        id
-        collaboratorInvitations {
-          id
-          createdAt
-          expireAt
-          invitedBy {
-            id
-            email
-          }
-          inviteeEmail
-        }
-      }
-    }
-  }
-`;
+  DeleteCollaboratorInvitationMutationMutation,
+  DeleteCollaboratorInvitationMutationMutationVariables,
+  DeleteCollaboratorInvitationMutationDocument,
+} from "./deleteCollaboratorInvitationMutation.generated";
 
 export function useDeleteCollaboratorInvitationMutation(): {
   deleteCollaboratorInvitation: (
@@ -39,9 +16,9 @@ export function useDeleteCollaboratorInvitationMutation(): {
   error: unknown;
 } {
   const [mutationFunction, { error, loading }] = useMutation<
-    DeleteCollaboratorInvitationMutation,
-    DeleteCollaboratorInvitationMutationVariables
-  >(deleteCollaboratorInvitationMutation, {
+    DeleteCollaboratorInvitationMutationMutation,
+    DeleteCollaboratorInvitationMutationMutationVariables
+  >(DeleteCollaboratorInvitationMutationDocument, {
     client,
   });
 

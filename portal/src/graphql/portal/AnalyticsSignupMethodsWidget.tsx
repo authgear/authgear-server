@@ -3,10 +3,8 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { Pie } from "react-chartjs-2";
 import { Text } from "@fluentui/react";
 
-import {
-  AnalyticChartsQuery_signupByMethodsChart,
-  AnalyticChartsQuery_signupByMethodsChart_dataset,
-} from "./query/__generated__/AnalyticChartsQuery";
+import { DataPoint } from "./globalTypes.generated";
+import { AnalyticChartsQueryQuery } from "./query/analyticChartsQuery.generated";
 import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
 import ShowLoading from "../../ShowLoading";
@@ -37,7 +35,7 @@ function getColorCodeByMethod(method: string): string {
   return UnknownMethodColor;
 }
 interface AnalyticsSignupMethodsChartProps {
-  dataset: AnalyticChartsQuery_signupByMethodsChart_dataset[];
+  dataset: DataPoint[];
 }
 
 const AnalyticsSignupMethodsChart: React.FC<AnalyticsSignupMethodsChartProps> =
@@ -121,7 +119,7 @@ const AnalyticsSignupMethodsWidgetContent: React.FC<AnalyticsSignupMethodsWidget
       () =>
         // remove null and zero data items
         (signupByMethodsChart?.dataset.filter((pt) => pt && pt.data !== 0) ??
-          []) as AnalyticChartsQuery_signupByMethodsChart_dataset[],
+          []) as DataPoint[],
       [signupByMethodsChart]
     );
 
@@ -170,7 +168,7 @@ const AnalyticsSignupMethodsWidgetContent: React.FC<AnalyticsSignupMethodsWidget
 interface AnalyticsSignupMethodsWidgetProps {
   className?: string;
   loading: boolean;
-  signupByMethodsChart: AnalyticChartsQuery_signupByMethodsChart | null;
+  signupByMethodsChart: AnalyticChartsQueryQuery["signupByMethodsChart"] | null;
 }
 
 const AnalyticsSignupMethodsWidget: React.FC<AnalyticsSignupMethodsWidgetProps> =

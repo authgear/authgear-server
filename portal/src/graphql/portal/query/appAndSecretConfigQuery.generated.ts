@@ -12,40 +12,42 @@ export type AppAndSecretConfigQueryQueryVariables = Types.Exact<{
 
 export type AppAndSecretConfigQueryQuery = { __typename?: 'Query', node?: { __typename: 'App', id: string, effectiveAppConfig: any, rawAppConfig: any, secretConfig: { __typename?: 'SecretConfig', oauthClientSecrets?: Array<{ __typename?: 'OAuthClientSecret', alias: string, clientSecret: string }> | null, webhookSecret?: { __typename?: 'WebhookSecret', secret?: string | null } | null, adminAPISecrets?: Array<{ __typename?: 'AdminAPISecret', keyID: string, createdAt?: any | null, publicKeyPEM: string, privateKeyPEM?: string | null }> | null, smtpSecret?: { __typename?: 'SMTPSecret', host: string, port: number, username: string, password?: string | null } | null } } | { __typename: 'User' } | null };
 
-
-export const AppAndSecretConfigQueryDocument = gql`
-    query appAndSecretConfigQuery($id: ID!) {
-  node(id: $id) {
-    __typename
-    ... on App {
-      id
-      effectiveAppConfig
-      rawAppConfig
-      secretConfig {
-        oauthClientSecrets {
-          alias
-          clientSecret
-        }
-        webhookSecret {
-          secret
-        }
-        adminAPISecrets {
-          keyID
-          createdAt
-          publicKeyPEM
-          privateKeyPEM
-        }
-        smtpSecret {
-          host
-          port
-          username
-          password
-        }
-      }
+export const AppAndSecretConfigFragmentDoc = gql`
+    fragment AppAndSecretConfig on App {
+  id
+  effectiveAppConfig
+  rawAppConfig
+  secretConfig {
+    oauthClientSecrets {
+      alias
+      clientSecret
+    }
+    webhookSecret {
+      secret
+    }
+    adminAPISecrets {
+      keyID
+      createdAt
+      publicKeyPEM
+      privateKeyPEM
+    }
+    smtpSecret {
+      host
+      port
+      username
+      password
     }
   }
 }
     `;
+export const AppAndSecretConfigQueryDocument = gql`
+    query appAndSecretConfigQuery($id: ID!) {
+  node(id: $id) {
+    __typename
+    ...AppAndSecretConfig
+  }
+}
+    ${AppAndSecretConfigFragmentDoc}`;
 
 /**
  * __useAppAndSecretConfigQueryQuery__

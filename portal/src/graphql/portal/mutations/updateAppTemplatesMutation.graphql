@@ -1,3 +1,5 @@
+# This mutation must fetch the the same set (or super set) fields of AppAndSecretConfigQuery.
+# Otherwise, after the mutation, that query will be refetched by Apollo.
 mutation updateAppTemplatesMutation(
   $appID: ID!
   $updates: [AppResourceUpdate!]!

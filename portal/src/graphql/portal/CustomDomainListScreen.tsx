@@ -26,7 +26,8 @@ import {
   TextField,
   VerticalDivider,
 } from "@fluentui/react";
-import { Domain, useDomainsQuery } from "./query/domainsQuery";
+import { Domain } from "./globalTypes.generated";
+import { useDomainsQuery } from "./query/domainsQuery";
 import { useCreateDomainMutation } from "./mutations/createDomainMutation";
 import { useDeleteDomainMutation } from "./mutations/deleteDomainMutation";
 import ShowError from "../../ShowError";

@@ -1,32 +1,23 @@
 import React from "react";
-import { gql, useMutation } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 
 import { client } from "../../portal/apollo";
-import { CreateAppMutation } from "./__generated__/CreateAppMutation";
-import { appListQuery } from "../query/appListQuery";
-
-const createAppMutation = gql`
-  mutation CreateAppMutation($appID: String!) {
-    createApp(input: { id: $appID }) {
-      app {
-        id
-      }
-    }
-  }
-`;
+import {
+  CreateAppMutationMutation,
+  CreateAppMutationDocument,
+} from "./createAppMutation.generated";
+import { AppListQueryDocument } from "../query/appListQuery.generated";
 
 export function useCreateAppMutation(): {
   createApp: (appID: string) => Promise<string | null>;
   loading: boolean;
   error: unknown;
 } {
-  const [mutationFunction, { error, loading }] = useMutation<CreateAppMutation>(
-    createAppMutation,
-    {
+  const [mutationFunction, { error, loading }] =
+    useMutation<CreateAppMutationMutation>(CreateAppMutationDocument, {
       client,
-      refetchQueries: [{ query: appListQuery }],
-    }
-  );
+      refetchQueries: [{ query: AppListQueryDocument }],
+    });
   const createApp = React.useCallback(
     async (appID: string) => {
       const result = await mutationFunction({

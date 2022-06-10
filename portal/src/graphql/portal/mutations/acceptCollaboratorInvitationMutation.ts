@@ -1,39 +1,12 @@
 import React from "react";
-import { gql, useMutation } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 
 import { client } from "../../portal/apollo";
 import {
-  AcceptCollaboratorInvitationMutation,
-  AcceptCollaboratorInvitationMutationVariables,
-} from "./__generated__/AcceptCollaboratorInvitationMutation";
-
-const acceptCollaboratorInvitationMutation = gql`
-  mutation AcceptCollaboratorInvitationMutation($code: String!) {
-    acceptCollaboratorInvitation(input: { code: $code }) {
-      app {
-        id
-        collaborators {
-          id
-          createdAt
-          user {
-            id
-            email
-          }
-        }
-        collaboratorInvitations {
-          id
-          createdAt
-          expireAt
-          invitedBy {
-            id
-            email
-          }
-          inviteeEmail
-        }
-      }
-    }
-  }
-`;
+  AcceptCollaboratorInvitationMutationMutation,
+  AcceptCollaboratorInvitationMutationMutationVariables,
+  AcceptCollaboratorInvitationMutationDocument,
+} from "./acceptCollaboratorInvitationMutation.generated";
 
 export function useAcceptCollaboratorInvitationMutation(): {
   acceptCollaboratorInvitation: (code: string) => Promise<string | null>;
@@ -41,9 +14,9 @@ export function useAcceptCollaboratorInvitationMutation(): {
   error: unknown;
 } {
   const [mutationFunction, { error, loading }] = useMutation<
-    AcceptCollaboratorInvitationMutation,
-    AcceptCollaboratorInvitationMutationVariables
-  >(acceptCollaboratorInvitationMutation, {
+    AcceptCollaboratorInvitationMutationMutation,
+    AcceptCollaboratorInvitationMutationMutationVariables
+  >(AcceptCollaboratorInvitationMutationDocument, {
     client,
   });
   const acceptCollaboratorInvitation = React.useCallback(

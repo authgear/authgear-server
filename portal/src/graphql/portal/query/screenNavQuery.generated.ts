@@ -12,23 +12,25 @@ export type ScreenNavQueryQueryVariables = Types.Exact<{
 
 export type ScreenNavQueryQuery = { __typename?: 'Query', node?: { __typename: 'App', id: string, effectiveFeatureConfig: any, planName: string, tutorialStatus: { __typename?: 'TutorialStatus', appID: string, data: any } } | { __typename: 'User' } | null };
 
-
+export const ScreenNavFragmentDoc = gql`
+    fragment ScreenNav on App {
+  id
+  effectiveFeatureConfig
+  planName
+  tutorialStatus {
+    appID
+    data
+  }
+}
+    `;
 export const ScreenNavQueryDocument = gql`
     query screenNavQuery($id: ID!) {
   node(id: $id) {
     __typename
-    ... on App {
-      id
-      effectiveFeatureConfig
-      planName
-      tutorialStatus {
-        appID
-        data
-      }
-    }
+    ...ScreenNav
   }
 }
-    `;
+    ${ScreenNavFragmentDoc}`;
 
 /**
  * __useScreenNavQueryQuery__
