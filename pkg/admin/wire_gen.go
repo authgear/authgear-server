@@ -701,6 +701,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,

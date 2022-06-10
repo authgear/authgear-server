@@ -3,6 +3,8 @@ package whatsapp
 import (
 	"errors"
 
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -13,11 +15,16 @@ type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("whatsapp")} }
 
+type EventService interface {
+	DispatchEvent(payload event.Payload) error
+}
+
 type Provider struct {
 	CodeStore       *StoreRedis
 	Clock           clock.Clock
 	Logger          Logger
 	WATICredentials *config.WATICredentials
+	Events          EventService
 }
 
 func (p *Provider) GetServerWhatsappPhone() string {
@@ -72,6 +79,11 @@ func (p *Provider) VerifyCode(phone string, webSessionID string, consume bool) (
 	if consume {
 		if err := p.CodeStore.Delete(phone); err != nil {
 			p.Logger.WithError(err).Error("whatsapp: failed to delete code")
+		}
+		if err := p.Events.DispatchEvent(&nonblocking.WhatsappOTPVerifiedEventPayload{
+			Phone: phone,
+		}); err != nil {
+			return nil, err
 		}
 	}
 
