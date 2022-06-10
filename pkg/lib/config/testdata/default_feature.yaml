@@ -1,0 +1,51 @@
+identity:
+  login_id:
+    types:
+      phone:
+        disabled: false
+  oauth:
+    maximum_providers: 99
+    providers:
+      google:
+        disabled: false
+      facebook:
+        disabled: false
+      github:
+        disabled: false
+      linkedin:
+        disabled: false
+      azureadv2:
+        disabled: false
+      azureadb2c:
+        disabled: false
+      adfs:
+        disabled: false
+      apple:
+        disabled: false
+      wechat:
+        disabled: false
+authentication:
+  secondary_authenticators:
+    oob_otp_sms:
+      disabled: false
+ui:
+  white_labeling:
+    disabled: false
+custom_domain:
+  disabled: false
+oauth:
+  client:
+    maximum: 99
+hook:
+  blocking_handler:
+    maximum: 99
+  non_blocking_handler:
+    maximum: 99
+audit_log:
+  retrieval_days: -1
+google_tag_manager:
+  disabled: false
+rate_limit:
+  sms:
+    size: 100000
+    reset_period: 2592000
