@@ -62,7 +62,7 @@ COPY ./GeoLite2-Country.mmdb ./GeoLite2-Country.mmdb
 COPY ./migrations ./migrations
 COPY --from=stage1 /src/authgear-portal /usr/local/bin/
 COPY ./resources/ ./resources/
-COPY --from=stage2 /usr/src/app/resources/authgear/static/ ./resources/authgear/static/
+COPY --from=stage2 /usr/src/app/resources/authgear/ ./resources/authgear/
 COPY --from=stage3 /usr/src/app/dist/ ./resources/portal/static/
 USER nobody
 EXPOSE 3003
