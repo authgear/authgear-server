@@ -95,21 +95,13 @@
   <div class="grid grid-cols-1 auto-rows-auto bg-gray-100 dark:bg-gray-800 py-18 px-4 text-center">
     <i class="good-txt text-base ti ti-check" aria-hidden="true"></i>
     <p class="text-sm primary-txt whitespace-pre-wrap">{{ template "whatsapp-otp-code-matched-description" }}</p>
-    <p class="text-xs primary-txt whitespace-pre-wrap mt-2">{{ template "whatsapp-otp-redirect-description" }}</p>
   </div>
-  <div class="alternative-separator flex flex-row items-center"></div>
-  <p class="text-sm break-words primary-txt text-center">
-    {{ template "whatsapp-otp-next-description" }}
-  </p>
   <button
     form="main-form"
     class="btn primary-btn"
     type="submit"
     name="x_action"
     value="verify"
-    data-controller="delayed-auto-submit" 
-    data-countdown-sec="2"
-    data-action="click->delayed-auto-submit#onClick"
     data-authgear-event="authgear.button.redirect_whatsapp_result"
   >{{ template "whatsapp-otp-next-button" }}</button>
   {{ if (and $.CanRequestDeviceToken $.XDeviceToken) }}
