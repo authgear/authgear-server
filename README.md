@@ -1,5 +1,5 @@
 # AuthGear
- 
+
 Work in progress
 
 ## Prerequisite
@@ -9,6 +9,7 @@ Note that there is a local .tool-versions in project root. For the following set
 1. Install asdf
 
 2. Run the following to install all dependencies in .tool-versions
+
    ```sh
    asdf install
    ```
@@ -59,6 +60,7 @@ export CGO_LDFLAGS="-L$(brew --prefix)/lib"
 ## Environment setup
 
 1. Setup environment variables:
+
    ```sh
    cp .env.example .env
    ```
@@ -73,6 +75,7 @@ export CGO_LDFLAGS="-L$(brew --prefix)/lib"
    ```
 
    then follow the instructions. For database URL and schema, use the following,
+
    ```
    DATABASE_URL=postgres://postgres@127.0.0.1:5432/postgres?sslmode=disable
    DATABASE_SCHEMA=app
@@ -91,15 +94,16 @@ export CGO_LDFLAGS="-L$(brew --prefix)/lib"
 
    - Update `.env` to change `CONFIG_SOURCE_TYPE=database`
    - Setup config source in db
-      ```
-      go run ./cmd/portal internal setup-portal ./var/ \
-         --default-authgear-domain=accounts.localhost \
-         --custom-authgear-domain=accounts.portal.localhost \
-      ```
+     ```
+     go run ./cmd/portal internal setup-portal ./var/ \
+        --default-authgear-domain=accounts.localhost \
+        --custom-authgear-domain=accounts.portal.localhost \
+     ```
 
 ## Database setup
 
 1. Start the db container
+
    ```sh
    docker-compose up -d db
    ```
@@ -121,6 +125,7 @@ export CGO_LDFLAGS="-L$(brew --prefix)/lib"
    ```
 
 To create new migration:
+
 ```sh
 # go run ./cmd/authgear database migrate new <migration name>
 go run ./cmd/authgear database migrate new add user table
@@ -170,17 +175,20 @@ go run ./cmd/portal start
 
 Some features (e.g. custom domains) requires multi-tenant mode to work properly.
 To setup multi-tenant mode:
+
 1. Setup local mock Kubernetes servers:
-    ```
-    cd hack/kube-apiserver
-    docker-compose up -d
-    ```
+   ```
+   cd hack/kube-apiserver
+   docker-compose up -d
+   ```
 2. Install cert manager CRDs:
-    ```
-    kubectl --kubeconfig=hack/kube-apiserver/.kubeconfig apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.3.1/cert-manager.crds.yaml
-    ```
+
+   ```
+   kubectl --kubeconfig=hack/kube-apiserver/.kubeconfig apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.3.1/cert-manager.crds.yaml
+   ```
 
 3. Bootstrap Kubernetes resources:
+
    ```
    kubectl --kubeconfig=hack/kube-apiserver/.kubeconfig apply -f hack/k8s-manifest.yaml
    ```
@@ -209,6 +217,14 @@ it installs them for us.
 But we do not want to do that.
 The workaround is to add `alias` to package.json.
 See [https://github.com/parcel-bundler/parcel/issues/7697](https://github.com/parcel-bundler/parcel/issues/7697).
+
+With newer version (>=8.3.1) of npm and Nodejs 16, there is a bug that
+platform-specific optional dependencies not being included in `package-lock.json`.
+Once these dependencies are not installed, the portal image cannot be built.
+As `parcel` required `@parcel/css`, and `@parcel/css` required some of these dependencies,
+at this moment this bug will occur, the workaround is to add
+`@parcel/css`, `lmdb` and `msgpackr-extract` to the `package.json`
+See [https://github.com/npm/cli/issues/4828](https://github.com/npm/cli/issues/4828)
 
 ### Setup environment variable
 
@@ -240,7 +256,7 @@ We need the following `authgear.yaml` to setup authgear for the portal.
 id: accounts # Make sure the ID matches AUTHGEAR_APP_ID environment variable.
 http:
   # Make sure this matches the host used to access main Authgear server.
-  public_origin: 'http://accounts.portal.localhost:3000'
+  public_origin: "http://accounts.portal.localhost:3000"
   allowed_origins:
     # The SDK uses XHR to fetch the OAuth/OIDC configuration,
     # So we have to allow the origin of the portal.
@@ -256,13 +272,13 @@ oauth:
       # URIs are compared byte by byte.
       redirect_uris:
         # This redirect URI is used by the portal development server.
-        - 'http://portal.localhost:8000/oauth-redirect'
+        - "http://portal.localhost:8000/oauth-redirect"
         # This redirect URI is used by the portal production build.
-        - 'http://portal.localhost:8010/oauth-redirect'
+        - "http://portal.localhost:8010/oauth-redirect"
         # This redirect URI is used by the iOS and Android demo app.
-        - 'com.authgear.example://host/path'
+        - "com.authgear.example://host/path"
         # This redirect URI is used by the React Native demo app.
-        - 'com.authgear.example.rn://host/path'
+        - "com.authgear.example.rn://host/path"
       post_logout_redirect_uris:
         # This redirect URI is used by the portal development server.
         - "http://portal.localhost:8000/"

@@ -1,0 +1,7 @@
+mutation createAppMutation($appID: String!) {
+  createApp(input: { id: $appID }) {
+    app {
+      id
+    }
+  }
+}

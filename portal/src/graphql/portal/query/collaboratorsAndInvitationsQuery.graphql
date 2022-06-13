@@ -1,0 +1,27 @@
+query collaboratorsAndInvitationsQuery($appID: ID!) {
+  node(id: $appID) {
+    __typename
+    ... on App {
+      id
+      collaborators {
+        id
+        role
+        createdAt
+        user {
+          id
+          email
+        }
+      }
+      collaboratorInvitations {
+        id
+        createdAt
+        expireAt
+        invitedBy {
+          id
+          email
+        }
+        inviteeEmail
+      }
+    }
+  }
+}

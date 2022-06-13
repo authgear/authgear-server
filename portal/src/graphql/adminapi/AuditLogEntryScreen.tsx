@@ -2,7 +2,7 @@ import React, { useMemo, useContext } from "react";
 import { useParams } from "react-router-dom";
 import { Text, Label } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
-import { gql, useQuery } from "@apollo/client";
+import { useQuery } from "@apollo/client";
 import { CopyBlock, dracula } from "react-code-blocks";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import CommandBarContainer from "../../CommandBarContainer";
@@ -13,35 +13,16 @@ import { formatDatetime } from "../../util/formatDatetime";
 import { extractRawID } from "../../util/graphql";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import {
-  AuditLogEntryQuery,
-  AuditLogEntryQueryVariables,
-  AuditLogEntryQuery_node_AuditLog,
-} from "./__generated__/AuditLogEntryQuery";
+  AuditLogEntryQueryQuery,
+  AuditLogEntryQueryQueryVariables,
+  AuditLogEntryQueryDocument,
+  AuditLogEntryFragment,
+} from "./query/auditLogEntryQuery.generated";
 
 import styles from "./AuditLogEntryScreen.module.scss";
 
-const QUERY = gql`
-  query AuditLogEntryQuery($logID: ID!) {
-    node(id: $logID) {
-      __typename
-      ... on AuditLog {
-        id
-        createdAt
-        activityType
-        user {
-          id
-        }
-        ipAddress
-        userAgent
-        clientID
-        data
-      }
-    }
-  }
-`;
-
 function getRawUserIDFromAuditLog(
-  node: AuditLogEntryQuery_node_AuditLog
+  node: AuditLogEntryFragment
 ): string | undefined {
   // The simple case is just use the user.id.
   const userID = node.user?.id ?? null;
@@ -49,7 +30,7 @@ function getRawUserIDFromAuditLog(
     return extractRawID(userID);
   }
   // Otherwise use the user ID in the payload.
-  const rawUserID = (node.data as any)?.payload?.user?.id;
+  const rawUserID = node.data?.payload?.user?.id;
   return rawUserID ?? undefined;
 }
 
@@ -84,9 +65,9 @@ const AuditLogEntryScreen: React.FC = function AuditLogEntryScreen() {
   }, []);
 
   const { data, loading, error, refetch } = useQuery<
-    AuditLogEntryQuery,
-    AuditLogEntryQueryVariables
-  >(QUERY, {
+    AuditLogEntryQueryQuery,
+    AuditLogEntryQueryQueryVariables
+  >(AuditLogEntryQueryDocument, {
     variables: {
       logID,
     },

@@ -1,20 +1,9 @@
 import { useCallback } from "react";
-import { gql, useMutation } from "@apollo/client";
-import { ScheduleAccountDeletionMutation } from "./__generated__/ScheduleAccountDeletionMutation";
-
-const scheduleAccountDeletionMutation = gql`
-  mutation ScheduleAccountDeletionMutation($userID: ID!) {
-    scheduleAccountDeletion(input: { userID: $userID }) {
-      user {
-        id
-        isDisabled
-        disableReason
-        isDeactivated
-        deleteAt
-      }
-    }
-  }
-`;
+import { useMutation } from "@apollo/client";
+import {
+  ScheduleAccountDeletionMutationMutation,
+  ScheduleAccountDeletionMutationDocument,
+} from "./scheduleAccountDeletionMutation.generated";
 
 export function useScheduleAccountDeletionMutation(): {
   scheduleAccountDeletion: (userID: string) => Promise<void>;
@@ -22,8 +11,8 @@ export function useScheduleAccountDeletionMutation(): {
   error: unknown;
 } {
   const [mutationFunction, { loading, error }] =
-    useMutation<ScheduleAccountDeletionMutation>(
-      scheduleAccountDeletionMutation,
+    useMutation<ScheduleAccountDeletionMutationMutation>(
+      ScheduleAccountDeletionMutationDocument,
       {
         // Disabling a user will terminate all sessions.
         // So we have to refetch queries that fetch sessions.

@@ -2,8 +2,10 @@ import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@apollo/client";
 import { useSystemConfig } from "../../context/SystemConfigContext";
-import { ScreenNavQuery } from "./query/__generated__/ScreenNavQuery";
-import query from "./query/ScreenNavQuery";
+import {
+  ScreenNavQueryQuery,
+  ScreenNavQueryDocument,
+} from "./query/screenNavQuery.generated";
 import { client } from "./apollo";
 import ShowLoading from "../../ShowLoading";
 
@@ -11,7 +13,7 @@ const ProjectRootScreen: React.FC = function ProjectRootScreen() {
   const { appID } = useParams();
   const { analyticEnabled } = useSystemConfig();
   const navigate = useNavigate();
-  const queryResult = useQuery<ScreenNavQuery>(query, {
+  const queryResult = useQuery<ScreenNavQueryQuery>(ScreenNavQueryDocument, {
     client,
     variables: {
       id: appID,

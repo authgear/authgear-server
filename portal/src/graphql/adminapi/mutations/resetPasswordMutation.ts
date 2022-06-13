@@ -1,16 +1,9 @@
 import { useCallback } from "react";
-import { gql, useMutation } from "@apollo/client";
-import { ResetPasswordMutation } from "./__generated__/ResetPasswordMutation";
-
-const resetPasswordMutation = gql`
-  mutation ResetPasswordMutation($userID: ID!, $password: String!) {
-    resetPassword(input: { userID: $userID, password: $password }) {
-      user {
-        id
-      }
-    }
-  }
-`;
+import { useMutation } from "@apollo/client";
+import {
+  ResetPasswordMutationMutation,
+  ResetPasswordMutationDocument,
+} from "./resetPasswordMutation.generated";
 
 export function useResetPasswordMutation(userID: string): {
   resetPassword: (password: string) => Promise<string | null>;
@@ -18,7 +11,7 @@ export function useResetPasswordMutation(userID: string): {
   error: unknown;
 } {
   const [mutationFunction, { loading, error }] =
-    useMutation<ResetPasswordMutation>(resetPasswordMutation);
+    useMutation<ResetPasswordMutationMutation>(ResetPasswordMutationDocument);
 
   const resetPassword = useCallback(
     async (password: string) => {

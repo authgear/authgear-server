@@ -1,0 +1,21 @@
+mutation deleteIdentityMutation($identityID: ID!) {
+  deleteIdentity(input: { identityID: $identityID }) {
+    user {
+      id
+      authenticators {
+        edges {
+          node {
+            id
+          }
+        }
+      }
+      identities {
+        edges {
+          node {
+            id
+          }
+        }
+      }
+    }
+  }
+}

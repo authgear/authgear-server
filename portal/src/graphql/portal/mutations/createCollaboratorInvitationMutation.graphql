@@ -1,0 +1,14 @@
+mutation createCollaboratorInvitationMutation($appID: ID!, $email: String!) {
+  createCollaboratorInvitation(input: { appID: $appID, inviteeEmail: $email }) {
+    collaboratorInvitation {
+      id
+      createdAt
+      expireAt
+      invitedBy {
+        id
+        email
+      }
+      inviteeEmail
+    }
+  }
+}

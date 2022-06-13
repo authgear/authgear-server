@@ -4,7 +4,7 @@ import { CommandBarButton, ICommandBarItemProps, Text } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useAnalyticChartsQuery } from "./query/analyticChartsQuery";
-import { Periodical } from "./__generated__/globalTypes";
+import { Periodical } from "./globalTypes.generated";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import AnalyticsActivityWidget from "./AnalyticsActivityWidget";
@@ -113,7 +113,7 @@ const AnalyticsScreenContent: React.FC = function AnalyticsScreenContent() {
     return rangeFrom ? rangeFrom.toISOString().split("T")[0] : "";
   }, [rangeFrom]);
 
-  const [periodical, setPeriodical] = useState<Periodical>(Periodical.MONTHLY);
+  const [periodical, setPeriodical] = useState<Periodical>(Periodical.Monthly);
 
   const { renderToString } = useContext(Context);
   const { appID } = useParams();

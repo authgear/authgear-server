@@ -1,44 +1,24 @@
-import { gql, QueryResult, useQuery } from "@apollo/client";
+import { QueryResult, useQuery } from "@apollo/client";
 import { useMemo } from "react";
 import { client } from "../../portal/apollo";
+import { Domain } from "../globalTypes.generated";
 import {
-  DomainsQuery,
-  DomainsQueryVariables,
-  DomainsQuery_node_App_domains,
-} from "./__generated__/DomainsQuery";
+  DomainsQueryQuery,
+  DomainsQueryQueryVariables,
+  DomainsQueryDocument,
+} from "./domainsQuery.generated";
 
-export const domainsQuery = gql`
-  query DomainsQuery($appID: ID!) {
-    node(id: $appID) {
-      ... on App {
-        id
-        domains {
-          id
-          createdAt
-          apexDomain
-          domain
-          cookieDomain
-          isCustom
-          isVerified
-          verificationDNSRecord
-        }
-      }
-    }
-  }
-`;
-
-export type Domain = DomainsQuery_node_App_domains;
 interface DomainsQueryResult
   extends Pick<
-    QueryResult<DomainsQuery, DomainsQueryVariables>,
+    QueryResult<DomainsQueryQuery, DomainsQueryQueryVariables>,
     "loading" | "error" | "refetch"
   > {
   domains: Domain[] | null;
 }
 
 export function useDomainsQuery(appID: string): DomainsQueryResult {
-  const { data, loading, error, refetch } = useQuery<DomainsQuery>(
-    domainsQuery,
+  const { data, loading, error, refetch } = useQuery<DomainsQueryQuery>(
+    DomainsQueryDocument,
     {
       client,
       variables: {

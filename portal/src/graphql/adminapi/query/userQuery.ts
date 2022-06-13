@@ -1,86 +1,25 @@
-import { gql, QueryResult, useQuery } from "@apollo/client";
+import { QueryResult, useQuery } from "@apollo/client";
 import { useMemo } from "react";
 import {
-  UserQuery,
-  UserQueryVariables,
-  UserQuery_node_User,
-} from "./__generated__/UserQuery";
-
-const userQuery = gql`
-  query UserQuery($userID: ID!) {
-    node(id: $userID) {
-      __typename
-      ... on User {
-        id
-        authenticators {
-          edges {
-            node {
-              id
-              type
-              kind
-              isDefault
-              claims
-              createdAt
-              updatedAt
-            }
-          }
-        }
-        identities {
-          edges {
-            node {
-              id
-              type
-              claims
-              createdAt
-              updatedAt
-            }
-          }
-        }
-        verifiedClaims {
-          name
-          value
-        }
-        standardAttributes
-        customAttributes
-        sessions {
-          edges {
-            node {
-              id
-              type
-              lastAccessedAt
-              lastAccessedByIP
-              displayName
-            }
-          }
-        }
-        formattedName
-        endUserAccountID
-        isAnonymous
-        isDisabled
-        disableReason
-        isDeactivated
-        deleteAt
-        lastLoginAt
-        createdAt
-        updatedAt
-      }
-    }
-  }
-`;
+  UserQueryQuery,
+  UserQueryQueryVariables,
+  UserQueryDocument,
+  UserQueryNodeFragment,
+} from "./userQuery.generated";
 
 interface UserQueryResult
   extends Pick<
-    QueryResult<UserQuery, UserQueryVariables>,
+    QueryResult<UserQueryQuery, UserQueryQueryVariables>,
     "loading" | "error" | "refetch"
   > {
-  user: UserQuery_node_User | null;
+  user: UserQueryNodeFragment | null;
 }
 
 export function useUserQuery(userID: string): UserQueryResult {
   const { data, loading, error, refetch } = useQuery<
-    UserQuery,
-    UserQueryVariables
-  >(userQuery, {
+    UserQueryQuery,
+    UserQueryQueryVariables
+  >(UserQueryDocument, {
     variables: {
       userID,
     },

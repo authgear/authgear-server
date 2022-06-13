@@ -1,0 +1,27 @@
+mutation verifyDomainMutation($appID: ID!, $domainID: String!) {
+  verifyDomain(input: { appID: $appID, domainID: $domainID }) {
+    app {
+      id
+      domains {
+        id
+        createdAt
+        domain
+        cookieDomain
+        apexDomain
+        isCustom
+        isVerified
+        verificationDNSRecord
+      }
+    }
+    domain {
+      id
+      createdAt
+      domain
+      cookieDomain
+      apexDomain
+      isCustom
+      isVerified
+      verificationDNSRecord
+    }
+  }
+}

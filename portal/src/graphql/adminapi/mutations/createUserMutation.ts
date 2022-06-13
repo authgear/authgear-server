@@ -1,24 +1,9 @@
 import { useCallback } from "react";
-import { gql, useMutation } from "@apollo/client";
-import { CreateUserMutation } from "./__generated__/CreateUserMutation";
-
-const createUserMutation = gql`
-  mutation CreateUserMutation(
-    $identityDefinition: IdentityDefinitionLoginID!
-    $password: String
-  ) {
-    createUser(
-      input: {
-        definition: { loginID: $identityDefinition }
-        password: $password
-      }
-    ) {
-      user {
-        id
-      }
-    }
-  }
-`;
+import { useMutation } from "@apollo/client";
+import {
+  CreateUserMutationMutation,
+  CreateUserMutationDocument,
+} from "./createUserMutation.generated";
 
 interface LoginIDIdentity {
   key: "username" | "email" | "phone";
@@ -34,7 +19,7 @@ export function useCreateUserMutation(): {
   error: unknown;
 } {
   const [mutationFunction, { error, loading }] =
-    useMutation<CreateUserMutation>(createUserMutation);
+    useMutation<CreateUserMutationMutation>(CreateUserMutationDocument);
   const createUser = useCallback(
     async (identity: LoginIDIdentity, password?: string) => {
       const result = await mutationFunction({

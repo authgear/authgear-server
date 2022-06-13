@@ -10,8 +10,10 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { Context } from "@oursky/react-messageformat";
 import { INavLink, INavLinkGroup, Nav } from "@fluentui/react";
 import { useSystemConfig } from "./context/SystemConfigContext";
-import query from "./graphql/portal/query/ScreenNavQuery";
-import { ScreenNavQuery } from "./graphql/portal/query/__generated__/ScreenNavQuery";
+import {
+  ScreenNavQueryQuery,
+  ScreenNavQueryDocument,
+} from "./graphql/portal/query/screenNavQuery.generated";
 import { client } from "./graphql/portal/apollo";
 import { Location } from "history";
 
@@ -52,7 +54,7 @@ const ScreenNav: React.FC = function ScreenNav() {
   const { renderToString } = useContext(Context);
   const location = useLocation();
   const path = getAppRouterPath(location);
-  const queryResult = useQuery<ScreenNavQuery>(query, {
+  const queryResult = useQuery<ScreenNavQueryQuery>(ScreenNavQueryDocument, {
     client,
     variables: {
       id: appID,

@@ -1,34 +1,26 @@
-import { gql, QueryResult, useQuery } from "@apollo/client";
+import { QueryResult, useQuery } from "@apollo/client";
 import { useMemo } from "react";
 import { nonNullable } from "../../../util/types";
 import { client } from "../../portal/apollo";
 import {
-  AppListQuery,
-  AppListQuery_apps_edges_node,
-} from "./__generated__/AppListQuery";
+  AppListAppFragment,
+  AppListQueryQuery,
+  AppListQueryDocument,
+} from "./appListQuery.generated";
 
-export const appListQuery = gql`
-  query AppListQuery {
-    apps {
-      edges {
-        node {
-          id
-          effectiveAppConfig
-        }
-      }
-    }
-  }
-`;
+export type App = AppListAppFragment;
 
-export type App = AppListQuery_apps_edges_node;
 interface AppListQueryResult
-  extends Pick<QueryResult<AppListQuery>, "loading" | "error" | "refetch"> {
+  extends Pick<
+    QueryResult<AppListQueryQuery>,
+    "loading" | "error" | "refetch"
+  > {
   apps: App[] | null;
 }
 
 export const useAppListQuery = (): AppListQueryResult => {
-  const { data, loading, error, refetch } = useQuery<AppListQuery>(
-    appListQuery,
+  const { data, loading, error, refetch } = useQuery<AppListQueryQuery>(
+    AppListQueryDocument,
     { client }
   );
 

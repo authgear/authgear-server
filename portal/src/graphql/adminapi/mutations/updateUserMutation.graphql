@@ -1,0 +1,20 @@
+mutation updateUserMutation(
+  $userID: ID!
+  $standardAttributes: UserStandardAttributes!
+  $customAttributes: UserCustomAttributes!
+) {
+  updateUser(
+    input: {
+      userID: $userID
+      standardAttributes: $standardAttributes
+      customAttributes: $customAttributes
+    }
+  ) {
+    user {
+      id
+      updatedAt
+      standardAttributes
+      customAttributes
+    }
+  }
+}

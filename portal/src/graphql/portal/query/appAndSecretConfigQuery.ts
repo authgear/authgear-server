@@ -1,69 +1,35 @@
 import { useMemo } from "react";
-import { gql, QueryResult, useQuery } from "@apollo/client";
+import { QueryResult, useQuery } from "@apollo/client";
 import { client } from "../../portal/apollo";
 import {
-  AppAndSecretConfigQuery,
-  AppAndSecretConfigQueryVariables,
-  AppAndSecretConfigQuery_node_App,
-} from "./__generated__/AppAndSecretConfigQuery";
-
-export const appAndSecretConfigQuery = gql`
-  query AppAndSecretConfigQuery($id: ID!) {
-    node(id: $id) {
-      __typename
-      ... on App {
-        id
-        effectiveAppConfig
-        rawAppConfig
-        secretConfig {
-          oauthClientSecrets {
-            alias
-            clientSecret
-          }
-          webhookSecret {
-            secret
-          }
-          adminAPISecrets {
-            keyID
-            createdAt
-            publicKeyPEM
-            privateKeyPEM
-          }
-          smtpSecret {
-            host
-            port
-            username
-            password
-          }
-        }
-      }
-    }
-  }
-`;
+  AppAndSecretConfigQueryQuery,
+  AppAndSecretConfigQueryQueryVariables,
+  AppAndSecretConfigQueryDocument,
+} from "./appAndSecretConfigQuery.generated";
+import { PortalAPIAppConfig, PortalAPISecretConfig } from "../../../types";
 
 export interface AppAndSecretConfigQueryResult
   extends Pick<
-    QueryResult<AppAndSecretConfigQuery, AppAndSecretConfigQueryVariables>,
+    QueryResult<
+      AppAndSecretConfigQueryQuery,
+      AppAndSecretConfigQueryQueryVariables
+    >,
     "loading" | "error" | "refetch"
   > {
-  rawAppConfig: AppAndSecretConfigQuery_node_App["rawAppConfig"] | null;
-  effectiveAppConfig:
-    | AppAndSecretConfigQuery_node_App["effectiveAppConfig"]
-    | null;
-  secretConfig: AppAndSecretConfigQuery_node_App["secretConfig"] | null;
+  rawAppConfig: PortalAPIAppConfig | null;
+  effectiveAppConfig: PortalAPIAppConfig | null;
+  secretConfig: PortalAPISecretConfig | null;
 }
 export const useAppAndSecretConfigQuery = (
   appID: string
 ): AppAndSecretConfigQueryResult => {
-  const { data, loading, error, refetch } = useQuery<AppAndSecretConfigQuery>(
-    appAndSecretConfigQuery,
-    {
+  const { data, loading, error, refetch } =
+    useQuery<AppAndSecretConfigQueryQuery>(AppAndSecretConfigQueryDocument, {
       client,
       variables: {
         id: appID,
       },
-    }
-  );
+    });
 
   const queryData = useMemo(() => {
     const appConfigNode = data?.node?.__typename === "App" ? data.node : null;

@@ -1,12 +1,12 @@
 import { useCallback } from "react";
-import { gql } from "@apollo/client";
 import { useGraphqlMutation } from "../../../hook/graphql";
 import { client } from "../apollo";
-import { AppResourceUpdate } from "../__generated__/globalTypes";
+import { AppResourceUpdate } from "../globalTypes.generated";
 import {
-  UpdateAppTemplatesMutation,
-  UpdateAppTemplatesMutationVariables,
-} from "./__generated__/UpdateAppTemplatesMutation";
+  UpdateAppTemplatesMutationMutation,
+  UpdateAppTemplatesMutationMutationVariables,
+  UpdateAppTemplatesMutationDocument,
+} from "./updateAppTemplatesMutation.generated";
 import { PortalAPIApp } from "../../../types";
 import {
   ResourceUpdate,
@@ -14,30 +14,6 @@ import {
   encodeForText,
   expandSpecifier,
 } from "../../../util/resource";
-
-const updateAppTemplatesMutation = gql`
-  mutation UpdateAppTemplatesMutation(
-    $appID: ID!
-    $updates: [AppResourceUpdate!]!
-    $paths: [String!]!
-  ) {
-    updateApp(input: { appID: $appID, updates: $updates }) {
-      app {
-        id
-        resources(paths: $paths) {
-          path
-          languageTag
-          data
-          effectiveData
-        }
-        resourceLocales: resources {
-          path
-          languageTag
-        }
-      }
-    }
-  }
-`;
 
 export type AppTemplatesUpdater = (
   updates: ResourceUpdate[]
@@ -50,9 +26,9 @@ export function useUpdateAppTemplatesMutation(appID: string): {
   resetError: () => void;
 } {
   const [mutationFunction, { error, loading }, resetError] = useGraphqlMutation<
-    UpdateAppTemplatesMutation,
-    UpdateAppTemplatesMutationVariables
-  >(updateAppTemplatesMutation, {
+    UpdateAppTemplatesMutationMutation,
+    UpdateAppTemplatesMutationMutationVariables
+  >(UpdateAppTemplatesMutationDocument, {
     client,
   });
   const updateAppTemplates = useCallback(

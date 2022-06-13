@@ -1,54 +1,19 @@
-import { gql, QueryResult, useQuery } from "@apollo/client";
+import { QueryResult, useQuery } from "@apollo/client";
 import { useMemo } from "react";
 
 import { client } from "../../portal/apollo";
+import { Collaborator, CollaboratorInvitation } from "../globalTypes.generated";
 import {
-  CollaboratorsAndInvitationsQuery,
-  CollaboratorsAndInvitationsQueryVariables,
-  CollaboratorsAndInvitationsQuery_node_App_collaboratorInvitations,
-  CollaboratorsAndInvitationsQuery_node_App_collaborators,
-} from "./__generated__/CollaboratorsAndInvitationsQuery";
-
-export const collaboratorsAndInvitationsQuery = gql`
-  query CollaboratorsAndInvitationsQuery($appID: ID!) {
-    node(id: $appID) {
-      __typename
-      ... on App {
-        id
-        collaborators {
-          id
-          role
-          createdAt
-          user {
-            id
-            email
-          }
-        }
-        collaboratorInvitations {
-          id
-          createdAt
-          expireAt
-          invitedBy {
-            id
-            email
-          }
-          inviteeEmail
-        }
-      }
-    }
-  }
-`;
-
-export type Collaborator =
-  CollaboratorsAndInvitationsQuery_node_App_collaborators;
-export type CollaboratorInvitation =
-  CollaboratorsAndInvitationsQuery_node_App_collaboratorInvitations;
+  CollaboratorsAndInvitationsQueryQuery,
+  CollaboratorsAndInvitationsQueryQueryVariables,
+  CollaboratorsAndInvitationsQueryDocument,
+} from "./collaboratorsAndInvitationsQuery.generated";
 
 interface CollaboratorsAndInvitationsQueryResult
   extends Pick<
     QueryResult<
-      CollaboratorsAndInvitationsQuery,
-      CollaboratorsAndInvitationsQueryVariables
+      CollaboratorsAndInvitationsQueryQuery,
+      CollaboratorsAndInvitationsQueryQueryVariables
     >,
     "loading" | "error" | "refetch"
   > {
@@ -60,8 +25,8 @@ export function useCollaboratorsAndInvitationsQuery(
   appID: string
 ): CollaboratorsAndInvitationsQueryResult {
   const { data, loading, error, refetch } =
-    useQuery<CollaboratorsAndInvitationsQuery>(
-      collaboratorsAndInvitationsQuery,
+    useQuery<CollaboratorsAndInvitationsQueryQuery>(
+      CollaboratorsAndInvitationsQueryDocument,
       {
         client,
         variables: {

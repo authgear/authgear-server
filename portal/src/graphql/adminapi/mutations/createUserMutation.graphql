@@ -1,0 +1,12 @@
+mutation createUserMutation(
+  $identityDefinition: IdentityDefinitionLoginID!
+  $password: String
+) {
+  createUser(
+    input: { definition: { loginID: $identityDefinition }, password: $password }
+  ) {
+    user {
+      id
+    }
+  }
+}

@@ -15,8 +15,8 @@ import {
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { Link } from "react-router-dom";
-import { UsersListQuery_users } from "./__generated__/UsersListQuery";
-import { UserSortBy, SortDirection } from "./__generated__/globalTypes";
+import { UsersListFragment } from "./query/usersListQuery.generated";
+import { UserSortBy, SortDirection } from "./globalTypes.generated";
 
 import PaginationWidget from "../../PaginationWidget";
 import SetUserDisabledDialog from "./SetUserDisabledDialog";
@@ -31,7 +31,7 @@ import useDelayedValue from "../../hook/useDelayedValue";
 interface UsersListProps {
   className?: string;
   loading: boolean;
-  users: UsersListQuery_users | null;
+  users: UsersListFragment | null;
   offset: number;
   pageSize: number;
   totalCount?: number;
@@ -167,7 +167,7 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
       name: renderToString("UsersList.column.signed-up"),
       minWidth: 150,
       isSorted: sortBy === "CREATED_AT",
-      isSortedDescending: sortDirection === SortDirection.DESC,
+      isSortedDescending: sortDirection === SortDirection.Desc,
       iconName: "SortLines",
       iconClassName: styles.sortIcon,
     },
@@ -177,7 +177,7 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
       name: renderToString("UsersList.column.last-login-at"),
       minWidth: 150,
       isSorted: sortBy === "LAST_LOGIN_AT",
-      isSortedDescending: sortDirection === SortDirection.DESC,
+      isSortedDescending: sortDirection === SortDirection.Desc,
       iconName: "SortLines",
       iconClassName: styles.sortIcon,
     },
@@ -211,7 +211,7 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
             createdAt: formatDatetime(locale, node.createdAt),
             lastLoginAt: formatDatetime(locale, node.lastLoginAt),
             profilePictureURL: node.standardAttributes.picture ?? null,
-            formattedName: node.formattedName,
+            formattedName: node.formattedName ?? null,
             endUserAccountIdentitifer: node.endUserAccountID ?? null,
             username: node.standardAttributes.preferred_username ?? null,
             phone: node.standardAttributes.phone_number ?? null,
@@ -306,10 +306,10 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
     (_e, column) => {
       if (column != null) {
         if (column.key === "createdAt") {
-          onColumnClick?.(UserSortBy.CREATED_AT);
+          onColumnClick?.(UserSortBy.CreatedAt);
         }
         if (column.key === "lastLoginAt") {
-          onColumnClick?.(UserSortBy.LAST_LOGIN_AT);
+          onColumnClick?.(UserSortBy.LastLoginAt);
         }
       }
     },

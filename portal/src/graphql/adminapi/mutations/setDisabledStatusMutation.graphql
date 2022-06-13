@@ -1,0 +1,11 @@
+mutation setDisabledStatusMutation($userID: ID!, $isDisabled: Boolean!) {
+  setDisabledStatus(input: { userID: $userID, isDisabled: $isDisabled }) {
+    user {
+      id
+      isDisabled
+      disableReason
+      isDeactivated
+      deleteAt
+    }
+  }
+}

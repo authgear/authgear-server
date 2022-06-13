@@ -1,0 +1,5 @@
+mutation deleteUserMutation($userID: ID!) {
+  deleteUser(input: { userID: $userID }) {
+    deletedUserID
+  }
+}

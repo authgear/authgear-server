@@ -106,7 +106,7 @@ const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenCo
       for (const adminAPISecret of adminAPISecrets) {
         items.push({
           keyID: adminAPISecret.keyID,
-          createdAt: formatDatetime(locale, adminAPISecret.createdAt),
+          createdAt: formatDatetime(locale, adminAPISecret.createdAt ?? null),
           publicKeyPEM: adminAPISecret.publicKeyPEM,
           privateKeyPEM: adminAPISecret.privateKeyPEM,
         });

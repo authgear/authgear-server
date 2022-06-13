@@ -27,7 +27,7 @@ import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
 import { useSetVerifiedStatusMutation } from "./mutations/setVerifiedStatusMutation";
 import { formatDatetime } from "../../util/formatDatetime";
 import { OAuthSSOProviderType } from "../../types";
-import { UserQuery_node_User_verifiedClaims } from "./query/__generated__/UserQuery";
+import { UserQueryNodeFragment } from "./query/userQuery.generated";
 import { makeInvariantViolatedErrorParseRule } from "../../error/parse";
 
 import styles from "./UserDetailsConnectedIdentities.module.scss";
@@ -49,10 +49,10 @@ interface Identity {
   updatedAt: string;
 }
 
-type VerifiedClaim = UserQuery_node_User_verifiedClaims;
+type VerifiedClaims = UserQueryNodeFragment["verifiedClaims"];
 interface UserDetailsConnectedIdentitiesProps {
   identities: Identity[];
-  verifiedClaims: VerifiedClaim[];
+  verifiedClaims: VerifiedClaims;
   availableLoginIdIdentities: string[];
 }
 
@@ -223,7 +223,7 @@ function getIdentityName(
 }
 
 function checkIsClaimVerified(
-  verifiedClaims: VerifiedClaim[],
+  verifiedClaims: VerifiedClaims,
   claimName: string,
   claimValue: string
 ) {

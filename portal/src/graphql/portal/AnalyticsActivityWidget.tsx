@@ -3,11 +3,8 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { IPivotItemProps, Pivot, PivotItem, Text } from "@fluentui/react";
 import { TooltipItem } from "chart.js";
 import { Bar, Line } from "react-chartjs-2";
-import {
-  AnalyticChartsQuery_activeUserChart,
-  AnalyticChartsQuery_totalUserCountChart,
-} from "./query/__generated__/AnalyticChartsQuery";
-import { Periodical } from "./__generated__/globalTypes";
+import { AnalyticChartsQueryQuery } from "./query/analyticChartsQuery.generated";
+import { Periodical } from "./globalTypes.generated";
 import { isoWeekLabels, monthLabel } from "../../util/date";
 import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
@@ -15,7 +12,7 @@ import ShowLoading from "../../ShowLoading";
 import styles from "./AnalyticsActivityWidget.module.scss";
 
 interface AnalyticsActivityWidgetActiveUserChartProps {
-  chartData: AnalyticChartsQuery_activeUserChart | null;
+  chartData: AnalyticChartsQueryQuery["activeUserChart"] | null;
   periodical: Periodical;
 }
 
@@ -62,10 +59,10 @@ const AnalyticsActivityWidgetActiveUserChart: React.FC<AnalyticsActivityWidgetAc
     const data = useMemo(() => {
       let labelFn = (iosDate: any) => iosDate;
       switch (periodical) {
-        case Periodical.MONTHLY:
+        case Periodical.Monthly:
           labelFn = monthLabel;
           break;
-        case Periodical.WEEKLY:
+        case Periodical.Weekly:
           labelFn = isoWeekLabels;
           break;
       }
@@ -91,7 +88,7 @@ const AnalyticsActivityWidgetActiveUserChart: React.FC<AnalyticsActivityWidgetAc
   };
 
 interface AnalyticsActivityWidgetTotalUserChartProps {
-  chartData: AnalyticChartsQuery_totalUserCountChart | null;
+  chartData: AnalyticChartsQueryQuery["totalUserCountChart"] | null;
 }
 
 const AnalyticsActivityWidgetTotalUserChart: React.FC<AnalyticsActivityWidgetTotalUserChartProps> =
@@ -182,8 +179,10 @@ interface AnalyticsActivityWidgetProps {
   loading: boolean;
   periodical: Periodical;
   onPeriodicalChange: (periodical: Periodical) => void;
-  activeUserChartData: AnalyticChartsQuery_activeUserChart | null;
-  totalUserCountChartData: AnalyticChartsQuery_totalUserCountChart | null;
+  activeUserChartData: AnalyticChartsQueryQuery["activeUserChart"] | null;
+  totalUserCountChartData:
+    | AnalyticChartsQueryQuery["totalUserCountChart"]
+    | null;
 }
 
 const AnalyticsActivityWidget: React.FC<AnalyticsActivityWidgetProps> =
@@ -215,13 +214,13 @@ const AnalyticsActivityWidget: React.FC<AnalyticsActivityWidgetProps> =
         >
           <PivotItem
             headerText={renderToString("AnalyticsActivityWidget.monthly.label")}
-            itemKey={Periodical.MONTHLY}
+            itemKey={Periodical.Monthly}
           >
             <AnalyticsActivityCharts {...props} />
           </PivotItem>
           <PivotItem
             headerText={renderToString("AnalyticsActivityWidget.weekly.label")}
-            itemKey={Periodical.WEEKLY}
+            itemKey={Periodical.Weekly}
           >
             <AnalyticsActivityCharts {...props} />
           </PivotItem>

@@ -1,0 +1,14 @@
+mutation revokeAllSessionsMutation($userID: ID!) {
+  revokeAllSessions(input: { userID: $userID }) {
+    user {
+      id
+      sessions {
+        edges {
+          node {
+            id
+          }
+        }
+      }
+    }
+  }
+}

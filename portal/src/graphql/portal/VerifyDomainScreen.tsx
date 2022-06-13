@@ -15,7 +15,8 @@ import ShowError from "../../ShowError";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import ErrorDialog from "../../error/ErrorDialog";
-import { Domain, useDomainsQuery } from "./query/domainsQuery";
+import { Domain } from "./globalTypes.generated";
+import { useDomainsQuery } from "./query/domainsQuery";
 import { useVerifyDomainMutation } from "./mutations/verifyDomainMutation";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
 

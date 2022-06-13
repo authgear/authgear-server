@@ -1,31 +1,13 @@
 import React from "react";
-import { gql, useMutation } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 
 import { client } from "../apollo";
 import {
-  CreateCollaboratorInvitationMutation,
-  CreateCollaboratorInvitationMutationVariables,
-} from "./__generated__/CreateCollaboratorInvitationMutation";
-import { collaboratorsAndInvitationsQuery } from "../query/collaboratorsAndInvitationsQuery";
-
-const createCollaboratorInvitationMutation = gql`
-  mutation CreateCollaboratorInvitationMutation($appID: ID!, $email: String!) {
-    createCollaboratorInvitation(
-      input: { appID: $appID, inviteeEmail: $email }
-    ) {
-      collaboratorInvitation {
-        id
-        createdAt
-        expireAt
-        invitedBy {
-          id
-          email
-        }
-        inviteeEmail
-      }
-    }
-  }
-`;
+  CreateCollaboratorInvitationMutationMutation,
+  CreateCollaboratorInvitationMutationMutationVariables,
+  CreateCollaboratorInvitationMutationDocument,
+} from "./createCollaboratorInvitationMutation.generated";
+import { CollaboratorsAndInvitationsQueryDocument } from "../query/collaboratorsAndInvitationsQuery.generated";
 
 export function useCreateCollaboratorInvitationMutation(appID: string): {
   createCollaboratorInvitation: (email: string) => Promise<string | null>;
@@ -33,13 +15,13 @@ export function useCreateCollaboratorInvitationMutation(appID: string): {
   error: unknown;
 } {
   const [mutationFunction, { error, loading }] = useMutation<
-    CreateCollaboratorInvitationMutation,
-    CreateCollaboratorInvitationMutationVariables
-  >(createCollaboratorInvitationMutation, {
+    CreateCollaboratorInvitationMutationMutation,
+    CreateCollaboratorInvitationMutationMutationVariables
+  >(CreateCollaboratorInvitationMutationDocument, {
     client,
     refetchQueries: [
       {
-        query: collaboratorsAndInvitationsQuery,
+        query: CollaboratorsAndInvitationsQueryDocument,
         variables: {
           appID,
         },

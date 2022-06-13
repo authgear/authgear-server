@@ -1,30 +1,11 @@
 import { useCallback } from "react";
-import { gql, useMutation } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 
 import { client } from "../../portal/apollo";
-import { DeleteDomainMutation } from "./__generated__/DeleteDomainMutation";
-
-const deleteDomainMutation = gql`
-  mutation DeleteDomainMutation($appID: ID!, $domainID: String!) {
-    deleteDomain(input: { appID: $appID, domainID: $domainID }) {
-      app {
-        id
-        domains {
-          id
-          createdAt
-          domain
-          cookieDomain
-          apexDomain
-          isCustom
-          isVerified
-          verificationDNSRecord
-        }
-        rawAppConfig
-        effectiveAppConfig
-      }
-    }
-  }
-`;
+import {
+  DeleteDomainMutationMutation,
+  DeleteDomainMutationDocument,
+} from "./deleteDomainMutation.generated";
 
 export function useDeleteDomainMutation(appID: string): {
   deleteDomain: (domainID: string) => Promise<boolean>;
@@ -32,7 +13,7 @@ export function useDeleteDomainMutation(appID: string): {
   error: unknown;
 } {
   const [mutationFunction, { error, loading }] =
-    useMutation<DeleteDomainMutation>(deleteDomainMutation, {
+    useMutation<DeleteDomainMutationMutation>(DeleteDomainMutationDocument, {
       client,
     });
 

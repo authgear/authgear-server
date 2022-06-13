@@ -1,0 +1,21 @@
+mutation deleteCollaboratorInvitationMutation(
+  $collaboratorInvitationID: String!
+) {
+  deleteCollaboratorInvitation(
+    input: { collaboratorInvitationID: $collaboratorInvitationID }
+  ) {
+    app {
+      id
+      collaboratorInvitations {
+        id
+        createdAt
+        expireAt
+        invitedBy {
+          id
+          email
+        }
+        inviteeEmail
+      }
+    }
+  }
+}

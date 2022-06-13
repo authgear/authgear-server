@@ -1,0 +1,36 @@
+fragment AuditLogEdgesNode on AuditLog {
+  id
+  createdAt
+  activityType
+  user {
+    id
+  }
+  data
+}
+
+fragment AuditLogList on AuditLogConnection {
+  edges {
+    node {
+      ...AuditLogEdgesNode
+    }
+  }
+  totalCount
+}
+
+query AuditLogListQuery(
+  $pageSize: Int!
+  $cursor: String
+  $activityTypes: [AuditLogActivityType!]
+  $rangeFrom: DateTime
+  $rangeTo: DateTime
+) {
+  auditLogs(
+    first: $pageSize
+    after: $cursor
+    activityTypes: $activityTypes
+    rangeFrom: $rangeFrom
+    rangeTo: $rangeTo
+  ) {
+    ...AuditLogList
+  }
+}

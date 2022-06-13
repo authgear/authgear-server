@@ -9,11 +9,7 @@ import {
 } from "@fluentui/react";
 import cn from "classnames";
 
-import {
-  Collaborator,
-  CollaboratorInvitation,
-} from "./query/collaboratorsAndInvitationsQuery";
-
+import { Collaborator, CollaboratorInvitation } from "./globalTypes.generated";
 import styles from "./PortalAdminList.module.scss";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 

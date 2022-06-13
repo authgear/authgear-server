@@ -1,0 +1,7 @@
+mutation skipAppTutorialMutation($appID: String!) {
+  skipAppTutorial(input: { id: $appID }) {
+    app {
+      id
+    }
+  }
+}

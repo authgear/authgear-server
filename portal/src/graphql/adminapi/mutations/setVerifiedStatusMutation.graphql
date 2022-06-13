@@ -1,0 +1,31 @@
+mutation setVerifiedStatusMutation(
+  $userID: ID!
+  $claimName: String!
+  $claimValue: String!
+  $isVerified: Boolean!
+) {
+  setVerifiedStatus(
+    input: {
+      userID: $userID
+      claimName: $claimName
+      claimValue: $claimValue
+      isVerified: $isVerified
+    }
+  ) {
+    user {
+      id
+      identities {
+        edges {
+          node {
+            id
+            claims
+          }
+        }
+      }
+      verifiedClaims {
+        name
+        value
+      }
+    }
+  }
+}

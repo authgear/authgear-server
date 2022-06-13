@@ -1,0 +1,15 @@
+schema: ./src/graphql/portal/schema.graphql
+documents: "./src/graphql/portal/**/*.graphql"
+generates:
+  ./src/graphql/portal/globalTypes.generated.ts:
+    plugins:
+      - typescript
+
+  ./src/graphql/portal/:
+    preset: near-operation-file
+    presetConfig:
+      extension: .generated.ts
+      baseTypesPath: ./globalTypes.generated.ts
+    plugins:
+      - typescript-operations
+      - typescript-react-apollo

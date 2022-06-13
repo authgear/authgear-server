@@ -1,0 +1,12 @@
+fragment AppFeatureConfig on App {
+  id
+  effectiveFeatureConfig
+  planName
+}
+
+query appFeatureConfigQuery($id: ID!) {
+  node(id: $id) {
+    __typename
+    ...AppFeatureConfig
+  }
+}

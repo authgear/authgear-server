@@ -1,20 +1,9 @@
 import { useCallback } from "react";
-import { gql, useMutation } from "@apollo/client";
-import { SetDisabledStatusMutation } from "./__generated__/SetDisabledStatusMutation";
-
-const setDisabledStatusMutation = gql`
-  mutation SetDisabledStatusMutation($userID: ID!, $isDisabled: Boolean!) {
-    setDisabledStatus(input: { userID: $userID, isDisabled: $isDisabled }) {
-      user {
-        id
-        isDisabled
-        disableReason
-        isDeactivated
-        deleteAt
-      }
-    }
-  }
-`;
+import { useMutation } from "@apollo/client";
+import {
+  SetDisabledStatusMutationMutation,
+  SetDisabledStatusMutationDocument,
+} from "./setDisabledStatusMutation.generated";
 
 export function useSetDisabledStatusMutation(): {
   setDisabledStatus: (userID: string, isDisabled: boolean) => Promise<boolean>;
@@ -22,11 +11,14 @@ export function useSetDisabledStatusMutation(): {
   error: unknown;
 } {
   const [mutationFunction, { loading, error }] =
-    useMutation<SetDisabledStatusMutation>(setDisabledStatusMutation, {
-      // Disabling a user will terminate all sessions.
-      // So we have to refetch queries that fetch sessions.
-      refetchQueries: ["UserQuery"],
-    });
+    useMutation<SetDisabledStatusMutationMutation>(
+      SetDisabledStatusMutationDocument,
+      {
+        // Disabling a user will terminate all sessions.
+        // So we have to refetch queries that fetch sessions.
+        refetchQueries: ["UserQuery"],
+      }
+    );
 
   const setDisabledStatus = useCallback(
     async (userID: string, isDisabled: boolean) => {

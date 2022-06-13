@@ -1,48 +1,37 @@
 import { useMemo } from "react";
-import { gql, QueryResult, useQuery } from "@apollo/client";
+import { QueryResult, useQuery } from "@apollo/client";
 import { client } from "../../portal/apollo";
 import {
-  AppFeatureConfigQuery,
-  AppFeatureConfigQueryVariables,
-  AppFeatureConfigQuery_node_App,
-} from "./__generated__/AppFeatureConfigQuery";
-
-export const appFeatureConfigQuery = gql`
-  query AppFeatureConfigQuery($id: ID!) {
-    node(id: $id) {
-      __typename
-      ... on App {
-        id
-        effectiveFeatureConfig
-        planName
-      }
-    }
-  }
-`;
+  AppFeatureConfigQueryQuery,
+  AppFeatureConfigQueryQueryVariables,
+  AppFeatureConfigFragment,
+  AppFeatureConfigQueryDocument,
+} from "./appFeatureConfigQuery.generated";
 
 interface AppFeatureConfigQueryResult
   extends Pick<
-    QueryResult<AppFeatureConfigQuery, AppFeatureConfigQueryVariables>,
+    QueryResult<
+      AppFeatureConfigQueryQuery,
+      AppFeatureConfigQueryQueryVariables
+    >,
     "loading" | "error" | "refetch"
   > {
   effectiveFeatureConfig:
-    | AppFeatureConfigQuery_node_App["effectiveFeatureConfig"]
+    | AppFeatureConfigFragment["effectiveFeatureConfig"]
     | null;
-  planName: AppFeatureConfigQuery_node_App["planName"] | null;
+  planName: AppFeatureConfigFragment["planName"] | null;
 }
 
 export const useAppFeatureConfigQuery = (
   appID: string
 ): AppFeatureConfigQueryResult => {
-  const { data, loading, error, refetch } = useQuery<AppFeatureConfigQuery>(
-    appFeatureConfigQuery,
-    {
+  const { data, loading, error, refetch } =
+    useQuery<AppFeatureConfigQueryQuery>(AppFeatureConfigQueryDocument, {
       client,
       variables: {
         id: appID,
       },
-    }
-  );
+    });
 
   const queryData = useMemo(() => {
     const featureConfigNode =

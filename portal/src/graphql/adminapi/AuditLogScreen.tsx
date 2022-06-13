@@ -8,7 +8,7 @@ import {
 } from "@fluentui/react";
 import { useConst } from "@fluentui/react-hooks";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
-import { gql, useQuery } from "@apollo/client";
+import { useQuery } from "@apollo/client";
 import { DateTime } from "luxon";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import AuditLogList from "./AuditLogList";
@@ -22,46 +22,16 @@ import DateRangeDialog from "../portal/DateRangeDialog";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import useTransactionalState from "../../hook/useTransactionalState";
 import {
-  AuditLogListQuery,
-  AuditLogListQueryVariables,
-} from "./__generated__/AuditLogListQuery";
-import { AuditLogActivityType } from "./__generated__/globalTypes";
+  AuditLogListQueryQuery,
+  AuditLogListQueryQueryVariables,
+  AuditLogListQueryDocument,
+} from "./query/auditLogListQuery.generated";
+import { AuditLogActivityType } from "./globalTypes.generated";
 
 import styles from "./AuditLogScreen.module.scss";
 import { useAppFeatureConfigQuery } from "../portal/query/appFeatureConfigQuery";
 
 const pageSize = 10;
-
-const QUERY = gql`
-  query AuditLogListQuery(
-    $pageSize: Int!
-    $cursor: String
-    $activityTypes: [AuditLogActivityType!]
-    $rangeFrom: DateTime
-    $rangeTo: DateTime
-  ) {
-    auditLogs(
-      first: $pageSize
-      after: $cursor
-      activityTypes: $activityTypes
-      rangeFrom: $rangeFrom
-      rangeTo: $rangeTo
-    ) {
-      edges {
-        node {
-          id
-          createdAt
-          activityType
-          user {
-            id
-          }
-          data
-        }
-      }
-      totalCount
-    }
-  }
-`;
 
 function CommandBarDropdownWrapper(props: ICommandBarItemProps) {
   const { dropdownProps } = props;
@@ -148,7 +118,7 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
         text: renderToString("AuditLogActivityType.ALL"),
       },
     ];
-    for (const key of Object.keys(AuditLogActivityType)) {
+    for (const key of Object.values(AuditLogActivityType)) {
       options.push({
         key: key,
         text: renderToString("AuditLogActivityType." + key),
@@ -180,9 +150,9 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
   }, []);
 
   const { data, error, loading, refetch } = useQuery<
-    AuditLogListQuery,
-    AuditLogListQueryVariables
-  >(QUERY, {
+    AuditLogListQueryQuery,
+    AuditLogListQueryQueryVariables
+  >(AuditLogListQueryDocument, {
     variables: {
       pageSize,
       cursor,

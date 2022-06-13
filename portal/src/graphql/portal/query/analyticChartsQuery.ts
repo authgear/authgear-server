@@ -1,74 +1,22 @@
-import { gql, QueryResult, useQuery } from "@apollo/client";
+import { QueryResult, useQuery } from "@apollo/client";
 import { useMemo } from "react";
 import { client } from "../apollo";
-import { Periodical } from "../__generated__/globalTypes";
+import { Periodical } from "../globalTypes.generated";
 import {
-  AnalyticChartsQuery,
-  AnalyticChartsQueryVariables,
-  AnalyticChartsQuery_activeUserChart,
-  AnalyticChartsQuery_signupByMethodsChart,
-  AnalyticChartsQuery_signupConversionRate,
-  AnalyticChartsQuery_totalUserCountChart,
-} from "./__generated__/AnalyticChartsQuery";
-
-export const analyticChartsQuery = gql`
-  query AnalyticChartsQuery(
-    $appID: ID!
-    $periodical: Periodical!
-    $rangeFrom: Date!
-    $rangeTo: Date!
-  ) {
-    activeUserChart(
-      appID: $appID
-      periodical: $periodical
-      rangeFrom: $rangeFrom
-      rangeTo: $rangeTo
-    ) {
-      dataset {
-        label
-        data
-      }
-    }
-    totalUserCountChart(
-      appID: $appID
-      rangeFrom: $rangeFrom
-      rangeTo: $rangeTo
-    ) {
-      dataset {
-        label
-        data
-      }
-    }
-    signupConversionRate(
-      appID: $appID
-      rangeFrom: $rangeFrom
-      rangeTo: $rangeTo
-    ) {
-      totalSignup
-      totalSignupUniquePageView
-    }
-    signupByMethodsChart(
-      appID: $appID
-      rangeFrom: $rangeFrom
-      rangeTo: $rangeTo
-    ) {
-      dataset {
-        label
-        data
-      }
-    }
-  }
-`;
+  AnalyticChartsQueryQuery,
+  AnalyticChartsQueryQueryVariables,
+  AnalyticChartsQueryDocument,
+} from "./analyticChartsQuery.generated";
 
 export interface AnalyticChartsQueryResult
   extends Pick<
-    QueryResult<AnalyticChartsQuery, AnalyticChartsQueryVariables>,
+    QueryResult<AnalyticChartsQueryQuery, AnalyticChartsQueryQueryVariables>,
     "loading" | "error" | "refetch"
   > {
-  activeUserChart: AnalyticChartsQuery_activeUserChart | null;
-  totalUserCountChart: AnalyticChartsQuery_totalUserCountChart | null;
-  signupConversionRate: AnalyticChartsQuery_signupConversionRate | null;
-  signupByMethodsChart: AnalyticChartsQuery_signupByMethodsChart | null;
+  activeUserChart: AnalyticChartsQueryQuery["activeUserChart"] | null;
+  totalUserCountChart: AnalyticChartsQueryQuery["totalUserCountChart"] | null;
+  signupConversionRate: AnalyticChartsQueryQuery["signupConversionRate"] | null;
+  signupByMethodsChart: AnalyticChartsQueryQuery["signupByMethodsChart"] | null;
 }
 export const useAnalyticChartsQuery = (
   appID: string,
@@ -76,8 +24,8 @@ export const useAnalyticChartsQuery = (
   rangeFrom: string,
   rangeTo: string
 ): AnalyticChartsQueryResult => {
-  const { data, loading, error, refetch } = useQuery<AnalyticChartsQuery>(
-    analyticChartsQuery,
+  const { data, loading, error, refetch } = useQuery<AnalyticChartsQueryQuery>(
+    AnalyticChartsQueryDocument,
     {
       client,
       variables: {

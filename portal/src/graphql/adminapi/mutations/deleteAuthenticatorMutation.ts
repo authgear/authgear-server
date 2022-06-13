@@ -1,23 +1,9 @@
-import { gql, useMutation } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 import { useCallback } from "react";
-import { DeleteAuthenticatorMutation } from "./__generated__/DeleteAuthenticatorMutation";
-
-const deleteAuthenticatorMutation = gql`
-  mutation DeleteAuthenticatorMutation($authenticatorID: ID!) {
-    deleteAuthenticator(input: { authenticatorID: $authenticatorID }) {
-      user {
-        id
-        authenticators {
-          edges {
-            node {
-              id
-            }
-          }
-        }
-      }
-    }
-  }
-`;
+import {
+  DeleteAuthenticatorMutationMutation,
+  DeleteAuthenticatorMutationDocument,
+} from "./deleteAuthenticatorMutation.generated";
 
 export function useDeleteAuthenticatorMutation(): {
   deleteAuthenticator: (authenticatorID: string) => Promise<boolean>;
@@ -25,7 +11,9 @@ export function useDeleteAuthenticatorMutation(): {
   error: unknown;
 } {
   const [mutationFunction, { error, loading }] =
-    useMutation<DeleteAuthenticatorMutation>(deleteAuthenticatorMutation);
+    useMutation<DeleteAuthenticatorMutationMutation>(
+      DeleteAuthenticatorMutationDocument
+    );
   const deleteAuthenticator = useCallback(
     async (authenticatorID: string) => {
       const result = await mutationFunction({

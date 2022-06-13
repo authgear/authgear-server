@@ -1,25 +1,14 @@
-import {
-  AuthenticatedForInvitationQuery,
-  AuthenticatedForInvitationQueryVariables,
-} from "./__generated__/AuthenticatedForInvitationQuery";
-import { gql, QueryResult, useQuery } from "@apollo/client";
+import { QueryResult, useQuery } from "@apollo/client";
 import { client } from "../apollo";
-
-export const authenticatedQuery = gql`
-  query AuthenticatedForInvitationQuery($code: String!) {
-    viewer {
-      email
-    }
-    checkCollaboratorInvitation(code: $code) {
-      isInvitee
-      appID
-    }
-  }
-`;
+import {
+  AuthenticatedForInvitationQueryQuery,
+  AuthenticatedForInvitationQueryQueryVariables,
+  AuthenticatedForInvitationQueryDocument,
+} from "./authenticatedForInvitationQuery.generated";
 
 export interface AuthenticatedForInvitationQueryResult
   extends Pick<
-    QueryResult<AuthenticatedForInvitationQuery>,
+    QueryResult<AuthenticatedForInvitationQueryQuery>,
     "loading" | "error" | "refetch"
   > {
   isCodeValid?: boolean;
@@ -32,9 +21,9 @@ export const useAuthenticatedForInvitationQuery = (
   code: string
 ): AuthenticatedForInvitationQueryResult => {
   const { data, loading, error, refetch } = useQuery<
-    AuthenticatedForInvitationQuery,
-    AuthenticatedForInvitationQueryVariables
-  >(authenticatedQuery, { client, variables: { code } });
+    AuthenticatedForInvitationQueryQuery,
+    AuthenticatedForInvitationQueryQueryVariables
+  >(AuthenticatedForInvitationQueryDocument, { client, variables: { code } });
 
   if (error?.networkError && "statusCode" in error.networkError) {
     return { loading, error, refetch };

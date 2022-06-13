@@ -1,0 +1,25 @@
+mutation acceptCollaboratorInvitationMutation($code: String!) {
+  acceptCollaboratorInvitation(input: { code: $code }) {
+    app {
+      id
+      collaborators {
+        id
+        createdAt
+        user {
+          id
+          email
+        }
+      }
+      collaboratorInvitations {
+        id
+        createdAt
+        expireAt
+        invitedBy {
+          id
+          email
+        }
+        inviteeEmail
+      }
+    }
+  }
+}

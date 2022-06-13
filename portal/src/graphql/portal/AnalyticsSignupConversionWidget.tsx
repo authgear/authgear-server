@@ -6,14 +6,14 @@ import { TooltipItem } from "chart.js";
 import ChartDataLabels, {
   Context as ChartDataLabelsContext,
 } from "chartjs-plugin-datalabels";
-import { AnalyticChartsQuery_signupConversionRate } from "./query/__generated__/AnalyticChartsQuery";
+import { AnalyticChartsQueryQuery } from "./query/analyticChartsQuery.generated";
 import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
 import ShowLoading from "../../ShowLoading";
 import styles from "./AnalyticsSignupConversionWidget.module.scss";
 
 interface AnalyticsSignupConversionChartProps {
-  signupConversionRate: AnalyticChartsQuery_signupConversionRate | null;
+  signupConversionRate: AnalyticChartsQueryQuery["signupConversionRate"] | null;
 }
 
 const SignedUpPercentageDataIndex = 0; // index of SignedUpPercentage data in the dataset
@@ -173,7 +173,7 @@ const AnalyticsSignupConversionWidgetContent: React.FC<AnalyticsSignupConversion
 interface AnalyticsSignupConversionWidgetProps {
   className?: string;
   loading: boolean;
-  signupConversionRate: AnalyticChartsQuery_signupConversionRate | null;
+  signupConversionRate: AnalyticChartsQueryQuery["signupConversionRate"] | null;
 }
 
 const AnalyticsSignupConversionWidget: React.FC<AnalyticsSignupConversionWidgetProps> =

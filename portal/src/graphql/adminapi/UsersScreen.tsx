@@ -12,7 +12,7 @@ import {
   ISearchBoxProps,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { gql, useQuery } from "@apollo/client";
+import { useQuery } from "@apollo/client";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import UsersList from "./UsersList";
 import CommandBarContainer from "../../CommandBarContainer";
@@ -20,10 +20,11 @@ import ScreenContent from "../../ScreenContent";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import {
-  UsersListQuery,
-  UsersListQueryVariables,
-} from "./__generated__/UsersListQuery";
-import { UserSortBy, SortDirection } from "./__generated__/globalTypes";
+  UsersListQueryQuery,
+  UsersListQueryQueryVariables,
+  UsersListQueryDocument,
+} from "./query/usersListQuery.generated";
+import { UserSortBy, SortDirection } from "./globalTypes.generated";
 import ShowError from "../../ShowError";
 import useDelayedValue from "../../hook/useDelayedValue";
 
@@ -32,41 +33,6 @@ import styles from "./UsersScreen.module.scss";
 const LocalSearchBoxContext = createContext<LocalSearchBoxProps | null>(null);
 
 const pageSize = 10;
-
-const LIST_QUERY = gql`
-  query UsersListQuery(
-    $searchKeyword: String!
-    $pageSize: Int!
-    $cursor: String
-    $sortBy: UserSortBy
-    $sortDirection: SortDirection
-  ) {
-    users(
-      first: $pageSize
-      after: $cursor
-      searchKeyword: $searchKeyword
-      sortBy: $sortBy
-      sortDirection: $sortDirection
-    ) {
-      edges {
-        node {
-          id
-          createdAt
-          lastLoginAt
-          isAnonymous
-          isDisabled
-          disableReason
-          isDeactivated
-          deleteAt
-          standardAttributes
-          formattedName
-          endUserAccountID
-        }
-      }
-      totalCount
-    }
-  }
-`;
 
 interface LocalSearchBoxProps {
   className?: ISearchBoxProps["className"];
@@ -175,9 +141,9 @@ const UsersScreen: React.FC = function UsersScreen() {
   }, []);
 
   const { data, error, loading, refetch } = useQuery<
-    UsersListQuery,
-    UsersListQueryVariables
-  >(LIST_QUERY, {
+    UsersListQueryQuery,
+    UsersListQueryQueryVariables
+  >(UsersListQueryDocument, {
     variables: {
       pageSize,
       cursor,
@@ -199,16 +165,16 @@ const UsersScreen: React.FC = function UsersScreen() {
     (columnKey: UserSortBy) => {
       if (sortBy === columnKey) {
         if (sortDirection == null) {
-          setSortDirection(SortDirection.DESC);
-        } else if (sortDirection === SortDirection.DESC) {
-          setSortDirection(SortDirection.ASC);
+          setSortDirection(SortDirection.Desc);
+        } else if (sortDirection === SortDirection.Desc) {
+          setSortDirection(SortDirection.Asc);
         } else {
           setSortBy(undefined);
           setSortDirection(undefined);
         }
       } else {
         setSortBy(columnKey);
-        setSortDirection(SortDirection.DESC);
+        setSortDirection(SortDirection.Desc);
       }
     },
     [sortBy, sortDirection]
