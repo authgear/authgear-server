@@ -155,7 +155,7 @@
   "whatsapp-otp-refresh-button-label": "重試",
   "whatsapp-otp-installed-on-this-device-hint" : "在此裝置上安裝了 WhatsApp？",
   "whatsapp-otp-open-in-whatsapp-button-label": "是，在 WhatsApp 中打開",
-  "whatsapp-otp-scan-code-button-label": "否，在其他設備上掃碼",
+  "whatsapp-otp-scan-code-button-label": "否，在其他設備上掃描 QR Code",
   "whatsapp-otp-code-matched-description": "收到訊息！",
   "whatsapp-otp-next-button": "繼續",
   "whatsapp-otp-scan-code-description": "在你的設備上使用 WhatsApp 掃描 QR Code 開始聊天",
