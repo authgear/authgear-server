@@ -157,8 +157,6 @@
   "whatsapp-otp-open-in-whatsapp-button-label": "是，在 WhatsApp 中打開",
   "whatsapp-otp-scan-code-button-label": "否，在其他設備上掃碼",
   "whatsapp-otp-code-matched-description": "收到訊息！",
-  "whatsapp-otp-redirect-description": "正在重新導向",
-  "whatsapp-otp-next-description": "沒有重新導向?",
   "whatsapp-otp-next-button": "繼續",
   "whatsapp-otp-scan-code-description": "在你的設備上使用 WhatsApp 掃描二維碼開始聊天",
   "whatsapp-otp-done-button": "完成",
