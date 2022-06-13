@@ -158,8 +158,6 @@
   "whatsapp-otp-open-in-whatsapp-button-label": "Yes, open in WhatsApp",
   "whatsapp-otp-scan-code-button-label": "No, scan code on other device",
   "whatsapp-otp-code-matched-description": "Message Received!",
-  "whatsapp-otp-redirect-description": "You will be redirected.",
-  "whatsapp-otp-next-description": "Didn''t reload?",
   "whatsapp-otp-next-button": "Next",
   "whatsapp-otp-scan-code-description": "Scan the QR code with WhatsApp on your device to start the chat",
   "whatsapp-otp-done-button": "Done",
