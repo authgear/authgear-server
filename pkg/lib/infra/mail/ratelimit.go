@@ -11,9 +11,7 @@ type RateLimiter interface {
 	TakeToken(bucket ratelimit.Bucket) error
 }
 
-// TODO(rate-limit): allow configuration of bucket size & reset period
-
-func RateLimitBucket(email string) ratelimit.Bucket {
+func AntiSpamBucket(email string) ratelimit.Bucket {
 	return ratelimit.Bucket{
 		Key:         fmt.Sprintf("email-message:%s", email),
 		Size:        10,

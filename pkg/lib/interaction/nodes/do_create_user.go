@@ -40,7 +40,7 @@ func (e *EdgeDoCreateUser) Instantiate(ctx *interaction.Context, graph *interact
 	if !bypassRateLimit {
 		// check the rate limit only to ensure that we have token to signup
 		// the token will be token after running the effects successfully
-		pass, _, err := ctx.RateLimiter.CheckToken(interaction.SignupRateLimitBucket(string(ctx.RemoteIP)))
+		pass, _, err := ctx.RateLimiter.CheckToken(interaction.AntiSpamSignupBucket(string(ctx.RemoteIP)))
 		if err != nil {
 			return nil, err
 		}
@@ -93,7 +93,7 @@ func (n *NodeDoCreateUser) GetEffects() ([]interaction.Effect, error) {
 				// Therefore this checking need to be done in `EffectOnCommit`
 				// to ensure all nodes are run.
 				// check the rate limit only before running the effects
-				pass, _, err := ctx.RateLimiter.CheckToken(interaction.SignupAnonymousUserRateLimitBucket(ip))
+				pass, _, err := ctx.RateLimiter.CheckToken(interaction.AntiSpamSignupAnonymousBucket(ip))
 				if err != nil {
 					return err
 				}
@@ -121,13 +121,13 @@ func (n *NodeDoCreateUser) GetEffects() ([]interaction.Effect, error) {
 
 			// take the token after running the effects successfully
 			if !n.BypassRateLimit {
-				err := ctx.RateLimiter.TakeToken(interaction.SignupRateLimitBucket(ip))
+				err := ctx.RateLimiter.TakeToken(interaction.AntiSpamSignupBucket(ip))
 				if err != nil {
 					return err
 				}
 
 				if isAnonymous {
-					err := ctx.RateLimiter.TakeToken(interaction.SignupAnonymousUserRateLimitBucket(ip))
+					err := ctx.RateLimiter.TakeToken(interaction.AntiSpamSignupAnonymousBucket(ip))
 					if err != nil {
 						return err
 					}
