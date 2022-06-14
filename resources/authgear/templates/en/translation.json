@@ -61,6 +61,7 @@
   "error-web-ui-invalid-session-return": "<p>This page is invalid or has expired.</p><p>Please return and retry your request.</p>",
   "error-web-ui-invalid-session-action": "Return",
   "error-rate-limited": "Please wait for a moment before retrying.",
+  "error-usage-limit-exceeded": "[To Developer] Your project has exceeded the usage limit. Please review your subscription.",
   "error-webhook-disallowed": "Operation is disallowed",
   "error-webhook-pre-signup-disallowed": "Signup is disallowed",
   "error-webhook-disallowed-action": "Return",
