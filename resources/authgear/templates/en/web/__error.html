@@ -22,7 +22,7 @@
         {{ $display_error = false }}
     {{ end }}
 {{ end }}
-<div id="error-message" class="messages-bar flex flew-row errors {{ if not $display_error }}hidden{{ end }}" data-controller="message-bar" data-message-bar-target="bar">
+<div id="error-message" class="messages-bar flex flew-row errors {{ if not $display_error }}hidden{{ end }}" data-controller="message-bar">
     <div class="w-8 h-8 flex justify-center items-center error-txt"><i class="ti ti-alert-circle"></i></div>
     <ul class="messages-txt list-none flex flex-col flex-1 mx-0 my-1.5 p-0 text-sm">
         <li id="error-message-server" class="hidden">{{ template "error-server" }}</li>

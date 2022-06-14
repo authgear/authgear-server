@@ -1,10 +1,6 @@
 import { Controller } from "@hotwired/stimulus";
 
 export class MessageBarController extends Controller {
-  static targets = ["bar"];
-
-  declare barTarget: HTMLElement;
-
   // Close the message bar before cache the page.
   // So that the cached page does not have the message bar shown.
   // See https://github.com/authgear/authgear-server/issues/1424
@@ -13,7 +9,7 @@ export class MessageBarController extends Controller {
   };
 
   hide = () => {
-    const barTarget = this.barTarget;
+    const barTarget = this.element as HTMLElement;
     barTarget.classList.add("hidden");
   };
 
