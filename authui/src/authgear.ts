@@ -6,7 +6,7 @@ import { PasswordVisibilityToggleController } from "./passwordVisibility";
 import { PasswordPolicyController } from "./password-policy";
 import { ClickToSwitchController } from "./clickToSwitch";
 import { PreventDoubleTapController } from "./preventDoubleTap";
-import { AccountDelectionController } from "./accountdeletion";
+import { AccountDeletionController } from "./accountdeletion";
 import { ResendButtonController } from "./resendButton";
 import { MessageBarController } from "./messageBar";
 import { IntlTelInputController } from "./intlTelInput";
@@ -47,7 +47,7 @@ Stimulus.register("copy-button", CopyButtonController);
 
 Stimulus.register("prevent-double-tap", PreventDoubleTapController);
 
-Stimulus.register("account-delection", AccountDelectionController);
+Stimulus.register("account-deletion", AccountDeletionController);
 
 Stimulus.register("resend-button", ResendButtonController);
 
