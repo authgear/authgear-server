@@ -123,7 +123,7 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context, ignoreRatelimitE
 	}
 
 	result := code.SendResult()
-	err = ctx.RateLimiter.TakeToken(interaction.SendVerificationCodeRateLimitBucket(code.LoginID))
+	err = ctx.RateLimiter.TakeToken(interaction.AntiSpamSendVerificationCodeBucket(code.LoginID))
 	if ignoreRatelimitError && errors.Is(err, ratelimit.ErrTooManyRequests) {
 		// Ignore the rate limit error and do NOT send the code.
 		return result, nil

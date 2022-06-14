@@ -8,9 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
 
-// TODO(rate-limit): allow configuration of bucket size & reset period
-
-func AuthenticateSecretRateLimitBucket(userID string, authType model.AuthenticatorType) ratelimit.Bucket {
+func AntiBruteForceAuthenticateBucket(userID string, authType model.AuthenticatorType) ratelimit.Bucket {
 	return ratelimit.Bucket{
 		Key:         fmt.Sprintf("auth-secret:%s:%s", string(authType), userID),
 		Size:        10,
