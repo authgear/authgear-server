@@ -12,6 +12,7 @@ type HardSMSBucketer struct {
 func (b *HardSMSBucketer) Bucket() ratelimit.Bucket {
 	c := b.FeatureConfig.RateLimit.SMS
 	return ratelimit.Bucket{
+		Kind:        ratelimit.KindUsage,
 		Key:         "sms-message-hard",
 		Size:        *c.Size,
 		ResetPeriod: c.ResetPeriod.Duration(),
