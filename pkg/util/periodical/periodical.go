@@ -42,6 +42,17 @@ func (p *ArgumentParser) Parse(input string) (Type, *time.Time, error) {
 	now := p.Clock.NowUTC()
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	switch input {
+	case "today":
+		return Daily, &today, nil
+	case "this-week":
+		monday := today
+		for monday.Weekday() != time.Monday {
+			monday = monday.AddDate(0, 0, -1)
+		}
+		return Weekly, &monday, nil
+	case "this-month":
+		fistDateOfMonth := time.Date(today.Year(), today.Month(), 1, 0, 0, 0, 0, time.UTC)
+		return Monthly, &fistDateOfMonth, nil
 	case "yesterday":
 		yesterday := today.AddDate(0, 0, -1)
 		return Daily, &yesterday, nil
