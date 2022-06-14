@@ -72,7 +72,8 @@ export enum AuditLogActivityType {
   UserDisabled = 'USER_DISABLED',
   UserProfileUpdated = 'USER_PROFILE_UPDATED',
   UserReenabled = 'USER_REENABLED',
-  UserSignedOut = 'USER_SIGNED_OUT'
+  UserSignedOut = 'USER_SIGNED_OUT',
+  WhatsappOtpVerified = 'WHATSAPP_OTP_VERIFIED'
 }
 
 /** A connection to a list of items. */
