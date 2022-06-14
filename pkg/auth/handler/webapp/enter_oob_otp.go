@@ -80,7 +80,7 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 			viewModel.OOBOTPTarget = phone.Mask(target)
 		}
 
-		bucket := interaction.SendOOBCodeRateLimitBucket(oobType, target)
+		bucket := interaction.AntiSpamSendOOBCodeBucket(oobType, target)
 		pass, resetDuration, err := h.RateLimiter.CheckToken(bucket)
 		if err != nil {
 			return nil, err

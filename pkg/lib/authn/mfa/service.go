@@ -55,7 +55,7 @@ func (s *Service) CreateDeviceToken(userID string, token string) (*DeviceToken, 
 }
 
 func (s *Service) VerifyDeviceToken(userID string, token string) error {
-	err := s.RateLimiter.TakeToken(DeviceTokenAuthRateLimitBucket(userID))
+	err := s.RateLimiter.TakeToken(AntiBruteForceDeviceTokenBucket(userID))
 	if err != nil {
 		return err
 	}
@@ -109,7 +109,7 @@ func (s *Service) ReplaceRecoveryCodes(userID string, codes []string) ([]*Recove
 }
 
 func (s *Service) VerifyRecoveryCode(userID string, code string) (*RecoveryCode, error) {
-	err := s.RateLimiter.TakeToken(RecoveryCodeAuthRateLimitBucket(userID))
+	err := s.RateLimiter.TakeToken(AutiBruteForceRecoveryCodeBucket(userID))
 	if err != nil {
 		return nil, err
 	}
