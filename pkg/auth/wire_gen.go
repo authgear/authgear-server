@@ -32,7 +32,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	stdattrs2 "github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
-	"github.com/authgear/authgear-server/pkg/lib/billing"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/event"
@@ -64,6 +63,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
+	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -572,7 +572,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -1264,7 +1264,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -1912,7 +1912,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -3828,7 +3828,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -4481,7 +4481,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -5140,7 +5140,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -5899,7 +5899,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -6595,7 +6595,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -7291,7 +7291,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -7970,7 +7970,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -8650,7 +8650,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -9322,7 +9322,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -9997,7 +9997,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -10675,7 +10675,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -11350,7 +11350,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -12024,7 +12024,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -12699,7 +12699,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -13375,7 +13375,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -14049,7 +14049,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -14723,7 +14723,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -15399,7 +15399,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -16073,7 +16073,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -17077,7 +17077,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -17751,7 +17751,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -18425,7 +18425,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -19101,7 +19101,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -19775,7 +19775,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -20454,7 +20454,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -21128,7 +21128,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -21803,7 +21803,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -22477,7 +22477,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -23178,7 +23178,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -23863,7 +23863,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -24561,7 +24561,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -25238,7 +25238,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -25913,7 +25913,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -26597,7 +26597,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -27272,7 +27272,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -27947,7 +27947,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -28623,7 +28623,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -29303,7 +29303,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -29978,7 +29978,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -30653,7 +30653,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -31328,7 +31328,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -32003,7 +32003,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -32685,7 +32685,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -33361,7 +33361,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -34035,7 +34035,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -34728,7 +34728,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
@@ -35402,7 +35402,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	hardSMSBucketer := &billing.HardSMSBucketer{
+	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{

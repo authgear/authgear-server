@@ -1,4 +1,4 @@
-package billing
+package usage
 
 import (
 	"github.com/google/wire"
