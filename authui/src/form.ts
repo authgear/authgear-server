@@ -129,12 +129,8 @@ export class XHRSubmitFormController extends Controller {
 }
 
 export class RestoreFormController extends Controller {
-  static targets = ["metaTag"];
-
-  declare metaTagTarget: HTMLMetaElement;
-
   connect() {
-    const metaTag = this.metaTagTarget;
+    const metaTag = this.element as HTMLMetaElement;
 
     const content = metaTag.content;
     if (content === "") {
