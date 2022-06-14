@@ -38,6 +38,7 @@ func (c *Controller) Start() {
 		&cfg.Search,
 		&cfg.AuditLog,
 		&cfg.Analytic,
+		&cfg.Stripe,
 	)
 	if err != nil {
 		golog.Fatalf("failed to setup server: %s", err)
