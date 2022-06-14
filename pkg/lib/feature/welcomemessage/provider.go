@@ -61,7 +61,7 @@ func (p *Provider) send(emails []string) error {
 			return err
 		}
 
-		err = p.RateLimiter.TakeToken(mail.RateLimitBucket(email))
+		err = p.RateLimiter.TakeToken(mail.AntiSpamBucket(email))
 		if err != nil {
 			return err
 		}

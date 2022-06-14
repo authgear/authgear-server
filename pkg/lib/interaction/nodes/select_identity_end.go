@@ -27,7 +27,7 @@ func (e *EdgeSelectIdentityEnd) Instantiate(ctx *interaction.Context, graph *int
 	}
 
 	if !bypassRateLimit {
-		err := ctx.RateLimiter.TakeToken(interaction.AccountEnumerationRateLimitBucket(string(ctx.RemoteIP)))
+		err := ctx.RateLimiter.TakeToken(interaction.AntiAccountEnumerationBucket(string(ctx.RemoteIP)))
 		if err != nil {
 			return nil, err
 		}

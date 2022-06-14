@@ -91,7 +91,7 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
 		return err
 	}
 
-	err = s.RateLimiter.TakeToken(mail.RateLimitBucket(email))
+	err = s.RateLimiter.TakeToken(mail.AntiSpamBucket(email))
 	if err != nil {
 		return err
 	}
@@ -153,7 +153,7 @@ func (s *MessageSender) SendSMS(phone string, opts SendOptions) (err error) {
 		return err
 	}
 
-	err = s.RateLimiter.TakeToken(sms.RateLimitBucket(phone))
+	err = s.RateLimiter.TakeToken(sms.AntiSpamBucket(phone))
 	if err != nil {
 		return err
 	}
