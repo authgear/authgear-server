@@ -5,8 +5,13 @@ import {
   IDropdownOption,
   MessageBar,
   addDays,
+  TooltipHost,
+  ITooltipHostStyles,
+  ITooltipProps,
+  CommandBarButton,
+  DirectionalHint,
 } from "@fluentui/react";
-import { useConst } from "@fluentui/react-hooks";
+import { useId } from "@fluentui/react-hooks";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { useQuery } from "@apollo/client";
 import { DateTime } from "luxon";
@@ -37,6 +42,45 @@ function CommandBarDropdownWrapper(props: ICommandBarItemProps) {
   return <CommandBarDropdown {...dropdownProps} />;
 }
 
+function RefreshButton(props: ICommandBarItemProps) {
+  const tooltipStyle: Partial<ITooltipHostStyles> = {
+    root: { display: "inline-block" },
+  };
+  const tooltipId = useId("refreshTooltip");
+  const tooltipCalloutProps = {
+    gapSpace: 0,
+  };
+
+  const { renderToString, locale } = useContext(Context);
+
+  const tooltipProps: ITooltipProps = useMemo(() => {
+    return {
+      // eslint-disable-next-line react/no-unstable-nested-components
+      onRenderContent: () => {
+        const tooltipcontent = renderToString("AuditLogScreen.last-update-at", {
+          datetime:
+            DateTime.fromJSDate(props.lastUpdatedAt).toRelative({ locale }) ??
+            "",
+        });
+        return <>{tooltipcontent}</>;
+      },
+    };
+  }, [locale, props.lastUpdatedAt, renderToString]);
+
+  return (
+    <TooltipHost
+      styles={tooltipStyle}
+      id={tooltipId}
+      calloutProps={tooltipCalloutProps}
+      directionalHint={DirectionalHint.bottomCenter}
+      tooltipProps={tooltipProps}
+    >
+      {/* @ts-expect-error */}
+      <CommandBarButton {...props} />
+    </TooltipHost>
+  );
+}
+
 const AuditLogScreen: React.FC = function AuditLogScreen() {
   const [offset, setOffset] = useState(0);
   const [selectedKey, setSelectedKey] = useState("ALL");
@@ -44,6 +88,7 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
   const [sortDirection, setSortDirection] = useState<SortDirection>(
     SortDirection.Desc
   );
+  const [lastUpdatedAt, setLastUpdatedAt] = useState(new Date());
 
   const {
     committedValue: rangeFrom,
@@ -78,16 +123,14 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     featureConfig.effectiveFeatureConfig?.audit_log?.retrieval_days,
   ]);
 
-  const today = useConst(new Date(Date.now()));
-
   const datePickerMinDate = useMemo(() => {
     if (logRetrievalDays === -1) {
       return undefined;
     }
-    const minDate = addDays(today, -logRetrievalDays + 1);
+    const minDate = addDays(lastUpdatedAt, -logRetrievalDays + 1);
     minDate.setHours(0, 0, 0, 0);
     return minDate;
-  }, [today, logRetrievalDays]);
+  }, [lastUpdatedAt, logRetrievalDays]);
 
   const queryRangeFrom = useMemo(() => {
     if (rangeFrom != null) {
@@ -106,8 +149,8 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
         .toJSDate()
         .toISOString();
     }
-    return null;
-  }, [rangeTo]);
+    return lastUpdatedAt;
+  }, [rangeTo, lastUpdatedAt]);
 
   const isCustomDateRange = rangeFrom != null || rangeTo != null;
 
@@ -151,21 +194,29 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     setOffset(offset);
   }, []);
 
-  const { data, error, loading, refetch } = useQuery<
-    AuditLogListQueryQuery,
-    AuditLogListQueryQueryVariables
-  >(AuditLogListQueryDocument, {
-    variables: {
-      pageSize,
-      cursor,
-      activityTypes,
-      rangeFrom: queryRangeFrom,
-      rangeTo: queryRangeTo,
-      sortDirection,
-    },
-    fetchPolicy: "network-only",
-    skip: featureConfig.loading,
-  });
+  const {
+    data: currentData,
+    previousData,
+    error,
+    loading,
+    refetch,
+  } = useQuery<AuditLogListQueryQuery, AuditLogListQueryQueryVariables>(
+    AuditLogListQueryDocument,
+    {
+      variables: {
+        pageSize,
+        cursor,
+        activityTypes,
+        rangeFrom: queryRangeFrom,
+        rangeTo: queryRangeTo,
+        sortDirection,
+      },
+      fetchPolicy: "network-only",
+      skip: featureConfig.loading,
+    }
+  );
+
+  const data = currentData ?? previousData;
 
   const messageBar = useMemo(() => {
     if (error != null) {
@@ -204,6 +255,7 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
         iconName: "PC1",
       },
       onChange: onChangeSelectedKey,
+      calloutProps: { directionalHintFixed: true },
     };
   }, [selectedKey, onChangeSelectedKey, activityTypeOptions]);
 
@@ -222,6 +274,15 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
       setDateRangeDialogHidden(false);
     },
     []
+  );
+
+  const onClickRefresh = useCallback(
+    (e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>) => {
+      e?.stopPropagation();
+      setLastUpdatedAt(new Date());
+      setOffset(0);
+    },
+    [setLastUpdatedAt, setOffset]
   );
 
   const commandBarFarItems: ICommandBarItemProps[] = useMemo(() => {
@@ -262,6 +323,20 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     onClickAllDateRange,
     onClickCustomDateRange,
   ]);
+
+  const commandBarSecondaryItems: ICommandBarItemProps[] = useMemo(() => {
+    const refreshLabel = renderToString("AuditLogScreen.refresh");
+    return [
+      {
+        key: "refresh",
+        text: refreshLabel,
+        iconProps: { iconName: "Sync" },
+        onClick: onClickRefresh,
+        commandBarButtonAs: RefreshButton,
+        lastUpdatedAt,
+      },
+    ];
+  }, [onClickRefresh, renderToString, lastUpdatedAt]);
 
   const onDismissDateRangeDialog = useCallback(
     (e?: React.MouseEvent<unknown>) => {
@@ -331,6 +406,7 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
         isLoading={loading}
         messageBar={messageBar}
         primaryItems={commandBarFarItems}
+        secondaryItems={commandBarSecondaryItems}
         className={styles.root}
       >
         <ScreenContent className={styles.content} layout="list">
@@ -371,9 +447,9 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
         rangeFrom={uncommittedRangeFrom ?? undefined}
         rangeTo={uncommittedRangeTo ?? undefined}
         fromDatePickerMinDate={datePickerMinDate}
-        fromDatePickerMaxDate={today}
+        fromDatePickerMaxDate={lastUpdatedAt}
         toDatePickerMinDate={datePickerMinDate}
-        toDatePickerMaxDate={today}
+        toDatePickerMaxDate={lastUpdatedAt}
         onSelectRangeFrom={onSelectRangeFrom}
         onSelectRangeTo={onSelectRangeTo}
         onCommitDateRange={commitDateRange}
