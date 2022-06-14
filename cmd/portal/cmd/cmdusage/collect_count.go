@@ -1,6 +1,7 @@
 package cmdusage
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -10,6 +11,10 @@ import (
 
 	"github.com/authgear/authgear-server/cmd/portal/analytic"
 	portalcmd "github.com/authgear/authgear-server/cmd/portal/cmd"
+	"github.com/authgear/authgear-server/cmd/portal/usage"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	libusage "github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/util/periodical"
 )
@@ -44,6 +49,29 @@ var cmdUsageCollectCount = &cobra.Command{
 	Short: "Collect usage count record",
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		binder := portalcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
+		if err != nil {
+			return err
+		}
+
+		dbSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseSchema)
+		if err != nil {
+			return err
+		}
+
+		dbCredentials := &config.DatabaseCredentials{
+			DatabaseURL:    dbURL,
+			DatabaseSchema: dbSchema,
+		}
+
+		var analyticRedisCredentials *config.AnalyticRedisCredentials
+		analyticRedisURL := binder.GetString(cmd, portalcmd.ArgAnalyticRedisURL)
+		if analyticRedisURL != "" {
+			analyticRedisCredentials = &config.AnalyticRedisCredentials{
+				RedisURL: analyticRedisURL,
+			}
+		}
 
 		name := args[0]
 		period := args[1]
@@ -53,8 +81,24 @@ var cmdUsageCollectCount = &cobra.Command{
 			return err
 		}
 
+		dbPool := db.NewPool()
+		redisPool := redis.NewPool()
+		countCollector := usage.NewCountCollector(
+			context.Background(),
+			dbPool,
+			dbCredentials,
+			redisPool,
+			analyticRedisCredentials,
+		)
+
 		type collectorFuncType func(date *time.Time) (updatedCount int, err error)
-		collectorFuncMap := map[libusage.UsageRecordName]map[periodical.Type]collectorFuncType{}
+		collectorFuncMap := map[libusage.UsageRecordName]map[periodical.Type]collectorFuncType{
+			libusage.ActiveUser: {
+				periodical.Monthly: countCollector.CollectMonthlyActiveUser,
+				periodical.Weekly:  countCollector.CollectWeeklyActiveUser,
+				periodical.Daily:   countCollector.CollectDailyActiveUser,
+			},
+		}
 
 		collectorFunc, ok := collectorFuncMap[libusage.UsageRecordName(name)][periodicalType]
 		if !ok {
