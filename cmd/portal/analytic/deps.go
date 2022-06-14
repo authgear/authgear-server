@@ -39,4 +39,5 @@ var DependencySet = wire.NewSet(
 
 	analytic.DependencySet,
 	wire.Bind(new(analytic.ReadCounterStore), new(*meter.ReadStoreRedis)),
+	wire.Bind(new(analytic.MeterAuditDBReadStore), new(*meter.AuditDBReadStore)),
 )
