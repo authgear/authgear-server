@@ -88,7 +88,6 @@
       class="primary-txt select"
       name="/email" {{ if not $.Emails }}disabled{{ end }}
       data-controller="select-empty-value"
-      data-select-empty-value-target="select"
       data-action="change->select-empty-value#toggleClass"
     >
       {{ range $.Emails }}
@@ -111,7 +110,6 @@
       class="primary-txt select"
       name="/phone_number" {{ if not $.PhoneNumbers }}disabled{{ end }}
       data-controller="select-empty-value"
-      data-select-empty-value-target="select"
       data-action="change->select-empty-value#toggleClass"
     >
       {{ range $.PhoneNumbers }}
@@ -134,7 +132,6 @@
       class="primary-txt select"
       name="/preferred_username" {{ if not $.PreferredUsernames }}disabled{{ end }}
       data-controller="select-empty-value"
-      data-select-empty-value-target="select"
       data-action="change->select-empty-value#toggleClass"
     >
       {{ range $.PreferredUsernames }}
@@ -256,7 +253,6 @@
       class="primary-txt select"
       name="/address/country"
       data-controller="select-empty-value"
-      data-select-empty-value-target="select"
       data-action="change->select-empty-value#toggleClass"
     >
       <option value="" {{ if not $.AddressCountry }}selected{{ end }}>{{ template "unset-label" }}</option>
@@ -286,7 +282,6 @@
       class="primary-txt select"
       name="gender-select"
       data-controller="select-empty-value"
-      data-select-empty-value-target="select"
       data-gender-select-target="select"
       data-gender-select-fromListener-param="true"
       data-action="change->select-empty-value#toggleClass change->gender-select#onChange"
@@ -314,7 +309,6 @@
       class="primary-txt select" 
       name="/zoneinfo"
       data-controller="select-empty-value"
-      data-select-empty-value-target="select"
       data-action="change->select-empty-value#toggleClass"
     >
       <option value="" {{ if not $.Zoneinfo }}selected{{ end }}>{{ template "unset-label" }}</option>
@@ -334,7 +328,6 @@
       class="primary-txt select"
       name="/locale"
       data-controller="select-empty-value"
-      data-select-empty-value-target="select"
       data-action="change->select-empty-value#toggleClass"
     >
       <option value="" {{ if not $.Locale }}selected{{ end }}>{{ template "unset-label" }}</option>
@@ -382,7 +375,6 @@
       class="primary-txt select"
       name="{{ $ca.Pointer }}"
       data-controller="select-empty-value"
-      data-select-empty-value-target="select"
       data-action="change->select-empty-value#toggleClass"
     >
       <option value="" {{ if not $ca.Value }}selected{{ end }}>{{ template "unset-label" }}</option>
@@ -437,7 +429,6 @@
       class="primary-txt select"
       name="{{ $ca.Pointer }}"
       data-controller="select-empty-value"
-      data-select-empty-value-target="select"
       data-action="change->select-empty-value#toggleClass"
     >
       <option value="" {{ if not $ca.Value }}selected{{ end }}>{{ template "unset-label" }}</option>

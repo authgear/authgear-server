@@ -1,12 +1,8 @@
 import { Controller } from "@hotwired/stimulus";
 
 export class SelectEmptyValueController extends Controller {
-  static targets = ["select"];
-
-  declare selectTarget: HTMLSelectElement;
-
   toggleClass() {
-    const selectElement = this.selectTarget;
+    const selectElement = this.element as HTMLSelectElement;
 
     if (selectElement.value === "") {
       selectElement.classList.add("empty");
