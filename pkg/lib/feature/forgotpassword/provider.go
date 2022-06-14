@@ -235,6 +235,11 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 		return err
 	}
 
+	err = p.RateLimiter.TakeToken(p.HardSMSBucketer.Bucket())
+	if err != nil {
+		return err
+	}
+
 	p.TaskQueue.Enqueue(&tasks.SendMessagesParam{
 		SMSMessages: []sms.SendOptions{{
 			Sender: msg.Sender,
