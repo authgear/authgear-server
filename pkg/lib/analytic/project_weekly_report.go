@@ -19,12 +19,13 @@ type ProjectWeeklyReportOptions struct {
 }
 
 type ProjectWeeklyReport struct {
-	GlobalHandle  *globaldb.Handle
-	GlobalDBStore *GlobalDBStore
-	AppDBHandle   *appdb.Handle
-	AppDBStore    *AppDBStore
-	AuditDBHandle *auditdb.ReadHandle
-	AuditDBStore  *AuditDBReadStore
+	GlobalHandle      *globaldb.Handle
+	GlobalDBStore     *GlobalDBStore
+	AppDBHandle       *appdb.Handle
+	AppDBStore        *AppDBStore
+	AuditDBHandle     *auditdb.ReadHandle
+	MeterAuditDBStore MeterAuditDBReadStore
+	AuditDBStore      *AuditDBReadStore
 }
 
 func (r *ProjectWeeklyReport) Run(options *ProjectWeeklyReportOptions) (data *ReportData, err error) {
@@ -88,7 +89,7 @@ func (r *ProjectWeeklyReport) Run(options *ProjectWeeklyReportOptions) (data *Re
 
 		err = r.AuditDBHandle.ReadOnly(func() (e error) {
 			for activityType := range countMap {
-				countMap[activityType], err = r.AuditDBStore.GetCountByActivityType(
+				countMap[activityType], err = r.MeterAuditDBStore.GetCountByActivityType(
 					appID, activityType, &rangeFrom, &rangeTo)
 				if err != nil {
 					err = fmt.Errorf("failed to fetch count for activityType %s: %w", activityType, err)

@@ -21,6 +21,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/timeutil"
 )
 
+type MeterAuditDBReadStore interface {
+	GetCountByActivityType(appID string, activityType string, rangeFrom *time.Time, rangeTo *time.Time) (int, error)
+	QueryPage(appID string, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]*audit.Log, uint64, error)
+}
+
 type SignupCountResult struct {
 	TotalCount           int
 	CountByLoginID       map[string]int
@@ -36,6 +41,7 @@ type CountCollector struct {
 	AuditDBReadHandle  *auditdb.ReadHandle
 	AuditDBReadStore   *AuditDBReadStore
 	AuditDBWriteHandle *auditdb.WriteHandle
+	MeterAuditDBStore  MeterAuditDBReadStore
 	AuditDBWriteStore  *AuditDBWriteStore
 	AnalyticService    *Service
 }
@@ -346,7 +352,7 @@ func (c *CountCollector) queryUserCreatedEvents(appID string, rangeFrom *time.Ti
 		ActivityTypes: []string{string(nonblocking.UserCreated)},
 	}
 
-	logs, offset, err := c.AuditDBReadStore.QueryPage(appID, options, graphqlutil.PageArgs{
+	logs, offset, err := c.MeterAuditDBStore.QueryPage(appID, options, graphqlutil.PageArgs{
 		First: &first,
 		After: graphqlutil.Cursor(after),
 	})
