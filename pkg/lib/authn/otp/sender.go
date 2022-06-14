@@ -28,6 +28,10 @@ type TranslationService interface {
 	SMSMessageData(msg *translation.MessageSpec, args interface{}) (*translation.SMSMessageData, error)
 }
 
+type HardSMSBucketer interface {
+	Bucket() ratelimit.Bucket
+}
+
 type RateLimiter interface {
 	TakeToken(bucket ratelimit.Bucket) error
 }
@@ -39,9 +43,11 @@ type EventService interface {
 type MessageSender struct {
 	Translation TranslationService
 	Endpoints   EndpointsProvider
-	RateLimiter RateLimiter
 	TaskQueue   task.Queue
 	Events      EventService
+
+	RateLimiter     RateLimiter
+	HardSMSBucketer HardSMSBucketer
 }
 
 func (s *MessageSender) makeData(opts SendOptions) (*MessageTemplateContext, error) {
