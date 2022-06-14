@@ -21,7 +21,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
-	"github.com/authgear/authgear-server/pkg/lib/billing"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
@@ -49,6 +48,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
+	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -318,8 +318,8 @@ var CommonDependencySet = wire.NewSet(
 	tutorial.DependencySet,
 
 	wire.NewSet(
-		billing.DependencySet,
-		wire.Bind(new(forgotpassword.HardSMSBucketer), new(*billing.HardSMSBucketer)),
-		wire.Bind(new(otp.HardSMSBucketer), new(*billing.HardSMSBucketer)),
+		usage.DependencySet,
+		wire.Bind(new(forgotpassword.HardSMSBucketer), new(*usage.HardSMSBucketer)),
+		wire.Bind(new(otp.HardSMSBucketer), new(*usage.HardSMSBucketer)),
 	),
 )

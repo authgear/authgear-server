@@ -1,4 +1,4 @@
-package billing
+package usage
 
 import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
