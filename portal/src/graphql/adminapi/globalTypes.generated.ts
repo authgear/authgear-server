@@ -410,6 +410,7 @@ export type QueryAuditLogsArgs = {
   last?: InputMaybe<Scalars['Int']>;
   rangeFrom?: InputMaybe<Scalars['DateTime']>;
   rangeTo?: InputMaybe<Scalars['DateTime']>;
+  sortDirection?: InputMaybe<SortDirection>;
 };
 
 

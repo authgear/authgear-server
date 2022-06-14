@@ -468,7 +468,7 @@ type PageInfo {
 """"""
 type Query {
   """Audit logs"""
-  auditLogs(activityTypes: [AuditLogActivityType!], after: String, before: String, first: Int, last: Int, rangeFrom: DateTime, rangeTo: DateTime): AuditLogConnection
+  auditLogs(activityTypes: [AuditLogActivityType!], after: String, before: String, first: Int, last: Int, rangeFrom: DateTime, rangeTo: DateTime, sortDirection: SortDirection): AuditLogConnection
 
   """Fetches an object given its ID"""
   node(

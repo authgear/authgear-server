@@ -26,8 +26,7 @@ import {
   AuditLogListQueryQueryVariables,
   AuditLogListQueryDocument,
 } from "./query/auditLogListQuery.generated";
-import { AuditLogActivityType } from "./globalTypes.generated";
-
+import { AuditLogActivityType, SortDirection } from "./globalTypes.generated";
 import styles from "./AuditLogScreen.module.scss";
 import { useAppFeatureConfigQuery } from "../portal/query/appFeatureConfigQuery";
 
@@ -42,6 +41,9 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
   const [offset, setOffset] = useState(0);
   const [selectedKey, setSelectedKey] = useState("ALL");
   const [dateRangeDialogHidden, setDateRangeDialogHidden] = useState(true);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(
+    SortDirection.Desc
+  );
 
   const {
     committedValue: rangeFrom,
@@ -159,6 +161,7 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
       activityTypes,
       rangeFrom: queryRangeFrom,
       rangeTo: queryRangeTo,
+      sortDirection,
     },
     fetchPolicy: "network-only",
     skip: featureConfig.loading,
@@ -314,6 +317,14 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     [setRangeTo, setRangeFrom, uncommittedRangeFrom]
   );
 
+  const onToggleSortDirection = useCallback(() => {
+    if (sortDirection === SortDirection.Desc) {
+      setSortDirection(SortDirection.Asc);
+    } else {
+      setSortDirection(SortDirection.Desc);
+    }
+  }, [sortDirection]);
+
   return (
     <>
       <CommandBarContainer
@@ -345,6 +356,8 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
             pageSize={pageSize}
             totalCount={data?.auditLogs?.totalCount ?? undefined}
             onChangeOffset={onChangeOffset}
+            onToggleSortDirection={onToggleSortDirection}
+            sortDirection={sortDirection}
           />
         </ScreenContent>
       </CommandBarContainer>

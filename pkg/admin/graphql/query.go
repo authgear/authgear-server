@@ -3,7 +3,7 @@ package graphql
 import (
 	"time"
 
-	"github.com/authgear/graphql-go-relay"
+	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
@@ -106,11 +106,16 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				"activityTypes": &graphql.ArgumentConfig{
 					Type: graphql.NewList(graphql.NewNonNull(auditLogActivityType)),
 				},
+				"sortDirection": &graphql.ArgumentConfig{
+					Type: sortDirection,
+				},
 			}),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				gqlCtx := GQLContext(p.Context)
 
 				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
+
+				sortDirection, _ := p.Args["sortDirection"].(apimodel.SortDirection)
 
 				var rangeFrom *time.Time
 				if t, ok := p.Args["rangeFrom"].(time.Time); ok {
@@ -135,6 +140,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					RangeFrom:     rangeFrom,
 					RangeTo:       rangeTo,
 					ActivityTypes: activityTypes,
+					SortDirection: sortDirection,
 				}
 
 				refs, result, err := gqlCtx.AuditLogFacade.QueryPage(queryOptions, pageArgs)

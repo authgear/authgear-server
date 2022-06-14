@@ -15,6 +15,7 @@ import {
   AuditLogListFragment,
   AuditLogEdgesNodeFragment,
 } from "./query/auditLogListQuery.generated";
+import { SortDirection } from "./globalTypes.generated";
 import { formatDatetime } from "../../util/formatDatetime";
 import { extractRawID } from "../../util/graphql";
 import useDelayedValue from "../../hook/useDelayedValue";
@@ -31,6 +32,8 @@ export interface AuditLogListProps {
   pageSize: number;
   totalCount?: number;
   onChangeOffset?: (offset: number) => void;
+  onToggleSortDirection?: () => void;
+  sortDirection?: SortDirection;
 }
 
 interface AuditLogListItem {
@@ -70,6 +73,8 @@ const AuditLogList: React.FC<AuditLogListProps> = function AuditLogList(props) {
     pageSize,
     totalCount,
     onChangeOffset,
+    onToggleSortDirection,
+    sortDirection,
   } = props;
   const edges = props.auditLogs?.edges;
 
@@ -92,7 +97,10 @@ const AuditLogList: React.FC<AuditLogListProps> = function AuditLogList(props) {
       name: renderToString("AuditLogList.column.created-at"),
       maxWidth: 150,
       minWidth: 150,
-      columnActionsMode: ColumnActionsMode.disabled,
+      isSorted: true,
+      isSortedDescending: sortDirection === SortDirection.Desc,
+      iconName: "SortLines",
+      iconClassName: styles.sortIcon,
     },
     {
       key: "rawUserID",
@@ -156,6 +164,18 @@ const AuditLogList: React.FC<AuditLogListProps> = function AuditLogList(props) {
     []
   );
 
+  const onColumnHeaderClick = useCallback(
+    (_e, column) => {
+      if (column != null) {
+        if (column.key === "createdAt") {
+          onToggleSortDirection?.();
+          onChangeOffset?.(0);
+        }
+      }
+    },
+    [onToggleSortDirection, onChangeOffset]
+  );
+
   return (
     <>
       <div className={cn(styles.root, className)}>
@@ -166,6 +186,7 @@ const AuditLogList: React.FC<AuditLogListProps> = function AuditLogList(props) {
             enableUpdateAnimations={false}
             selectionMode={SelectionMode.none}
             layoutMode={DetailsListLayoutMode.justified}
+            onColumnHeaderClick={onColumnHeaderClick}
             onRenderItemColumn={onRenderItemColumn}
             columns={columns}
             items={items}
