@@ -61,6 +61,10 @@ type EventService interface {
 	DispatchEvent(payload event.Payload) error
 }
 
+type HardSMSBucketer interface {
+	Bucket() ratelimit.Bucket
+}
+
 type Provider struct {
 	RemoteIP    httputil.RemoteIP
 	Translation TranslationService
@@ -75,9 +79,11 @@ type Provider struct {
 
 	Identities     IdentityService
 	Authenticators AuthenticatorService
-	RateLimiter    RateLimiter
 	FeatureConfig  *config.FeatureConfig
 	Events         EventService
+
+	RateLimiter     RateLimiter
+	HardSMSBucketer HardSMSBucketer
 }
 
 // SendCode checks if loginID is an existing login ID.
