@@ -11,9 +11,7 @@ type RateLimiter interface {
 	TakeToken(bucket ratelimit.Bucket) error
 }
 
-// TODO(rate-limit): allow configuration of bucket size & reset period
-
-func RateLimitBucket(phone string) ratelimit.Bucket {
+func AntiSpamBucket(phone string) ratelimit.Bucket {
 	return ratelimit.Bucket{
 		Key:         fmt.Sprintf("sms-message:%s", phone),
 		Size:        10,

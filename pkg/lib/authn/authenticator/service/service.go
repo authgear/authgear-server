@@ -322,7 +322,7 @@ func (s *Service) Delete(info *authenticator.Info) error {
 }
 
 func (s *Service) VerifySecret(info *authenticator.Info, secret string) (requireUpdate bool, err error) {
-	err = s.RateLimiter.TakeToken(AuthenticateSecretRateLimitBucket(info.UserID, info.Type))
+	err = s.RateLimiter.TakeToken(AntiBruteForceAuthenticateBucket(info.UserID, info.Type))
 	if err != nil {
 		return
 	}

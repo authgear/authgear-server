@@ -56,7 +56,7 @@ type PresignImagesUploadHandler struct {
 
 func (h *PresignImagesUploadHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	userID := session.GetUserID(req.Context())
-	err := h.RateLimiter.TakeToken(PresignImagesUploadRateLimitBucket(*userID))
+	err := h.RateLimiter.TakeToken(AntiSpamPresignImagesUploadBucket(*userID))
 	if err != nil {
 		h.Turbo.WriteResponse(resp, req, &api.Response{Error: err})
 		return

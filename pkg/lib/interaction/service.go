@@ -152,7 +152,7 @@ func (s *Service) Accept(ctx *Context, graph *Graph, input interface{}) (*Graph,
 	}
 
 	if !bypassRateLimit {
-		err := ctx.RateLimiter.TakeToken(RequestRateLimitBucket(string(ctx.RemoteIP)))
+		err := ctx.RateLimiter.TakeToken(AntiSpamRequestBucket(string(ctx.RemoteIP)))
 		if err != nil {
 			return nil, nil, err
 		}
