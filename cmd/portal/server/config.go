@@ -51,6 +51,8 @@ type Config struct {
 	// Analytic sets analytic dashboard related config.
 	Analytic config.AnalyticConfig `envconfig:"ANALYTIC"`
 
+	Stripe portalconfig.StripeConfig `envconfig:"STRIPE"`
+
 	*config.EnvironmentConfig
 }
 
@@ -98,6 +100,8 @@ func (c *Config) Validate() error {
 	if c.GlobalDatabase.DatabaseURL == "" {
 		ctx.Child("DATABASE_URL").EmitErrorMessage("missing database URL")
 	}
+
+	// Stripe config is optional
 
 	return ctx.Error("invalid server configuration")
 }
