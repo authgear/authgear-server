@@ -7,21 +7,31 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-// nolint:golint
-type UsageRecordName string
+type RecordName string
 
 const (
-	ActiveUser          UsageRecordName = "active-user"
-	SMSSent             UsageRecordName = "sms-sent"
-	EmailSent           UsageRecordName = "email-sent"
-	WhatsappOTPVerified UsageRecordName = "whatsapp-otp-verified"
+	RecordNameActiveUser          RecordName = "active-user"
+	RecordNameSMSSentNorthAmerica RecordName = "sms-sent.north-america"
+	RecordNameSMSSentOtherRegions RecordName = "sms-sent.other-regions"
+	RecordNameSMSSentTotal        RecordName = "sms-sent.total"
+	RecordNameEmailSent           RecordName = "email-sent"
+	RecordNameWhatsappOTPVerified RecordName = "whatsapp-otp-verified"
+)
+
+type RecordType string
+
+const (
+	RecordTypeActiveUser          RecordType = "active-user"
+	RecordTypeSMSSent             RecordType = "sms-sent"
+	RecordTypeEmailSent           RecordType = "email-sent"
+	RecordTypeWhatsappOTPVerified RecordType = "whatsapp-otp-verified"
 )
 
 // nolint:golint
 type UsageRecord struct {
 	ID             string
 	AppID          string
-	Name           UsageRecordName
+	Name           RecordName
 	Period         string
 	StartTime      time.Time
 	EndTime        time.Time
@@ -30,7 +40,7 @@ type UsageRecord struct {
 	StripTimestamp *time.Time
 }
 
-func NewUsageRecord(appID string, name UsageRecordName, count int, period periodical.Type, startTime time.Time, endTime time.Time) *UsageRecord {
+func NewUsageRecord(appID string, name RecordName, count int, period periodical.Type, startTime time.Time, endTime time.Time) *UsageRecord {
 	return &UsageRecord{
 		ID:        uuid.New(),
 		AppID:     appID,
