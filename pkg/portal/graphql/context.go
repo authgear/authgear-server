@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
+	"github.com/authgear/authgear-server/pkg/portal/libstripe"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/smtp"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -93,6 +94,10 @@ type AnalyticChartService interface {
 	GetSignupByMethodsChart(appID string, rangeFrom time.Time, rangeTo time.Time) (*analytic.Chart, error)
 }
 
+type StripeService interface {
+	FetchSubscriptionPlans() ([]*libstripe.SubscriptionPlan, error)
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("portal-graphql")} }
@@ -114,6 +119,7 @@ type Context struct {
 	AppResMgrFactory     AppResourceManagerFactory
 	AnalyticChartService AnalyticChartService
 	TutorialService      TutorialService
+	StripeService        StripeService
 }
 
 func (c *Context) Logger() *log.Logger {
