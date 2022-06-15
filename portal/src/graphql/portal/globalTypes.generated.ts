@@ -363,6 +363,8 @@ export type Query = {
   signupByMethodsChart?: Maybe<Chart>;
   /** Signup conversion rate dashboard data */
   signupConversionRate?: Maybe<SignupConversionRate>;
+  /** Available subscription plans */
+  subscriptionPlans: Array<SubscriptionPlan>;
   /** Total users count chart dataset */
   totalUserCountChart?: Maybe<Chart>;
   /** The current viewer */
@@ -479,6 +481,39 @@ export type SkipAppTutorialProgressInput = {
 export type SkipAppTutorialProgressPayload = {
   __typename?: 'SkipAppTutorialProgressPayload';
   app: App;
+};
+
+export type SubscriptionItemPrice = {
+  __typename?: 'SubscriptionItemPrice';
+  currency: Scalars['String'];
+  smsRegion: SubscriptionItemPriceSmsRegion;
+  stripePriceID: Scalars['String'];
+  type: SubscriptionItemPriceType;
+  unitAmount: Scalars['Int'];
+  usageType: SubscriptionItemPriceUsageType;
+};
+
+export enum SubscriptionItemPriceSmsRegion {
+  None = 'NONE',
+  NorthAmerica = 'NORTH_AMERICA',
+  OtherRegions = 'OTHER_REGIONS'
+}
+
+export enum SubscriptionItemPriceType {
+  Fixed = 'FIXED',
+  Usage = 'USAGE'
+}
+
+export enum SubscriptionItemPriceUsageType {
+  None = 'NONE',
+  Sms = 'SMS'
+}
+
+export type SubscriptionPlan = {
+  __typename?: 'SubscriptionPlan';
+  name: Scalars['String'];
+  prices: Array<Maybe<SubscriptionItemPrice>>;
+  stripeProductID: Scalars['String'];
 };
 
 /** Tutorial status of an app */
