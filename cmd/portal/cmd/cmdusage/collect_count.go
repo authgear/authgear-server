@@ -65,6 +65,21 @@ var cmdUsageCollectCount = &cobra.Command{
 			DatabaseSchema: dbSchema,
 		}
 
+		auditDBURL, err := binder.GetRequiredString(cmd, portalcmd.ArgAuditDatabaseURL)
+		if err != nil {
+			return err
+		}
+
+		auditDBSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgAuditDatabaseSchema)
+		if err != nil {
+			return err
+		}
+
+		auditDBCredentials := &config.AuditDatabaseCredentials{
+			DatabaseURL:    auditDBURL,
+			DatabaseSchema: auditDBSchema,
+		}
+
 		var analyticRedisCredentials *config.AnalyticRedisCredentials
 		analyticRedisURL := binder.GetString(cmd, portalcmd.ArgAnalyticRedisURL)
 		if analyticRedisURL != "" {

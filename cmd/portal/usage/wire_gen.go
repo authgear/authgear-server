@@ -10,6 +10,7 @@ import (
 	"context"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
@@ -19,7 +20,7 @@ import (
 
 // Injectors from wire.go:
 
-func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, redisPool *redis.Pool, credentials *config.AnalyticRedisCredentials) *usage.CountCollector {
+func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials, redisPool *redis.Pool, credentials *config.AnalyticRedisCredentials) *usage.CountCollector {
 	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
 	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
 	factory := NewLoggerFactory()
@@ -36,10 +37,19 @@ func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *
 		Context: ctx,
 		Redis:   analyticredisHandle,
 	}
+	readHandle := auditdb.NewReadHandle(ctx, pool, databaseEnvironmentConfig, auditDatabaseCredentials, factory)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
+	readSQLExecutor := auditdb.NewReadSQLExecutor(ctx, readHandle)
+	auditDBReadStore := &meter.AuditDBReadStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: readSQLExecutor,
+	}
 	countCollector := &usage.CountCollector{
 		GlobalHandle:  handle,
 		GlobalDBStore: globalDBStore,
 		ReadCounter:   readStoreRedis,
+		AuditHandle:   readHandle,
+		Meters:        auditDBReadStore,
 	}
 	return countCollector
 }
