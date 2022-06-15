@@ -73,15 +73,8 @@ func (c *CountCollector) CollectMonthlyActiveUser(startTime *time.Time) (int, er
 			))
 		}
 	}
-	if len(usageRecords) > 0 {
-		if err := c.GlobalHandle.WithTx(func() error {
-			return c.GlobalDBStore.UpsertUsageRecords(usageRecords)
-		}); err != nil {
-			return 0, err
-		}
-		return len(usageRecords), err
-	}
-	return 0, nil
+
+	return c.upsertUsageRecords(usageRecords)
 }
 
 func (c *CountCollector) CollectWeeklyActiveUser(startTime *time.Time) (int, error) {
@@ -113,15 +106,8 @@ func (c *CountCollector) CollectWeeklyActiveUser(startTime *time.Time) (int, err
 			))
 		}
 	}
-	if len(usageRecords) > 0 {
-		if err := c.GlobalHandle.WithTx(func() error {
-			return c.GlobalDBStore.UpsertUsageRecords(usageRecords)
-		}); err != nil {
-			return 0, err
-		}
-		return len(usageRecords), err
-	}
-	return 0, nil
+
+	return c.upsertUsageRecords(usageRecords)
 }
 
 func (c *CountCollector) CollectDailyActiveUser(startTime *time.Time) (int, error) {
@@ -151,15 +137,8 @@ func (c *CountCollector) CollectDailyActiveUser(startTime *time.Time) (int, erro
 			))
 		}
 	}
-	if len(usageRecords) > 0 {
-		if err := c.GlobalHandle.WithTx(func() error {
-			return c.GlobalDBStore.UpsertUsageRecords(usageRecords)
-		}); err != nil {
-			return 0, err
-		}
-		return len(usageRecords), err
-	}
-	return 0, nil
+
+	return c.upsertUsageRecords(usageRecords)
 }
 
 func (c *CountCollector) CollectDailySMSSent(startTime *time.Time) (int, error) {
@@ -191,16 +170,7 @@ func (c *CountCollector) CollectDailySMSSent(startTime *time.Time) (int, error) 
 		}
 	}
 
-	if len(usageRecords) > 0 {
-		if err := c.GlobalHandle.WithTx(func() error {
-			return c.GlobalDBStore.UpsertUsageRecords(usageRecords)
-		}); err != nil {
-			return 0, err
-		}
-		return len(usageRecords), err
-	}
-
-	return 0, err
+	return c.upsertUsageRecords(usageRecords)
 }
 
 func (c *CountCollector) getAppIDs() (appIDs []string, err error) {
@@ -212,6 +182,18 @@ func (c *CountCollector) getAppIDs() (appIDs []string, err error) {
 		return nil
 	})
 	return
+}
+
+func (c *CountCollector) upsertUsageRecords(usageRecords []*UsageRecord) (int, error) {
+	if len(usageRecords) > 0 {
+		if err := c.GlobalHandle.WithTx(func() error {
+			return c.GlobalDBStore.UpsertUsageRecords(usageRecords)
+		}); err != nil {
+			return 0, err
+		}
+		return len(usageRecords), nil
+	}
+	return 0, nil
 }
 
 func (c *CountCollector) querySMSCount(appID string, rangeFrom *time.Time, rangeTo *time.Time) (*smsCountResult, error) {
