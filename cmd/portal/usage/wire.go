@@ -17,6 +17,7 @@ func NewCountCollector(
 	ctx context.Context,
 	pool *db.Pool,
 	databaseCredentials *config.DatabaseCredentials,
+	auditDatabaseCredentials *config.AuditDatabaseCredentials,
 	redisPool *redis.Pool,
 	credentials *config.AnalyticRedisCredentials,
 ) *usage.CountCollector {

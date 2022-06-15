@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/periodical"
 	"github.com/authgear/authgear-server/pkg/util/timeutil"
 )
@@ -16,10 +18,16 @@ type ReadCounterStore interface {
 	GetMonthlyActiveUserCount(appID config.AppID, year int, month int) (count int, redisKey string, err error)
 }
 
+type MeterAuditDBStore interface {
+	QueryPage(appID string, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]*audit.Log, uint64, error)
+}
+
 type CountCollector struct {
 	GlobalHandle  *globaldb.Handle
 	GlobalDBStore *GlobalDBStore
 	ReadCounter   ReadCounterStore
+	AuditHandle   *auditdb.ReadHandle
+	Meters        MeterAuditDBStore
 }
 
 func (c *CountCollector) CollectMonthlyActiveUser(startTime *time.Time) (int, error) {
