@@ -43,7 +43,7 @@ func (c *CountCollector) CollectMonthlyActiveUser(startTime *time.Time) (int, er
 		if count != 0 {
 			usageRecords = append(usageRecords, NewUsageRecord(
 				appID,
-				ActiveUser,
+				RecordNameActiveUser,
 				count,
 				periodical.Monthly,
 				startT,
@@ -83,7 +83,7 @@ func (c *CountCollector) CollectWeeklyActiveUser(startTime *time.Time) (int, err
 		if count != 0 {
 			usageRecords = append(usageRecords, NewUsageRecord(
 				appID,
-				ActiveUser,
+				RecordNameActiveUser,
 				count,
 				periodical.Weekly,
 				startT,
@@ -121,7 +121,7 @@ func (c *CountCollector) CollectDailyActiveUser(startTime *time.Time) (int, erro
 		if count != 0 {
 			usageRecords = append(usageRecords, NewUsageRecord(
 				appID,
-				ActiveUser,
+				RecordNameActiveUser,
 				count,
 				periodical.Daily,
 				startT,
