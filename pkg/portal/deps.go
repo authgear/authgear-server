@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/endpoint"
 	"github.com/authgear/authgear-server/pkg/portal/graphql"
 	"github.com/authgear/authgear-server/pkg/portal/lib/plan"
+	"github.com/authgear/authgear-server/pkg/portal/libstripe"
 	"github.com/authgear/authgear-server/pkg/portal/loader"
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/smtp"
@@ -80,6 +81,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.AppResourceManagerFactory), new(*appresource.ManagerFactory)),
 	wire.Bind(new(graphql.AnalyticChartService), new(*analytic.ChartService)),
 	wire.Bind(new(graphql.TutorialService), new(*tutorial.Service)),
+	wire.Bind(new(graphql.StripeService), new(*libstripe.Service)),
 
 	transport.DependencySet,
 	wire.Bind(new(transport.AdminAPIService), new(*service.AdminAPIService)),
@@ -90,4 +92,6 @@ var DependencySet = wire.NewSet(
 	appresource.DependencySet,
 
 	tutorial.DependencySet,
+
+	libstripe.DependencySet,
 )

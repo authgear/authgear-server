@@ -450,6 +450,9 @@ type Query {
     rangeTo: Date!
   ): SignupConversionRate
 
+  """Available subscription plans"""
+  subscriptionPlans: [SubscriptionPlan!]!
+
   """Total users count chart dataset"""
   totalUserCountChart(
     """Target app ID."""
@@ -557,6 +560,69 @@ input SkipAppTutorialProgressInput {
 type SkipAppTutorialProgressPayload {
   """"""
   app: App!
+}
+
+""""""
+type SubscriptionItemPrice {
+  """"""
+  currency: String!
+
+  """"""
+  smsRegion: SubscriptionItemPriceSMSRegion!
+
+  """"""
+  stripePriceID: String!
+
+  """"""
+  type: SubscriptionItemPriceType!
+
+  """"""
+  unitAmount: Int!
+
+  """"""
+  usageType: SubscriptionItemPriceUsageType!
+}
+
+""""""
+enum SubscriptionItemPriceSMSRegion {
+  """"""
+  NONE
+
+  """"""
+  NORTH_AMERICA
+
+  """"""
+  OTHER_REGIONS
+}
+
+""""""
+enum SubscriptionItemPriceType {
+  """"""
+  FIXED
+
+  """"""
+  USAGE
+}
+
+""""""
+enum SubscriptionItemPriceUsageType {
+  """"""
+  NONE
+
+  """"""
+  SMS
+}
+
+""""""
+type SubscriptionPlan {
+  """"""
+  name: String!
+
+  """"""
+  prices: [SubscriptionItemPrice]!
+
+  """"""
+  stripeProductID: String!
 }
 
 """Tutorial status of an app"""
