@@ -248,5 +248,17 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				return graphqlutil.NewLazyValue(chart).Value, nil
 			},
 		},
+		"subscriptionPlans": &graphql.Field{
+			Description: "Available subscription plans",
+			Type:        graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(subscriptionPlan))),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				ctx := GQLContext(p.Context)
+				plans, err := ctx.StripeService.FetchSubscriptionPlans()
+				if err != nil {
+					return nil, err
+				}
+				return plans, nil
+			},
+		},
 	},
 })
