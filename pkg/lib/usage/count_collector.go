@@ -28,6 +28,7 @@ type ReadCounterStore interface {
 
 type MeterAuditDBStore interface {
 	QueryPage(appID string, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]*audit.Log, uint64, error)
+	GetCountByActivityType(appID string, activityType string, rangeFrom *time.Time, rangeTo *time.Time) (int, error)
 }
 
 type smsCountResult struct {
@@ -167,6 +168,41 @@ func (c *CountCollector) CollectDailySMSSent(startTime *time.Time) (int, error) 
 
 		if result.total > 0 {
 			usageRecords = append(usageRecords, NewUsageRecord(appID, RecordNameSMSSentTotal, result.total, periodical.Daily, startT, endT))
+		}
+	}
+
+	return c.upsertUsageRecords(usageRecords)
+}
+
+func (c *CountCollector) CollectDailyEmailSent(startTime *time.Time) (int, error) {
+	startT := timeutil.TruncateToDate(*startTime)
+	endT := startT.AddDate(0, 0, 1)
+	appIDs, err := c.getAppIDs()
+	if err != nil {
+		return 0, err
+	}
+
+	usageRecords := []*UsageRecord{}
+	for _, appID := range appIDs {
+		err := c.AuditHandle.ReadOnly(func() (e error) {
+			count, err := c.Meters.GetCountByActivityType(appID, string(nonblocking.EmailSent), &startT, &endT)
+			if err != nil {
+				return err
+			}
+			if count > 0 {
+				usageRecords = append(usageRecords, NewUsageRecord(
+					appID,
+					RecordNameEmailSent,
+					count,
+					periodical.Daily,
+					startT,
+					endT,
+				))
+			}
+			return nil
+		})
+		if err != nil {
+			return 0, err
 		}
 	}
 
