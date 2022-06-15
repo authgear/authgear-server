@@ -120,5 +120,25 @@ func TestPhone(t *testing.T) {
 			phone := "+85223456789"
 			So(MaskWithCustomRune(phone, 'x'), ShouldEqual, "+8522345xxxx")
 		})
+
+		Convey("IsNorthAmericaNumber", func() {
+			check := func(e164 string, expected bool, errStr string) {
+				actual, err := IsNorthAmericaNumber(e164)
+				if errStr == "" {
+					So(expected, ShouldEqual, actual)
+					So(err, ShouldBeNil)
+				} else {
+					So(err, ShouldBeError, errStr)
+				}
+			}
+
+			check("+12015550123", true, "")
+			check("+18195555555", true, "")
+			check("+61401123456", false, "")
+			check("+85298887766", false, "")
+			check("+85212345678", false, "invalid phone number")
+			check("+85223456789 ", false, "not in E.164 format")
+			check("", false, "not in E.164 format")
+		})
 	})
 }
