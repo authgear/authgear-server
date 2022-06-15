@@ -14,6 +14,7 @@ import (
 	_ "github.com/authgear/authgear-server/cmd/portal/cmd/cmdinternal"
 	_ "github.com/authgear/authgear-server/cmd/portal/cmd/cmdpricing"
 	_ "github.com/authgear/authgear-server/cmd/portal/cmd/cmdstart"
+	_ "github.com/authgear/authgear-server/cmd/portal/cmd/cmdusage"
 	"github.com/authgear/authgear-server/pkg/util/debug"
 )
 
