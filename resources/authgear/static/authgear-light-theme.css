@@ -230,8 +230,6 @@
   color: var(--color-primary-unshaded);
   border-color: var(--color-primary-unshaded);
   background-color: transparent;
-  border-width: 1px;
-  border-style: solid;
 }
 .primary-btn.outline:focus {
   color: var(--color-primary-unshaded);

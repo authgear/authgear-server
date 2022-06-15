@@ -18,7 +18,7 @@
   .btn.primary-btn,
   .btn.light-btn,
   .btn.destructive-btn {
-    @apply rounded-sm px-5 py-1.5 text-center;
+    @apply rounded-sm px-5 py-1.5 text-center border border-solid border-transparent;
   }
 
   .btn.action-btn {
