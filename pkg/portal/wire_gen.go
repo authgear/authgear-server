@@ -19,6 +19,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/endpoint"
 	"github.com/authgear/authgear-server/pkg/portal/graphql"
 	"github.com/authgear/authgear-server/pkg/portal/lib/plan"
+	"github.com/authgear/authgear-server/pkg/portal/libstripe"
 	"github.com/authgear/authgear-server/pkg/portal/loader"
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
@@ -246,6 +247,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clock,
 		AnalyticConfig: analyticConfig,
 	}
+	stripeConfig := rootProvider.StripeConfig
+	libstripeLogger := libstripe.NewLogger(logFactory)
+	api := libstripe.NewClientAPI(stripeConfig, libstripeLogger)
+	libstripeService := &libstripe.Service{
+		ClientAPI: api,
+		Logger:    libstripeLogger,
+		Context:   context,
+	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:               logger,
 		Users:                   userLoader,
@@ -261,6 +270,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppResMgrFactory:        managerFactory,
 		AnalyticChartService:    chartService,
 		TutorialService:         tutorialService,
+		StripeService:           libstripeService,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		DevMode:        devMode,
