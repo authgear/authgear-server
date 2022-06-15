@@ -23,6 +23,7 @@ query AuditLogListQuery(
   $activityTypes: [AuditLogActivityType!]
   $rangeFrom: DateTime
   $rangeTo: DateTime
+  $sortDirection: SortDirection
 ) {
   auditLogs(
     first: $pageSize
@@ -30,6 +31,7 @@ query AuditLogListQuery(
     activityTypes: $activityTypes
     rangeFrom: $rangeFrom
     rangeTo: $rangeTo
+    sortDirection: $sortDirection
   ) {
     ...AuditLogList
   }

@@ -2,10 +2,12 @@ package audit
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/lib/pq"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -15,6 +17,7 @@ type QueryPageOptions struct {
 	RangeFrom     *time.Time
 	RangeTo       *time.Time
 	ActivityTypes []string
+	SortDirection model.SortDirection
 }
 
 func (o QueryPageOptions) Apply(q db.SelectBuilder) db.SelectBuilder {
@@ -64,7 +67,12 @@ func (s *ReadStore) QueryPage(opts QueryPageOptions, pageArgs graphqlutil.PageAr
 
 	query = opts.Apply(query)
 
-	query = query.OrderBy("created_at ASC")
+	sortDirection := opts.SortDirection
+	if sortDirection == model.SortDirectionDefault {
+		sortDirection = model.SortDirectionDesc
+	}
+
+	query = query.OrderBy(fmt.Sprintf("created_at %s", sortDirection))
 
 	query, offset, err := db.ApplyPageArgs(query, pageArgs)
 	if err != nil {

@@ -13,6 +13,7 @@ export type AuditLogListQueryQueryVariables = Types.Exact<{
   activityTypes?: Types.InputMaybe<Array<Types.AuditLogActivityType> | Types.AuditLogActivityType>;
   rangeFrom?: Types.InputMaybe<Types.Scalars['DateTime']>;
   rangeTo?: Types.InputMaybe<Types.Scalars['DateTime']>;
+  sortDirection?: Types.InputMaybe<Types.SortDirection>;
 }>;
 
 
@@ -40,13 +41,14 @@ export const AuditLogListFragmentDoc = gql`
 }
     ${AuditLogEdgesNodeFragmentDoc}`;
 export const AuditLogListQueryDocument = gql`
-    query AuditLogListQuery($pageSize: Int!, $cursor: String, $activityTypes: [AuditLogActivityType!], $rangeFrom: DateTime, $rangeTo: DateTime) {
+    query AuditLogListQuery($pageSize: Int!, $cursor: String, $activityTypes: [AuditLogActivityType!], $rangeFrom: DateTime, $rangeTo: DateTime, $sortDirection: SortDirection) {
   auditLogs(
     first: $pageSize
     after: $cursor
     activityTypes: $activityTypes
     rangeFrom: $rangeFrom
     rangeTo: $rangeTo
+    sortDirection: $sortDirection
   ) {
     ...AuditLogList
   }
@@ -70,6 +72,7 @@ export const AuditLogListQueryDocument = gql`
  *      activityTypes: // value for 'activityTypes'
  *      rangeFrom: // value for 'rangeFrom'
  *      rangeTo: // value for 'rangeTo'
+ *      sortDirection: // value for 'sortDirection'
  *   },
  * });
  */
