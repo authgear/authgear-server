@@ -102,6 +102,7 @@ var cmdUsageCollectCount = &cobra.Command{
 			context.Background(),
 			dbPool,
 			dbCredentials,
+			auditDBCredentials,
 			redisPool,
 			analyticRedisCredentials,
 		)
@@ -112,6 +113,9 @@ var cmdUsageCollectCount = &cobra.Command{
 				periodical.Monthly: countCollector.CollectMonthlyActiveUser,
 				periodical.Weekly:  countCollector.CollectWeeklyActiveUser,
 				periodical.Daily:   countCollector.CollectDailyActiveUser,
+			},
+			libusage.RecordTypeSMSSent: {
+				periodical.Daily: countCollector.CollectDailySMSSent,
 			},
 		}
 
