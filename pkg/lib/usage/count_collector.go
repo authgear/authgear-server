@@ -209,6 +209,41 @@ func (c *CountCollector) CollectDailyEmailSent(startTime *time.Time) (int, error
 	return c.upsertUsageRecords(usageRecords)
 }
 
+func (c *CountCollector) CollectDailyWhatsappOTPVerified(startTime *time.Time) (int, error) {
+	startT := timeutil.TruncateToDate(*startTime)
+	endT := startT.AddDate(0, 0, 1)
+	appIDs, err := c.getAppIDs()
+	if err != nil {
+		return 0, err
+	}
+
+	usageRecords := []*UsageRecord{}
+	for _, appID := range appIDs {
+		err := c.AuditHandle.ReadOnly(func() (e error) {
+			count, err := c.Meters.GetCountByActivityType(appID, string(nonblocking.WhatsappOTPVerified), &startT, &endT)
+			if err != nil {
+				return err
+			}
+			if count > 0 {
+				usageRecords = append(usageRecords, NewUsageRecord(
+					appID,
+					RecordNameWhatsappOTPVerified,
+					count,
+					periodical.Daily,
+					startT,
+					endT,
+				))
+			}
+			return nil
+		})
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return c.upsertUsageRecords(usageRecords)
+}
+
 func (c *CountCollector) getAppIDs() (appIDs []string, err error) {
 	err = c.GlobalHandle.WithTx(func() error {
 		appIDs, err = c.GlobalDBStore.GetAppIDs()
