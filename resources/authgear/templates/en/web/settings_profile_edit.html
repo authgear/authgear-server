@@ -283,7 +283,6 @@
       name="gender-select"
       data-controller="select-empty-value"
       data-gender-select-target="select"
-      data-gender-select-fromListener-param="true"
       data-action="change->select-empty-value#toggleClass change->gender-select#onChange"
     >
       <option value="" {{ if not $.Gender }}selected{{ end }}>{{ template "unset-label" }}</option>
