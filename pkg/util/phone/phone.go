@@ -115,3 +115,12 @@ func Mask(phone string) string {
 
 	return buf.String()
 }
+
+func IsNorthAmericaNumber(e164 string) (bool, error) {
+	_, callingCode, err := ParseE164ToCallingCodeAndNumber(e164)
+	if err != nil {
+		return false, err
+	}
+
+	return callingCode == "1", nil
+}
