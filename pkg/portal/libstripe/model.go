@@ -7,6 +7,7 @@ import (
 )
 
 const (
+	MetadataKeyAppID     = "app_id"
 	MetadataKeyPlanName  = "plan_name"
 	MetadataKeyPriceType = "price_type"
 	MetadataKeyUsageType = "usage_type"
