@@ -245,6 +245,8 @@ export type Mutation = {
   skipAppTutorial: SkipAppTutorialPayload;
   /** Skip a progress of the tutorial of the app */
   skipAppTutorialProgress: SkipAppTutorialProgressPayload;
+  /** Subscribe to a plan */
+  subscribePlan: SubscribePlanPayload;
   /** Update app */
   updateApp: UpdateAppPayload;
   /** Request verification of a domain of target app */
@@ -299,6 +301,11 @@ export type MutationSkipAppTutorialArgs = {
 
 export type MutationSkipAppTutorialProgressArgs = {
   input: SkipAppTutorialProgressInput;
+};
+
+
+export type MutationSubscribePlanArgs = {
+  input: SubscribePlanInput;
 };
 
 
@@ -481,6 +488,18 @@ export type SkipAppTutorialProgressInput = {
 export type SkipAppTutorialProgressPayload = {
   __typename?: 'SkipAppTutorialProgressPayload';
   app: App;
+};
+
+export type SubscribePlanInput = {
+  /** App ID. */
+  appID: Scalars['ID'];
+  /** Stripe Product ID. */
+  stripeProductID: Scalars['String'];
+};
+
+export type SubscribePlanPayload = {
+  __typename?: 'SubscribePlanPayload';
+  url: Scalars['String'];
 };
 
 export type SubscriptionItemPrice = {
