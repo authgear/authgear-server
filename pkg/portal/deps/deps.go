@@ -64,6 +64,8 @@ var DependencySet = wire.NewSet(
 		"SentryHub",
 		"LoggerFactory",
 		"Database",
+		"RedisPool",
+		"GlobalRedisHandle",
 		"ConfigSourceController",
 		"Resources",
 	),
