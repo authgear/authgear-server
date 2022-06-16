@@ -37,15 +37,15 @@ func init() {
 	portalcmd.Root.AddCommand(cmdUsage)
 }
 
-var nameList = strings.Join([]string{
-	string(libusage.ActiveUser),
-	string(libusage.SMSSent),
-	string(libusage.EmailSent),
-	string(libusage.WhatsappOTPVerified),
+var typeList = strings.Join([]string{
+	string(libusage.RecordTypeActiveUser),
+	string(libusage.RecordTypeSMSSent),
+	string(libusage.RecordTypeEmailSent),
+	string(libusage.RecordTypeWhatsappOTPVerified),
 }, "|")
 
 var cmdUsageCollectCount = &cobra.Command{
-	Use:   fmt.Sprintf("collect-count [%s] [period]", nameList),
+	Use:   fmt.Sprintf("collect-count [%s] [period]", typeList),
 	Short: "Collect usage count record",
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -65,6 +65,21 @@ var cmdUsageCollectCount = &cobra.Command{
 			DatabaseSchema: dbSchema,
 		}
 
+		auditDBURL, err := binder.GetRequiredString(cmd, portalcmd.ArgAuditDatabaseURL)
+		if err != nil {
+			return err
+		}
+
+		auditDBSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgAuditDatabaseSchema)
+		if err != nil {
+			return err
+		}
+
+		auditDBCredentials := &config.AuditDatabaseCredentials{
+			DatabaseURL:    auditDBURL,
+			DatabaseSchema: auditDBSchema,
+		}
+
 		var analyticRedisCredentials *config.AnalyticRedisCredentials
 		analyticRedisURL := binder.GetString(cmd, portalcmd.ArgAnalyticRedisURL)
 		if analyticRedisURL != "" {
@@ -73,7 +88,7 @@ var cmdUsageCollectCount = &cobra.Command{
 			}
 		}
 
-		name := args[0]
+		recordType := args[0]
 		period := args[1]
 		parser := analytic.NewPeriodicalArgumentParser()
 		periodicalType, date, err := parser.Parse(period)
@@ -87,22 +102,26 @@ var cmdUsageCollectCount = &cobra.Command{
 			context.Background(),
 			dbPool,
 			dbCredentials,
+			auditDBCredentials,
 			redisPool,
 			analyticRedisCredentials,
 		)
 
 		type collectorFuncType func(date *time.Time) (updatedCount int, err error)
-		collectorFuncMap := map[libusage.UsageRecordName]map[periodical.Type]collectorFuncType{
-			libusage.ActiveUser: {
+		collectorFuncMap := map[libusage.RecordType]map[periodical.Type]collectorFuncType{
+			libusage.RecordTypeActiveUser: {
 				periodical.Monthly: countCollector.CollectMonthlyActiveUser,
 				periodical.Weekly:  countCollector.CollectWeeklyActiveUser,
 				periodical.Daily:   countCollector.CollectDailyActiveUser,
 			},
+			libusage.RecordTypeSMSSent: {
+				periodical.Daily: countCollector.CollectDailySMSSent,
+			},
 		}
 
-		collectorFunc, ok := collectorFuncMap[libusage.UsageRecordName(name)][periodicalType]
+		collectorFunc, ok := collectorFuncMap[libusage.RecordType(recordType)][periodicalType]
 		if !ok {
-			return fmt.Errorf("invalid arguments; name: %s; period: %s", name, period)
+			return fmt.Errorf("invalid arguments; record type: %s; period: %s", recordType, period)
 		}
 
 		log.Printf("Start collecting usage records")

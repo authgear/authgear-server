@@ -2,6 +2,7 @@ package usage
 
 import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
@@ -27,9 +28,12 @@ var DependencySet = wire.NewSet(
 	NewGlobalDatabaseCredentials,
 	config.NewDefaultRedisEnvironmentConfig,
 	globaldb.DependencySet,
+	auditdb.DependencySet,
+	auditdb.NewReadHandle,
 	analyticredis.NewHandle,
 	meter.DependencySet,
 
 	usage.DependencySet,
 	wire.Bind(new(usage.ReadCounterStore), new(*meter.ReadStoreRedis)),
+	wire.Bind(new(usage.MeterAuditDBStore), new(*meter.AuditDBReadStore)),
 )
