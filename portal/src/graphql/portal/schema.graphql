@@ -336,6 +336,9 @@ type Mutation {
   """Skip a progress of the tutorial of the app"""
   skipAppTutorialProgress(input: SkipAppTutorialProgressInput!): SkipAppTutorialProgressPayload!
 
+  """Subscribe to a plan"""
+  subscribePlan(input: SubscribePlanInput!): SubscribePlanPayload!
+
   """Update app"""
   updateApp(input: UpdateAppInput!): UpdateAppPayload!
 
@@ -560,6 +563,21 @@ input SkipAppTutorialProgressInput {
 type SkipAppTutorialProgressPayload {
   """"""
   app: App!
+}
+
+""""""
+input SubscribePlanInput {
+  """App ID."""
+  appID: ID!
+
+  """Stripe Product ID."""
+  stripeProductID: String!
+}
+
+""""""
+type SubscribePlanPayload {
+  """"""
+  url: String!
 }
 
 """"""
