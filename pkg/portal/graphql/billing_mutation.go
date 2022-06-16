@@ -2,6 +2,8 @@ package graphql
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/portal/libstripe"
+	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	relay "github.com/authgear/graphql-go-relay"
@@ -48,6 +50,7 @@ var _ = registerMutationField(
 
 			input := p.Args["input"].(map[string]interface{})
 			appNodeID := input["appID"].(string)
+			stripeProductID := input["stripeProductID"].(string)
 
 			resolvedNodeID := relay.FromGlobalID(appNodeID)
 			if resolvedNodeID.Type != typeApp {
@@ -61,8 +64,40 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			// fetch the subscription plan
+			ctx := GQLContext(p.Context)
+			plans, err := ctx.StripeService.FetchSubscriptionPlans()
+			if err != nil {
+				return nil, err
+			}
+			var plan *libstripe.SubscriptionPlan
+			for _, p := range plans {
+				if p.StripeProductID == stripeProductID {
+					plan = p
+					break
+				}
+			}
+			if plan == nil {
+				return nil, apierrors.NewInvalid("invalid stripe product id")
+			}
+
+			// fetch the current user email
+			val, err := ctx.Users.Load(sessionInfo.UserID).Value()
+			if err != nil {
+				return nil, apierrors.NewInvalid("failed to load current user")
+			}
+			user, ok := val.(*model.User)
+			if !ok {
+				return nil, apierrors.NewInvalid("failed to load current user")
+			}
+
+			// create the checkout session
+			url, err := ctx.StripeService.CreateCheckoutSession(appID, user.Email, plan)
+			if err != nil {
+				return nil, err
+			}
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"url": "",
+				"url": url,
 			}).Value, nil
 		},
 	},
