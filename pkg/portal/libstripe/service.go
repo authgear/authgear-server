@@ -99,9 +99,11 @@ func (s *Service) fetchPrices(plans []*model.Plan, products []*stripe.Product) (
 		stripePrice := iter.Current().(*stripe.Price)
 		productID := stripePrice.Product.ID
 		if productPrice, ok := m[productID]; ok {
-			if price, ok := NewPrice(stripePrice); ok {
-				productPrice.Prices = append(productPrice.Prices, price)
+			price, err := NewPrice(stripePrice)
+			if err != nil {
+				return nil, err
 			}
+			productPrice.Prices = append(productPrice.Prices, price)
 		}
 	}
 	if err := iter.Err(); err != nil {
