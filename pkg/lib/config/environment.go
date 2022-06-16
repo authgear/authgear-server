@@ -39,6 +39,8 @@ type EnvironmentConfig struct {
 	AuditDatabase AuditDatabaseCredentialsEnvironmentConfig `envconfig:"AUDIT_DATABASE"`
 	// DatabaseConfig configures the database connection config
 	DatabaseConfig DatabaseEnvironmentConfig `envconfig:"DATABASE_CONFIG"`
+
+	GlobalRedis GlobalRedisCredentialsEnvironmentConfig `envconfig:"REDIS"`
 	// RedisConfig configures the redis connection config
 	RedisConfig RedisEnvironmentConfig `envconfig:"REDIS_CONFIG"`
 
