@@ -1,6 +1,8 @@
 package libstripe
 
 import (
+	"fmt"
+
 	"github.com/stripe/stripe-go/v72"
 )
 
@@ -18,14 +20,14 @@ const (
 	PriceTypeUsage PriceType = "usage"
 )
 
-func (t PriceType) Valid() bool {
+func (t PriceType) Valid() error {
 	switch t {
 	case PriceTypeFixed:
-		return true
+		return nil
 	case PriceTypeUsage:
-		return true
+		return nil
 	}
-	return false
+	return fmt.Errorf("stripe: unknown price_type: %#v", t)
 }
 
 type UsageType string
@@ -35,14 +37,14 @@ const (
 	UsageTypeSMS  UsageType = "sms"
 )
 
-func (t UsageType) Valid() bool {
+func (t UsageType) Valid() error {
 	switch t {
 	case UsageTypeNone:
-		return true
+		return nil
 	case UsageTypeSMS:
-		return true
+		return nil
 	}
-	return false
+	return fmt.Errorf("stripe: unknown usage_type: %#v", t)
 }
 
 type SMSRegion string
@@ -53,16 +55,16 @@ const (
 	SMSRegionOtherRegions SMSRegion = "other-regions"
 )
 
-func (r SMSRegion) Valid() bool {
+func (r SMSRegion) Valid() error {
 	switch r {
 	case SMSRegionNone:
-		return true
+		return nil
 	case SMSRegionNorthAmerica:
-		return true
+		return nil
 	case SMSRegionOtherRegions:
-		return true
+		return nil
 	}
-	return false
+	return fmt.Errorf("stripe: unknown sms_region: %#v", r)
 }
 
 type Price struct {
@@ -74,9 +76,15 @@ type Price struct {
 	SMSRegion     SMSRegion `json:"smsRegion,omitempty"`
 }
 
-func NewPrice(stripePrice *stripe.Price) (price *Price, ok bool) {
+func NewPrice(stripePrice *stripe.Price) (price *Price, err error) {
+	// Though we tolerate unknown Products,
+	// for known product, we do NOT tolerate unknown price.
+	// If we were to tolerate unknown price,
+	// we have a risk to present inaccurate pricing information.
+
 	priceType := PriceType(stripePrice.Metadata[MetadataKeyPriceType])
-	if !priceType.Valid() {
+	err = priceType.Valid()
+	if err != nil {
 		return
 	}
 
@@ -92,18 +100,19 @@ func NewPrice(stripePrice *stripe.Price) (price *Price, ok bool) {
 		break
 	case PriceTypeUsage:
 		usageType := UsageType(stripePrice.Metadata[MetadataKeyUsageType])
-		if !usageType.Valid() {
+		err = usageType.Valid()
+		if err != nil {
 			return
 		}
 		smsRegion := SMSRegion(stripePrice.Metadata[MetadatakeySMSRegion])
-		if !smsRegion.Valid() {
+		err = smsRegion.Valid()
+		if err != nil {
 			return
 		}
 		price.UsageType = usageType
 		price.SMSRegion = smsRegion
 	}
 
-	ok = true
 	return
 }
 
@@ -117,6 +126,8 @@ func NewSubscriptionPlan(product *stripe.Product, knownPlanNames map[string]stru
 	planName := product.Metadata[MetadataKeyPlanName]
 	_, ok := knownPlanNames[planName]
 	if !ok {
+		// There could exist some unknown Products on Stripe.
+		// We tolerate that.
 		return nil, false
 	}
 	return &SubscriptionPlan{
