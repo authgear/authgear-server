@@ -31,7 +31,7 @@ export class IntlTelInputController extends Controller {
   ignoreConnect: boolean = false;
   ignoreDisconnect: boolean = false;
 
-  input() {
+  input(fromConnect: boolean) {
     const instance = this.instance;
     if (instance == null) {
       return;
@@ -52,7 +52,16 @@ export class IntlTelInputController extends Controller {
         });
       }
     } else {
-      const { dialCode } = instance.getSelectedCountryData();
+      const { iso2, dialCode } = instance.getSelectedCountryData();
+      if (fromConnect === true && iso2 != null && dialCode != null) {
+        const countryCallingCode = `+${dialCode}`;
+        this.inputElement.value = this.inputElement.value.replace(
+          countryCallingCode,
+          ""
+        );
+        instance.setCountry(iso2);
+      }
+
       if (dialCode != null) {
         const countryCallingCode = `+${dialCode}`;
         const value = this.inputElement.value;
@@ -128,7 +137,7 @@ export class IntlTelInputController extends Controller {
       customContainer,
     });
 
-    this.input();
+    this.input(true);
   }
 
   disconnect() {
