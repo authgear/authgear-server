@@ -8,13 +8,14 @@ The resolve endpoint `/resolve` looks at `Cookie:` and `Authentication:` to auth
 
 The resolve endpoint does not write body. Instead, it adds the following headers in the response.
 
-  * [x-authgear-session-valid](#x-authgear-session-valid)
-  * [x-authgear-user-id](#x-authgear-user-id)
-  * [x-authgear-user-anonymous](#x-authgear-user-anonymous)
-  * [x-authgear-user-verified](#x-authgear-user-verified)
-  * [x-authgear-user-roles](#x-authgear-user-roles)
-  * [x-authgear-session-amr](#x-authgear-session-amr)
-  * [x-authgear-session-authenticated-at](#x-authgear-session-authenticated-at)
+- [x-authgear-session-valid](#x-authgear-session-valid)
+- [x-authgear-user-id](#x-authgear-user-id)
+- [x-authgear-user-anonymous](#x-authgear-user-anonymous)
+- [x-authgear-user-verified](#x-authgear-user-verified)
+- [x-authgear-user-roles](#x-authgear-user-roles)
+- [x-authgear-session-amr](#x-authgear-session-amr)
+- [x-authgear-session-authenticated-at](#x-authgear-session-authenticated-at)
+- [x-authgear-user-can-reauthenticate](#x-authgear-user-can-reauthenticate)
 
 ## x-authgear-session-valid
 
@@ -53,3 +54,7 @@ See [the amr claim](./oidc.md#amr). It is comma-separated.
 ## x-authgear-session-authenticated-at
 
 See [the auth_time claim](./oidc.md#auth_time). It is an integer.
+
+## x-authgear-user-can-reauthenticate
+
+The value `true` means the user can possibly reauthenticate.
