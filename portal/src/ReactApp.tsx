@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { BrowserRouter, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import {
   LocaleProvider,
   FormattedMessage,
@@ -31,7 +31,7 @@ import { loadTheme, Link as FluentLink, ILinkProps } from "@fluentui/react";
 import ProjectWizardDoneScreen from "./graphql/portal/ProjectWizardDoneScreen";
 import OnboardingRedirect from "./OnboardingRedirect";
 import { ReactRouterLink, ReactRouterLinkProps } from "./ReactRouterLink";
-import { AppRoute } from "./AppRoute";
+import Authenticated from "./graphql/portal/Authenticated";
 
 async function loadSystemConfig(): Promise<SystemConfig> {
   const resp = await fetch("/api/system-config.json");
@@ -54,47 +54,65 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        <AppRoute
-          requireAuth={true}
+        <Route
           path="/"
-          element={<Navigate to="projects/" replace={true} />}
+          element={
+            <Authenticated>
+              <Navigate to="projects/" replace={true} />
+            </Authenticated>
+          }
         />
-        <AppRoute
-          requireAuth={true}
+        <Route
           path="/projects/"
-          element={<AppsScreen />}
+          element={
+            <Authenticated>
+              <AppsScreen />
+            </Authenticated>
+          }
         />
-        <AppRoute
-          requireAuth={true}
+        <Route
           path="/projects/create"
-          element={<CreateProjectScreen />}
+          element={
+            <Authenticated>
+              <CreateProjectScreen />
+            </Authenticated>
+          }
         />
-        <AppRoute
-          requireAuth={true}
+        <Route
           path="/project/:appID/*"
-          element={<AppRoot />}
+          element={
+            <Authenticated>
+              <AppRoot />
+            </Authenticated>
+          }
         />
-        <AppRoute
-          requireAuth={true}
+        <Route
           path="/project/:appID/wizard/*"
-          element={<ProjectWizardScreen />}
+          element={
+            <Authenticated>
+              <ProjectWizardScreen />
+            </Authenticated>
+          }
         />
-        <AppRoute
-          requireAuth={true}
+        <Route
           path="/project/:appID/wizard/done"
-          element={<ProjectWizardDoneScreen />}
+          element={
+            <Authenticated>
+              <ProjectWizardDoneScreen />
+            </Authenticated>
+          }
         />
-        <AppRoute path="/oauth-redirect" element={<OAuthRedirect />} />
-        <AppRoute
-          path="/onboarding-redirect"
-          element={<OnboardingRedirect />}
-        />
-        <AppRoute
-          requireAuth={true}
+        <Route path="/oauth-redirect" element={<OAuthRedirect />} />
+        <Route path="/onboarding-redirect" element={<OnboardingRedirect />} />
+        <Route
           path="/"
-          element={<Navigate to="projects/" replace={true} />}
+          element={
+            <Authenticated>
+              <Navigate to="projects/" replace={true} />
+            </Authenticated>
+          }
         />
-        <AppRoute
+        <Route
           path="/collaborators/invitation"
           element={<AcceptAdminInvitationScreen />}
         />
