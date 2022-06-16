@@ -179,7 +179,7 @@ func (s *AppService) LoadAppSecretConfig(app *model.App, sessionInfo *apimodel.S
 	authenticatedAt := sessionInfo.AuthenticatedAt
 	elapsed := now.Sub(authenticatedAt)
 	var unmasked bool
-	if elapsed >= 0 && elapsed < 5*time.Minute {
+	if elapsed >= 0 && elapsed < 5*time.Minute || !sessionInfo.UserCanReauthenticate {
 		unmasked = true
 	}
 

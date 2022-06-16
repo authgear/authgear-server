@@ -545,11 +545,117 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:       limiter,
 	}
 	resolveHandlerLogger := handler.NewResolveHandlerLogger(factory)
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	passwordLogger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		Logger:          passwordLogger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+		Housekeeper:     housekeeper,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	oobStoreRedis := &oob.StoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oobLogger := oob.NewLogger(factory)
+	oobProvider := &oob.Provider{
+		Config:    authenticatorOOBConfig,
+		Store:     oobStore,
+		CodeStore: oobStoreRedis,
+		Clock:     clockClock,
+		Logger:    oobLogger,
+	}
+	service3 := &service2.Service{
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
+	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         userStore,
+		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
+	}
+	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
+		Config:      userProfileConfig,
+		UserQueries: rawQueries,
+		UserStore:   userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:         rawQueries,
+		Store:              userStore,
+		Identities:         serviceService,
+		Authenticators:     service3,
+		Verification:       verificationService,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+	}
 	resolveHandler := &handler.ResolveHandler{
 		Database:     handle,
 		Identities:   serviceService,
 		Verification: verificationService,
 		Logger:       resolveHandlerLogger,
+		Users:        queries,
 	}
 	return resolveHandler
 }

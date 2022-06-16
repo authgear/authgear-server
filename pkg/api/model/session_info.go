@@ -9,11 +9,12 @@ import (
 )
 
 type SessionInfo struct {
-	IsValid         bool
-	UserID          string
-	UserAnonymous   bool
-	UserVerified    bool
-	AuthenticatedAt time.Time
+	IsValid               bool
+	UserID                string
+	UserAnonymous         bool
+	UserVerified          bool
+	AuthenticatedAt       time.Time
+	UserCanReauthenticate bool
 
 	SessionAMR []string
 }
@@ -25,6 +26,7 @@ const (
 	headerUserAnonymous          = "X-Authgear-User-Anonymous"
 	headerSessionAmr             = "X-Authgear-Session-Amr"
 	headerSessionAuthenticatedAt = "X-Authgear-Session-Authenticated-At"
+	headerUserCanReauthenticate  = "X-Authgear-User-Can-Reauthenticate"
 )
 
 func (i *SessionInfo) PopulateHeaders(rw http.ResponseWriter) {
@@ -40,6 +42,7 @@ func (i *SessionInfo) PopulateHeaders(rw http.ResponseWriter) {
 	rw.Header().Set(headerUserID, i.UserID)
 	rw.Header().Set(headerUserAnonymous, strconv.FormatBool(i.UserAnonymous))
 	rw.Header().Set(headerUserVerified, strconv.FormatBool(i.UserVerified))
+	rw.Header().Set(headerUserCanReauthenticate, strconv.FormatBool(i.UserCanReauthenticate))
 
 	rw.Header().Set(headerSessionAmr, strings.Join(i.SessionAMR, " "))
 	if !i.AuthenticatedAt.IsZero() {
@@ -102,11 +105,17 @@ func NewSessionInfoFromHeaders(hdr http.Header) (info *SessionInfo, err error) {
 		authenticatedAt = time.Unix(sec, 0).UTC()
 	}
 
+	userCanReauthenticate, err := headerParseBool(headerUserCanReauthenticate, hdr.Get(headerUserCanReauthenticate))
+	if err != nil {
+		return
+	}
+
 	info.IsValid = sessionValid
 	info.UserID = userID
 	info.UserAnonymous = anonymous
 	info.UserVerified = verified
 	info.SessionAMR = amr
 	info.AuthenticatedAt = authenticatedAt
+	info.UserCanReauthenticate = userCanReauthenticate
 	return
 }

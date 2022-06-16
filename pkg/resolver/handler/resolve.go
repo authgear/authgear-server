@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -38,11 +39,16 @@ func NewResolveHandlerLogger(lf *log.Factory) ResolveHandlerLogger {
 	return ResolveHandlerLogger{lf.New("resolve-handler")}
 }
 
+type UserProvider interface {
+	Get(id string, role accesscontrol.Role) (*model.User, error)
+}
+
 type ResolveHandler struct {
 	Database     Database
 	Identities   IdentityService
 	Verification VerificationService
 	Logger       ResolveHandlerLogger
+	Users        UserProvider
 }
 
 func (h *ResolveHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
@@ -91,7 +97,14 @@ func (h *ResolveHandler) resolve(r *http.Request) (*model.SessionInfo, error) {
 			return nil, err
 		}
 
-		info = session.NewInfo(s, isAnonymous, isVerified)
+		user, err := h.Users.Get(*userID, accesscontrol.RoleGreatest)
+		if err != nil {
+			return nil, err
+		}
+
+		userCanReauthenticate := user.CanReauthenticate
+
+		info = session.NewInfo(s, isAnonymous, isVerified, userCanReauthenticate)
 	} else if !valid {
 		info = &model.SessionInfo{IsValid: false}
 	}
