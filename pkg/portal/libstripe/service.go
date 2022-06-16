@@ -7,6 +7,7 @@ import (
 	"github.com/stripe/stripe-go/v72/client"
 
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
+	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -24,19 +25,28 @@ func NewClientAPI(stripeConfig *portalconfig.StripeConfig, logger Logger) *clien
 	return clientAPI
 }
 
+type PlanService interface {
+	ListPlans() ([]*model.Plan, error)
+}
+
 type Service struct {
 	ClientAPI *client.API
 	Logger    Logger
 	Context   context.Context
+	Plans     PlanService
 }
 
 func (s *Service) FetchSubscriptionPlans() ([]*SubscriptionPlan, error) {
-	// TODO(stripe): Fetch _portal_plan and return an intersection of plans.
+	plans, err := s.Plans.ListPlans()
+	if err != nil {
+		return nil, err
+	}
+
 	products, err := s.fetchProducts()
 	if err != nil {
 		return nil, err
 	}
-	subscriptionPlans, err := s.fetchPrices(products)
+	subscriptionPlans, err := s.fetchPrices(plans, products)
 	if err != nil {
 		return nil, err
 	}
@@ -64,10 +74,15 @@ func (s *Service) fetchProducts() ([]*stripe.Product, error) {
 	return products, nil
 }
 
-func (s *Service) fetchPrices(products []*stripe.Product) ([]*SubscriptionPlan, error) {
+func (s *Service) fetchPrices(plans []*model.Plan, products []*stripe.Product) ([]*SubscriptionPlan, error) {
+	knownPlanNames := make(map[string]struct{})
+	for _, plan := range plans {
+		knownPlanNames[plan.Name] = struct{}{}
+	}
+
 	m := make(map[string]*SubscriptionPlan)
 	for _, product := range products {
-		plan, ok := NewSubscriptionPlan(product)
+		plan, ok := NewSubscriptionPlan(product, knownPlanNames)
 		if ok {
 			m[plan.StripeProductID] = plan
 		}
