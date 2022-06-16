@@ -18,3 +18,7 @@ func NewDefaultRedisEnvironmentConfig() *RedisEnvironmentConfig {
 		IdleConnectionTimeout: DurationSeconds(300),
 	}
 }
+
+type GlobalRedisCredentialsEnvironmentConfig struct {
+	RedisURL string `envconfig:"URL"`
+}
