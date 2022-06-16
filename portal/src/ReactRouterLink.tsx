@@ -5,7 +5,7 @@ import {
   useNavigate,
   useLocation,
   useResolvedPath,
-} from "react-router";
+} from "react-router-dom";
 
 function isModifiedEvent(event: React.MouseEvent) {
   return !!(event.metaKey || event.altKey || event.ctrlKey || event.shiftKey);
