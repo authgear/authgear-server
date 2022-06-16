@@ -28,6 +28,7 @@ type ReadCounterStore interface {
 
 type MeterAuditDBStore interface {
 	QueryPage(appID string, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]*audit.Log, uint64, error)
+	GetCountByActivityType(appID string, activityType string, rangeFrom *time.Time, rangeTo *time.Time) (int, error)
 }
 
 type smsCountResult struct {
@@ -73,15 +74,8 @@ func (c *CountCollector) CollectMonthlyActiveUser(startTime *time.Time) (int, er
 			))
 		}
 	}
-	if len(usageRecords) > 0 {
-		if err := c.GlobalHandle.WithTx(func() error {
-			return c.GlobalDBStore.UpsertUsageRecords(usageRecords)
-		}); err != nil {
-			return 0, err
-		}
-		return len(usageRecords), err
-	}
-	return 0, nil
+
+	return c.upsertUsageRecords(usageRecords)
 }
 
 func (c *CountCollector) CollectWeeklyActiveUser(startTime *time.Time) (int, error) {
@@ -113,15 +107,8 @@ func (c *CountCollector) CollectWeeklyActiveUser(startTime *time.Time) (int, err
 			))
 		}
 	}
-	if len(usageRecords) > 0 {
-		if err := c.GlobalHandle.WithTx(func() error {
-			return c.GlobalDBStore.UpsertUsageRecords(usageRecords)
-		}); err != nil {
-			return 0, err
-		}
-		return len(usageRecords), err
-	}
-	return 0, nil
+
+	return c.upsertUsageRecords(usageRecords)
 }
 
 func (c *CountCollector) CollectDailyActiveUser(startTime *time.Time) (int, error) {
@@ -151,15 +138,8 @@ func (c *CountCollector) CollectDailyActiveUser(startTime *time.Time) (int, erro
 			))
 		}
 	}
-	if len(usageRecords) > 0 {
-		if err := c.GlobalHandle.WithTx(func() error {
-			return c.GlobalDBStore.UpsertUsageRecords(usageRecords)
-		}); err != nil {
-			return 0, err
-		}
-		return len(usageRecords), err
-	}
-	return 0, nil
+
+	return c.upsertUsageRecords(usageRecords)
 }
 
 func (c *CountCollector) CollectDailySMSSent(startTime *time.Time) (int, error) {
@@ -191,16 +171,77 @@ func (c *CountCollector) CollectDailySMSSent(startTime *time.Time) (int, error) 
 		}
 	}
 
-	if len(usageRecords) > 0 {
-		if err := c.GlobalHandle.WithTx(func() error {
-			return c.GlobalDBStore.UpsertUsageRecords(usageRecords)
-		}); err != nil {
-			return 0, err
-		}
-		return len(usageRecords), err
+	return c.upsertUsageRecords(usageRecords)
+}
+
+func (c *CountCollector) CollectDailyEmailSent(startTime *time.Time) (int, error) {
+	startT := timeutil.TruncateToDate(*startTime)
+	endT := startT.AddDate(0, 0, 1)
+	appIDs, err := c.getAppIDs()
+	if err != nil {
+		return 0, err
 	}
 
-	return 0, err
+	usageRecords := []*UsageRecord{}
+	for _, appID := range appIDs {
+		err := c.AuditHandle.ReadOnly(func() (e error) {
+			count, err := c.Meters.GetCountByActivityType(appID, string(nonblocking.EmailSent), &startT, &endT)
+			if err != nil {
+				return err
+			}
+			if count > 0 {
+				usageRecords = append(usageRecords, NewUsageRecord(
+					appID,
+					RecordNameEmailSent,
+					count,
+					periodical.Daily,
+					startT,
+					endT,
+				))
+			}
+			return nil
+		})
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return c.upsertUsageRecords(usageRecords)
+}
+
+func (c *CountCollector) CollectDailyWhatsappOTPVerified(startTime *time.Time) (int, error) {
+	startT := timeutil.TruncateToDate(*startTime)
+	endT := startT.AddDate(0, 0, 1)
+	appIDs, err := c.getAppIDs()
+	if err != nil {
+		return 0, err
+	}
+
+	usageRecords := []*UsageRecord{}
+	for _, appID := range appIDs {
+		err := c.AuditHandle.ReadOnly(func() (e error) {
+			count, err := c.Meters.GetCountByActivityType(appID, string(nonblocking.WhatsappOTPVerified), &startT, &endT)
+			if err != nil {
+				return err
+			}
+			if count > 0 {
+				usageRecords = append(usageRecords, NewUsageRecord(
+					appID,
+					RecordNameWhatsappOTPVerified,
+					count,
+					periodical.Daily,
+					startT,
+					endT,
+				))
+			}
+			return nil
+		})
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return c.upsertUsageRecords(usageRecords)
 }
 
 func (c *CountCollector) getAppIDs() (appIDs []string, err error) {
@@ -212,6 +253,18 @@ func (c *CountCollector) getAppIDs() (appIDs []string, err error) {
 		return nil
 	})
 	return
+}
+
+func (c *CountCollector) upsertUsageRecords(usageRecords []*UsageRecord) (int, error) {
+	if len(usageRecords) > 0 {
+		if err := c.GlobalHandle.WithTx(func() error {
+			return c.GlobalDBStore.UpsertUsageRecords(usageRecords)
+		}); err != nil {
+			return 0, err
+		}
+		return len(usageRecords), nil
+	}
+	return 0, nil
 }
 
 func (c *CountCollector) querySMSCount(appID string, rangeFrom *time.Time, rangeTo *time.Time) (*smsCountResult, error) {

@@ -117,6 +117,12 @@ var cmdUsageCollectCount = &cobra.Command{
 			libusage.RecordTypeSMSSent: {
 				periodical.Daily: countCollector.CollectDailySMSSent,
 			},
+			libusage.RecordTypeEmailSent: {
+				periodical.Daily: countCollector.CollectDailyEmailSent,
+			},
+			libusage.RecordTypeWhatsappOTPVerified: {
+				periodical.Daily: countCollector.CollectDailyWhatsappOTPVerified,
+			},
 		}
 
 		collectorFunc, ok := collectorFuncMap[libusage.RecordType(recordType)][periodicalType]
