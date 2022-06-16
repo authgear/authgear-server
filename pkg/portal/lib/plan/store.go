@@ -87,6 +87,23 @@ func (s *Store) Update(plan *model.Plan) error {
 	return nil
 }
 
+func (s *Store) List() ([]*model.Plan, error) {
+	var out []*model.Plan
+	q := s.selectQuery()
+	rows, err := s.SQLExecutor.QueryWith(q)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		plan, err := s.scan(rows)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, plan)
+	}
+	return out, nil
+}
+
 func (s *Store) selectQuery() sq.SelectBuilder {
 	return s.SQLBuilder.
 		Select(

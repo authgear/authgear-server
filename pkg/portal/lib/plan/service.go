@@ -21,5 +21,8 @@ func (s *Service) GetDefaultPlan() (*model.Plan, error) {
 		return nil, err
 	}
 	return plan, nil
+}
 
+func (s *Service) ListPlans() ([]*model.Plan, error) {
+	return s.PlanStore.List()
 }
