@@ -19,6 +19,11 @@ function buildE164Value(countryCallingCode: string, rawValue: string): string {
 }
 
 export class IntlTelInputController extends Controller {
+  static values = {
+    class: String,
+  };
+
+  declare classValue: string;
   declare instance: IntlTelInputInstance | null;
   declare hiddenInputElement: HTMLInputElement;
 
@@ -115,8 +120,7 @@ export class IntlTelInputController extends Controller {
 
     swapElementsName(this.inputElement, hiddenInput);
 
-    const customContainer =
-      this.inputElement.getAttribute("data-intl-tel-input-class") ?? undefined;
+    const customContainer = this.classValue;
 
     this.ignoreConnect = true;
     this.ignoreDisconnect = true;

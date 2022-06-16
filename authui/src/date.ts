@@ -128,6 +128,12 @@ export class FormatDateRelativeController extends Controller {
 // The display format of <input type="date"> is in browser locale for Safari and Firefox.
 // For Chrome, the display format is somehow arbitrary :(
 export class FormatInputDateController extends Controller {
+  static values = {
+    date: String,
+  };
+
+  declare dateValue: string;
+
   connect() {
     const hasAbs = intlDateTimeFormatIsSupported();
     if (!hasAbs) {
@@ -135,8 +141,8 @@ export class FormatInputDateController extends Controller {
     }
 
     const dateSpan = this.element as HTMLSpanElement;
-    const rfc3339 = dateSpan.getAttribute("data-input-date-value");
-    if (typeof rfc3339 === "string") {
+    const rfc3339 = this.dateValue;
+    if (rfc3339 !== "") {
       const jsDate = new Date(rfc3339);
       if (!isNaN(jsDate.getTime())) {
         dateSpan.textContent = new Intl.DateTimeFormat().format(jsDate);

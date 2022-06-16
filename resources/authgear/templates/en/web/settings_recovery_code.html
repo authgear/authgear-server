@@ -1,7 +1,7 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<div class="pane twc-container-vertical pt-3 pb-5 px-6 tablet:px-8 desktop:px-8" data-controller="copy-button">
+<div class="pane twc-container-vertical pt-3 pb-5 px-6 tablet:px-8 desktop:px-8">
 {{ template "__nav_bar.html" "/settings" }}
 	<h1 class="primary-txt text-center m-0 text-xl font-bold">
 		{{ template "recovery-code-title" }}
@@ -28,7 +28,7 @@
 				<li class="font-mono whitespace-pre text-base leading-none mx-5 place-self-center">{{ . }}</li>
 			{{ end }}
 		</ol>
-		<code class="hidden" data-copy-button-target="source">{{ template "__recovery_code.html" . }}</code>
+		<code id="copy-button-source" class="hidden">{{ template "__recovery_code.html" . }}</code>
 
 		<p class="text-sm primary-txt text-center m-0">{{ template "recovery-code-consumption-description" }}</p>
 
@@ -50,9 +50,10 @@
 					<button
 						class="btn primary-btn w-full"
 						type="button"
-						data-copy-button-target="button"
-						data-copy-button-copy-label="{{ template "copy-button-label" }}"
-						data-copy-button-copied-label="{{ template "copied-button-label" }}"
+						data-controller="copy-button"
+						data-copy-button-source-value="#copy-button-source"
+						data-copy-button-copy-label-value="{{ template "copy-button-label" }}"
+						data-copy-button-copied-label-value="{{ template "copied-button-label" }}"
 						data-authgear-event="authgear.button.download_recovery_code"
 						data-action="copy-button#copy"
 					>
