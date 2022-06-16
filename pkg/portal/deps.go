@@ -40,7 +40,6 @@ var DependencySet = wire.NewSet(
 	adminauthz.DependencySet,
 	clock.DependencySet,
 
-	plan.DependencySet,
 	globaldb.DependencySet,
 
 	template.DependencySet,
@@ -88,6 +87,9 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(transport.AdminAPIAuthzService), new(*service.AuthzService)),
 	wire.Bind(new(transport.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(transport.SystemConfigProvider), new(*service.SystemConfigProvider)),
+
+	plan.DependencySet,
+	wire.Bind(new(libstripe.PlanService), new(*plan.Service)),
 
 	appresource.DependencySet,
 
