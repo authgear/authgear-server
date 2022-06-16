@@ -250,11 +250,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	stripeConfig := rootProvider.StripeConfig
 	libstripeLogger := libstripe.NewLogger(logFactory)
 	api := libstripe.NewClientAPI(stripeConfig, libstripeLogger)
+	globalredisHandle := rootProvider.GlobalRedisHandle
+	stripeCache := libstripe.NewStripeCache()
 	libstripeService := &libstripe.Service{
-		ClientAPI: api,
-		Logger:    libstripeLogger,
-		Context:   context,
-		Plans:     planService,
+		ClientAPI:         api,
+		Logger:            libstripeLogger,
+		Context:           context,
+		Plans:             planService,
+		GlobalRedisHandle: globalredisHandle,
+		Cache:             stripeCache,
 	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:               logger,
