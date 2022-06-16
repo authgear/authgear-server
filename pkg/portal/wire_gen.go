@@ -254,6 +254,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		ClientAPI: api,
 		Logger:    libstripeLogger,
 		Context:   context,
+		Plans:     planService,
 	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:               logger,
