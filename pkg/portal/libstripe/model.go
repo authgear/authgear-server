@@ -113,9 +113,10 @@ type SubscriptionPlan struct {
 	Prices          []*Price `json:"prices,omitempty"`
 }
 
-func NewSubscriptionPlan(product *stripe.Product) (*SubscriptionPlan, bool) {
+func NewSubscriptionPlan(product *stripe.Product, knownPlanNames map[string]struct{}) (*SubscriptionPlan, bool) {
 	planName := product.Metadata[MetadataKeyPlanName]
-	if planName == "" {
+	_, ok := knownPlanNames[planName]
+	if !ok {
 		return nil, false
 	}
 	return &SubscriptionPlan{
