@@ -210,7 +210,10 @@ otherwise, `npm run gentype` will fail.
 
 @monaco-editor/react>=4 is slow in our usage. We need to adjust how we use it when we upgrade.
 
-react-router-dom>6.0.0-beta.0 introduces a lot of breaking changes. It is better to wait for the RC version.
+As `useBlocker` is removed since react-router-domv6.0.0-beta.7 and have no promise which version will
+come back, we introduce the custom `useBlocker` hook by referencing the last commit which this hook
+still exist.
+See [https://github.com/remix-run/react-router/commit/256cad70d3fd4500b1abcfea66f3ee622fb90874](https://github.com/remix-run/react-router/commit/256cad70d3fd4500b1abcfea66f3ee622fb90874)
 
 When Parcel cannot resolve nodejs globals such as `process` and `Buffer`,
 it installs them for us.

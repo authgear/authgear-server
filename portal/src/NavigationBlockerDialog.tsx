@@ -1,7 +1,8 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { useBlocker, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Location } from "history";
 import BlockerDialog from "./BlockerDialog";
+import { useBlocker } from "./hook/useBlocker";
 
 interface NavigationBlockerDialogProps {
   blockNavigation: boolean;
