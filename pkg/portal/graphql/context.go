@@ -96,6 +96,7 @@ type AnalyticChartService interface {
 
 type StripeService interface {
 	FetchSubscriptionPlans() ([]*libstripe.SubscriptionPlan, error)
+	CreateCheckoutSession(appID string, customerEmail string, subscriptionPlan *libstripe.SubscriptionPlan) (string, error)
 }
 
 type Logger struct{ *log.Logger }

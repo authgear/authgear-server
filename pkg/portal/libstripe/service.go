@@ -74,6 +74,49 @@ func (s *Service) FetchSubscriptionPlans() (subscriptionPlans []*SubscriptionPla
 	return
 }
 
+func (s *Service) CreateCheckoutSession(appID string, customerEmail string, subscriptionPlan *SubscriptionPlan) (string, error) {
+	// fixme(billing): handle checkout
+	successURL := "https://example.com/success.html"
+	cancelURL := "https://example.com/canceled.html"
+
+	items := []*stripe.CheckoutSessionLineItemParams{}
+	for _, p := range subscriptionPlan.Prices {
+		item := &stripe.CheckoutSessionLineItemParams{
+			Price: stripe.String(p.StripePriceID),
+		}
+		if p.Type == PriceTypeFixed {
+			// For metered billing, do not pass quantity
+			item.Quantity = stripe.Int64(1)
+		}
+		items = append(items, item)
+	}
+	params := &stripe.CheckoutSessionParams{
+		SuccessURL: &successURL,
+		CancelURL:  &cancelURL,
+		Mode:       stripe.String(string(stripe.CheckoutSessionModeSubscription)),
+		LineItems:  items,
+		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
+			Metadata: map[string]string{
+				MetadataKeyAppID:    appID,
+				MetadataKeyPlanName: subscriptionPlan.Name,
+			},
+		},
+	}
+
+	if customerEmail != "" {
+		// If the customer email is empty
+		// The customer will be asked to enter their email address during the checkout process
+		params.CustomerEmail = &customerEmail
+	}
+
+	checkoutSession, err := s.ClientAPI.CheckoutSessions.New(params)
+	if err != nil {
+		return "", err
+	}
+
+	return checkoutSession.URL, nil
+}
+
 func (s *Service) fetchSubscriptionPlans() ([]byte, error) {
 	plans, err := s.Plans.ListPlans()
 	if err != nil {
