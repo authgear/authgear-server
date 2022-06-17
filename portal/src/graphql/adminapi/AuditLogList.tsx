@@ -28,6 +28,7 @@ export interface AuditLogListProps {
   className?: string;
   loading: boolean;
   auditLogs: AuditLogListFragment | null;
+  searchParams: string;
   offset: number;
   pageSize: number;
   totalCount?: number;
@@ -77,6 +78,7 @@ const AuditLogList: React.FC<AuditLogListProps> = function AuditLogList(props) {
     sortDirection,
   } = props;
   const edges = props.auditLogs?.edges;
+  const searchParam = props.searchParams;
 
   const loading = useDelayedValue(rawLoading, 500);
 
@@ -141,7 +143,7 @@ const AuditLogList: React.FC<AuditLogListProps> = function AuditLogList(props) {
       let href: string | null = null;
       switch (column?.key) {
         case "activityType":
-          href = `./${item.id}/details/`;
+          href = `${item.id}/details${searchParam}`;
           break;
         case "rawUserID":
           if (item.userID != null) {
@@ -161,7 +163,7 @@ const AuditLogList: React.FC<AuditLogListProps> = function AuditLogList(props) {
       }
       return <span>{text}</span>;
     },
-    []
+    [searchParam]
   );
 
   const onColumnHeaderClick = useCallback(

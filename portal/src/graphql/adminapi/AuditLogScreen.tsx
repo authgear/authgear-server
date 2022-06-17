@@ -1,5 +1,16 @@
-import React, { useState, useMemo, useCallback, useContext } from "react";
-import { useParams } from "react-router-dom";
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+  useContext,
+  useEffect,
+} from "react";
+import {
+  useParams,
+  useSearchParams,
+  URLSearchParamsInit,
+  useLocation,
+} from "react-router-dom";
 import {
   ICommandBarItemProps,
   IDropdownOption,
@@ -11,7 +22,7 @@ import {
   CommandBarButton,
   DirectionalHint,
 } from "@fluentui/react";
-import { useId } from "@fluentui/react-hooks";
+import { useId, useConst } from "@fluentui/react-hooks";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { useQuery } from "@apollo/client";
 import { DateTime } from "luxon";
@@ -81,13 +92,24 @@ function RefreshButton(props: ICommandBarItemProps) {
   );
 }
 
+// eslint-disable-next-line complexity
 const AuditLogScreen: React.FC = function AuditLogScreen() {
-  const [offset, setOffset] = useState(0);
-  const [selectedKey, setSelectedKey] = useState("ALL");
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const fromParam = searchParams.get("from");
+  const toParam = searchParams.get("to");
+  const orderParam =
+    searchParams.get("order_by") === SortDirection.Asc
+      ? SortDirection.Asc
+      : SortDirection.Desc;
+  const pageParam = Number(searchParams.get("page"));
+  const offsetParam = pageParam > 1 ? (Number(pageParam) - 1) * pageSize : 0;
+  const selectedKeyParam = searchParams.get("activity_type");
+
+  const [offset, setOffset] = useState(offsetParam);
+  const [selectedKey, setSelectedKey] = useState(selectedKeyParam ?? "ALL");
   const [dateRangeDialogHidden, setDateRangeDialogHidden] = useState(true);
-  const [sortDirection, setSortDirection] = useState<SortDirection>(
-    SortDirection.Desc
-  );
+  const [sortDirection, setSortDirection] = useState<SortDirection>(orderParam);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(new Date());
 
   const {
@@ -97,7 +119,9 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     setCommittedValue: setRangeFromImmediately,
     commit: commitRangeFrom,
     rollback: rollbackRangeFrom,
-  } = useTransactionalState<Date | null>(null);
+  } = useTransactionalState<Date | null>(
+    fromParam != null ? new Date(fromParam) : null
+  );
 
   const {
     committedValue: rangeTo,
@@ -106,7 +130,9 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     setCommittedValue: setRangeToImmediately,
     commit: commitRangeTo,
     rollback: rollbackRangeTo,
-  } = useTransactionalState<Date | null>(null);
+  } = useTransactionalState<Date | null>(
+    toParam != null ? new Date(toParam) : null
+  );
 
   const { appID } = useParams();
   const featureConfig = useAppFeatureConfigQuery(appID);
@@ -149,12 +175,43 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
         .toJSDate()
         .toISOString();
     }
-    return lastUpdatedAt;
+    return lastUpdatedAt.toISOString();
   }, [rangeTo, lastUpdatedAt]);
 
-  const isCustomDateRange = rangeFrom != null || rangeTo != null;
+  const location = useLocation();
+
+  const today = useConst(new Date());
+  const isCustomDateRange =
+    rangeFrom != null ||
+    (rangeTo != null &&
+      DateTime.fromJSDate(rangeTo).toISODate() !==
+        DateTime.fromJSDate(today).toISODate());
 
   const { renderToString } = useContext(Context);
+
+  useEffect(() => {
+    const page = offset / pageSize + 1;
+    const params: URLSearchParamsInit = {};
+    if (rangeFrom != null) {
+      params["from"] = DateTime.fromJSDate(rangeFrom).toISODate();
+    }
+    params["to"] = rangeTo
+      ? DateTime.fromJSDate(rangeTo).toISODate()
+      : DateTime.fromJSDate(lastUpdatedAt).toISODate();
+    params["page"] = page.toString();
+    params["order_by"] = sortDirection;
+    params["activity_type"] = selectedKey;
+    setSearchParams(params);
+  }, [
+    offset,
+    sortDirection,
+    isCustomDateRange,
+    rangeTo,
+    rangeFrom,
+    lastUpdatedAt,
+    setSearchParams,
+    selectedKey,
+  ]);
 
   const activityTypeOptions = useMemo(() => {
     const options = [
@@ -428,6 +485,7 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
             className={styles.widget}
             loading={loading}
             auditLogs={data?.auditLogs ?? null}
+            searchParams={location.search}
             offset={offset}
             pageSize={pageSize}
             totalCount={data?.auditLogs?.totalCount ?? undefined}
