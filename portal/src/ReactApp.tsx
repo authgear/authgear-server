@@ -55,63 +55,71 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
     <BrowserRouter>
       <Routes>
         <Route
-          path="/"
+          index={true}
           element={
             <Authenticated>
-              <Navigate to="projects/" replace={true} />
+              <Navigate to="/projects" replace={true} />
             </Authenticated>
           }
         />
-        <Route
-          path="/projects/"
-          element={
-            <Authenticated>
-              <AppsScreen />
-            </Authenticated>
-          }
-        />
-        <Route
-          path="/projects/create"
-          element={
-            <Authenticated>
-              <CreateProjectScreen />
-            </Authenticated>
-          }
-        />
-        <Route
-          path="/project/:appID/*"
-          element={
-            <Authenticated>
-              <AppRoot />
-            </Authenticated>
-          }
-        />
-        <Route
-          path="/project/:appID/wizard/*"
-          element={
-            <Authenticated>
-              <ProjectWizardScreen />
-            </Authenticated>
-          }
-        />
-        <Route
-          path="/project/:appID/wizard/done"
-          element={
-            <Authenticated>
-              <ProjectWizardDoneScreen />
-            </Authenticated>
-          }
-        />
+        <Route path="/projects">
+          <Route
+            index={true}
+            element={
+              <Authenticated>
+                <AppsScreen />
+              </Authenticated>
+            }
+          />
+          <Route
+            path="create"
+            element={
+              <Authenticated>
+                <CreateProjectScreen />
+              </Authenticated>
+            }
+          />
+        </Route>
+
+        <Route path="/project">
+          <Route path=":appID">
+            <Route
+              // @ts-expect-error
+              index={true}
+              path="*"
+              element={
+                <Authenticated>
+                  <AppRoot />
+                </Authenticated>
+              }
+            />
+            <Route path="wizard">
+              <Route
+                // @ts-expect-error
+                index={true}
+                path="*"
+                element={
+                  <Authenticated>
+                    <ProjectWizardScreen />
+                  </Authenticated>
+                }
+              />
+              <Route
+                path="done"
+                element={
+                  <Authenticated>
+                    <ProjectWizardDoneScreen />
+                  </Authenticated>
+                }
+              />
+            </Route>
+          </Route>
+        </Route>
+
         <Route path="/oauth-redirect" element={<OAuthRedirect />} />
+
         <Route path="/onboarding-redirect" element={<OnboardingRedirect />} />
-        <Route
-          path="/"
-          element={
-            <Authenticated>
-              <Navigate to="projects/" replace={true} />
-            </Authenticated>
-          }
-        />
+
         <Route
           path="/collaborators/invitation"
           element={<AcceptAdminInvitationScreen />}

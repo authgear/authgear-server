@@ -52,7 +52,7 @@ import IntegrationsConfigurationScreen from "./graphql/portal/IntegrationsConfig
 import GoogleTagManagerConfigurationScreen from "./graphql/portal/GoogleTagManagerConfigurationScreen";
 
 const AppRoot: React.FC = function AppRoot() {
-  const { appID } = useParams();
+  const { appID } = useParams() as { appID: string };
   const client = useMemo(() => {
     return makeClient(appID);
   }, [appID]);
@@ -77,148 +77,159 @@ const AppRoot: React.FC = function AppRoot() {
     <ApolloProvider client={client}>
       <ScreenLayout>
         <Routes>
-          <Route path="/" element={<ProjectRootScreen />} />
-          <Route path="/getting-started" element={<GetStartedScreen />} />
-          <Route path="/analytics" element={<AnalyticsScreen />} />
-          <Route path="/users/" element={<UsersScreen />} />
-          <Route path="/users/add-user/" element={<AddUserScreen />} />
-          <Route
-            path="/users/:userID/"
-            element={<Navigate to="details/" replace={true} />}
-          />
-          <Route
-            path="/users/:userID/details/"
-            element={<UserDetailsScreen />}
-          />
-          <Route
-            path="/users/:userID/details/add-email"
-            element={<AddEmailScreen />}
-          />
-          <Route
-            path="/users/:userID/details/add-phone"
-            element={<AddPhoneScreen />}
-          />
-          <Route
-            path="/users/:userID/details/add-username"
-            element={<AddUsernameScreen />}
-          />
-          <Route
-            path="/users/:userID/details/reset-password"
-            element={<ResetPasswordScreen />}
-          />
-          <Route
-            path="/users/:userID/details/edit-picture"
-            element={<EditPictureScreen />}
-          />
-          <Route
-            path="/configuration/authentication/login-id"
-            element={<LoginIDConfigurationScreen />}
-          />
-          <Route
-            path="/configuration/authentication/authenticators"
-            element={<AuthenticatorConfigurationScreen />}
-          />
-          <Route
-            path="/configuration/authentication/verification"
-            element={<VerificationConfigurationScreen />}
-          />
-          <Route
-            path="/configuration/anonymous-users"
-            element={<AnonymousUsersConfigurationScreen />}
-          />
-          <Route
-            path="/configuration/biometric"
-            element={<BiometricConfigurationScreen />}
-          />
-          <Route
-            path="/configuration/single-sign-on"
-            element={<SingleSignOnConfigurationScreen />}
-          />
-          <Route
-            path="/configuration/password-policy"
-            element={<PasswordPolicyConfigurationScreen />}
-          />
-          <Route
-            path="/advanced/password-reset-code"
-            element={<ForgotPasswordConfigurationScreen />}
-          />
-          <Route
-            path="/configuration/apps"
-            element={<ApplicationsConfigurationScreen />}
-          />
-          <Route
-            path="/configuration/apps/add"
-            element={<CreateOAuthClientScreen />}
-          />
-          <Route
-            path="/configuration/apps/:clientID/edit"
-            element={<EditOAuthClientScreen />}
-          />
-          <Route path="/custom-domains" element={<CustomDomainListScreen />} />
-          <Route
-            path="/custom-domains/:domainID/verify"
-            element={<VerifyDomainScreen />}
-          />
-          <Route
-            path="/configuration/smtp"
-            element={<SMTPConfigurationScreen />}
-          />
-          <Route
-            path="/configuration/ui-settings"
-            element={<UISettingsScreen />}
-          />
-          <Route
-            path="/configuration/localization"
-            element={<LocalizationConfigurationScreen />}
-          />
-          <Route
-            path="/configuration/user-profile/standard-attributes"
-            element={<StandardAttributesConfigurationScreen />}
-          />
-          <Route
-            path="/configuration/user-profile/custom-attributes"
-            element={<CustomAttributesConfigurationScreen />}
-          />
-          <Route
-            path="/configuration/user-profile/custom-attributes/:index/edit"
-            element={<EditCustomAttributeScreen />}
-          />
-          <Route
-            path="/configuration/user-profile/custom-attributes/add"
-            element={<CreateCustomAttributeScreen />}
-          />
-          <Route
-            path="/integrations"
-            element={<IntegrationsConfigurationScreen />}
-          />
-          <Route
-            path="/integrations/google-tag-manager"
-            element={<GoogleTagManagerConfigurationScreen />}
-          />
-          <Route path="/portal-admins" element={<PortalAdminsSettings />} />
-          <Route path="/portal-admins/invite" element={<InviteAdminScreen />} />
-          <Route
-            path="/advanced/webhooks"
-            element={<WebhookConfigurationScreen />}
-          />
-          <Route path="/billing" element={<SubscriptionScreen />} />
-          <Route
-            path="/advanced/admin-api"
-            element={<AdminAPIConfigurationScreen />}
-          />
-          <Route
-            path="/advanced/account-deletion"
-            element={<AccountDeletionConfigurationScreen />}
-          />
-          <Route path="/audit-log/" element={<AuditLogScreen />} />
-          <Route
-            path="/audit-log/:logID/"
-            element={<Navigate to="details/" replace={true} />}
-          />
-          <Route
-            path="/audit-log/:logID/details/"
-            element={<AuditLogEntryScreen />}
-          />
+          <Route index={true} element={<ProjectRootScreen />} />
+
+          <Route path="getting-started">
+            <Route index={true} element={<GetStartedScreen />} />
+          </Route>
+
+          <Route path="analytics">
+            <Route index={true} element={<AnalyticsScreen />} />
+          </Route>
+
+          <Route path="users">
+            <Route index={true} element={<UsersScreen />} />
+            <Route path="add-user" element={<AddUserScreen />} />
+            <Route path=":userID">
+              <Route
+                index={true}
+                element={<Navigate to="details" replace={true} />}
+              />
+              <Route path="details">
+                <Route index={true} element={<UserDetailsScreen />} />
+                <Route path="add-email" element={<AddEmailScreen />} />
+                <Route path="add-phone" element={<AddPhoneScreen />} />
+                <Route path="add-username" element={<AddUsernameScreen />} />
+                <Route
+                  path="reset-password"
+                  element={<ResetPasswordScreen />}
+                />
+                <Route path="edit-picture" element={<EditPictureScreen />} />
+              </Route>
+            </Route>
+          </Route>
+
+          <Route path="custom-domains">
+            <Route index={true} element={<CustomDomainListScreen />} />
+            <Route path=":domainID">
+              <Route
+                index={true}
+                element={<Navigate to="verify" replace={true} />}
+              />
+              <Route path="verify" element={<VerifyDomainScreen />} />
+            </Route>
+          </Route>
+
+          <Route path="configuration">
+            <Route path="authentication">
+              <Route path="login-id" element={<LoginIDConfigurationScreen />} />
+              <Route
+                path="authenticators"
+                element={<AuthenticatorConfigurationScreen />}
+              />
+              <Route
+                path="verification"
+                element={<VerificationConfigurationScreen />}
+              />
+            </Route>
+            <Route
+              path="anonymous-users"
+              element={<AnonymousUsersConfigurationScreen />}
+            />
+            <Route
+              path="biometric"
+              element={<BiometricConfigurationScreen />}
+            />
+            <Route
+              path="single-sign-on"
+              element={<SingleSignOnConfigurationScreen />}
+            />
+            <Route
+              path="password-policy"
+              element={<PasswordPolicyConfigurationScreen />}
+            />
+            <Route path="apps">
+              <Route
+                index={true}
+                element={<ApplicationsConfigurationScreen />}
+              />
+              <Route path="add" element={<CreateOAuthClientScreen />} />
+              <Route path=":clientID">
+                <Route
+                  index={true}
+                  element={<Navigate to="edit" replace={true} />}
+                />
+                <Route path="edit" element={<EditOAuthClientScreen />} />
+              </Route>
+            </Route>
+            <Route path="smtp" element={<SMTPConfigurationScreen />} />
+            <Route path="ui-settings" element={<UISettingsScreen />} />
+            <Route
+              path="localization"
+              element={<LocalizationConfigurationScreen />}
+            />
+            <Route path="user-profile">
+              <Route
+                path="standard-attributes"
+                element={<StandardAttributesConfigurationScreen />}
+              />
+              <Route path="custom-attributes">
+                <Route
+                  index={true}
+                  element={<CustomAttributesConfigurationScreen />}
+                />
+                <Route path="add" element={<CreateCustomAttributeScreen />} />
+                <Route path=":index">
+                  <Route
+                    index={true}
+                    element={<Navigate to="edit" replace={true} />}
+                  />
+                  <Route path="edit" element={<EditCustomAttributeScreen />} />
+                </Route>
+              </Route>
+            </Route>
+          </Route>
+
+          <Route path="integrations">
+            <Route index={true} element={<IntegrationsConfigurationScreen />} />
+            <Route
+              path="google-tag-manager"
+              element={<GoogleTagManagerConfigurationScreen />}
+            />
+          </Route>
+
+          <Route path="billing">
+            <Route index={true} element={<SubscriptionScreen />} />
+          </Route>
+
+          <Route path="advanced">
+            <Route path="webhooks" element={<WebhookConfigurationScreen />} />
+            <Route path="admin-api" element={<AdminAPIConfigurationScreen />} />
+            <Route
+              path="account-deletion"
+              element={<AccountDeletionConfigurationScreen />}
+            />
+            <Route
+              path="password-reset-code"
+              element={<ForgotPasswordConfigurationScreen />}
+            />
+          </Route>
+
+          <Route path="audit-log">
+            <Route index={true} element={<AuditLogScreen />} />
+            <Route path=":logID">
+              <Route
+                index={true}
+                element={<Navigate to="details" replace={true} />}
+              />
+              <Route path="details" element={<AuditLogEntryScreen />} />
+            </Route>
+          </Route>
+
+          <Route path="portal-admins">
+            <Route index={true} element={<PortalAdminsSettings />} />
+            <Route path="invite" element={<InviteAdminScreen />} />
+          </Route>
         </Routes>
       </ScreenLayout>
     </ApolloProvider>
