@@ -29,12 +29,13 @@ func TestSessionInfo(t *testing.T) {
 
 			Convey("valid auth", func() {
 				var i = &model.SessionInfo{
-					IsValid:         true,
-					UserID:          "user-id",
-					UserAnonymous:   true,
-					UserVerified:    true,
-					SessionAMR:      []string{"pwd", "mfa", "otp"},
-					AuthenticatedAt: time.Date(2006, 1, 2, 3, 4, 5, 0, time.UTC),
+					IsValid:               true,
+					UserID:                "user-id",
+					UserAnonymous:         true,
+					UserVerified:          true,
+					SessionAMR:            []string{"pwd", "mfa", "otp"},
+					AuthenticatedAt:       time.Date(2006, 1, 2, 3, 4, 5, 0, time.UTC),
+					UserCanReauthenticate: true,
 				}
 
 				i.PopulateHeaders(rw)
@@ -45,6 +46,7 @@ func TestSessionInfo(t *testing.T) {
 					"X-Authgear-User-Verified":            []string{"true"},
 					"X-Authgear-Session-Amr":              []string{"pwd mfa otp"},
 					"X-Authgear-Session-Authenticated-At": []string{"1136171045"},
+					"X-Authgear-User-Can-Reauthenticate":  []string{"true"},
 				})
 			})
 		})
@@ -65,12 +67,13 @@ func TestSessionInfo(t *testing.T) {
 			test(&model.SessionInfo{IsValid: false})
 
 			test(&model.SessionInfo{
-				IsValid:         true,
-				UserID:          "user-id",
-				UserAnonymous:   true,
-				UserVerified:    true,
-				SessionAMR:      []string{"pwd", "mfa", "otp"},
-				AuthenticatedAt: time.Date(2006, 1, 2, 3, 4, 5, 0, time.UTC),
+				IsValid:               true,
+				UserID:                "user-id",
+				UserAnonymous:         true,
+				UserVerified:          true,
+				SessionAMR:            []string{"pwd", "mfa", "otp"},
+				AuthenticatedAt:       time.Date(2006, 1, 2, 3, 4, 5, 0, time.UTC),
+				UserCanReauthenticate: true,
 			})
 		})
 	})

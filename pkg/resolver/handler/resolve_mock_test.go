@@ -7,7 +7,9 @@ package handler
 import (
 	reflect "reflect"
 
+	model "github.com/authgear/authgear-server/pkg/api/model"
 	identity "github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	accesscontrol "github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -122,4 +124,42 @@ func (m *MockDatabase) ReadOnly(arg0 func() error) error {
 func (mr *MockDatabaseMockRecorder) ReadOnly(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadOnly", reflect.TypeOf((*MockDatabase)(nil).ReadOnly), arg0)
+}
+
+// MockUserProvider is a mock of UserProvider interface.
+type MockUserProvider struct {
+	ctrl     *gomock.Controller
+	recorder *MockUserProviderMockRecorder
+}
+
+// MockUserProviderMockRecorder is the mock recorder for MockUserProvider.
+type MockUserProviderMockRecorder struct {
+	mock *MockUserProvider
+}
+
+// NewMockUserProvider creates a new mock instance.
+func NewMockUserProvider(ctrl *gomock.Controller) *MockUserProvider {
+	mock := &MockUserProvider{ctrl: ctrl}
+	mock.recorder = &MockUserProviderMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockUserProvider) EXPECT() *MockUserProviderMockRecorder {
+	return m.recorder
+}
+
+// Get mocks base method.
+func (m *MockUserProvider) Get(id string, role accesscontrol.Role) (*model.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", id, role)
+	ret0, _ := ret[0].(*model.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockUserProviderMockRecorder) Get(id, role interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockUserProvider)(nil).Get), id, role)
 }
