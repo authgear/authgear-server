@@ -1,4 +1,4 @@
-import { Controller } from "@hotwired/stimulus";
+import { Controller, ActionEvent } from "@hotwired/stimulus";
 
 export class SimpleModalController extends Controller {
   static targets = ["modal"];
@@ -20,17 +20,15 @@ export class SimpleModalController extends Controller {
     }
   }
 
-  closeModal = (e: Event) => {
+  closeModal = (e: ActionEvent) => {
     e.preventDefault();
-    const ele = e.currentTarget as HTMLElement;
-    const targetModalID = ele.getAttribute("data-simple-modal-id");
+    const targetModalID = e.params.id;
     this.changeModalVisibility(targetModalID, false);
   };
 
-  showModal = (e: Event) => {
+  showModal = (e: ActionEvent) => {
     e.preventDefault();
-    const ele = e.currentTarget as HTMLElement;
-    const targetModalID = ele.getAttribute("data-simple-modal-id");
+    const targetModalID = e.params.id;
     this.changeModalVisibility(targetModalID, true);
   };
 }
