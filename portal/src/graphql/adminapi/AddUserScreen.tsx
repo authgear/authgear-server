@@ -288,7 +288,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
 };
 
 const AddUserScreen: React.FC = function AddUserScreen() {
-  const { appID } = useParams();
+  const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
 
   const { effectiveAppConfig, loading, error, refetch } =

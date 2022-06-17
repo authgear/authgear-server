@@ -118,7 +118,7 @@ function CreateCustomAttributeContent(
 
 const CreateCustomAttributeScreen: React.FC =
   function CreateCustomAttributeScreen() {
-    const { appID } = useParams();
+    const { appID } = useParams() as { appID: string };
     const navigate = useNavigate();
 
     const afterSave = useCallback(() => {

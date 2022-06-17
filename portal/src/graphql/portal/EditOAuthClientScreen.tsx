@@ -124,7 +124,10 @@ const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> =
   };
 
 const EditOAuthClientScreen: React.FC = function EditOAuthClientScreen() {
-  const { appID, clientID } = useParams();
+  const { appID, clientID } = useParams() as {
+    appID: string;
+    clientID: string;
+  };
   const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
   if (form.isLoading) {

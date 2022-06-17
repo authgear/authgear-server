@@ -135,7 +135,7 @@ function makeDomainListColumn(renderToString: (messageID: string) => string) {
 
 const AddDomainSection: React.FC = function AddDomainSection() {
   const { renderToString } = useContext(Context);
-  const { appID } = useParams();
+  const { appID } = useParams() as { appID: string };
 
   const [newDomain, setNewDomain] = useState("");
   const { onChange: onNewDomainChange } = useTextField((value) => {
@@ -342,7 +342,7 @@ interface DeleteDomainDialogProps {
 const DeleteDomainDialog: React.FC<DeleteDomainDialogProps> =
   function DeleteDomainDialog(props: DeleteDomainDialogProps) {
     const { domain, domainID, visible, dismissDialog } = props;
-    const { appID } = useParams();
+    const { appID } = useParams() as { appID: string };
     const { renderToString } = useContext(Context);
     const { themes } = useSystemConfig();
 
@@ -715,7 +715,7 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
   };
 
 const CustomDomainListScreen: React.FC = function CustomDomainListScreen() {
-  const { appID } = useParams();
+  const { appID } = useParams() as { appID: string };
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 

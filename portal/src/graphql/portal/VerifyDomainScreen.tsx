@@ -115,7 +115,7 @@ const VerifyDomain: React.FC<VerifyDomainProps> = function VerifyDomain(
 ) {
   const { domain, nonCustomVerifiedDomain } = props;
   const navigate = useNavigate();
-  const { appID } = useParams();
+  const { appID } = useParams() as { appID: string };
 
   const { renderToString } = useContext(Context);
 
@@ -224,7 +224,10 @@ const VerifyDomain: React.FC<VerifyDomainProps> = function VerifyDomain(
 };
 
 const VerifyDomainScreen: React.FC = function VerifyDomainScreen() {
-  const { appID, domainID } = useParams();
+  const { appID, domainID } = useParams() as {
+    appID: string;
+    domainID: string;
+  };
   const { domains, loading, error, refetch } = useDomainsQuery(appID);
   const { renderToString } = useContext(Context);
 

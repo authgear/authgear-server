@@ -430,7 +430,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
 
 const ApplicationsConfigurationScreen: React.FC =
   function ApplicationsConfigurationScreen() {
-    const { appID } = useParams();
+    const { appID } = useParams() as { appID: string };
     const { renderToString } = useContext(Context);
     const navigate = useNavigate();
 

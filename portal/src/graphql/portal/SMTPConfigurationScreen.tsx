@@ -609,7 +609,7 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
   };
 
 const SMTPConfigurationScreen: React.FC = function SMTPConfigurationScreen() {
-  const { appID } = useParams();
+  const { appID } = useParams() as { appID: string };
   const form = useAppSecretConfigForm(
     appID,
     constructFormState,

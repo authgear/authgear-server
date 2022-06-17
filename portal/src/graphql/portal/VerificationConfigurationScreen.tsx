@@ -272,7 +272,7 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
 
 const VerificationConfigurationScreen: React.FC =
   function VerificationConfigurationScreen() {
-    const { appID } = useParams();
+    const { appID } = useParams() as { appID: string };
     const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
     const featureConfig = useAppFeatureConfigQuery(appID);

@@ -48,7 +48,7 @@ const EmailField: React.FC<EmailFieldProps> = function EmailField(props) {
 };
 
 const AddEmailScreen: React.FC = function AddEmailScreen() {
-  const { appID, userID } = useParams();
+  const { appID, userID } = useParams() as { appID: string; userID: string };
   const {
     user,
     loading: loadingUser,

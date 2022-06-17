@@ -134,7 +134,7 @@ const CustomAttributesConfigurationScreenContent: React.FC<CustomAttributesConfi
 
 const CustomAttributesConfigurationScreen: React.FC =
   function CustomAttributesConfigurationScreen() {
-    const { appID } = useParams();
+    const { appID } = useParams() as { appID: string };
     const form = useAppConfigForm(appID, constructFormState, constructConfig);
     const navigate = useNavigate();
     const { renderToString } = useContext(Context);

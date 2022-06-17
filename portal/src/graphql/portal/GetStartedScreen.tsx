@@ -353,7 +353,7 @@ interface GetStartedScreenContentProps {
 }
 
 function GetStartedScreenContent(props: GetStartedScreenContentProps) {
-  const { appID } = useParams();
+  const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
 
   const {
@@ -443,7 +443,7 @@ function GetStartedScreenContent(props: GetStartedScreenContentProps) {
 }
 
 export default function GetStartedScreen(): React.ReactElement {
-  const { appID } = useParams();
+  const { appID } = useParams() as { appID: string };
 
   const {
     effectiveAppConfig,

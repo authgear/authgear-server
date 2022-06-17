@@ -390,7 +390,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
     const { identities, verifiedClaims, availableLoginIdIdentities } = props;
     const { locale, renderToString } = useContext(Context);
 
-    const { userID } = useParams();
+    const { userID } = useParams() as { userID: string };
     const navigate = useNavigate();
 
     /* TODO: implement save primary identities

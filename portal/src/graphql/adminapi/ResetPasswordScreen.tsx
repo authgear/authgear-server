@@ -83,7 +83,7 @@ const ResetPasswordContent: React.FC<ResetPasswordContentProps> = function (
 };
 
 const ResetPasswordScreen: React.FC = function ResetPasswordScreen() {
-  const { appID } = useParams();
+  const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
 
   const { effectiveAppConfig, loading, error, refetch } =
@@ -93,7 +93,7 @@ const ResetPasswordScreen: React.FC = function ResetPasswordScreen() {
     [effectiveAppConfig]
   );
 
-  const { userID } = useParams();
+  const { userID } = useParams() as { userID: string };
   const { resetPassword } = useResetPasswordMutation(userID);
 
   const validate = useCallback(

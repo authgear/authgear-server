@@ -62,7 +62,7 @@ const InviteAdminContent: React.FC<InviteAdminContentProps> =
   };
 
 const InviteAdminScreen: React.FC = function InviteAdminScreen() {
-  const { appID } = useParams();
+  const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
   const { createCollaboratorInvitation } =
     useCreateCollaboratorInvitationMutation(appID);

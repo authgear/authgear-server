@@ -137,7 +137,10 @@ function EditCustomAttributeContent(props: EditCustomAttributeContentProps) {
 
 const EditCustomAttributeScreen: React.FC =
   function EditCustomAttributeScreen() {
-    const { appID, index: indexString } = useParams();
+    const { appID, index: indexString } = useParams() as {
+      appID: string;
+      index: string;
+    };
     const navigate = useNavigate();
 
     const index = parseInt(indexString, 10);

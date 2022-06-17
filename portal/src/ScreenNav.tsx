@@ -49,7 +49,7 @@ interface NavLinkProps {
 }
 
 const ScreenNav: React.FC = function ScreenNav() {
-  const { appID } = useParams();
+  const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
   const { renderToString } = useContext(Context);
   const location = useLocation();

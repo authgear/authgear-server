@@ -367,7 +367,7 @@ function Step3(props: StepProps) {
 }
 
 export default function ProjectWizardScreen(): React.ReactElement {
-  const { appID } = useParams();
+  const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
   const form = useAppConfigForm(appID, constructFromState, constructConfig);
   const {

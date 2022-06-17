@@ -10,7 +10,7 @@ import { client } from "./apollo";
 import ShowLoading from "../../ShowLoading";
 
 const ProjectRootScreen: React.FC = function ProjectRootScreen() {
-  const { appID } = useParams();
+  const { appID } = useParams() as { appID: string };
   const { analyticEnabled } = useSystemConfig();
   const navigate = useNavigate();
   const queryResult = useQuery<ScreenNavQueryQuery>(ScreenNavQueryDocument, {

@@ -547,7 +547,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
 
 const WebhookConfigurationScreen: React.FC =
   function WebhookConfigurationScreen() {
-    const { appID } = useParams();
+    const { appID } = useParams() as { appID: string };
     const form = useAppSecretConfigForm(
       appID,
       constructFormState,

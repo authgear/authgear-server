@@ -247,7 +247,7 @@ const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenCo
 
 const AdminAPIConfigurationScreen: React.FC =
   function AdminAPIConfigurationScreen() {
-    const { appID } = useParams();
+    const { appID } = useParams() as { appID: string };
     const queryResult = useAppAndSecretConfigQuery(appID);
 
     if (queryResult.loading) {

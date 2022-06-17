@@ -313,7 +313,7 @@ const SingleSignOnConfigurationContent: React.FC<SingleSignOnConfigurationConten
 
 const SingleSignOnConfigurationScreen: React.FC =
   function SingleSignOnConfigurationScreen() {
-    const { appID } = useParams();
+    const { appID } = useParams() as { appID: string };
 
     const form = useAppSecretConfigForm(
       appID,
