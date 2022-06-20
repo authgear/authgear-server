@@ -570,8 +570,8 @@ input SubscribePlanInput {
   """App ID."""
   appID: ID!
 
-  """Stripe Product ID."""
-  stripeProductID: String!
+  """Plan name."""
+  planName: String!
 }
 
 """"""
