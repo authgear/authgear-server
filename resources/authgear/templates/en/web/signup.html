@@ -55,7 +55,7 @@
 				{{ if eq .login_id_type "phone" }}
 					<input
 						data-intl-tel-input="true"
-						data-intl-tel-input-class="flex flex-row"
+						data-intl-tel-input-class-value="flex flex-row"
 						class="primary-txt input text-input w-full"
 						tabindex="0"
 						autofocus
@@ -66,7 +66,6 @@
 						name="x_login_id"
 						placeholder="{{ template "phone-number-placeholder" }}"
 						data-controller="intl-tel-input"
-						data-intl-tel-input-target="input"
 						data-action="input->intl-tel-input#input countrychange->intl-tel-input#input intl-tel-input:input->retain-form-form#input"
 						data-retain-form-form-target="input"
 						data-retain-form-form-name-param="phone"

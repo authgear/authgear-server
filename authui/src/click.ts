@@ -6,10 +6,15 @@ import { Controller } from "@hotwired/stimulus";
 // e.g. data-submit-link="verify-identity-resend" and
 //      data-submit-form="verify-identity-resend"
 export class TransferClickController extends Controller {
+  static values = {
+    click: String,
+  };
+
+  declare clickValue: string;
+
   click(e: Event) {
-    const link = this.element as HTMLElement;
-    const buttonID = link.getAttribute("data-transfer-click-click");
-    if (buttonID == null) {
+    const buttonID = this.clickValue;
+    if (buttonID === "") {
       return;
     }
 

@@ -16,21 +16,29 @@ function copyToClipboard(str: string): void {
 }
 
 export class CopyButtonController extends Controller {
-  static targets = ["source", "button"];
+  static values = {
+    source: String,
+    copyLabel: String,
+    copiedLabel: String,
+  };
 
-  declare sourceTarget: HTMLElement;
-  declare buttonTarget: HTMLButtonElement;
+  declare sourceValue: string;
+  declare copyLabelValue: string;
+  declare copiedLabelValue: string;
+  declare hasCopyLabelValue: boolean;
+  declare hasCopiedLabelValue: boolean;
+  declare timeoutHandle: number | null;
 
   copy(e: Event) {
     e.preventDefault();
     e.stopPropagation();
 
-    const button = this.buttonTarget;
+    const button = this.element as HTMLButtonElement;
 
-    const copyLabel = button.getAttribute("data-copy-button-copy-label");
-    const copiedLabel = button.getAttribute("data-copy-button-copied-label");
+    const copyLabel = this.copyLabelValue;
+    const copiedLabel = this.copiedLabelValue;
 
-    const target = this.sourceTarget;
+    const target = document.querySelector(this.sourceValue);
     if (target == null) {
       return;
     }
@@ -43,27 +51,25 @@ export class CopyButtonController extends Controller {
     copyToClipboard(textContent);
 
     // Show feedback
-    const currentHandle = button.getAttribute(
-      "data-copy-button-timeout-handle"
-    );
+    let currentHandle = this.timeoutHandle;
     // Clear scheduled timeout if the timeout function has NOT been executed yet.
     if (currentHandle != null) {
-      window.clearTimeout(Number(currentHandle));
-      button.removeAttribute("data-copy-button-timeout-handle");
+      window.clearTimeout(currentHandle);
+      this.timeoutHandle = null;
     }
     // Changing label as feedback is optional
-    if (copyLabel != null && copiedLabel != null) {
+    if (this.hasCopyLabelValue && this.hasCopiedLabelValue) {
       button.textContent = copiedLabel;
     }
     button.classList.add("outline");
     const newHandle = window.setTimeout(() => {
       // Changing label as feedback is optional
-      if (copyLabel != null && copiedLabel != null) {
+      if (this.hasCopyLabelValue && this.hasCopiedLabelValue) {
         button.textContent = copyLabel;
       }
       button.classList.remove("outline");
-      button.removeAttribute("data-copy-button-timeout-handle");
+      this.timeoutHandle = null;
     }, 1000);
-    button.setAttribute("data-copy-button-timeout-handle", String(newHandle));
+    this.timeoutHandle = newHandle;
   }
 }

@@ -1,18 +1,24 @@
 import { Controller } from "@hotwired/stimulus";
 
 export class ResendButtonController extends Controller {
-  static targets = ["button"];
+  static values = {
+    cooldown: Number,
+    label: String,
+    labelUnit: String,
+  };
 
-  declare buttonTarget: HTMLButtonElement;
+  declare cooldownValue: number;
+  declare labelValue: string;
+  declare labelUnitValue: string;
   declare animHandle: number | null;
 
   connect() {
-    const button = this.buttonTarget;
+    const button = this.element as HTMLButtonElement;
 
     const scheduledAt = new Date();
-    const cooldown = Number(button.getAttribute("data-cooldown")) * 1000;
-    const label = button.getAttribute("data-label");
-    const labelUnit = button.getAttribute("data-label-unit")!;
+    const cooldown = this.cooldownValue * 1000;
+    const label = this.labelValue;
+    const labelUnit = this.labelUnitValue;
 
     const tick = () => {
       const now = new Date();

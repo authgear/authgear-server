@@ -14,7 +14,6 @@ export class ModalController extends Controller {
     "modalBodyEle",
     "modalActionBtnEle",
     "modalCancelBtnEle",
-    "modalOverlayEle",
   ];
 
   declare modalEleTarget: HTMLElement;
@@ -22,7 +21,6 @@ export class ModalController extends Controller {
   declare modalBodyEleTarget: HTMLElement;
   declare modalActionBtnEleTarget: HTMLElement;
   declare modalCancelBtnEleTarget: HTMLElement;
-  declare modalOverlayEleTarget: HTMLElement;
 
   submitButton: HTMLButtonElement | null = null;
   confirmed: boolean = false;
