@@ -17,9 +17,9 @@ var subscribePlanInput = graphql.NewInputObject(graphql.InputObjectConfig{
 			Type:        graphql.NewNonNull(graphql.ID),
 			Description: "App ID.",
 		},
-		"stripeProductID": &graphql.InputObjectFieldConfig{
+		"planName": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewNonNull(graphql.String),
-			Description: "Stripe Product ID.",
+			Description: "Plan name.",
 		},
 	},
 })
@@ -50,7 +50,7 @@ var _ = registerMutationField(
 
 			input := p.Args["input"].(map[string]interface{})
 			appNodeID := input["appID"].(string)
-			stripeProductID := input["stripeProductID"].(string)
+			planName := input["planName"].(string)
 
 			resolvedNodeID := relay.FromGlobalID(appNodeID)
 			if resolvedNodeID.Type != typeApp {
@@ -72,13 +72,13 @@ var _ = registerMutationField(
 			}
 			var plan *libstripe.SubscriptionPlan
 			for _, p := range plans {
-				if p.StripeProductID == stripeProductID {
+				if p.Name == planName {
 					plan = p
 					break
 				}
 			}
 			if plan == nil {
-				return nil, apierrors.NewInvalid("invalid stripe product id")
+				return nil, apierrors.NewInvalid("invalid plan name")
 			}
 
 			// fetch the current user email

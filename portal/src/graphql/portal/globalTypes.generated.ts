@@ -493,8 +493,8 @@ export type SkipAppTutorialProgressPayload = {
 export type SubscribePlanInput = {
   /** App ID. */
   appID: Scalars['ID'];
-  /** Stripe Product ID. */
-  stripeProductID: Scalars['String'];
+  /** Plan name. */
+  planName: Scalars['String'];
 };
 
 export type SubscribePlanPayload = {
