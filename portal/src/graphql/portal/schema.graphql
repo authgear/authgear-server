@@ -592,6 +592,9 @@ type SubscriptionItemPrice {
   stripePriceID: String!
 
   """"""
+  stripeProductID: String!
+
+  """"""
   type: SubscriptionItemPriceType!
 
   """"""
@@ -638,9 +641,6 @@ type SubscriptionPlan {
 
   """"""
   prices: [SubscriptionItemPrice]!
-
-  """"""
-  stripeProductID: String!
 }
 
 """Tutorial status of an app"""
