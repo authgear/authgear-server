@@ -259,6 +259,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Plans:             planService,
 		GlobalRedisHandle: globalredisHandle,
 		Cache:             stripeCache,
+		Clock:             clock,
 	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:               logger,

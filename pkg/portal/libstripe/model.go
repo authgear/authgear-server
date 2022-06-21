@@ -130,3 +130,11 @@ func NewSubscriptionPlan(planName string) *SubscriptionPlan {
 		Name: planName,
 	}
 }
+
+type Subscription struct {
+	StripeSubscriptionID    string
+	StripeCheckoutSessionID string
+	StripeCustomerID        string
+	AppID                   string
+	PlanName                string
+}

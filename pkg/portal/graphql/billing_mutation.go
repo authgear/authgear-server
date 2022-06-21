@@ -1,6 +1,8 @@
 package graphql
 
 import (
+	"fmt"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/session"
@@ -132,6 +134,7 @@ var _ = registerMutationField(
 
 			input := p.Args["input"].(map[string]interface{})
 			appNodeID := input["appID"].(string)
+			checkoutSessionID := input["checkoutSessionID"].(string)
 
 			resolvedNodeID := relay.FromGlobalID(appNodeID)
 			if resolvedNodeID.Type != typeApp {
@@ -143,6 +146,15 @@ var _ = registerMutationField(
 			_, err := ctx.AuthzService.CheckAccessOfViewer(appID)
 			if err != nil {
 				return nil, err
+			}
+
+			// create the stripe subscription
+			sub, err := ctx.StripeService.CreateSubscription(checkoutSessionID)
+			if err != nil {
+				return nil, err
+			}
+			if appID != sub.AppID {
+				return nil, fmt.Errorf("mismatched app id")
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{

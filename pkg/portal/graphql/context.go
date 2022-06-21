@@ -98,6 +98,7 @@ type StripeService interface {
 	FetchSubscriptionPlans() ([]*libstripe.SubscriptionPlan, error)
 	CreateCheckoutSession(appID string, customerEmail string, subscriptionPlan *libstripe.SubscriptionPlan) (string, error)
 	GetSubscriptionPlan(planName string) (*libstripe.SubscriptionPlan, error)
+	CreateSubscription(checkoutSessionID string) (*libstripe.Subscription, error)
 }
 
 type Logger struct{ *log.Logger }
