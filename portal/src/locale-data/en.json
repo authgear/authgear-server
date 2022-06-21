@@ -841,55 +841,41 @@
   "SubscriptionPlanCard.label.downgrade": "Downgrade",
   "SubscriptionPlanCard.label.current": "Current",
 
+  "SubscriptionPlanCard.plan.features.title": "Everything in {previousPlan}, plus:",
+
+  "SubscriptionPlanCard.plan.tagline.developers": "Ready for development",
+  "SubscriptionPlanCard.plan.mau-restriction.developers": "Up to 1,000 MAUs",
+  "SubscriptionPlanCard.plan.features.line.0.developers": "Login by Whatsapp (Shared Account)",
+  "SubscriptionPlanCard.plan.features.line.1.developers": "Biometric Login",
+  "SubscriptionPlanCard.plan.features.line.2.developers": "Login by SMS",
+  "SubscriptionPlanCard.plan.features.line.3.developers": "5 Webhooks",
+  "SubscriptionPlanCard.plan.features.line.4.developers": "7 Days Log Retention",
+
+  "SubscriptionPlanCard.plan.tagline.startups": "Simple projects & early-stage startups",
+  "SubscriptionPlanCard.plan.mau-restriction.startups": "Up to 5,000 MAUs",
+  "SubscriptionPlanCard.plan.features.line.0.startups": "Custom Domains",
+  "SubscriptionPlanCard.plan.features.line.1.startups": "No Visible Branding",
+  "SubscriptionPlanCard.plan.features.line.2.startups": "Login by Whatsapp (Dedicated Account)",
+  "SubscriptionPlanCard.plan.features.line.3.startups": "3 Admins",
+
+  "SubscriptionPlanCard.plan.tagline.business": "Manage up to 50,000 MAUs",
+  "SubscriptionPlanCard.plan.mau-restriction.business": "30,000 MAUs included",
+  "SubscriptionPlanCard.plan.features.line.0.business": "Enterprise Login (AD, LDAP)",
+  "SubscriptionPlanCard.plan.features.line.1.business": "Unlimited Webhooks",
+  "SubscriptionPlanCard.plan.features.line.2.business": "Unlimited Admins",
+
+  "SubscriptionPlanCard.sms.north-america": "USD {unitAmount} per SMS (US, Canada)",
+  "SubscriptionPlanCard.sms.other-regions": "USD {unitAmount} per SMS (Other regions)",
+
   "SubscriptionScreen.footer.enterprise-plan": "Get 50,000+ MAUs and customization with our {ExternalLink, react, href{{link}} children{Enterprise Plan}}",
   "SubscriptionScreen.footer.pricing-details": "Check out more details and compare plan features on our {ExternalLink, react, href{https://www.authgear.com/pricing} children{pricing page}}",
 
   "SubscriptionScreen.title": "Billing",
-  "SubscriptionScreen.current-plan-summary.title": "Current Plan Summary",
-  "SubscriptionScreen.subscription.label": "Your subscription",
-  "SubscriptionScreen.monthly-active-users.label": "Monthly Active Users",
-  "SubscriptionScreen.plan-cost.label": "Plan Cost",
 
-  "SubscriptionScreen.plan-name.free": "Starter",
+  "SubscriptionScreen.plan-name.free": "Free",
+  "SubscriptionScreen.plan-name.developers": "Developers",
   "SubscriptionScreen.plan-name.startups": "Startups",
   "SubscriptionScreen.plan-name.business": "Business",
-  "SubscriptionScreen.plan-name.enterprise": "Enterprise",
-
-  "SubscriptionScreen.summary-mau.free": "5,000",
-  "SubscriptionScreen.summary-mau.startups": "5,000",
-  "SubscriptionScreen.summary-mau.business": "30,000",
-  "SubscriptionScreen.summary-mau.enterprise": "-",
-
-  "SubscriptionScreen.summary-price.free": "Free",
-  "SubscriptionScreen.summary-price.startups": "$100/mo",
-  "SubscriptionScreen.summary-price.business": "$500/mo",
-  "SubscriptionScreen.summary-price.enterprise": "-",
-
-  "SubscriptionScreen.upgrade-your-plan.title": "Upgrade your plan",
-
-  "SubscriptionScreen.price.startups": "$100/mo",
-  "SubscriptionScreen.price.business": "$500/mo",
-  "SubscriptionScreen.price.enterprise": "Get in Touch",
-
-  "SubscriptionScreen.des.startups": "For simple projects & early-stage startups",
-  "SubscriptionScreen.des.business": "Manage up to 50,000 MAUs",
-  "SubscriptionScreen.des.enterprise": "Manage 50,000+ MAUs",
-
-  "SubscriptionScreen.mau.startups": "Up to 5,000 MAUs",
-  "SubscriptionScreen.mau.business": "30,000 MAUs included",
-  "SubscriptionScreen.mau.enterprise": "",
-
-  "SubscriptionScreen.extra-cost.startups": "",
-  "SubscriptionScreen.extra-cost.business": "USD 50/mo per 5,000 additional MAUs\nUSD 0.01-0.06 per SMS",
-  "SubscriptionScreen.extra-cost.enterprise": "",
-
-  "SubscriptionScreen.features.startups": "All other features from Starter plan\n10 App Clients\nCustom Domains\nNo Visible Branding\nUnlimited Social Connections\n2 Webhooks\n7 days Log Retention\n3 Admins with Role Management",
-  "SubscriptionScreen.features.business": "All other features from Startups plan\nUnlimited App Clients\nPasswordless Login by SMS\nSMS as Secondary Autheticator\nBiometric Login\nEnterprise Login (AD, LDAP)\nUnlimited Webhooks\n5 Admins with Role Management\nCustom Localization",
-  "SubscriptionScreen.features.enterprise": "Volume Discount\nNo admin and role limits\nPrivate cloud option\nSLA\nEnterprise Support",
-
-  "SubscriptionScreen.contact-us.label": "Contact Us",
-
-  "SubscriptionScreen.plan-features.desc": "Check out more details and compare plan features on our {ExternalLink, react, href{https://www.authgear.com/pricing#compare-plans} children{pricing page}}.",
 
   "SMTPConfigurationScreen.title": "Custom Email Provider",
   "SMTPConfigurationScreen.description": "Optimize for email deliverability by using your own SMTP server to send Authgear Emails (such as password reset code, verification) in your own domains",
