@@ -3,6 +3,7 @@ package libstripe
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	goredis "github.com/go-redis/redis/v8"
 	"github.com/stripe/stripe-go/v72"
@@ -11,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/redisutil"
@@ -47,6 +49,7 @@ type Service struct {
 	Plans             PlanService
 	GlobalRedisHandle *globalredis.Handle
 	Cache             Cache
+	Clock             clock.Clock
 }
 
 func (s *Service) FetchSubscriptionPlans() (subscriptionPlans []*SubscriptionPlan, err error) {
@@ -106,6 +109,25 @@ func (s *Service) CreateCheckoutSession(appID string, customerEmail string, subs
 	}
 
 	return checkoutSession.URL, nil
+}
+
+func (s *Service) GetSubscriptionPlan(planName string) (*SubscriptionPlan, error) {
+	subscriptionPlans, err := s.FetchSubscriptionPlans()
+	if err != nil {
+		return nil, err
+	}
+	var subscriptionPlan *SubscriptionPlan
+	for _, sp := range subscriptionPlans {
+		if sp.Name == planName {
+			subscriptionPlan = sp
+			break
+		}
+	}
+	if subscriptionPlan == nil {
+		return nil, fmt.Errorf("subscription plan not found")
+	}
+
+	return subscriptionPlan, nil
 }
 
 func (s *Service) fetchSubscriptionPlans() ([]byte, error) {
