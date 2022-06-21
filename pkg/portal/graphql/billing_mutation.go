@@ -2,7 +2,6 @@ package graphql
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/portal/libstripe"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -66,18 +65,8 @@ var _ = registerMutationField(
 
 			// fetch the subscription plan
 			ctx := GQLContext(p.Context)
-			plans, err := ctx.StripeService.FetchSubscriptionPlans()
+			plan, err := ctx.StripeService.GetSubscriptionPlan(planName)
 			if err != nil {
-				return nil, err
-			}
-			var plan *libstripe.SubscriptionPlan
-			for _, p := range plans {
-				if p.Name == planName {
-					plan = p
-					break
-				}
-			}
-			if plan == nil {
 				return nil, apierrors.NewInvalid("invalid plan name")
 			}
 
