@@ -12,6 +12,15 @@
   max-width: 1252px;
 }
 
+.cards {
+  padding: 20px;
+  display: grid;
+  column-gap: 16px;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  grid-template-rows: auto;
+}
+
 .footer {
   display: flex;
   flex-direction: column;
