@@ -12,8 +12,14 @@
   max-width: 1252px;
 }
 
-.cards {
+.cardsContainer {
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  row-gap: 20px;
+}
+
+.cards {
   display: grid;
   column-gap: 16px;
   grid-auto-flow: column;
