@@ -1,0 +1,14 @@
+query subscriptionPlansQuery {
+  subscriptionPlans {
+    name
+    prices {
+      currency
+      smsRegion
+      stripePriceID
+      stripeProductID
+      type
+      unitAmount
+      usageType
+    }
+  }
+}

@@ -1,42 +1,191 @@
 import React from "react";
+import cn from "classnames";
 import { useParams } from "react-router-dom";
-import { Text } from "@fluentui/react";
+import { Text, DefaultEffects } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import ScreenTitle from "../../ScreenTitle";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
+import {
+  SubscriptionItemPriceSmsRegion,
+  SubscriptionItemPriceType,
+  SubscriptionItemPriceUsageType,
+  SubscriptionPlan,
+} from "./globalTypes.generated";
+import { useSubscriptionPlansQueryQuery } from "./query/subscriptionPlansQuery";
 import styles from "./SubscriptionScreen.module.scss";
 import SubscriptionCurrentPlanSummary, {
   CostItem,
   CostItemSeparator,
 } from "./SubscriptionCurrentPlanSummary";
-
-const DEFAULT_PLAN_NAME = "free";
+import SubscriptionPlanCard, {
+  CardTitle,
+  CardTagline,
+  BasePriceTag,
+  MAURestriction,
+  UsagePriceTag,
+  CTA,
+  PlanDetailsTitle,
+  PlanDetailsLine,
+} from "./SubscriptionPlanCard";
 
 const contactUsLink = "https://oursky.typeform.com/to/PecQiGfc";
 
-const SubscriptionScreen: React.FC = function SubscriptionScreen() {
-  const { appID } = useParams();
-  const featureConfig = useAppFeatureConfigQuery(appID);
+const ALL_KNOWN_PLANS = ["free", "developers", "startups", "business"];
+const DEFAULT_PLAN_NAME = ALL_KNOWN_PLANS[0];
+const PAID_PLANS = ALL_KNOWN_PLANS.slice(0);
 
-  if (featureConfig.loading) {
-    return <ShowLoading />;
+function previousPlan(planName: string): string | null {
+  const idx = ALL_KNOWN_PLANS.indexOf(planName);
+  if (idx >= 1) {
+    return ALL_KNOWN_PLANS[idx - 1];
   }
+  return null;
+}
 
-  if (featureConfig.error) {
-    return (
-      <ShowError
-        error={featureConfig.error}
-        onRetry={() => {
-          featureConfig.refetch().finally(() => {});
-        }}
-      />
+function isKnownPaidPlan(planName: string): boolean {
+  return PAID_PLANS.indexOf(planName) >= 0;
+}
+
+interface PlanDetailsLinesProps {
+  planName: string;
+}
+
+function PlanDetailsLines(props: PlanDetailsLinesProps) {
+  const { planName } = props;
+  const isKnown = isKnownPaidPlan(planName);
+  if (!isKnown) {
+    return null;
+  }
+  let length = 0;
+  switch (planName) {
+    case "developers":
+      length = 5;
+      break;
+    case "startups":
+      length = 4;
+      break;
+    case "business":
+      length = 3;
+      break;
+  }
+  const children = [];
+  for (let i = 0; i < length; i++) {
+    children.push(
+      <PlanDetailsLine key={i}>
+        <FormattedMessage
+          id={`SubscriptionPlanCard.plan.features.line.${i}.${planName}`}
+        />
+      </PlanDetailsLine>
     );
   }
+  return <>{children}</>;
+}
 
-  const planName = featureConfig.planName ?? DEFAULT_PLAN_NAME;
+interface SubscriptionPlanCardRenderProps {
+  subscriptionPlan: SubscriptionPlan;
+}
 
+function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
+  const { subscriptionPlan } = props;
+  const isKnown = isKnownPaidPlan(subscriptionPlan.name);
+  if (!isKnown) {
+    return null;
+  }
+  const { name } = subscriptionPlan;
+
+  const basePrice = subscriptionPlan.prices.find(
+    (price) => price?.type === SubscriptionItemPriceType.Fixed
+  );
+  const northAmericaSMSPrice = subscriptionPlan.prices.find(
+    (price) =>
+      price?.type === SubscriptionItemPriceType.Usage &&
+      price.usageType === SubscriptionItemPriceUsageType.Sms &&
+      price.smsRegion === SubscriptionItemPriceSmsRegion.NorthAmerica
+  );
+  const otherRegionsSMSPrice = subscriptionPlan.prices.find(
+    (price) =>
+      price?.type === SubscriptionItemPriceType.Usage &&
+      price.usageType === SubscriptionItemPriceUsageType.Sms &&
+      price.smsRegion === SubscriptionItemPriceSmsRegion.OtherRegions
+  );
+
+  const previousPlanName = previousPlan(name);
+
+  return (
+    <SubscriptionPlanCard
+      isCurrentPlan={false}
+      cardTitle={
+        <CardTitle>
+          <FormattedMessage id={"SubscriptionScreen.plan-name." + name} />
+        </CardTitle>
+      }
+      cardTagline={
+        <CardTagline>
+          <FormattedMessage id={"SubscriptionPlanCard.plan.tagline." + name} />
+        </CardTagline>
+      }
+      basePriceTag={
+        <BasePriceTag>
+          {basePrice != null ? `$${basePrice.unitAmount / 100}/mo` : "-"}
+        </BasePriceTag>
+      }
+      mauRestriction={
+        <MAURestriction>
+          <FormattedMessage
+            id={"SubscriptionPlanCard.plan.mau-restriction." + name}
+          />
+        </MAURestriction>
+      }
+      usagePriceTags={
+        <>
+          {northAmericaSMSPrice != null ? (
+            <UsagePriceTag>
+              <FormattedMessage
+                id="SubscriptionPlanCard.sms.north-america"
+                values={{
+                  unitAmount: northAmericaSMSPrice.unitAmount / 100,
+                }}
+              />
+            </UsagePriceTag>
+          ) : null}
+          {otherRegionsSMSPrice != null ? (
+            <UsagePriceTag>
+              <FormattedMessage
+                id="SubscriptionPlanCard.sms.other-regions"
+                values={{
+                  unitAmount: otherRegionsSMSPrice.unitAmount / 100,
+                }}
+              />
+            </UsagePriceTag>
+          ) : null}
+        </>
+      }
+      /* TODO(billing): determine the CTA */
+      cta={<CTA variant="current" />}
+      planDetailsTitle={
+        <PlanDetailsTitle>
+          <FormattedMessage
+            id="SubscriptionPlanCard.plan.features.title"
+            values={{
+              previousPlan: previousPlanName ?? "-",
+            }}
+          />
+        </PlanDetailsTitle>
+      }
+      planDetailsLines={<PlanDetailsLines planName={name} />}
+    />
+  );
+}
+
+interface SubscriptionScreenContentProps {
+  planName: string;
+  subscriptionPlans: SubscriptionPlan[];
+}
+
+function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
+  const { planName, subscriptionPlans } = props;
   return (
     <div className={styles.root}>
       <ScreenTitle className={styles.section}>
@@ -69,6 +218,20 @@ const SubscriptionScreen: React.FC = function SubscriptionScreen() {
           kind="non-applicable"
         />
       </SubscriptionCurrentPlanSummary>
+      <div
+        className={cn(styles.section, styles.cards)}
+        style={{
+          boxShadow: DefaultEffects.elevation4,
+        }}
+      >
+        {PAID_PLANS.map((planName) => {
+          const plan = subscriptionPlans.find((plan) => plan.name === planName);
+          if (plan != null) {
+            return <SubscriptionPlanCardRenderer subscriptionPlan={plan} />;
+          }
+          return null;
+        })}
+      </div>
       <div className={styles.footer}>
         <Text block={true}>
           <FormattedMessage
@@ -83,6 +246,40 @@ const SubscriptionScreen: React.FC = function SubscriptionScreen() {
         </Text>
       </div>
     </div>
+  );
+}
+
+const SubscriptionScreen: React.FC = function SubscriptionScreen() {
+  const { appID } = useParams();
+  const featureConfigQueryResult = useAppFeatureConfigQuery(appID);
+  const subscriptionPlansQueryResult = useSubscriptionPlansQueryQuery();
+
+  if (
+    featureConfigQueryResult.loading ||
+    subscriptionPlansQueryResult.loading
+  ) {
+    return <ShowLoading />;
+  }
+
+  if (featureConfigQueryResult.error || subscriptionPlansQueryResult.error) {
+    return (
+      <ShowError
+        error={
+          featureConfigQueryResult.error ?? subscriptionPlansQueryResult.error
+        }
+        onRetry={() => {
+          featureConfigQueryResult.refetch().finally(() => {});
+          subscriptionPlansQueryResult.refetch().finally(() => {});
+        }}
+      />
+    );
+  }
+
+  const planName = featureConfigQueryResult.planName ?? DEFAULT_PLAN_NAME;
+  const f = subscriptionPlansQueryResult.data?.subscriptionPlans ?? [];
+
+  return (
+    <SubscriptionScreenContent planName={planName} subscriptionPlans={f} />
   );
 };
 
