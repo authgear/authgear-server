@@ -1,0 +1,50 @@
+.root {
+  padding: 20px;
+}
+
+.costItems {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: row;
+  column-gap: 20px;
+}
+
+.costItemTitle {
+  color: #646464;
+}
+
+.costItemSeparator {
+  width: 1px;
+}
+
+.usageMeterContainer {
+  margin-top: 36px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.usageMeter {
+  display: flex;
+  flex-direction: column;
+}
+
+.usageMeterTitle {
+  align-self: start;
+}
+
+.usageMeterProgressBar {
+  width: 355px;
+}
+
+.subscriptionManagement {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 0;
+  row-gap: 10px;
+}
+
+.subscriptionManagementLink {
+  text-align: end;
+  font-size: 14px;
+}
