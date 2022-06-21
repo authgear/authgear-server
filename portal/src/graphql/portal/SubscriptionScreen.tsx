@@ -241,23 +241,30 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
         />
       </SubscriptionCurrentPlanSummary>
       <div
-        className={cn(styles.section, styles.cards)}
+        className={cn(styles.section, styles.cardsContainer)}
         style={{
           boxShadow: DefaultEffects.elevation4,
         }}
       >
-        {PAID_PLANS.map((planName) => {
-          const plan = subscriptionPlans.find((plan) => plan.name === planName);
-          if (plan != null) {
-            return (
-              <SubscriptionPlanCardRenderer
-                subscriptionPlan={plan}
-                currentPlanName={planName}
-              />
+        <Text block={true} variant="xLarge">
+          <FormattedMessage id="SubscriptionScreen.cards.title" />
+        </Text>
+        <div className={styles.cards}>
+          {PAID_PLANS.map((planName) => {
+            const plan = subscriptionPlans.find(
+              (plan) => plan.name === planName
             );
-          }
-          return null;
-        })}
+            if (plan != null) {
+              return (
+                <SubscriptionPlanCardRenderer
+                  subscriptionPlan={plan}
+                  currentPlanName={planName}
+                />
+              );
+            }
+            return null;
+          })}
+        </div>
       </div>
       <div className={styles.footer}>
         <Text block={true}>
