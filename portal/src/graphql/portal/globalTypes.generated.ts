@@ -253,6 +253,8 @@ export type Mutation = {
   deleteCollaboratorInvitation: DeleteCollaboratorInvitationPayload;
   /** Delete domain of target app */
   deleteDomain: DeleteDomainPayload;
+  /** Reconcile the completed checkout session */
+  reconcileCheckoutSession: ReconcileCheckoutSessionPayload;
   /** Send test STMP configuration email */
   sendTestSMTPConfigurationEmail?: Maybe<Scalars['Boolean']>;
   /** Skip the tutorial of the app */
@@ -303,6 +305,11 @@ export type MutationDeleteCollaboratorInvitationArgs = {
 
 export type MutationDeleteDomainArgs = {
   input: DeleteDomainInput;
+};
+
+
+export type MutationReconcileCheckoutSessionArgs = {
+  input: ReconcileCheckoutSession;
 };
 
 
@@ -583,6 +590,18 @@ export type VerifyDomainPayload = {
 export type WebhookSecret = {
   __typename?: 'WebhookSecret';
   secret?: Maybe<Scalars['String']>;
+};
+
+export type ReconcileCheckoutSession = {
+  /** Target app ID. */
+  appID: Scalars['ID'];
+  /** Checkout session ID. */
+  checkoutSessionID: Scalars['String'];
+};
+
+export type ReconcileCheckoutSessionPayload = {
+  __typename?: 'reconcileCheckoutSessionPayload';
+  app: App;
 };
 
 export type SendTestSmtpConfigurationEmailInput = {
