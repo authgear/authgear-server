@@ -875,6 +875,7 @@
   "SubscriptionScreen.footer.pricing-details": "Check out more details and compare plan features on our {ExternalLink, react, href{https://www.authgear.com/pricing} children{pricing page}}",
 
   "SubscriptionScreen.title": "Billing",
+  "SubscriptionScreen.recommended": "Recommended",
 
   "SubscriptionScreen.plan-name.free": "Free",
   "SubscriptionScreen.plan-name.developers": "Developers",
