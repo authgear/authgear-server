@@ -345,6 +345,9 @@ type Mutation {
   """Delete domain of target app"""
   deleteDomain(input: DeleteDomainInput!): DeleteDomainPayload!
 
+  """Reconcile the completed checkout session"""
+  reconcileCheckoutSession(input: reconcileCheckoutSession!): reconcileCheckoutSessionPayload!
+
   """Send test STMP configuration email"""
   sendTestSMTPConfigurationEmail(input: sendTestSMTPConfigurationEmailInput!): Boolean
 
@@ -707,6 +710,21 @@ type VerifyDomainPayload {
 type WebhookSecret {
   """"""
   secret: String
+}
+
+""""""
+input reconcileCheckoutSession {
+  """Target app ID."""
+  appID: ID!
+
+  """Checkout session ID."""
+  checkoutSessionID: String!
+}
+
+""""""
+type reconcileCheckoutSessionPayload {
+  """"""
+  app: App!
 }
 
 """"""

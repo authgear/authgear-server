@@ -91,3 +91,64 @@ var _ = registerMutationField(
 		},
 	},
 )
+
+var reconcileCheckoutSessionInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "reconcileCheckoutSession",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"appID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target app ID.",
+		},
+		"checkoutSessionID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "Checkout session ID.",
+		},
+	},
+})
+
+var reconcileCheckoutSessionPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "reconcileCheckoutSessionPayload",
+	Fields: graphql.Fields{
+		"app": &graphql.Field{Type: graphql.NewNonNull(nodeApp)},
+	},
+})
+
+var _ = registerMutationField(
+	"reconcileCheckoutSession",
+	&graphql.Field{
+		Description: "Reconcile the completed checkout session",
+		Type:        graphql.NewNonNull(reconcileCheckoutSessionPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(reconcileCheckoutSessionInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			// Access Control: authenticated user.
+			sessionInfo := session.GetValidSessionInfo(p.Context)
+			if sessionInfo == nil {
+				return nil, AccessDenied.New("only authenticated users can create domain")
+			}
+
+			input := p.Args["input"].(map[string]interface{})
+			appNodeID := input["appID"].(string)
+
+			resolvedNodeID := relay.FromGlobalID(appNodeID)
+			if resolvedNodeID.Type != typeApp {
+				return nil, apierrors.NewInvalid("invalid app ID")
+			}
+			appID := resolvedNodeID.ID
+			ctx := GQLContext(p.Context)
+			// Access Control: collaborator.
+			_, err := ctx.AuthzService.CheckAccessOfViewer(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"app": ctx.Apps.Load(appID),
+			}).Value, nil
+
+		},
+	},
+)
