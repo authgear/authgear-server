@@ -261,6 +261,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Cache:             stripeCache,
 		Clock:             clock,
 	}
+	subscriptionService := &service.SubscriptionService{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:               logger,
 		Users:                   userLoader,
@@ -277,6 +281,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AnalyticChartService:    chartService,
 		TutorialService:         tutorialService,
 		StripeService:           libstripeService,
+		SubscriptionService:     subscriptionService,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		DevMode:        devMode,

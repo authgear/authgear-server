@@ -157,6 +157,11 @@ var _ = registerMutationField(
 				return nil, fmt.Errorf("mismatched app id")
 			}
 
+			_, err = ctx.SubscriptionService.CreateSubscription(sub)
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"app": ctx.Apps.Load(appID),
 			}).Value, nil
