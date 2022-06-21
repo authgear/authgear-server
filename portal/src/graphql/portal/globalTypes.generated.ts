@@ -493,8 +493,8 @@ export type SkipAppTutorialProgressPayload = {
 export type SubscribePlanInput = {
   /** App ID. */
   appID: Scalars['ID'];
-  /** Stripe Product ID. */
-  stripeProductID: Scalars['String'];
+  /** Plan name. */
+  planName: Scalars['String'];
 };
 
 export type SubscribePlanPayload = {
@@ -507,6 +507,7 @@ export type SubscriptionItemPrice = {
   currency: Scalars['String'];
   smsRegion: SubscriptionItemPriceSmsRegion;
   stripePriceID: Scalars['String'];
+  stripeProductID: Scalars['String'];
   type: SubscriptionItemPriceType;
   unitAmount: Scalars['Int'];
   usageType: SubscriptionItemPriceUsageType;
@@ -532,7 +533,6 @@ export type SubscriptionPlan = {
   __typename?: 'SubscriptionPlan';
   name: Scalars['String'];
   prices: Array<Maybe<SubscriptionItemPrice>>;
-  stripeProductID: Scalars['String'];
 };
 
 /** Tutorial status of an app */

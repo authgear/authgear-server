@@ -50,6 +50,9 @@ var price = graphql.NewObject(graphql.ObjectConfig{
 		"stripePriceID": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
 		},
+		"stripeProductID": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
 		"currency": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
 		},
@@ -71,9 +74,6 @@ var price = graphql.NewObject(graphql.ObjectConfig{
 var subscriptionPlan = graphql.NewObject(graphql.ObjectConfig{
 	Name: "SubscriptionPlan",
 	Fields: graphql.Fields{
-		"stripeProductID": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.String),
-		},
 		"name": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
 		},

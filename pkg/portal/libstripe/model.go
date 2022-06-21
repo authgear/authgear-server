@@ -69,43 +69,46 @@ func (r SMSRegion) Valid() error {
 }
 
 type Price struct {
-	StripePriceID string    `json:"stripePriceID"`
-	Currency      string    `json:"currency"`
-	UnitAmount    int       `json:"unitAmount"`
-	Type          PriceType `json:"type"`
-	UsageType     UsageType `json:"usageType,omitempty"`
-	SMSRegion     SMSRegion `json:"smsRegion,omitempty"`
+	StripePriceID   string    `json:"stripePriceID"`
+	StripeProductID string    `json:"stripeProductID"`
+	Currency        string    `json:"currency"`
+	UnitAmount      int       `json:"unitAmount"`
+	Type            PriceType `json:"type"`
+	UsageType       UsageType `json:"usageType,omitempty"`
+	SMSRegion       SMSRegion `json:"smsRegion,omitempty"`
 }
 
-func NewPrice(stripePrice *stripe.Price) (price *Price, err error) {
-	// Though we tolerate unknown Products,
-	// for known product, we do NOT tolerate unknown price.
-	// If we were to tolerate unknown price,
-	// we have a risk to present inaccurate pricing information.
-
-	priceType := PriceType(stripePrice.Metadata[MetadataKeyPriceType])
+func NewPrice(stripeProduct *stripe.Product) (price *Price, err error) {
+	priceType := PriceType(stripeProduct.Metadata[MetadataKeyPriceType])
 	err = priceType.Valid()
 	if err != nil {
 		return
 	}
 
+	stripePrice := stripeProduct.DefaultPrice
+	if stripePrice == nil {
+		err = fmt.Errorf("missing default price in the stripe product: %s", stripeProduct.Name)
+		return
+	}
+
 	price = &Price{
-		StripePriceID: stripePrice.ID,
-		Type:          priceType,
-		Currency:      string(stripePrice.Currency),
-		UnitAmount:    int(stripePrice.UnitAmount),
+		StripeProductID: stripeProduct.ID,
+		StripePriceID:   stripePrice.ID,
+		Type:            priceType,
+		Currency:        string(stripePrice.Currency),
+		UnitAmount:      int(stripePrice.UnitAmount),
 	}
 
 	switch priceType {
 	case PriceTypeFixed:
 		break
 	case PriceTypeUsage:
-		usageType := UsageType(stripePrice.Metadata[MetadataKeyUsageType])
+		usageType := UsageType(stripeProduct.Metadata[MetadataKeyUsageType])
 		err = usageType.Valid()
 		if err != nil {
 			return
 		}
-		smsRegion := SMSRegion(stripePrice.Metadata[MetadatakeySMSRegion])
+		smsRegion := SMSRegion(stripeProduct.Metadata[MetadatakeySMSRegion])
 		err = smsRegion.Valid()
 		if err != nil {
 			return
@@ -118,21 +121,12 @@ func NewPrice(stripePrice *stripe.Price) (price *Price, err error) {
 }
 
 type SubscriptionPlan struct {
-	StripeProductID string   `json:"stripeProductID"`
-	Name            string   `json:"name"`
-	Prices          []*Price `json:"prices,omitempty"`
+	Name   string   `json:"name"`
+	Prices []*Price `json:"prices,omitempty"`
 }
 
-func NewSubscriptionPlan(product *stripe.Product, knownPlanNames map[string]struct{}) (*SubscriptionPlan, bool) {
-	planName := product.Metadata[MetadataKeyPlanName]
-	_, ok := knownPlanNames[planName]
-	if !ok {
-		// There could exist some unknown Products on Stripe.
-		// We tolerate that.
-		return nil, false
-	}
+func NewSubscriptionPlan(planName string) *SubscriptionPlan {
 	return &SubscriptionPlan{
-		StripeProductID: product.ID,
-		Name:            planName,
-	}, true
+		Name: planName,
+	}
 }
