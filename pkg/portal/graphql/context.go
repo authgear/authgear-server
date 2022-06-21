@@ -101,6 +101,10 @@ type StripeService interface {
 	CreateSubscription(checkoutSessionID string) (*libstripe.Subscription, error)
 }
 
+type SubscriptionService interface {
+	CreateSubscription(stripeSubscription *libstripe.Subscription) (*model.Subscription, error)
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("portal-graphql")} }
@@ -123,6 +127,7 @@ type Context struct {
 	AnalyticChartService AnalyticChartService
 	TutorialService      TutorialService
 	StripeService        StripeService
+	SubscriptionService  SubscriptionService
 }
 
 func (c *Context) Logger() *log.Logger {

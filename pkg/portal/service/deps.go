@@ -13,6 +13,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(DomainService), "*"),
 	wire.Struct(new(CollaboratorService), "*"),
 	wire.Struct(new(SystemConfigProvider), "*"),
+	wire.Struct(new(SubscriptionService), "*"),
 	NewConfigServiceLogger,
 	NewAppServiceLogger,
 	NewKubernetesLogger,
