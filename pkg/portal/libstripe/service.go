@@ -76,31 +76,22 @@ func (s *Service) FetchSubscriptionPlans() (subscriptionPlans []*SubscriptionPla
 
 func (s *Service) CreateCheckoutSession(appID string, customerEmail string, subscriptionPlan *SubscriptionPlan) (string, error) {
 	// fixme(billing): handle checkout
-	successURL := "https://example.com/success.html"
+	successURL := "https://example.com/success.html?session_id={CHECKOUT_SESSION_ID}"
 	cancelURL := "https://example.com/canceled.html"
 
-	items := []*stripe.CheckoutSessionLineItemParams{}
-	for _, p := range subscriptionPlan.Prices {
-		item := &stripe.CheckoutSessionLineItemParams{
-			Price: stripe.String(p.StripePriceID),
-		}
-		if p.Type == PriceTypeFixed {
-			// For metered billing, do not pass quantity
-			item.Quantity = stripe.Int64(1)
-		}
-		items = append(items, item)
-	}
 	params := &stripe.CheckoutSessionParams{
-		SuccessURL: &successURL,
-		CancelURL:  &cancelURL,
-		Mode:       stripe.String(string(stripe.CheckoutSessionModeSubscription)),
-		LineItems:  items,
-		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
+		Params: stripe.Params{
+			Context: s.Context,
 			Metadata: map[string]string{
 				MetadataKeyAppID:    appID,
 				MetadataKeyPlanName: subscriptionPlan.Name,
 			},
 		},
+		SuccessURL:         &successURL,
+		CancelURL:          &cancelURL,
+		Mode:               stripe.String(string(stripe.CheckoutSessionModeSetup)),
+		PaymentMethodTypes: []*string{stripe.String(string(stripe.PaymentMethodTypeCard))},
+		CustomerCreation:   stripe.String(string(stripe.CheckoutSessionCustomerCreationAlways)),
 	}
 
 	if customerEmail != "" {
