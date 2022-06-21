@@ -845,6 +845,9 @@
   "SubscriptionPlanCard.label.downgrade": "Downgrade",
   "SubscriptionPlanCard.label.current": "Current",
 
+  "SubscriptionScreen.footer.enterprise-plan": "Get 50,000+ MAUs and customization with our {ExternalLink, react, href{{link}} children{Enterprise Plan}}",
+  "SubscriptionScreen.footer.pricing-details": "Check out more details and compare plan features on our {ExternalLink, react, href{https://www.authgear.com/pricing} children{pricing page}}",
+
   "SubscriptionScreen.title": "Billing",
   "SubscriptionScreen.current-plan-summary.title": "Current Plan Summary",
   "SubscriptionScreen.subscription.label": "Your subscription",
