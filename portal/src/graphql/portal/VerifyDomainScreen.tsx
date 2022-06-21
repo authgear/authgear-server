@@ -122,7 +122,7 @@ const VerifyDomain: React.FC<VerifyDomainProps> = function VerifyDomain(
   const navBreadcrumbItems = useMemo(() => {
     return [
       {
-        to: "../..",
+        to: "./../..",
         label: <FormattedMessage id="CustomDomainListScreen.title" />,
       },
       { to: ".", label: <FormattedMessage id="VerifyDomainScreen.title" /> },
@@ -162,7 +162,7 @@ const VerifyDomain: React.FC<VerifyDomainProps> = function VerifyDomain(
     verifyDomain(domain.id)
       .then((success) => {
         if (success) {
-          navigate("../..?verify=success");
+          navigate("./../..?verify=success");
         }
       })
       .catch(() => {});

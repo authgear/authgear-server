@@ -173,7 +173,7 @@ const AddIdentityForm: React.FC<AddIdentityFormProps> =
 
     useEffect(() => {
       if (form.isSubmitted) {
-        navigate("..#connected-identities");
+        navigate("./..#connected-identities");
       }
     }, [form.isSubmitted, navigate]);
 

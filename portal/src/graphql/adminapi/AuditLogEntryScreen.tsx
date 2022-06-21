@@ -62,10 +62,10 @@ const AuditLogEntryScreen: React.FC = function AuditLogEntryScreen() {
   const navBreadcrumbItems = useMemo(() => {
     return [
       {
-        to: `../..?${state.searchParams ?? ""}`,
+        to: `./../..?${state.searchParams ?? ""}`,
         label: <FormattedMessage id="AuditLogScreen.title" />,
       },
-      { to: "./", label: <FormattedMessage id="AuditLogEntryScreen.title" /> },
+      { to: ".", label: <FormattedMessage id="AuditLogEntryScreen.title" /> },
     ];
   }, [state]);
 

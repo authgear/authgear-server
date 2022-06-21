@@ -125,8 +125,8 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
   const uploadedURLRef = useRef<string | null>(null);
   const navBreadcrumbItems = useMemo(() => {
     return [
-      { to: "../../..", label: <FormattedMessage id="UsersScreen.title" /> },
-      { to: "..", label: <FormattedMessage id="UserDetailsScreen.title" /> },
+      { to: "./../../..", label: <FormattedMessage id="UsersScreen.title" /> },
+      { to: "./..", label: <FormattedMessage id="UserDetailsScreen.title" /> },
       { to: ".", label: <FormattedMessage id="EditPictureScreen.title" /> },
     ];
   }, []);
@@ -188,7 +188,7 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
     save().then(
       () => {
         setIsRemoveDialogVisible(false);
-        navigate("..", { replace: true });
+        navigate("./..", { replace: true });
       },
       () => {
         setIsRemoveDialogVisible(false);
@@ -278,7 +278,7 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
       uploadedURLRef.current = url;
       save().then(
         () => {
-          navigate("..", { replace: true });
+          navigate("./..", { replace: true });
         },
         () => {}
       );
@@ -447,7 +447,7 @@ const EditPictureScreen: React.FC = function EditPictureScreen() {
 
   useEffect(() => {
     if (!profileImageEditable) {
-      navigate("..");
+      navigate("./..");
     }
   }, [navigate, profileImageEditable]);
 

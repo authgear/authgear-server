@@ -75,7 +75,7 @@ function makeCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
   const customize_ui: CardSpec = {
     key: "customize_ui",
     iconSrc: iconCustomize,
-    internalHref: "../configuration/ui-settings",
+    internalHref: "./../configuration/ui-settings",
     externalHref: undefined,
     canSkip: false,
     isDone: tutorialStatusData.progress["customize_ui"] === true,
@@ -94,13 +94,13 @@ function makeCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
       tutorialStatusData.progress["create_application"] === true,
   };
   create_application.internalHref = create_application.isDone
-    ? "../configuration/apps"
-    : "../configuration/apps/add";
+    ? "./../configuration/apps"
+    : "./../configuration/apps/add";
 
   const sso: CardSpec = {
     key: "sso",
     iconSrc: iconSSO,
-    internalHref: "../configuration/single-sign-on",
+    internalHref: "./../configuration/single-sign-on",
     externalHref: undefined,
     canSkip: true,
     isDone: tutorialStatusData.progress["sso"] === true,
@@ -109,7 +109,7 @@ function makeCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
   const invite: CardSpec = {
     key: "invite",
     iconSrc: iconTeam,
-    internalHref: "../portal-admins/invite",
+    internalHref: "./../portal-admins/invite",
     externalHref: undefined,
     canSkip: false,
     isDone: tutorialStatusData.progress["invite"] === true,
@@ -410,7 +410,7 @@ function GetStartedScreenContent(props: GetStartedScreenContentProps) {
         },
       }).then(
         () => {
-          navigate("../");
+          navigate("./..");
         },
         () => {}
       );

@@ -325,7 +325,7 @@ const AnonymousUserLifeTimeDescription: React.FC<AnonymousUserLifeTimeDescriptio
           <FormattedMessage
             id="AnonymousUsersConfigurationScreen.user-lifetime.go-to-applications.description"
             values={{
-              applicationsPath: "../apps",
+              applicationsPath: "./../apps",
             }}
           />
         </Text>

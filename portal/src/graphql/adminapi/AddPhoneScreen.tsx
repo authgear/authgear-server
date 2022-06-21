@@ -83,8 +83,8 @@ const AddPhoneScreen: React.FC = function AddPhoneScreen() {
 
   const navBreadcrumbItems = useMemo(() => {
     return [
-      { to: "../../..", label: <FormattedMessage id="UsersScreen.title" /> },
-      { to: "..", label: <FormattedMessage id="UserDetailsScreen.title" /> },
+      { to: "./../../..", label: <FormattedMessage id="UsersScreen.title" /> },
+      { to: "./..", label: <FormattedMessage id="UserDetailsScreen.title" /> },
       { to: ".", label: <FormattedMessage id="AddPhoneScreen.title" /> },
     ];
   }, []);

@@ -44,8 +44,8 @@ const ResetPasswordContent: React.FC<ResetPasswordContentProps> = function (
 
   const navBreadcrumbItems = useMemo(() => {
     return [
-      { to: "../../..", label: <FormattedMessage id="UsersScreen.title" /> },
-      { to: "..", label: <FormattedMessage id="UserDetailsScreen.title" /> },
+      { to: "./../../..", label: <FormattedMessage id="UsersScreen.title" /> },
+      { to: "./..", label: <FormattedMessage id="UserDetailsScreen.title" /> },
       { to: ".", label: <FormattedMessage id="ResetPasswordScreen.title" /> },
     ];
   }, []);
@@ -127,7 +127,7 @@ const ResetPasswordScreen: React.FC = function ResetPasswordScreen() {
 
   useEffect(() => {
     if (form.isSubmitted) {
-      navigate("..#account-security");
+      navigate("./..#account-security");
     }
   }, [form.isSubmitted, navigate]);
 

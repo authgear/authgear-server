@@ -476,7 +476,7 @@ const LoginIDTypeEdit: React.FC<LoginIDTypeEditProps> =
             <FormattedMessage
               id="FeatureConfig.disabled"
               values={{
-                planPagePath: "../../../billing",
+                planPagePath: "./../../../billing",
               }}
             />
           </MessageBar>

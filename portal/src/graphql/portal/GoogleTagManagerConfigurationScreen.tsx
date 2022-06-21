@@ -67,7 +67,7 @@ const GoogleTagManagerConfigurationContent: React.FC<GoogleTagManagerConfigurati
     const navBreadcrumbItems = useMemo(() => {
       return [
         {
-          to: "..",
+          to: "./..",
           label: (
             <FormattedMessage id="IntegrationsConfigurationScreen.title" />
           ),

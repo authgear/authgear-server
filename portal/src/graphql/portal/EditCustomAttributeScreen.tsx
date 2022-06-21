@@ -105,7 +105,7 @@ function EditCustomAttributeContent(props: EditCustomAttributeContentProps) {
   const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     return [
       {
-        to: "../..",
+        to: "./../..",
         label: (
           <FormattedMessage id="CustomAttributesConfigurationScreen.title" />
         ),
@@ -152,7 +152,7 @@ const EditCustomAttributeScreen: React.FC =
     );
 
     const afterSave = useCallback(() => {
-      navigate("../..");
+      navigate("./../..");
     }, [navigate]);
 
     if (isNaN(index)) {

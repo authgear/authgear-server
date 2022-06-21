@@ -243,7 +243,7 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
               <FormattedMessage
                 id="FeatureConfig.disabled"
                 values={{
-                  planPagePath: "../../../billing",
+                  planPagePath: "./../../../billing",
                 }}
               />
             </MessageBar>

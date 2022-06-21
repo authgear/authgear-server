@@ -64,8 +64,8 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
 
   const navBreadcrumbItems = useMemo(() => {
     return [
-      { to: "../../..", label: <FormattedMessage id="UsersScreen.title" /> },
-      { to: "..", label: <FormattedMessage id="UserDetailsScreen.title" /> },
+      { to: "./../../..", label: <FormattedMessage id="UsersScreen.title" /> },
+      { to: "./..", label: <FormattedMessage id="UserDetailsScreen.title" /> },
       { to: ".", label: <FormattedMessage id="AddEmailScreen.title" /> },
     ];
   }, []);

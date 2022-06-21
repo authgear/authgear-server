@@ -142,7 +142,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
 
   const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     return [
-      { to: "../..", label: <FormattedMessage id="UsersScreen.title" /> },
+      { to: "./..", label: <FormattedMessage id="UsersScreen.title" /> },
       { to: ".", label: <FormattedMessage id="AddUserScreen.title" /> },
     ];
   }, []);
@@ -366,7 +366,7 @@ const AddUserScreen: React.FC = function AddUserScreen() {
 
   useEffect(() => {
     if (form.isSubmitted) {
-      navigate("..");
+      navigate("./..");
     }
   }, [form.isSubmitted, navigate]);
 

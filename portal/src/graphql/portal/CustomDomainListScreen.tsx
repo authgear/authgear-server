@@ -681,7 +681,7 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
               <FormattedMessage
                 id="FeatureConfig.custom-domain.disabled"
                 values={{
-                  planPagePath: "../billing",
+                  planPagePath: "./../billing",
                 }}
               />
             </MessageBar>

@@ -67,8 +67,8 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
 
   const navBreadcrumbItems = useMemo(() => {
     return [
-      { to: "../../..", label: <FormattedMessage id="UsersScreen.title" /> },
-      { to: "..", label: <FormattedMessage id="UserDetailsScreen.title" /> },
+      { to: "./../../..", label: <FormattedMessage id="UsersScreen.title" /> },
+      { to: "./..", label: <FormattedMessage id="UserDetailsScreen.title" /> },
       { to: ".", label: <FormattedMessage id="AddUsernameScreen.title" /> },
     ];
   }, []);

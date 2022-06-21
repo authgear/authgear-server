@@ -434,7 +434,7 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
 
     const navBreadcrumbItems = React.useMemo(() => {
       return [
-        { to: "../..", label: <FormattedMessage id="UsersScreen.title" /> },
+        { to: "./../..", label: <FormattedMessage id="UsersScreen.title" /> },
         { to: ".", label: <FormattedMessage id="UserDetailsScreen.title" /> },
       ];
     }, []);
@@ -445,7 +445,7 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
       (deletedUser: boolean) => {
         setDeleteUserDialogIsHidden(true);
         if (deletedUser) {
-          setTimeout(() => navigate("../.."), 0);
+          setTimeout(() => navigate("./../.."), 0);
         }
       },
       [navigate]

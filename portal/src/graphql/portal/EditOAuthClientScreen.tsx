@@ -77,7 +77,7 @@ const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> =
     const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
       return [
         {
-          to: "../..",
+          to: "./../..",
           label: (
             <FormattedMessage id="ApplicationsConfigurationScreen.title" />
           ),

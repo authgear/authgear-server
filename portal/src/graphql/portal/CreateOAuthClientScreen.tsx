@@ -43,7 +43,7 @@ const errorRules = [
     /^\/oauth\/clients$/,
     "error.client-quota-exceeded",
     {
-      to: "../../../billing",
+      to: "./../../../billing",
     }
   ),
 ];
@@ -100,7 +100,7 @@ const CreateClientSuccessDialog: React.FC<CreateClientSuccessDialogProps> =
     });
 
     const onConfirmCreateClientSuccess = useCallback(() => {
-      navigate(`../${encodeURIComponent(clientId)}/edit`);
+      navigate(`./../${encodeURIComponent(clientId)}/edit`);
     }, [navigate, clientId]);
 
     return (
@@ -138,7 +138,7 @@ const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> =
     const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
       return [
         {
-          to: "..",
+          to: "./..",
           label: (
             <FormattedMessage id="ApplicationsConfigurationScreen.title" />
           ),
