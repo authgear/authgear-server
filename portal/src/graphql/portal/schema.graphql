@@ -179,6 +179,21 @@ type CreateAppPayload {
 }
 
 """"""
+input CreateCheckoutSessionInput {
+  """App ID."""
+  appID: ID!
+
+  """Plan name."""
+  planName: String!
+}
+
+""""""
+type CreateCheckoutSessionPayload {
+  """"""
+  url: String!
+}
+
+""""""
 input CreateCollaboratorInvitationInput {
   """Target app ID."""
   appID: ID!
@@ -312,6 +327,9 @@ type Mutation {
   """Create new app"""
   createApp(input: CreateAppInput!): CreateAppPayload!
 
+  """Create stripe checkout session"""
+  createCheckoutSession(input: CreateCheckoutSessionInput!): CreateCheckoutSessionPayload!
+
   """Invite a collaborator to the target app."""
   createCollaboratorInvitation(input: CreateCollaboratorInvitationInput!): CreateCollaboratorInvitationPayload!
 
@@ -335,9 +353,6 @@ type Mutation {
 
   """Skip a progress of the tutorial of the app"""
   skipAppTutorialProgress(input: SkipAppTutorialProgressInput!): SkipAppTutorialProgressPayload!
-
-  """Subscribe to a plan"""
-  subscribePlan(input: SubscribePlanInput!): SubscribePlanPayload!
 
   """Update app"""
   updateApp(input: UpdateAppInput!): UpdateAppPayload!
@@ -563,21 +578,6 @@ input SkipAppTutorialProgressInput {
 type SkipAppTutorialProgressPayload {
   """"""
   app: App!
-}
-
-""""""
-input SubscribePlanInput {
-  """App ID."""
-  appID: ID!
-
-  """Plan name."""
-  planName: String!
-}
-
-""""""
-type SubscribePlanPayload {
-  """"""
-  url: String!
 }
 
 """"""

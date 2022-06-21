@@ -146,6 +146,18 @@ export type CreateAppPayload = {
   app: App;
 };
 
+export type CreateCheckoutSessionInput = {
+  /** App ID. */
+  appID: Scalars['ID'];
+  /** Plan name. */
+  planName: Scalars['String'];
+};
+
+export type CreateCheckoutSessionPayload = {
+  __typename?: 'CreateCheckoutSessionPayload';
+  url: Scalars['String'];
+};
+
 export type CreateCollaboratorInvitationInput = {
   /** Target app ID. */
   appID: Scalars['ID'];
@@ -229,6 +241,8 @@ export type Mutation = {
   acceptCollaboratorInvitation: AcceptCollaboratorInvitationPayload;
   /** Create new app */
   createApp: CreateAppPayload;
+  /** Create stripe checkout session */
+  createCheckoutSession: CreateCheckoutSessionPayload;
   /** Invite a collaborator to the target app. */
   createCollaboratorInvitation: CreateCollaboratorInvitationPayload;
   /** Create domain for target app */
@@ -245,8 +259,6 @@ export type Mutation = {
   skipAppTutorial: SkipAppTutorialPayload;
   /** Skip a progress of the tutorial of the app */
   skipAppTutorialProgress: SkipAppTutorialProgressPayload;
-  /** Subscribe to a plan */
-  subscribePlan: SubscribePlanPayload;
   /** Update app */
   updateApp: UpdateAppPayload;
   /** Request verification of a domain of target app */
@@ -261,6 +273,11 @@ export type MutationAcceptCollaboratorInvitationArgs = {
 
 export type MutationCreateAppArgs = {
   input: CreateAppInput;
+};
+
+
+export type MutationCreateCheckoutSessionArgs = {
+  input: CreateCheckoutSessionInput;
 };
 
 
@@ -301,11 +318,6 @@ export type MutationSkipAppTutorialArgs = {
 
 export type MutationSkipAppTutorialProgressArgs = {
   input: SkipAppTutorialProgressInput;
-};
-
-
-export type MutationSubscribePlanArgs = {
-  input: SubscribePlanInput;
 };
 
 
@@ -488,18 +500,6 @@ export type SkipAppTutorialProgressInput = {
 export type SkipAppTutorialProgressPayload = {
   __typename?: 'SkipAppTutorialProgressPayload';
   app: App;
-};
-
-export type SubscribePlanInput = {
-  /** App ID. */
-  appID: Scalars['ID'];
-  /** Plan name. */
-  planName: Scalars['String'];
-};
-
-export type SubscribePlanPayload = {
-  __typename?: 'SubscribePlanPayload';
-  url: Scalars['String'];
 };
 
 export type SubscriptionItemPrice = {

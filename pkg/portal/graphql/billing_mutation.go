@@ -10,8 +10,8 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
-var subscribePlanInput = graphql.NewInputObject(graphql.InputObjectConfig{
-	Name: "SubscribePlanInput",
+var createCheckoutSessionInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "CreateCheckoutSessionInput",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"appID": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewNonNull(graphql.ID),
@@ -24,21 +24,21 @@ var subscribePlanInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	},
 })
 
-var subscribePlanPayload = graphql.NewObject(graphql.ObjectConfig{
-	Name: "SubscribePlanPayload",
+var createCheckoutSessionPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "CreateCheckoutSessionPayload",
 	Fields: graphql.Fields{
 		"url": &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
 	},
 })
 
 var _ = registerMutationField(
-	"subscribePlan",
+	"createCheckoutSession",
 	&graphql.Field{
-		Description: "Subscribe to a plan",
-		Type:        graphql.NewNonNull(subscribePlanPayload),
+		Description: "Create stripe checkout session",
+		Type:        graphql.NewNonNull(createCheckoutSessionPayload),
 		Args: graphql.FieldConfigArgument{
 			"input": &graphql.ArgumentConfig{
-				Type: graphql.NewNonNull(subscribePlanInput),
+				Type: graphql.NewNonNull(createCheckoutSessionInput),
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
