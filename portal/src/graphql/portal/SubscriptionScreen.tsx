@@ -20,6 +20,7 @@ import SubscriptionCurrentPlanSummary, {
   CostItemSeparator,
 } from "./SubscriptionCurrentPlanSummary";
 import SubscriptionPlanCard, {
+  CardTag,
   CardTitle,
   CardTagline,
   BasePriceTag,
@@ -46,6 +47,20 @@ function previousPlan(planName: string): string | null {
 
 function isKnownPaidPlan(planName: string): boolean {
   return PAID_PLANS.indexOf(planName) >= 0;
+}
+
+function isRecommendedPlan(planName: string): boolean {
+  return planName === "startups";
+}
+
+function showRecommendedTag(
+  planName: string,
+  currentPlanName: string
+): boolean {
+  const a = isRecommendedPlan(planName);
+  const i = ALL_KNOWN_PLANS.indexOf(planName);
+  const j = ALL_KNOWN_PLANS.indexOf(currentPlanName);
+  return a && i >= 0 && j >= 0 && j <= i;
 }
 
 interface PlanDetailsLinesProps {
@@ -84,11 +99,12 @@ function PlanDetailsLines(props: PlanDetailsLinesProps) {
 }
 
 interface SubscriptionPlanCardRenderProps {
+  currentPlanName: string;
   subscriptionPlan: SubscriptionPlan;
 }
 
 function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
-  const { subscriptionPlan } = props;
+  const { currentPlanName, subscriptionPlan } = props;
   const isKnown = isKnownPaidPlan(subscriptionPlan.name);
   if (!isKnown) {
     return null;
@@ -112,10 +128,16 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
   );
 
   const previousPlanName = previousPlan(name);
+  const cardTag = showRecommendedTag(name, currentPlanName) ? (
+    <CardTag>
+      <FormattedMessage id="SubscriptionScreen.recommended" />
+    </CardTag>
+  ) : null;
 
   return (
     <SubscriptionPlanCard
       isCurrentPlan={false}
+      cardTag={cardTag}
       cardTitle={
         <CardTitle>
           <FormattedMessage id={"SubscriptionScreen.plan-name." + name} />
@@ -227,7 +249,12 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
         {PAID_PLANS.map((planName) => {
           const plan = subscriptionPlans.find((plan) => plan.name === planName);
           if (plan != null) {
-            return <SubscriptionPlanCardRenderer subscriptionPlan={plan} />;
+            return (
+              <SubscriptionPlanCardRenderer
+                subscriptionPlan={plan}
+                currentPlanName={planName}
+              />
+            );
           }
           return null;
         })}
