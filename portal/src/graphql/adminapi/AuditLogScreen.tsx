@@ -1,5 +1,15 @@
-import React, { useState, useMemo, useCallback, useContext } from "react";
-import { useParams } from "react-router-dom";
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+  useContext,
+  useEffect,
+} from "react";
+import {
+  useParams,
+  useSearchParams,
+  URLSearchParamsInit,
+} from "react-router-dom";
 import {
   ICommandBarItemProps,
   IDropdownOption,
@@ -81,14 +91,30 @@ function RefreshButton(props: ICommandBarItemProps) {
   );
 }
 
+// eslint-disable-next-line complexity
 const AuditLogScreen: React.FC = function AuditLogScreen() {
-  const [offset, setOffset] = useState(0);
-  const [selectedKey, setSelectedKey] = useState("ALL");
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const fromParam = searchParams.get("from");
+  const toParam = searchParams.get("to");
+  const orderParam =
+    searchParams.get("order_by") === SortDirection.Asc
+      ? SortDirection.Asc
+      : SortDirection.Desc;
+  const pageParam = Number(searchParams.get("page"));
+  const offsetParam = pageParam > 1 ? (Number(pageParam) - 1) * pageSize : 0;
+  const selectedKeyParam = searchParams.get("activity_type");
+  const lastUpdatedAtParam = searchParams.get("last_updated_at");
+
+  const [offset, setOffset] = useState(offsetParam);
+  const [selectedKey, setSelectedKey] = useState(selectedKeyParam ?? "ALL");
   const [dateRangeDialogHidden, setDateRangeDialogHidden] = useState(true);
-  const [sortDirection, setSortDirection] = useState<SortDirection>(
-    SortDirection.Desc
+  const [sortDirection, setSortDirection] = useState<SortDirection>(orderParam);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState(
+    lastUpdatedAtParam != null
+      ? new Date(Number(lastUpdatedAtParam))
+      : new Date()
   );
-  const [lastUpdatedAt, setLastUpdatedAt] = useState(new Date());
 
   const {
     committedValue: rangeFrom,
@@ -97,7 +123,9 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     setCommittedValue: setRangeFromImmediately,
     commit: commitRangeFrom,
     rollback: rollbackRangeFrom,
-  } = useTransactionalState<Date | null>(null);
+  } = useTransactionalState<Date | null>(
+    fromParam != null ? new Date(fromParam) : null
+  );
 
   const {
     committedValue: rangeTo,
@@ -106,7 +134,9 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     setCommittedValue: setRangeToImmediately,
     commit: commitRangeTo,
     rollback: rollbackRangeTo,
-  } = useTransactionalState<Date | null>(null);
+  } = useTransactionalState<Date | null>(
+    toParam != null ? new Date(toParam) : null
+  );
 
   const { appID } = useParams();
   const featureConfig = useAppFeatureConfigQuery(appID);
@@ -149,12 +179,37 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
         .toJSDate()
         .toISOString();
     }
-    return lastUpdatedAt;
+    return lastUpdatedAt.toISOString();
   }, [rangeTo, lastUpdatedAt]);
 
   const isCustomDateRange = rangeFrom != null || rangeTo != null;
 
   const { renderToString } = useContext(Context);
+
+  useEffect(() => {
+    const page = offset / pageSize + 1;
+    const params: URLSearchParamsInit = {};
+    if (rangeFrom != null) {
+      params["from"] = DateTime.fromJSDate(rangeFrom).toISODate();
+    }
+    if (isCustomDateRange && rangeTo != null) {
+      params["to"] = DateTime.fromJSDate(rangeTo).toISODate();
+    }
+    params["page"] = page.toString();
+    params["order_by"] = sortDirection;
+    params["activity_type"] = selectedKey;
+    params["last_updated_at"] = lastUpdatedAt.getTime().toString();
+    setSearchParams(params);
+  }, [
+    offset,
+    sortDirection,
+    isCustomDateRange,
+    rangeTo,
+    rangeFrom,
+    lastUpdatedAt,
+    setSearchParams,
+    selectedKey,
+  ]);
 
   const activityTypeOptions = useMemo(() => {
     const options = [
@@ -428,6 +483,7 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
             className={styles.widget}
             loading={loading}
             auditLogs={data?.auditLogs ?? null}
+            searchParams={searchParams.toString()}
             offset={offset}
             pageSize={pageSize}
             totalCount={data?.auditLogs?.totalCount ?? undefined}
