@@ -837,6 +837,10 @@
   "SubscriptionCurrentPlanSummary.total-cost.title": "Total Cost (Estimated)",
   "SubscriptionCurrentPlanSummary.total-cost.tooltip": "This is an estimated cost based on your usage{br, react}Your total cost will be fully calcaluated by the end of the billing cycle",
 
+  "SubscriptionPlanCard.label.upgrade": "Upgrade",
+  "SubscriptionPlanCard.label.downgrade": "Downgrade",
+  "SubscriptionPlanCard.label.current": "Current",
+
   "SubscriptionScreen.title": "Billing",
   "SubscriptionScreen.current-plan-summary.title": "Current Plan Summary",
   "SubscriptionScreen.subscription.label": "Your subscription",
