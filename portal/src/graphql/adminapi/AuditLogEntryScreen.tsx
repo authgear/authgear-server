@@ -1,5 +1,5 @@
 import React, { useMemo, useContext } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import { Text, Label } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { useQuery } from "@apollo/client";
@@ -54,19 +54,20 @@ function SummaryText(props: { children: React.ReactNode; light?: boolean }) {
 // eslint-disable-next-line complexity
 const AuditLogEntryScreen: React.FC = function AuditLogEntryScreen() {
   const { logID } = useParams();
-  const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const state = location.state as { searchParams?: string };
 
   const { renderToString, locale } = useContext(Context);
 
   const navBreadcrumbItems = useMemo(() => {
     return [
       {
-        to: `../..?${searchParams.toString()}`,
+        to: `../..?${state.searchParams ?? ""}`,
         label: <FormattedMessage id="AuditLogScreen.title" />,
       },
       { to: "./", label: <FormattedMessage id="AuditLogEntryScreen.title" /> },
     ];
-  }, [searchParams]);
+  }, [state]);
 
   const { data, loading, error, refetch } = useQuery<
     AuditLogEntryQueryQuery,

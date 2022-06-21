@@ -9,7 +9,6 @@ import {
   useParams,
   useSearchParams,
   URLSearchParamsInit,
-  useLocation,
 } from "react-router-dom";
 import {
   ICommandBarItemProps,
@@ -22,7 +21,7 @@ import {
   CommandBarButton,
   DirectionalHint,
 } from "@fluentui/react";
-import { useId, useConst } from "@fluentui/react-hooks";
+import { useId } from "@fluentui/react-hooks";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { useQuery } from "@apollo/client";
 import { DateTime } from "luxon";
@@ -105,12 +104,17 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
   const pageParam = Number(searchParams.get("page"));
   const offsetParam = pageParam > 1 ? (Number(pageParam) - 1) * pageSize : 0;
   const selectedKeyParam = searchParams.get("activity_type");
+  const lastUpdatedAtParam = searchParams.get("last_updated_at");
 
   const [offset, setOffset] = useState(offsetParam);
   const [selectedKey, setSelectedKey] = useState(selectedKeyParam ?? "ALL");
   const [dateRangeDialogHidden, setDateRangeDialogHidden] = useState(true);
   const [sortDirection, setSortDirection] = useState<SortDirection>(orderParam);
-  const [lastUpdatedAt, setLastUpdatedAt] = useState(new Date());
+  const [lastUpdatedAt, setLastUpdatedAt] = useState(
+    lastUpdatedAtParam != null
+      ? new Date(Number(lastUpdatedAtParam))
+      : new Date()
+  );
 
   const {
     committedValue: rangeFrom,
@@ -178,14 +182,7 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     return lastUpdatedAt.toISOString();
   }, [rangeTo, lastUpdatedAt]);
 
-  const location = useLocation();
-
-  const today = useConst(new Date());
-  const isCustomDateRange =
-    rangeFrom != null ||
-    (rangeTo != null &&
-      DateTime.fromJSDate(rangeTo).toISODate() !==
-        DateTime.fromJSDate(today).toISODate());
+  const isCustomDateRange = rangeFrom != null || rangeTo != null;
 
   const { renderToString } = useContext(Context);
 
@@ -195,12 +192,13 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     if (rangeFrom != null) {
       params["from"] = DateTime.fromJSDate(rangeFrom).toISODate();
     }
-    params["to"] = rangeTo
-      ? DateTime.fromJSDate(rangeTo).toISODate()
-      : DateTime.fromJSDate(lastUpdatedAt).toISODate();
+    if (isCustomDateRange && rangeTo != null) {
+      params["to"] = DateTime.fromJSDate(rangeTo).toISODate();
+    }
     params["page"] = page.toString();
     params["order_by"] = sortDirection;
     params["activity_type"] = selectedKey;
+    params["last_updated_at"] = lastUpdatedAt.getTime().toString();
     setSearchParams(params);
   }, [
     offset,
@@ -485,7 +483,7 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
             className={styles.widget}
             loading={loading}
             auditLogs={data?.auditLogs ?? null}
-            searchParams={location.search}
+            searchParams={searchParams.toString()}
             offset={offset}
             pageSize={pageSize}
             totalCount={data?.auditLogs?.totalCount ?? undefined}

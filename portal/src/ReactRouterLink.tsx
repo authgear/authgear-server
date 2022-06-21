@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import { State, To, createPath } from "history";
+import { To, createPath } from "history";
 import {
   useHref,
   useNavigate,
@@ -14,7 +14,7 @@ function isModifiedEvent(event: React.MouseEvent) {
 export interface ReactRouterLinkProps
   extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "href"> {
   replace?: boolean;
-  state?: State;
+  state?: any;
   component?: React.ElementType;
   to: To;
 }
