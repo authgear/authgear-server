@@ -6,14 +6,14 @@ import { FormattedMessage } from "@oursky/react-messageformat";
 import ScreenTitle from "../../ScreenTitle";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
-import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import {
   SubscriptionItemPriceSmsRegion,
   SubscriptionItemPriceType,
   SubscriptionItemPriceUsageType,
   SubscriptionPlan,
+  App,
 } from "./globalTypes.generated";
-import { useSubscriptionPlansQueryQuery } from "./query/subscriptionPlansQuery";
+import { useSubscriptionScreenQueryQuery } from "./query/subscriptionScreenQuery";
 import styles from "./SubscriptionScreen.module.scss";
 import SubscriptionCurrentPlanSummary, {
   CostItem,
@@ -34,7 +34,6 @@ import SubscriptionPlanCard, {
 const contactUsLink = "https://oursky.typeform.com/to/PecQiGfc";
 
 const ALL_KNOWN_PLANS = ["free", "developers", "startups", "business"];
-const DEFAULT_PLAN_NAME = ALL_KNOWN_PLANS[0];
 const PAID_PLANS = ALL_KNOWN_PLANS.slice(0);
 
 function previousPlan(planName: string): string | null {
@@ -285,32 +284,29 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
 
 const SubscriptionScreen: React.FC = function SubscriptionScreen() {
   const { appID } = useParams();
-  const featureConfigQueryResult = useAppFeatureConfigQuery(appID);
-  const subscriptionPlansQueryResult = useSubscriptionPlansQueryQuery();
+  const subscriptionScreenQuery = useSubscriptionScreenQueryQuery({
+    variables: {
+      id: appID,
+    },
+  });
 
-  if (
-    featureConfigQueryResult.loading ||
-    subscriptionPlansQueryResult.loading
-  ) {
+  if (subscriptionScreenQuery.loading) {
     return <ShowLoading />;
   }
 
-  if (featureConfigQueryResult.error || subscriptionPlansQueryResult.error) {
+  if (subscriptionScreenQuery.error) {
     return (
       <ShowError
-        error={
-          featureConfigQueryResult.error ?? subscriptionPlansQueryResult.error
-        }
+        error={subscriptionScreenQuery.error}
         onRetry={() => {
-          featureConfigQueryResult.refetch().finally(() => {});
-          subscriptionPlansQueryResult.refetch().finally(() => {});
+          subscriptionScreenQuery.refetch().finally(() => {});
         }}
       />
     );
   }
 
-  const planName = featureConfigQueryResult.planName ?? DEFAULT_PLAN_NAME;
-  const f = subscriptionPlansQueryResult.data?.subscriptionPlans ?? [];
+  const planName = (subscriptionScreenQuery.data?.node as App).planName;
+  const f = subscriptionScreenQuery.data?.subscriptionPlans ?? [];
 
   return (
     <SubscriptionScreenContent planName={planName} subscriptionPlans={f} />

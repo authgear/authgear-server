@@ -1,0 +1,25 @@
+fragment AppFeatureConfig on App {
+  id
+  effectiveFeatureConfig
+  planName
+}
+
+query subscriptionScreenQuery($id: ID!) {
+  node(id: $id) {
+    __typename
+    ...AppFeatureConfig
+  }
+
+  subscriptionPlans {
+    name
+    prices {
+      currency
+      smsRegion
+      stripePriceID
+      stripeProductID
+      type
+      unitAmount
+      usageType
+    }
+  }
+}
