@@ -873,6 +873,8 @@
   "SubscriptionScreen.title": "Billing",
   "SubscriptionScreen.recommended": "Recommended",
 
+  "SubscriptionScreen.cards.title": "Upgrade Your Plan",
+
   "SubscriptionScreen.plan-name.free": "Free",
   "SubscriptionScreen.plan-name.developers": "Developers",
   "SubscriptionScreen.plan-name.startups": "Startups",
