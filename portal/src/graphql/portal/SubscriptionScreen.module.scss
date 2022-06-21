@@ -1,82 +1,19 @@
 @import "../../styles/variable.scss";
 
-.widget {
-  grid-column: 1 / span 12;
-}
-
-.summaryList {
+.root {
+  padding: 24px;
   display: flex;
-  flex-direction: row;
-  max-width: 600px;
-  margin: 20px 10px 10px;
-
-  .summaryItem {
-    flex-grow: 1;
-    .label {
-      color: $neutral-secondary-color;
-      margin-bottom: 5px;
-    }
-  }
+  flex-direction: column;
+  row-gap: 24px;
 }
 
-.planBlockList {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-auto-rows: auto;
-  gap: 16px;
-  margin: 20px 10px;
+.section {
+  min-width: 980px;
+  max-width: 1252px;
+}
 
-  .planBlockItem {
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    overflow: hidden;
-    border: 1px solid $neutral-light;
-  }
-
-  .title {
-    font-weight: 700;
-    margin-bottom: 10px;
-  }
-
-  .desc {
-    color: $neutral-secondary-color;
-    margin-bottom: 40px;
-  }
-
-  .price {
-    font-weight: 700;
-    text-align: center;
-    margin-bottom: 10px;
-  }
-
-  .mau {
-    text-align: center;
-  }
-
-  .extraCost {
-    background-color: $neutral-lighter-alt-color;
-    white-space: pre-wrap;
-    line-height: 18px;
-    padding: 12px;
-    margin-top: 20px;
-  }
-
-  .separator {
-    background-color: $neutral-lighter-color;
-    height: 1px;
-    margin: 20px 0;
-  }
-
-  .features {
-    flex-grow: 1;
-    color: $theme-tertiary-color;
-    white-space: pre-wrap;
-    line-height: 26px;
-    margin-bottom: 110px;
-  }
-
-  .contactUsLink {
-    display: block;
-  }
+.footer {
+  display: flex;
+  flex-direction: column;
+  row-gap: 10px;
 }
