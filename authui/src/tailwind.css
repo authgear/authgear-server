@@ -79,6 +79,10 @@
   a {
     @apply no-underline cursor-pointer;
   }
+
+  select {
+    @apply appearance-none;
+  }
 }
 
 @layer components {
