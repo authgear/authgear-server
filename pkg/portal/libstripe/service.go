@@ -185,6 +185,10 @@ func (s *Service) CreateSubscription(checkoutSessionID string) (*Subscription, e
 	subscription, err := s.ClientAPI.Subscriptions.New(&stripe.SubscriptionParams{
 		Params: stripe.Params{
 			Context: s.Context,
+			Metadata: map[string]string{
+				MetadataKeyAppID:    appID,
+				MetadataKeyPlanName: planName,
+			},
 		},
 		Customer:           customerID,
 		Items:              subscriptionItems,
