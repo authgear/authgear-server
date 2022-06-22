@@ -13,12 +13,6 @@
 /* themeDark       Shade.Shade7 */
 /* themeDarker     Shade.Shade8 */
 
-html, body {
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-}
-
 /* Load fluentui font */
 /* The URLs are observed in browser console */
 /* The font weights are from https://developer.microsoft.com/en-us/fluentui#/styles/web/typography */
