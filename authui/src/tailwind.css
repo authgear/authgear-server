@@ -164,4 +164,13 @@
   .modal-body {
     @apply mt-0 mb-5;
   }
+
+  .password-input-wrapper .input {
+    @apply pr-8 -mr-8;
+  }
+
+  .password-input-wrapper input::-ms-reveal,
+  .password-input-wrapper input::-ms-clear {
+    @apply hidden;
+  }
 }
