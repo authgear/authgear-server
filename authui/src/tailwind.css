@@ -34,6 +34,29 @@
     font-family: "Segoe UI Web", -apple-system, BlinkMacSystemFont, "Segoe UI",
       Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   }
+
+  /* NOTE(1) */
+  /* The font-size of focusable elements must be >= 16px otherwise */
+  /* Safari iOS will zoom the page. */
+
+  /* Fluent UI color name <-> Shade */
+  /* themeLighterAlt Shade.Shade1 */
+  /* themeLighter    Shade.Shade2 */
+  /* themeLight      Shade.Shade3 */
+  /* themeTertiary   Shade.Shade4 */
+  /* themeSecondary  Shade.Shade5 */
+  /* themePrimary    Shade.Unshaded */
+  /* themeDarkAlt    Shade.Shade6 */
+  /* themeDark       Shade.Shade7 */
+  /* themeDarker     Shade.Shade8 */
+
+  input,
+  select,
+  textarea,
+  button {
+    /* NOTE(1) */
+    font-size: inherit;
+  }
 }
 
 @layer components {

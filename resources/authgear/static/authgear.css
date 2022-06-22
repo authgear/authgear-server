@@ -1,24 +1,3 @@
-/* NOTE(1) */
-/* The font-size of focusable elements must be >= 16px otherwise */
-/* Safari iOS will zoom the page. */
-
-/* Fluent UI color name <-> Shade */
-/* themeLighterAlt Shade.Shade1 */
-/* themeLighter    Shade.Shade2 */
-/* themeLight      Shade.Shade3 */
-/* themeTertiary   Shade.Shade4 */
-/* themeSecondary  Shade.Shade5 */
-/* themePrimary    Shade.Unshaded */
-/* themeDarkAlt    Shade.Shade6 */
-/* themeDark       Shade.Shade7 */
-/* themeDarker     Shade.Shade8 */
-
-input, select, textarea, button {
-  font-family: inherit;
-  /* NOTE(1) */
-  font-size: inherit;
-}
-
 /* textarea by default has background color of white */
 /* In dark mode, the text color is also white */
 /* Therefore we have to reset the background color to transparent */
