@@ -48,7 +48,7 @@ const EmailField: React.FC<EmailFieldProps> = function EmailField(props) {
 };
 
 const AddEmailScreen: React.FC = function AddEmailScreen() {
-  const { appID, userID } = useParams();
+  const { appID, userID } = useParams() as { appID: string; userID: string };
   const {
     user,
     loading: loadingUser,
@@ -64,8 +64,8 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
 
   const navBreadcrumbItems = useMemo(() => {
     return [
-      { to: "../../..", label: <FormattedMessage id="UsersScreen.title" /> },
-      { to: "..", label: <FormattedMessage id="UserDetailsScreen.title" /> },
+      { to: "./../../..", label: <FormattedMessage id="UsersScreen.title" /> },
+      { to: "./..", label: <FormattedMessage id="UserDetailsScreen.title" /> },
       { to: ".", label: <FormattedMessage id="AddEmailScreen.title" /> },
     ];
   }, []);

@@ -51,7 +51,7 @@ const UsernameField: React.FC<UsernameFieldProps> = function UsernameField(
 };
 
 const AddUsernameScreen: React.FC = function AddUsernameScreen() {
-  const { appID, userID } = useParams();
+  const { appID, userID } = useParams() as { appID: string; userID: string };
   const {
     user,
     loading: loadingUser,
@@ -67,8 +67,8 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
 
   const navBreadcrumbItems = useMemo(() => {
     return [
-      { to: "../../..", label: <FormattedMessage id="UsersScreen.title" /> },
-      { to: "..", label: <FormattedMessage id="UserDetailsScreen.title" /> },
+      { to: "./../../..", label: <FormattedMessage id="UsersScreen.title" /> },
+      { to: "./..", label: <FormattedMessage id="UserDetailsScreen.title" /> },
       { to: ".", label: <FormattedMessage id="AddUsernameScreen.title" /> },
     ];
   }, []);

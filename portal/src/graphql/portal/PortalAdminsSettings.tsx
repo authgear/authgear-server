@@ -25,7 +25,7 @@ import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
 const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
   const { renderToString } = useContext(Context);
-  const { appID } = useParams();
+  const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
 
   const {

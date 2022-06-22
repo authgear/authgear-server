@@ -289,7 +289,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
               <FormattedMessage
                 id="ModifyOAuthClientForm.cookie-settings.link-to-cookie-session"
                 values={{
-                  to: "../..#cookie-session",
+                  to: "./..#cookie-session",
                 }}
               />
             </Text>

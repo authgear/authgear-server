@@ -67,7 +67,7 @@ const GoogleTagManagerConfigurationContent: React.FC<GoogleTagManagerConfigurati
     const navBreadcrumbItems = useMemo(() => {
       return [
         {
-          to: "..",
+          to: "./..",
           label: (
             <FormattedMessage id="IntegrationsConfigurationScreen.title" />
           ),
@@ -152,7 +152,7 @@ const GoogleTagManagerConfigurationContent: React.FC<GoogleTagManagerConfigurati
 
 const GoogleTagManagerConfigurationScreen: React.FC =
   function GoogleTagManagerConfigurationScreen() {
-    const { appID } = useParams();
+    const { appID } = useParams() as { appID: string };
     const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
     if (form.isLoading) {

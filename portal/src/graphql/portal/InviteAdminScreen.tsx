@@ -31,7 +31,7 @@ const InviteAdminContent: React.FC<InviteAdminContentProps> =
     const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
       return [
         {
-          to: "..",
+          to: "./..",
           label: <FormattedMessage id="PortalAdminSettings.title" />,
         },
         { to: ".", label: <FormattedMessage id="InviteAdminScreen.title" /> },
@@ -62,7 +62,7 @@ const InviteAdminContent: React.FC<InviteAdminContentProps> =
   };
 
 const InviteAdminScreen: React.FC = function InviteAdminScreen() {
-  const { appID } = useParams();
+  const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
   const { createCollaboratorInvitation } =
     useCreateCollaboratorInvitationMutation(appID);
@@ -83,7 +83,7 @@ const InviteAdminScreen: React.FC = function InviteAdminScreen() {
 
   useEffect(() => {
     if (form.isSubmitted) {
-      navigate("..");
+      navigate("./..");
     }
   }, [form.isSubmitted, navigate]);
 

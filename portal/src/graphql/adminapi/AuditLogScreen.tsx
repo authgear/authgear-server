@@ -138,7 +138,7 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     toParam != null ? new Date(toParam) : null
   );
 
-  const { appID } = useParams();
+  const { appID } = useParams() as { appID: string };
   const featureConfig = useAppFeatureConfigQuery(appID);
 
   const logRetrievalDays = useMemo(() => {
@@ -472,7 +472,7 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
                 <FormattedMessage
                   id="FeatureConfig.audit-log.retrieval-days"
                   values={{
-                    planPagePath: "../billing",
+                    planPagePath: "./../billing",
                     logRetrievalDays: logRetrievalDays,
                   }}
                 />

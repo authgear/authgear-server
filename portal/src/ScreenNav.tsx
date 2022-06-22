@@ -49,7 +49,7 @@ interface NavLinkProps {
 }
 
 const ScreenNav: React.FC = function ScreenNav() {
-  const { appID } = useParams();
+  const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
   const { renderToString } = useContext(Context);
   const location = useLocation();
@@ -76,76 +76,76 @@ const ScreenNav: React.FC = function ScreenNav() {
     const links = [
       ...(skippedTutorial
         ? []
-        : [{ textKey: "ScreenNav.getting-started", url: "getting-started" }]),
+        : [{ textKey: "ScreenNav.getting-started", url: "./getting-started" }]),
       ...(analyticEnabled
-        ? [{ textKey: "ScreenNav.analytics", url: "analytics" }]
+        ? [{ textKey: "ScreenNav.analytics", url: "./analytics" }]
         : []),
-      { textKey: "ScreenNav.users", url: "users" },
+      { textKey: "ScreenNav.users", url: "./users" },
       {
         textKey: "ScreenNav.authentication",
-        url: "configuration/authentication",
+        url: "./configuration/authentication",
         children: [
           {
             textKey: "ScreenNav.login-id",
-            url: "configuration/authentication/login-id",
+            url: "./configuration/authentication/login-id",
           },
           {
             textKey: "ScreenNav.authenticators",
-            url: "configuration/authentication/authenticators",
+            url: "./configuration/authentication/authenticators",
           },
           {
             textKey: "ScreenNav.verification",
-            url: "configuration/authentication/verification",
+            url: "./configuration/authentication/verification",
           },
         ],
       },
       {
         textKey: "ScreenNav.anonymous-users",
-        url: "configuration/anonymous-users",
+        url: "./configuration/anonymous-users",
       },
       {
         textKey: "ScreenNav.biometric",
-        url: "configuration/biometric",
+        url: "./configuration/biometric",
       },
       {
         textKey: "ScreenNav.single-sign-on",
-        url: "configuration/single-sign-on",
+        url: "./configuration/single-sign-on",
       },
       {
         textKey: "ScreenNav.password-policy",
-        url: "configuration/password-policy",
+        url: "./configuration/password-policy",
       },
       {
         textKey: "ScreenNav.client-applications",
-        url: "configuration/apps",
+        url: "./configuration/apps",
       },
       {
         textKey: "CustomDomainListScreen.title",
-        url: "custom-domains",
+        url: "./custom-domains",
       },
       {
         textKey: "ScreenNav.smtp",
-        url: "configuration/smtp",
+        url: "./configuration/smtp",
       },
       {
         textKey: "ScreenNav.ui-settings",
-        url: "configuration/ui-settings",
+        url: "./configuration/ui-settings",
       },
       {
         textKey: "ScreenNav.localization",
-        url: "configuration/localization",
+        url: "./configuration/localization",
       },
       {
         textKey: "ScreenNav.user-profile",
-        url: "configuration/user-profile",
+        url: "./configuration/user-profile",
         children: [
           {
             textKey: "ScreenNav.standard-attributes",
-            url: "configuration/user-profile/standard-attributes",
+            url: "./configuration/user-profile/standard-attributes",
           },
           {
             textKey: "ScreenNav.custom-attributes",
-            url: "configuration/user-profile/custom-attributes",
+            url: "./configuration/user-profile/custom-attributes",
           },
         ],
       },
@@ -153,42 +153,42 @@ const ScreenNav: React.FC = function ScreenNav() {
         ? [
             {
               textKey: "ScreenNav.integrations",
-              url: "integrations",
+              url: "./integrations",
             },
           ]
         : []),
       {
         textKey: "ScreenNav.billing",
-        url: "billing",
+        url: "./billing",
       },
       {
         textKey: "ScreenNav.advanced",
-        url: "advanced",
+        url: "./advanced",
         children: [
           {
             textKey: "ScreenNav.password-reset-code",
-            url: "advanced/password-reset-code",
+            url: "./advanced/password-reset-code",
           },
           {
             textKey: "ScreenNav.webhooks",
-            url: "advanced/webhooks",
+            url: "./advanced/webhooks",
           },
           {
             textKey: "ScreenNav.admin-api",
-            url: "advanced/admin-api",
+            url: "./advanced/admin-api",
           },
           {
             textKey: "ScreenNav.account-deletion",
-            url: "advanced/account-deletion",
+            url: "./advanced/account-deletion",
           },
         ],
       },
       ...(auditLogEnabled
-        ? [{ textKey: "ScreenNav.audit-log", url: "audit-log" }]
+        ? [{ textKey: "ScreenNav.audit-log", url: "./audit-log" }]
         : []),
       {
         textKey: "PortalAdminSettings.title",
-        url: "portal-admins",
+        url: "./portal-admins",
       },
     ];
 

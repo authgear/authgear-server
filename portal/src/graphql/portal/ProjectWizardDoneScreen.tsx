@@ -98,7 +98,7 @@ interface ProjectWizardDoneContentProps {
 
 const ProjectWizardDoneContent: React.FC<ProjectWizardDoneContentProps> =
   function ProjectWizardDoneContent(props) {
-    const { appID } = useParams();
+    const { appID } = useParams() as { appID: string };
 
     const { config } = props;
 
@@ -189,7 +189,7 @@ const ProjectWizardDoneContent: React.FC<ProjectWizardDoneContentProps> =
   };
 
 const ProjectWizardDoneScreen: React.FC = function ProjectWizardDoneScreen() {
-  const { appID } = useParams();
+  const { appID } = useParams() as { appID: string };
 
   const { effectiveAppConfig, loading } = useAppAndSecretConfigQuery(appID);
 

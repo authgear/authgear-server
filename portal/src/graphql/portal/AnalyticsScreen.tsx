@@ -116,7 +116,7 @@ const AnalyticsScreenContent: React.FC = function AnalyticsScreenContent() {
   const [periodical, setPeriodical] = useState<Periodical>(Periodical.Monthly);
 
   const { renderToString } = useContext(Context);
-  const { appID } = useParams();
+  const { appID } = useParams() as { appID: string };
   const {
     loading,
     error,

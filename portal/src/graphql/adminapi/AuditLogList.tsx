@@ -144,12 +144,12 @@ const AuditLogList: React.FC<AuditLogListProps> = function AuditLogList(props) {
       const state: any = {};
       switch (column?.key) {
         case "activityType":
-          href = `${item.id}/details`;
+          href = `./${item.id}/details`;
           state["searchParams"] = searchParams;
           break;
         case "rawUserID":
           if (item.userID != null) {
-            href = `../users/${item.userID}/details/`;
+            href = `./../users/${item.userID}/details`;
           }
           break;
         default:

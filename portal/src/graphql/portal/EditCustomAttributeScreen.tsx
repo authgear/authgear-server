@@ -105,7 +105,7 @@ function EditCustomAttributeContent(props: EditCustomAttributeContentProps) {
   const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     return [
       {
-        to: "../..",
+        to: "./../..",
         label: (
           <FormattedMessage id="CustomAttributesConfigurationScreen.title" />
         ),
@@ -137,7 +137,10 @@ function EditCustomAttributeContent(props: EditCustomAttributeContentProps) {
 
 const EditCustomAttributeScreen: React.FC =
   function EditCustomAttributeScreen() {
-    const { appID, index: indexString } = useParams();
+    const { appID, index: indexString } = useParams() as {
+      appID: string;
+      index: string;
+    };
     const navigate = useNavigate();
 
     const index = parseInt(indexString, 10);
@@ -149,7 +152,7 @@ const EditCustomAttributeScreen: React.FC =
     );
 
     const afterSave = useCallback(() => {
-      navigate("../..");
+      navigate("./../..");
     }, [navigate]);
 
     if (isNaN(index)) {

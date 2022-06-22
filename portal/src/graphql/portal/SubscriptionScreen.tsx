@@ -165,7 +165,7 @@ const SubscriptionPlanFeatures: React.FC = function SubscriptionPlanFeatures() {
 };
 
 const SubscriptionScreen: React.FC = function SubscriptionScreen() {
-  const { appID } = useParams();
+  const { appID } = useParams() as { appID: string };
   const featureConfig = useAppFeatureConfigQuery(appID);
 
   const planName = useMemo(

@@ -103,7 +103,7 @@ interface Props {
 const UserDetailsSession: React.FC<Props> = function UserDetailsSession(props) {
   const { locale, renderToString } = useContext(Context);
   const { themes } = useSystemConfig();
-  const { userID } = useParams();
+  const { userID } = useParams() as { userID: string };
   const { sessions } = props;
 
   const {

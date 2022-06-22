@@ -792,7 +792,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
               <FormattedMessage
                 id="FeatureConfig.white-labeling.disabled"
                 values={{
-                  planPagePath: "../../billing",
+                  planPagePath: "./../../billing",
                 }}
               />
             </MessageBar>
@@ -848,7 +848,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
   };
 
 const UISettingsScreen: React.FC = function UISettingsScreen() {
-  const { appID } = useParams();
+  const { appID } = useParams() as { appID: string };
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageTag | null>(
     null
   );

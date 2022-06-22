@@ -53,7 +53,7 @@ function SummaryText(props: { children: React.ReactNode; light?: boolean }) {
 
 // eslint-disable-next-line complexity
 const AuditLogEntryScreen: React.FC = function AuditLogEntryScreen() {
-  const { logID } = useParams();
+  const { logID } = useParams() as { logID: string };
   const location = useLocation();
   const state = location.state as { searchParams?: string };
 
@@ -62,10 +62,10 @@ const AuditLogEntryScreen: React.FC = function AuditLogEntryScreen() {
   const navBreadcrumbItems = useMemo(() => {
     return [
       {
-        to: `../..?${state.searchParams ?? ""}`,
+        to: `./../..?${state.searchParams ?? ""}`,
         label: <FormattedMessage id="AuditLogScreen.title" />,
       },
-      { to: "./", label: <FormattedMessage id="AuditLogEntryScreen.title" /> },
+      { to: ".", label: <FormattedMessage id="AuditLogEntryScreen.title" /> },
     ];
   }, [state]);
 

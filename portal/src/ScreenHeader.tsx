@@ -64,7 +64,7 @@ const commandButtonStyles = {
 const ScreenHeader: React.FC = function ScreenHeader() {
   const { renderToString } = useContext(Context);
   const { themes, authgearEndpoint } = useSystemConfig();
-  const { appID } = useParams();
+  const { appID } = useParams() as { appID: string };
   const { viewer } = useViewerQuery();
 
   const redirectURI = window.location.origin + "/";

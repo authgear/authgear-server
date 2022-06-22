@@ -434,7 +434,7 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
 
     const navBreadcrumbItems = React.useMemo(() => {
       return [
-        { to: "../..", label: <FormattedMessage id="UsersScreen.title" /> },
+        { to: "./../..", label: <FormattedMessage id="UsersScreen.title" /> },
         { to: ".", label: <FormattedMessage id="UserDetailsScreen.title" /> },
       ];
     }, []);
@@ -445,7 +445,7 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
       (deletedUser: boolean) => {
         setDeleteUserDialogIsHidden(true);
         if (deletedUser) {
-          setTimeout(() => navigate("../.."), 0);
+          setTimeout(() => navigate("./../.."), 0);
         }
       },
       [navigate]
@@ -545,7 +545,7 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
   };
 
 const UserDetailsScreen: React.FC = function UserDetailsScreen() {
-  const { appID, userID } = useParams();
+  const { appID, userID } = useParams() as { appID: string; userID: string };
   const { user, loading: loadingUser, error, refetch } = useUserQuery(userID);
   const {
     effectiveAppConfig,

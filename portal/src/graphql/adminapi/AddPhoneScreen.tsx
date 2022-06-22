@@ -67,7 +67,7 @@ function LoginIDField(props: LoginIDFieldProps) {
 }
 
 const AddPhoneScreen: React.FC = function AddPhoneScreen() {
-  const { appID, userID } = useParams();
+  const { appID, userID } = useParams() as { appID: string; userID: string };
   const {
     user,
     loading: loadingUser,
@@ -83,8 +83,8 @@ const AddPhoneScreen: React.FC = function AddPhoneScreen() {
 
   const navBreadcrumbItems = useMemo(() => {
     return [
-      { to: "../../..", label: <FormattedMessage id="UsersScreen.title" /> },
-      { to: "..", label: <FormattedMessage id="UserDetailsScreen.title" /> },
+      { to: "./../../..", label: <FormattedMessage id="UsersScreen.title" /> },
+      { to: "./..", label: <FormattedMessage id="UserDetailsScreen.title" /> },
       { to: ".", label: <FormattedMessage id="AddPhoneScreen.title" /> },
     ];
   }, []);

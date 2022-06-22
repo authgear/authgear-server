@@ -408,7 +408,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
                 <FormattedMessage
                   id="FeatureConfig.webhook.blocking-events.disabled"
                   values={{
-                    planPagePath: "../../billing",
+                    planPagePath: "./../../billing",
                   }}
                 />
               </MessageBar>
@@ -417,7 +417,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
                 <FormattedMessage
                   id="FeatureConfig.webhook.blocking-events.maximum"
                   values={{
-                    planPagePath: "../../billing",
+                    planPagePath: "./../../billing",
                     maximum: blockingHandlerMax,
                   }}
                 />
@@ -455,7 +455,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
                 <FormattedMessage
                   id="FeatureConfig.webhook.non-blocking-events.disabled"
                   values={{
-                    planPagePath: "../../billing",
+                    planPagePath: "./../../billing",
                   }}
                 />
               </MessageBar>
@@ -464,7 +464,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
                 <FormattedMessage
                   id="FeatureConfig.webhook.non-blocking-events.maximum"
                   values={{
-                    planPagePath: "../../billing",
+                    planPagePath: "./../../billing",
                     maximum: nonBlockingHandlerMax,
                   }}
                 />
@@ -547,7 +547,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
 
 const WebhookConfigurationScreen: React.FC =
   function WebhookConfigurationScreen() {
-    const { appID } = useParams();
+    const { appID } = useParams() as { appID: string };
     const form = useAppSecretConfigForm(
       appID,
       constructFormState,

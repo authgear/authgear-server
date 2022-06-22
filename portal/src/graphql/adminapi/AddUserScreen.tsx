@@ -142,7 +142,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
 
   const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     return [
-      { to: "../..", label: <FormattedMessage id="UsersScreen.title" /> },
+      { to: "./..", label: <FormattedMessage id="UsersScreen.title" /> },
       { to: ".", label: <FormattedMessage id="AddUserScreen.title" /> },
     ];
   }, []);
@@ -288,7 +288,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
 };
 
 const AddUserScreen: React.FC = function AddUserScreen() {
-  const { appID } = useParams();
+  const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
 
   const { effectiveAppConfig, loading, error, refetch } =
@@ -366,7 +366,7 @@ const AddUserScreen: React.FC = function AddUserScreen() {
 
   useEffect(() => {
     if (form.isSubmitted) {
-      navigate("..");
+      navigate("./..");
     }
   }, [form.isSubmitted, navigate]);
 

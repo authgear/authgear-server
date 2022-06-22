@@ -576,7 +576,7 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
               <FormattedMessage
                 id="FeatureConfig.disabled"
                 values={{
-                  planPagePath: "../../../billing",
+                  planPagePath: "./../../../billing",
                 }}
               />
             </MessageBar>
@@ -610,7 +610,7 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
                 <FormattedMessage
                   id="FeatureConfig.disabled"
                   values={{
-                    planPagePath: "../../../billing",
+                    planPagePath: "./../../../billing",
                   }}
                 />
               </MessageBar>
@@ -679,7 +679,7 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
 
 const AuthenticatorConfigurationScreen: React.FC =
   function AuthenticatorConfigurationScreen() {
-    const { appID } = useParams();
+    const { appID } = useParams() as { appID: string };
     const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
     const featureConfig = useAppFeatureConfigQuery(appID);

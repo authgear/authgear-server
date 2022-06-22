@@ -423,7 +423,7 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
 
 const PasswordPolicyConfigurationScreen: React.FC =
   function PasswordPolicyConfigurationScreen() {
-    const { appID } = useParams();
+    const { appID } = useParams() as { appID: string };
     const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
     if (form.isLoading) {

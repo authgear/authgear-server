@@ -238,7 +238,7 @@ const WidgetHeader: React.FC<WidgetHeaderProps> = function WidgetHeader(
         <FormattedMessage
           id="FeatureConfig.disabled"
           values={{
-            planPagePath: "../../billing",
+            planPagePath: "./../../billing",
           }}
         />
       </MessageBar>

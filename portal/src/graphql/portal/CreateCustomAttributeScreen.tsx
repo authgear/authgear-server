@@ -81,7 +81,7 @@ function CreateCustomAttributeContent(
   const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     return [
       {
-        to: "..",
+        to: "./..",
         label: (
           <FormattedMessage id="CustomAttributesConfigurationScreen.title" />
         ),
@@ -118,11 +118,11 @@ function CreateCustomAttributeContent(
 
 const CreateCustomAttributeScreen: React.FC =
   function CreateCustomAttributeScreen() {
-    const { appID } = useParams();
+    const { appID } = useParams() as { appID: string };
     const navigate = useNavigate();
 
     const afterSave = useCallback(() => {
-      navigate("..");
+      navigate("./..");
     }, [navigate]);
 
     const form = useAppConfigForm(appID, constructFormState, constructConfig);

@@ -100,7 +100,7 @@ function Step1(props: StepProps) {
     (e) => {
       e.preventDefault();
       e.stopPropagation();
-      navigate("../2");
+      navigate("./../2");
     },
     [navigate]
   );
@@ -231,7 +231,7 @@ function Step2(props: StepProps) {
       if (step2Answer === "disabled") {
         saveAndThenNavigate();
       } else {
-        navigate("../3");
+        navigate("./../3");
       }
     },
     [step2Answer, navigate, saveAndThenNavigate]
@@ -367,7 +367,7 @@ function Step3(props: StepProps) {
 }
 
 export default function ProjectWizardScreen(): React.ReactElement {
-  const { appID } = useParams();
+  const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
   const form = useAppConfigForm(appID, constructFromState, constructConfig);
   const {

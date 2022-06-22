@@ -431,7 +431,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
 
 const LocalizationConfigurationScreen: React.FC =
   function LocalizationConfigurationScreen() {
-    const { appID } = useParams();
+    const { appID } = useParams() as { appID: string };
     const [selectedLanguage, setSelectedLanguage] =
       useState<LanguageTag | null>(null);
 

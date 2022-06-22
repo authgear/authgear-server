@@ -325,7 +325,7 @@ const AnonymousUserLifeTimeDescription: React.FC<AnonymousUserLifeTimeDescriptio
           <FormattedMessage
             id="AnonymousUsersConfigurationScreen.user-lifetime.go-to-applications.description"
             values={{
-              applicationsPath: "../apps",
+              applicationsPath: "./../apps",
             }}
           />
         </Text>
@@ -416,7 +416,7 @@ const AnonymousUserConfigurationContent: React.FC<AnonymousUserConfigurationCont
 
 const AnonymousUserConfigurationScreen: React.FC =
   function AnonymousUserConfigurationScreen() {
-    const { appID } = useParams();
+    const { appID } = useParams() as { appID: string };
     const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
     if (form.isLoading) {

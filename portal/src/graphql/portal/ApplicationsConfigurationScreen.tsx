@@ -399,7 +399,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
               id="ApplicationsConfigurationScreen.client-endpoint.desc"
               values={{
                 clientEndpoint: state.publicOrigin,
-                dnsUrl: "../../custom-domains",
+                dnsUrl: "./../../custom-domains",
               }}
             />
           </Text>
@@ -408,7 +408,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
               <FormattedMessage
                 id="FeatureConfig.oauth-clients.maximum"
                 values={{
-                  planPagePath: "../../billing",
+                  planPagePath: "./../../billing",
                   maximum: oauthClientsMaximum,
                 }}
               />
@@ -430,7 +430,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
 
 const ApplicationsConfigurationScreen: React.FC =
   function ApplicationsConfigurationScreen() {
-    const { appID } = useParams();
+    const { appID } = useParams() as { appID: string };
     const { renderToString } = useContext(Context);
     const navigate = useNavigate();
 

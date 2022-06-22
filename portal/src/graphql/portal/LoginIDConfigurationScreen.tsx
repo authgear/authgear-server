@@ -476,7 +476,7 @@ const LoginIDTypeEdit: React.FC<LoginIDTypeEditProps> =
             <FormattedMessage
               id="FeatureConfig.disabled"
               values={{
-                planPagePath: "../../../billing",
+                planPagePath: "./../../../billing",
               }}
             />
           </MessageBar>
@@ -1022,7 +1022,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
 
 const LoginIDConfigurationScreen: React.FC =
   function LoginIDConfigurationScreen() {
-    const { appID } = useParams();
+    const { appID } = useParams() as { appID: string };
     const { renderToString } = useContext(Context);
 
     const config = useAppConfigForm(
