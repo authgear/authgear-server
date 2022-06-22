@@ -173,4 +173,10 @@
   .password-input-wrapper input::-ms-clear {
     @apply hidden;
   }
+
+  .phone-label.whatsapp-icon {
+    @apply inline-block bg-no-repeat pl-7;
+    background-position: left center;
+    background-size: 24px;
+  }
 }
