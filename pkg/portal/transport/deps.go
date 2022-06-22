@@ -10,4 +10,6 @@ var DependencySet = wire.NewSet(
 	NewAdminAPILogger,
 	wire.Struct(new(AdminAPIHandler), "*"),
 	wire.Struct(new(StaticAssetsHandler), "*"),
+	NewStripeWebhookLogger,
+	wire.Struct(new(StripeWebhookHandler), "*"),
 )

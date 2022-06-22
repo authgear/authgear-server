@@ -73,6 +73,8 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 
 	router.Add(transport.ConfigureAdminAPIRoute(adminAPIRoute), p.Handler(newAdminAPIHandler))
 
+	router.Add(transport.ConfigureStripeWebhookRoute(rootRoute), p.Handler(newStripeWebhookHandler))
+
 	router.NotFound(securityMiddleware.Handle(p.Handler(newStaticAssetsHandler)))
 
 	return router
