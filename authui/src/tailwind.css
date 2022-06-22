@@ -64,6 +64,10 @@
   textarea {
     @apply bg-transparent;
   }
+
+  *:focus {
+    @apply outline-none;
+  }
 }
 
 @layer components {
