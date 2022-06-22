@@ -260,6 +260,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		GlobalRedisHandle: globalredisHandle,
 		Cache:             stripeCache,
 		Clock:             clock,
+		StripeConfig:      stripeConfig,
 	}
 	subscriptionService := &service.SubscriptionService{
 		SQLBuilder:  sqlBuilder,
