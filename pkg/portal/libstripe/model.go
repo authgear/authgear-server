@@ -138,3 +138,32 @@ type Subscription struct {
 	AppID                   string
 	PlanName                string
 }
+
+type CheckoutSession struct {
+	StripeCheckoutSessionID string
+	StripeCustomerID        *string
+	AppID                   string
+	URL                     string
+	ExpiresAt               int64
+	Status                  stripe.CheckoutSessionStatus
+}
+
+func (cs *CheckoutSession) IsCompleted() bool {
+	return cs.Status == stripe.CheckoutSessionStatusComplete
+}
+
+func NewCheckoutSession(checkoutSession *stripe.CheckoutSession) *CheckoutSession {
+	cs := &CheckoutSession{
+		StripeCheckoutSessionID: checkoutSession.ID,
+		AppID:                   checkoutSession.Metadata[MetadataKeyAppID],
+		URL:                     checkoutSession.URL,
+		ExpiresAt:               checkoutSession.ExpiresAt,
+		Status:                  checkoutSession.Status,
+	}
+
+	if checkoutSession.Customer != nil {
+		cs.StripeCustomerID = &checkoutSession.Customer.ID
+	}
+
+	return cs
+}

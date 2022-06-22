@@ -96,13 +96,14 @@ type AnalyticChartService interface {
 
 type StripeService interface {
 	FetchSubscriptionPlans() ([]*libstripe.SubscriptionPlan, error)
-	CreateCheckoutSession(appID string, customerEmail string, subscriptionPlan *libstripe.SubscriptionPlan) (string, error)
+	CreateCheckoutSession(appID string, customerEmail string, subscriptionPlan *libstripe.SubscriptionPlan) (*libstripe.CheckoutSession, error)
+	FetchCheckoutSession(checkoutSessionID string) (*libstripe.CheckoutSession, error)
 	GetSubscriptionPlan(planName string) (*libstripe.SubscriptionPlan, error)
-	CreateSubscription(checkoutSessionID string) (*libstripe.Subscription, error)
 }
 
 type SubscriptionService interface {
-	CreateSubscription(stripeSubscription *libstripe.Subscription) (*model.Subscription, error)
+	CreateSubscriptionCheckout(stripeCheckoutSession *libstripe.CheckoutSession) (*model.SubscriptionCheckout, error)
+	UpdateSubscriptionCheckoutStatusAndCustomerID(appID string, stripCheckoutSessionID string, status model.SubscriptionCheckoutStatus, customerID string) error
 }
 
 type Logger struct{ *log.Logger }

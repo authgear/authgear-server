@@ -1,8 +1,6 @@
 package graphql
 
 import (
-	"fmt"
-
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/session"
@@ -82,13 +80,20 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("failed to load current user")
 			}
 
-			// create the checkout session
-			url, err := ctx.StripeService.CreateCheckoutSession(appID, user.Email, plan)
+			// Create the checkout session in stripe
+			cs, err := ctx.StripeService.CreateCheckoutSession(appID, user.Email, plan)
 			if err != nil {
 				return nil, err
 			}
+
+			//	Insert subscription checkout record to the db
+			_, err = ctx.SubscriptionService.CreateSubscriptionCheckout(cs)
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"url": url,
+				"url": cs.URL,
 			}).Value, nil
 		},
 	},
@@ -148,16 +153,24 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			// create the stripe subscription
-			sub, err := ctx.StripeService.CreateSubscription(checkoutSessionID)
+			// Update checkout session customer id and change the status to completed only
+			// Subscription will be created in the webhook
+			cs, err := ctx.StripeService.FetchCheckoutSession(checkoutSessionID)
 			if err != nil {
 				return nil, err
 			}
-			if appID != sub.AppID {
-				return nil, fmt.Errorf("mismatched app id")
+			if !cs.IsCompleted() {
+				return nil, apierrors.NewForbidden("the checkout session is not completed")
 			}
-
-			_, err = ctx.SubscriptionService.CreateSubscription(sub)
+			if cs.StripeCustomerID == nil {
+				return nil, apierrors.NewInvalid("missing customer ID in the completed checkout session")
+			}
+			err = ctx.SubscriptionService.UpdateSubscriptionCheckoutStatusAndCustomerID(
+				appID,
+				checkoutSessionID,
+				model.SubscriptionCheckoutStatusCompleted,
+				*cs.StripeCustomerID,
+			)
 			if err != nil {
 				return nil, err
 			}

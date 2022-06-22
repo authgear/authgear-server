@@ -78,7 +78,7 @@ func (s *Service) FetchSubscriptionPlans() (subscriptionPlans []*SubscriptionPla
 	return
 }
 
-func (s *Service) CreateCheckoutSession(appID string, customerEmail string, subscriptionPlan *SubscriptionPlan) (string, error) {
+func (s *Service) CreateCheckoutSession(appID string, customerEmail string, subscriptionPlan *SubscriptionPlan) (*CheckoutSession, error) {
 	// fixme(billing): handle checkout
 	successURL := "https://example.com/success.html?session_id={CHECKOUT_SESSION_ID}"
 	cancelURL := "https://example.com/canceled.html"
@@ -106,10 +106,10 @@ func (s *Service) CreateCheckoutSession(appID string, customerEmail string, subs
 
 	checkoutSession, err := s.ClientAPI.CheckoutSessions.New(params)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return checkoutSession.URL, nil
+	return NewCheckoutSession(checkoutSession), nil
 }
 
 func (s *Service) GetSubscriptionPlan(planName string) (*SubscriptionPlan, error) {
@@ -129,6 +129,19 @@ func (s *Service) GetSubscriptionPlan(planName string) (*SubscriptionPlan, error
 	}
 
 	return subscriptionPlan, nil
+}
+
+func (s *Service) FetchCheckoutSession(checkoutSessionID string) (*CheckoutSession, error) {
+	checkoutSession, err := s.ClientAPI.CheckoutSessions.Get(checkoutSessionID, &stripe.CheckoutSessionParams{
+		Params: stripe.Params{
+			Context: s.Context,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return NewCheckoutSession(checkoutSession), nil
 }
 
 func (s *Service) CreateSubscription(checkoutSessionID string) (*Subscription, error) {
