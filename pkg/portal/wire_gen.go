@@ -442,3 +442,54 @@ func newStaticAssetsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	return staticAssetsHandler
 }
+
+func newStripeWebhookHandler(p *deps.RequestProvider) http.Handler {
+	rootProvider := p.RootProvider
+	stripeConfig := rootProvider.StripeConfig
+	logFactory := rootProvider.LoggerFactory
+	logger := libstripe.NewLogger(logFactory)
+	api := libstripe.NewClientAPI(stripeConfig, logger)
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
+	clockClock := _wireSystemClockValue
+	environmentConfig := rootProvider.EnvironmentConfig
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	pool := rootProvider.Database
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	handle := globaldb.NewHandle(context, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, logFactory)
+	sqlExecutor := globaldb.NewSQLExecutor(context, handle)
+	store := &plan.Store{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	appConfig := rootProvider.AppConfig
+	planService := &plan.Service{
+		PlanStore: store,
+		AppConfig: appConfig,
+	}
+	globalredisHandle := rootProvider.GlobalRedisHandle
+	stripeCache := libstripe.NewStripeCache()
+	libstripeService := &libstripe.Service{
+		ClientAPI:         api,
+		Logger:            logger,
+		Context:           context,
+		Plans:             planService,
+		GlobalRedisHandle: globalredisHandle,
+		Cache:             stripeCache,
+		Clock:             clockClock,
+		StripeConfig:      stripeConfig,
+	}
+	stripeWebhookLogger := transport.NewStripeWebhookLogger(logFactory)
+	subscriptionService := &service.SubscriptionService{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	stripeWebhookHandler := &transport.StripeWebhookHandler{
+		StripeService: libstripeService,
+		Logger:        stripeWebhookLogger,
+		Subscriptions: subscriptionService,
+	}
+	return stripeWebhookHandler
+}

@@ -79,3 +79,10 @@ func newStaticAssetsHandler(p *deps.RequestProvider) http.Handler {
 		wire.Bind(new(http.Handler), new(*transport.StaticAssetsHandler)),
 	))
 }
+
+func newStripeWebhookHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.StripeWebhookHandler)),
+	))
+}
