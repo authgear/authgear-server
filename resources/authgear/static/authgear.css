@@ -1,9 +1,3 @@
-/* Use 600 for heading */
-/* https://developer.microsoft.com/en-us/fluentui#/styles/web/typography */
-h1, h2, h3, h4, h5, h6 {
-  font-weight: 600;
-}
-
 .banner-wrapper {
   /* 16px is the banner default padding */
   padding-top: 24px; /* 40px - 16px = 8px */

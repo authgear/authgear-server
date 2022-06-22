@@ -83,6 +83,17 @@
   select {
     @apply appearance-none;
   }
+
+  /* Use 600 for heading */
+  /* https://developer.microsoft.com/en-us/fluentui#/styles/web/typography */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-semibold;
+  }
 }
 
 @layer components {
