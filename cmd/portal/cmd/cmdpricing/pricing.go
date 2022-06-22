@@ -3,6 +3,7 @@ package cmdpricing
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"strings"
@@ -22,6 +23,12 @@ func init() {
 	binder := portalcmd.GetBinder()
 	cmdPricing.AddCommand(cmdPricingPlan)
 	cmdPricing.AddCommand(cmdPricingApp)
+
+	cmdPricing.AddCommand(cmdPricingUploadUsageToStripe)
+	_ = cmdPricingUploadUsageToStripe.Flags().Bool("all", false, "All apps")
+	binder.BindString(cmdPricingUploadUsageToStripe.Flags(), portalcmd.ArgDatabaseURL)
+	binder.BindString(cmdPricingUploadUsageToStripe.Flags(), portalcmd.ArgDatabaseSchema)
+
 	cmdPricingPlan.AddCommand(cmdPricingPlanCreate)
 	cmdPricingPlan.AddCommand(cmdPricingPlanUpdate)
 	cmdPricingApp.AddCommand(cmdPricingAppSetPlan)
@@ -289,5 +296,28 @@ var cmdPricingAppUpdate = &cobra.Command{
 
 		log.Printf("updated app's feature config, app: %s, plan name: %s\n", appID, planName)
 		return nil
+	},
+}
+
+var cmdPricingUploadUsageToStripe = &cobra.Command{
+	Use:   "upload-usage-to-stripe {--all | app-id}",
+	Short: "Upload usage to Stripe",
+	Args:  cobra.MaximumNArgs(1),
+	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
+		all, err := cmd.Flags().GetBool("all")
+		if err == nil && all {
+			if len(args) != 0 {
+				err = fmt.Errorf("no app ID is expected when --all is specified")
+				return
+			}
+		} else {
+			if len(args) != 1 {
+				return fmt.Errorf("expected exactly 1 argument of app ID")
+			}
+		}
+		return
+	},
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		return
 	},
 }
