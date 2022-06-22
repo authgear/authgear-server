@@ -35,6 +35,9 @@ jobs:
     - run: npm run fmt
       working-directory: ./portal
       if: ${{ !cancelled() }}
+    - run: npm run test
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
     - run: npm run gentype
       working-directory: ./portal
       if: ${{ !cancelled() }}
