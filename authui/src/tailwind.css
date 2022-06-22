@@ -68,6 +68,13 @@
   *:focus {
     @apply outline-none;
   }
+
+  button {
+    font-weight: inherit;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
 }
 
 @layer components {

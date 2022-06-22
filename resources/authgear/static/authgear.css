@@ -1,16 +1,3 @@
-button {
-  -moz-appearance: none;
-  -webkit-appearance: none;
-  padding: 0;
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-  font-weight: inherit;
-}
-button:disabled {
-  cursor: not-allowed;
-}
-
 a {
   text-decoration: none;
   cursor: pointer;
