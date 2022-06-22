@@ -179,4 +179,9 @@
     background-position: left center;
     background-size: 24px;
   }
+
+  .qr-overlay.whatsapp-icon {
+    @apply bg-center bg-no-repeat;
+    background-size: 40px;
+  }
 }
