@@ -34,11 +34,6 @@
   padding-inline-end: 20px;
 }
 
-.text-32 {
-  font-size: 2rem;
-  line-height: 2.25rem;
-}
-
 .messages-bar .messages-txt {
   color: var(--color-black-shaded-4);
 }
