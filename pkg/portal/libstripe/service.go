@@ -51,6 +51,7 @@ type Service struct {
 	GlobalRedisHandle *globalredis.Handle
 	Cache             Cache
 	Clock             clock.Clock
+	StripeConfig      *portalconfig.StripeConfig
 }
 
 func (s *Service) FetchSubscriptionPlans() (subscriptionPlans []*SubscriptionPlan, err error) {
