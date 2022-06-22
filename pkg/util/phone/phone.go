@@ -91,6 +91,11 @@ func EnsureE164(phone string) error {
 
 // Mask masks the give phone number.
 func Mask(phone string) string {
+	return MaskWithCustomRune(phone, '*')
+}
+
+// MaskWithCustomRune masks the give phone number with specific rune.
+func MaskWithCustomRune(phone string, r rune) string {
 	var buf strings.Builder
 	num, err := phonenumbers.Parse(phone, "")
 	if err != nil {
@@ -109,7 +114,7 @@ func Mask(phone string) string {
 		if i < halfLength {
 			buf.WriteRune(runes[i])
 		} else {
-			buf.WriteRune('*')
+			buf.WriteRune(r)
 		}
 	}
 
