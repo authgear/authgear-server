@@ -75,6 +75,10 @@
   button:disabled {
     cursor: not-allowed;
   }
+
+  a {
+    @apply no-underline cursor-pointer;
+  }
 }
 
 @layer components {
