@@ -1,8 +1,11 @@
 package graphql
 
 import (
+	"errors"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	relay "github.com/authgear/graphql-go-relay"
@@ -172,7 +175,11 @@ var _ = registerMutationField(
 				*cs.StripeCustomerID,
 			)
 			if err != nil {
-				return nil, err
+				// The checkout is not found or the checkout is already subscribed
+				// Tolerate it.
+				if !errors.Is(err, service.ErrSubscriptionCheckoutNotFound) {
+					return nil, err
+				}
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
