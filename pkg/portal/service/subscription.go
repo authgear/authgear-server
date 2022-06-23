@@ -3,19 +3,35 @@ package service
 import (
 	"time"
 
+	"sigs.k8s.io/yaml"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/portal/libstripe"
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 var ErrSubscriptionCheckoutNotFound = apierrors.NotFound.WithReason("ErrSubscriptionCheckoutNotFound").
 	New("subscription checkout not found")
 
+type SubscriptionConfigSourceStore interface {
+	GetDatabaseSourceByAppID(appID string) (*configsource.DatabaseSource, error)
+	UpdateDatabaseSource(dbs *configsource.DatabaseSource) error
+}
+
+type SubscriptionPlanStore interface {
+	GetPlan(name string) (*model.Plan, error)
+}
+
 type SubscriptionService struct {
-	SQLBuilder  *globaldb.SQLBuilder
-	SQLExecutor *globaldb.SQLExecutor
+	SQLBuilder        *globaldb.SQLBuilder
+	SQLExecutor       *globaldb.SQLExecutor
+	ConfigSourceStore SubscriptionConfigSourceStore
+	PlanStore         SubscriptionPlanStore
+	Clock             clock.Clock
 }
 
 func (s *SubscriptionService) CreateSubscription(appID string, stripeSubscriptionID string, stripeCustomerID string) (*model.Subscription, error) {
@@ -99,6 +115,34 @@ func (s *SubscriptionService) UpdateSubscriptionCheckoutStatusByCustomerID(appID
 	if rowsAffected == 0 {
 		return ErrSubscriptionCheckoutNotFound
 	}
+	return nil
+}
+
+func (s *SubscriptionService) UpdateAppPlan(appID string, planName string) error {
+	consrc, err := s.ConfigSourceStore.GetDatabaseSourceByAppID(appID)
+	if err != nil {
+		return err
+	}
+
+	p, err := s.PlanStore.GetPlan(planName)
+	if err != nil {
+		return err
+	}
+
+	featureConfigYAML, err := yaml.Marshal(p.RawFeatureConfig)
+	if err != nil {
+		return err
+	}
+
+	consrc.PlanName = p.Name
+	// json.Marshal handled base64 encoded of the YAML file
+	consrc.Data[configsource.AuthgearFeatureYAML] = featureConfigYAML
+	consrc.UpdatedAt = s.Clock.NowUTC()
+	err = s.ConfigSourceStore.UpdateDatabaseSource(consrc)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

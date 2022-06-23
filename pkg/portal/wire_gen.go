@@ -9,6 +9,7 @@ package portal
 import (
 	"github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
@@ -262,9 +263,16 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clock,
 		StripeConfig:      stripeConfig,
 	}
-	subscriptionService := &service.SubscriptionService{
+	configsourceStore := &configsource.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
+	}
+	subscriptionService := &service.SubscriptionService{
+		SQLBuilder:        sqlBuilder,
+		SQLExecutor:       sqlExecutor,
+		ConfigSourceStore: configsourceStore,
+		PlanStore:         store,
+		Clock:             clock,
 	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:               logger,
@@ -482,9 +490,16 @@ func newStripeWebhookHandler(p *deps.RequestProvider) http.Handler {
 		StripeConfig:      stripeConfig,
 	}
 	stripeWebhookLogger := transport.NewStripeWebhookLogger(logFactory)
-	subscriptionService := &service.SubscriptionService{
+	configsourceStore := &configsource.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
+	}
+	subscriptionService := &service.SubscriptionService{
+		SQLBuilder:        sqlBuilder,
+		SQLExecutor:       sqlExecutor,
+		ConfigSourceStore: configsourceStore,
+		PlanStore:         store,
+		Clock:             clockClock,
 	}
 	stripeWebhookHandler := &transport.StripeWebhookHandler{
 		StripeService: libstripeService,

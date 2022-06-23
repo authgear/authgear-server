@@ -17,6 +17,7 @@ func newConfigSourceController(p *deps.RootProvider, c context.Context) *configs
 	panic(wire.Build(
 		configsource.NewResolveAppIDTypeDomain,
 		deps.RootDependencySet,
+		configsource.ControllerDependencySet,
 	))
 }
 
