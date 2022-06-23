@@ -8,7 +8,7 @@ import React, {
 import { useQuery } from "@apollo/client";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { Context } from "@oursky/react-messageformat";
-import { INavLink, INavLinkGroup, Nav } from "@fluentui/react";
+import { INavLink, INavLinkGroup, INavStyleProps, Nav } from "@fluentui/react";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import {
   ScreenNavQueryQuery,
@@ -31,6 +31,17 @@ function getPath(url: string) {
     .replace(/^\//, "")
     .replace(/\/$/, "");
   return pathWithoutLeadingTrailingSlash;
+}
+
+function getStyles(props: INavStyleProps) {
+  return {
+    chevronButton: {
+      backgroundColor: "transparent",
+    },
+    chevronIcon: {
+      transform: props.isExpanded ? "rotate(0deg)" : "rotate(-90deg)",
+    },
+  };
 }
 
 function isPathSame(url1: string, url2: string) {
@@ -286,6 +297,7 @@ const ScreenNav: React.FC = function ScreenNav() {
       onLinkClick={onLinkClick}
       onLinkExpandClick={onLinkExpandClick}
       selectedKey={selectedKey}
+      styles={getStyles}
     />
   );
 };
