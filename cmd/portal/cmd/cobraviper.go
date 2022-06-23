@@ -37,6 +37,12 @@ var ArgAuditDatabaseSchema = &cobraviper.StringArgument{
 	Usage:        "Audit Database schema",
 }
 
+var ArgStripeSecretKey = &cobraviper.StringArgument{
+	ArgumentName: "stripe-secret-key",
+	EnvName:      "STRIPE_SECRET_KEY",
+	Usage:        "Stripe secret key",
+}
+
 var ArgAnalyticRedisURL = &cobraviper.StringArgument{
 	ArgumentName: "analytic-redis-url",
 	EnvName:      "ANALYTIC_REDIS_URL",
