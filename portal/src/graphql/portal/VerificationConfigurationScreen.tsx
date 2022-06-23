@@ -9,6 +9,7 @@ import {
   TextField,
   Toggle,
   MessageBar,
+  DirectionalHint,
 } from "@fluentui/react";
 import {
   IdentityFeatureConfig,
@@ -34,12 +35,23 @@ import FormContainer from "../../FormContainer";
 
 import styles from "./VerificationConfigurationScreen.module.scss";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
+import LabelWithTooltip from "../../LabelWithTooltip";
 
 interface FormState {
   codeExpirySeconds: number | undefined;
   criteria: VerificationCriteria;
   email: Required<VerificationClaimConfig>;
   phone: Required<VerificationClaimConfig>;
+}
+
+function onRenderCriteriaLabel() {
+  return (
+    <LabelWithTooltip
+      labelId="VerificationConfigurationScreen.criteria.label"
+      tooltipMessageId="VerificationConfigurationScreen.criteria.tooltip"
+      directionalHint={DirectionalHint.topCenter}
+    />
+  );
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
@@ -211,12 +223,10 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
             onChange={onCodeExpirySecondsChange}
           />
           <Dropdown
-            label={renderToString(
-              "VerificationConfigurationScreen.criteria.label"
-            )}
             options={criteriaOptions}
             selectedKey={state.criteria}
             onChange={onCriteriaChange}
+            onRenderLabel={onRenderCriteriaLabel}
           />
         </Widget>
         <Widget className={styles.widget}>
