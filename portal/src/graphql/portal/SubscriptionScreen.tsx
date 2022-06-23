@@ -184,7 +184,7 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
         </>
       }
       /* TODO(billing): determine the CTA */
-      cta={<CTA variant="current" />}
+      cta={<CTA variant="subscribe" />}
       planDetailsTitle={
         <PlanDetailsTitle>
           <FormattedMessage
