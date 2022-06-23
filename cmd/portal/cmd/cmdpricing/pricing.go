@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 )
 
 func init() {
@@ -28,6 +29,7 @@ func init() {
 	_ = cmdPricingUploadUsageToStripe.Flags().Bool("all", false, "All apps")
 	binder.BindString(cmdPricingUploadUsageToStripe.Flags(), portalcmd.ArgDatabaseURL)
 	binder.BindString(cmdPricingUploadUsageToStripe.Flags(), portalcmd.ArgDatabaseSchema)
+	binder.BindString(cmdPricingUploadUsageToStripe.Flags(), portalcmd.ArgStripeSecretKey)
 
 	cmdPricingPlan.AddCommand(cmdPricingPlanCreate)
 	cmdPricingPlan.AddCommand(cmdPricingPlanUpdate)
@@ -318,6 +320,57 @@ var cmdPricingUploadUsageToStripe = &cobra.Command{
 		return
 	},
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		binder := portalcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
+		if err != nil {
+			return
+		}
+
+		dbSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseSchema)
+		if err != nil {
+			return
+		}
+
+		stripeSecretKey, err := binder.GetRequiredString(cmd, portalcmd.ArgStripeSecretKey)
+		if err != nil {
+			return
+		}
+
+		dbCredentials := &config.DatabaseCredentials{
+			DatabaseURL:    dbURL,
+			DatabaseSchema: dbSchema,
+		}
+
+		stripeConfig := &portalconfig.StripeConfig{
+			SecretKey: stripeSecretKey,
+		}
+
+		ctx := context.Background()
+
+		dbPool := db.NewPool()
+		stripeService := NewStripeService(ctx, dbPool, dbCredentials, stripeConfig)
+
+		if len(args) == 0 {
+			var errorAppIDs []string
+			var appIDs []string
+			appIDs, err = stripeService.ListAppIDs()
+			if err != nil {
+				return
+			}
+			for _, appID := range appIDs {
+				e := stripeService.UploadUsage(ctx, appID)
+				if e != nil {
+					errorAppIDs = append(errorAppIDs, appID)
+				}
+			}
+			if len(errorAppIDs) > 0 {
+				err = fmt.Errorf("failed to upload usage for %v", errorAppIDs)
+			}
+		} else {
+			appID := args[0]
+			err = stripeService.UploadUsage(ctx, appID)
+		}
+
 		return
 	},
 }
