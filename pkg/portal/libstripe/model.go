@@ -131,14 +131,6 @@ func NewSubscriptionPlan(planName string) *SubscriptionPlan {
 	}
 }
 
-type Subscription struct {
-	StripeSubscriptionID    string
-	StripeCheckoutSessionID string
-	StripeCustomerID        string
-	AppID                   string
-	PlanName                string
-}
-
 type CheckoutSession struct {
 	StripeCheckoutSessionID string
 	StripeCustomerID        *string
