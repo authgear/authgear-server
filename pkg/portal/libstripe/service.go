@@ -442,6 +442,55 @@ func (s *Service) constructEvent(stripeEvent *stripe.Event) (Event, error) {
 			StripeCheckoutSessionID: checkoutSessionID,
 			StripeCustomerID:        customerID,
 		}, nil
+	case string(EventTypeCustomerSubscriptionCreated),
+		string(EventTypeCustomerSubscriptionUpdated):
+		object := stripeEvent.Data.Object
+		subscriptionID, ok := object["id"].(string)
+		if !ok {
+			return nil, ErrUnknownEvent
+		}
+
+		subscriptionStatus, ok := object["status"].(string)
+		if !ok {
+			return nil, ErrUnknownEvent
+		}
+		customerID, ok := object["customer"].(string)
+		if !ok {
+			return nil, ErrUnknownEvent
+		}
+		metadata, ok := object["metadata"].(map[string]interface{})
+		if !ok {
+			return nil, ErrUnknownEvent
+		}
+		appID, ok := metadata[MetadataKeyAppID].(string)
+		if !ok {
+			return nil, ErrUnknownEvent
+		}
+		planName, ok := metadata[MetadataKeyPlanName].(string)
+		if !ok {
+			return nil, ErrUnknownEvent
+		}
+		if stripeEvent.Type == string(EventTypeCustomerSubscriptionCreated) {
+			return &CustomerSubscriptionCreatedEvent{
+				&CustomerSubscriptionEvent{
+					StripeSubscriptionID:     subscriptionID,
+					StripeCustomerID:         customerID,
+					AppID:                    appID,
+					PlanName:                 planName,
+					StripeSubscriptionStatus: stripe.SubscriptionStatus(subscriptionStatus),
+				},
+			}, nil
+		}
+
+		return &CustomerSubscriptionUpdatedEvent{
+			&CustomerSubscriptionEvent{
+				StripeSubscriptionID:     subscriptionID,
+				StripeCustomerID:         customerID,
+				AppID:                    appID,
+				PlanName:                 planName,
+				StripeSubscriptionStatus: stripe.SubscriptionStatus(subscriptionStatus),
+			},
+		}, nil
 	default:
 		return nil, ErrUnknownEvent
 	}
