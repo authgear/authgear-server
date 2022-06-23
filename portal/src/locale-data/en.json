@@ -831,6 +831,7 @@
   "SubscriptionCurrentPlanSummary.mau.title": "Montly Active User",
   "SubscriptionCurrentPlanSummary.mau.approaching-limit": "Upgrade to increase limit",
   "SubscriptionCurrentPlanSummary.mau.limit-reached": "Upgrade to avoid account deactivation",
+  "SubscriptionCurrentPlanSummary.mau.previous": " (Last month: {count})",
   "SubscriptionCurrentPlanSummary.mau.tooltip": "MAU usage is updated on a daily basis{br, react}Usage calculated by the end of the billing cycle would be most accurate",
   "SubscriptionCurrentPlanSummary.view-invoices": "View invoices",
   "SubscriptionCurrentPlanSummary.change-billing-methods": "Change billing methods",
