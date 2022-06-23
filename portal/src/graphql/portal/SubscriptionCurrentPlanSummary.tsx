@@ -13,7 +13,9 @@ import {
   ThemeProvider,
 } from "@fluentui/react";
 import { useId } from "@fluentui/react-hooks";
+import { DateTime } from "luxon";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { formatDatetime } from "../../util/formatDatetime";
 import styles from "./SubscriptionCurrentPlanSummary.module.scss";
 
 export interface SubscriptionCurrentPlanSummaryProps {
@@ -23,6 +25,7 @@ export interface SubscriptionCurrentPlanSummaryProps {
   mauCurrent?: number;
   mauLimit?: number;
   mauPrevious?: number;
+  nextBillingDate?: Date;
   children?: React.ReactNode;
 }
 
@@ -219,9 +222,38 @@ function UsageMeter(props: UsageMeterProps) {
   );
 }
 
-function SubscriptionManagement() {
+interface SubscriptionManagementProps {
+  nextBillingDate?: Date;
+}
+
+function SubscriptionManagement(props: SubscriptionManagementProps) {
+  const { locale } = useContext(Context);
+  const theme = useTheme();
+  const { nextBillingDate } = props;
+  const formattedDate = formatDatetime(
+    locale,
+    nextBillingDate ?? null,
+    DateTime.DATE_SHORT
+  );
   return (
     <div className={styles.subscriptionManagement}>
+      {formattedDate != null ? (
+        <Text
+          block={true}
+          styles={{
+            root: {
+              color: theme.palette.neutralSecondary,
+            },
+          }}
+        >
+          <FormattedMessage
+            id="SubscriptionCurrentPlanSummary.next-billing-date"
+            values={{
+              date: formattedDate,
+            }}
+          />
+        </Text>
+      ) : null}
       <Link className={styles.subscriptionManagementLink}>
         <FormattedMessage id="SubscriptionCurrentPlanSummary.view-invoices" />
       </Link>
@@ -242,6 +274,7 @@ function SubscriptionCurrentPlanSummary(
     mauCurrent,
     mauLimit,
     mauPrevious,
+    nextBillingDate,
     children,
   } = props;
   return (
@@ -266,7 +299,9 @@ function SubscriptionCurrentPlanSummary(
             <FormattedMessage id="SubscriptionCurrentPlanSummary.mau.tooltip" />
           }
         />
-        {baseAmount != null ? <SubscriptionManagement /> : null}
+        {baseAmount != null ? (
+          <SubscriptionManagement nextBillingDate={nextBillingDate} />
+        ) : null}
       </div>
     </div>
   );
