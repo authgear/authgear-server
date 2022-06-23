@@ -13,11 +13,10 @@ const (
 )
 
 type Subscription struct {
-	ID                      string
-	AppID                   string
-	StripeCheckoutSessionID string
-	StripeCustomerID        string
-	StripeSubscriptionID    string
+	ID                   string
+	AppID                string
+	StripeSubscriptionID string
+	StripeCustomerID     string
 }
 
 type SubscriptionCheckout struct {
