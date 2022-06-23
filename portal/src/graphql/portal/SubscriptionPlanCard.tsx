@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   useTheme,
   Text,
@@ -6,6 +6,11 @@ import {
   DefaultButton,
   ThemeProvider,
   PartialTheme,
+  IButtonProps,
+  Dialog,
+  DialogFooter,
+  DialogType,
+  IDialogContentProps,
 } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import styles from "./SubscriptionPlanCard.module.scss";
@@ -153,7 +158,8 @@ export function UsagePriceTag(props: UsagePriceTagProps): React.ReactElement {
 }
 
 export interface CTAProps {
-  variant: "upgrade" | "downgrade" | "current";
+  variant: "subscribe" | "upgrade" | "downgrade" | "current";
+  onClickSubscribe?: IButtonProps["onClick"];
 }
 
 const DOWNGRADE_BUTTON_THEME: PartialTheme = {
@@ -172,30 +178,103 @@ const CURRENT_BUTTON_THEME: PartialTheme = {
 };
 
 export function CTA(props: CTAProps): React.ReactElement {
-  const { variant } = props;
-  if (variant === "upgrade") {
-    return (
-      <PrimaryButton className={styles.cta}>
-        <FormattedMessage id="SubscriptionPlanCard.label.upgrade" />
-      </PrimaryButton>
-    );
+  const { variant, onClickSubscribe } = props;
+  const [hidden, setHidden] = useState(true);
+
+  // @ts-expect-error
+  const upgradeDialogContentProps: IDialogContentProps = useMemo(() => {
+    return {
+      type: DialogType.normal,
+      title: <FormattedMessage id="SubscriptionPlanCard.upgrade.title" />,
+      subText: (
+        <FormattedMessage id="SubscriptionPlanCard.change-plan.instructions" />
+      ),
+    };
+  }, []);
+
+  // @ts-expect-error
+  const downgradeDialogContentProps: IDialogContentProps = useMemo(() => {
+    return {
+      type: DialogType.normal,
+      title: <FormattedMessage id="SubscriptionPlanCard.downgrade.title" />,
+      subText: (
+        <FormattedMessage id="SubscriptionPlanCard.change-plan.instructions" />
+      ),
+    };
+  }, []);
+
+  const onClickUpgrade = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setHidden(false);
+  }, []);
+
+  const onClickDowngrade = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setHidden(false);
+  }, []);
+
+  const onDismiss = useCallback(() => {
+    setHidden(true);
+  }, []);
+
+  switch (variant) {
+    case "subscribe":
+      return (
+        <PrimaryButton className={styles.cta} onClick={onClickSubscribe}>
+          <FormattedMessage id="SubscriptionPlanCard.label.subscribe" />
+        </PrimaryButton>
+      );
+    case "upgrade":
+      return (
+        <>
+          <Dialog
+            hidden={hidden}
+            onDismiss={onDismiss}
+            dialogContentProps={upgradeDialogContentProps}
+          >
+            <DialogFooter>
+              <PrimaryButton onClick={onDismiss}>
+                <FormattedMessage id="understood" />
+              </PrimaryButton>
+            </DialogFooter>
+          </Dialog>
+          <PrimaryButton className={styles.cta} onClick={onClickUpgrade}>
+            <FormattedMessage id="SubscriptionPlanCard.label.upgrade" />
+          </PrimaryButton>
+        </>
+      );
+    case "downgrade":
+      return (
+        <>
+          <Dialog
+            hidden={hidden}
+            onDismiss={onDismiss}
+            dialogContentProps={downgradeDialogContentProps}
+          >
+            <DialogFooter>
+              <PrimaryButton onClick={onDismiss}>
+                <FormattedMessage id="understood" />
+              </PrimaryButton>
+            </DialogFooter>
+          </Dialog>
+          <ThemeProvider theme={DOWNGRADE_BUTTON_THEME}>
+            <DefaultButton className={styles.cta} onClick={onClickDowngrade}>
+              <FormattedMessage id="SubscriptionPlanCard.label.downgrade" />
+            </DefaultButton>
+          </ThemeProvider>
+        </>
+      );
+    case "current":
+      return (
+        <ThemeProvider theme={CURRENT_BUTTON_THEME}>
+          <DefaultButton className={styles.cta} disabled={true}>
+            <FormattedMessage id="SubscriptionPlanCard.label.current" />
+          </DefaultButton>
+        </ThemeProvider>
+      );
   }
-  if (variant === "downgrade") {
-    return (
-      <ThemeProvider theme={DOWNGRADE_BUTTON_THEME}>
-        <DefaultButton className={styles.cta}>
-          <FormattedMessage id="SubscriptionPlanCard.label.downgrde" />
-        </DefaultButton>
-      </ThemeProvider>
-    );
-  }
-  return (
-    <ThemeProvider theme={CURRENT_BUTTON_THEME}>
-      <DefaultButton className={styles.cta} disabled={true}>
-        <FormattedMessage id="SubscriptionPlanCard.label.current" />
-      </DefaultButton>
-    </ThemeProvider>
-  );
 }
 
 function Separator() {
