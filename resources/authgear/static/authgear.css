@@ -63,9 +63,6 @@
 }
 
 .input {
-  border: none;
-  border-radius: 0;
-  border-bottom-style: solid;
   border-bottom-width: 1px;
   border-bottom-color: var(--color-text-shaded-3);
 }
@@ -81,9 +78,6 @@
   padding: 0 28px 0 0;
   font-size: 1rem;
 
-  background-color: transparent;
-  border: none;
-  border-bottom-style: solid;
   border-bottom-width: 1px;
   border-bottom-color: var(--color-text-shaded-2);
 
@@ -101,7 +95,6 @@
 
 /* FIXME(CSS): text-input is not compatible with atomic CSS. */
 .text-input {
-  background-color: transparent;
   height: 36px;
   padding: 0;
 }
