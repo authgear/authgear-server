@@ -1,7 +1,15 @@
-import React from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import cn from "classnames";
 import { useParams } from "react-router-dom";
-import { Text, DefaultEffects } from "@fluentui/react";
+import {
+  Text,
+  DefaultEffects,
+  PrimaryButton,
+  Dialog,
+  DialogType,
+  DialogFooter,
+  IDialogContentProps,
+} from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import ScreenTitle from "../../ScreenTitle";
 import ShowError from "../../ShowError";
@@ -30,8 +38,6 @@ import SubscriptionPlanCard, {
   PlanDetailsTitle,
   PlanDetailsLine,
 } from "./SubscriptionPlanCard";
-
-const contactUsLink = "https://oursky.typeform.com/to/PecQiGfc";
 
 const ALL_KNOWN_PLANS = ["free", "developers", "startups", "business"];
 const PAID_PLANS = ALL_KNOWN_PLANS.slice(0);
@@ -207,78 +213,112 @@ interface SubscriptionScreenContentProps {
 
 function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   const { planName, subscriptionPlans } = props;
+  const [hidden, setHidden] = useState(true);
+  // @ts-expect-error
+  const dialogContentProps: IDialogContentProps = useMemo(() => {
+    return {
+      type: DialogType.normal,
+      title: <FormattedMessage id="SubscriptionScreen.enterprise.title" />,
+      subText: (
+        <FormattedMessage id="SubscriptionScreen.enterprise.instructions" />
+      ),
+    };
+  }, []);
+  const onClickEnterprisePlan = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setHidden(false);
+  }, []);
+  const onDismiss = useCallback(() => {
+    setHidden(true);
+  }, []);
+
   return (
-    <div className={styles.root}>
-      <ScreenTitle className={styles.section}>
-        <FormattedMessage id="SubscriptionScreen.title" />
-      </ScreenTitle>
-      <SubscriptionCurrentPlanSummary
-        className={styles.section}
-        planName={planName}
+    <>
+      <Dialog
+        hidden={hidden}
+        onDismiss={onDismiss}
+        dialogContentProps={dialogContentProps}
       >
-        <CostItem
-          title={
-            <FormattedMessage id="SubscriptionCurrentPlanSummary.total-cost.title" />
-          }
-          kind="non-applicable"
-          tooltip={
-            <FormattedMessage id="SubscriptionCurrentPlanSummary.total-cost.tooltip" />
-          }
-        />
-        <CostItemSeparator />
-        <CostItem
-          title={
-            <FormattedMessage id="SubscriptionCurrentPlanSummary.whatsapp.title" />
-          }
-          kind="non-applicable"
-        />
-        <CostItem
-          title={
-            <FormattedMessage id="SubscriptionCurrentPlanSummary.sms.title" />
-          }
-          kind="non-applicable"
-        />
-      </SubscriptionCurrentPlanSummary>
-      <div
-        className={cn(styles.section, styles.cardsContainer)}
-        style={{
-          boxShadow: DefaultEffects.elevation4,
-        }}
-      >
-        <Text block={true} variant="xLarge">
-          <FormattedMessage id="SubscriptionScreen.cards.title" />
-        </Text>
-        <div className={styles.cards}>
-          {PAID_PLANS.map((planName) => {
-            const plan = subscriptionPlans.find(
-              (plan) => plan.name === planName
-            );
-            if (plan != null) {
-              return (
-                <SubscriptionPlanCardRenderer
-                  subscriptionPlan={plan}
-                  currentPlanName={planName}
-                />
-              );
+        <DialogFooter>
+          <PrimaryButton onClick={onDismiss}>
+            <FormattedMessage id="SubscriptionScreen.enterprise.cta" />
+          </PrimaryButton>
+        </DialogFooter>
+      </Dialog>
+
+      <div className={styles.root}>
+        <ScreenTitle className={styles.section}>
+          <FormattedMessage id="SubscriptionScreen.title" />
+        </ScreenTitle>
+        <SubscriptionCurrentPlanSummary
+          className={styles.section}
+          planName={planName}
+        >
+          <CostItem
+            title={
+              <FormattedMessage id="SubscriptionCurrentPlanSummary.total-cost.title" />
             }
-            return null;
-          })}
+            kind="non-applicable"
+            tooltip={
+              <FormattedMessage id="SubscriptionCurrentPlanSummary.total-cost.tooltip" />
+            }
+          />
+          <CostItemSeparator />
+          <CostItem
+            title={
+              <FormattedMessage id="SubscriptionCurrentPlanSummary.whatsapp.title" />
+            }
+            kind="non-applicable"
+          />
+          <CostItem
+            title={
+              <FormattedMessage id="SubscriptionCurrentPlanSummary.sms.title" />
+            }
+            kind="non-applicable"
+          />
+        </SubscriptionCurrentPlanSummary>
+        <div
+          className={cn(styles.section, styles.cardsContainer)}
+          style={{
+            boxShadow: DefaultEffects.elevation4,
+          }}
+        >
+          <Text block={true} variant="xLarge">
+            <FormattedMessage id="SubscriptionScreen.cards.title" />
+          </Text>
+          <div className={styles.cards}>
+            {PAID_PLANS.map((planName) => {
+              const plan = subscriptionPlans.find(
+                (plan) => plan.name === planName
+              );
+              if (plan != null) {
+                return (
+                  <SubscriptionPlanCardRenderer
+                    subscriptionPlan={plan}
+                    currentPlanName={planName}
+                  />
+                );
+              }
+              return null;
+            })}
+          </div>
+        </div>
+        <div className={styles.footer}>
+          <Text block={true}>
+            <FormattedMessage
+              id="SubscriptionScreen.footer.enterprise-plan"
+              values={{
+                onClick: onClickEnterprisePlan,
+              }}
+            />
+          </Text>
+          <Text block={true}>
+            <FormattedMessage id="SubscriptionScreen.footer.pricing-details" />
+          </Text>
         </div>
       </div>
-      <div className={styles.footer}>
-        <Text block={true}>
-          <FormattedMessage
-            id="SubscriptionScreen.footer.enterprise-plan"
-            values={{
-              link: contactUsLink,
-            }}
-          />
-        </Text>
-        <Text block={true}>
-          <FormattedMessage id="SubscriptionScreen.footer.pricing-details" />
-        </Text>
-      </div>
-    </div>
+    </>
   );
 }
 
