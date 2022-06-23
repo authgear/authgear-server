@@ -168,6 +168,80 @@ func (s *Service) ConstructEvent(r *http.Request) (Event, error) {
 	return event, err
 }
 
+func (s *Service) CreateSubscriptionIfNotExists(checkoutSessionID string) error {
+	// Fetch the checkout session
+	expandSetupIntentPaymentMethod := "setup_intent.payment_method"
+	expandCustomerSubscriptions := "customer.subscriptions"
+	checkoutSession, err := s.ClientAPI.CheckoutSessions.Get(checkoutSessionID, &stripe.CheckoutSessionParams{
+		Params: stripe.Params{
+			Context: s.Context,
+			Expand:  []*string{&expandSetupIntentPaymentMethod, &expandCustomerSubscriptions},
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	planName := checkoutSession.Metadata[MetadataKeyPlanName]
+	appID := checkoutSession.Metadata[MetadataKeyAppID]
+
+	// Find the subscription plan
+	subscriptionPlan, err := s.GetSubscriptionPlan(planName)
+	if err != nil {
+		return err
+	}
+
+	// Update invoice settings default
+	customerID := &checkoutSession.Customer.ID
+	pm := checkoutSession.SetupIntent.PaymentMethod
+	customerParams := &stripe.CustomerParams{
+		Params: stripe.Params{
+			Context: s.Context,
+		},
+		InvoiceSettings: &stripe.CustomerInvoiceSettingsParams{
+			DefaultPaymentMethod: stripe.String(pm.ID),
+		},
+	}
+
+	_, err = s.ClientAPI.Customers.Update(*customerID, customerParams)
+	if err != nil {
+		return fmt.Errorf("failed to update customer default payment method: %w", err)
+	}
+
+	// Check if the custom has subscription to avoid duplicate subscription
+	if checkoutSession.Customer.Subscriptions != nil && len(checkoutSession.Customer.Subscriptions.Data) > 0 {
+		return ErrCustomerAlreadySubscribed
+	}
+
+	// Create subscription
+	subscriptionItems := []*stripe.SubscriptionItemsParams{}
+	for _, p := range subscriptionPlan.Prices {
+		subscriptionItems = append(subscriptionItems, &stripe.SubscriptionItemsParams{
+			Price: stripe.String(p.StripePriceID),
+		})
+	}
+
+	billingCycleAnchor := s.Clock.NowUTC().AddDate(0, 1, 0)
+	billingCycleAnchor = timeutil.FirstDayOfTheMonth(billingCycleAnchor)
+	billingCycleAnchorUnix := billingCycleAnchor.Unix()
+	_, err = s.ClientAPI.Subscriptions.New(&stripe.SubscriptionParams{
+		Params: stripe.Params{
+			Context: s.Context,
+			Metadata: map[string]string{
+				MetadataKeyAppID:    appID,
+				MetadataKeyPlanName: planName,
+			},
+		},
+		Customer:           customerID,
+		Items:              subscriptionItems,
+		BillingCycleAnchor: &billingCycleAnchorUnix,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *Service) CreateSubscription(checkoutSessionID string) (*Subscription, error) {
 	// FIXME(billing): prevent create subscription multiple with redis store
 

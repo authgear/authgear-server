@@ -48,13 +48,18 @@ func (s *SubscriptionService) CreateSubscriptionCheckout(checkoutSession *libstr
 	return cs, nil
 }
 
+// UpdateSubscriptionCheckoutStatus updates subscription checkout status and customer id
+// It returns ErrSubscriptionCheckoutNotFound when the checkout is not found
+// or the checkout status is already subscribed
 func (s *SubscriptionService) UpdateSubscriptionCheckoutStatusAndCustomerID(appID string, stripCheckoutSessionID string, status model.SubscriptionCheckoutStatus, customerID string) error {
 	q := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_portal_subscription_checkout")).
 		Set("status", status).
 		Set("stripe_customer_id", customerID).
 		Where("stripe_checkout_session_id = ?", stripCheckoutSessionID).
-		Where("app_id = ?", appID)
+		Where("app_id = ?", appID).
+		// Only allow updating status if it is not subscribed
+		Where("status != 'subscribed'")
 
 	result, err := s.SQLExecutor.ExecWith(q)
 	if err != nil {

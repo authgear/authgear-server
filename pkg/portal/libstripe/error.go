@@ -5,3 +5,4 @@ import (
 )
 
 var ErrUnknownEvent = errors.New("unknown stripe event")
+var ErrCustomerAlreadySubscribed = errors.New("custom already subscribed")
