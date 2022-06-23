@@ -233,7 +233,7 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
             checked={state.email.required}
             onChange={onEmailRequiredChange}
             label={renderToString(
-              "VerificationConfigurationScreen.verification.required.label"
+              "VerificationConfigurationScreen.verification.email.required.label"
             )}
           />
         </Widget>
@@ -262,7 +262,7 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
             checked={state.phone.required}
             onChange={onPhoneRequiredChange}
             label={renderToString(
-              "VerificationConfigurationScreen.verification.required.label"
+              "VerificationConfigurationScreen.verification.phone.required.label"
             )}
           />
         </Widget>

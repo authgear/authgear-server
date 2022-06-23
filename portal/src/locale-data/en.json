@@ -347,7 +347,8 @@
   "VerificationConfigurationScreen.criteria.all": "All user's email/phone are verified",
   "VerificationConfigurationScreen.verification.claims.email": "Email address verification",
   "VerificationConfigurationScreen.verification.claims.phoneNumber": "Phone number verification",
-  "VerificationConfigurationScreen.verification.required.label": "Required",
+  "VerificationConfigurationScreen.verification.email.required.label": "Email verification is required to complete sign up",
+  "VerificationConfigurationScreen.verification.phone.required.label": "Phone verification is required to complete sign up",
 
   "AnonymousUsersConfigurationScreen.title": "Anonymous Users",
   "AnonymousUsersConfigurationScreen.description": "Enable or disable anonymous users. Anonymous users do not have identity. They can be promoted to normal users.",
