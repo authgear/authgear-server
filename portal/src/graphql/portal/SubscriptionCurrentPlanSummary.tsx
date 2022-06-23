@@ -22,6 +22,7 @@ export interface SubscriptionCurrentPlanSummaryProps {
   baseAmount?: number;
   mauCurrent?: number;
   mauLimit?: number;
+  mauPrevious?: number;
   children?: React.ReactNode;
 }
 
@@ -126,7 +127,7 @@ function CostItems(props: CostItemsProps) {
   return <div className={styles.costItems}>{children}</div>;
 }
 
-const usageMeterTheme: PartialTheme = {
+const USAGE_METER_THEME_WARN: PartialTheme = {
   palette: {
     themePrimary: "#F9597A",
   },
@@ -137,14 +138,22 @@ interface UsageMeterProps {
   tooltip: ITooltipHostProps["content"];
   current?: number;
   limit?: number;
+  previous?: number;
   warnPercentage: number;
   onClickUpgrade?: IButtonProps["onClick"];
 }
 
 // eslint-disable-next-line complexity
 function UsageMeter(props: UsageMeterProps) {
-  const { title, tooltip, current, limit, warnPercentage, onClickUpgrade } =
-    props;
+  const {
+    title,
+    tooltip,
+    current,
+    limit,
+    previous,
+    warnPercentage,
+    onClickUpgrade,
+  } = props;
   const percentComplete =
     current != null && limit != null ? current / limit : 0;
   const id = useId("usage-meter");
@@ -156,10 +165,12 @@ function UsageMeter(props: UsageMeterProps) {
   const currentTheme = useTheme();
   const limitReached =
     current != null && limit != null ? current >= limit : false;
-  const theme = limitReached ? usageMeterTheme : currentTheme;
+  const theme = limitReached ? USAGE_METER_THEME_WARN : currentTheme;
   const usageStyles = {
     root: {
-      color: limitReached ? usageMeterTheme.palette?.themePrimary : undefined,
+      color: limitReached
+        ? USAGE_METER_THEME_WARN.palette?.themePrimary
+        : currentTheme.palette.neutralSecondary,
     },
   };
   return (
@@ -178,10 +189,18 @@ function UsageMeter(props: UsageMeterProps) {
             className={styles.usageMeterProgressBar}
             percentComplete={percentComplete}
           />
-          <Text block={true} styles={usageStyles}>
+          <Text block={true} styles={usageStyles} variant="small">
             {limit != null && current != null
               ? `${current} / ${limit}`
               : "- / -"}
+            {previous != null ? (
+              <FormattedMessage
+                id="SubscriptionCurrentPlanSummary.mau.previous"
+                values={{
+                  count: previous,
+                }}
+              />
+            ) : null}
           </Text>
           {limitReached ? (
             <Link onClick={onClickUpgrade}>
@@ -216,8 +235,15 @@ function SubscriptionManagement() {
 function SubscriptionCurrentPlanSummary(
   props: SubscriptionCurrentPlanSummaryProps
 ): React.ReactElement | null {
-  const { className, planName, baseAmount, mauCurrent, mauLimit, children } =
-    props;
+  const {
+    className,
+    planName,
+    baseAmount,
+    mauCurrent,
+    mauLimit,
+    mauPrevious,
+    children,
+  } = props;
   return (
     <div
       className={cn(className, styles.root)}
@@ -234,6 +260,7 @@ function SubscriptionCurrentPlanSummary(
           }
           current={mauCurrent}
           limit={mauLimit}
+          previous={mauPrevious}
           warnPercentage={0.8}
           tooltip={
             <FormattedMessage id="SubscriptionCurrentPlanSummary.mau.tooltip" />
