@@ -18,13 +18,12 @@ type SubscriptionService struct {
 	SQLExecutor *globaldb.SQLExecutor
 }
 
-func (s *SubscriptionService) CreateSubscription(stripeSubscription *libstripe.Subscription) (*model.Subscription, error) {
+func (s *SubscriptionService) CreateSubscription(appID string, stripeSubscriptionID string, stripeCustomerID string) (*model.Subscription, error) {
 	subscription := &model.Subscription{
-		ID:                      uuid.New(),
-		AppID:                   stripeSubscription.AppID,
-		StripeCheckoutSessionID: stripeSubscription.StripeCheckoutSessionID,
-		StripeCustomerID:        stripeSubscription.StripeCustomerID,
-		StripeSubscriptionID:    stripeSubscription.StripeSubscriptionID,
+		ID:                   uuid.New(),
+		AppID:                appID,
+		StripeCustomerID:     stripeCustomerID,
+		StripeSubscriptionID: stripeSubscriptionID,
 	}
 
 	if err := s.createSubscription(subscription); err != nil {
@@ -84,14 +83,12 @@ func (s *SubscriptionService) createSubscription(sub *model.Subscription) error 
 		Columns(
 			"id",
 			"app_id",
-			"stripe_checkout_session_id",
 			"stripe_customer_id",
 			"stripe_subscription_id",
 		).
 		Values(
 			sub.ID,
 			sub.AppID,
-			sub.StripeCheckoutSessionID,
 			sub.StripeCustomerID,
 			sub.StripeSubscriptionID,
 		),
