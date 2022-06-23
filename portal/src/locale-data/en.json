@@ -349,6 +349,10 @@
   "VerificationConfigurationScreen.verification.claims.phoneNumber": "Phone number verification",
   "VerificationConfigurationScreen.verification.email.required.label": "Email verification is required to complete sign up",
   "VerificationConfigurationScreen.verification.phone.required.label": "Phone verification is required to complete sign up",
+  "VerificationConfigurationScreen.verification.phoneNumber.verify-by.label": "Verify phone number by",
+  "VerificationConfigurationScreen.verification.phoneNumber.verify-by.whatsapp-or-sms": "WhatsApp or SMS",
+  "VerificationConfigurationScreen.verification.phoneNumber.verify-by.whatsapp-only": "WhatsApp only",
+  "VerificationConfigurationScreen.verification.phoneNumber.verify-by.sms-only": "SMS only",
 
   "AnonymousUsersConfigurationScreen.title": "Anonymous Users",
   "AnonymousUsersConfigurationScreen.description": "Enable or disable anonymous users. Anonymous users do not have identity. They can be promoted to normal users.",
