@@ -13,7 +13,9 @@ CREATE TABLE _portal_subscription_checkout (
     stripe_checkout_session_id  text NOT NULL,
     stripe_customer_id          text,
     status                      text NOT NULL,
-    expire_at                   timestamp WITHOUT TIME ZONE NOT NULL
+    expire_at                   timestamp WITHOUT TIME ZONE NOT NULL,
+    UNIQUE (stripe_checkout_session_id),
+    UNIQUE (stripe_customer_id)
 );
 
 -- +migrate Down
