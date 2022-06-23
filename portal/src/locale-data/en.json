@@ -873,13 +873,16 @@
   "SubscriptionPlanCard.sms.north-america": "USD {unitAmount} per SMS (US, Canada)",
   "SubscriptionPlanCard.sms.other-regions": "USD {unitAmount} per SMS (Other regions)",
 
-  "SubscriptionScreen.footer.enterprise-plan": "Get 50,000+ MAUs and customization with our {ExternalLink, react, href{{link}} children{Enterprise Plan}}",
+  "SubscriptionScreen.footer.enterprise-plan": "Get 50,000+ MAUs and customization with our {ExternalLink, react, onClick{{onClick}} children{Enterprise Plan}}",
   "SubscriptionScreen.footer.pricing-details": "Check out more details and compare plan features on our {ExternalLink, react, href{https://www.authgear.com/pricing} children{pricing page}}",
 
   "SubscriptionScreen.title": "Billing",
   "SubscriptionScreen.recommended": "Recommended",
 
   "SubscriptionScreen.cards.title": "Upgrade Your Plan",
+  "SubscriptionScreen.enterprise.title": "Upgrade to Enterprise",
+  "SubscriptionScreen.enterprise.instructions": "Managing 50,000+ MAU? In need of customization services? Send an email to {ExternalLink, react, href{mailto:hello@authgear.com} children{hello@authgear.com}} from the email address associated with your Authgear account and we will take care of the rest.",
+  "SubscriptionScreen.enterprise.cta": "Go Enterprise",
 
   "SubscriptionScreen.plan-name.free": "Free",
   "SubscriptionScreen.plan-name.developers": "Developers",
