@@ -13,6 +13,8 @@ import {
 } from "@fluentui/react";
 import {
   IdentityFeatureConfig,
+  authenticatorPhoneOTPModeList,
+  AuthenticatorPhoneOTPMode,
   PortalAPIAppConfig,
   VerificationClaimConfig,
   VerificationCriteria,
@@ -42,6 +44,7 @@ interface FormState {
   criteria: VerificationCriteria;
   email: Required<VerificationClaimConfig>;
   phone: Required<VerificationClaimConfig>;
+  phoneOTPMode: AuthenticatorPhoneOTPMode;
 }
 
 function onRenderCriteriaLabel() {
@@ -66,6 +69,7 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
       enabled: config.verification?.claims?.phone_number?.enabled ?? true,
       required: config.verification?.claims?.phone_number?.required ?? true,
     },
+    phoneOTPMode: config.authenticator?.oob_otp?.sms?.phone_otp_mode ?? "sms",
   };
 }
 
@@ -77,10 +81,14 @@ function constructConfig(
   // eslint-disable-next-line complexity
   return produce(config, (config) => {
     config.verification ??= {};
+    config.authenticator ??= {};
     const v = config.verification;
+    const a = config.authenticator;
     v.claims ??= {};
     v.claims.email ??= {};
     v.claims.phone_number ??= {};
+    a.oob_otp ??= {};
+    a.oob_otp.sms ??= {};
 
     if (initialState.codeExpirySeconds !== currentState.codeExpirySeconds) {
       v.code_expiry_seconds = currentState.codeExpirySeconds;
@@ -100,6 +108,12 @@ function constructConfig(
     if (initialState.phone.required !== currentState.phone.required) {
       v.claims.phone_number.required = currentState.phone.required;
     }
+    if (initialState.phoneOTPMode !== currentState.phoneOTPMode) {
+      a.oob_otp.sms.phone_otp_mode = currentState.phoneOTPMode;
+    }
+    if (a.oob_otp.sms.phone_otp_mode === "sms") {
+      delete a.oob_otp.sms.phone_otp_mode;
+    }
 
     clearEmptyObject(config);
   });
@@ -108,6 +122,14 @@ function constructConfig(
 const criteriaMessageIds: Record<VerificationCriteria, string> = {
   any: "VerificationConfigurationScreen.criteria.any",
   all: "VerificationConfigurationScreen.criteria.all",
+};
+
+const phoneOTPModeMessageIds: Record<AuthenticatorPhoneOTPMode, string> = {
+  whatsapp_sms:
+    "VerificationConfigurationScreen.verification.phoneNumber.verify-by.whatsapp-or-sms",
+  whatsapp:
+    "VerificationConfigurationScreen.verification.phoneNumber.verify-by.whatsapp-only",
+  sms: "VerificationConfigurationScreen.verification.phoneNumber.verify-by.sms-only",
 };
 
 interface VerificationConfigurationContentProps {
@@ -145,6 +167,18 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
       [state, renderToString]
     );
 
+    const phoneOTPModes = useMemo(
+      () =>
+        authenticatorPhoneOTPModeList.map((mode) => {
+          return {
+            key: mode,
+            text: renderToString(phoneOTPModeMessageIds[mode]),
+            isSelected: mode === state.phoneOTPMode,
+          };
+        }),
+      [state, renderToString]
+    );
+
     const onCriteriaChange = useCallback(
       (_, option?: IDropdownOption) => {
         const key = option?.key as VerificationCriteria | undefined;
@@ -152,6 +186,19 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
           setState((state) => ({
             ...state,
             criteria: key,
+          }));
+        }
+      },
+      [setState]
+    );
+
+    const onPhoneOTPModeChange = useCallback(
+      (_, option?: IDropdownOption) => {
+        const key = option?.key as AuthenticatorPhoneOTPMode | undefined;
+        if (key) {
+          setState((state) => ({
+            ...state,
+            phoneOTPMode: key,
           }));
         }
       },
@@ -266,6 +313,15 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
               "VerificationConfigurationScreen.verification.claims.phoneNumber"
             )}
             inlineLabel={true}
+          />
+          <Dropdown
+            label={renderToString(
+              "VerificationConfigurationScreen.verification.phoneNumber.verify-by.label"
+            )}
+            disabled={!state.phone.enabled}
+            options={phoneOTPModes}
+            selectedKey={state.phoneOTPMode}
+            onChange={onPhoneOTPModeChange}
           />
           <Checkbox
             disabled={!state.phone.enabled || loginIDPhoneDisabled}

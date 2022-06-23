@@ -182,13 +182,27 @@ export interface PasswordPolicyConfig {
   history_days?: number;
 }
 
+export interface AuthenticatorOOBConfig {
+  email?: AuthenticatorOOBEmailConfig;
+  sms?: AuthenticatorOOBSMSConfig;
+}
+
+export interface AuthenticatorOOBEmailConfig {
+  maximum?: number;
+}
+
+export interface AuthenticatorOOBSMSConfig {
+  maximum?: number;
+  phone_otp_mode?: AuthenticatorPhoneOTPMode;
+}
+
 export interface AuthenticatorPasswordConfig {
   force_change?: boolean;
   policy?: PasswordPolicyConfig;
 }
 
 export interface AuthenticatorConfig {
-  oob_otp?: Record<string, unknown>;
+  oob_otp?: AuthenticatorOOBConfig;
   password?: AuthenticatorPasswordConfig;
   totp?: Record<string, unknown>;
 }
@@ -266,6 +280,14 @@ export interface VerificationClaimsConfig {
 
 export const verificationCriteriaList = ["any", "all"] as const;
 export type VerificationCriteria = typeof verificationCriteriaList[number];
+
+export const authenticatorPhoneOTPModeList = [
+  "sms",
+  "whatsapp_sms",
+  "whatsapp",
+] as const;
+export type AuthenticatorPhoneOTPMode =
+  typeof authenticatorPhoneOTPModeList[number];
 
 // type alias of integer in JSON schema
 export type DurationSeconds = number;
