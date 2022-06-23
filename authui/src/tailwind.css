@@ -61,7 +61,9 @@
   /* textarea by default has background color of white */
   /* In dark mode, the text color is also white */
   /* Therefore we have to reset the background color to transparent */
-  textarea {
+  textarea,
+  input,
+  select {
     @apply bg-transparent;
   }
 
