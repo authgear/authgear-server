@@ -835,6 +835,7 @@
   "SubscriptionCurrentPlanSummary.mau.tooltip": "MAU usage is updated on a daily basis{br, react}Usage calculated by the end of the billing cycle would be most accurate",
   "SubscriptionCurrentPlanSummary.view-invoices": "View invoices",
   "SubscriptionCurrentPlanSummary.change-billing-methods": "Change billing methods",
+  "SubscriptionCurrentPlanSummary.next-billing-date": "Next billing date: {date}",
   "SubscriptionCurrentPlanSummary.whatsapp.title": "Whatsapp",
   "SubscriptionCurrentPlanSummary.whatsapp.tooltip": "{count} Whatsapp authentication completed",
   "SubscriptionCurrentPlanSummary.sms.title": "SMS",
