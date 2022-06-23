@@ -240,8 +240,8 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
           "AuthenticatorConfigurationScreen.columns.activate"
         ),
         className: styles.authenticatorColumn,
-        minWidth: 120,
-        maxWidth: 120,
+        minWidth: 80,
+        maxWidth: 80,
       },
       {
         key: "key",
@@ -250,8 +250,8 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
           "AuthenticatorConfigurationScreen.columns.authenticator"
         ),
         className: styles.authenticatorColumn,
-        minWidth: 250,
-        maxWidth: 250,
+        minWidth: 280,
+        maxWidth: 280,
       },
       {
         key: "order",
