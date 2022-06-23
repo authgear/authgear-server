@@ -31,6 +31,7 @@ type SubscriptionService interface {
 	UpdateSubscriptionCheckoutStatusAndCustomerID(appID string, stripCheckoutSessionID string, status model.SubscriptionCheckoutStatus, customerID string) error
 	UpdateSubscriptionCheckoutStatusByCustomerID(appID string, customerID string, status model.SubscriptionCheckoutStatus) error
 	CreateSubscription(appID string, stripeSubscriptionID string, stripeCustomerID string) (*model.Subscription, error)
+	UpdateAppPlan(appID string, planName string) error
 }
 
 type StripeWebhookHandler struct {
@@ -163,7 +164,15 @@ func (h *StripeWebhookHandler) handleCustomerSubscriptionEvent(event *libstripe.
 			return err
 		}
 
-		// FIXME(billing): update app plan
+		// Update app plan
+		err = h.Subscriptions.UpdateAppPlan(event.AppID, event.PlanName)
+		if err != nil {
+			return err
+		}
+		h.Logger.
+			WithField("app_id", event.AppID).
+			WithField("plan_name", event.PlanName).
+			Info("updated app plan")
 
 		return nil
 	})

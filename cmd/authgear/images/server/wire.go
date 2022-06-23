@@ -37,5 +37,6 @@ func newConfigSourceController(p *deps.RootProvider, c context.Context) *configs
 		configSourceConfigDependencySet,
 		configsource.NewResolveAppIDTypePath,
 		configsource.DependencySet,
+		configsource.ControllerDependencySet,
 	))
 }
