@@ -3,11 +3,15 @@ package libstripe
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 
 	goredis "github.com/go-redis/redis/v8"
 	"github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/client"
+	"github.com/stripe/stripe-go/v72/webhook"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
@@ -143,6 +147,25 @@ func (s *Service) FetchCheckoutSession(checkoutSessionID string) (*CheckoutSessi
 	}
 
 	return NewCheckoutSession(checkoutSession), nil
+}
+
+func (s *Service) ConstructEvent(r *http.Request) (Event, error) {
+	payload, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	sig := r.Header.Get("Stripe-Signature")
+	stripeEvent, err := webhook.ConstructEvent(payload, sig, s.StripeConfig.WebhookSigningKey)
+	if err != nil {
+		return nil, err
+	}
+
+	event, err := s.constructEvent(&stripeEvent)
+	if errors.Is(err, ErrUnknownEvent) {
+		s.Logger.WithField("payload", string(payload)).Info("unhandled event")
+	}
+	return event, err
 }
 
 func (s *Service) CreateSubscription(checkoutSessionID string) (*Subscription, error) {
@@ -313,4 +336,39 @@ func (s *Service) convertToSubscriptionPlans(plans []*model.Plan, products []*st
 	}
 
 	return out, nil
+}
+
+func (s *Service) constructEvent(stripeEvent *stripe.Event) (Event, error) {
+	switch stripeEvent.Type {
+	case string(EventTypeCheckoutSessionCompleted):
+		object := stripeEvent.Data.Object
+		checkoutSessionID, ok := object["id"].(string)
+		if !ok {
+			return nil, ErrUnknownEvent
+		}
+		customerID, ok := object["customer"].(string)
+		if !ok {
+			return nil, ErrUnknownEvent
+		}
+		metadata, ok := object["metadata"].(map[string]interface{})
+		if !ok {
+			return nil, ErrUnknownEvent
+		}
+		appID, ok := metadata[MetadataKeyAppID].(string)
+		if !ok {
+			return nil, ErrUnknownEvent
+		}
+		planName, ok := metadata[MetadataKeyPlanName].(string)
+		if !ok {
+			return nil, ErrUnknownEvent
+		}
+		return &CheckoutSessionCompletedEvent{
+			AppID:                   appID,
+			PlanName:                planName,
+			StripeCheckoutSessionID: checkoutSessionID,
+			StripeCustomerID:        customerID,
+		}, nil
+	default:
+		return nil, ErrUnknownEvent
+	}
 }
