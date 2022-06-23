@@ -490,6 +490,7 @@ func newStripeWebhookHandler(p *deps.RequestProvider) http.Handler {
 		StripeService: libstripeService,
 		Logger:        stripeWebhookLogger,
 		Subscriptions: subscriptionService,
+		Database:      handle,
 	}
 	return stripeWebhookHandler
 }
