@@ -2,6 +2,102 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  html,
+  body {
+    @apply m-0 p-0 min-h-screen;
+  }
+
+  /* Load fluentui font */
+  /* The URLs are observed in browser console */
+  /* The font weights are from https://developer.microsoft.com/en-us/fluentui#/styles/web/typography */
+  @font-face {
+    font-family: "Segoe UI Web";
+    src: url(//static2.sharepointonline.com/files/fabric/assets/fonts/segoeui-westeuropean/segoeui-regular.woff2)
+      format("woff2");
+    font-weight: 400;
+  }
+  @font-face {
+    font-family: "Segoe UI Web";
+    src: url(//static2.sharepointonline.com/files/fabric/assets/fonts/segoeui-westeuropean/segoeui-semibold.woff2)
+      format("woff2");
+    font-weight: 600;
+  }
+  @font-face {
+    font-family: "Segoe UI Web";
+    src: url(//static2.sharepointonline.com/files/fabric/assets/fonts/segoeui-westeuropean/segoeui-bold.woff2)
+      format("woff2");
+    font-weight: 700;
+  }
+
+  body {
+    font-family: "Segoe UI Web", -apple-system, BlinkMacSystemFont, "Segoe UI",
+      Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  }
+
+  /* NOTE(1) */
+  /* The font-size of focusable elements must be >= 16px otherwise */
+  /* Safari iOS will zoom the page. */
+
+  /* Fluent UI color name <-> Shade */
+  /* themeLighterAlt Shade.Shade1 */
+  /* themeLighter    Shade.Shade2 */
+  /* themeLight      Shade.Shade3 */
+  /* themeTertiary   Shade.Shade4 */
+  /* themeSecondary  Shade.Shade5 */
+  /* themePrimary    Shade.Unshaded */
+  /* themeDarkAlt    Shade.Shade6 */
+  /* themeDark       Shade.Shade7 */
+  /* themeDarker     Shade.Shade8 */
+
+  input,
+  select,
+  textarea,
+  button {
+    /* NOTE(1) */
+    font-size: inherit;
+  }
+
+  /* textarea by default has background color of white */
+  /* In dark mode, the text color is also white */
+  /* Therefore we have to reset the background color to transparent */
+  textarea,
+  input,
+  select {
+    @apply bg-transparent;
+  }
+
+  *:focus {
+    @apply outline-none;
+  }
+
+  button {
+    font-weight: inherit;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  a {
+    @apply no-underline cursor-pointer;
+  }
+
+  select {
+    @apply appearance-none;
+  }
+
+  /* Use 600 for heading */
+  /* https://developer.microsoft.com/en-us/fluentui#/styles/web/typography */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-semibold;
+  }
+}
+
 @layer components {
   .twc-title-icon {
     @apply w-5 flex items-center;
@@ -40,5 +136,54 @@
   .sso-btn-icon {
     @apply absolute top-0 left-0 w-9 h-9 bg-no-repeat bg-center;
     background-size: 50%;
+  }
+
+  .modal {
+    @apply fixed flex top-0 left-0 w-full h-full justify-center items-center transition-opacity duration-300;
+  }
+
+  .modal.closed {
+    @apply opacity-0 pointer-events-none;
+  }
+
+  .modal-overlay {
+    @apply absolute bg-gray-900 w-full h-full opacity-50;
+  }
+
+  .modal-container {
+    @apply max-w-md z-50 mx-auto overflow-y-auto rounded-md;
+    width: 95%;
+  }
+
+  .modal-content {
+    @apply p-5 text-left;
+  }
+
+  .modal-title {
+    @apply m-0 text-xl;
+  }
+
+  .modal-body {
+    @apply mt-0 mb-5;
+  }
+
+  .password-input-wrapper .input {
+    @apply pr-8 -mr-8;
+  }
+
+  .password-input-wrapper input::-ms-reveal,
+  .password-input-wrapper input::-ms-clear {
+    @apply hidden;
+  }
+
+  .phone-label.whatsapp-icon {
+    @apply inline-block bg-no-repeat pl-7;
+    background-position: left center;
+    background-size: 24px;
+  }
+
+  .qr-overlay.whatsapp-icon {
+    @apply bg-center bg-no-repeat;
+    background-size: 40px;
   }
 }
