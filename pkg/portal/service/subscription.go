@@ -77,6 +77,31 @@ func (s *SubscriptionService) UpdateSubscriptionCheckoutStatusAndCustomerID(appI
 	return nil
 }
 
+func (s *SubscriptionService) UpdateSubscriptionCheckoutStatusByCustomerID(appID string, customerID string, status model.SubscriptionCheckoutStatus) error {
+	q := s.SQLBuilder.
+		Update(s.SQLBuilder.TableName("_portal_subscription_checkout")).
+		Set("status", status).
+		Where("app_id = ?", appID).
+		Where("stripe_customer_id = ?", customerID).
+		// Only allow updating status if it is not subscribed
+		Where("status != 'subscribed'")
+
+	result, err := s.SQLExecutor.ExecWith(q)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrSubscriptionCheckoutNotFound
+	}
+	return nil
+}
+
 func (s *SubscriptionService) createSubscription(sub *model.Subscription) error {
 	_, err := s.SQLExecutor.ExecWith(s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_portal_subscription")).

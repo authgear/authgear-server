@@ -29,6 +29,8 @@ type StripeService interface {
 
 type SubscriptionService interface {
 	UpdateSubscriptionCheckoutStatusAndCustomerID(appID string, stripCheckoutSessionID string, status model.SubscriptionCheckoutStatus, customerID string) error
+	UpdateSubscriptionCheckoutStatusByCustomerID(appID string, customerID string, status model.SubscriptionCheckoutStatus) error
+	CreateSubscription(appID string, stripeSubscriptionID string, stripeCustomerID string) (*model.Subscription, error)
 }
 
 type StripeWebhookHandler struct {
@@ -70,6 +72,14 @@ func (h *StripeWebhookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	switch event.EventType() {
 	case libstripe.EventTypeCheckoutSessionCompleted:
 		err = h.handleCheckoutSessionCompletedEvent(event.(*libstripe.CheckoutSessionCompletedEvent))
+	case libstripe.EventTypeCustomerSubscriptionCreated:
+		err = h.handleCustomerSubscriptionEvent(
+			event.(*libstripe.CustomerSubscriptionCreatedEvent).CustomerSubscriptionEvent,
+		)
+	case libstripe.EventTypeCustomerSubscriptionUpdated:
+		err = h.handleCustomerSubscriptionEvent(
+			event.(*libstripe.CustomerSubscriptionUpdatedEvent).CustomerSubscriptionEvent,
+		)
 	}
 }
 
@@ -114,4 +124,48 @@ func (h *StripeWebhookHandler) handleCheckoutSessionCompletedEvent(event *libstr
 	}
 
 	return nil
+}
+
+func (h *StripeWebhookHandler) handleCustomerSubscriptionEvent(event *libstripe.CustomerSubscriptionEvent) error {
+	if !event.IsSubscriptionActive() {
+		// If the subscription event is about status that are not active
+		// Ignore it
+		h.Logger.
+			WithField("stripe_subscription_id", event.StripeSubscriptionID).
+			WithField("stripe_subscription_status", event.StripeSubscriptionStatus).
+			Info("unhandled subscription status")
+		return nil
+	}
+
+	err := h.Database.WithTx(func() error {
+		// Mark checkout session as subscribed
+		err := h.Subscriptions.UpdateSubscriptionCheckoutStatusByCustomerID(
+			event.AppID,
+			event.StripeCustomerID,
+			model.SubscriptionCheckoutStatusSubscribed,
+		)
+		if err != nil {
+			if errors.Is(err, service.ErrSubscriptionCheckoutNotFound) {
+				// The checkout is not found or the checkout is already subscribed
+				// Tolerate it.
+				h.Logger.
+					WithField("app_id", event.AppID).
+					WithField("stripe_subscription_id", event.StripeSubscriptionID).
+					Info("the subscription checkout does not exists or the status is subscribed already")
+				return nil
+			}
+			return err
+		}
+
+		// Insert _portal_subscription
+		_, err = h.Subscriptions.CreateSubscription(event.AppID, event.StripeSubscriptionID, event.StripeCustomerID)
+		if err != nil {
+			return err
+		}
+
+		// FIXME(billing): update app plan
+
+		return nil
+	})
+	return err
 }
