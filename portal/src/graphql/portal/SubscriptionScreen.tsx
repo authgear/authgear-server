@@ -295,6 +295,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
               if (plan != null) {
                 return (
                   <SubscriptionPlanCardRenderer
+                    key={plan.name}
                     subscriptionPlan={plan}
                     currentPlanName={planName}
                   />
