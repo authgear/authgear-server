@@ -96,7 +96,7 @@ func (m *WhatsappOTPViewModel) AddData(r *http.Request, graph *interaction.Graph
 	preFilledMessage, err := translations.RenderText(
 		"whatsapp-otp-pre-filled-message",
 		map[string]interface{}{
-			"target": m.UserPhone,
+			"target": phone.MaskWithCustomRune(n.GetPhone(), 'x'),
 			"otp":    fmt.Sprintf("%s%s", WhatsappMessageOTPPrefix, m.WhatsappOTP),
 		},
 	)
