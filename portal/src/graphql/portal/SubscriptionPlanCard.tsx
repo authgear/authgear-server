@@ -158,7 +158,7 @@ export function UsagePriceTag(props: UsagePriceTagProps): React.ReactElement {
 }
 
 export interface CTAProps {
-  variant: "subscribe" | "upgrade" | "downgrade" | "current";
+  variant: "subscribe" | "upgrade" | "downgrade" | "current" | "non-applicable";
   onClickSubscribe?: IButtonProps["onClick"];
 }
 
@@ -271,6 +271,14 @@ export function CTA(props: CTAProps): React.ReactElement {
         <ThemeProvider theme={CURRENT_BUTTON_THEME}>
           <DefaultButton className={styles.cta} disabled={true}>
             <FormattedMessage id="SubscriptionPlanCard.label.current" />
+          </DefaultButton>
+        </ThemeProvider>
+      );
+    case "non-applicable":
+      return (
+        <ThemeProvider theme={CURRENT_BUTTON_THEME}>
+          <DefaultButton className={styles.cta} disabled={true}>
+            -
           </DefaultButton>
         </ThemeProvider>
       );

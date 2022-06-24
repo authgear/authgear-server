@@ -129,6 +129,25 @@ interface SubscriptionPlanCardRenderProps {
 
 function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
   const { currentPlanName, subscriptionPlan } = props;
+
+  const ctaVariant = useMemo(() => {
+    if (!isKnownPlan(currentPlanName)) {
+      return "non-applicable";
+    }
+    if (!isKnownPaidPlan(currentPlanName)) {
+      return "subscribe";
+    }
+    const targetPlan = subscriptionPlan.name;
+    const currentPlanIdx = ALL_KNOWN_PLANS.indexOf(currentPlanName);
+    const targetPlanIdx = ALL_KNOWN_PLANS.indexOf(targetPlan);
+    if (currentPlanIdx > targetPlanIdx) {
+      return "downgrade";
+    } else if (currentPlanIdx < targetPlanIdx) {
+      return "upgrade";
+    }
+    return "current";
+  }, [currentPlanName, subscriptionPlan.name]);
+
   const isKnown = isKnownPaidPlan(subscriptionPlan.name);
   if (!isKnown) {
     return null;
@@ -208,8 +227,7 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
           ) : null}
         </>
       }
-      /* TODO(billing): determine the CTA */
-      cta={<CTA variant="subscribe" />}
+      cta={<CTA variant={ctaVariant} />}
       planDetailsTitle={
         <PlanDetailsTitle>
           <FormattedMessage
