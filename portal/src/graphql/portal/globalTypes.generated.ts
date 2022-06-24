@@ -146,6 +146,18 @@ export type CreateAppPayload = {
   app: App;
 };
 
+export type CreateCheckoutSessionInput = {
+  /** App ID. */
+  appID: Scalars['ID'];
+  /** Plan name. */
+  planName: Scalars['String'];
+};
+
+export type CreateCheckoutSessionPayload = {
+  __typename?: 'CreateCheckoutSessionPayload';
+  url: Scalars['String'];
+};
+
 export type CreateCollaboratorInvitationInput = {
   /** Target app ID. */
   appID: Scalars['ID'];
@@ -229,6 +241,8 @@ export type Mutation = {
   acceptCollaboratorInvitation: AcceptCollaboratorInvitationPayload;
   /** Create new app */
   createApp: CreateAppPayload;
+  /** Create stripe checkout session */
+  createCheckoutSession: CreateCheckoutSessionPayload;
   /** Invite a collaborator to the target app. */
   createCollaboratorInvitation: CreateCollaboratorInvitationPayload;
   /** Create domain for target app */
@@ -239,14 +253,14 @@ export type Mutation = {
   deleteCollaboratorInvitation: DeleteCollaboratorInvitationPayload;
   /** Delete domain of target app */
   deleteDomain: DeleteDomainPayload;
+  /** Reconcile the completed checkout session */
+  reconcileCheckoutSession: ReconcileCheckoutSessionPayload;
   /** Send test STMP configuration email */
   sendTestSMTPConfigurationEmail?: Maybe<Scalars['Boolean']>;
   /** Skip the tutorial of the app */
   skipAppTutorial: SkipAppTutorialPayload;
   /** Skip a progress of the tutorial of the app */
   skipAppTutorialProgress: SkipAppTutorialProgressPayload;
-  /** Subscribe to a plan */
-  subscribePlan: SubscribePlanPayload;
   /** Update app */
   updateApp: UpdateAppPayload;
   /** Request verification of a domain of target app */
@@ -261,6 +275,11 @@ export type MutationAcceptCollaboratorInvitationArgs = {
 
 export type MutationCreateAppArgs = {
   input: CreateAppInput;
+};
+
+
+export type MutationCreateCheckoutSessionArgs = {
+  input: CreateCheckoutSessionInput;
 };
 
 
@@ -289,6 +308,11 @@ export type MutationDeleteDomainArgs = {
 };
 
 
+export type MutationReconcileCheckoutSessionArgs = {
+  input: ReconcileCheckoutSession;
+};
+
+
 export type MutationSendTestSmtpConfigurationEmailArgs = {
   input: SendTestSmtpConfigurationEmailInput;
 };
@@ -301,11 +325,6 @@ export type MutationSkipAppTutorialArgs = {
 
 export type MutationSkipAppTutorialProgressArgs = {
   input: SkipAppTutorialProgressInput;
-};
-
-
-export type MutationSubscribePlanArgs = {
-  input: SubscribePlanInput;
 };
 
 
@@ -490,18 +509,6 @@ export type SkipAppTutorialProgressPayload = {
   app: App;
 };
 
-export type SubscribePlanInput = {
-  /** App ID. */
-  appID: Scalars['ID'];
-  /** Plan name. */
-  planName: Scalars['String'];
-};
-
-export type SubscribePlanPayload = {
-  __typename?: 'SubscribePlanPayload';
-  url: Scalars['String'];
-};
-
 export type SubscriptionItemPrice = {
   __typename?: 'SubscriptionItemPrice';
   currency: Scalars['String'];
@@ -583,6 +590,18 @@ export type VerifyDomainPayload = {
 export type WebhookSecret = {
   __typename?: 'WebhookSecret';
   secret?: Maybe<Scalars['String']>;
+};
+
+export type ReconcileCheckoutSession = {
+  /** Target app ID. */
+  appID: Scalars['ID'];
+  /** Checkout session ID. */
+  checkoutSessionID: Scalars['String'];
+};
+
+export type ReconcileCheckoutSessionPayload = {
+  __typename?: 'reconcileCheckoutSessionPayload';
+  app: App;
 };
 
 export type SendTestSmtpConfigurationEmailInput = {

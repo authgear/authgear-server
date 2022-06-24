@@ -20,6 +20,7 @@ func newConfigSourceController(p *deps.RootProvider, c context.Context) *configs
 		globaldb.DependencySet,
 		configsource.NewResolveAppIDTypeDomain,
 		configsource.DependencySet,
+		configsource.ControllerDependencySet,
 		wire.FieldsOf(new(*deps.RootProvider),
 			"EnvironmentConfig",
 			"ConfigSourceConfig",

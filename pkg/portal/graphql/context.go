@@ -96,7 +96,14 @@ type AnalyticChartService interface {
 
 type StripeService interface {
 	FetchSubscriptionPlans() ([]*libstripe.SubscriptionPlan, error)
-	CreateCheckoutSession(appID string, customerEmail string, subscriptionPlan *libstripe.SubscriptionPlan) (string, error)
+	CreateCheckoutSession(appID string, customerEmail string, subscriptionPlan *libstripe.SubscriptionPlan) (*libstripe.CheckoutSession, error)
+	FetchCheckoutSession(checkoutSessionID string) (*libstripe.CheckoutSession, error)
+	GetSubscriptionPlan(planName string) (*libstripe.SubscriptionPlan, error)
+}
+
+type SubscriptionService interface {
+	CreateSubscriptionCheckout(stripeCheckoutSession *libstripe.CheckoutSession) (*model.SubscriptionCheckout, error)
+	UpdateSubscriptionCheckoutStatusAndCustomerID(appID string, stripCheckoutSessionID string, status model.SubscriptionCheckoutStatus, customerID string) error
 }
 
 type Logger struct{ *log.Logger }
@@ -121,6 +128,7 @@ type Context struct {
 	AnalyticChartService AnalyticChartService
 	TutorialService      TutorialService
 	StripeService        StripeService
+	SubscriptionService  SubscriptionService
 }
 
 func (c *Context) Logger() *log.Logger {

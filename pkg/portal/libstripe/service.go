@@ -3,17 +3,24 @@ package libstripe
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"io/ioutil"
+	"net/http"
 
 	goredis "github.com/go-redis/redis/v8"
 	"github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/client"
+	"github.com/stripe/stripe-go/v72/webhook"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/redisutil"
+	"github.com/authgear/authgear-server/pkg/util/timeutil"
 )
 
 const RedisCacheKeySubscriptionPlans = "cache:portal:subscription-plans"
@@ -47,6 +54,8 @@ type Service struct {
 	Plans             PlanService
 	GlobalRedisHandle *globalredis.Handle
 	Cache             Cache
+	Clock             clock.Clock
+	StripeConfig      *portalconfig.StripeConfig
 }
 
 func (s *Service) FetchSubscriptionPlans() (subscriptionPlans []*SubscriptionPlan, err error) {
@@ -74,33 +83,24 @@ func (s *Service) FetchSubscriptionPlans() (subscriptionPlans []*SubscriptionPla
 	return
 }
 
-func (s *Service) CreateCheckoutSession(appID string, customerEmail string, subscriptionPlan *SubscriptionPlan) (string, error) {
+func (s *Service) CreateCheckoutSession(appID string, customerEmail string, subscriptionPlan *SubscriptionPlan) (*CheckoutSession, error) {
 	// fixme(billing): handle checkout
-	successURL := "https://example.com/success.html"
+	successURL := "https://example.com/success.html?session_id={CHECKOUT_SESSION_ID}"
 	cancelURL := "https://example.com/canceled.html"
 
-	items := []*stripe.CheckoutSessionLineItemParams{}
-	for _, p := range subscriptionPlan.Prices {
-		item := &stripe.CheckoutSessionLineItemParams{
-			Price: stripe.String(p.StripePriceID),
-		}
-		if p.Type == PriceTypeFixed {
-			// For metered billing, do not pass quantity
-			item.Quantity = stripe.Int64(1)
-		}
-		items = append(items, item)
-	}
 	params := &stripe.CheckoutSessionParams{
-		SuccessURL: &successURL,
-		CancelURL:  &cancelURL,
-		Mode:       stripe.String(string(stripe.CheckoutSessionModeSubscription)),
-		LineItems:  items,
-		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
+		Params: stripe.Params{
+			Context: s.Context,
 			Metadata: map[string]string{
 				MetadataKeyAppID:    appID,
 				MetadataKeyPlanName: subscriptionPlan.Name,
 			},
 		},
+		SuccessURL:         &successURL,
+		CancelURL:          &cancelURL,
+		Mode:               stripe.String(string(stripe.CheckoutSessionModeSetup)),
+		PaymentMethodTypes: []*string{stripe.String(string(stripe.PaymentMethodTypeCard))},
+		CustomerCreation:   stripe.String(string(stripe.CheckoutSessionCustomerCreationAlways)),
 	}
 
 	if customerEmail != "" {
@@ -111,10 +111,124 @@ func (s *Service) CreateCheckoutSession(appID string, customerEmail string, subs
 
 	checkoutSession, err := s.ClientAPI.CheckoutSessions.New(params)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return checkoutSession.URL, nil
+	return NewCheckoutSession(checkoutSession), nil
+}
+
+func (s *Service) GetSubscriptionPlan(planName string) (*SubscriptionPlan, error) {
+	subscriptionPlans, err := s.FetchSubscriptionPlans()
+	if err != nil {
+		return nil, err
+	}
+	return s.getStripeSubscription(planName, subscriptionPlans)
+}
+
+func (s *Service) FetchCheckoutSession(checkoutSessionID string) (*CheckoutSession, error) {
+	checkoutSession, err := s.ClientAPI.CheckoutSessions.Get(checkoutSessionID, &stripe.CheckoutSessionParams{
+		Params: stripe.Params{
+			Context: s.Context,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return NewCheckoutSession(checkoutSession), nil
+}
+
+func (s *Service) ConstructEvent(r *http.Request) (Event, error) {
+	payload, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	sig := r.Header.Get("Stripe-Signature")
+	stripeEvent, err := webhook.ConstructEvent(payload, sig, s.StripeConfig.WebhookSigningKey)
+	if err != nil {
+		return nil, err
+	}
+
+	event, err := s.constructEvent(&stripeEvent)
+	if errors.Is(err, ErrUnknownEvent) {
+		s.Logger.WithField("payload", string(payload)).Info("unhandled event")
+	}
+	return event, err
+}
+
+func (s *Service) CreateSubscriptionIfNotExists(checkoutSessionID string, subscriptionPlans []*SubscriptionPlan) error {
+	// Fetch the checkout session
+	expandSetupIntentPaymentMethod := "setup_intent.payment_method"
+	expandCustomerSubscriptions := "customer.subscriptions"
+	checkoutSession, err := s.ClientAPI.CheckoutSessions.Get(checkoutSessionID, &stripe.CheckoutSessionParams{
+		Params: stripe.Params{
+			Context: s.Context,
+			Expand:  []*string{&expandSetupIntentPaymentMethod, &expandCustomerSubscriptions},
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	planName := checkoutSession.Metadata[MetadataKeyPlanName]
+	appID := checkoutSession.Metadata[MetadataKeyAppID]
+
+	// Find the subscription plan
+	subscriptionPlan, err := s.getStripeSubscription(planName, subscriptionPlans)
+	if err != nil {
+		return err
+	}
+
+	// Update invoice settings default
+	customerID := &checkoutSession.Customer.ID
+	pm := checkoutSession.SetupIntent.PaymentMethod
+	customerParams := &stripe.CustomerParams{
+		Params: stripe.Params{
+			Context: s.Context,
+		},
+		InvoiceSettings: &stripe.CustomerInvoiceSettingsParams{
+			DefaultPaymentMethod: stripe.String(pm.ID),
+		},
+	}
+
+	_, err = s.ClientAPI.Customers.Update(*customerID, customerParams)
+	if err != nil {
+		return fmt.Errorf("failed to update customer default payment method: %w", err)
+	}
+
+	// Check if the custom has subscription to avoid duplicate subscription
+	if checkoutSession.Customer.Subscriptions != nil && len(checkoutSession.Customer.Subscriptions.Data) > 0 {
+		return ErrCustomerAlreadySubscribed
+	}
+
+	// Create subscription
+	subscriptionItems := []*stripe.SubscriptionItemsParams{}
+	for _, p := range subscriptionPlan.Prices {
+		subscriptionItems = append(subscriptionItems, &stripe.SubscriptionItemsParams{
+			Price: stripe.String(p.StripePriceID),
+		})
+	}
+
+	billingCycleAnchor := s.Clock.NowUTC().AddDate(0, 1, 0)
+	billingCycleAnchor = timeutil.FirstDayOfTheMonth(billingCycleAnchor)
+	billingCycleAnchorUnix := billingCycleAnchor.Unix()
+	_, err = s.ClientAPI.Subscriptions.New(&stripe.SubscriptionParams{
+		Params: stripe.Params{
+			Context: s.Context,
+			Metadata: map[string]string{
+				MetadataKeyAppID:    appID,
+				MetadataKeyPlanName: planName,
+			},
+		},
+		Customer:           customerID,
+		Items:              subscriptionItems,
+		BillingCycleAnchor: &billingCycleAnchorUnix,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *Service) fetchSubscriptionPlans() ([]byte, error) {
@@ -206,4 +320,103 @@ func (s *Service) convertToSubscriptionPlans(plans []*model.Plan, products []*st
 	}
 
 	return out, nil
+}
+
+func (s *Service) getStripeSubscription(planName string, subscriptionPlans []*SubscriptionPlan) (*SubscriptionPlan, error) {
+	var subscriptionPlan *SubscriptionPlan
+	for _, sp := range subscriptionPlans {
+		if sp.Name == planName {
+			subscriptionPlan = sp
+			break
+		}
+	}
+	if subscriptionPlan == nil {
+		return nil, fmt.Errorf("subscription plan not found")
+	}
+
+	return subscriptionPlan, nil
+}
+
+func (s *Service) constructEvent(stripeEvent *stripe.Event) (Event, error) {
+	switch stripeEvent.Type {
+	case string(EventTypeCheckoutSessionCompleted):
+		object := stripeEvent.Data.Object
+		checkoutSessionID, ok := object["id"].(string)
+		if !ok {
+			return nil, ErrUnknownEvent
+		}
+		customerID, ok := object["customer"].(string)
+		if !ok {
+			return nil, ErrUnknownEvent
+		}
+		metadata, ok := object["metadata"].(map[string]interface{})
+		if !ok {
+			return nil, ErrUnknownEvent
+		}
+		appID, ok := metadata[MetadataKeyAppID].(string)
+		if !ok {
+			return nil, ErrUnknownEvent
+		}
+		planName, ok := metadata[MetadataKeyPlanName].(string)
+		if !ok {
+			return nil, ErrUnknownEvent
+		}
+		return &CheckoutSessionCompletedEvent{
+			AppID:                   appID,
+			PlanName:                planName,
+			StripeCheckoutSessionID: checkoutSessionID,
+			StripeCustomerID:        customerID,
+		}, nil
+	case string(EventTypeCustomerSubscriptionCreated),
+		string(EventTypeCustomerSubscriptionUpdated):
+		object := stripeEvent.Data.Object
+		subscriptionID, ok := object["id"].(string)
+		if !ok {
+			return nil, ErrUnknownEvent
+		}
+
+		subscriptionStatus, ok := object["status"].(string)
+		if !ok {
+			return nil, ErrUnknownEvent
+		}
+		customerID, ok := object["customer"].(string)
+		if !ok {
+			return nil, ErrUnknownEvent
+		}
+		metadata, ok := object["metadata"].(map[string]interface{})
+		if !ok {
+			return nil, ErrUnknownEvent
+		}
+		appID, ok := metadata[MetadataKeyAppID].(string)
+		if !ok {
+			return nil, ErrUnknownEvent
+		}
+		planName, ok := metadata[MetadataKeyPlanName].(string)
+		if !ok {
+			return nil, ErrUnknownEvent
+		}
+		if stripeEvent.Type == string(EventTypeCustomerSubscriptionCreated) {
+			return &CustomerSubscriptionCreatedEvent{
+				&CustomerSubscriptionEvent{
+					StripeSubscriptionID:     subscriptionID,
+					StripeCustomerID:         customerID,
+					AppID:                    appID,
+					PlanName:                 planName,
+					StripeSubscriptionStatus: stripe.SubscriptionStatus(subscriptionStatus),
+				},
+			}, nil
+		}
+
+		return &CustomerSubscriptionUpdatedEvent{
+			&CustomerSubscriptionEvent{
+				StripeSubscriptionID:     subscriptionID,
+				StripeCustomerID:         customerID,
+				AppID:                    appID,
+				PlanName:                 planName,
+				StripeSubscriptionStatus: stripe.SubscriptionStatus(subscriptionStatus),
+			},
+		}, nil
+	default:
+		return nil, ErrUnknownEvent
+	}
 }

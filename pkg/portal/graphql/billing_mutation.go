@@ -1,17 +1,19 @@
 package graphql
 
 import (
+	"errors"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/portal/libstripe"
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 )
 
-var subscribePlanInput = graphql.NewInputObject(graphql.InputObjectConfig{
-	Name: "SubscribePlanInput",
+var createCheckoutSessionInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "CreateCheckoutSessionInput",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"appID": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewNonNull(graphql.ID),
@@ -24,21 +26,21 @@ var subscribePlanInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	},
 })
 
-var subscribePlanPayload = graphql.NewObject(graphql.ObjectConfig{
-	Name: "SubscribePlanPayload",
+var createCheckoutSessionPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "CreateCheckoutSessionPayload",
 	Fields: graphql.Fields{
 		"url": &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
 	},
 })
 
 var _ = registerMutationField(
-	"subscribePlan",
+	"createCheckoutSession",
 	&graphql.Field{
-		Description: "Subscribe to a plan",
-		Type:        graphql.NewNonNull(subscribePlanPayload),
+		Description: "Create stripe checkout session",
+		Type:        graphql.NewNonNull(createCheckoutSessionPayload),
 		Args: graphql.FieldConfigArgument{
 			"input": &graphql.ArgumentConfig{
-				Type: graphql.NewNonNull(subscribePlanInput),
+				Type: graphql.NewNonNull(createCheckoutSessionInput),
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -66,18 +68,8 @@ var _ = registerMutationField(
 
 			// fetch the subscription plan
 			ctx := GQLContext(p.Context)
-			plans, err := ctx.StripeService.FetchSubscriptionPlans()
+			plan, err := ctx.StripeService.GetSubscriptionPlan(planName)
 			if err != nil {
-				return nil, err
-			}
-			var plan *libstripe.SubscriptionPlan
-			for _, p := range plans {
-				if p.Name == planName {
-					plan = p
-					break
-				}
-			}
-			if plan == nil {
 				return nil, apierrors.NewInvalid("invalid plan name")
 			}
 
@@ -91,14 +83,109 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("failed to load current user")
 			}
 
-			// create the checkout session
-			url, err := ctx.StripeService.CreateCheckoutSession(appID, user.Email, plan)
+			// Create the checkout session in stripe
+			cs, err := ctx.StripeService.CreateCheckoutSession(appID, user.Email, plan)
 			if err != nil {
 				return nil, err
 			}
+
+			//	Insert subscription checkout record to the db
+			_, err = ctx.SubscriptionService.CreateSubscriptionCheckout(cs)
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"url": url,
+				"url": cs.URL,
 			}).Value, nil
+		},
+	},
+)
+
+var reconcileCheckoutSessionInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "reconcileCheckoutSession",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"appID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target app ID.",
+		},
+		"checkoutSessionID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "Checkout session ID.",
+		},
+	},
+})
+
+var reconcileCheckoutSessionPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "reconcileCheckoutSessionPayload",
+	Fields: graphql.Fields{
+		"app": &graphql.Field{Type: graphql.NewNonNull(nodeApp)},
+	},
+})
+
+var _ = registerMutationField(
+	"reconcileCheckoutSession",
+	&graphql.Field{
+		Description: "Reconcile the completed checkout session",
+		Type:        graphql.NewNonNull(reconcileCheckoutSessionPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(reconcileCheckoutSessionInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			// Access Control: authenticated user.
+			sessionInfo := session.GetValidSessionInfo(p.Context)
+			if sessionInfo == nil {
+				return nil, AccessDenied.New("only authenticated users can create domain")
+			}
+
+			input := p.Args["input"].(map[string]interface{})
+			appNodeID := input["appID"].(string)
+			checkoutSessionID := input["checkoutSessionID"].(string)
+
+			resolvedNodeID := relay.FromGlobalID(appNodeID)
+			if resolvedNodeID.Type != typeApp {
+				return nil, apierrors.NewInvalid("invalid app ID")
+			}
+			appID := resolvedNodeID.ID
+			ctx := GQLContext(p.Context)
+			// Access Control: collaborator.
+			_, err := ctx.AuthzService.CheckAccessOfViewer(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			// Update checkout session customer id and change the status to completed only
+			// Subscription will be created in the webhook
+			cs, err := ctx.StripeService.FetchCheckoutSession(checkoutSessionID)
+			if err != nil {
+				return nil, err
+			}
+			if !cs.IsCompleted() {
+				return nil, apierrors.NewForbidden("the checkout session is not completed")
+			}
+			if cs.StripeCustomerID == nil {
+				return nil, apierrors.NewInvalid("missing customer ID in the completed checkout session")
+			}
+			err = ctx.SubscriptionService.UpdateSubscriptionCheckoutStatusAndCustomerID(
+				appID,
+				checkoutSessionID,
+				model.SubscriptionCheckoutStatusCompleted,
+				*cs.StripeCustomerID,
+			)
+			if err != nil {
+				// The checkout is not found or the checkout is already subscribed
+				// Tolerate it.
+				if !errors.Is(err, service.ErrSubscriptionCheckoutNotFound) {
+					return nil, err
+				}
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"app": ctx.Apps.Load(appID),
+			}).Value, nil
+
 		},
 	},
 )

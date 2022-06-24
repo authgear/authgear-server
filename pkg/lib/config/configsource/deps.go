@@ -8,6 +8,8 @@ var DependencySet = wire.NewSet(
 	NewDatabaseLogger,
 	wire.Struct(new(Database), "*"),
 	wire.Struct(new(Store), "*"),
+)
 
+var ControllerDependencySet = wire.NewSet(
 	NewController,
 )
