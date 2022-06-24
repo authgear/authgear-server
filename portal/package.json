@@ -60,7 +60,7 @@
     "deep-equal": "2.0.5",
     "google-libphonenumber": "3.2.28",
     "graphql": "15.6.0",
-    "history": "5.2.0",
+    "history": "5.3.0",
     "i18n-iso-countries": "7.3.0",
     "immer": "9.0.12",
     "intl-tel-input": "17.0.15",
