@@ -46,6 +46,7 @@ import SubscriptionPlanCard, {
   PlanDetailsTitle,
   PlanDetailsLine,
 } from "./SubscriptionPlanCard";
+import { useCreateCheckoutSessionMutation } from "./mutations/createCheckoutSessionMutation";
 
 const ALL_KNOWN_PLANS = ["free", "developers", "startups", "business"];
 const PAID_PLANS = ALL_KNOWN_PLANS.slice(1);
@@ -129,6 +130,8 @@ interface SubscriptionPlanCardRenderProps {
 
 function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
   const { currentPlanName, subscriptionPlan } = props;
+  const { appID } = useParams() as { appID: string };
+  const { createCheckoutSession, loading } = useCreateCheckoutSessionMutation();
 
   const ctaVariant = useMemo(() => {
     if (!isKnownPlan(currentPlanName)) {
@@ -147,6 +150,19 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
     }
     return "current";
   }, [currentPlanName, subscriptionPlan.name]);
+
+  const onClickSubscribe = useCallback(
+    (planName: string) => {
+      createCheckoutSession(appID, planName)
+        .then((url) => {
+          if (url) {
+            window.location.href = url;
+          }
+        })
+        .finally(() => {});
+    },
+    [appID, createCheckoutSession]
+  );
 
   const isKnown = isKnownPaidPlan(subscriptionPlan.name);
   if (!isKnown) {
@@ -227,7 +243,14 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
           ) : null}
         </>
       }
-      cta={<CTA variant={ctaVariant} />}
+      cta={
+        <CTA
+          planName={subscriptionPlan.name}
+          variant={ctaVariant}
+          disabledSubscribeButton={loading}
+          onClickSubscribe={onClickSubscribe}
+        />
+      }
       planDetailsTitle={
         <PlanDetailsTitle>
           <FormattedMessage
