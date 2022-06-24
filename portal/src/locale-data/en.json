@@ -894,6 +894,8 @@
   "SubscriptionScreen.plan-name.startups": "Startups",
   "SubscriptionScreen.plan-name.business": "Business",
 
+  "SubscriptionScreen.processing-payment": "Processing Payment",
+
   "SMTPConfigurationScreen.title": "Custom Email Provider",
   "SMTPConfigurationScreen.description": "Optimize for email deliverability by using your own SMTP server to send Authgear Emails (such as password reset code, verification) in your own domains",
   "SMTPConfigurationScreen.enable.label": "Use my own provider",
