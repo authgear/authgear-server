@@ -221,14 +221,6 @@ But we do not want to do that.
 The workaround is to add `alias` to package.json.
 See [https://github.com/parcel-bundler/parcel/issues/7697](https://github.com/parcel-bundler/parcel/issues/7697).
 
-With newer version (>=8.3.1) of npm and Nodejs 16, there is a bug that
-platform-specific optional dependencies not being included in `package-lock.json`.
-Once these dependencies are not installed, the portal image cannot be built.
-As `parcel` required `@parcel/css`, and `@parcel/css` required some of these dependencies,
-at this moment this bug will occur, the workaround is to add
-`@parcel/css`, `lmdb` and `msgpackr-extract` to the `package.json`
-See [https://github.com/npm/cli/issues/4828](https://github.com/npm/cli/issues/4828)
-
 ### Setup environment variable
 
 We need to set up environment variables for Authgear servers and portal server.
