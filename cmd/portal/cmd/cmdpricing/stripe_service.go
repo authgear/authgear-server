@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/libstripe"
+	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/periodical"
@@ -38,15 +39,15 @@ func NewClientAPI(stripeConfig *portalconfig.StripeConfig, logger Logger) *clien
 }
 
 var metadataSMSNorthAmerica = map[string]string{
-	libstripe.MetadataKeyPriceType: string(libstripe.PriceTypeUsage),
-	libstripe.MetadataKeyUsageType: string(libstripe.UsageTypeSMS),
-	libstripe.MetadatakeySMSRegion: string(libstripe.SMSRegionNorthAmerica),
+	libstripe.MetadataKeyPriceType: string(model.PriceTypeUsage),
+	libstripe.MetadataKeyUsageType: string(model.UsageTypeSMS),
+	libstripe.MetadatakeySMSRegion: string(model.SMSRegionNorthAmerica),
 }
 
 var metadataSMSOtherRegions = map[string]string{
-	libstripe.MetadataKeyPriceType: string(libstripe.PriceTypeUsage),
-	libstripe.MetadataKeyUsageType: string(libstripe.UsageTypeSMS),
-	libstripe.MetadatakeySMSRegion: string(libstripe.SMSRegionOtherRegions),
+	libstripe.MetadataKeyPriceType: string(model.PriceTypeUsage),
+	libstripe.MetadataKeyUsageType: string(model.UsageTypeSMS),
+	libstripe.MetadatakeySMSRegion: string(model.SMSRegionOtherRegions),
 }
 
 type StripeService struct {
@@ -114,7 +115,7 @@ func (s *StripeService) scanUsageRecord(scanner db.Scanner) (*usage.UsageRecord,
 		&r.StartTime,
 		&r.EndTime,
 		&r.Count,
-		&r.StripTimestamp,
+		&r.StripeTimestamp,
 	)
 	if err != nil {
 		return nil, err
@@ -307,13 +308,13 @@ func (s *StripeService) uploadUsage(ctx context.Context, appID string) (err erro
 
 	smsNorthAmerica, ok := s.findSubscriptionItem(stripeSubscription, metadataSMSNorthAmerica)
 	if !ok {
-		err = fmt.Errorf("%v: subscription %v is missing SMS %v price", appID, stripeSubscription.ID, libstripe.SMSRegionNorthAmerica)
+		err = fmt.Errorf("%v: subscription %v is missing SMS %v price", appID, stripeSubscription.ID, model.SMSRegionNorthAmerica)
 		return
 	}
 
 	smsOtherRegions, ok := s.findSubscriptionItem(stripeSubscription, metadataSMSOtherRegions)
 	if !ok {
-		err = fmt.Errorf("%v: subscription %v is missing SMS %v price", appID, stripeSubscription.ID, libstripe.SMSRegionOtherRegions)
+		err = fmt.Errorf("%v: subscription %v is missing SMS %v price", appID, stripeSubscription.ID, model.SMSRegionOtherRegions)
 		return
 	}
 
