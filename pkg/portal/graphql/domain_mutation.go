@@ -59,7 +59,7 @@ var _ = registerMutationField(
 			domain := input["domain"].(string)
 
 			resolvedNodeID := relay.FromGlobalID(appNodeID)
-			if resolvedNodeID.Type != typeApp {
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
 				return nil, apierrors.NewInvalid("invalid app ID")
 			}
 			appID := resolvedNodeID.ID
@@ -138,7 +138,7 @@ var _ = registerMutationField(
 			domainID := input["domainID"].(string)
 
 			resolvedNodeID := relay.FromGlobalID(appNodeID)
-			if resolvedNodeID.Type != typeApp {
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
 				return nil, apierrors.NewInvalid("invalid app ID")
 			}
 			appID := resolvedNodeID.ID
@@ -278,7 +278,7 @@ var _ = registerMutationField(
 			domainID := input["domainID"].(string)
 
 			resolvedNodeID := relay.FromGlobalID(appNodeID)
-			if resolvedNodeID.Type != typeApp {
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
 				return nil, apierrors.NewInvalid("invalid app ID")
 			}
 			appID := resolvedNodeID.ID
