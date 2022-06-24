@@ -219,6 +219,18 @@ var nodeApp = node(
 					return subscriptionUsage, nil
 				},
 			},
+			"isProcessingSubscription": &graphql.Field{
+				Type: graphql.NewNonNull(graphql.Boolean),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					ctx := GQLContext(p.Context)
+					appID := p.Source.(*model.App).ID
+					isProcessingSubscription, err := ctx.SubscriptionService.GetIsProcessingSubscription(appID)
+					if err != nil {
+						return nil, err
+					}
+					return isProcessingSubscription, nil
+				},
+			},
 			"domains": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(domain))),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {

@@ -9,6 +9,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/portal/libstripe"
@@ -21,6 +22,7 @@ import (
 
 var ErrSubscriptionCheckoutNotFound = apierrors.NotFound.WithReason("ErrSubscriptionCheckoutNotFound").
 	New("subscription checkout not found")
+var ErrSubscriptionNotFound = errors.New("subscription not found")
 
 var ErrSubscriptionNotFound = apierrors.NotFound.WithReason("ErrSubscriptionNotFound").New("subscription not found")
 
@@ -205,6 +207,23 @@ func (s *SubscriptionService) UpdateAppPlan(appID string, planName string) error
 	return nil
 }
 
+func (s *SubscriptionService) GetIsProcessingSubscription(appID string) (bool, error) {
+	count, err := s.getCompletedSubscriptionCheckoutCount(appID)
+	if err != nil {
+		return false, err
+	}
+
+	hasSubscription := true
+	_, err = s.getSubscription(appID)
+	if errors.Is(err, ErrSubscriptionNotFound) {
+		hasSubscription = false
+	} else if err != nil {
+		return false, err
+	}
+
+	return count > 0 && !hasSubscription, nil
+}
+
 func (s *SubscriptionService) createSubscription(sub *model.Subscription) error {
 	_, err := s.SQLExecutor.ExecWith(s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_portal_subscription")).
@@ -253,6 +272,64 @@ func (s *SubscriptionService) createSubscriptionCheckout(sc *model.SubscriptionC
 	}
 
 	return nil
+}
+
+func (s *SubscriptionService) getCompletedSubscriptionCheckoutCount(appID string) (uint64, error) {
+	query := s.SQLBuilder.
+		Select("count(*)").
+		From(s.SQLBuilder.TableName("_portal_subscription_checkout")).
+		Where("app_id = ?", appID).
+		Where("status = ?", model.SubscriptionCheckoutStatusCompleted)
+
+	scan, err := s.SQLExecutor.QueryRowWith(query)
+	if err != nil {
+		return 0, err
+	}
+
+	var count uint64
+	err = scan.Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func (s *SubscriptionService) getSubscription(appID string) (*model.Subscription, error) {
+	q := s.SQLBuilder.
+		Select(
+			"id",
+			"app_id",
+			"stripe_customer_id",
+			"stripe_subscription_id",
+		).
+		From(s.SQLBuilder.TableName("_portal_subscription")).
+		Where("app_id = ?", appID)
+
+	row, err := s.SQLExecutor.QueryRowWith(q)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.scanSubscription(row)
+}
+
+func (s *SubscriptionService) scanSubscription(scanner db.Scanner) (*model.Subscription, error) {
+	var sub model.Subscription
+
+	err := scanner.Scan(
+		&sub.ID,
+		&sub.AppID,
+		&sub.StripeCustomerID,
+		&sub.StripeSubscriptionID,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrSubscriptionNotFound
+	} else if err != nil {
+		return nil, err
+	}
+
+	return &sub, nil
 }
 
 func (s *SubscriptionService) GetSubscriptionUsage(

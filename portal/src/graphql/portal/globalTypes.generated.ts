@@ -51,6 +51,7 @@ export type App = Node & {
   effectiveFeatureConfig: Scalars['FeatureConfig'];
   /** The ID of an object */
   id: Scalars['ID'];
+  isProcessingSubscription: Scalars['Boolean'];
   planName: Scalars['String'];
   rawAppConfig: Scalars['AppConfig'];
   resources: Array<AppResource>;

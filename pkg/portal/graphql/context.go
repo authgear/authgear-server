@@ -113,6 +113,7 @@ type SubscriptionService interface {
 		date time.Time,
 		subscriptionPlans []*libstripe.SubscriptionPlan,
 	) (*model.SubscriptionUsage, error)
+	GetIsProcessingSubscription(appID string) (bool, error)
 }
 
 type Logger struct{ *log.Logger }
