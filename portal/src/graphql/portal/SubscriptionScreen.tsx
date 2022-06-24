@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo } from "react";
 import cn from "classnames";
 import { useParams } from "react-router-dom";
+import { DateTime } from "luxon";
 import {
   Text,
   DefaultEffects,
@@ -9,7 +10,11 @@ import {
   DialogType,
   DialogFooter,
   IDialogContentProps,
+  Link,
+  ThemeProvider,
+  PartialTheme,
 } from "@fluentui/react";
+import { useConst } from "@fluentui/react-hooks";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import ScreenTitle from "../../ScreenTitle";
 import ShowError from "../../ShowError";
@@ -19,8 +24,9 @@ import {
   SubscriptionItemPriceType,
   SubscriptionItemPriceUsageType,
   SubscriptionPlan,
-  App,
+  SubscriptionUsage,
 } from "./globalTypes.generated";
+import { AppFragmentFragment } from "./query/subscriptionScreenQuery.generated";
 import { useSubscriptionScreenQueryQuery } from "./query/subscriptionScreenQuery";
 import styles from "./SubscriptionScreen.module.scss";
 import SubscriptionCurrentPlanSummary, {
@@ -40,7 +46,14 @@ import SubscriptionPlanCard, {
 } from "./SubscriptionPlanCard";
 
 const ALL_KNOWN_PLANS = ["free", "developers", "startups", "business"];
-const PAID_PLANS = ALL_KNOWN_PLANS.slice(0);
+const PAID_PLANS = ALL_KNOWN_PLANS.slice(1);
+
+const MAU_LIMIT: Record<string, number> = {
+  free: 5000,
+  developers: 1000,
+  startups: 5000,
+  business: 30000,
+};
 
 function previousPlan(planName: string): string | null {
   const idx = ALL_KNOWN_PLANS.indexOf(planName);
@@ -48,6 +61,10 @@ function previousPlan(planName: string): string | null {
     return ALL_KNOWN_PLANS[idx - 1];
   }
   return null;
+}
+
+function isKnownPlan(planName: string): boolean {
+  return ALL_KNOWN_PLANS.indexOf(planName) >= 0;
 }
 
 function isKnownPaidPlan(planName: string): boolean {
@@ -209,13 +226,141 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
 interface SubscriptionScreenContentProps {
   planName: string;
   subscriptionPlans: SubscriptionPlan[];
+  thisMonthUsage?: SubscriptionUsage;
+  previousMonthUsage?: SubscriptionUsage;
 }
 
+function getTotalCost(
+  planName: string,
+  subscriptionUsage: SubscriptionUsage
+): number | undefined {
+  if (!isKnownPaidPlan(planName)) {
+    return undefined;
+  }
+
+  let totalCost = 0;
+  for (const item of subscriptionUsage.items) {
+    totalCost += item.totalAmount ?? 0;
+  }
+  return totalCost;
+}
+
+interface SMSCost {
+  totalCost: number;
+  northAmericaCount: number;
+  otherRegionsCount: number;
+}
+
+function getSMSCost(
+  planName: string,
+  subscriptionUsage: SubscriptionUsage
+): SMSCost | undefined {
+  if (!isKnownPaidPlan(planName)) {
+    return undefined;
+  }
+
+  const cost = {
+    totalCost: 0,
+    northAmericaCount: 0,
+    otherRegionsCount: 0,
+  };
+
+  for (const item of subscriptionUsage.items) {
+    if (
+      item.type === SubscriptionItemPriceType.Usage &&
+      item.usageType === SubscriptionItemPriceUsageType.Sms
+    ) {
+      cost.totalCost += item.totalAmount ?? 0;
+      if (item.smsRegion === SubscriptionItemPriceSmsRegion.NorthAmerica) {
+        cost.northAmericaCount = item.quantity;
+      }
+      if (item.smsRegion === SubscriptionItemPriceSmsRegion.OtherRegions) {
+        cost.otherRegionsCount = item.quantity;
+      }
+    }
+  }
+
+  return cost;
+}
+
+const CANCEL_THEME: PartialTheme = {
+  palette: {
+    themePrimary: "#c8c8c8",
+    neutralPrimary: "#c8c8c8",
+  },
+};
+
 function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
-  const { planName, subscriptionPlans } = props;
-  const [hidden, setHidden] = useState(true);
+  const { planName, subscriptionPlans, thisMonthUsage, previousMonthUsage } =
+    props;
+
+  const totalCost = useMemo(() => {
+    if (thisMonthUsage == null) {
+      return undefined;
+    }
+    return getTotalCost(planName, thisMonthUsage);
+  }, [planName, thisMonthUsage]);
+
+  const smsCost = useMemo(() => {
+    if (thisMonthUsage == null) {
+      return undefined;
+    }
+    return getSMSCost(planName, thisMonthUsage);
+  }, [planName, thisMonthUsage]);
+
+  const baseAmount = useMemo(() => {
+    if (!isKnownPaidPlan(planName)) {
+      return undefined;
+    }
+
+    return (
+      thisMonthUsage?.items.find(
+        (a) => a.type === SubscriptionItemPriceType.Fixed
+      )?.unitAmount ?? undefined
+    );
+  }, [planName, thisMonthUsage]);
+
+  const mauCurrent = useMemo(() => {
+    return thisMonthUsage?.items.find(
+      (a) =>
+        a.type === SubscriptionItemPriceType.Usage &&
+        a.usageType === SubscriptionItemPriceUsageType.Mau
+    )?.quantity;
+  }, [thisMonthUsage]);
+
+  const mauLimit = useMemo(() => {
+    if (!isKnownPlan(planName)) {
+      return undefined;
+    }
+
+    return MAU_LIMIT[planName];
+  }, [planName]);
+
+  const mauPrevious = useMemo(() => {
+    return previousMonthUsage?.items.find(
+      (a) =>
+        a.type === SubscriptionItemPriceType.Usage &&
+        a.usageType === SubscriptionItemPriceUsageType.Mau
+    )?.quantity;
+  }, [previousMonthUsage]);
+
+  const nextBillingDate = useMemo(() => {
+    if (!isKnownPaidPlan(planName)) {
+      return undefined;
+    }
+
+    const nextBillingDate = thisMonthUsage?.nextBillingDate;
+    if (nextBillingDate != null) {
+      return new Date(nextBillingDate);
+    }
+    return undefined;
+  }, [planName, thisMonthUsage]);
+
+  const [enterpriseDialogHidden, setEnterpriseDialogHidden] = useState(true);
+  const [cancelDialogHidden, setCancelDialogHidden] = useState(true);
+
   // @ts-expect-error
-  const dialogContentProps: IDialogContentProps = useMemo(() => {
+  const enterpriseDialogContentProps: IDialogContentProps = useMemo(() => {
     return {
       type: DialogType.normal,
       title: <FormattedMessage id="SubscriptionScreen.enterprise.title" />,
@@ -224,21 +369,53 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
       ),
     };
   }, []);
+
+  // @ts-expect-error
+  const cancelDialogContentProps: IDialogContentProps = useMemo(() => {
+    return {
+      type: DialogType.normal,
+      title: <FormattedMessage id="SubscriptionPlanCard.downgrade.title" />,
+      subText: (
+        <FormattedMessage id="SubscriptionPlanCard.change-plan.instructions" />
+      ),
+    };
+  }, []);
+
   const onClickEnterprisePlan = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
-    setHidden(false);
+    setEnterpriseDialogHidden(false);
   }, []);
+
+  const onClickCancel = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCancelDialogHidden(false);
+  }, []);
+
   const onDismiss = useCallback(() => {
-    setHidden(true);
+    setEnterpriseDialogHidden(true);
+    setCancelDialogHidden(true);
   }, []);
 
   return (
     <>
       <Dialog
-        hidden={hidden}
+        hidden={cancelDialogHidden}
         onDismiss={onDismiss}
-        dialogContentProps={dialogContentProps}
+        dialogContentProps={cancelDialogContentProps}
+      >
+        <DialogFooter>
+          <PrimaryButton onClick={onDismiss}>
+            <FormattedMessage id="understood" />
+          </PrimaryButton>
+        </DialogFooter>
+      </Dialog>
+
+      <Dialog
+        hidden={enterpriseDialogHidden}
+        onDismiss={onDismiss}
+        dialogContentProps={enterpriseDialogContentProps}
       >
         <DialogFooter>
           <PrimaryButton onClick={onDismiss}>
@@ -254,12 +431,18 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
         <SubscriptionCurrentPlanSummary
           className={styles.section}
           planName={planName}
+          baseAmount={baseAmount}
+          mauCurrent={mauCurrent}
+          mauLimit={mauLimit}
+          mauPrevious={mauPrevious}
+          nextBillingDate={nextBillingDate}
         >
           <CostItem
             title={
               <FormattedMessage id="SubscriptionCurrentPlanSummary.total-cost.title" />
             }
-            kind="non-applicable"
+            kind={totalCost == null ? "non-applicable" : "billed"}
+            amount={totalCost}
             tooltip={
               <FormattedMessage id="SubscriptionCurrentPlanSummary.total-cost.tooltip" />
             }
@@ -269,13 +452,31 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             title={
               <FormattedMessage id="SubscriptionCurrentPlanSummary.whatsapp.title" />
             }
-            kind="non-applicable"
+            kind={
+              isKnownPaidPlan(planName)
+                ? "free"
+                : planName === ALL_KNOWN_PLANS[0]
+                ? "upgrade"
+                : "non-applicable"
+            }
           />
           <CostItem
             title={
               <FormattedMessage id="SubscriptionCurrentPlanSummary.sms.title" />
             }
-            kind="non-applicable"
+            kind={smsCost == null ? "non-applicable" : "billed"}
+            amount={smsCost == null ? undefined : smsCost.totalCost}
+            tooltip={
+              smsCost == null ? undefined : (
+                <FormattedMessage
+                  id="SubscriptionCurrentPlanSummary.sms.tooltip"
+                  values={{
+                    count1: smsCost.northAmericaCount,
+                    count2: smsCost.otherRegionsCount,
+                  }}
+                />
+              )
+            }
           />
         </SubscriptionCurrentPlanSummary>
         <div
@@ -317,6 +518,15 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
           <Text block={true}>
             <FormattedMessage id="SubscriptionScreen.footer.pricing-details" />
           </Text>
+          {isKnownPaidPlan(planName) ? (
+            <ThemeProvider theme={CANCEL_THEME}>
+              <Link onClick={onClickCancel}>
+                <Text>
+                  <FormattedMessage id="SubscriptionScreen.footer.cancel" />
+                </Text>
+              </Link>
+            </ThemeProvider>
+          ) : null}
         </div>
       </div>
     </>
@@ -324,10 +534,25 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
 }
 
 const SubscriptionScreen: React.FC = function SubscriptionScreen() {
+  const now = useConst(new Date());
+  const thisMonth = useMemo(() => {
+    return now.toISOString();
+  }, [now]);
+  const previousMonth = useMemo(() => {
+    return DateTime.fromJSDate(now)
+      .minus({
+        months: 1,
+      })
+      .toJSDate()
+      .toISOString();
+  }, [now]);
+
   const { appID } = useParams() as { appID: string };
   const subscriptionScreenQuery = useSubscriptionScreenQueryQuery({
     variables: {
       id: appID,
+      thisMonth,
+      previousMonth,
     },
   });
 
@@ -346,11 +571,24 @@ const SubscriptionScreen: React.FC = function SubscriptionScreen() {
     );
   }
 
-  const planName = (subscriptionScreenQuery.data?.node as App).planName;
-  const f = subscriptionScreenQuery.data?.subscriptionPlans ?? [];
+  const planName = (subscriptionScreenQuery.data?.node as AppFragmentFragment)
+    .planName;
+  const subscriptionPlans =
+    subscriptionScreenQuery.data?.subscriptionPlans ?? [];
+  const thisMonthUsage = (
+    subscriptionScreenQuery.data?.node as AppFragmentFragment
+  ).thisMonth;
+  const previousMonthUsage = (
+    subscriptionScreenQuery.data?.node as AppFragmentFragment
+  ).previousMonth;
 
   return (
-    <SubscriptionScreenContent planName={planName} subscriptionPlans={f} />
+    <SubscriptionScreenContent
+      planName={planName}
+      subscriptionPlans={subscriptionPlans}
+      thisMonthUsage={thisMonthUsage ?? undefined}
+      previousMonthUsage={previousMonthUsage ?? undefined}
+    />
   );
 };
 

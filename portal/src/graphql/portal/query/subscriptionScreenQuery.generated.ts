@@ -1,22 +1,55 @@
 import * as Types from '../globalTypes.generated';
 
 import { gql } from '@apollo/client';
-import { AppFeatureConfigFragmentDoc } from './appFeatureConfigQuery.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
+export type AppFragmentFragment = { __typename?: 'App', id: string, effectiveFeatureConfig: any, planName: string, previousMonth?: { __typename?: 'SubscriptionUsage', nextBillingDate: any, items: Array<{ __typename?: 'SubscriptionUsageItem', type: Types.SubscriptionItemPriceType, usageType: Types.SubscriptionItemPriceUsageType, smsRegion: Types.SubscriptionItemPriceSmsRegion, quantity: number, currency?: string | null, unitAmount?: number | null, totalAmount?: number | null }> } | null, thisMonth?: { __typename?: 'SubscriptionUsage', nextBillingDate: any, items: Array<{ __typename?: 'SubscriptionUsageItem', type: Types.SubscriptionItemPriceType, usageType: Types.SubscriptionItemPriceUsageType, smsRegion: Types.SubscriptionItemPriceSmsRegion, quantity: number, currency?: string | null, unitAmount?: number | null, totalAmount?: number | null }> } | null };
+
 export type SubscriptionScreenQueryQueryVariables = Types.Exact<{
   id: Types.Scalars['ID'];
+  thisMonth: Types.Scalars['DateTime'];
+  previousMonth: Types.Scalars['DateTime'];
 }>;
 
 
-export type SubscriptionScreenQueryQuery = { __typename?: 'Query', node?: { __typename: 'App', id: string, effectiveFeatureConfig: any, planName: string } | { __typename: 'User' } | null, subscriptionPlans: Array<{ __typename?: 'SubscriptionPlan', name: string, prices: Array<{ __typename?: 'SubscriptionItemPrice', currency: string, smsRegion: Types.SubscriptionItemPriceSmsRegion, type: Types.SubscriptionItemPriceType, unitAmount: number, usageType: Types.SubscriptionItemPriceUsageType }> }> };
+export type SubscriptionScreenQueryQuery = { __typename?: 'Query', node?: { __typename: 'App', id: string, effectiveFeatureConfig: any, planName: string, previousMonth?: { __typename?: 'SubscriptionUsage', nextBillingDate: any, items: Array<{ __typename?: 'SubscriptionUsageItem', type: Types.SubscriptionItemPriceType, usageType: Types.SubscriptionItemPriceUsageType, smsRegion: Types.SubscriptionItemPriceSmsRegion, quantity: number, currency?: string | null, unitAmount?: number | null, totalAmount?: number | null }> } | null, thisMonth?: { __typename?: 'SubscriptionUsage', nextBillingDate: any, items: Array<{ __typename?: 'SubscriptionUsageItem', type: Types.SubscriptionItemPriceType, usageType: Types.SubscriptionItemPriceUsageType, smsRegion: Types.SubscriptionItemPriceSmsRegion, quantity: number, currency?: string | null, unitAmount?: number | null, totalAmount?: number | null }> } | null } | { __typename: 'User' } | null, subscriptionPlans: Array<{ __typename?: 'SubscriptionPlan', name: string, prices: Array<{ __typename?: 'SubscriptionItemPrice', currency: string, smsRegion: Types.SubscriptionItemPriceSmsRegion, type: Types.SubscriptionItemPriceType, unitAmount: number, usageType: Types.SubscriptionItemPriceUsageType }> }> };
 
-
+export const AppFragmentFragmentDoc = gql`
+    fragment AppFragment on App {
+  id
+  effectiveFeatureConfig
+  planName
+  previousMonth: subscriptionUsage(date: $previousMonth) {
+    nextBillingDate
+    items {
+      type
+      usageType
+      smsRegion
+      quantity
+      currency
+      unitAmount
+      totalAmount
+    }
+  }
+  thisMonth: subscriptionUsage(date: $thisMonth) {
+    nextBillingDate
+    items {
+      type
+      usageType
+      smsRegion
+      quantity
+      currency
+      unitAmount
+      totalAmount
+    }
+  }
+}
+    `;
 export const SubscriptionScreenQueryDocument = gql`
-    query subscriptionScreenQuery($id: ID!) {
+    query subscriptionScreenQuery($id: ID!, $thisMonth: DateTime!, $previousMonth: DateTime!) {
   node(id: $id) {
     __typename
-    ...AppFeatureConfig
+    ...AppFragment
   }
   subscriptionPlans {
     name
@@ -29,7 +62,7 @@ export const SubscriptionScreenQueryDocument = gql`
     }
   }
 }
-    ${AppFeatureConfigFragmentDoc}`;
+    ${AppFragmentFragmentDoc}`;
 
 /**
  * __useSubscriptionScreenQueryQuery__
@@ -44,6 +77,8 @@ export const SubscriptionScreenQueryDocument = gql`
  * const { data, loading, error } = useSubscriptionScreenQueryQuery({
  *   variables: {
  *      id: // value for 'id'
+ *      thisMonth: // value for 'thisMonth'
+ *      previousMonth: // value for 'previousMonth'
  *   },
  * });
  */
