@@ -189,3 +189,71 @@ var _ = registerMutationField(
 		},
 	},
 )
+
+var generateStripeCustomerPortalSessionInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "GenerateStripeCustomerPortalSessionInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"appID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target app ID.",
+		},
+	},
+})
+
+var generateStripeCustomerPortalSessionPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "GenerateStripeCustomerPortalSessionPayload",
+	Fields: graphql.Fields{
+		"url": &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
+	},
+})
+
+var _ = registerMutationField(
+	"generateStripeCustomerPortalSession",
+	&graphql.Field{
+		Description: "Generate Stripe customer portal session",
+		Type:        graphql.NewNonNull(generateStripeCustomerPortalSessionPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(generateStripeCustomerPortalSessionInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			// Access Control: authenticated user.
+			sessionInfo := session.GetValidSessionInfo(p.Context)
+			if sessionInfo == nil {
+				return nil, AccessDenied.New("only authenticated users can create domain")
+			}
+
+			input := p.Args["input"].(map[string]interface{})
+			appNodeID := input["appID"].(string)
+
+			resolvedNodeID := relay.FromGlobalID(appNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
+				return nil, apierrors.NewInvalid("invalid app ID")
+			}
+
+			appID := resolvedNodeID.ID
+			ctx := GQLContext(p.Context)
+
+			// Access Control: collaborator.
+			_, err := ctx.AuthzService.CheckAccessOfViewer(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			sub, err := ctx.SubscriptionService.GetSubscription(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			s, err := ctx.StripeService.GenerateCustomerPortalSession(appID, sub.StripeCustomerID)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"url": s.URL,
+			}).Value, nil
+		},
+	},
+)

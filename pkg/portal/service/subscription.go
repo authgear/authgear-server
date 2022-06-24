@@ -1,6 +1,8 @@
 package service
 
 import (
+	"database/sql"
+	"errors"
 	"time"
 
 	"sigs.k8s.io/yaml"
@@ -19,6 +21,8 @@ import (
 
 var ErrSubscriptionCheckoutNotFound = apierrors.NotFound.WithReason("ErrSubscriptionCheckoutNotFound").
 	New("subscription checkout not found")
+
+var ErrSubscriptionNotFound = apierrors.NotFound.WithReason("ErrSubscriptionNotFound").New("subscription not found")
 
 type SubscriptionConfigSourceStore interface {
 	GetDatabaseSourceByAppID(appID string) (*configsource.DatabaseSource, error)
@@ -81,6 +85,41 @@ func (s *SubscriptionService) CreateSubscriptionCheckout(checkoutSession *libstr
 		return nil, err
 	}
 	return cs, nil
+}
+
+func (s *SubscriptionService) GetSubscription(appID string) (*model.Subscription, error) {
+	q := s.SQLBuilder.Select(
+		"id",
+		"app_id",
+		"stripe_customer_id",
+		"stripe_subscription_id",
+	).
+		From(s.SQLBuilder.TableName("_portal_subscription")).
+		Where("app_id = ?", appID)
+
+	row, err := s.SQLExecutor.QueryRowWith(q)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrSubscriptionNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	var subscription model.Subscription
+	err = row.Scan(
+		&subscription.ID,
+		&subscription.AppID,
+		&subscription.StripeCustomerID,
+		&subscription.StripeSubscriptionID,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrSubscriptionNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &subscription, nil
 }
 
 // UpdateSubscriptionCheckoutStatus updates subscription checkout status and customer id

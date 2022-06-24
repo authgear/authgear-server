@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 
+	relay "github.com/authgear/graphql-go-relay"
 	goredis "github.com/go-redis/redis/v8"
 	"github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/client"
@@ -18,6 +20,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/redisutil"
 	"github.com/authgear/authgear-server/pkg/util/timeutil"
@@ -56,6 +59,8 @@ type Service struct {
 	Cache             Cache
 	Clock             clock.Clock
 	StripeConfig      *portalconfig.StripeConfig
+	HTTPProto         httputil.HTTPProto
+	HTTPHost          httputil.HTTPHost
 }
 
 func (s *Service) FetchSubscriptionPlans() (subscriptionPlans []*SubscriptionPlan, err error) {
@@ -419,4 +424,22 @@ func (s *Service) constructEvent(stripeEvent *stripe.Event) (Event, error) {
 	default:
 		return nil, ErrUnknownEvent
 	}
+}
+
+func (s *Service) GenerateCustomerPortalSession(appID string, customerID string) (*stripe.BillingPortalSession, error) {
+	u := url.URL{
+		Scheme: string(s.HTTPProto),
+		Host:   string(s.HTTPHost),
+		Path: fmt.Sprintf(
+			"/project/%v/billing",
+			relay.ToGlobalID("App", appID),
+		),
+	}
+
+	params := &stripe.BillingPortalSessionParams{
+		Customer:  stripe.String(customerID),
+		ReturnURL: stripe.String(u.String()),
+	}
+
+	return s.ClientAPI.BillingPortalSessions.New(params)
 }
