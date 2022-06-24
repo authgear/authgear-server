@@ -32,7 +32,7 @@
     "axios": "0.27.2",
     "cropperjs": "1.5.12",
     "intl-tel-input": "17.0.16",
-    "luxon": "2.3.0",
+    "luxon": "2.4.0",
     "zxcvbn": "4.4.2"
   }
 }
