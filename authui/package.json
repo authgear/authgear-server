@@ -10,13 +10,15 @@
     "build": "parcel build --no-cache 'src/*.html' --dist-dir ../resources/authgear/static/generated"
   },
   "alias": {
-    "process": false
+    "process": false,
+    "buffer": false
   },
   "devDependencies": {
+    "@parcel/config-default": "2.6.2",
     "@types/luxon": "2.0.9",
     "@types/zxcvbn": "4.4.1",
     "autoprefixer": "10.4.2",
-    "parcel": "2.3.1",
+    "parcel": "2.6.2",
     "postcss": "8.4.6",
     "postcss-cli": "9.1.0",
     "prettier": "2.5.1",
