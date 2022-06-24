@@ -44,7 +44,7 @@
   "dependencies": {
     "@apollo/client": "3.6.9",
     "@authgear/web": "0.17.1",
-    "@fluentui/react": "8.55.2",
+    "@fluentui/react": "8.77.1",
     "@graphql-codegen/near-operation-file-preset": "2.2.13",
     "@graphql-codegen/typescript": "2.5.0",
     "@graphql-codegen/typescript-operations": "2.4.1",
