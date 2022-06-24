@@ -292,7 +292,7 @@ func (s *Service) convertToSubscriptionPlans(plans []*model.Plan, products []*st
 			continue
 		}
 		switch price.Type {
-		case PriceTypeFixed:
+		case model.PriceTypeFixed:
 			// New SubscriptionPlan for the fixed price products
 			planName := product.Metadata[MetadataKeyPlanName]
 			// There could exist some unknown Products on Stripe.
@@ -307,7 +307,7 @@ func (s *Service) convertToSubscriptionPlans(plans []*model.Plan, products []*st
 				m[planName] = NewSubscriptionPlan(planName)
 			}
 			m[planName].Prices = append(m[planName].Prices, price)
-		case PriceTypeUsage:
+		case model.PriceTypeUsage:
 			usagePrices = append(usagePrices, price)
 		}
 	}

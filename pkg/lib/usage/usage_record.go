@@ -29,15 +29,15 @@ const (
 
 // nolint:golint
 type UsageRecord struct {
-	ID             string
-	AppID          string
-	Name           RecordName
-	Period         string
-	StartTime      time.Time
-	EndTime        time.Time
-	Count          int
-	AlertData      map[string]interface{}
-	StripTimestamp *time.Time
+	ID              string
+	AppID           string
+	Name            RecordName
+	Period          string
+	StartTime       time.Time
+	EndTime         time.Time
+	Count           int
+	AlertData       map[string]interface{}
+	StripeTimestamp *time.Time
 }
 
 func NewUsageRecord(appID string, name RecordName, count int, period periodical.Type, startTime time.Time, endTime time.Time) *UsageRecord {

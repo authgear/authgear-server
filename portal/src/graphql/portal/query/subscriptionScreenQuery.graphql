@@ -15,8 +15,6 @@ query subscriptionScreenQuery($id: ID!) {
     prices {
       currency
       smsRegion
-      stripePriceID
-      stripeProductID
       type
       unitAmount
       usageType

@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
+	"github.com/authgear/authgear-server/pkg/lib/usage"
 	appresource "github.com/authgear/authgear-server/pkg/portal/appresource/factory"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/endpoint"
@@ -53,6 +54,8 @@ var DependencySet = wire.NewSet(
 	analytic.DependencySet,
 	configsource.DependencySet,
 
+	usage.DependencySet,
+
 	wire.Bind(new(service.AuthzAdder), new(*adminauthz.Adder)),
 	wire.Bind(new(service.CollaboratorServiceTaskQueue), new(*task.InProcessQueue)),
 	wire.Bind(new(service.CollaboratorServiceEndpointsProvider), new(*endpoint.EndpointsProvider)),
@@ -62,6 +65,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(service.AppResourceManagerFactory), new(*appresource.ManagerFactory)),
 	wire.Bind(new(service.SubscriptionConfigSourceStore), new(*configsource.Store)),
 	wire.Bind(new(service.SubscriptionPlanStore), new(*plan.Store)),
+	wire.Bind(new(service.UsageStore), new(*usage.GlobalDBStore)),
 
 	loader.DependencySet,
 	wire.Bind(new(loader.UserLoaderAdminAPIService), new(*service.AdminAPIService)),

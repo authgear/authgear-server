@@ -58,6 +58,9 @@ type App implements Node {
   secretConfig: SecretConfig!
 
   """"""
+  subscriptionUsage(date: DateTime!): SubscriptionUsage
+
+  """"""
   tutorialStatus: TutorialStatus!
 }
 
@@ -592,12 +595,6 @@ type SubscriptionItemPrice {
   smsRegion: SubscriptionItemPriceSMSRegion!
 
   """"""
-  stripePriceID: String!
-
-  """"""
-  stripeProductID: String!
-
-  """"""
   type: SubscriptionItemPriceType!
 
   """"""
@@ -631,6 +628,9 @@ enum SubscriptionItemPriceType {
 """"""
 enum SubscriptionItemPriceUsageType {
   """"""
+  MAU
+
+  """"""
   NONE
 
   """"""
@@ -643,7 +643,40 @@ type SubscriptionPlan {
   name: String!
 
   """"""
-  prices: [SubscriptionItemPrice]!
+  prices: [SubscriptionItemPrice!]!
+}
+
+""""""
+type SubscriptionUsage {
+  """"""
+  items: [SubscriptionUsageItem!]!
+
+  """"""
+  nextBillingDate: DateTime!
+}
+
+""""""
+type SubscriptionUsageItem {
+  """"""
+  currency: String
+
+  """"""
+  quantity: Int!
+
+  """"""
+  smsRegion: SubscriptionItemPriceSMSRegion!
+
+  """"""
+  totalAmount: Int
+
+  """"""
+  type: SubscriptionItemPriceType!
+
+  """"""
+  unitAmount: Int
+
+  """"""
+  usageType: SubscriptionItemPriceUsageType!
 }
 
 """Tutorial status of an app"""

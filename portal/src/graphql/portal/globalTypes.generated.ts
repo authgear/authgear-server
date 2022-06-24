@@ -55,6 +55,7 @@ export type App = Node & {
   rawAppConfig: Scalars['AppConfig'];
   resources: Array<AppResource>;
   secretConfig: SecretConfig;
+  subscriptionUsage?: Maybe<SubscriptionUsage>;
   tutorialStatus: TutorialStatus;
 };
 
@@ -62,6 +63,12 @@ export type App = Node & {
 /** Authgear app */
 export type AppResourcesArgs = {
   paths?: InputMaybe<Array<Scalars['String']>>;
+};
+
+
+/** Authgear app */
+export type AppSubscriptionUsageArgs = {
+  date: Scalars['DateTime'];
 };
 
 /** A connection to a list of items. */
@@ -513,8 +520,6 @@ export type SubscriptionItemPrice = {
   __typename?: 'SubscriptionItemPrice';
   currency: Scalars['String'];
   smsRegion: SubscriptionItemPriceSmsRegion;
-  stripePriceID: Scalars['String'];
-  stripeProductID: Scalars['String'];
   type: SubscriptionItemPriceType;
   unitAmount: Scalars['Int'];
   usageType: SubscriptionItemPriceUsageType;
@@ -532,6 +537,7 @@ export enum SubscriptionItemPriceType {
 }
 
 export enum SubscriptionItemPriceUsageType {
+  Mau = 'MAU',
   None = 'NONE',
   Sms = 'SMS'
 }
@@ -539,7 +545,24 @@ export enum SubscriptionItemPriceUsageType {
 export type SubscriptionPlan = {
   __typename?: 'SubscriptionPlan';
   name: Scalars['String'];
-  prices: Array<Maybe<SubscriptionItemPrice>>;
+  prices: Array<SubscriptionItemPrice>;
+};
+
+export type SubscriptionUsage = {
+  __typename?: 'SubscriptionUsage';
+  items: Array<SubscriptionUsageItem>;
+  nextBillingDate: Scalars['DateTime'];
+};
+
+export type SubscriptionUsageItem = {
+  __typename?: 'SubscriptionUsageItem';
+  currency?: Maybe<Scalars['String']>;
+  quantity: Scalars['Int'];
+  smsRegion: SubscriptionItemPriceSmsRegion;
+  totalAmount?: Maybe<Scalars['Int']>;
+  type: SubscriptionItemPriceType;
+  unitAmount?: Maybe<Scalars['Int']>;
+  usageType: SubscriptionItemPriceUsageType;
 };
 
 /** Tutorial status of an app */

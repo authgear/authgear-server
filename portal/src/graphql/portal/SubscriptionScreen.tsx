@@ -117,17 +117,17 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
   const { name } = subscriptionPlan;
 
   const basePrice = subscriptionPlan.prices.find(
-    (price) => price?.type === SubscriptionItemPriceType.Fixed
+    (price) => price.type === SubscriptionItemPriceType.Fixed
   );
   const northAmericaSMSPrice = subscriptionPlan.prices.find(
     (price) =>
-      price?.type === SubscriptionItemPriceType.Usage &&
+      price.type === SubscriptionItemPriceType.Usage &&
       price.usageType === SubscriptionItemPriceUsageType.Sms &&
       price.smsRegion === SubscriptionItemPriceSmsRegion.NorthAmerica
   );
   const otherRegionsSMSPrice = subscriptionPlan.prices.find(
     (price) =>
-      price?.type === SubscriptionItemPriceType.Usage &&
+      price.type === SubscriptionItemPriceType.Usage &&
       price.usageType === SubscriptionItemPriceUsageType.Sms &&
       price.smsRegion === SubscriptionItemPriceSmsRegion.OtherRegions
   );

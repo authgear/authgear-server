@@ -8,9 +8,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/portal/libstripe"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/periodical"
+	"github.com/authgear/authgear-server/pkg/util/timeutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -26,11 +29,28 @@ type SubscriptionPlanStore interface {
 	GetPlan(name string) (*model.Plan, error)
 }
 
+type UsageStore interface {
+	FetchUploadedUsageRecords(
+		appID string,
+		recordName usage.RecordName,
+		period periodical.Type,
+		stripeStart time.Time,
+		stripeEnd time.Time,
+	) ([]*usage.UsageRecord, error)
+	FetchUsageRecords(
+		appID string,
+		recordName usage.RecordName,
+		period periodical.Type,
+		startTime time.Time,
+	) ([]*usage.UsageRecord, error)
+}
+
 type SubscriptionService struct {
 	SQLBuilder        *globaldb.SQLBuilder
 	SQLExecutor       *globaldb.SQLExecutor
 	ConfigSourceStore SubscriptionConfigSourceStore
 	PlanStore         SubscriptionPlanStore
+	UsageStore        UsageStore
 	Clock             clock.Clock
 }
 
@@ -194,4 +214,132 @@ func (s *SubscriptionService) createSubscriptionCheckout(sc *model.SubscriptionC
 	}
 
 	return nil
+}
+
+func (s *SubscriptionService) GetSubscriptionUsage(
+	appID string,
+	planName string,
+	date time.Time,
+	subscriptionPlans []*libstripe.SubscriptionPlan,
+) (*model.SubscriptionUsage, error) {
+	firstDayOfMonth := timeutil.FirstDayOfTheMonth(date)
+	stripeStart := firstDayOfMonth
+	stripeEnd := stripeStart.AddDate(0, 1, 0)
+
+	rs1, err := s.UsageStore.FetchUploadedUsageRecords(
+		appID,
+		usage.RecordNameSMSSentNorthAmerica,
+		periodical.Daily,
+		stripeStart,
+		stripeEnd,
+	)
+	if err != nil {
+		return nil, err
+	}
+	item1 := &model.SubscriptionUsageItem{
+		Type:      model.PriceTypeUsage,
+		UsageType: model.UsageTypeSMS,
+		SMSRegion: model.SMSRegionNorthAmerica,
+		Quantity:  sumUsageRecord(rs1),
+	}
+
+	rs2, err := s.UsageStore.FetchUploadedUsageRecords(
+		appID,
+		usage.RecordNameSMSSentOtherRegions,
+		periodical.Daily,
+		stripeStart,
+		stripeEnd,
+	)
+	if err != nil {
+		return nil, err
+	}
+	item2 := &model.SubscriptionUsageItem{
+		Type:      model.PriceTypeUsage,
+		UsageType: model.UsageTypeSMS,
+		SMSRegion: model.SMSRegionOtherRegions,
+		Quantity:  sumUsageRecord(rs2),
+	}
+
+	rs3, err := s.UsageStore.FetchUsageRecords(
+		appID,
+		usage.RecordNameActiveUser,
+		periodical.Monthly,
+		stripeStart,
+	)
+	if err != nil {
+		return nil, err
+	}
+	item3 := &model.SubscriptionUsageItem{
+		Type:      model.PriceTypeUsage,
+		UsageType: model.UsageTypeMAU,
+		SMSRegion: model.SMSRegionNone,
+		Quantity:  sumUsageRecord(rs3),
+	}
+
+	subscriptionUsage := &model.SubscriptionUsage{
+		NextBillingDate: stripeEnd,
+		Items:           []*model.SubscriptionUsageItem{item1, item2, item3},
+	}
+
+	fillCost(subscriptionUsage, planName, subscriptionPlans)
+
+	return subscriptionUsage, nil
+}
+
+func sumUsageRecord(records []*usage.UsageRecord) int {
+	sum := 0
+	for _, record := range records {
+		sum += record.Count
+	}
+	return sum
+}
+
+func fillCost(subscriptionUsage *model.SubscriptionUsage, planName string, subscriptionPlans []*libstripe.SubscriptionPlan) {
+	// The first step is to find the plan.
+	var targetPlan *libstripe.SubscriptionPlan
+	for _, plan := range subscriptionPlans {
+		if plan.Name == planName {
+			p := plan
+			targetPlan = p
+		}
+	}
+	// The plan is unknown, we cannot calculate the cost.
+	if targetPlan == nil {
+		return
+	}
+
+	// First of all, add an usage item to represent the fixed cost.
+	for _, price := range targetPlan.Prices {
+		if price.Type == model.PriceTypeFixed {
+			subscriptionUsage.Items = append(subscriptionUsage.Items, &model.SubscriptionUsageItem{
+				Type:        price.Type,
+				UsageType:   price.UsageType,
+				SMSRegion:   price.SMSRegion,
+				Quantity:    1,
+				Currency:    &price.Currency,
+				UnitAmount:  &price.UnitAmount,
+				TotalAmount: &price.UnitAmount,
+			})
+		}
+	}
+
+	// Then fill in the cost of metered usage items.
+	for _, price := range targetPlan.Prices {
+		if price.Type != model.PriceTypeUsage {
+			continue
+		}
+
+		for _, item := range subscriptionUsage.Items {
+			if item.Type != model.PriceTypeUsage {
+				continue
+			}
+
+			if price.UsageType == item.UsageType && price.SMSRegion == item.SMSRegion {
+				item.Currency = &price.Currency
+				item.UnitAmount = &price.UnitAmount
+				totalAmount := item.Quantity * (*item.UnitAmount)
+				item.TotalAmount = &totalAmount
+			}
+		}
+	}
 }

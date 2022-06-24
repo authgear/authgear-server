@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/stripe/stripe-go/v72"
+
+	"github.com/authgear/authgear-server/pkg/portal/model"
 )
 
 const (
@@ -14,72 +16,18 @@ const (
 	MetadatakeySMSRegion = "sms_region"
 )
 
-type PriceType string
-
-const (
-	PriceTypeFixed PriceType = "fixed"
-	PriceTypeUsage PriceType = "usage"
-)
-
-func (t PriceType) Valid() error {
-	switch t {
-	case PriceTypeFixed:
-		return nil
-	case PriceTypeUsage:
-		return nil
-	}
-	return fmt.Errorf("stripe: unknown price_type: %#v", t)
-}
-
-type UsageType string
-
-const (
-	UsageTypeNone UsageType = ""
-	UsageTypeSMS  UsageType = "sms"
-)
-
-func (t UsageType) Valid() error {
-	switch t {
-	case UsageTypeNone:
-		return nil
-	case UsageTypeSMS:
-		return nil
-	}
-	return fmt.Errorf("stripe: unknown usage_type: %#v", t)
-}
-
-type SMSRegion string
-
-const (
-	SMSRegionNone         SMSRegion = ""
-	SMSRegionNorthAmerica SMSRegion = "north-america"
-	SMSRegionOtherRegions SMSRegion = "other-regions"
-)
-
-func (r SMSRegion) Valid() error {
-	switch r {
-	case SMSRegionNone:
-		return nil
-	case SMSRegionNorthAmerica:
-		return nil
-	case SMSRegionOtherRegions:
-		return nil
-	}
-	return fmt.Errorf("stripe: unknown sms_region: %#v", r)
-}
-
 type Price struct {
-	StripePriceID   string    `json:"stripePriceID"`
-	StripeProductID string    `json:"stripeProductID"`
-	Currency        string    `json:"currency"`
-	UnitAmount      int       `json:"unitAmount"`
-	Type            PriceType `json:"type"`
-	UsageType       UsageType `json:"usageType,omitempty"`
-	SMSRegion       SMSRegion `json:"smsRegion,omitempty"`
+	StripePriceID   string          `json:"stripePriceID"`
+	StripeProductID string          `json:"stripeProductID"`
+	Currency        string          `json:"currency"`
+	UnitAmount      int             `json:"unitAmount"`
+	Type            model.PriceType `json:"type"`
+	UsageType       model.UsageType `json:"usageType,omitempty"`
+	SMSRegion       model.SMSRegion `json:"smsRegion,omitempty"`
 }
 
 func NewPrice(stripeProduct *stripe.Product) (price *Price, err error) {
-	priceType := PriceType(stripeProduct.Metadata[MetadataKeyPriceType])
+	priceType := model.PriceType(stripeProduct.Metadata[MetadataKeyPriceType])
 	err = priceType.Valid()
 	if err != nil {
 		return
@@ -100,15 +48,15 @@ func NewPrice(stripeProduct *stripe.Product) (price *Price, err error) {
 	}
 
 	switch priceType {
-	case PriceTypeFixed:
+	case model.PriceTypeFixed:
 		break
-	case PriceTypeUsage:
-		usageType := UsageType(stripeProduct.Metadata[MetadataKeyUsageType])
+	case model.PriceTypeUsage:
+		usageType := model.UsageType(stripeProduct.Metadata[MetadataKeyUsageType])
 		err = usageType.Valid()
 		if err != nil {
 			return
 		}
-		smsRegion := SMSRegion(stripeProduct.Metadata[MetadatakeySMSRegion])
+		smsRegion := model.SMSRegion(stripeProduct.Metadata[MetadatakeySMSRegion])
 		err = smsRegion.Valid()
 		if err != nil {
 			return

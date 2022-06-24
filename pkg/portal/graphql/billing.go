@@ -1,7 +1,7 @@
 package graphql
 
 import (
-	"github.com/authgear/authgear-server/pkg/portal/libstripe"
+	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/graphql-go/graphql"
 )
 
@@ -9,10 +9,10 @@ var priceType = graphql.NewEnum(graphql.EnumConfig{
 	Name: "SubscriptionItemPriceType",
 	Values: graphql.EnumValueConfigMap{
 		"FIXED": &graphql.EnumValueConfig{
-			Value: libstripe.PriceTypeFixed,
+			Value: model.PriceTypeFixed,
 		},
 		"USAGE": &graphql.EnumValueConfig{
-			Value: libstripe.PriceTypeUsage,
+			Value: model.PriceTypeUsage,
 		},
 	},
 })
@@ -21,10 +21,13 @@ var usageType = graphql.NewEnum(graphql.EnumConfig{
 	Name: "SubscriptionItemPriceUsageType",
 	Values: graphql.EnumValueConfigMap{
 		"NONE": &graphql.EnumValueConfig{
-			Value: libstripe.UsageTypeNone,
+			Value: model.UsageTypeNone,
 		},
 		"SMS": &graphql.EnumValueConfig{
-			Value: libstripe.UsageTypeSMS,
+			Value: model.UsageTypeSMS,
+		},
+		"MAU": &graphql.EnumValueConfig{
+			Value: model.UsageTypeMAU,
 		},
 	},
 })
@@ -33,13 +36,13 @@ var smsRegion = graphql.NewEnum(graphql.EnumConfig{
 	Name: "SubscriptionItemPriceSMSRegion",
 	Values: graphql.EnumValueConfigMap{
 		"NONE": &graphql.EnumValueConfig{
-			Value: libstripe.SMSRegionNone,
+			Value: model.SMSRegionNone,
 		},
 		"NORTH_AMERICA": &graphql.EnumValueConfig{
-			Value: libstripe.SMSRegionNorthAmerica,
+			Value: model.SMSRegionNorthAmerica,
 		},
 		"OTHER_REGIONS": &graphql.EnumValueConfig{
-			Value: libstripe.SMSRegionOtherRegions,
+			Value: model.SMSRegionOtherRegions,
 		},
 	},
 })
@@ -47,12 +50,6 @@ var smsRegion = graphql.NewEnum(graphql.EnumConfig{
 var price = graphql.NewObject(graphql.ObjectConfig{
 	Name: "SubscriptionItemPrice",
 	Fields: graphql.Fields{
-		"stripePriceID": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.String),
-		},
-		"stripeProductID": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.String),
-		},
 		"currency": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
 		},
@@ -78,7 +75,46 @@ var subscriptionPlan = graphql.NewObject(graphql.ObjectConfig{
 			Type: graphql.NewNonNull(graphql.String),
 		},
 		"prices": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.NewList(price)),
+			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(price))),
+		},
+	},
+})
+
+var subscriptionUsage = graphql.NewObject(graphql.ObjectConfig{
+	Name: "SubscriptionUsage",
+	Fields: graphql.Fields{
+		"nextBillingDate": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.DateTime),
+		},
+		"items": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(usageItem))),
+		},
+	},
+})
+
+var usageItem = graphql.NewObject(graphql.ObjectConfig{
+	Name: "SubscriptionUsageItem",
+	Fields: graphql.Fields{
+		"type": &graphql.Field{
+			Type: graphql.NewNonNull(priceType),
+		},
+		"usageType": &graphql.Field{
+			Type: graphql.NewNonNull(usageType),
+		},
+		"smsRegion": &graphql.Field{
+			Type: graphql.NewNonNull(smsRegion),
+		},
+		"quantity": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.Int),
+		},
+		"currency": &graphql.Field{
+			Type: graphql.String,
+		},
+		"unitAmount": &graphql.Field{
+			Type: graphql.Int,
+		},
+		"totalAmount": &graphql.Field{
+			Type: graphql.Int,
 		},
 	},
 })

@@ -3,6 +3,7 @@ package graphql
 import (
 	"context"
 	"errors"
+	"time"
 
 	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
@@ -190,6 +191,32 @@ var nodeApp = node(
 				Type: graphql.NewNonNull(graphql.String),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					return p.Source.(*model.App).Context.PlanName, nil
+				},
+			},
+			"subscriptionUsage": &graphql.Field{
+				Type: subscriptionUsage,
+				Args: graphql.FieldConfigArgument{
+					"date": &graphql.ArgumentConfig{
+						Type: graphql.NewNonNull(graphql.DateTime),
+					},
+				},
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					ctx := GQLContext(p.Context)
+					appID := p.Source.(*model.App).ID
+					planName := p.Source.(*model.App).Context.PlanName
+					date := p.Args["date"].(time.Time)
+
+					plans, err := ctx.StripeService.FetchSubscriptionPlans()
+					if err != nil {
+						return nil, err
+					}
+
+					subscriptionUsage, err := ctx.SubscriptionService.GetSubscriptionUsage(appID, planName, date, plans)
+					if err != nil {
+						return nil, err
+					}
+
+					return subscriptionUsage, nil
 				},
 			},
 			"domains": &graphql.Field{
