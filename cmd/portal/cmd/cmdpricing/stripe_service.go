@@ -141,7 +141,7 @@ func (s *StripeService) getUsageRecordsForUpload(appID string, recordName usage.
 			// 2nd condition is to retrieve usage records that have been uploaded the same day, so that if this command
 			// is ever re-run, we still sum up to a correct quantity.
 			Where(
-				"app_id = ? AND name = ? AND period = ? AND ((stripe_timestamp IS NULL AND end_time < ?) OR stripe_timestamp IS NOT NULL AND stripe_timestamp = ?)",
+				"app_id = ? AND name = ? AND period = ? AND ((stripe_timestamp IS NULL AND end_time <= ?) OR stripe_timestamp IS NOT NULL AND stripe_timestamp = ?)",
 				appID,
 				string(recordName),
 				string(periodical.Daily),
