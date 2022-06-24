@@ -880,6 +880,7 @@
 
   "SubscriptionScreen.footer.enterprise-plan": "Get 50,000+ MAUs and customization with our {ExternalLink, react, onClick{{onClick}} children{Enterprise Plan}}",
   "SubscriptionScreen.footer.pricing-details": "Check out more details and compare plan features on our {ExternalLink, react, href{https://www.authgear.com/pricing} children{pricing page}}",
+  "SubscriptionScreen.footer.cancel": "Switch back to Free plan",
 
   "SubscriptionScreen.title": "Billing",
   "SubscriptionScreen.recommended": "Recommended",

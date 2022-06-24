@@ -10,6 +10,9 @@ import {
   DialogType,
   DialogFooter,
   IDialogContentProps,
+  Link,
+  ThemeProvider,
+  PartialTheme,
 } from "@fluentui/react";
 import { useConst } from "@fluentui/react-hooks";
 import { FormattedMessage } from "@oursky/react-messageformat";
@@ -280,6 +283,13 @@ function getSMSCost(
   return cost;
 }
 
+const CANCEL_THEME: PartialTheme = {
+  palette: {
+    themePrimary: "#c8c8c8",
+    neutralPrimary: "#c8c8c8",
+  },
+};
+
 function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   const { planName, subscriptionPlans, thisMonthUsage, previousMonthUsage } =
     props;
@@ -346,9 +356,11 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     return undefined;
   }, [planName, thisMonthUsage]);
 
-  const [hidden, setHidden] = useState(true);
+  const [enterpriseDialogHidden, setEnterpriseDialogHidden] = useState(true);
+  const [cancelDialogHidden, setCancelDialogHidden] = useState(true);
+
   // @ts-expect-error
-  const dialogContentProps: IDialogContentProps = useMemo(() => {
+  const enterpriseDialogContentProps: IDialogContentProps = useMemo(() => {
     return {
       type: DialogType.normal,
       title: <FormattedMessage id="SubscriptionScreen.enterprise.title" />,
@@ -357,21 +369,53 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
       ),
     };
   }, []);
+
+  // @ts-expect-error
+  const cancelDialogContentProps: IDialogContentProps = useMemo(() => {
+    return {
+      type: DialogType.normal,
+      title: <FormattedMessage id="SubscriptionPlanCard.downgrade.title" />,
+      subText: (
+        <FormattedMessage id="SubscriptionPlanCard.change-plan.instructions" />
+      ),
+    };
+  }, []);
+
   const onClickEnterprisePlan = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
-    setHidden(false);
+    setEnterpriseDialogHidden(false);
   }, []);
+
+  const onClickCancel = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCancelDialogHidden(false);
+  }, []);
+
   const onDismiss = useCallback(() => {
-    setHidden(true);
+    setEnterpriseDialogHidden(true);
+    setCancelDialogHidden(true);
   }, []);
 
   return (
     <>
       <Dialog
-        hidden={hidden}
+        hidden={cancelDialogHidden}
         onDismiss={onDismiss}
-        dialogContentProps={dialogContentProps}
+        dialogContentProps={cancelDialogContentProps}
+      >
+        <DialogFooter>
+          <PrimaryButton onClick={onDismiss}>
+            <FormattedMessage id="understood" />
+          </PrimaryButton>
+        </DialogFooter>
+      </Dialog>
+
+      <Dialog
+        hidden={enterpriseDialogHidden}
+        onDismiss={onDismiss}
+        dialogContentProps={enterpriseDialogContentProps}
       >
         <DialogFooter>
           <PrimaryButton onClick={onDismiss}>
@@ -474,6 +518,15 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
           <Text block={true}>
             <FormattedMessage id="SubscriptionScreen.footer.pricing-details" />
           </Text>
+          {isKnownPaidPlan(planName) ? (
+            <ThemeProvider theme={CANCEL_THEME}>
+              <Link onClick={onClickCancel}>
+                <Text>
+                  <FormattedMessage id="SubscriptionScreen.footer.cancel" />
+                </Text>
+              </Link>
+            </ThemeProvider>
+          ) : null}
         </div>
       </div>
     </>
