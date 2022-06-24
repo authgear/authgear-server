@@ -26,6 +26,9 @@ var usageType = graphql.NewEnum(graphql.EnumConfig{
 		"SMS": &graphql.EnumValueConfig{
 			Value: libstripe.UsageTypeSMS,
 		},
+		"MAU": &graphql.EnumValueConfig{
+			Value: libstripe.UsageTypeMAU,
+		},
 	},
 })
 
