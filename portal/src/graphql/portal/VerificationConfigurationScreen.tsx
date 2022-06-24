@@ -161,10 +161,9 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
           return {
             key: criteria,
             text: renderToString(criteriaMessageIds[criteria]),
-            isSelected: criteria === state.criteria,
           };
         }),
-      [state, renderToString]
+      [renderToString]
     );
 
     const phoneOTPModes = useMemo(
@@ -173,10 +172,9 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
           return {
             key: mode,
             text: renderToString(phoneOTPModeMessageIds[mode]),
-            isSelected: mode === state.phoneOTPMode,
           };
         }),
-      [state, renderToString]
+      [renderToString]
     );
 
     const onCriteriaChange = useCallback(
