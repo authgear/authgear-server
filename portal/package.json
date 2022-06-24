@@ -67,7 +67,7 @@
     "js-yaml": "4.1.0",
     "luxon": "2.4.0",
     "monaco-editor": "0.21.3",
-    "postcss": "8.4.6",
+    "postcss": "8.4.14",
     "react": "17.0.2",
     "react-chartjs-2": "4.0.1",
     "react-code-blocks": "0.0.9-0",
