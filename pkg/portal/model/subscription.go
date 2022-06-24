@@ -87,7 +87,8 @@ func (r SMSRegion) Valid() error {
 }
 
 type SubscriptionUsage struct {
-	Items []*SubscriptionUsageItem `json:"items,omitempty"`
+	NextBillingDate time.Time                `json:"nextBillingDate"`
+	Items           []*SubscriptionUsageItem `json:"items,omitempty"`
 }
 
 type SubscriptionUsageItem struct {

@@ -650,6 +650,9 @@ type SubscriptionPlan {
 type SubscriptionUsage {
   """"""
   items: [SubscriptionUsageItem!]!
+
+  """"""
+  nextBillingDate: DateTime!
 }
 
 """"""

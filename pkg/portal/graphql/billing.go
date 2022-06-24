@@ -83,6 +83,9 @@ var subscriptionPlan = graphql.NewObject(graphql.ObjectConfig{
 var subscriptionUsage = graphql.NewObject(graphql.ObjectConfig{
 	Name: "SubscriptionUsage",
 	Fields: graphql.Fields{
+		"nextBillingDate": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.DateTime),
+		},
 		"items": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(usageItem))),
 		},
