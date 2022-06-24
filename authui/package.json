@@ -28,7 +28,7 @@
   "dependencies": {
     "@hotwired/stimulus": "3.0.1",
     "@hotwired/turbo": "7.1.0",
-    "@tabler/icons": "1.41.1",
+    "@tabler/icons": "1.71.0",
     "axios": "0.26.1",
     "cropperjs": "1.5.12",
     "intl-tel-input": "17.0.13",
