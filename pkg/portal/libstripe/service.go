@@ -122,18 +122,7 @@ func (s *Service) GetSubscriptionPlan(planName string) (*SubscriptionPlan, error
 	if err != nil {
 		return nil, err
 	}
-	var subscriptionPlan *SubscriptionPlan
-	for _, sp := range subscriptionPlans {
-		if sp.Name == planName {
-			subscriptionPlan = sp
-			break
-		}
-	}
-	if subscriptionPlan == nil {
-		return nil, fmt.Errorf("subscription plan not found")
-	}
-
-	return subscriptionPlan, nil
+	return s.getStripeSubscription(planName, subscriptionPlans)
 }
 
 func (s *Service) FetchCheckoutSession(checkoutSessionID string) (*CheckoutSession, error) {
@@ -168,7 +157,7 @@ func (s *Service) ConstructEvent(r *http.Request) (Event, error) {
 	return event, err
 }
 
-func (s *Service) CreateSubscriptionIfNotExists(checkoutSessionID string) error {
+func (s *Service) CreateSubscriptionIfNotExists(checkoutSessionID string, subscriptionPlans []*SubscriptionPlan) error {
 	// Fetch the checkout session
 	expandSetupIntentPaymentMethod := "setup_intent.payment_method"
 	expandCustomerSubscriptions := "customer.subscriptions"
@@ -186,7 +175,7 @@ func (s *Service) CreateSubscriptionIfNotExists(checkoutSessionID string) error 
 	appID := checkoutSession.Metadata[MetadataKeyAppID]
 
 	// Find the subscription plan
-	subscriptionPlan, err := s.GetSubscriptionPlan(planName)
+	subscriptionPlan, err := s.getStripeSubscription(planName, subscriptionPlans)
 	if err != nil {
 		return err
 	}
@@ -331,6 +320,21 @@ func (s *Service) convertToSubscriptionPlans(plans []*model.Plan, products []*st
 	}
 
 	return out, nil
+}
+
+func (s *Service) getStripeSubscription(planName string, subscriptionPlans []*SubscriptionPlan) (*SubscriptionPlan, error) {
+	var subscriptionPlan *SubscriptionPlan
+	for _, sp := range subscriptionPlans {
+		if sp.Name == planName {
+			subscriptionPlan = sp
+			break
+		}
+	}
+	if subscriptionPlan == nil {
+		return nil, fmt.Errorf("subscription plan not found")
+	}
+
+	return subscriptionPlan, nil
 }
 
 func (s *Service) constructEvent(stripeEvent *stripe.Event) (Event, error) {
