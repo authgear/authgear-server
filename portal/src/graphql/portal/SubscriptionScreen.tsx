@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo } from "react";
 import cn from "classnames";
 import { useParams } from "react-router-dom";
+import { DateTime } from "luxon";
 import {
   Text,
   DefaultEffects,
@@ -10,6 +11,7 @@ import {
   DialogFooter,
   IDialogContentProps,
 } from "@fluentui/react";
+import { useConst } from "@fluentui/react-hooks";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import ScreenTitle from "../../ScreenTitle";
 import ShowError from "../../ShowError";
@@ -324,10 +326,25 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
 }
 
 const SubscriptionScreen: React.FC = function SubscriptionScreen() {
+  const now = useConst(new Date());
+  const thisMonth = useMemo(() => {
+    return now.toISOString();
+  }, [now]);
+  const previousMonth = useMemo(() => {
+    return DateTime.fromJSDate(now)
+      .minus({
+        months: 1,
+      })
+      .toJSDate()
+      .toISOString();
+  }, [now]);
+
   const { appID } = useParams() as { appID: string };
   const subscriptionScreenQuery = useSubscriptionScreenQueryQuery({
     variables: {
       id: appID,
+      thisMonth,
+      previousMonth,
     },
   });
 
