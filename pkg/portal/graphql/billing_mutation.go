@@ -55,7 +55,7 @@ var _ = registerMutationField(
 			planName := input["planName"].(string)
 
 			resolvedNodeID := relay.FromGlobalID(appNodeID)
-			if resolvedNodeID.Type != typeApp {
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
 				return nil, apierrors.NewInvalid("invalid app ID")
 			}
 			appID := resolvedNodeID.ID
@@ -145,7 +145,7 @@ var _ = registerMutationField(
 			checkoutSessionID := input["checkoutSessionID"].(string)
 
 			resolvedNodeID := relay.FromGlobalID(appNodeID)
-			if resolvedNodeID.Type != typeApp {
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
 				return nil, apierrors.NewInvalid("invalid app ID")
 			}
 			appID := resolvedNodeID.ID
