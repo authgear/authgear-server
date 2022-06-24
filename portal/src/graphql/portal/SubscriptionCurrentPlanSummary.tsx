@@ -26,6 +26,7 @@ export interface SubscriptionCurrentPlanSummaryProps {
   mauLimit?: number;
   mauPrevious?: number;
   nextBillingDate?: Date;
+  onClickManageSubscription?: IButtonProps["onClick"];
   children?: React.ReactNode;
 }
 
@@ -224,12 +225,13 @@ function UsageMeter(props: UsageMeterProps) {
 
 interface SubscriptionManagementProps {
   nextBillingDate?: Date;
+  onClickManageSubscription?: IButtonProps["onClick"];
 }
 
 function SubscriptionManagement(props: SubscriptionManagementProps) {
   const { locale } = useContext(Context);
   const theme = useTheme();
-  const { nextBillingDate } = props;
+  const { nextBillingDate, onClickManageSubscription } = props;
   const formattedDate = formatDatetime(
     locale,
     nextBillingDate ?? null,
@@ -254,11 +256,11 @@ function SubscriptionManagement(props: SubscriptionManagementProps) {
           />
         </Text>
       ) : null}
-      <Link className={styles.subscriptionManagementLink}>
-        <FormattedMessage id="SubscriptionCurrentPlanSummary.view-invoices" />
-      </Link>
-      <Link className={styles.subscriptionManagementLink}>
-        <FormattedMessage id="SubscriptionCurrentPlanSummary.change-billing-methods" />
+      <Link
+        className={styles.subscriptionManagementLink}
+        onClick={onClickManageSubscription}
+      >
+        <FormattedMessage id="SubscriptionCurrentPlanSummary.manage-subscription" />
       </Link>
     </div>
   );
@@ -275,6 +277,7 @@ function SubscriptionCurrentPlanSummary(
     mauLimit,
     mauPrevious,
     nextBillingDate,
+    onClickManageSubscription,
     children,
   } = props;
   return (
@@ -300,7 +303,10 @@ function SubscriptionCurrentPlanSummary(
           }
         />
         {baseAmount != null ? (
-          <SubscriptionManagement nextBillingDate={nextBillingDate} />
+          <SubscriptionManagement
+            nextBillingDate={nextBillingDate}
+            onClickManageSubscription={onClickManageSubscription}
+          />
         ) : null}
       </div>
     </div>

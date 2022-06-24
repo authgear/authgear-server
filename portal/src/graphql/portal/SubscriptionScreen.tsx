@@ -13,6 +13,7 @@ import {
   Link,
   ThemeProvider,
   PartialTheme,
+  IButtonProps,
 } from "@fluentui/react";
 import { useConst } from "@fluentui/react-hooks";
 import { FormattedMessage } from "@oursky/react-messageformat";
@@ -28,6 +29,7 @@ import {
 } from "./globalTypes.generated";
 import { AppFragmentFragment } from "./query/subscriptionScreenQuery.generated";
 import { useSubscriptionScreenQueryQuery } from "./query/subscriptionScreenQuery";
+import { useGenerateStripeCustomerPortalSessionMutationMutation } from "./mutations/generateStripeCustomerPortalSessionMutation";
 import styles from "./SubscriptionScreen.module.scss";
 import SubscriptionCurrentPlanSummary, {
   CostItem,
@@ -228,6 +230,7 @@ interface SubscriptionScreenContentProps {
   subscriptionPlans: SubscriptionPlan[];
   thisMonthUsage?: SubscriptionUsage;
   previousMonthUsage?: SubscriptionUsage;
+  onClickManageSubscription?: IButtonProps["onClick"];
 }
 
 function getTotalCost(
@@ -291,8 +294,13 @@ const CANCEL_THEME: PartialTheme = {
 };
 
 function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
-  const { planName, subscriptionPlans, thisMonthUsage, previousMonthUsage } =
-    props;
+  const {
+    planName,
+    subscriptionPlans,
+    thisMonthUsage,
+    previousMonthUsage,
+    onClickManageSubscription,
+  } = props;
 
   const totalCost = useMemo(() => {
     if (thisMonthUsage == null) {
@@ -436,6 +444,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
           mauLimit={mauLimit}
           mauPrevious={mauPrevious}
           nextBillingDate={nextBillingDate}
+          onClickManageSubscription={onClickManageSubscription}
         >
           <CostItem
             title={
@@ -548,6 +557,31 @@ const SubscriptionScreen: React.FC = function SubscriptionScreen() {
   }, [now]);
 
   const { appID } = useParams() as { appID: string };
+
+  const [generateCustomPortalSession] =
+    useGenerateStripeCustomerPortalSessionMutationMutation({
+      variables: {
+        appID,
+      },
+    });
+
+  const onClickManageSubscription = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      generateCustomPortalSession().then(
+        (r) => {
+          const url = r.data?.generateStripeCustomerPortalSession.url;
+          if (url != null) {
+            window.location.href = url;
+          }
+        },
+        () => {}
+      );
+    },
+    [generateCustomPortalSession]
+  );
+
   const subscriptionScreenQuery = useSubscriptionScreenQueryQuery({
     variables: {
       id: appID,
@@ -588,6 +622,7 @@ const SubscriptionScreen: React.FC = function SubscriptionScreen() {
       subscriptionPlans={subscriptionPlans}
       thisMonthUsage={thisMonthUsage ?? undefined}
       previousMonthUsage={previousMonthUsage ?? undefined}
+      onClickManageSubscription={onClickManageSubscription}
     />
   );
 };
