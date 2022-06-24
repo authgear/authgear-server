@@ -3,6 +3,7 @@ package cmdpricing
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"strings"
@@ -16,12 +17,20 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 )
 
 func init() {
 	binder := portalcmd.GetBinder()
 	cmdPricing.AddCommand(cmdPricingPlan)
 	cmdPricing.AddCommand(cmdPricingApp)
+
+	cmdPricing.AddCommand(cmdPricingUploadUsageToStripe)
+	_ = cmdPricingUploadUsageToStripe.Flags().Bool("all", false, "All apps")
+	binder.BindString(cmdPricingUploadUsageToStripe.Flags(), portalcmd.ArgDatabaseURL)
+	binder.BindString(cmdPricingUploadUsageToStripe.Flags(), portalcmd.ArgDatabaseSchema)
+	binder.BindString(cmdPricingUploadUsageToStripe.Flags(), portalcmd.ArgStripeSecretKey)
+
 	cmdPricingPlan.AddCommand(cmdPricingPlanCreate)
 	cmdPricingPlan.AddCommand(cmdPricingPlanUpdate)
 	cmdPricingApp.AddCommand(cmdPricingAppSetPlan)
@@ -289,5 +298,79 @@ var cmdPricingAppUpdate = &cobra.Command{
 
 		log.Printf("updated app's feature config, app: %s, plan name: %s\n", appID, planName)
 		return nil
+	},
+}
+
+var cmdPricingUploadUsageToStripe = &cobra.Command{
+	Use:   "upload-usage-to-stripe {--all | app-id}",
+	Short: "Upload usage to Stripe",
+	Args:  cobra.MaximumNArgs(1),
+	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
+		all, err := cmd.Flags().GetBool("all")
+		if err == nil && all {
+			if len(args) != 0 {
+				err = fmt.Errorf("no app ID is expected when --all is specified")
+				return
+			}
+		} else {
+			if len(args) != 1 {
+				return fmt.Errorf("expected exactly 1 argument of app ID")
+			}
+		}
+		return
+	},
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		binder := portalcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
+		if err != nil {
+			return
+		}
+
+		dbSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseSchema)
+		if err != nil {
+			return
+		}
+
+		stripeSecretKey, err := binder.GetRequiredString(cmd, portalcmd.ArgStripeSecretKey)
+		if err != nil {
+			return
+		}
+
+		dbCredentials := &config.DatabaseCredentials{
+			DatabaseURL:    dbURL,
+			DatabaseSchema: dbSchema,
+		}
+
+		stripeConfig := &portalconfig.StripeConfig{
+			SecretKey: stripeSecretKey,
+		}
+
+		ctx := context.Background()
+
+		dbPool := db.NewPool()
+		stripeService := NewStripeService(ctx, dbPool, dbCredentials, stripeConfig)
+
+		if len(args) == 0 {
+			var errorAppIDs []string
+			var appIDs []string
+			appIDs, err = stripeService.ListAppIDs()
+			if err != nil {
+				return
+			}
+			for _, appID := range appIDs {
+				e := stripeService.UploadUsage(ctx, appID)
+				if e != nil {
+					errorAppIDs = append(errorAppIDs, appID)
+				}
+			}
+			if len(errorAppIDs) > 0 {
+				err = fmt.Errorf("failed to upload usage for %v", errorAppIDs)
+			}
+		} else {
+			appID := args[0]
+			err = stripeService.UploadUsage(ctx, appID)
+		}
+
+		return
 	},
 }
