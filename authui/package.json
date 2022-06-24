@@ -23,7 +23,7 @@
     "postcss-cli": "9.1.0",
     "prettier": "2.7.1",
     "tailwindcss": "2.2.19",
-    "typescript": "4.5.5"
+    "typescript": "4.7.4"
   },
   "dependencies": {
     "@hotwired/stimulus": "3.0.1",
