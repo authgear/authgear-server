@@ -47,12 +47,6 @@ var smsRegion = graphql.NewEnum(graphql.EnumConfig{
 var price = graphql.NewObject(graphql.ObjectConfig{
 	Name: "SubscriptionItemPrice",
 	Fields: graphql.Fields{
-		"stripePriceID": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.String),
-		},
-		"stripeProductID": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.String),
-		},
 		"currency": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
 		},
