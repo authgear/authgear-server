@@ -193,9 +193,9 @@ function UsageMeter(props: UsageMeterProps) {
             percentComplete={percentComplete}
           />
           <Text block={true} styles={usageStyles} variant="small">
-            {limit != null && current != null
-              ? `${current} / ${limit}`
-              : "- / -"}
+            {current != null ? `${current}` : "-"}
+            {" / "}
+            {limit != null ? `${limit}` : "-"}
             {previous != null ? (
               <FormattedMessage
                 id="SubscriptionCurrentPlanSummary.mau.previous"
