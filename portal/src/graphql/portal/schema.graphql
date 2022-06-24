@@ -46,6 +46,9 @@ type App implements Node {
   id: ID!
 
   """"""
+  isProcessingSubscription: Boolean!
+
+  """"""
   planName: String!
 
   """"""
