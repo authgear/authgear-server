@@ -104,6 +104,12 @@ type StripeService interface {
 type SubscriptionService interface {
 	CreateSubscriptionCheckout(stripeCheckoutSession *libstripe.CheckoutSession) (*model.SubscriptionCheckout, error)
 	UpdateSubscriptionCheckoutStatusAndCustomerID(appID string, stripCheckoutSessionID string, status model.SubscriptionCheckoutStatus, customerID string) error
+	GetSubscriptionUsage(
+		appID string,
+		planName string,
+		date time.Time,
+		subscriptionPlans []*libstripe.SubscriptionPlan,
+	) (*model.SubscriptionUsage, error)
 }
 
 type Logger struct{ *log.Logger }

@@ -85,3 +85,17 @@ func (r SMSRegion) Valid() error {
 	}
 	return fmt.Errorf("unknown sms_region: %#v", r)
 }
+
+type SubscriptionUsage struct {
+	Items []*SubscriptionUsageItem `json:"items,omitempty"`
+}
+
+type SubscriptionUsageItem struct {
+	Type        PriceType `json:"type"`
+	UsageType   UsageType `json:"usageType"`
+	SMSRegion   SMSRegion `json:"smsRegion"`
+	Quantity    int       `json:"quantity"`
+	Currency    *string   `json:"currency"`
+	UnitAmount  *int      `json:"unitAmount"`
+	TotalAmount *int      `json:"totalAmount"`
+}

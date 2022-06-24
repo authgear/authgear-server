@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
+	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/portal/appresource/factory"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/endpoint"
@@ -267,11 +268,16 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	globalDBStore := &usage.GlobalDBStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
 	subscriptionService := &service.SubscriptionService{
 		SQLBuilder:        sqlBuilder,
 		SQLExecutor:       sqlExecutor,
 		ConfigSourceStore: configsourceStore,
 		PlanStore:         store,
+		UsageStore:        globalDBStore,
 		Clock:             clock,
 	}
 	graphqlContext := &graphql.Context{
@@ -494,11 +500,16 @@ func newStripeWebhookHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	globalDBStore := &usage.GlobalDBStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
 	subscriptionService := &service.SubscriptionService{
 		SQLBuilder:        sqlBuilder,
 		SQLExecutor:       sqlExecutor,
 		ConfigSourceStore: configsourceStore,
 		PlanStore:         store,
+		UsageStore:        globalDBStore,
 		Clock:             clockClock,
 	}
 	stripeWebhookHandler := &transport.StripeWebhookHandler{
