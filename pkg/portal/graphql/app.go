@@ -192,6 +192,17 @@ var nodeApp = node(
 					return p.Source.(*model.App).Context.PlanName, nil
 				},
 			},
+			"subscriptionUsage": &graphql.Field{
+				Type: subscriptionUsage,
+				Args: graphql.FieldConfigArgument{
+					"date": &graphql.ArgumentConfig{
+						Type: graphql.NewNonNull(graphql.DateTime),
+					},
+				},
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					return nil, nil
+				},
+			},
 			"domains": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(domain))),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {

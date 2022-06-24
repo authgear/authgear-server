@@ -58,6 +58,9 @@ type App implements Node {
   secretConfig: SecretConfig!
 
   """"""
+  subscriptionUsage(date: DateTime!): SubscriptionUsage
+
+  """"""
   tutorialStatus: TutorialStatus!
 }
 
@@ -640,7 +643,37 @@ type SubscriptionPlan {
   name: String!
 
   """"""
-  prices: [SubscriptionItemPrice]!
+  prices: [SubscriptionItemPrice!]!
+}
+
+""""""
+type SubscriptionUsage {
+  """"""
+  items: [SubscriptionUsageItem!]!
+}
+
+""""""
+type SubscriptionUsageItem {
+  """"""
+  currency: String
+
+  """"""
+  quantity: Int!
+
+  """"""
+  smsRegion: SubscriptionItemPriceSMSRegion!
+
+  """"""
+  totalAmount: Int
+
+  """"""
+  type: SubscriptionItemPriceType!
+
+  """"""
+  unitAmount: Int
+
+  """"""
+  usageType: SubscriptionItemPriceUsageType!
 }
 
 """Tutorial status of an app"""
