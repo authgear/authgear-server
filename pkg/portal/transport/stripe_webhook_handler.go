@@ -44,6 +44,14 @@ type StripeWebhookHandler struct {
 func (h *StripeWebhookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 	defer func() {
+		if errors.Is(err, libstripe.ErrUnknownEvent) {
+			// It is common to receive unknown event
+			// e.g. create objects via stripe portal doesn't have the metadata
+			//      event type that are not handled by the server
+			// gracefully ignore them
+			w.WriteHeader(http.StatusOK)
+			return
+		}
 		if err != nil {
 			h.Logger.WithError(err).Errorf("failed to handle stripe webhook")
 			http.Error(w, "failed to handle stripe webhook", http.StatusBadRequest)
@@ -54,15 +62,6 @@ func (h *StripeWebhookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 	event, err := h.StripeService.ConstructEvent(r)
 	if err != nil {
-		if errors.Is(err, libstripe.ErrUnknownEvent) {
-			// It is common to receive unknown event
-			// e.g. create objects via stripe portal doesn't have the metadata
-			//      event type that are not handled by the server
-			// gracefully ignore them
-			err = nil
-			w.WriteHeader(http.StatusOK)
-			return
-		}
 		return
 	}
 
