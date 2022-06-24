@@ -65,7 +65,7 @@
     "immer": "9.0.15",
     "intl-tel-input": "17.0.16",
     "js-yaml": "4.1.0",
-    "luxon": "2.3.0",
+    "luxon": "2.4.0",
     "monaco-editor": "0.21.3",
     "postcss": "8.4.6",
     "react": "17.0.2",
