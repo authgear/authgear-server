@@ -101,6 +101,7 @@ var DependencySet = wire.NewSet(
 
 	plan.DependencySet,
 	wire.Bind(new(libstripe.PlanService), new(*plan.Service)),
+	wire.Bind(new(libstripe.EndpointsProvider), new(*endpoint.EndpointsProvider)),
 
 	appresource.DependencySet,
 
