@@ -1,7 +1,11 @@
 package usage
 
 import (
+	"time"
+
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/util/periodical"
 )
 
 type GlobalDBStore struct {
@@ -88,4 +92,113 @@ func (s *GlobalDBStore) upsertUsageRecords(usageRecords []*UsageRecord) error {
 	}
 
 	return nil
+}
+
+func (s *GlobalDBStore) scan(scanner db.Scanner) (*UsageRecord, error) {
+	var r UsageRecord
+	err := scanner.Scan(
+		&r.ID,
+		&r.AppID,
+		&r.Name,
+		&r.Period,
+		&r.StartTime,
+		&r.EndTime,
+		&r.Count,
+		&r.StripeTimestamp,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &r, nil
+}
+
+func (s *GlobalDBStore) FetchUploadedUsageRecords(
+	appID string,
+	recordName RecordName,
+	period periodical.Type,
+	stripeStart time.Time,
+	stripeEnd time.Time,
+) ([]*UsageRecord, error) {
+	q := s.SQLBuilder.Select(
+		"id",
+		"app_id",
+		"name",
+		"period",
+		"start_time",
+		"end_time",
+		"count",
+		"stripe_timestamp",
+	).
+		From(s.SQLBuilder.TableName("_portal_usage_record")).
+		Where(
+			"app_id = ? AND name = ? AND period = ? AND stripe_timestamp >= ? AND stripe_timestamp < ?",
+			appID,
+			string(recordName),
+			string(period),
+			stripeStart,
+			stripeEnd,
+		)
+
+	rows, err := s.SQLExecutor.QueryWith(q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var out []*UsageRecord
+	for rows.Next() {
+		r, err := s.scan(rows)
+		if err != nil {
+			return nil, err
+		}
+
+		out = append(out, r)
+	}
+
+	return out, nil
+}
+
+func (s *GlobalDBStore) FetchUsageRecords(
+	appID string,
+	recordName RecordName,
+	period periodical.Type,
+	startTime time.Time,
+) ([]*UsageRecord, error) {
+	q := s.SQLBuilder.Select(
+		"id",
+		"app_id",
+		"name",
+		"period",
+		"start_time",
+		"end_time",
+		"count",
+		"stripe_timestamp",
+	).
+		From(s.SQLBuilder.TableName("_portal_usage_record")).
+		Where(
+			"app_id = ? AND name = ? AND period = ? AND start_time = ?",
+			appID,
+			string(recordName),
+			string(period),
+			startTime,
+		)
+
+	rows, err := s.SQLExecutor.QueryWith(q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var out []*UsageRecord
+	for rows.Next() {
+		r, err := s.scan(rows)
+		if err != nil {
+			return nil, err
+		}
+
+		out = append(out, r)
+	}
+
+	return out, nil
 }
