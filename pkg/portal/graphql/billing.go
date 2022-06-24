@@ -75,7 +75,43 @@ var subscriptionPlan = graphql.NewObject(graphql.ObjectConfig{
 			Type: graphql.NewNonNull(graphql.String),
 		},
 		"prices": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.NewList(price)),
+			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(price))),
+		},
+	},
+})
+
+var subscriptionUsage = graphql.NewObject(graphql.ObjectConfig{
+	Name: "SubscriptionUsage",
+	Fields: graphql.Fields{
+		"items": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(usageItem))),
+		},
+	},
+})
+
+var usageItem = graphql.NewObject(graphql.ObjectConfig{
+	Name: "SubscriptionUsageItem",
+	Fields: graphql.Fields{
+		"type": &graphql.Field{
+			Type: graphql.NewNonNull(priceType),
+		},
+		"usageType": &graphql.Field{
+			Type: graphql.NewNonNull(usageType),
+		},
+		"smsRegion": &graphql.Field{
+			Type: graphql.NewNonNull(smsRegion),
+		},
+		"quantity": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.Int),
+		},
+		"currency": &graphql.Field{
+			Type: graphql.String,
+		},
+		"unitAmount": &graphql.Field{
+			Type: graphql.Int,
+		},
+		"totalAmount": &graphql.Field{
+			Type: graphql.Int,
 		},
 	},
 })
