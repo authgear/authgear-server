@@ -7,7 +7,6 @@ import {
   Dropdown,
   IDropdownOption,
   TextField,
-  Toggle,
   MessageBar,
   DirectionalHint,
 } from "@fluentui/react";
@@ -42,8 +41,8 @@ import LabelWithTooltip from "../../LabelWithTooltip";
 interface FormState {
   codeExpirySeconds: number | undefined;
   criteria: VerificationCriteria;
-  email: Required<VerificationClaimConfig>;
-  phone: Required<VerificationClaimConfig>;
+  email: Partial<VerificationClaimConfig>;
+  phone: Partial<VerificationClaimConfig>;
   phoneOTPMode: AuthenticatorPhoneOTPMode;
 }
 
@@ -62,11 +61,9 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     codeExpirySeconds: config.verification?.code_expiry_seconds,
     criteria: config.verification?.criteria ?? "any",
     email: {
-      enabled: config.verification?.claims?.email?.enabled ?? true,
       required: config.verification?.claims?.email?.required ?? true,
     },
     phone: {
-      enabled: config.verification?.claims?.phone_number?.enabled ?? true,
       required: config.verification?.claims?.phone_number?.required ?? true,
     },
     phoneOTPMode: config.authenticator?.oob_otp?.sms?.phone_otp_mode ?? "sms",
@@ -96,14 +93,8 @@ function constructConfig(
     if (initialState.criteria !== currentState.criteria) {
       v.criteria = currentState.criteria;
     }
-    if (initialState.email.enabled !== currentState.email.enabled) {
-      v.claims.email.enabled = currentState.email.enabled;
-    }
     if (initialState.email.required !== currentState.email.required) {
       v.claims.email.required = currentState.email.required;
-    }
-    if (initialState.phone.enabled !== currentState.phone.enabled) {
-      v.claims.phone_number.enabled = currentState.phone.enabled;
     }
     if (initialState.phone.required !== currentState.phone.required) {
       v.claims.phone_number.required = currentState.phone.required;
@@ -203,31 +194,11 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
       [setState]
     );
 
-    const onEmailEnabledChange = useCallback(
-      (_, value?: boolean) => {
-        setState((s) => ({
-          ...s,
-          email: { ...s.email, enabled: value ?? false },
-        }));
-      },
-      [setState]
-    );
-
     const onEmailRequiredChange = useCallback(
       (_, value?: boolean) => {
         setState((s) => ({
           ...s,
           email: { ...s.email, required: value ?? false },
-        }));
-      },
-      [setState]
-    );
-
-    const onPhoneEnabledChange = useCallback(
-      (_, value?: boolean) => {
-        setState((s) => ({
-          ...s,
-          phone: { ...s.phone, enabled: value ?? false },
         }));
       },
       [setState]
@@ -275,16 +246,10 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
           />
         </Widget>
         <Widget className={styles.widget}>
-          <Toggle
-            checked={state.email.enabled}
-            onChange={onEmailEnabledChange}
-            label={renderToString(
-              "VerificationConfigurationScreen.verification.claims.email"
-            )}
-            inlineLabel={true}
-          />
+          <WidgetTitle>
+            <FormattedMessage id="VerificationConfigurationScreen.verification.claims.email" />
+          </WidgetTitle>
           <Checkbox
-            disabled={!state.email.enabled}
             checked={state.email.required}
             onChange={onEmailRequiredChange}
             label={renderToString(
@@ -303,26 +268,19 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
               />
             </MessageBar>
           )}
-          <Toggle
-            checked={state.phone.enabled}
-            disabled={loginIDPhoneDisabled}
-            onChange={onPhoneEnabledChange}
-            label={renderToString(
-              "VerificationConfigurationScreen.verification.claims.phoneNumber"
-            )}
-            inlineLabel={true}
-          />
+          <WidgetTitle>
+            <FormattedMessage id="VerificationConfigurationScreen.verification.claims.phoneNumber" />
+          </WidgetTitle>
           <Dropdown
             label={renderToString(
               "VerificationConfigurationScreen.verification.phoneNumber.verify-by.label"
             )}
-            disabled={!state.phone.enabled}
             options={phoneOTPModes}
             selectedKey={state.phoneOTPMode}
             onChange={onPhoneOTPModeChange}
           />
           <Checkbox
-            disabled={!state.phone.enabled || loginIDPhoneDisabled}
+            disabled={loginIDPhoneDisabled}
             checked={state.phone.required}
             onChange={onPhoneRequiredChange}
             label={renderToString(
