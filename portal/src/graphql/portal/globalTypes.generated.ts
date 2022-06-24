@@ -513,8 +513,6 @@ export type SubscriptionItemPrice = {
   __typename?: 'SubscriptionItemPrice';
   currency: Scalars['String'];
   smsRegion: SubscriptionItemPriceSmsRegion;
-  stripePriceID: Scalars['String'];
-  stripeProductID: Scalars['String'];
   type: SubscriptionItemPriceType;
   unitAmount: Scalars['Int'];
   usageType: SubscriptionItemPriceUsageType;

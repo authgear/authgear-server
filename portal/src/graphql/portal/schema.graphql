@@ -592,12 +592,6 @@ type SubscriptionItemPrice {
   smsRegion: SubscriptionItemPriceSMSRegion!
 
   """"""
-  stripePriceID: String!
-
-  """"""
-  stripeProductID: String!
-
-  """"""
   type: SubscriptionItemPriceType!
 
   """"""

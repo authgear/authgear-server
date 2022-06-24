@@ -9,7 +9,7 @@ export type SubscriptionScreenQueryQueryVariables = Types.Exact<{
 }>;
 
 
-export type SubscriptionScreenQueryQuery = { __typename?: 'Query', node?: { __typename: 'App', id: string, effectiveFeatureConfig: any, planName: string } | { __typename: 'User' } | null, subscriptionPlans: Array<{ __typename?: 'SubscriptionPlan', name: string, prices: Array<{ __typename?: 'SubscriptionItemPrice', currency: string, smsRegion: Types.SubscriptionItemPriceSmsRegion, stripePriceID: string, stripeProductID: string, type: Types.SubscriptionItemPriceType, unitAmount: number, usageType: Types.SubscriptionItemPriceUsageType } | null> }> };
+export type SubscriptionScreenQueryQuery = { __typename?: 'Query', node?: { __typename: 'App', id: string, effectiveFeatureConfig: any, planName: string } | { __typename: 'User' } | null, subscriptionPlans: Array<{ __typename?: 'SubscriptionPlan', name: string, prices: Array<{ __typename?: 'SubscriptionItemPrice', currency: string, smsRegion: Types.SubscriptionItemPriceSmsRegion, type: Types.SubscriptionItemPriceType, unitAmount: number, usageType: Types.SubscriptionItemPriceUsageType } | null> }> };
 
 
 export const SubscriptionScreenQueryDocument = gql`
@@ -23,8 +23,6 @@ export const SubscriptionScreenQueryDocument = gql`
     prices {
       currency
       smsRegion
-      stripePriceID
-      stripeProductID
       type
       unitAmount
       usageType
