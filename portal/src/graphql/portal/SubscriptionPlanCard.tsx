@@ -6,7 +6,6 @@ import {
   DefaultButton,
   ThemeProvider,
   PartialTheme,
-  IButtonProps,
   Dialog,
   DialogFooter,
   DialogType,
@@ -158,8 +157,10 @@ export function UsagePriceTag(props: UsagePriceTagProps): React.ReactElement {
 }
 
 export interface CTAProps {
+  planName: string;
   variant: "subscribe" | "upgrade" | "downgrade" | "current" | "non-applicable";
-  onClickSubscribe?: IButtonProps["onClick"];
+  disabledSubscribeButton?: boolean;
+  onClickSubscribe?: (planName: string) => void;
 }
 
 const DOWNGRADE_BUTTON_THEME: PartialTheme = {
@@ -178,7 +179,12 @@ const CURRENT_BUTTON_THEME: PartialTheme = {
 };
 
 export function CTA(props: CTAProps): React.ReactElement {
-  const { variant, onClickSubscribe } = props;
+  const {
+    planName,
+    variant,
+    disabledSubscribeButton,
+    onClickSubscribe: onClickSubscribeProps,
+  } = props;
   const [hidden, setHidden] = useState(true);
 
   // @ts-expect-error
@@ -215,6 +221,17 @@ export function CTA(props: CTAProps): React.ReactElement {
     setHidden(false);
   }, []);
 
+  const onClickSubscribe = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (onClickSubscribeProps) {
+        onClickSubscribeProps(planName);
+      }
+    },
+    [planName, onClickSubscribeProps]
+  );
+
   const onDismiss = useCallback(() => {
     setHidden(true);
   }, []);
@@ -222,7 +239,11 @@ export function CTA(props: CTAProps): React.ReactElement {
   switch (variant) {
     case "subscribe":
       return (
-        <PrimaryButton className={styles.cta} onClick={onClickSubscribe}>
+        <PrimaryButton
+          className={styles.cta}
+          onClick={onClickSubscribe}
+          disabled={disabledSubscribeButton}
+        >
           <FormattedMessage id="SubscriptionPlanCard.label.subscribe" />
         </PrimaryButton>
       );
