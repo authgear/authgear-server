@@ -498,9 +498,9 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             <FormattedMessage id="SubscriptionScreen.cards.title" />
           </Text>
           <div className={styles.cards}>
-            {PAID_PLANS.map((planName) => {
+            {PAID_PLANS.map((paidPlanName) => {
               const plan = subscriptionPlans.find(
-                (plan) => plan.name === planName
+                (plan) => plan.name === paidPlanName
               );
               if (plan != null) {
                 return (
