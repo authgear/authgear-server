@@ -20,7 +20,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/redisutil"
 	"github.com/authgear/authgear-server/pkg/util/timeutil"
@@ -50,6 +49,11 @@ type Cache interface {
 	Get(context.Context, redisutil.SimpleCmdable, redisutil.Item) ([]byte, error)
 }
 
+type EndpointsProvider interface {
+	BillingEndpointURL(relayGlobalAppID string) *url.URL
+	BillingRedirectEndpointURL(relayGlobalAppID string) *url.URL
+}
+
 type Service struct {
 	ClientAPI         *client.API
 	Logger            Logger
@@ -59,8 +63,7 @@ type Service struct {
 	Cache             Cache
 	Clock             clock.Clock
 	StripeConfig      *portalconfig.StripeConfig
-	HTTPProto         httputil.HTTPProto
-	HTTPHost          httputil.HTTPHost
+	Endpoints         EndpointsProvider
 }
 
 func (s *Service) FetchSubscriptionPlans() (subscriptionPlans []*SubscriptionPlan, err error) {
@@ -89,9 +92,11 @@ func (s *Service) FetchSubscriptionPlans() (subscriptionPlans []*SubscriptionPla
 }
 
 func (s *Service) CreateCheckoutSession(appID string, customerEmail string, subscriptionPlan *SubscriptionPlan) (*CheckoutSession, error) {
-	// fixme(billing): handle checkout
-	successURL := "https://example.com/success.html?session_id={CHECKOUT_SESSION_ID}"
-	cancelURL := "https://example.com/canceled.html"
+	relayGlobalAppID := relay.ToGlobalID("App", appID)
+	billingPageURL := s.Endpoints.BillingEndpointURL(relayGlobalAppID).String()
+	billingRedirectPageURL := s.Endpoints.BillingRedirectEndpointURL(relayGlobalAppID).String()
+	successURL := fmt.Sprintf("%s?session_id={CHECKOUT_SESSION_ID}", billingRedirectPageURL)
+	cancelURL := billingPageURL
 
 	params := &stripe.CheckoutSessionParams{
 		Params: stripe.Params{
@@ -427,14 +432,7 @@ func (s *Service) constructEvent(stripeEvent *stripe.Event) (Event, error) {
 }
 
 func (s *Service) GenerateCustomerPortalSession(appID string, customerID string) (*stripe.BillingPortalSession, error) {
-	u := url.URL{
-		Scheme: string(s.HTTPProto),
-		Host:   string(s.HTTPHost),
-		Path: fmt.Sprintf(
-			"/project/%v/billing",
-			relay.ToGlobalID("App", appID),
-		),
-	}
+	u := s.Endpoints.BillingEndpointURL(relay.ToGlobalID("App", appID))
 
 	params := &stripe.BillingPortalSessionParams{
 		Customer:  stripe.String(customerID),
