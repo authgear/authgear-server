@@ -277,7 +277,8 @@ func (s *SubscriptionService) GetSubscriptionUsage(
 	}
 
 	subscriptionUsage := &model.SubscriptionUsage{
-		Items: []*model.SubscriptionUsageItem{item1, item2, item3},
+		NextBillingDate: stripeEnd,
+		Items:           []*model.SubscriptionUsageItem{item1, item2, item3},
 	}
 
 	fillCost(subscriptionUsage, planName, subscriptionPlans)

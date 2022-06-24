@@ -551,6 +551,7 @@ export type SubscriptionPlan = {
 export type SubscriptionUsage = {
   __typename?: 'SubscriptionUsage';
   items: Array<SubscriptionUsageItem>;
+  nextBillingDate: Scalars['DateTime'];
 };
 
 export type SubscriptionUsageItem = {
