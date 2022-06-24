@@ -530,6 +530,7 @@ export enum SubscriptionItemPriceType {
 }
 
 export enum SubscriptionItemPriceUsageType {
+  Mau = 'MAU',
   None = 'NONE',
   Sms = 'SMS'
 }

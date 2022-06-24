@@ -625,6 +625,9 @@ enum SubscriptionItemPriceType {
 """"""
 enum SubscriptionItemPriceUsageType {
   """"""
+  MAU
+
+  """"""
   NONE
 
   """"""

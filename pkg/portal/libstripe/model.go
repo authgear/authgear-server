@@ -36,6 +36,7 @@ type UsageType string
 const (
 	UsageTypeNone UsageType = ""
 	UsageTypeSMS  UsageType = "sms"
+	UsageTypeMAU  UsageType = "mau"
 )
 
 func (t UsageType) Valid() error {
@@ -43,6 +44,8 @@ func (t UsageType) Valid() error {
 	case UsageTypeNone:
 		return nil
 	case UsageTypeSMS:
+		return nil
+	case UsageTypeMAU:
 		return nil
 	}
 	return fmt.Errorf("stripe: unknown usage_type: %#v", t)
