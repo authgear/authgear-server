@@ -2,6 +2,8 @@ package cmdpricing
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -279,6 +281,11 @@ func (s *StripeService) uploadUsage(ctx context.Context, appID string) (err erro
 	midnight := timeutil.TruncateToDate(s.Clock.NowUTC())
 
 	stripeSubscriptionID, err := s.getStripeSubscriptionID(appID)
+	if errors.Is(err, sql.ErrNoRows) {
+		s.Logger.Infof("%v: skip upload usage due to no subscription", appID)
+		err = nil
+		return
+	}
 	if err != nil {
 		return
 	}
