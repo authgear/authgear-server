@@ -1,7 +1,7 @@
 package graphql
 
 import (
-	"github.com/authgear/authgear-server/pkg/portal/libstripe"
+	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/graphql-go/graphql"
 )
 
@@ -9,10 +9,10 @@ var priceType = graphql.NewEnum(graphql.EnumConfig{
 	Name: "SubscriptionItemPriceType",
 	Values: graphql.EnumValueConfigMap{
 		"FIXED": &graphql.EnumValueConfig{
-			Value: libstripe.PriceTypeFixed,
+			Value: model.PriceTypeFixed,
 		},
 		"USAGE": &graphql.EnumValueConfig{
-			Value: libstripe.PriceTypeUsage,
+			Value: model.PriceTypeUsage,
 		},
 	},
 })
@@ -21,13 +21,13 @@ var usageType = graphql.NewEnum(graphql.EnumConfig{
 	Name: "SubscriptionItemPriceUsageType",
 	Values: graphql.EnumValueConfigMap{
 		"NONE": &graphql.EnumValueConfig{
-			Value: libstripe.UsageTypeNone,
+			Value: model.UsageTypeNone,
 		},
 		"SMS": &graphql.EnumValueConfig{
-			Value: libstripe.UsageTypeSMS,
+			Value: model.UsageTypeSMS,
 		},
 		"MAU": &graphql.EnumValueConfig{
-			Value: libstripe.UsageTypeMAU,
+			Value: model.UsageTypeMAU,
 		},
 	},
 })
@@ -36,13 +36,13 @@ var smsRegion = graphql.NewEnum(graphql.EnumConfig{
 	Name: "SubscriptionItemPriceSMSRegion",
 	Values: graphql.EnumValueConfigMap{
 		"NONE": &graphql.EnumValueConfig{
-			Value: libstripe.SMSRegionNone,
+			Value: model.SMSRegionNone,
 		},
 		"NORTH_AMERICA": &graphql.EnumValueConfig{
-			Value: libstripe.SMSRegionNorthAmerica,
+			Value: model.SMSRegionNorthAmerica,
 		},
 		"OTHER_REGIONS": &graphql.EnumValueConfig{
-			Value: libstripe.SMSRegionOtherRegions,
+			Value: model.SMSRegionOtherRegions,
 		},
 	},
 })
