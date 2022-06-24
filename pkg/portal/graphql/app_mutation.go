@@ -128,7 +128,7 @@ var _ = registerMutationField(
 			secretConfigJSONValue := input["secretConfig"]
 
 			resolvedNodeID := relay.FromGlobalID(appNodeID)
-			if resolvedNodeID.Type != typeApp {
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
 				return nil, apierrors.NewInvalid("invalid app ID")
 			}
 			appID := resolvedNodeID.ID
@@ -325,7 +325,7 @@ var _ = registerMutationField(
 			appNodeID := input["id"].(string)
 
 			resolvedNodeID := relay.FromGlobalID(appNodeID)
-			if resolvedNodeID.Type != typeApp {
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
 				return nil, apierrors.NewInvalid("invalid app ID")
 			}
 			appID := resolvedNodeID.ID
@@ -396,7 +396,7 @@ var _ = registerMutationField(
 			progressStr := input["progress"].(string)
 
 			resolvedNodeID := relay.FromGlobalID(appNodeID)
-			if resolvedNodeID.Type != typeApp {
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
 				return nil, apierrors.NewInvalid("invalid app ID")
 			}
 			appID := resolvedNodeID.ID

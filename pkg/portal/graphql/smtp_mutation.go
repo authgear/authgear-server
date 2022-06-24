@@ -58,7 +58,7 @@ var _ = registerMutationField(
 			smtpPassword := input["smtpPassword"].(string)
 
 			resolvedNodeID := relay.FromGlobalID(appNodeID)
-			if resolvedNodeID.Type != typeApp {
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
 				return nil, apierrors.NewInvalid("invalid app ID")
 			}
 			appID := resolvedNodeID.ID
