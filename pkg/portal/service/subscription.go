@@ -9,7 +9,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/portal/libstripe"
@@ -22,8 +21,6 @@ import (
 
 var ErrSubscriptionCheckoutNotFound = apierrors.NotFound.WithReason("ErrSubscriptionCheckoutNotFound").
 	New("subscription checkout not found")
-var ErrSubscriptionNotFound = errors.New("subscription not found")
-
 var ErrSubscriptionNotFound = apierrors.NotFound.WithReason("ErrSubscriptionNotFound").New("subscription not found")
 
 type SubscriptionConfigSourceStore interface {
@@ -214,7 +211,7 @@ func (s *SubscriptionService) GetIsProcessingSubscription(appID string) (bool, e
 	}
 
 	hasSubscription := true
-	_, err = s.getSubscription(appID)
+	_, err = s.GetSubscription(appID)
 	if errors.Is(err, ErrSubscriptionNotFound) {
 		hasSubscription = false
 	} else if err != nil {
@@ -293,43 +290,6 @@ func (s *SubscriptionService) getCompletedSubscriptionCheckoutCount(appID string
 	}
 
 	return count, nil
-}
-
-func (s *SubscriptionService) getSubscription(appID string) (*model.Subscription, error) {
-	q := s.SQLBuilder.
-		Select(
-			"id",
-			"app_id",
-			"stripe_customer_id",
-			"stripe_subscription_id",
-		).
-		From(s.SQLBuilder.TableName("_portal_subscription")).
-		Where("app_id = ?", appID)
-
-	row, err := s.SQLExecutor.QueryRowWith(q)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.scanSubscription(row)
-}
-
-func (s *SubscriptionService) scanSubscription(scanner db.Scanner) (*model.Subscription, error) {
-	var sub model.Subscription
-
-	err := scanner.Scan(
-		&sub.ID,
-		&sub.AppID,
-		&sub.StripeCustomerID,
-		&sub.StripeSubscriptionID,
-	)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, ErrSubscriptionNotFound
-	} else if err != nil {
-		return nil, err
-	}
-
-	return &sub, nil
 }
 
 func (s *SubscriptionService) GetSubscriptionUsage(
