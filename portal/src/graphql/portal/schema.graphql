@@ -323,6 +323,18 @@ The `FeatureConfig` scalar type represents an feature config JSON object
 scalar FeatureConfig
 
 """"""
+input GenerateStripeCustomerPortalSessionInput {
+  """Target app ID."""
+  appID: ID!
+}
+
+""""""
+type GenerateStripeCustomerPortalSessionPayload {
+  """"""
+  url: String!
+}
+
+""""""
 type Mutation {
   """Accept collaborator invitation to the target app."""
   acceptCollaboratorInvitation(input: AcceptCollaboratorInvitationInput!): AcceptCollaboratorInvitationPayload!
@@ -347,6 +359,9 @@ type Mutation {
 
   """Delete domain of target app"""
   deleteDomain(input: DeleteDomainInput!): DeleteDomainPayload!
+
+  """Generate Stripe customer portal session"""
+  generateStripeCustomerPortalSession(input: GenerateStripeCustomerPortalSessionInput!): GenerateStripeCustomerPortalSessionPayload!
 
   """Reconcile the completed checkout session"""
   reconcileCheckoutSession(input: reconcileCheckoutSession!): reconcileCheckoutSessionPayload!

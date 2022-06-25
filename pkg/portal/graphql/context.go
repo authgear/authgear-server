@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/smtp"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/stripe/stripe-go/v72"
 )
 
 type UserLoader interface {
@@ -99,9 +100,11 @@ type StripeService interface {
 	CreateCheckoutSession(appID string, customerEmail string, subscriptionPlan *libstripe.SubscriptionPlan) (*libstripe.CheckoutSession, error)
 	FetchCheckoutSession(checkoutSessionID string) (*libstripe.CheckoutSession, error)
 	GetSubscriptionPlan(planName string) (*libstripe.SubscriptionPlan, error)
+	GenerateCustomerPortalSession(appID string, customerID string) (*stripe.BillingPortalSession, error)
 }
 
 type SubscriptionService interface {
+	GetSubscription(appID string) (*model.Subscription, error)
 	CreateSubscriptionCheckout(stripeCheckoutSession *libstripe.CheckoutSession) (*model.SubscriptionCheckout, error)
 	UpdateSubscriptionCheckoutStatusAndCustomerID(appID string, stripCheckoutSessionID string, status model.SubscriptionCheckoutStatus, customerID string) error
 	GetSubscriptionUsage(

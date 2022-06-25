@@ -242,6 +242,16 @@ export type Domain = {
   verificationDNSRecord: Scalars['String'];
 };
 
+export type GenerateStripeCustomerPortalSessionInput = {
+  /** Target app ID. */
+  appID: Scalars['ID'];
+};
+
+export type GenerateStripeCustomerPortalSessionPayload = {
+  __typename?: 'GenerateStripeCustomerPortalSessionPayload';
+  url: Scalars['String'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   /** Accept collaborator invitation to the target app. */
@@ -260,6 +270,8 @@ export type Mutation = {
   deleteCollaboratorInvitation: DeleteCollaboratorInvitationPayload;
   /** Delete domain of target app */
   deleteDomain: DeleteDomainPayload;
+  /** Generate Stripe customer portal session */
+  generateStripeCustomerPortalSession: GenerateStripeCustomerPortalSessionPayload;
   /** Reconcile the completed checkout session */
   reconcileCheckoutSession: ReconcileCheckoutSessionPayload;
   /** Send test STMP configuration email */
@@ -312,6 +324,11 @@ export type MutationDeleteCollaboratorInvitationArgs = {
 
 export type MutationDeleteDomainArgs = {
   input: DeleteDomainInput;
+};
+
+
+export type MutationGenerateStripeCustomerPortalSessionArgs = {
+  input: GenerateStripeCustomerPortalSessionInput;
 };
 
 

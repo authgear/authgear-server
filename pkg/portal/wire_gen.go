@@ -263,6 +263,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Cache:             stripeCache,
 		Clock:             clock,
 		StripeConfig:      stripeConfig,
+		HTTPProto:         httpProto,
+		HTTPHost:          httpHost,
 	}
 	configsourceStore := &configsource.Store{
 		SQLBuilder:  sqlBuilder,
@@ -485,6 +487,9 @@ func newStripeWebhookHandler(p *deps.RequestProvider) http.Handler {
 	}
 	globalredisHandle := rootProvider.GlobalRedisHandle
 	stripeCache := libstripe.NewStripeCache()
+	trustProxy := environmentConfig.TrustProxy
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	libstripeService := &libstripe.Service{
 		ClientAPI:         api,
 		Logger:            logger,
@@ -494,6 +499,8 @@ func newStripeWebhookHandler(p *deps.RequestProvider) http.Handler {
 		Cache:             stripeCache,
 		Clock:             clockClock,
 		StripeConfig:      stripeConfig,
+		HTTPProto:         httpProto,
+		HTTPHost:          httpHost,
 	}
 	stripeWebhookLogger := transport.NewStripeWebhookLogger(logFactory)
 	configsourceStore := &configsource.Store{

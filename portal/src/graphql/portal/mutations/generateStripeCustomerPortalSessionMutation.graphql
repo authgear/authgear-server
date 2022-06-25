@@ -1,0 +1,5 @@
+mutation generateStripeCustomerPortalSessionMutation($appID: ID!) {
+  generateStripeCustomerPortalSession(input: { appID: $appID }) {
+    url
+  }
+}
