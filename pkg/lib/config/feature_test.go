@@ -2,7 +2,6 @@ package config_test
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -25,8 +24,6 @@ func TestParseFeatureConfig(t *testing.T) {
 		var defaultCfg config.FeatureConfig
 		err = yaml.Unmarshal(data, &defaultCfg)
 		So(err, ShouldBeNil)
-
-		fmt.Printf("louis#wtf: %#v\n", defaultCfg.Identity.OAuth)
 
 		So(cfg, ShouldResemble, &defaultCfg)
 	})
