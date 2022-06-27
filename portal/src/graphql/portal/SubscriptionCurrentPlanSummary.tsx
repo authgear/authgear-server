@@ -78,14 +78,13 @@ export function CostItemSeparator(): React.ReactElement {
 
 export interface CostItemProps {
   title: React.ReactNode;
-  kind: "free" | "upgrade" | "billed" | "non-applicable";
+  kind: "free" | "billed" | "non-applicable";
   tooltip?: ITooltipHostProps["content"];
   amount?: number;
-  onClickUpgrade?: IButtonProps["onClick"];
 }
 
 export function CostItem(props: CostItemProps): React.ReactElement {
-  const { title, kind, tooltip, amount, onClickUpgrade } = props;
+  const { title, kind, tooltip, amount } = props;
   const id = useId("cost-item");
   const calloutProps = useMemo(() => {
     return {
@@ -102,10 +101,6 @@ export function CostItem(props: CostItemProps): React.ReactElement {
           "-"
         ) : kind === "free" ? (
           <FormattedMessage id="SubscriptionCurrentPlanSummary.label.free" />
-        ) : kind === "upgrade" ? (
-          <Link onClick={onClickUpgrade}>
-            <FormattedMessage id="SubscriptionCurrentPlanSummary.label.upgrade" />
-          </Link>
         ) : (
           <>{`$${(amount ?? 0) / 100}`}</>
         )}
