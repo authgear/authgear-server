@@ -510,13 +510,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             title={
               <FormattedMessage id="SubscriptionCurrentPlanSummary.whatsapp.title" />
             }
-            kind={
-              isKnownPaidPlan(planName)
-                ? "free"
-                : planName === ALL_KNOWN_PLANS[0]
-                ? "upgrade"
-                : "non-applicable"
-            }
+            kind={isKnownPaidPlan(planName) ? "free" : "non-applicable"}
           />
           <CostItem
             title={

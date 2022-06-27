@@ -824,7 +824,6 @@
   "SubscriptionCurrentPlanSummary.title.known-plan": "Current Plan: {name} (${amount}/mo)",
   "SubscriptionCurrentPlanSummary.title.custom-plan": "Custom Plan: {name}",
   "SubscriptionCurrentPlanSummary.label.free": "Free",
-  "SubscriptionCurrentPlanSummary.label.upgrade": "Upgrade",
   "SubscriptionCurrentPlanSummary.mau.title": "Montly Active User",
   "SubscriptionCurrentPlanSummary.mau.approaching-limit": "Upgrade to increase limit",
   "SubscriptionCurrentPlanSummary.mau.limit-reached": "Upgrade to avoid account deactivation",
