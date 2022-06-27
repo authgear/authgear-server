@@ -7,12 +7,13 @@ import {
   Dropdown,
   IDropdownOption,
   TextField,
-  Toggle,
   MessageBar,
   DirectionalHint,
 } from "@fluentui/react";
 import {
   IdentityFeatureConfig,
+  authenticatorPhoneOTPModeList,
+  AuthenticatorPhoneOTPMode,
   PortalAPIAppConfig,
   VerificationClaimConfig,
   VerificationCriteria,
@@ -40,8 +41,9 @@ import LabelWithTooltip from "../../LabelWithTooltip";
 interface FormState {
   codeExpirySeconds: number | undefined;
   criteria: VerificationCriteria;
-  email: Required<VerificationClaimConfig>;
-  phone: Required<VerificationClaimConfig>;
+  email: Partial<VerificationClaimConfig>;
+  phone: Partial<VerificationClaimConfig>;
+  phoneOTPMode: AuthenticatorPhoneOTPMode;
 }
 
 function onRenderCriteriaLabel() {
@@ -59,13 +61,12 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     codeExpirySeconds: config.verification?.code_expiry_seconds,
     criteria: config.verification?.criteria ?? "any",
     email: {
-      enabled: config.verification?.claims?.email?.enabled ?? true,
       required: config.verification?.claims?.email?.required ?? true,
     },
     phone: {
-      enabled: config.verification?.claims?.phone_number?.enabled ?? true,
       required: config.verification?.claims?.phone_number?.required ?? true,
     },
+    phoneOTPMode: config.authenticator?.oob_otp?.sms?.phone_otp_mode ?? "sms",
   };
 }
 
@@ -77,10 +78,14 @@ function constructConfig(
   // eslint-disable-next-line complexity
   return produce(config, (config) => {
     config.verification ??= {};
+    config.authenticator ??= {};
     const v = config.verification;
+    const a = config.authenticator;
     v.claims ??= {};
     v.claims.email ??= {};
     v.claims.phone_number ??= {};
+    a.oob_otp ??= {};
+    a.oob_otp.sms ??= {};
 
     if (initialState.codeExpirySeconds !== currentState.codeExpirySeconds) {
       v.code_expiry_seconds = currentState.codeExpirySeconds;
@@ -88,17 +93,17 @@ function constructConfig(
     if (initialState.criteria !== currentState.criteria) {
       v.criteria = currentState.criteria;
     }
-    if (initialState.email.enabled !== currentState.email.enabled) {
-      v.claims.email.enabled = currentState.email.enabled;
-    }
     if (initialState.email.required !== currentState.email.required) {
       v.claims.email.required = currentState.email.required;
     }
-    if (initialState.phone.enabled !== currentState.phone.enabled) {
-      v.claims.phone_number.enabled = currentState.phone.enabled;
-    }
     if (initialState.phone.required !== currentState.phone.required) {
       v.claims.phone_number.required = currentState.phone.required;
+    }
+    if (initialState.phoneOTPMode !== currentState.phoneOTPMode) {
+      a.oob_otp.sms.phone_otp_mode = currentState.phoneOTPMode;
+    }
+    if (a.oob_otp.sms.phone_otp_mode === "sms") {
+      delete a.oob_otp.sms.phone_otp_mode;
     }
 
     clearEmptyObject(config);
@@ -108,6 +113,14 @@ function constructConfig(
 const criteriaMessageIds: Record<VerificationCriteria, string> = {
   any: "VerificationConfigurationScreen.criteria.any",
   all: "VerificationConfigurationScreen.criteria.all",
+};
+
+const phoneOTPModeMessageIds: Record<AuthenticatorPhoneOTPMode, string> = {
+  whatsapp_sms:
+    "VerificationConfigurationScreen.verification.phoneNumber.verify-by.whatsapp-or-sms",
+  whatsapp:
+    "VerificationConfigurationScreen.verification.phoneNumber.verify-by.whatsapp-only",
+  sms: "VerificationConfigurationScreen.verification.phoneNumber.verify-by.sms-only",
 };
 
 interface VerificationConfigurationContentProps {
@@ -139,10 +152,20 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
           return {
             key: criteria,
             text: renderToString(criteriaMessageIds[criteria]),
-            isSelected: criteria === state.criteria,
           };
         }),
-      [state, renderToString]
+      [renderToString]
+    );
+
+    const phoneOTPModes = useMemo(
+      () =>
+        authenticatorPhoneOTPModeList.map((mode) => {
+          return {
+            key: mode,
+            text: renderToString(phoneOTPModeMessageIds[mode]),
+          };
+        }),
+      [renderToString]
     );
 
     const onCriteriaChange = useCallback(
@@ -158,12 +181,15 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
       [setState]
     );
 
-    const onEmailEnabledChange = useCallback(
-      (_, value?: boolean) => {
-        setState((s) => ({
-          ...s,
-          email: { ...s.email, enabled: value ?? false },
-        }));
+    const onPhoneOTPModeChange = useCallback(
+      (_, option?: IDropdownOption) => {
+        const key = option?.key as AuthenticatorPhoneOTPMode | undefined;
+        if (key) {
+          setState((state) => ({
+            ...state,
+            phoneOTPMode: key,
+          }));
+        }
       },
       [setState]
     );
@@ -173,16 +199,6 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
         setState((s) => ({
           ...s,
           email: { ...s.email, required: value ?? false },
-        }));
-      },
-      [setState]
-    );
-
-    const onPhoneEnabledChange = useCallback(
-      (_, value?: boolean) => {
-        setState((s) => ({
-          ...s,
-          phone: { ...s.phone, enabled: value ?? false },
         }));
       },
       [setState]
@@ -230,16 +246,10 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
           />
         </Widget>
         <Widget className={styles.widget}>
-          <Toggle
-            checked={state.email.enabled}
-            onChange={onEmailEnabledChange}
-            label={renderToString(
-              "VerificationConfigurationScreen.verification.claims.email"
-            )}
-            inlineLabel={true}
-          />
+          <WidgetTitle>
+            <FormattedMessage id="VerificationConfigurationScreen.verification.claims.email" />
+          </WidgetTitle>
           <Checkbox
-            disabled={!state.email.enabled}
             checked={state.email.required}
             onChange={onEmailRequiredChange}
             label={renderToString(
@@ -258,17 +268,19 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
               />
             </MessageBar>
           )}
-          <Toggle
-            checked={state.phone.enabled}
-            disabled={loginIDPhoneDisabled}
-            onChange={onPhoneEnabledChange}
+          <WidgetTitle>
+            <FormattedMessage id="VerificationConfigurationScreen.verification.claims.phoneNumber" />
+          </WidgetTitle>
+          <Dropdown
             label={renderToString(
-              "VerificationConfigurationScreen.verification.claims.phoneNumber"
+              "VerificationConfigurationScreen.verification.phoneNumber.verify-by.label"
             )}
-            inlineLabel={true}
+            options={phoneOTPModes}
+            selectedKey={state.phoneOTPMode}
+            onChange={onPhoneOTPModeChange}
           />
           <Checkbox
-            disabled={!state.phone.enabled || loginIDPhoneDisabled}
+            disabled={loginIDPhoneDisabled}
             checked={state.phone.required}
             onChange={onPhoneRequiredChange}
             label={renderToString(
