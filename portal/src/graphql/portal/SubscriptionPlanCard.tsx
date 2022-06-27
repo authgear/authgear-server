@@ -299,7 +299,7 @@ export function CTA(props: CTAProps): React.ReactElement {
       return (
         <ThemeProvider theme={CURRENT_BUTTON_THEME}>
           <DefaultButton className={styles.cta} disabled={true}>
-            -
+            <FormattedMessage id="SubscriptionPlanCard.label.subscribe" />
           </DefaultButton>
         </ThemeProvider>
       );
