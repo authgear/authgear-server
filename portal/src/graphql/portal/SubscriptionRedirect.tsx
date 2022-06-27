@@ -16,12 +16,12 @@ const SubscriptionRedirect: React.FC = function SubscriptionRedirect() {
     if (stripeCheckoutSessionID) {
       reconcileCheckoutSession(appID, stripeCheckoutSessionID)
         .then(() => {
-          navigate("./../billing", { replace: false });
+          navigate("./../billing", { replace: true });
         })
         .catch(() => {})
         .finally(() => {});
     } else {
-      navigate("./../billing", { replace: false });
+      navigate("./../billing", { replace: true });
     }
   }, [navigate, reconcileCheckoutSession, stripeCheckoutSessionID, appID]);
 
