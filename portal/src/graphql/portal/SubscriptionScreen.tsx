@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useContext,
+  useEffect,
+} from "react";
 import cn from "classnames";
 import { useParams } from "react-router-dom";
 import { DateTime } from "luxon";
@@ -16,7 +22,7 @@ import {
   IButtonProps,
 } from "@fluentui/react";
 import { useConst } from "@fluentui/react-hooks";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import ScreenTitle from "../../ScreenTitle";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
@@ -46,6 +52,7 @@ import SubscriptionPlanCard, {
   PlanDetailsTitle,
   PlanDetailsLine,
 } from "./SubscriptionPlanCard";
+import { useCreateCheckoutSessionMutation } from "./mutations/createCheckoutSessionMutation";
 
 const ALL_KNOWN_PLANS = ["free", "developers", "startups", "business"];
 const PAID_PLANS = ALL_KNOWN_PLANS.slice(1);
@@ -56,6 +63,8 @@ const MAU_LIMIT: Record<string, number> = {
   startups: 5000,
   business: 30000,
 };
+
+const CHECK_IS_PROCESSING_SUBSCRIPTION_INTERVAL = 5000;
 
 function previousPlan(planName: string): string | null {
   const idx = ALL_KNOWN_PLANS.indexOf(planName);
@@ -129,6 +138,40 @@ interface SubscriptionPlanCardRenderProps {
 
 function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
   const { currentPlanName, subscriptionPlan } = props;
+  const { appID } = useParams() as { appID: string };
+  const { createCheckoutSession, loading } = useCreateCheckoutSessionMutation();
+
+  const ctaVariant = useMemo(() => {
+    if (!isKnownPlan(currentPlanName)) {
+      return "non-applicable";
+    }
+    if (!isKnownPaidPlan(currentPlanName)) {
+      return "subscribe";
+    }
+    const targetPlan = subscriptionPlan.name;
+    const currentPlanIdx = ALL_KNOWN_PLANS.indexOf(currentPlanName);
+    const targetPlanIdx = ALL_KNOWN_PLANS.indexOf(targetPlan);
+    if (currentPlanIdx > targetPlanIdx) {
+      return "downgrade";
+    } else if (currentPlanIdx < targetPlanIdx) {
+      return "upgrade";
+    }
+    return "current";
+  }, [currentPlanName, subscriptionPlan.name]);
+
+  const onClickSubscribe = useCallback(
+    (planName: string) => {
+      createCheckoutSession(appID, planName)
+        .then((url) => {
+          if (url) {
+            window.location.href = url;
+          }
+        })
+        .finally(() => {});
+    },
+    [appID, createCheckoutSession]
+  );
+
   const isKnown = isKnownPaidPlan(subscriptionPlan.name);
   if (!isKnown) {
     return null;
@@ -208,8 +251,14 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
           ) : null}
         </>
       }
-      /* TODO(billing): determine the CTA */
-      cta={<CTA variant="subscribe" />}
+      cta={
+        <CTA
+          planName={subscriptionPlan.name}
+          variant={ctaVariant}
+          disabledSubscribeButton={loading}
+          onClickSubscribe={onClickSubscribe}
+        />
+      }
       planDetailsTitle={
         <PlanDetailsTitle>
           <FormattedMessage
@@ -498,9 +547,9 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             <FormattedMessage id="SubscriptionScreen.cards.title" />
           </Text>
           <div className={styles.cards}>
-            {PAID_PLANS.map((planName) => {
+            {PAID_PLANS.map((paidPlanName) => {
               const plan = subscriptionPlans.find(
-                (plan) => plan.name === planName
+                (plan) => plan.name === paidPlanName
               );
               if (plan != null) {
                 return (
@@ -543,6 +592,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
 }
 
 const SubscriptionScreen: React.FC = function SubscriptionScreen() {
+  const { renderToString } = useContext(Context);
   const now = useConst(new Date());
   const thisMonth = useMemo(() => {
     return now.toISOString();
@@ -590,6 +640,32 @@ const SubscriptionScreen: React.FC = function SubscriptionScreen() {
     },
   });
 
+  const isProcessingSubscription =
+    !!subscriptionScreenQuery.data &&
+    (subscriptionScreenQuery.data.node as AppFragmentFragment)
+      .isProcessingSubscription;
+
+  // if isProcessingSubscription is true
+  // refetch in every few seconds and wait until it changes to false
+  useEffect(() => {
+    if (subscriptionScreenQuery.loading) {
+      return () => {};
+    }
+    if (!isProcessingSubscription) {
+      return () => {};
+    }
+    const interval = setInterval(() => {
+      subscriptionScreenQuery.refetch().finally(() => {});
+    }, CHECK_IS_PROCESSING_SUBSCRIPTION_INTERVAL);
+    return () => {
+      clearInterval(interval);
+    };
+  }, [
+    subscriptionScreenQuery.loading,
+    isProcessingSubscription,
+    subscriptionScreenQuery,
+  ]);
+
   if (subscriptionScreenQuery.loading) {
     return <ShowLoading />;
   }
@@ -601,6 +677,14 @@ const SubscriptionScreen: React.FC = function SubscriptionScreen() {
         onRetry={() => {
           subscriptionScreenQuery.refetch().finally(() => {});
         }}
+      />
+    );
+  }
+
+  if (isProcessingSubscription) {
+    return (
+      <ShowLoading
+        label={renderToString("SubscriptionScreen.processing-payment")}
       />
     );
   }

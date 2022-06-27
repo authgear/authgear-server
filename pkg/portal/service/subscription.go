@@ -21,7 +21,6 @@ import (
 
 var ErrSubscriptionCheckoutNotFound = apierrors.NotFound.WithReason("ErrSubscriptionCheckoutNotFound").
 	New("subscription checkout not found")
-
 var ErrSubscriptionNotFound = apierrors.NotFound.WithReason("ErrSubscriptionNotFound").New("subscription not found")
 
 type SubscriptionConfigSourceStore interface {
@@ -205,6 +204,23 @@ func (s *SubscriptionService) UpdateAppPlan(appID string, planName string) error
 	return nil
 }
 
+func (s *SubscriptionService) GetIsProcessingSubscription(appID string) (bool, error) {
+	count, err := s.getCompletedSubscriptionCheckoutCount(appID)
+	if err != nil {
+		return false, err
+	}
+
+	hasSubscription := true
+	_, err = s.GetSubscription(appID)
+	if errors.Is(err, ErrSubscriptionNotFound) {
+		hasSubscription = false
+	} else if err != nil {
+		return false, err
+	}
+
+	return count > 0 && !hasSubscription, nil
+}
+
 func (s *SubscriptionService) createSubscription(sub *model.Subscription) error {
 	_, err := s.SQLExecutor.ExecWith(s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_portal_subscription")).
@@ -253,6 +269,27 @@ func (s *SubscriptionService) createSubscriptionCheckout(sc *model.SubscriptionC
 	}
 
 	return nil
+}
+
+func (s *SubscriptionService) getCompletedSubscriptionCheckoutCount(appID string) (uint64, error) {
+	query := s.SQLBuilder.
+		Select("count(*)").
+		From(s.SQLBuilder.TableName("_portal_subscription_checkout")).
+		Where("app_id = ?", appID).
+		Where("status = ?", model.SubscriptionCheckoutStatusCompleted)
+
+	scan, err := s.SQLExecutor.QueryRowWith(query)
+	if err != nil {
+		return 0, err
+	}
+
+	var count uint64
+	err = scan.Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
 
 func (s *SubscriptionService) GetSubscriptionUsage(

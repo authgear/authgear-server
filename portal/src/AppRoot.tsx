@@ -50,6 +50,7 @@ import AccountDeletionConfigurationScreen from "./graphql/portal/AccountDeletion
 import AnalyticsScreen from "./graphql/portal/AnalyticsScreen";
 import IntegrationsConfigurationScreen from "./graphql/portal/IntegrationsConfigurationScreen";
 import GoogleTagManagerConfigurationScreen from "./graphql/portal/GoogleTagManagerConfigurationScreen";
+import SubscriptionRedirect from "./graphql/portal/SubscriptionRedirect";
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams() as { appID: string };
@@ -200,6 +201,10 @@ const AppRoot: React.FC = function AppRoot() {
 
           <Route path="billing">
             <Route index={true} element={<SubscriptionScreen />} />
+          </Route>
+
+          <Route path="billing-redirect">
+            <Route index={true} element={<SubscriptionRedirect />} />
           </Route>
 
           <Route path="advanced">
