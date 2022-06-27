@@ -18,6 +18,8 @@ type Subscription struct {
 	AppID                string
 	StripeSubscriptionID string
 	StripeCustomerID     string
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
 }
 
 type SubscriptionCheckout struct {
@@ -26,6 +28,8 @@ type SubscriptionCheckout struct {
 	StripeCheckoutSessionID string
 	StripeCustomerID        *string
 	Status                  SubscriptionCheckoutStatus
+	CreatedAt               time.Time
+	UpdatedAt               time.Time
 	ExpireAt                time.Time
 }
 
