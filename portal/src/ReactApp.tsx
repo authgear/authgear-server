@@ -32,6 +32,7 @@ import ProjectWizardDoneScreen from "./graphql/portal/ProjectWizardDoneScreen";
 import OnboardingRedirect from "./OnboardingRedirect";
 import { ReactRouterLink, ReactRouterLinkProps } from "./ReactRouterLink";
 import Authenticated from "./graphql/portal/Authenticated";
+import { LoadingContextProvider } from "./hook/loading";
 
 async function loadSystemConfig(): Promise<SystemConfig> {
   const resp = await fetch("/api/system-config.json");
@@ -197,19 +198,21 @@ const ReactApp: React.FC = function ReactApp() {
   registerLocale(i18nISOCountriesEnLocale);
 
   return (
-    <LocaleProvider
-      locale="en"
-      messageByID={systemConfig.translations.en}
-      defaultComponents={defaultComponents}
-    >
-      <HelmetProvider>
-        <ApolloProvider client={client}>
-          <SystemConfigContext.Provider value={systemConfig}>
-            <PortalRoot />
-          </SystemConfigContext.Provider>
-        </ApolloProvider>
-      </HelmetProvider>
-    </LocaleProvider>
+    <LoadingContextProvider>
+      <LocaleProvider
+        locale="en"
+        messageByID={systemConfig.translations.en}
+        defaultComponents={defaultComponents}
+      >
+        <HelmetProvider>
+          <ApolloProvider client={client}>
+            <SystemConfigContext.Provider value={systemConfig}>
+              <PortalRoot />
+            </SystemConfigContext.Provider>
+          </ApolloProvider>
+        </HelmetProvider>
+      </LocaleProvider>
+    </LoadingContextProvider>
   );
 };
 
