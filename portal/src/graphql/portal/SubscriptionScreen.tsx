@@ -86,6 +86,10 @@ function isRecommendedPlan(planName: string): boolean {
   return planName === "startups";
 }
 
+function isFreePlan(planName: string): boolean {
+  return planName === "free";
+}
+
 function showRecommendedTag(
   planName: string,
   currentPlanName: string
@@ -499,7 +503,13 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             title={
               <FormattedMessage id="SubscriptionCurrentPlanSummary.total-cost.title" />
             }
-            kind={totalCost == null ? "non-applicable" : "billed"}
+            kind={
+              isFreePlan(planName)
+                ? "free"
+                : totalCost == null
+                ? "non-applicable"
+                : "billed"
+            }
             amount={totalCost}
             tooltip={
               <FormattedMessage id="SubscriptionCurrentPlanSummary.total-cost.tooltip" />
