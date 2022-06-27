@@ -58,11 +58,14 @@ type SubscriptionService struct {
 }
 
 func (s *SubscriptionService) CreateSubscription(appID string, stripeSubscriptionID string, stripeCustomerID string) (*model.Subscription, error) {
+	now := s.Clock.NowUTC()
 	subscription := &model.Subscription{
 		ID:                   uuid.New(),
 		AppID:                appID,
 		StripeCustomerID:     stripeCustomerID,
 		StripeSubscriptionID: stripeSubscriptionID,
+		CreatedAt:            now,
+		UpdatedAt:            now,
 	}
 
 	if err := s.createSubscription(subscription); err != nil {
@@ -73,11 +76,14 @@ func (s *SubscriptionService) CreateSubscription(appID string, stripeSubscriptio
 }
 
 func (s *SubscriptionService) CreateSubscriptionCheckout(checkoutSession *libstripe.CheckoutSession) (*model.SubscriptionCheckout, error) {
+	now := s.Clock.NowUTC()
 	cs := &model.SubscriptionCheckout{
 		ID:                      uuid.New(),
 		StripeCheckoutSessionID: checkoutSession.StripeCheckoutSessionID,
 		AppID:                   checkoutSession.AppID,
 		Status:                  model.SubscriptionCheckoutStatusOpen,
+		CreatedAt:               now,
+		UpdatedAt:               now,
 		ExpireAt:                time.Unix(checkoutSession.ExpiresAt, 0).UTC(),
 	}
 	if err := s.createSubscriptionCheckout(cs); err != nil {
@@ -92,6 +98,8 @@ func (s *SubscriptionService) GetSubscription(appID string) (*model.Subscription
 		"app_id",
 		"stripe_customer_id",
 		"stripe_subscription_id",
+		"created_at",
+		"updated_at",
 	).
 		From(s.SQLBuilder.TableName("_portal_subscription")).
 		Where("app_id = ?", appID)
@@ -110,6 +118,8 @@ func (s *SubscriptionService) GetSubscription(appID string) (*model.Subscription
 		&subscription.AppID,
 		&subscription.StripeCustomerID,
 		&subscription.StripeSubscriptionID,
+		&subscription.CreatedAt,
+		&subscription.UpdatedAt,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrSubscriptionNotFound
@@ -125,10 +135,12 @@ func (s *SubscriptionService) GetSubscription(appID string) (*model.Subscription
 // It returns ErrSubscriptionCheckoutNotFound when the checkout is not found
 // or the checkout status is already subscribed
 func (s *SubscriptionService) UpdateSubscriptionCheckoutStatusAndCustomerID(appID string, stripCheckoutSessionID string, status model.SubscriptionCheckoutStatus, customerID string) error {
+	now := s.Clock.NowUTC()
 	q := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_portal_subscription_checkout")).
 		Set("status", status).
 		Set("stripe_customer_id", customerID).
+		Set("updated_at", now).
 		Where("stripe_checkout_session_id = ?", stripCheckoutSessionID).
 		Where("app_id = ?", appID).
 		// Only allow updating status if it is not subscribed
@@ -152,9 +164,11 @@ func (s *SubscriptionService) UpdateSubscriptionCheckoutStatusAndCustomerID(appI
 }
 
 func (s *SubscriptionService) UpdateSubscriptionCheckoutStatusByCustomerID(appID string, customerID string, status model.SubscriptionCheckoutStatus) error {
+	now := s.Clock.NowUTC()
 	q := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_portal_subscription_checkout")).
 		Set("status", status).
+		Set("updated_at", now).
 		Where("app_id = ?", appID).
 		Where("stripe_customer_id = ?", customerID).
 		// Only allow updating status if it is not subscribed
@@ -229,12 +243,16 @@ func (s *SubscriptionService) createSubscription(sub *model.Subscription) error 
 			"app_id",
 			"stripe_customer_id",
 			"stripe_subscription_id",
+			"created_at",
+			"updated_at",
 		).
 		Values(
 			sub.ID,
 			sub.AppID,
 			sub.StripeCustomerID,
 			sub.StripeSubscriptionID,
+			sub.CreatedAt,
+			sub.UpdatedAt,
 		),
 	)
 	if err != nil {
@@ -253,6 +271,8 @@ func (s *SubscriptionService) createSubscriptionCheckout(sc *model.SubscriptionC
 			"stripe_checkout_session_id",
 			"stripe_customer_id",
 			"status",
+			"created_at",
+			"updated_at",
 			"expire_at",
 		).
 		Values(
@@ -261,6 +281,8 @@ func (s *SubscriptionService) createSubscriptionCheckout(sc *model.SubscriptionC
 			sc.StripeCheckoutSessionID,
 			sc.StripeCustomerID,
 			sc.Status,
+			sc.CreatedAt,
+			sc.UpdatedAt,
 			sc.ExpireAt,
 		),
 	)
