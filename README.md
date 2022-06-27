@@ -208,8 +208,6 @@ apollo-language-server may include its own graphql.
 That copy must be removed manually from package-lock.json,
 otherwise, `npm run gentype` will fail.
 
-@monaco-editor/react>=4 is slow in our usage. We need to adjust how we use it when we upgrade.
-
 As `useBlocker` is removed since react-router-domv6.0.0-beta.7 and have no promise which version will
 come back, we introduce the custom `useBlocker` hook by referencing the last commit which this hook
 still exist.

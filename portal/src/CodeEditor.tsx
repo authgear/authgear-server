@@ -1,7 +1,7 @@
 import React from "react";
-import { ControlledEditor, ControlledEditorProps } from "@monaco-editor/react";
+import ControlledEditor, { EditorProps } from "@monaco-editor/react";
 
-export interface CodeEditorProps extends ControlledEditorProps {
+export interface CodeEditorProps extends EditorProps {
   className?: string;
 }
 
