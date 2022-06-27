@@ -69,6 +69,7 @@ require (
 	github.com/Azure/azure-storage-blob-go v0.14.0
 	github.com/aws/aws-sdk-go v1.34.30
 	github.com/davidbyttow/govips/v2 v2.10.0
+	github.com/stripe/stripe-go/v72 v72.114.0
 	github.com/tdewolff/parse/v2 v2.5.29
 	github.com/vimeo/go-magic v1.0.0
 )

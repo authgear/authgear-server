@@ -9,16 +9,19 @@ package portal
 import (
 	"github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
+	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/portal/appresource/factory"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/endpoint"
 	"github.com/authgear/authgear-server/pkg/portal/graphql"
 	"github.com/authgear/authgear-server/pkg/portal/lib/plan"
+	"github.com/authgear/authgear-server/pkg/portal/libstripe"
 	"github.com/authgear/authgear-server/pkg/portal/loader"
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
@@ -246,6 +249,38 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clock,
 		AnalyticConfig: analyticConfig,
 	}
+	stripeConfig := rootProvider.StripeConfig
+	libstripeLogger := libstripe.NewLogger(logFactory)
+	api := libstripe.NewClientAPI(stripeConfig, libstripeLogger)
+	globalredisHandle := rootProvider.GlobalRedisHandle
+	stripeCache := libstripe.NewStripeCache()
+	libstripeService := &libstripe.Service{
+		ClientAPI:         api,
+		Logger:            libstripeLogger,
+		Context:           context,
+		Plans:             planService,
+		GlobalRedisHandle: globalredisHandle,
+		Cache:             stripeCache,
+		Clock:             clock,
+		StripeConfig:      stripeConfig,
+		Endpoints:         endpointsProvider,
+	}
+	configsourceStore := &configsource.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	globalDBStore := &usage.GlobalDBStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	subscriptionService := &service.SubscriptionService{
+		SQLBuilder:        sqlBuilder,
+		SQLExecutor:       sqlExecutor,
+		ConfigSourceStore: configsourceStore,
+		PlanStore:         store,
+		UsageStore:        globalDBStore,
+		Clock:             clock,
+	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:               logger,
 		Users:                   userLoader,
@@ -261,6 +296,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppResMgrFactory:        managerFactory,
 		AnalyticChartService:    chartService,
 		TutorialService:         tutorialService,
+		StripeService:           libstripeService,
+		SubscriptionService:     subscriptionService,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		DevMode:        devMode,
@@ -419,4 +456,79 @@ func newStaticAssetsHandler(p *deps.RequestProvider) http.Handler {
 		Resources: manager,
 	}
 	return staticAssetsHandler
+}
+
+func newStripeWebhookHandler(p *deps.RequestProvider) http.Handler {
+	rootProvider := p.RootProvider
+	stripeConfig := rootProvider.StripeConfig
+	logFactory := rootProvider.LoggerFactory
+	logger := libstripe.NewLogger(logFactory)
+	api := libstripe.NewClientAPI(stripeConfig, logger)
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
+	clockClock := _wireSystemClockValue
+	environmentConfig := rootProvider.EnvironmentConfig
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	pool := rootProvider.Database
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	handle := globaldb.NewHandle(context, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, logFactory)
+	sqlExecutor := globaldb.NewSQLExecutor(context, handle)
+	store := &plan.Store{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	appConfig := rootProvider.AppConfig
+	planService := &plan.Service{
+		PlanStore: store,
+		AppConfig: appConfig,
+	}
+	globalredisHandle := rootProvider.GlobalRedisHandle
+	stripeCache := libstripe.NewStripeCache()
+	trustProxy := environmentConfig.TrustProxy
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	requestOriginProvider := &endpoint.RequestOriginProvider{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	endpointsProvider := &endpoint.EndpointsProvider{
+		OriginProvider: requestOriginProvider,
+	}
+	libstripeService := &libstripe.Service{
+		ClientAPI:         api,
+		Logger:            logger,
+		Context:           context,
+		Plans:             planService,
+		GlobalRedisHandle: globalredisHandle,
+		Cache:             stripeCache,
+		Clock:             clockClock,
+		StripeConfig:      stripeConfig,
+		Endpoints:         endpointsProvider,
+	}
+	stripeWebhookLogger := transport.NewStripeWebhookLogger(logFactory)
+	configsourceStore := &configsource.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	globalDBStore := &usage.GlobalDBStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	subscriptionService := &service.SubscriptionService{
+		SQLBuilder:        sqlBuilder,
+		SQLExecutor:       sqlExecutor,
+		ConfigSourceStore: configsourceStore,
+		PlanStore:         store,
+		UsageStore:        globalDBStore,
+		Clock:             clockClock,
+	}
+	stripeWebhookHandler := &transport.StripeWebhookHandler{
+		StripeService: libstripeService,
+		Logger:        stripeWebhookLogger,
+		Subscriptions: subscriptionService,
+		Database:      handle,
+	}
+	return stripeWebhookHandler
 }

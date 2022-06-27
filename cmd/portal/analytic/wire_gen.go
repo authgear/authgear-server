@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
+	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/periodical"
 )
@@ -70,17 +71,22 @@ func NewProjectWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredenti
 	readHandle := auditdb.NewReadHandle(ctx, pool, databaseEnvironmentConfig, auditDatabaseCredentials, factory)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
 	readSQLExecutor := auditdb.NewReadSQLExecutor(ctx, readHandle)
-	auditDBReadStore := &analytic.AuditDBReadStore{
+	auditDBReadStore := &meter.AuditDBReadStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: readSQLExecutor,
+	}
+	analyticAuditDBReadStore := &analytic.AuditDBReadStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: readSQLExecutor,
 	}
 	projectWeeklyReport := &analytic.ProjectWeeklyReport{
-		GlobalHandle:  handle,
-		GlobalDBStore: globalDBStore,
-		AppDBHandle:   appdbHandle,
-		AppDBStore:    appDBStore,
-		AuditDBHandle: readHandle,
-		AuditDBStore:  auditDBReadStore,
+		GlobalHandle:      handle,
+		GlobalDBStore:     globalDBStore,
+		AppDBHandle:       appdbHandle,
+		AppDBStore:        appDBStore,
+		AuditDBHandle:     readHandle,
+		MeterAuditDBStore: auditDBReadStore,
+		AuditDBStore:      analyticAuditDBReadStore,
 	}
 	return projectWeeklyReport
 }
@@ -138,6 +144,10 @@ func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *
 		SQLExecutor: readSQLExecutor,
 	}
 	writeHandle := auditdb.NewWriteHandle(ctx, pool, databaseEnvironmentConfig, auditDatabaseCredentials, factory)
+	meterAuditDBReadStore := &meter.AuditDBReadStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: readSQLExecutor,
+	}
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(ctx, writeHandle)
 	auditDBWriteStore := &analytic.AuditDBWriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
@@ -145,9 +155,12 @@ func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *
 	}
 	redisEnvironmentConfig := config.NewDefaultRedisEnvironmentConfig()
 	analyticredisHandle := analyticredis.NewHandle(redisPool, redisEnvironmentConfig, credentials, factory)
-	readStoreRedis := &analytic.ReadStoreRedis{
+	readStoreRedis := &meter.ReadStoreRedis{
 		Context: ctx,
 		Redis:   analyticredisHandle,
+	}
+	service := &analytic.Service{
+		ReadCounter: readStoreRedis,
 	}
 	countCollector := &analytic.CountCollector{
 		GlobalHandle:       handle,
@@ -157,8 +170,9 @@ func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *
 		AuditDBReadHandle:  readHandle,
 		AuditDBReadStore:   auditDBReadStore,
 		AuditDBWriteHandle: writeHandle,
+		MeterAuditDBStore:  meterAuditDBReadStore,
 		AuditDBWriteStore:  auditDBWriteStore,
-		CounterStore:       readStoreRedis,
+		AnalyticService:    service,
 	}
 	return countCollector
 }

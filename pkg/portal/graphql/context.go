@@ -9,10 +9,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
+	"github.com/authgear/authgear-server/pkg/portal/libstripe"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/smtp"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/stripe/stripe-go/v72"
 )
 
 type UserLoader interface {
@@ -93,6 +95,27 @@ type AnalyticChartService interface {
 	GetSignupByMethodsChart(appID string, rangeFrom time.Time, rangeTo time.Time) (*analytic.Chart, error)
 }
 
+type StripeService interface {
+	FetchSubscriptionPlans() ([]*libstripe.SubscriptionPlan, error)
+	CreateCheckoutSession(appID string, customerEmail string, subscriptionPlan *libstripe.SubscriptionPlan) (*libstripe.CheckoutSession, error)
+	FetchCheckoutSession(checkoutSessionID string) (*libstripe.CheckoutSession, error)
+	GetSubscriptionPlan(planName string) (*libstripe.SubscriptionPlan, error)
+	GenerateCustomerPortalSession(appID string, customerID string) (*stripe.BillingPortalSession, error)
+}
+
+type SubscriptionService interface {
+	GetSubscription(appID string) (*model.Subscription, error)
+	CreateSubscriptionCheckout(stripeCheckoutSession *libstripe.CheckoutSession) (*model.SubscriptionCheckout, error)
+	UpdateSubscriptionCheckoutStatusAndCustomerID(appID string, stripCheckoutSessionID string, status model.SubscriptionCheckoutStatus, customerID string) error
+	GetSubscriptionUsage(
+		appID string,
+		planName string,
+		date time.Time,
+		subscriptionPlans []*libstripe.SubscriptionPlan,
+	) (*model.SubscriptionUsage, error)
+	GetIsProcessingSubscription(appID string) (bool, error)
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("portal-graphql")} }
@@ -114,6 +137,8 @@ type Context struct {
 	AppResMgrFactory     AppResourceManagerFactory
 	AnalyticChartService AnalyticChartService
 	TutorialService      TutorialService
+	StripeService        StripeService
+	SubscriptionService  SubscriptionService
 }
 
 func (c *Context) Logger() *log.Logger {

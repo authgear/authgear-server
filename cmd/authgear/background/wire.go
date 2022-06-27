@@ -19,6 +19,7 @@ func newConfigSourceController(p *deps.BackgroundProvider, c context.Context) *c
 		DependencySet,
 		configsource.NewResolveAppIDTypeDomain,
 		configsource.DependencySet,
+		configsource.ControllerDependencySet,
 	))
 }
 

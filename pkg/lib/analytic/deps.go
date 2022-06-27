@@ -5,7 +5,6 @@ import (
 )
 
 var DependencySet = wire.NewSet(
-	NewStoreRedisLogger,
 	wire.Struct(new(GlobalDBStore), "*"),
 	wire.Struct(new(AppDBStore), "*"),
 	wire.Struct(new(AuditDBReadStore), "*"),
@@ -13,10 +12,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(UserWeeklyReport), "*"),
 	wire.Struct(new(ProjectWeeklyReport), "*"),
 	wire.Struct(new(ProjectMonthlyReport), "*"),
-	wire.Struct(new(Service), "*"),
-	wire.Struct(new(ReadStoreRedis), "*"),
-	wire.Struct(new(WriteStoreRedis), "*"),
-	wire.Bind(new(CounterStore), new(*WriteStoreRedis)),
 	wire.Struct(new(CountCollector), "*"),
 	wire.Struct(new(ChartService), "*"),
+	wire.Struct(new(Service), "*"),
 )

@@ -158,6 +158,8 @@
                 </li>
             {{ else if eq .Error.reason "RateLimited" }}
                 <li>{{ template "error-rate-limited" }}</li>
+            {{ else if eq .Error.reason "UsageLimitExceeded" }}
+                <li>{{ template "error-usage-limit-exceeded" }}</li>
             {{ else if eq .Error.reason "SMSNotSupported" }}
                 <li>
                 {{ if ($.Translations.HasKey "customer-support-link") }}

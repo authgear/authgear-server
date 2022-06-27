@@ -54,7 +54,7 @@ func (l *Limiter) TakeToken(bucket Bucket) error {
 
 		if !pass {
 			// Exhausted tokens, rate limit the request.
-			return ErrTooManyRequests
+			return bucket.BucketError()
 		}
 
 		return nil

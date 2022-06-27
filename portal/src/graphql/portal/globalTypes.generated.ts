@@ -51,10 +51,12 @@ export type App = Node & {
   effectiveFeatureConfig: Scalars['FeatureConfig'];
   /** The ID of an object */
   id: Scalars['ID'];
+  isProcessingSubscription: Scalars['Boolean'];
   planName: Scalars['String'];
   rawAppConfig: Scalars['AppConfig'];
   resources: Array<AppResource>;
   secretConfig: SecretConfig;
+  subscriptionUsage?: Maybe<SubscriptionUsage>;
   tutorialStatus: TutorialStatus;
 };
 
@@ -62,6 +64,12 @@ export type App = Node & {
 /** Authgear app */
 export type AppResourcesArgs = {
   paths?: InputMaybe<Array<Scalars['String']>>;
+};
+
+
+/** Authgear app */
+export type AppSubscriptionUsageArgs = {
+  date: Scalars['DateTime'];
 };
 
 /** A connection to a list of items. */
@@ -146,6 +154,18 @@ export type CreateAppPayload = {
   app: App;
 };
 
+export type CreateCheckoutSessionInput = {
+  /** App ID. */
+  appID: Scalars['ID'];
+  /** Plan name. */
+  planName: Scalars['String'];
+};
+
+export type CreateCheckoutSessionPayload = {
+  __typename?: 'CreateCheckoutSessionPayload';
+  url: Scalars['String'];
+};
+
 export type CreateCollaboratorInvitationInput = {
   /** Target app ID. */
   appID: Scalars['ID'];
@@ -223,12 +243,24 @@ export type Domain = {
   verificationDNSRecord: Scalars['String'];
 };
 
+export type GenerateStripeCustomerPortalSessionInput = {
+  /** Target app ID. */
+  appID: Scalars['ID'];
+};
+
+export type GenerateStripeCustomerPortalSessionPayload = {
+  __typename?: 'GenerateStripeCustomerPortalSessionPayload';
+  url: Scalars['String'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   /** Accept collaborator invitation to the target app. */
   acceptCollaboratorInvitation: AcceptCollaboratorInvitationPayload;
   /** Create new app */
   createApp: CreateAppPayload;
+  /** Create stripe checkout session */
+  createCheckoutSession: CreateCheckoutSessionPayload;
   /** Invite a collaborator to the target app. */
   createCollaboratorInvitation: CreateCollaboratorInvitationPayload;
   /** Create domain for target app */
@@ -239,6 +271,10 @@ export type Mutation = {
   deleteCollaboratorInvitation: DeleteCollaboratorInvitationPayload;
   /** Delete domain of target app */
   deleteDomain: DeleteDomainPayload;
+  /** Generate Stripe customer portal session */
+  generateStripeCustomerPortalSession: GenerateStripeCustomerPortalSessionPayload;
+  /** Reconcile the completed checkout session */
+  reconcileCheckoutSession: ReconcileCheckoutSessionPayload;
   /** Send test STMP configuration email */
   sendTestSMTPConfigurationEmail?: Maybe<Scalars['Boolean']>;
   /** Skip the tutorial of the app */
@@ -259,6 +295,11 @@ export type MutationAcceptCollaboratorInvitationArgs = {
 
 export type MutationCreateAppArgs = {
   input: CreateAppInput;
+};
+
+
+export type MutationCreateCheckoutSessionArgs = {
+  input: CreateCheckoutSessionInput;
 };
 
 
@@ -284,6 +325,16 @@ export type MutationDeleteCollaboratorInvitationArgs = {
 
 export type MutationDeleteDomainArgs = {
   input: DeleteDomainInput;
+};
+
+
+export type MutationGenerateStripeCustomerPortalSessionArgs = {
+  input: GenerateStripeCustomerPortalSessionInput;
+};
+
+
+export type MutationReconcileCheckoutSessionArgs = {
+  input: ReconcileCheckoutSession;
 };
 
 
@@ -363,6 +414,8 @@ export type Query = {
   signupByMethodsChart?: Maybe<Chart>;
   /** Signup conversion rate dashboard data */
   signupConversionRate?: Maybe<SignupConversionRate>;
+  /** Available subscription plans */
+  subscriptionPlans: Array<SubscriptionPlan>;
   /** Total users count chart dataset */
   totalUserCountChart?: Maybe<Chart>;
   /** The current viewer */
@@ -481,6 +534,55 @@ export type SkipAppTutorialProgressPayload = {
   app: App;
 };
 
+export type SubscriptionItemPrice = {
+  __typename?: 'SubscriptionItemPrice';
+  currency: Scalars['String'];
+  smsRegion: SubscriptionItemPriceSmsRegion;
+  type: SubscriptionItemPriceType;
+  unitAmount: Scalars['Int'];
+  usageType: SubscriptionItemPriceUsageType;
+};
+
+export enum SubscriptionItemPriceSmsRegion {
+  None = 'NONE',
+  NorthAmerica = 'NORTH_AMERICA',
+  OtherRegions = 'OTHER_REGIONS'
+}
+
+export enum SubscriptionItemPriceType {
+  Fixed = 'FIXED',
+  Usage = 'USAGE'
+}
+
+export enum SubscriptionItemPriceUsageType {
+  Mau = 'MAU',
+  None = 'NONE',
+  Sms = 'SMS'
+}
+
+export type SubscriptionPlan = {
+  __typename?: 'SubscriptionPlan';
+  name: Scalars['String'];
+  prices: Array<SubscriptionItemPrice>;
+};
+
+export type SubscriptionUsage = {
+  __typename?: 'SubscriptionUsage';
+  items: Array<SubscriptionUsageItem>;
+  nextBillingDate: Scalars['DateTime'];
+};
+
+export type SubscriptionUsageItem = {
+  __typename?: 'SubscriptionUsageItem';
+  currency?: Maybe<Scalars['String']>;
+  quantity: Scalars['Int'];
+  smsRegion: SubscriptionItemPriceSmsRegion;
+  totalAmount?: Maybe<Scalars['Int']>;
+  type: SubscriptionItemPriceType;
+  unitAmount?: Maybe<Scalars['Int']>;
+  usageType: SubscriptionItemPriceUsageType;
+};
+
 /** Tutorial status of an app */
 export type TutorialStatus = {
   __typename?: 'TutorialStatus';
@@ -529,6 +631,18 @@ export type VerifyDomainPayload = {
 export type WebhookSecret = {
   __typename?: 'WebhookSecret';
   secret?: Maybe<Scalars['String']>;
+};
+
+export type ReconcileCheckoutSession = {
+  /** Target app ID. */
+  appID: Scalars['ID'];
+  /** Checkout session ID. */
+  checkoutSessionID: Scalars['String'];
+};
+
+export type ReconcileCheckoutSessionPayload = {
+  __typename?: 'reconcileCheckoutSessionPayload';
+  app: App;
 };
 
 export type SendTestSmtpConfigurationEmailInput = {

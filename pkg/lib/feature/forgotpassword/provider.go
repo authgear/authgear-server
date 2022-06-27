@@ -61,6 +61,10 @@ type EventService interface {
 	DispatchEvent(payload event.Payload) error
 }
 
+type HardSMSBucketer interface {
+	Bucket() ratelimit.Bucket
+}
+
 type Provider struct {
 	RemoteIP    httputil.RemoteIP
 	Translation TranslationService
@@ -75,9 +79,11 @@ type Provider struct {
 
 	Identities     IdentityService
 	Authenticators AuthenticatorService
-	RateLimiter    RateLimiter
 	FeatureConfig  *config.FeatureConfig
 	Events         EventService
+
+	RateLimiter     RateLimiter
+	HardSMSBucketer HardSMSBucketer
 }
 
 // SendCode checks if loginID is an existing login ID.
@@ -87,7 +93,7 @@ type Provider struct {
 // The code becomes invalid if it is consumed.
 // Finally the code is sent to the login ID asynchronously.
 func (p *Provider) SendCode(loginID string) error {
-	err := p.RateLimiter.TakeToken(SendResetPasswordCodeRateLimitBucket(loginID))
+	err := p.RateLimiter.TakeToken(AntiSpamSendCodeBucket(loginID))
 	if err != nil {
 		return err
 	}
@@ -178,7 +184,7 @@ func (p *Provider) sendEmail(email string, code string) error {
 		return err
 	}
 
-	err = p.RateLimiter.TakeToken(mail.RateLimitBucket(email))
+	err = p.RateLimiter.TakeToken(mail.AntiSpamBucket(email))
 	if err != nil {
 		return err
 	}
@@ -224,7 +230,12 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 		return err
 	}
 
-	err = p.RateLimiter.TakeToken(sms.RateLimitBucket(phone))
+	err = p.RateLimiter.TakeToken(sms.AntiSpamBucket(phone))
+	if err != nil {
+		return err
+	}
+
+	err = p.RateLimiter.TakeToken(p.HardSMSBucketer.Bucket())
 	if err != nil {
 		return err
 	}
@@ -257,7 +268,7 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 // newPassword is checked against the password policy so
 // password policy error may also be returned.
 func (p *Provider) ResetPasswordByCode(codeStr string, newPassword string) (oldInfo *authenticator.Info, newInfo *authenticator.Info, err error) {
-	err = p.RateLimiter.TakeToken(VerifyIPRateLimitBucket(string(p.RemoteIP)))
+	err = p.RateLimiter.TakeToken(AntiBruteForceVerifyBucket(string(p.RemoteIP)))
 	if err != nil {
 		return
 	}

@@ -60,6 +60,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
+	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -603,12 +604,16 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Coordinator: coordinator,
 	}
 	webEndpoints := &WebEndpoints{}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   webEndpoints,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       webEndpoints,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -634,19 +639,20 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           webEndpoints,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            webEndpoints,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -701,6 +707,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,

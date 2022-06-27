@@ -3,15 +3,31 @@ package config_test
 import (
 	"errors"
 	"io"
+	"io/ioutil"
 	"os"
 	"testing"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	. "github.com/smartystreets/goconvey/convey"
 	goyaml "gopkg.in/yaml.v2"
+	"sigs.k8s.io/yaml"
 )
 
 func TestParseFeatureConfig(t *testing.T) {
+	Convey("default feature config", t, func() {
+		cfg, err := config.ParseFeatureConfig([]byte(`{}`))
+		So(err, ShouldBeNil)
+
+		data, err := ioutil.ReadFile("testdata/default_feature.yaml")
+		So(err, ShouldBeNil)
+
+		var defaultCfg config.FeatureConfig
+		err = yaml.Unmarshal(data, &defaultCfg)
+		So(err, ShouldBeNil)
+
+		So(cfg, ShouldResemble, &defaultCfg)
+	})
+
 	Convey("ParseFeatureConfig", t, func() {
 		f, err := os.Open("testdata/parse_feature_tests.yaml")
 		if err != nil {

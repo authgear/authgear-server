@@ -3,7 +3,6 @@ package deps
 import (
 	"github.com/google/wire"
 
-	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	authenticatoroob "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
@@ -35,6 +34,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
@@ -48,6 +48,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
+	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -88,6 +89,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(featurestdattrs.EventService), new(*event.Service)),
 		wire.Bind(new(featurecustomattrs.EventService), new(*event.Service)),
 		wire.Bind(new(facade.EventService), new(*event.Service)),
+		wire.Bind(new(whatsapp.EventService), new(*event.Service)),
 	),
 
 	wire.NewSet(
@@ -299,8 +301,8 @@ var CommonDependencySet = wire.NewSet(
 	),
 
 	wire.NewSet(
-		analytic.DependencySet,
-		wire.Bind(new(session.AnalyticService), new(*analytic.Service)),
+		meter.DependencySet,
+		wire.Bind(new(session.MeterService), new(*meter.Service)),
 	),
 
 	wire.NewSet(
@@ -314,4 +316,10 @@ var CommonDependencySet = wire.NewSet(
 	presign.DependencySet,
 
 	tutorial.DependencySet,
+
+	wire.NewSet(
+		usage.DependencySet,
+		wire.Bind(new(forgotpassword.HardSMSBucketer), new(*usage.HardSMSBucketer)),
+		wire.Bind(new(otp.HardSMSBucketer), new(*usage.HardSMSBucketer)),
+	),
 )

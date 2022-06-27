@@ -14,7 +14,6 @@ import (
 	webapp2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
@@ -49,6 +48,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
@@ -63,6 +63,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
+	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -571,12 +572,16 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -608,19 +613,20 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clock,
-		URLs:           webappURLProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clock,
+		URLs:            webappURLProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -657,6 +663,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -1257,12 +1264,16 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -1294,19 +1305,20 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           webappURLProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            webappURLProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -1343,6 +1355,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -1899,12 +1912,16 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -1936,19 +1953,20 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -2007,6 +2025,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -3809,12 +3828,16 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -3846,19 +3869,20 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -3917,6 +3941,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -4456,12 +4481,16 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -4493,19 +4522,20 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -4564,6 +4594,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -5109,12 +5140,16 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -5146,19 +5181,20 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -5217,6 +5253,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -5862,12 +5899,16 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -5899,19 +5940,20 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -5969,6 +6011,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -6074,15 +6117,15 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		UI:      uiConfig,
 	}
 	analyticredisHandle := appProvider.AnalyticRedis
-	analyticStoreRedisLogger := analytic.NewStoreRedisLogger(factory)
-	writeStoreRedis := &analytic.WriteStoreRedis{
+	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
+	writeStoreRedis := &meter.WriteStoreRedis{
 		Context: contextContext,
 		Redis:   analyticredisHandle,
 		AppID:   appID,
 		Clock:   clockClock,
-		Logger:  analyticStoreRedisLogger,
+		Logger:  meterStoreRedisLogger,
 	}
-	analyticService := &analytic.Service{
+	meterService := &meter.Service{
 		Counter: writeStoreRedis,
 	}
 	tutorialCookie := &httputil.TutorialCookie{
@@ -6093,7 +6136,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel:     baseViewModeler,
 		FormPrefiller:     formPrefiller,
 		Renderer:          responseRenderer,
-		AnalyticService:   analyticService,
+		MeterService:      meterService,
 		TutorialCookie:    tutorialCookie,
 	}
 	return loginHandler
@@ -6552,12 +6595,16 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -6589,19 +6636,20 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -6659,6 +6707,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -6764,15 +6813,15 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		UI:      uiConfig,
 	}
 	analyticredisHandle := appProvider.AnalyticRedis
-	analyticStoreRedisLogger := analytic.NewStoreRedisLogger(factory)
-	writeStoreRedis := &analytic.WriteStoreRedis{
+	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
+	writeStoreRedis := &meter.WriteStoreRedis{
 		Context: contextContext,
 		Redis:   analyticredisHandle,
 		AppID:   appID,
 		Clock:   clockClock,
-		Logger:  analyticStoreRedisLogger,
+		Logger:  meterStoreRedisLogger,
 	}
-	analyticService := &analytic.Service{
+	meterService := &meter.Service{
 		Counter: writeStoreRedis,
 	}
 	tutorialCookie := &httputil.TutorialCookie{
@@ -6783,7 +6832,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel:     baseViewModeler,
 		FormPrefiller:     formPrefiller,
 		Renderer:          responseRenderer,
-		AnalyticService:   analyticService,
+		MeterService:      meterService,
 		TutorialCookie:    tutorialCookie,
 	}
 	return signupHandler
@@ -7242,12 +7291,16 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -7279,19 +7332,20 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -7349,6 +7403,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -7915,12 +7970,16 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -7952,19 +8011,20 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -8022,6 +8082,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -8589,12 +8650,16 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -8626,19 +8691,20 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -8696,6 +8762,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -9255,12 +9322,16 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -9292,19 +9363,20 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -9362,6 +9434,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -9924,12 +9997,16 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -9961,19 +10038,20 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -10031,6 +10109,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -10596,12 +10675,16 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -10633,19 +10716,20 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -10703,6 +10787,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -11265,12 +11350,16 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -11302,19 +11391,20 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -11372,6 +11462,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -11933,12 +12024,16 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -11970,19 +12065,20 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -12040,6 +12136,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -12602,12 +12699,16 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -12639,19 +12740,20 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -12709,6 +12811,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -13272,12 +13375,16 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -13309,19 +13416,20 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -13379,6 +13487,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -13940,12 +14049,16 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -13977,19 +14090,20 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -14047,6 +14161,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -14608,12 +14723,16 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -14645,19 +14764,20 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -14715,6 +14835,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -15278,12 +15399,16 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -15315,19 +15440,20 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -15385,6 +15511,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -15946,12 +16073,16 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -15983,19 +16114,20 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -16053,6 +16185,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -16178,11 +16311,304 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	secretConfig := config.SecretConfig
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	provider := &whatsapp.Provider{
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	userAgentString := deps.ProvideUserAgentString(request)
+	eventLogger := event.NewLogger(factory)
+	appdbHandle := appProvider.AppDatabase
+	appConfig := config.AppConfig
+	localizationConfig := appConfig.Localization
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, appdbHandle)
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	appID := appConfig.ID
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rawQueries := &user.RawQueries{
+		Store: store,
+	}
+	authenticationConfig := appConfig.Authentication
+	identityConfig := appConfig.Identity
+	featureConfig := config.FeatureConfig
+	identityFeatureConfig := featureConfig.Identity
+	serviceStore := &service.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	loginIDConfig := identityConfig.LoginID
+	manager := appProvider.Resources
+	typeCheckerFactory := &loginid.TypeCheckerFactory{
+		Config:    loginIDConfig,
+		Resources: manager,
+	}
+	checker := &loginid.Checker{
+		Config:             loginIDConfig,
+		TypeCheckerFactory: typeCheckerFactory,
+	}
+	normalizerFactory := &loginid.NormalizerFactory{
+		Config: loginIDConfig,
+	}
+	provider := &loginid.Provider{
+		Store:             loginidStore,
+		Config:            loginIDConfig,
+		Checker:           checker,
+		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
+	}
+	oauthStore := &oauth3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	oauthProvider := &oauth3.Provider{
+		Store: oauthStore,
+		Clock: clockClock,
+	}
+	anonymousStore := &anonymous.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	anonymousProvider := &anonymous.Provider{
+		Store: anonymousStore,
+		Clock: clockClock,
+	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
+	serviceService := &service.Service{
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 serviceStore,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
+	}
+	store2 := &service2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	passwordLogger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		Logger:          passwordLogger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+		Housekeeper:     housekeeper,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	oobStoreRedis := &oob.StoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oobLogger := oob.NewLogger(factory)
+	oobProvider := &oob.Provider{
+		Config:    authenticatorOOBConfig,
+		Store:     oobStore,
+		CodeStore: oobStoreRedis,
+		Clock:     clockClock,
+		Logger:    oobLogger,
+	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	service3 := &service2.Service{
+		Store:       store2,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
+	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
+	verificationStoreRedis := &verification.StoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storePQ := &verification.StorePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	verificationService := &verification.Service{
+		RemoteIP:          remoteIP,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
+	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         store,
+		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
+	}
+	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
+		Config:      userProfileConfig,
+		UserQueries: rawQueries,
+		UserStore:   store,
+	}
+	queries := &user.Queries{
+		RawQueries:         rawQueries,
+		Store:              store,
+		Identities:         serviceService,
+		Authenticators:     service3,
+		Verification:       verificationService,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+	}
+	resolverImpl := &event.ResolverImpl{
+		Users: queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilderApp,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	pool := rootProvider.DatabasePool
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
+	tutorialStoreImpl := &tutorial.StoreImpl{
+		SQLBuilder:  globaldbSQLBuilder,
+		SQLExecutor: globaldbSQLExecutor,
+	}
+	tutorialService := &tutorial.Service{
+		Store: tutorialStoreImpl,
+	}
+	tutorialSink := &tutorial.Sink{
+		AppID:        appID,
+		Service:      tutorialService,
+		GlobalHandle: globaldbHandle,
+	}
+	elasticsearchLogger := elasticsearch.NewLogger(factory)
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	queue := appProvider.TaskQueue
+	elasticsearchService := elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     queries,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
+	elasticsearchSink := &elasticsearch.Sink{
+		Logger:   elasticsearchLogger,
+		Service:  elasticsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	whatsappProvider := &whatsapp.Provider{
 		CodeStore:       storeRedis,
 		Clock:           clockClock,
 		Logger:          logger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	whatsappWATICallbackHandlerLogger := webapp2.NewWhatsappWATICallbackHandlerLogger(factory)
 	globalSessionServiceFactory := &webapp2.GlobalSessionServiceFactory{
@@ -16190,7 +16616,7 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		RedisHandle: handle,
 	}
 	whatsappWATICallbackHandler := &webapp2.WhatsappWATICallbackHandler{
-		WhatsappCodeProvider:        provider,
+		WhatsappCodeProvider:        whatsappProvider,
 		Logger:                      whatsappWATICallbackHandlerLogger,
 		WATICredentials:             watiCredentials,
 		GlobalSessionServiceFactory: globalSessionServiceFactory,
@@ -16651,12 +17077,16 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -16688,19 +17118,20 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -16758,6 +17189,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -17319,12 +17751,16 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -17356,19 +17792,20 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -17426,6 +17863,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -17987,12 +18425,16 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -18024,19 +18466,20 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -18094,6 +18537,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -18657,12 +19101,16 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -18694,19 +19142,20 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -18764,6 +19213,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -19325,12 +19775,16 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -19362,19 +19816,20 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -19432,6 +19887,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -19998,12 +20454,16 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -20035,19 +20495,20 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -20105,6 +20566,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -20666,12 +21128,16 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -20703,19 +21169,20 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -20773,6 +21240,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -21335,12 +21803,16 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -21372,19 +21844,20 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -21442,6 +21915,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -22003,12 +22477,16 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -22040,19 +22518,20 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -22110,6 +22589,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -22698,12 +23178,16 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -22735,19 +23219,20 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -22805,6 +23290,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -23377,12 +23863,16 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -23414,19 +23904,20 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -23484,6 +23975,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -24069,12 +24561,16 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -24106,19 +24602,20 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -24176,6 +24673,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -24740,12 +25238,16 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -24777,19 +25279,20 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -24847,6 +25350,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -25409,12 +25913,16 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -25446,19 +25954,20 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -25516,6 +26025,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -26087,12 +26597,16 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -26124,19 +26638,20 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -26194,6 +26709,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -26756,12 +27272,16 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -26793,19 +27313,20 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -26863,6 +27384,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -27425,12 +27947,16 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -27462,19 +27988,20 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -27532,6 +28059,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -28095,12 +28623,16 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -28132,19 +28664,20 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -28202,6 +28735,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -28769,12 +29303,16 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -28806,19 +29344,20 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -28876,6 +29415,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -29438,12 +29978,16 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -29475,19 +30019,20 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -29545,6 +30090,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -30107,12 +30653,16 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -30144,19 +30694,20 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -30214,6 +30765,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -30776,12 +31328,16 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -30813,19 +31369,20 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -30883,6 +31440,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -31445,12 +32003,16 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -31482,19 +32044,20 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -31552,6 +32115,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -32121,12 +32685,16 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -32158,19 +32726,20 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -32228,6 +32797,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -32791,12 +33361,16 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -32828,19 +33402,20 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -32898,6 +33473,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -33459,12 +34035,16 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -33496,19 +34076,20 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -33566,6 +34147,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -34146,12 +34728,16 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -34183,19 +34769,20 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -34253,6 +34840,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -34814,12 +35402,16 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsProvider,
-		RateLimiter: limiter,
-		TaskQueue:   queue,
-		Events:      eventService,
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -34851,19 +35443,20 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:       remoteIP,
-		Translation:    translationService,
-		Config:         forgotPasswordConfig,
-		Store:          forgotpasswordStore,
-		Clock:          clockClock,
-		URLs:           urlProvider,
-		TaskQueue:      queue,
-		Logger:         providerLogger,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		RateLimiter:    limiter,
-		FeatureConfig:  featureConfig,
-		Events:         eventService,
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -34921,6 +35514,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
+		Events:          eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -35557,15 +36151,15 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	middlewareLogger := session.NewMiddlewareLogger(factory)
 	analyticredisHandle := appProvider.AnalyticRedis
-	analyticStoreRedisLogger := analytic.NewStoreRedisLogger(factory)
-	writeStoreRedis := &analytic.WriteStoreRedis{
+	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
+	writeStoreRedis := &meter.WriteStoreRedis{
 		Context: contextContext,
 		Redis:   analyticredisHandle,
 		AppID:   appID,
 		Clock:   clockClock,
-		Logger:  analyticStoreRedisLogger,
+		Logger:  meterStoreRedisLogger,
 	}
-	analyticService := &analytic.Service{
+	meterService := &meter.Service{
 		Counter: writeStoreRedis,
 	}
 	sessionMiddleware := &session.Middleware{
@@ -35577,7 +36171,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Users:                      queries,
 		Database:                   appdbHandle,
 		Logger:                     middlewareLogger,
-		AnalyticService:            analyticService,
+		MeterService:               meterService,
 	}
 	return sessionMiddleware
 }

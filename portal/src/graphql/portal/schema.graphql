@@ -46,6 +46,9 @@ type App implements Node {
   id: ID!
 
   """"""
+  isProcessingSubscription: Boolean!
+
+  """"""
   planName: String!
 
   """"""
@@ -56,6 +59,9 @@ type App implements Node {
 
   """"""
   secretConfig: SecretConfig!
+
+  """"""
+  subscriptionUsage(date: DateTime!): SubscriptionUsage
 
   """"""
   tutorialStatus: TutorialStatus!
@@ -176,6 +182,21 @@ input CreateAppInput {
 type CreateAppPayload {
   """"""
   app: App!
+}
+
+""""""
+input CreateCheckoutSessionInput {
+  """App ID."""
+  appID: ID!
+
+  """Plan name."""
+  planName: String!
+}
+
+""""""
+type CreateCheckoutSessionPayload {
+  """"""
+  url: String!
 }
 
 """"""
@@ -305,12 +326,27 @@ The `FeatureConfig` scalar type represents an feature config JSON object
 scalar FeatureConfig
 
 """"""
+input GenerateStripeCustomerPortalSessionInput {
+  """Target app ID."""
+  appID: ID!
+}
+
+""""""
+type GenerateStripeCustomerPortalSessionPayload {
+  """"""
+  url: String!
+}
+
+""""""
 type Mutation {
   """Accept collaborator invitation to the target app."""
   acceptCollaboratorInvitation(input: AcceptCollaboratorInvitationInput!): AcceptCollaboratorInvitationPayload!
 
   """Create new app"""
   createApp(input: CreateAppInput!): CreateAppPayload!
+
+  """Create stripe checkout session"""
+  createCheckoutSession(input: CreateCheckoutSessionInput!): CreateCheckoutSessionPayload!
 
   """Invite a collaborator to the target app."""
   createCollaboratorInvitation(input: CreateCollaboratorInvitationInput!): CreateCollaboratorInvitationPayload!
@@ -326,6 +362,12 @@ type Mutation {
 
   """Delete domain of target app"""
   deleteDomain(input: DeleteDomainInput!): DeleteDomainPayload!
+
+  """Generate Stripe customer portal session"""
+  generateStripeCustomerPortalSession(input: GenerateStripeCustomerPortalSessionInput!): GenerateStripeCustomerPortalSessionPayload!
+
+  """Reconcile the completed checkout session"""
+  reconcileCheckoutSession(input: reconcileCheckoutSession!): reconcileCheckoutSessionPayload!
 
   """Send test STMP configuration email"""
   sendTestSMTPConfigurationEmail(input: sendTestSMTPConfigurationEmailInput!): Boolean
@@ -450,6 +492,9 @@ type Query {
     rangeTo: Date!
   ): SignupConversionRate
 
+  """Available subscription plans"""
+  subscriptionPlans: [SubscriptionPlan!]!
+
   """Total users count chart dataset"""
   totalUserCountChart(
     """Target app ID."""
@@ -559,6 +604,99 @@ type SkipAppTutorialProgressPayload {
   app: App!
 }
 
+""""""
+type SubscriptionItemPrice {
+  """"""
+  currency: String!
+
+  """"""
+  smsRegion: SubscriptionItemPriceSMSRegion!
+
+  """"""
+  type: SubscriptionItemPriceType!
+
+  """"""
+  unitAmount: Int!
+
+  """"""
+  usageType: SubscriptionItemPriceUsageType!
+}
+
+""""""
+enum SubscriptionItemPriceSMSRegion {
+  """"""
+  NONE
+
+  """"""
+  NORTH_AMERICA
+
+  """"""
+  OTHER_REGIONS
+}
+
+""""""
+enum SubscriptionItemPriceType {
+  """"""
+  FIXED
+
+  """"""
+  USAGE
+}
+
+""""""
+enum SubscriptionItemPriceUsageType {
+  """"""
+  MAU
+
+  """"""
+  NONE
+
+  """"""
+  SMS
+}
+
+""""""
+type SubscriptionPlan {
+  """"""
+  name: String!
+
+  """"""
+  prices: [SubscriptionItemPrice!]!
+}
+
+""""""
+type SubscriptionUsage {
+  """"""
+  items: [SubscriptionUsageItem!]!
+
+  """"""
+  nextBillingDate: DateTime!
+}
+
+""""""
+type SubscriptionUsageItem {
+  """"""
+  currency: String
+
+  """"""
+  quantity: Int!
+
+  """"""
+  smsRegion: SubscriptionItemPriceSMSRegion!
+
+  """"""
+  totalAmount: Int
+
+  """"""
+  type: SubscriptionItemPriceType!
+
+  """"""
+  unitAmount: Int
+
+  """"""
+  usageType: SubscriptionItemPriceUsageType!
+}
+
 """Tutorial status of an app"""
 type TutorialStatus {
   """"""
@@ -623,6 +761,21 @@ type VerifyDomainPayload {
 type WebhookSecret {
   """"""
   secret: String
+}
+
+""""""
+input reconcileCheckoutSession {
+  """Target app ID."""
+  appID: ID!
+
+  """Checkout session ID."""
+  checkoutSessionID: String!
+}
+
+""""""
+type reconcileCheckoutSessionPayload {
+  """"""
+  app: App!
 }
 
 """"""

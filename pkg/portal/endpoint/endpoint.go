@@ -40,3 +40,11 @@ func (p *EndpointsProvider) urlOf(relPath string) *url.URL {
 func (p *EndpointsProvider) AcceptCollaboratorInvitationEndpointURL() *url.URL {
 	return p.urlOf("collaborators/invitation")
 }
+
+func (p *EndpointsProvider) BillingEndpointURL(relayGlobalAppID string) *url.URL {
+	return p.urlOf(path.Join("project", relayGlobalAppID, "billing"))
+}
+
+func (p *EndpointsProvider) BillingRedirectEndpointURL(relayGlobalAppID string) *url.URL {
+	return p.urlOf(path.Join("project", relayGlobalAppID, "billing-redirect"))
+}

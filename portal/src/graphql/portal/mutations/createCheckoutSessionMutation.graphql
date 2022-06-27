@@ -1,0 +1,5 @@
+mutation createCheckoutSessionMutation($appID: ID!, $planName: String!) {
+  createCheckoutSession(input: { appID: $appID, planName: $planName }) {
+    url
+  }
+}

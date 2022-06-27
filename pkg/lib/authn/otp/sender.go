@@ -28,6 +28,10 @@ type TranslationService interface {
 	SMSMessageData(msg *translation.MessageSpec, args interface{}) (*translation.SMSMessageData, error)
 }
 
+type HardSMSBucketer interface {
+	Bucket() ratelimit.Bucket
+}
+
 type RateLimiter interface {
 	TakeToken(bucket ratelimit.Bucket) error
 }
@@ -39,9 +43,11 @@ type EventService interface {
 type MessageSender struct {
 	Translation TranslationService
 	Endpoints   EndpointsProvider
-	RateLimiter RateLimiter
 	TaskQueue   task.Queue
 	Events      EventService
+
+	RateLimiter     RateLimiter
+	HardSMSBucketer HardSMSBucketer
 }
 
 func (s *MessageSender) makeData(opts SendOptions) (*MessageTemplateContext, error) {
@@ -91,7 +97,7 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
 		return err
 	}
 
-	err = s.RateLimiter.TakeToken(mail.RateLimitBucket(email))
+	err = s.RateLimiter.TakeToken(mail.AntiSpamBucket(email))
 	if err != nil {
 		return err
 	}
@@ -153,7 +159,12 @@ func (s *MessageSender) SendSMS(phone string, opts SendOptions) (err error) {
 		return err
 	}
 
-	err = s.RateLimiter.TakeToken(sms.RateLimitBucket(phone))
+	err = s.RateLimiter.TakeToken(sms.AntiSpamBucket(phone))
+	if err != nil {
+		return err
+	}
+
+	err = s.RateLimiter.TakeToken(s.HardSMSBucketer.Bucket())
 	if err != nil {
 		return err
 	}

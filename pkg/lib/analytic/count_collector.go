@@ -21,6 +21,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/timeutil"
 )
 
+type MeterAuditDBReadStore interface {
+	GetCountByActivityType(appID string, activityType string, rangeFrom *time.Time, rangeTo *time.Time) (int, error)
+	QueryPage(appID string, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]*audit.Log, uint64, error)
+}
+
 type SignupCountResult struct {
 	TotalCount           int
 	CountByLoginID       map[string]int
@@ -36,8 +41,9 @@ type CountCollector struct {
 	AuditDBReadHandle  *auditdb.ReadHandle
 	AuditDBReadStore   *AuditDBReadStore
 	AuditDBWriteHandle *auditdb.WriteHandle
+	MeterAuditDBStore  MeterAuditDBReadStore
 	AuditDBWriteStore  *AuditDBWriteStore
-	CounterStore       *ReadStoreRedis
+	AnalyticService    *Service
 }
 
 func (c *CountCollector) CollectDaily(date *time.Time) (updatedCount int, err error) {
@@ -201,7 +207,7 @@ func (c *CountCollector) CollectDailyCountForApp(appID string, date time.Time, n
 	}
 
 	// Collect counts from redis
-	dailyCount, err := c.CounterStore.GetDailyCountResult(config.AppID(appID), &date)
+	dailyCount, err := c.AnalyticService.GetDailyCountResult(config.AppID(appID), &date)
 	if err != nil {
 		return
 	}
@@ -262,7 +268,7 @@ func (c *CountCollector) CollectWeeklyForApp(appID string, date *time.Time) (cou
 	if err != nil {
 		return
 	}
-	weeklyCount, err := c.CounterStore.GetWeeklyCountResult(config.AppID(appID), year, week)
+	weeklyCount, err := c.AnalyticService.GetWeeklyCountResult(config.AppID(appID), year, week)
 	if err != nil {
 		return
 	}
@@ -280,7 +286,7 @@ func (c *CountCollector) CollectMonthlyForApp(appID string, date *time.Time) (co
 	if err != nil {
 		return
 	}
-	monthlyCount, err := c.CounterStore.GetMonthlyCountResult(config.AppID(appID), firstDayOfTheMonth.Year(), int(firstDayOfTheMonth.Month()))
+	monthlyCount, err := c.AnalyticService.GetMonthlyCountResult(config.AppID(appID), firstDayOfTheMonth.Year(), int(firstDayOfTheMonth.Month()))
 	if err != nil {
 		return
 	}
@@ -346,7 +352,7 @@ func (c *CountCollector) queryUserCreatedEvents(appID string, rangeFrom *time.Ti
 		ActivityTypes: []string{string(nonblocking.UserCreated)},
 	}
 
-	logs, offset, err := c.AuditDBReadStore.QueryPage(appID, options, graphqlutil.PageArgs{
+	logs, offset, err := c.MeterAuditDBStore.QueryPage(appID, options, graphqlutil.PageArgs{
 		First: &first,
 		After: graphqlutil.Cursor(after),
 	})
@@ -412,5 +418,5 @@ func (c *CountCollector) saveCounts(counts []*Count) (updatedCount int, err erro
 }
 
 func (c *CountCollector) setRedisKeyExpiry(redisKeys []string) error {
-	return c.CounterStore.SetKeysExpire(redisKeys, duration.AnalyticRedisKeyExpiration)
+	return c.AnalyticService.SetKeysExpire(redisKeys, duration.AnalyticRedisKeyExpiration)
 }

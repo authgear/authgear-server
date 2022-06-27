@@ -1,0 +1,48 @@
+fragment AppFragment on App {
+  id
+  effectiveFeatureConfig
+  isProcessingSubscription
+  planName
+  previousMonth: subscriptionUsage(date: $previousMonth) {
+    nextBillingDate
+    items {
+      type
+      usageType
+      smsRegion
+      quantity
+      currency
+      unitAmount
+      totalAmount
+    }
+  }
+  thisMonth: subscriptionUsage(date: $thisMonth) {
+    nextBillingDate
+    items {
+      type
+      usageType
+      smsRegion
+      quantity
+      currency
+      unitAmount
+      totalAmount
+    }
+  }
+}
+
+query subscriptionScreenQuery($id: ID!, $thisMonth: DateTime!, $previousMonth: DateTime!) {
+  node(id: $id) {
+    __typename
+    ...AppFragment
+  }
+
+  subscriptionPlans {
+    name
+    prices {
+      currency
+      smsRegion
+      type
+      unitAmount
+      usageType
+    }
+  }
+}

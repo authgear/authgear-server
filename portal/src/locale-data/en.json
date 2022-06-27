@@ -48,6 +48,7 @@
   "reveal": "Reveal",
   "download": "Download",
   "not-set": "Not set",
+  "understood": "Understood",
 
   "apple": "Apple",
   "google": "Google",
@@ -811,6 +812,7 @@
   "AuditLogActivityType.USER_DELETION_UNSCHEDULED": "Account deletion unscheduled",
   "AuditLogActivityType.EMAIL_SENT": "Email sent",
   "AuditLogActivityType.SMS_SENT": "SMS sent",
+  "AuditLogActivityType.WHATSAPP_OTP_VERIFIED": "Whatsapp OTP verified",
 
   "FeatureConfig.disabled": "The grayed out features are not available for your project plan. {ReactRouterLink, react, to{{planPagePath}} children{Upgrade your project plan} target{_blank}}.",
   "FeatureConfig.custom-domain.disabled": "Custom domains are not available for your project plan. {ReactRouterLink, react, to{{planPagePath}} children{Upgrade your project plan}}.",
@@ -823,52 +825,75 @@
   "FeatureConfig.webhook.non-blocking-events.maximum": "You can only add {maximum, plural, one{1 non-blocking event endpoint} other{# non-blocking event endpoints}} at once on your plan. To add more, {ReactRouterLink, react, to{{planPagePath}} children{upgrade your project plan} target{_blank}}.",
   "FeatureConfig.audit-log.retrieval-days": "You can only retrieve audit logs for the last {logRetrievalDays, plural, one{1 day} other{# days}}. To retrieve more logs, {ReactRouterLink, react, to{{planPagePath}} children{upgrade your project plan} target{_blank}}.",
 
-  "SubscriptionScreen.title": "Billing",
-  "SubscriptionScreen.current-plan-summary.title": "Current Plan Summary",
-  "SubscriptionScreen.subscription.label": "Your subscription",
-  "SubscriptionScreen.monthly-active-users.label": "Monthly Active Users",
-  "SubscriptionScreen.plan-cost.label": "Plan Cost",
+  "SubscriptionCurrentPlanSummary.title.known-plan": "Current Plan: {name} (${amount}/mo)",
+  "SubscriptionCurrentPlanSummary.title.custom-plan": "Custom Plan: {name}",
+  "SubscriptionCurrentPlanSummary.label.free": "Free",
+  "SubscriptionCurrentPlanSummary.mau.title": "Montly Active User",
+  "SubscriptionCurrentPlanSummary.mau.approaching-limit": "Upgrade to increase limit",
+  "SubscriptionCurrentPlanSummary.mau.limit-reached": "Upgrade to avoid account deactivation",
+  "SubscriptionCurrentPlanSummary.mau.previous": " (Last month: {count})",
+  "SubscriptionCurrentPlanSummary.mau.tooltip": "MAU usage is updated on a daily basis{br, react}Usage calculated by the end of the billing cycle would be most accurate",
+  "SubscriptionCurrentPlanSummary.manage-subscription": "View invoices and change billing methods",
+  "SubscriptionCurrentPlanSummary.next-billing-date": "Next billing date: {date}",
+  "SubscriptionCurrentPlanSummary.whatsapp.title": "Whatsapp",
+  "SubscriptionCurrentPlanSummary.whatsapp.tooltip": "{count} Whatsapp authentication completed",
+  "SubscriptionCurrentPlanSummary.sms.title": "SMS",
+  "SubscriptionCurrentPlanSummary.sms.tooltip": "{count1} SMS (US, Canada) sent{br, react}{count2} SMS (Other regions) sent",
+  "SubscriptionCurrentPlanSummary.total-cost.title": "Total Cost (Estimated)",
+  "SubscriptionCurrentPlanSummary.total-cost.tooltip": "This is an estimated cost based on your usage{br, react}Your total cost will be fully calcaluated by the end of the billing cycle",
 
-  "SubscriptionScreen.plan-name.free": "Starter",
+  "SubscriptionPlanCard.label.upgrade": "Upgrade",
+  "SubscriptionPlanCard.label.downgrade": "Downgrade",
+  "SubscriptionPlanCard.label.current": "Current",
+  "SubscriptionPlanCard.label.subscribe": "Subscribe",
+  "SubscriptionPlanCard.upgrade.title": "Upgrade Instructions",
+  "SubscriptionPlanCard.downgrade.title": "Downgrade Instructions",
+  "SubscriptionPlanCard.change-plan.instructions": "Please send an email to {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}} from the email address associated with your Authgear account and the plan you would like to change.",
+
+  "SubscriptionPlanCard.plan.features.title": "Everything in {previousPlan}, plus:",
+
+  "SubscriptionPlanCard.plan.tagline.developers": "Ready for development",
+  "SubscriptionPlanCard.plan.mau-restriction.developers": "Up to 1,000 MAUs",
+  "SubscriptionPlanCard.plan.features.line.0.developers": "Login by Whatsapp (Shared Account)",
+  "SubscriptionPlanCard.plan.features.line.1.developers": "Biometric Login",
+  "SubscriptionPlanCard.plan.features.line.2.developers": "Login by SMS",
+  "SubscriptionPlanCard.plan.features.line.3.developers": "5 Webhooks",
+  "SubscriptionPlanCard.plan.features.line.4.developers": "7 Days Log Retention",
+
+  "SubscriptionPlanCard.plan.tagline.startups": "Simple projects & early-stage startups",
+  "SubscriptionPlanCard.plan.mau-restriction.startups": "Up to 5,000 MAUs",
+  "SubscriptionPlanCard.plan.features.line.0.startups": "Custom Domains",
+  "SubscriptionPlanCard.plan.features.line.1.startups": "No Visible Branding",
+  "SubscriptionPlanCard.plan.features.line.2.startups": "Login by Whatsapp (Dedicated Account)",
+  "SubscriptionPlanCard.plan.features.line.3.startups": "3 Admins",
+
+  "SubscriptionPlanCard.plan.tagline.business": "Manage up to 50,000 MAUs",
+  "SubscriptionPlanCard.plan.mau-restriction.business": "30,000 MAUs included",
+  "SubscriptionPlanCard.plan.features.line.0.business": "Enterprise Login (AD, LDAP)",
+  "SubscriptionPlanCard.plan.features.line.1.business": "Unlimited Webhooks",
+  "SubscriptionPlanCard.plan.features.line.2.business": "Unlimited Admins",
+
+  "SubscriptionPlanCard.sms.north-america": "USD {unitAmount} per SMS (US, Canada)",
+  "SubscriptionPlanCard.sms.other-regions": "USD {unitAmount} per SMS (Other regions)",
+
+  "SubscriptionScreen.footer.enterprise-plan": "Get 50,000+ MAUs and customization with our {ExternalLink, react, onClick{{onClick}} children{Enterprise Plan}}",
+  "SubscriptionScreen.footer.pricing-details": "Check out more details and compare plan features on our {ExternalLink, react, href{https://www.authgear.com/pricing} children{pricing page}}",
+  "SubscriptionScreen.footer.cancel": "Switch back to Free plan",
+
+  "SubscriptionScreen.title": "Billing",
+  "SubscriptionScreen.recommended": "Recommended",
+
+  "SubscriptionScreen.cards.title": "Upgrade Your Plan",
+  "SubscriptionScreen.enterprise.title": "Upgrade to Enterprise",
+  "SubscriptionScreen.enterprise.instructions": "Managing 50,000+ MAU? In need of customization services? Send an email to {ExternalLink, react, href{mailto:hello@authgear.com} children{hello@authgear.com}} from the email address associated with your Authgear account and we will take care of the rest.",
+  "SubscriptionScreen.enterprise.cta": "Go Enterprise",
+
+  "SubscriptionScreen.plan-name.free": "Free",
+  "SubscriptionScreen.plan-name.developers": "Developers",
   "SubscriptionScreen.plan-name.startups": "Startups",
   "SubscriptionScreen.plan-name.business": "Business",
-  "SubscriptionScreen.plan-name.enterprise": "Enterprise",
 
-  "SubscriptionScreen.summary-mau.free": "5,000",
-  "SubscriptionScreen.summary-mau.startups": "5,000",
-  "SubscriptionScreen.summary-mau.business": "30,000",
-  "SubscriptionScreen.summary-mau.enterprise": "-",
-
-  "SubscriptionScreen.summary-price.free": "Free",
-  "SubscriptionScreen.summary-price.startups": "$100/mo",
-  "SubscriptionScreen.summary-price.business": "$500/mo",
-  "SubscriptionScreen.summary-price.enterprise": "-",
-
-  "SubscriptionScreen.upgrade-your-plan.title": "Upgrade your plan",
-
-  "SubscriptionScreen.price.startups": "$100/mo",
-  "SubscriptionScreen.price.business": "$500/mo",
-  "SubscriptionScreen.price.enterprise": "Get in Touch",
-
-  "SubscriptionScreen.des.startups": "For simple projects & early-stage startups",
-  "SubscriptionScreen.des.business": "Manage up to 50,000 MAUs",
-  "SubscriptionScreen.des.enterprise": "Manage 50,000+ MAUs",
-
-  "SubscriptionScreen.mau.startups": "Up to 5,000 MAUs",
-  "SubscriptionScreen.mau.business": "30,000 MAUs included",
-  "SubscriptionScreen.mau.enterprise": "",
-
-  "SubscriptionScreen.extra-cost.startups": "",
-  "SubscriptionScreen.extra-cost.business": "USD 50/mo per 5,000 additional MAUs\nUSD 0.01-0.06 per SMS",
-  "SubscriptionScreen.extra-cost.enterprise": "",
-
-  "SubscriptionScreen.features.startups": "All other features from Starter plan\n10 App Clients\nCustom Domains\nNo Visible Branding\nUnlimited Social Connections\n2 Webhooks\n7 days Log Retention\n3 Admins with Role Management",
-  "SubscriptionScreen.features.business": "All other features from Startups plan\nUnlimited App Clients\nPasswordless Login by SMS\nSMS as Secondary Autheticator\nBiometric Login\nEnterprise Login (AD, LDAP)\nUnlimited Webhooks\n5 Admins with Role Management\nCustom Localization",
-  "SubscriptionScreen.features.enterprise": "Volume Discount\nNo admin and role limits\nPrivate cloud option\nSLA\nEnterprise Support",
-
-  "SubscriptionScreen.contact-us.label": "Contact Us",
-
-  "SubscriptionScreen.plan-features.desc": "Check out more details and compare plan features on our {ExternalLink, react, href{https://www.authgear.com/pricing#compare-plans} children{pricing page}}.",
+  "SubscriptionScreen.processing-payment": "Processing Payment",
 
   "SMTPConfigurationScreen.title": "Custom Email Provider",
   "SMTPConfigurationScreen.description": "Optimize for email deliverability by using your own SMTP server to send Authgear Emails (such as password reset code, verification) in your own domains",

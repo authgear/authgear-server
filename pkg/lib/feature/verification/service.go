@@ -274,7 +274,7 @@ func (s *Service) VerifyCode(webSessionID string, info *identity.Info, code stri
 		LoginID:      loginID,
 	}
 
-	err := s.RateLimiter.TakeToken(VerifyRateLimitBucket(string(s.RemoteIP)))
+	err := s.RateLimiter.TakeToken(AutiBruteForceVerifyBucket(string(s.RemoteIP)))
 	if err != nil {
 		return nil, err
 	}
