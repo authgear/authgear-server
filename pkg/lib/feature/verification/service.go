@@ -93,7 +93,7 @@ func (s *Service) getVerificationStatus(i *identity.Info, verifiedClaims map[cla
 	var statuses []ClaimStatus
 	for claimName, claimValue := range i.Claims {
 		c := s.claimVerificationConfig(claimName)
-		if c == nil || !*c.Enabled {
+		if c == nil {
 			continue
 		}
 
@@ -101,6 +101,8 @@ func (s *Service) getVerificationStatus(i *identity.Info, verifiedClaims map[cla
 		if !ok {
 			continue
 		}
+
+		isEnabled := *c.Enabled
 
 		var status Status
 		if _, verified := verifiedClaims[claim{claimName, value}]; verified {
@@ -113,8 +115,9 @@ func (s *Service) getVerificationStatus(i *identity.Info, verifiedClaims map[cla
 
 		if status != StatusDisabled {
 			statuses = append(statuses, ClaimStatus{
-				Name:   claimName,
-				Status: status,
+				Name:      claimName,
+				Status:    status,
+				IsEnabled: isEnabled,
 			})
 		}
 	}

@@ -61,8 +61,10 @@
   {{ range .IdentityCandidates }}
   {{ $claim_verification_statuses := index $.VerificationStatuses .identity_id }}
   {{ $verification_status := "disabled" }}
+  {{ $verification_is_enabled := false }}
   {{ if ne (len $claim_verification_statuses) 0 }}
     {{ $verification_status = (index $claim_verification_statuses 0).Status }}
+    {{ $verification_is_enabled = (index $claim_verification_statuses 0).IsEnabled }}
   {{ end }}
 
   {{/* We do not want to show unset row */}}
@@ -126,10 +128,12 @@
         <!-- TODO(verification): show verification for all identity types -->
         {{ if eq .type "login_id" }}
         {{ if .identity_id }}
+        {{ if $verification_is_enabled }}
         {{ if or (eq $verification_status "pending") (eq $verification_status "required") }}
         <span class="error-txt">
           {{ template "verification-status-label--unverified" }}
         </span>
+        {{ end }}
         {{ end }}
         {{ if eq $verification_status "verified" }}
         <span class="good-txt">
@@ -144,6 +148,7 @@
       {{/* Row */}}
       {{ if eq .type "login_id" }}
       {{ if .identity_id }}
+      {{ if $verification_is_enabled }}
       {{ if or (eq $verification_status "pending") (eq $verification_status "required") }}
       <form class="" method="post" novalidate>
         {{ $.CSRFField }}
@@ -152,7 +157,7 @@
           {{ template "verify-via-button-label" (dict "loginIDType" .login_id_type ) }}
         </button>
       </form>
-      {{ end }}{{ end }}{{ end }}
+      {{ end }}{{ end }}{{ end }}{{ end }}
 
     </div>
 

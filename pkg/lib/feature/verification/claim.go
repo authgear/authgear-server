@@ -12,8 +12,9 @@ const (
 )
 
 type ClaimStatus struct {
-	Name   string
-	Status Status
+	Name      string
+	Status    Status
+	IsEnabled bool
 }
 
 type Claim struct {
