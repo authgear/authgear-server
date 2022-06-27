@@ -9,7 +9,7 @@ export interface EditTemplatesWidgetItem {
   title: React.ReactNode;
   language: "html" | "plaintext" | "json" | "css";
   value: string;
-  onChange: (e: unknown, value?: string) => void;
+  onChange: (value: string | undefined, e: unknown) => void;
 }
 
 export interface EditTemplatesWidgetSection {

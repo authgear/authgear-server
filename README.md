@@ -208,8 +208,6 @@ apollo-language-server may include its own graphql.
 That copy must be removed manually from package-lock.json,
 otherwise, `npm run gentype` will fail.
 
-@monaco-editor/react>=4 is slow in our usage. We need to adjust how we use it when we upgrade.
-
 As `useBlocker` is removed since react-router-domv6.0.0-beta.7 and have no promise which version will
 come back, we introduce the custom `useBlocker` hook by referencing the last commit which this hook
 still exist.
@@ -220,14 +218,6 @@ it installs them for us.
 But we do not want to do that.
 The workaround is to add `alias` to package.json.
 See [https://github.com/parcel-bundler/parcel/issues/7697](https://github.com/parcel-bundler/parcel/issues/7697).
-
-With newer version (>=8.3.1) of npm and Nodejs 16, there is a bug that
-platform-specific optional dependencies not being included in `package-lock.json`.
-Once these dependencies are not installed, the portal image cannot be built.
-As `parcel` required `@parcel/css`, and `@parcel/css` required some of these dependencies,
-at this moment this bug will occur, the workaround is to add
-`@parcel/css`, `lmdb` and `msgpackr-extract` to the `package.json`
-See [https://github.com/npm/cli/issues/4828](https://github.com/npm/cli/issues/4828)
 
 ### Setup environment variable
 

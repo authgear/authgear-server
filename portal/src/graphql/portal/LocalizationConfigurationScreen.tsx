@@ -233,7 +233,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           locale: state.selectedLanguage,
           extension: null,
         };
-        return (_e: unknown, value?: string) => {
+        return (value: string | undefined, _e: unknown) => {
           setState((prev) => {
             const updatedResources = { ...prev.resources };
             const resource: Resource = {

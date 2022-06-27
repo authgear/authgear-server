@@ -8,8 +8,8 @@ describe("parseBirthdate", () => {
     );
   });
 
-  it("does not parses 0000-MM-dd", () => {
-    expect(parseBirthdate("0000-01-01")).toEqual(undefined);
+  it("does not parses 0001-MM-dd", () => {
+    expect(parseBirthdate("0001-01-01")).toEqual(undefined);
   });
 
   it("does not parses --MM-dd", () => {

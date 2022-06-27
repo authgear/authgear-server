@@ -6,7 +6,8 @@ export function parseBirthdate(str: string): Date | undefined {
       zone: "Etc/UTC",
     });
     const s = datetime.toFormat("yyyy-MM-dd");
-    if (s !== str) {
+    // 0001-01-01 is the zero value in golang
+    if (s !== str || s === "0001-01-01") {
       return undefined;
     }
     return datetime.toJSDate();
