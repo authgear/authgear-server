@@ -18,10 +18,6 @@ import ScreenTitle from "../../ScreenTitle";
 import ScreenDescription from "../../ScreenDescription";
 import FormContainer from "../../FormContainer";
 import {
-  LocalValidationError,
-  makeLocalValidationError,
-} from "../../error/validation";
-import {
   LoginIDEmailConfig,
   LoginIDKeyType,
   loginIDKeyTypes,
@@ -397,22 +393,6 @@ interface FormModel {
   reload: () => void;
   reset: () => void;
   save: () => Promise<void>;
-}
-
-function validateForm(
-  state: ConfigFormState,
-  renderToString: (id: string) => string
-) {
-  const errors: LocalValidationError[] = [];
-  if (state.phone.allowlist.length === 0) {
-    errors.push({
-      message: renderToString(
-        "LoginIDConfigurationScreen.error.calling-code-min-items"
-      ),
-    });
-  }
-
-  return makeLocalValidationError(errors);
 }
 
 const switchStyle = { root: { margin: "0" } };
@@ -1023,14 +1003,12 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
 const LoginIDConfigurationScreen: React.FC =
   function LoginIDConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
-    const { renderToString } = useContext(Context);
 
     const config = useAppConfigForm(
       appID,
       constructConfigFormState,
       constructConfig
     );
-    const localValidationError = validateForm(config.state, renderToString);
 
     const resources = useResourceForm(
       appID,
@@ -1105,7 +1083,7 @@ const LoginIDConfigurationScreen: React.FC =
     }
 
     return (
-      <FormContainer form={form} localError={localValidationError}>
+      <FormContainer form={form}>
         <AuthenticationLoginIDSettingsContent form={form} />
       </FormContainer>
     );
