@@ -176,36 +176,67 @@ So it does not send alert every time it runs.
 
 Authgear integrates with Stripe with [Checkout](https://stripe.com/docs/payments/checkout), [Customer Portal](https://stripe.com/docs/billing/subscriptions/integrating-customer-portal) and [webhooks](https://stripe.com/docs/webhooks).
 
-### The subscription table
+### The subscription tables
 
 ```SQL
-CREATE _portal_subscription (
-    id string PRIMARY KEY,
-    app_id string NOT NULL,
-    stripe_customer_id string NOT NULL,
-    stripe_subscription_id string NOT NULL
-
+CREATE TABLE _portal_subscription (
+    id                          text PRIMARY KEY,
+    app_id                      text NOT NULL,
+    stripe_customer_id          text NOT NULL,
+    stripe_subscription_id      text NOT NULL,
+    created_at                  timestamp WITHOUT TIME ZONE NOT NULL,
+    updated_at                  timestamp WITHOUT TIME ZONE NOT NULL,
     UNIQUE (app_id)
+);
+
+CREATE TABLE _portal_subscription_checkout (
+    id                          text PRIMARY KEY,
+    app_id                      text NOT NULL,
+    stripe_checkout_session_id  text NOT NULL,
+    stripe_customer_id          text,
+    status                      text NOT NULL,
+    created_at                  timestamp WITHOUT TIME ZONE NOT NULL,
+    updated_at                  timestamp WITHOUT TIME ZONE NOT NULL,
+    expire_at                   timestamp WITHOUT TIME ZONE NOT NULL,
+    UNIQUE (stripe_checkout_session_id),
+    UNIQUE (stripe_customer_id)
 );
 ```
 
-### Prepare Stripe Products and Stripe Prices
+### Pricing model
 
 Create the necessary Products and Prices in Dashboard.
-Save the IDs of the Products and Prices and provide them to Authgear.
+Authgear recognizes the Products and Prices with pre-defined metadata.
+
+We use the following specifically configured Stripe Prices to represent our pricing model.
+
+#### Fixed Price
+
+Fixed Price is a Stripe Price with `recurring.usage_type=licensed`.
+It is used for billing the base price of a subscription plan.
+
+#### Usage Price
+
+Usage Price is a Stripe Price with `recurring.usage_type=metered` and `recurring.aggregate_usage=sum`.
+The quantity is calculated by summing all usage records within the billing period.
+It is used for billing SMS cost.
+
+#### MAU Price
+
+MAU Price is a Stripe Price with `recurring.usage_type=metered`, `recurring.aggregate_usage=max`,
+`transform_quantity.divide_by=5000`, and `transform_quantity.round=down`.
+The quantity is the maximum value seen in the billing period.
+It is used for billing MAU cost.
 
 ### Create Stripe Subscription
 
 When the developer clicks to subscribe one of the plan, the portal does the following:
 
-> Should we associate a Stripe Customer with a Authgear account, or a Stripe Customer with a Authgear project?
-
-- Create Stripe Customer for the developer if they do not have an associated Stripe Customer already.
-- Create Checkout session link with the correct Stripe Prices.
-- Redirect the developer to the Checkout session link.
-- Listen `checkout.session.completed` and insert a row into `_portal_subscription`.
-
-See https://stripe.com/docs/billing/subscriptions/build-subscriptions?ui=checkout#create-session
+- Create Checkout Session with `mode=setup` to let the developer to create a Stripe Customer. Insert into `_portal_subscription_checkout` with `status=open`.
+- Redirect the developer to the Checkout Session URL.
+- The developer completes the Checkout Session.
+- Listen `checkout.session.completed` and create a Stripe Subscription. Update `_portal_subscription_checkout` with `status=completed`.
+- Listen `customer.subscription.created` and insert into `_portal_subscription`. Update `_portal_subscription_checkout` with `status=subscribed`.
 
 ### Switch plan
 
@@ -220,7 +251,7 @@ Therefore, if the prices are different, the developer could pay more or less.
 
 See https://stripe.com/docs/billing/subscriptions/upgrade-downgrade
 
-### Stable usage reporting to Stripe
+### Report [Usage Price](#usage-price) to Stripe
 
 When the reporting job reports the usage for a specific app, it does the following.
 
