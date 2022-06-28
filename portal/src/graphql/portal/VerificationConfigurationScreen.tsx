@@ -302,6 +302,9 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
           />
         </Widget>
         <Widget className={styles.widget}>
+          <WidgetTitle>
+            <FormattedMessage id="VerificationConfigurationScreen.verification.claims.phoneNumber" />
+          </WidgetTitle>
           {loginIDPhoneDisabled && (
             <MessageBar>
               <FormattedMessage
@@ -312,9 +315,6 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
               />
             </MessageBar>
           )}
-          <WidgetTitle>
-            <FormattedMessage id="VerificationConfigurationScreen.verification.claims.phoneNumber" />
-          </WidgetTitle>
           <Dropdown
             disabled={loginIDPhoneDisabled}
             label={renderToString(
