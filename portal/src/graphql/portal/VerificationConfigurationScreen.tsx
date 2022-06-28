@@ -272,6 +272,7 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
             <FormattedMessage id="VerificationConfigurationScreen.verification.claims.phoneNumber" />
           </WidgetTitle>
           <Dropdown
+            disabled={loginIDPhoneDisabled}
             label={renderToString(
               "VerificationConfigurationScreen.verification.phoneNumber.verify-by.label"
             )}
