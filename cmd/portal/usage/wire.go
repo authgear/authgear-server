@@ -6,6 +6,8 @@ package usage
 import (
 	"context"
 
+	"github.com/getsentry/sentry-go"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
@@ -20,6 +22,7 @@ func NewCountCollector(
 	auditDatabaseCredentials *config.AuditDatabaseCredentials,
 	redisPool *redis.Pool,
 	credentials *config.AnalyticRedisCredentials,
+	hub *sentry.Hub,
 ) *usage.CountCollector {
 	panic(wire.Build(
 		DependencySet,

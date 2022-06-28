@@ -3,7 +3,6 @@ package cmdusage
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -16,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	libusage "github.com/authgear/authgear-server/pkg/lib/usage"
+	"github.com/authgear/authgear-server/pkg/util/cobrasentry"
 	"github.com/authgear/authgear-server/pkg/util/periodical"
 )
 
@@ -33,6 +33,7 @@ func init() {
 	binder.BindString(cmdUsageCollectCount.Flags(), portalcmd.ArgAuditDatabaseURL)
 	binder.BindString(cmdUsageCollectCount.Flags(), portalcmd.ArgAuditDatabaseSchema)
 	binder.BindString(cmdUsageCollectCount.Flags(), portalcmd.ArgAnalyticRedisURL)
+	binder.BindString(cmdUsageCollectCount.Flags(), cobrasentry.ArgSentryDSN)
 
 	portalcmd.Root.AddCommand(cmdUsage)
 }
@@ -48,7 +49,10 @@ var cmdUsageCollectCount = &cobra.Command{
 	Use:   fmt.Sprintf("collect-count [%s] [period]", typeList),
 	Short: "Collect usage count record",
 	Args:  cobra.ExactArgs(2),
-	RunE: func(cmd *cobra.Command, args []string) (err error) {
+	RunE: cobrasentry.RunEWrap(portalcmd.GetBinder, func(ctx context.Context, cmd *cobra.Command, args []string) (err error) {
+		hub := cobrasentry.GetHub(ctx)
+		logger := cobrasentry.NewLoggerFactory(hub).New("cmd-portal-usage")
+
 		binder := portalcmd.GetBinder()
 		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
 		if err != nil {
@@ -99,12 +103,13 @@ var cmdUsageCollectCount = &cobra.Command{
 		dbPool := db.NewPool()
 		redisPool := redis.NewPool()
 		countCollector := usage.NewCountCollector(
-			context.Background(),
+			ctx,
 			dbPool,
 			dbCredentials,
 			auditDBCredentials,
 			redisPool,
 			analyticRedisCredentials,
+			hub,
 		)
 
 		type collectorFuncType func(date *time.Time) (updatedCount int, err error)
@@ -130,15 +135,15 @@ var cmdUsageCollectCount = &cobra.Command{
 			return fmt.Errorf("invalid arguments; record type: %s; period: %s", recordType, period)
 		}
 
-		log.Printf("Start collecting usage records")
+		logger.Info("Start collecting usage records")
 
 		updatedCount, err := collectorFunc(date)
 		if err != nil {
 			return err
 		}
 
-		log.Printf("Number of records have been updated: %d", updatedCount)
+		logger.Infof("Number of records have been updated: %d", updatedCount)
 
 		return nil
-	},
+	}),
 }

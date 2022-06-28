@@ -16,14 +16,16 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
+	"github.com/authgear/authgear-server/pkg/util/cobrasentry"
+	"github.com/getsentry/sentry-go"
 )
 
 // Injectors from wire.go:
 
-func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials, redisPool *redis.Pool, credentials *config.AnalyticRedisCredentials) *usage.CountCollector {
+func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials, redisPool *redis.Pool, credentials *config.AnalyticRedisCredentials, hub *sentry.Hub) *usage.CountCollector {
 	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
 	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
-	factory := NewLoggerFactory()
+	factory := cobrasentry.NewLoggerFactory(hub)
 	handle := globaldb.NewHandle(ctx, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(ctx, handle)
