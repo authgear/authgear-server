@@ -7,12 +7,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/cobrasentry"
 )
-
-func NewLoggerFactory() *log.Factory {
-	return log.NewFactory(log.LevelInfo)
-}
 
 func NewGlobalDatabaseCredentials(dbCredentials *config.DatabaseCredentials) *config.GlobalDatabaseCredentialsEnvironmentConfig {
 	return &config.GlobalDatabaseCredentialsEnvironmentConfig{
@@ -22,7 +18,7 @@ func NewGlobalDatabaseCredentials(dbCredentials *config.DatabaseCredentials) *co
 }
 
 var DependencySet = wire.NewSet(
-	NewLoggerFactory,
+	cobrasentry.NewLoggerFactory,
 	config.NewDefaultDatabaseEnvironmentConfig,
 	NewGlobalDatabaseCredentials,
 	globaldb.DependencySet,

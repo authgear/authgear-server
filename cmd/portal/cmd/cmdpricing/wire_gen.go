@@ -14,12 +14,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	config2 "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/cobrasentry"
+	"github.com/getsentry/sentry-go"
 )
 
 // Injectors from wire.go:
 
-func NewStripeService(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, stripeConfig *config2.StripeConfig) *StripeService {
-	factory := NewLoggerFactory()
+func NewStripeService(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, stripeConfig *config2.StripeConfig, hub *sentry.Hub) *StripeService {
+	factory := cobrasentry.NewLoggerFactory(hub)
 	logger := NewLogger(factory)
 	api := NewClientAPI(stripeConfig, logger)
 	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
