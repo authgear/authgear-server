@@ -128,6 +128,15 @@ func (h *StripeWebhookHandler) handleCheckoutSessionCompletedEvent(event *libstr
 				Info("customer already subscribed")
 			return nil
 		}
+		if errors.Is(err, libstripe.ErrAppAlreadySubscribed) {
+			// The app has stripe subscription already
+			// Tolerate it
+			h.Logger.
+				WithField("app_id", event.AppID).
+				WithField("stripe_checkout_session_id", event.StripeCheckoutSessionID).
+				Warn("app already has stripe subscription")
+			return nil
+		}
 		return err
 	}
 

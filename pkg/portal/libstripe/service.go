@@ -212,6 +212,24 @@ func (s *Service) CreateSubscriptionIfNotExists(checkoutSessionID string, subscr
 		return ErrCustomerAlreadySubscribed
 	}
 
+	// Check if the app has subscription to avoid duplicate subscription
+	hasSubscription := false
+	iter := s.ClientAPI.Subscriptions.Search(&stripe.SubscriptionSearchParams{
+		SearchParams: stripe.SearchParams{
+			Context: s.Context,
+			Query:   fmt.Sprintf("status:'active' AND metadata['app_id']: '%s'", appID),
+		},
+	})
+	for iter.Next() {
+		hasSubscription = true
+	}
+	if err := iter.Err(); err != nil {
+		return fmt.Errorf("failed to search app's subscription: %w", err)
+	}
+	if hasSubscription {
+		return ErrAppAlreadySubscribed
+	}
+
 	// Create subscription
 	subscriptionItems := []*stripe.SubscriptionItemsParams{}
 	for _, p := range subscriptionPlan.Prices {
