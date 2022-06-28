@@ -26,5 +26,10 @@ func main() {
 		log.Printf("failed to load .env file: %s", err)
 	}
 
-	_ = cmd.Root.Execute()
+	err = cmd.Root.Execute()
+	if err != nil {
+		os.Exit(1)
+	} else {
+		os.Exit(0)
+	}
 }
