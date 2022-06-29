@@ -366,14 +366,24 @@ When the developer cancels subscription, the following steps are taken:
 
 When the reporting job reports the usage for a specific app, it does the following.
 
-- Set `now` as `time.Now().UTC()`
-- Set `midnight` to `now` adjusted to the midnight of the day.
+- Set `NOW` as `time.Now().UTC()`
+- Set `MIDNIGHT` to `NOW` adjusted to the midnight of the day.
 - Get the `_portal_subscription`
 - Fetch the Stripe Subscription
-- If `midnight` is NOT within [current\_period\_start](https://stripe.com/docs/api/subscriptions/object#subscription_object-current_period_start) and [current\_period\_end](https://stripe.com/docs/api/subscriptions/object#subscription_object-current_period_end), exit.
+- Set `SUBSCRIPTION_CREATED_AT` be the creation time of the Stripe subscription.
+- If `MIDNIGHT` is NOT within [current\_period\_start](https://stripe.com/docs/api/subscriptions/object#subscription_object-current_period_start) and [current\_period\_end](https://stripe.com/docs/api/subscriptions/object#subscription_object-current_period_end), exit.
 - For each kind of usage we keep track of, do the following
   - Identify the Stripe Subscription Item that contains the target Stripe Price for this usage. This is done via `metadata`. If the Stripe Subscription Item cannot be found, log an error telling the Stripe Subscription of which app is missing a Stripe Price for usage reporting, and then exit.
-  - Fetch the daily usage records from [the usage record table](#the-usage-record-table) where `stripe_timestamp` is NULL and `end_time` is less than `now`. Those records are finalized and ready for reporting.
-  - Set `quantity` to the sum of the count of the usage records.
-  - Create a single Stripe Usage Record with `quantity=${quantity}`, `action=set` and `timestamp=${midnight}`.
-  - Update the records to set `stripe_timestamp` to `midnight`.
+  - Fetch the daily usage records from [the usage record table](#the-usage-record-table) with this condition.
+    ```sql
+    -- We do not report usage prior to subscription creation.
+    -- This ensures we do not charge the developer more.
+    start_time > SUBSCRIPTION_CREATED_AT
+    AND
+    -- The 1st condition is to retrieve usage records that have not been uploaded.
+    -- The 2nd condition is to retrieve usage records that have been uploaded on the same day. If the job ever re-runs, the quantity is still correct.
+    ((stripe_timestamp IS NULL AND end_time <= MIDNIGHT) OR (stripe_timestamp IS NOT NULL and stripe_timestamp = MIDNIGHT))
+    ```
+  - Set `QUANTITY` to the sum of the count of the usage records.
+  - Create a single Stripe Usage Record with `quantity=${QUANTITY}`, `action=set` and `timestamp=${MIDNIGHT}`.
+  - Update the records to set `stripe_timestamp` to `MIDNIGHT`.
