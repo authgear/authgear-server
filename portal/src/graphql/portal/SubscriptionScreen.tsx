@@ -165,6 +165,12 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
   const [updateSubscription, { loading: updateSubscriptionLoading }] =
     useUpdateSubscriptionMutation();
   useLoading(updateSubscriptionLoading);
+  const {
+    setSubscriptionCancelledStatus,
+    loading: reactivateSubscriptionLoading,
+    error: reactivateSubscriptionError,
+  } = useSetSubscriptionCancelledStatusMutation(appID);
+  useLoading(reactivateSubscriptionLoading);
 
   const isLoading = useIsLoading();
 
@@ -228,6 +234,10 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
     },
     [appID, updateSubscription]
   );
+
+  const onClickReactivate = useCallback(async () => {
+    await setSubscriptionCancelledStatus(false);
+  }, [setSubscriptionCancelledStatus]);
 
   const isKnown = isKnownPaidPlan(subscriptionPlan.name);
   if (!isKnown) {
@@ -335,6 +345,9 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
           onClickSubscribe={onClickSubscribe}
           onClickUpgrade={onClickUpgrade}
           onClickDowngrade={onClickDowngrade}
+          onClickReactivate={onClickReactivate}
+          reactivateError={reactivateSubscriptionError}
+          reactivateLoading={reactivateSubscriptionLoading}
           nextBillingDate={nextBillingDate}
         />
       }

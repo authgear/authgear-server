@@ -860,6 +860,10 @@
   "SubscriptionPlanCard.cancel.confirmation": "We are sad to see you go. Are you sure to cancel the subscription? The subscription will expire at the end of the billing period. If you change your mind, you can reactivate it anytime.",
   "SubscriptionPlanCard.cancel.error": "Failed to cancel plan. Please send an email to {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}} from the email address associated with your Authgear account and the plan you would like to cancel.",
 
+  "SubscriptionPlanCard.reactivate.title": "Reactivate Subscription",
+  "SubscriptionPlanCard.reactivate.confirmation": "Are you sure to reactivate the subscription?",
+  "SubscriptionPlanCard.reactivate.error": "Failed to reactivate plan. Please send an email to {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}} from the email address associated with your Authgear account and the plan you would like to reactivate.",
+
   "SubscriptionPlanCard.plan.features.title": "Everything in {previousPlan}, plus:",
 
   "SubscriptionPlanCard.plan.tagline.developers": "Ready for development",
