@@ -46,7 +46,6 @@ type AuthenticatorService interface {
 }
 
 type VerificationService interface {
-	GetClaimVerificationStatus(userID string, name string, value string) (verification.Status, error)
 	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
 	MarkClaimVerified(claim *verification.Claim) error
 	RemoveOrphanedClaims(identities []*identity.Info, authenticators []*authenticator.Info) error
@@ -373,16 +372,9 @@ func (c *Coordinator) removeOrphans(userID string) error {
 func (c *Coordinator) markVerified(userID string, claims map[model.ClaimName]string) error {
 	for name, value := range claims {
 		name := string(name)
-		status, err := c.Verification.GetClaimVerificationStatus(userID, name, value)
-		if err != nil {
-			return err
-		}
-		if status != verification.StatusPending && status != verification.StatusRequired {
-			continue
-		}
 
 		claim := c.Verification.NewVerifiedClaim(userID, name, value)
-		err = c.Verification.MarkClaimVerified(claim)
+		err := c.Verification.MarkClaimVerified(claim)
 		if err != nil {
 			return err
 		}
