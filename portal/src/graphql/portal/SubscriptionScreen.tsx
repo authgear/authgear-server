@@ -344,6 +344,9 @@ const CANCEL_THEME: PartialTheme = {
     themePrimary: "#c8c8c8",
     neutralPrimary: "#c8c8c8",
   },
+  semanticColors: {
+    linkHovered: "#c8c8c8",
+  },
 };
 
 function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
