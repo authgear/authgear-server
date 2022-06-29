@@ -6,6 +6,7 @@ package cmdpricing
 import (
 	"context"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -18,6 +19,7 @@ func NewStripeService(
 	pool *db.Pool,
 	databaseCredentials *config.DatabaseCredentials,
 	stripeConfig *portalconfig.StripeConfig,
+	hub *sentry.Hub,
 ) *StripeService {
 	panic(wire.Build(DependencySet))
 }

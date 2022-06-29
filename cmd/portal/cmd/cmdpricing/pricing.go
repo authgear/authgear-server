@@ -18,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
+	"github.com/authgear/authgear-server/pkg/util/cobrasentry"
 )
 
 func init() {
@@ -30,6 +31,7 @@ func init() {
 	binder.BindString(cmdPricingUploadUsageToStripe.Flags(), portalcmd.ArgDatabaseURL)
 	binder.BindString(cmdPricingUploadUsageToStripe.Flags(), portalcmd.ArgDatabaseSchema)
 	binder.BindString(cmdPricingUploadUsageToStripe.Flags(), portalcmd.ArgStripeSecretKey)
+	binder.BindString(cmdPricingUploadUsageToStripe.Flags(), cobrasentry.ArgSentryDSN)
 
 	cmdPricingPlan.AddCommand(cmdPricingPlanCreate)
 	cmdPricingPlan.AddCommand(cmdPricingPlanUpdate)
@@ -319,7 +321,7 @@ var cmdPricingUploadUsageToStripe = &cobra.Command{
 		}
 		return
 	},
-	RunE: func(cmd *cobra.Command, args []string) (err error) {
+	RunE: cobrasentry.RunEWrap(portalcmd.GetBinder, func(ctx context.Context, cmd *cobra.Command, args []string) (err error) {
 		binder := portalcmd.GetBinder()
 		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
 		if err != nil {
@@ -345,10 +347,9 @@ var cmdPricingUploadUsageToStripe = &cobra.Command{
 			SecretKey: stripeSecretKey,
 		}
 
-		ctx := context.Background()
-
+		hub := cobrasentry.GetHub(ctx)
 		dbPool := db.NewPool()
-		stripeService := NewStripeService(ctx, dbPool, dbCredentials, stripeConfig)
+		stripeService := NewStripeService(ctx, dbPool, dbCredentials, stripeConfig, hub)
 
 		if len(args) == 0 {
 			var errorAppIDs []string
@@ -372,5 +373,5 @@ var cmdPricingUploadUsageToStripe = &cobra.Command{
 		}
 
 		return
-	},
+	}),
 }

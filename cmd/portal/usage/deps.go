@@ -7,13 +7,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
-	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/cobrasentry"
 	"github.com/google/wire"
 )
-
-func NewLoggerFactory() *log.Factory {
-	return log.NewFactory(log.LevelInfo)
-}
 
 func NewGlobalDatabaseCredentials(dbCredentials *config.DatabaseCredentials) *config.GlobalDatabaseCredentialsEnvironmentConfig {
 	return &config.GlobalDatabaseCredentialsEnvironmentConfig{
@@ -23,7 +19,7 @@ func NewGlobalDatabaseCredentials(dbCredentials *config.DatabaseCredentials) *co
 }
 
 var DependencySet = wire.NewSet(
-	NewLoggerFactory,
+	cobrasentry.NewLoggerFactory,
 	config.NewDefaultDatabaseEnvironmentConfig,
 	NewGlobalDatabaseCredentials,
 	config.NewDefaultRedisEnvironmentConfig,
