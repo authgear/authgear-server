@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"time"
 
 	relay "github.com/authgear/graphql-go-relay"
 	goredis "github.com/go-redis/redis/v8"
@@ -264,6 +265,18 @@ func (s *Service) CreateSubscriptionIfNotExists(checkoutSessionID string, subscr
 		return err
 	}
 	return nil
+}
+
+func (s *Service) SetSubscriptionCancelAtPeriodEnd(stripeSubscriptionID string, cancelAtPeriodEnd bool) (*time.Time, error) {
+	params := &stripe.SubscriptionParams{
+		CancelAtPeriodEnd: stripe.Bool(cancelAtPeriodEnd),
+	}
+	subscription, err := s.ClientAPI.Subscriptions.Update(stripeSubscriptionID, params)
+	if err != nil {
+		return nil, err
+	}
+	periodEnd := time.Unix(subscription.CurrentPeriodEnd, 0)
+	return &periodEnd, nil
 }
 
 func (s *Service) fetchSubscriptionPlans() ([]byte, error) {

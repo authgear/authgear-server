@@ -103,6 +103,7 @@ type StripeService interface {
 	GenerateCustomerPortalSession(appID string, customerID string) (*stripe.BillingPortalSession, error)
 	UpdateSubscription(stripeSubscriptionID string, subscriptionPlan *model.SubscriptionPlan) error
 	PreviewUpdateSubscription(stripeSubscriptionID string, subscriptionPlan *model.SubscriptionPlan) (*model.SubscriptionUpdatePreview, error)
+	SetSubscriptionCancelAtPeriodEnd(stripeSubscriptionID string, cancelAtPeriodEnd bool) (*time.Time, error)
 }
 
 type SubscriptionService interface {
@@ -117,6 +118,7 @@ type SubscriptionService interface {
 	) (*model.SubscriptionUsage, error)
 	GetIsProcessingSubscription(appID string) (bool, error)
 	UpdateAppPlan(appID string, planName string) error
+	SetSubscriptionCancelledStatus(id string, cancelled bool, endedAt *time.Time) error
 }
 
 type Logger struct{ *log.Logger }

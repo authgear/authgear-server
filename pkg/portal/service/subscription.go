@@ -236,6 +236,42 @@ func (s *SubscriptionService) GetIsProcessingSubscription(appID string) (bool, e
 	return count > 0 && !hasSubscription, nil
 }
 
+func (s *SubscriptionService) SetSubscriptionCancelledStatus(id string, cancelled bool, endedAt *time.Time) error {
+	now := s.Clock.NowUTC()
+	var subCancelledAt *time.Time
+	var subEndedAt *time.Time
+	if cancelled {
+		subCancelledAt = &now
+		subEndedAt = endedAt
+	} else {
+		subCancelledAt = nil
+		subEndedAt = nil
+	}
+
+	q := s.SQLBuilder.
+		Update(s.SQLBuilder.TableName("_portal_subscription")).
+		Set("cancelled_at", subCancelledAt).
+		Set("ended_at", subEndedAt).
+		Set("updated_at", now).
+		Where("id = ?", id)
+
+	result, err := s.SQLExecutor.ExecWith(q)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrSubscriptionCheckoutNotFound
+	}
+
+	return nil
+}
+
 func (s *SubscriptionService) upsertSubscription(sub *model.Subscription) error {
 	_, err := s.SQLExecutor.ExecWith(s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_portal_subscription")).

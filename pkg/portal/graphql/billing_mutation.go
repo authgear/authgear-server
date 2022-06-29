@@ -491,6 +491,7 @@ var _ = registerMutationField(
 
 			input := p.Args["input"].(map[string]interface{})
 			appNodeID := input["appID"].(string)
+			cancelled, _ := input["cancelled"].(bool)
 			resolvedNodeID := relay.FromGlobalID(appNodeID)
 			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
 				return nil, apierrors.NewInvalid("invalid app ID")
@@ -500,6 +501,21 @@ var _ = registerMutationField(
 
 			// Access Control: collaborator.
 			_, err := ctx.AuthzService.CheckAccessOfViewer(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			subscription, err := ctx.SubscriptionService.GetSubscription(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			periodEnd, err := ctx.StripeService.SetSubscriptionCancelAtPeriodEnd(subscription.StripeSubscriptionID, cancelled)
+			if err != nil {
+				return nil, err
+			}
+
+			err = ctx.SubscriptionService.SetSubscriptionCancelledStatus(subscription.ID, cancelled, periodEnd)
 			if err != nil {
 				return nil, err
 			}
