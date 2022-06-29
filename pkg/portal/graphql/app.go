@@ -10,6 +10,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -217,6 +218,22 @@ var nodeApp = node(
 					}
 
 					return subscriptionUsage, nil
+				},
+			},
+			"subscription": &graphql.Field{
+				Type: subscription,
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					ctx := GQLContext(p.Context)
+					appID := p.Source.(*model.App).ID
+
+					subscription, err := ctx.SubscriptionService.GetSubscription(appID)
+					if errors.Is(err, service.ErrSubscriptionNotFound) {
+						return nil, nil
+					} else if err != nil {
+						return nil, err
+					}
+
+					return subscription, nil
 				},
 			},
 			"isProcessingSubscription": &graphql.Field{

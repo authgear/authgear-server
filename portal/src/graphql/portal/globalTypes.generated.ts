@@ -56,6 +56,7 @@ export type App = Node & {
   rawAppConfig: Scalars['AppConfig'];
   resources: Array<AppResource>;
   secretConfig: SecretConfig;
+  subscription?: Maybe<Subscription>;
   subscriptionUsage?: Maybe<SubscriptionUsage>;
   tutorialStatus: TutorialStatus;
 };
@@ -559,6 +560,15 @@ export type SkipAppTutorialProgressInput = {
 export type SkipAppTutorialProgressPayload = {
   __typename?: 'SkipAppTutorialProgressPayload';
   app: App;
+};
+
+export type Subscription = {
+  __typename?: 'Subscription';
+  cancelledAt?: Maybe<Scalars['DateTime']>;
+  createdAt: Scalars['DateTime'];
+  endedAt?: Maybe<Scalars['DateTime']>;
+  id: Scalars['String'];
+  updatedAt: Scalars['DateTime'];
 };
 
 export type SubscriptionItemPrice = {

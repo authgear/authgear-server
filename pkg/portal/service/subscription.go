@@ -97,6 +97,8 @@ func (s *SubscriptionService) GetSubscription(appID string) (*model.Subscription
 		"stripe_subscription_id",
 		"created_at",
 		"updated_at",
+		"cancelled_at",
+		"ended_at",
 	).
 		From(s.SQLBuilder.TableName("_portal_subscription")).
 		Where("app_id = ?", appID)
@@ -117,6 +119,8 @@ func (s *SubscriptionService) GetSubscription(appID string) (*model.Subscription
 		&subscription.StripeSubscriptionID,
 		&subscription.CreatedAt,
 		&subscription.UpdatedAt,
+		&subscription.CancelledAt,
+		&subscription.EndedAt,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrSubscriptionNotFound

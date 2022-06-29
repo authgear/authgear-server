@@ -61,6 +61,9 @@ type App implements Node {
   secretConfig: SecretConfig!
 
   """"""
+  subscription: Subscription
+
+  """"""
   subscriptionUsage(date: DateTime!): SubscriptionUsage
 
   """"""
@@ -626,6 +629,24 @@ input SkipAppTutorialProgressInput {
 type SkipAppTutorialProgressPayload {
   """"""
   app: App!
+}
+
+""""""
+type Subscription {
+  """"""
+  cancelledAt: DateTime
+
+  """"""
+  createdAt: DateTime!
+
+  """"""
+  endedAt: DateTime
+
+  """"""
+  id: String!
+
+  """"""
+  updatedAt: DateTime!
 }
 
 """"""
