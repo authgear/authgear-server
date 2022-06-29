@@ -19,6 +19,7 @@ import {
   Link,
   ThemeProvider,
   PartialTheme,
+  DefaultButton,
 } from "@fluentui/react";
 import { useConst } from "@fluentui/react-hooks";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -56,6 +57,10 @@ import SubscriptionPlanCard, {
 import { useCreateCheckoutSessionMutation } from "./mutations/createCheckoutSessionMutation";
 import { useLoading, useIsLoading } from "./../../hook/loading";
 import { formatDatetime } from "../../util/formatDatetime";
+import ButtonWithLoading from "../../ButtonWithLoading";
+import { useSetSubscriptionCancelledStatusMutation } from "./mutations/setSubscriptionCancelledStatusMutation";
+import { useSystemConfig } from "../../context/SystemConfigContext";
+import ErrorDialog from "../../error/ErrorDialog";
 
 const ALL_KNOWN_PLANS = ["free", "developers", "startups", "business"];
 const PAID_PLANS = ALL_KNOWN_PLANS.slice(1);
@@ -466,6 +471,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     thisMonthUsage,
     previousMonthUsage,
   } = props;
+  const { themes } = useSystemConfig();
 
   const hasSubscription = useMemo(() => !!subscription, [subscription]);
 
@@ -566,9 +572,9 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   const cancelDialogContentProps: IDialogContentProps = useMemo(() => {
     return {
       type: DialogType.normal,
-      title: <FormattedMessage id="SubscriptionPlanCard.downgrade.title" />,
+      title: <FormattedMessage id="SubscriptionPlanCard.cancel.title" />,
       subText: (
-        <FormattedMessage id="SubscriptionPlanCard.change-plan.instructions" />
+        <FormattedMessage id="SubscriptionPlanCard.cancel.confirmation" />
       ),
     };
   }, []);
@@ -615,8 +621,28 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     [generateCustomPortalSession]
   );
 
-  const isLoading = useIsLoading();
+  const {
+    setSubscriptionCancelledStatus,
+    loading: cancelSubscriptionLoading,
+    error: cancelSubscriptionError,
+  } = useSetSubscriptionCancelledStatusMutation(appID);
+  useLoading(cancelSubscriptionLoading);
 
+  const onClickCancelSubscriptionConfirm = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setSubscriptionCancelledStatus(true)
+        .catch(() => {})
+        .finally(() => {
+          onDismiss();
+        });
+      setCancelDialogHidden(false);
+    },
+    [setSubscriptionCancelledStatus, onDismiss, setCancelDialogHidden]
+  );
+
+  const isLoading = useIsLoading();
   return (
     <>
       <Dialog
@@ -625,12 +651,26 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
         dialogContentProps={cancelDialogContentProps}
       >
         <DialogFooter>
-          <PrimaryButton onClick={onDismiss}>
-            <FormattedMessage id="understood" />
-          </PrimaryButton>
+          <ButtonWithLoading
+            theme={themes.destructive}
+            loading={cancelSubscriptionLoading}
+            onClick={onClickCancelSubscriptionConfirm}
+            disabled={cancelDialogHidden}
+            labelId="confirm"
+          />
+          <DefaultButton
+            onClick={onDismiss}
+            disabled={cancelSubscriptionLoading || cancelDialogHidden}
+          >
+            <FormattedMessage id="cancel" />
+          </DefaultButton>
         </DialogFooter>
       </Dialog>
-
+      <ErrorDialog
+        error={cancelSubscriptionError}
+        rules={[]}
+        fallbackErrorMessageID="SubscriptionPlanCard.cancel.error"
+      />
       <Dialog
         hidden={enterpriseDialogHidden}
         onDismiss={onDismiss}

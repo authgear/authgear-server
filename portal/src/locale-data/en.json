@@ -856,6 +856,10 @@
   "SubscriptionPlanCard.downgrade.title": "Downgrade Your Plan",
   "SubscriptionPlanCard.downgrade.description": "{strong, react, children{Warning:}} Your apps may stop working if you downgrade to less features. To avoid this, make sure your project configuration fit the plan you are downgrading to.{br, react}{br, react}When you change your plan, the prorated charges will be reflected in the next invoice. ${amount} (estimated) will be charged on {date}.{br, react}{br, react}Do you want to change your plan?",
 
+  "SubscriptionPlanCard.cancel.title": "Cancel Subscription",
+  "SubscriptionPlanCard.cancel.confirmation": "We are sad to see you go. Are you sure to cancel the subscription? The subscription will expire at the end of the billing period. If you change your mind, you can reactivate it anytime.",
+  "SubscriptionPlanCard.cancel.error": "Failed to cancel plan. Please send an email to {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}} from the email address associated with your Authgear account and the plan you would like to cancel.",
+
   "SubscriptionPlanCard.plan.features.title": "Everything in {previousPlan}, plus:",
 
   "SubscriptionPlanCard.plan.tagline.developers": "Ready for development",
