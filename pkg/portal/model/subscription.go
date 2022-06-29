@@ -90,6 +90,26 @@ func (r SMSRegion) Valid() error {
 	return fmt.Errorf("unknown sms_region: %#v", r)
 }
 
+type TransformQuantityRound string
+
+const (
+	TransformQuantityRoundNone TransformQuantityRound = ""
+	TransformQuantityRoundUp   TransformQuantityRound = "up"
+	TransformQuantityRoundDown TransformQuantityRound = "down"
+)
+
+func (r TransformQuantityRound) Valid() error {
+	switch r {
+	case TransformQuantityRoundNone:
+		return nil
+	case TransformQuantityRoundUp:
+		return nil
+	case TransformQuantityRoundDown:
+		return nil
+	}
+	return fmt.Errorf("unknown round: %#v", r)
+}
+
 type SubscriptionUsage struct {
 	NextBillingDate time.Time                `json:"nextBillingDate"`
 	Items           []*SubscriptionUsageItem `json:"items,omitempty"`

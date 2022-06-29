@@ -47,6 +47,21 @@ var smsRegion = graphql.NewEnum(graphql.EnumConfig{
 	},
 })
 
+var transformQuantityRound = graphql.NewEnum(graphql.EnumConfig{
+	Name: "TransformQuantityRound",
+	Values: graphql.EnumValueConfigMap{
+		"NONE": &graphql.EnumValueConfig{
+			Value: model.TransformQuantityRoundNone,
+		},
+		"UP": &graphql.EnumValueConfig{
+			Value: model.TransformQuantityRoundUp,
+		},
+		"DOWN": &graphql.EnumValueConfig{
+			Value: model.TransformQuantityRoundDown,
+		},
+	},
+})
+
 var price = graphql.NewObject(graphql.ObjectConfig{
 	Name: "SubscriptionItemPrice",
 	Fields: graphql.Fields{
@@ -64,6 +79,15 @@ var price = graphql.NewObject(graphql.ObjectConfig{
 		},
 		"smsRegion": &graphql.Field{
 			Type: graphql.NewNonNull(smsRegion),
+		},
+		"transformQuantityDivideBy": &graphql.Field{
+			Type: graphql.Int,
+		},
+		"transformQuantityRound": &graphql.Field{
+			Type: graphql.NewNonNull(transformQuantityRound),
+		},
+		"freeQuantity": &graphql.Field{
+			Type: graphql.Int,
 		},
 	},
 })

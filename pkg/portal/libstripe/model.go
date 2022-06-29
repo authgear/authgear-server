@@ -2,6 +2,7 @@ package libstripe
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/stripe/stripe-go/v72"
 
@@ -9,21 +10,25 @@ import (
 )
 
 const (
-	MetadataKeyAppID     = "app_id"
-	MetadataKeyPlanName  = "plan_name"
-	MetadataKeyPriceType = "price_type"
-	MetadataKeyUsageType = "usage_type"
-	MetadatakeySMSRegion = "sms_region"
+	MetadataKeyAppID        = "app_id"
+	MetadataKeyPlanName     = "plan_name"
+	MetadataKeyPriceType    = "price_type"
+	MetadataKeyUsageType    = "usage_type"
+	MetadatakeySMSRegion    = "sms_region"
+	MetadataKeyFreeQuantity = "free_quantity"
 )
 
 type Price struct {
-	StripePriceID   string          `json:"stripePriceID"`
-	StripeProductID string          `json:"stripeProductID"`
-	Currency        string          `json:"currency"`
-	UnitAmount      int             `json:"unitAmount"`
-	Type            model.PriceType `json:"type"`
-	UsageType       model.UsageType `json:"usageType,omitempty"`
-	SMSRegion       model.SMSRegion `json:"smsRegion,omitempty"`
+	StripePriceID             string                       `json:"stripePriceID"`
+	StripeProductID           string                       `json:"stripeProductID"`
+	Currency                  string                       `json:"currency"`
+	UnitAmount                int                          `json:"unitAmount"`
+	Type                      model.PriceType              `json:"type"`
+	UsageType                 model.UsageType              `json:"usageType,omitempty"`
+	SMSRegion                 model.SMSRegion              `json:"smsRegion,omitempty"`
+	FreeQuantity              *int                         `json:"freeQuantity,omitempty"`
+	TransformQuantityDivideBy *int                         `json:"transformQuantityDivideBy,omitempty"`
+	TransformQuantityRound    model.TransformQuantityRound `json:"transformQuantityRound,omitempty"`
 }
 
 func NewPrice(stripeProduct *stripe.Product) (price *Price, err error) {
@@ -47,22 +52,37 @@ func NewPrice(stripeProduct *stripe.Product) (price *Price, err error) {
 		UnitAmount:      int(stripePrice.UnitAmount),
 	}
 
-	switch priceType {
-	case model.PriceTypeFixed:
-		break
-	case model.PriceTypeUsage:
-		usageType := model.UsageType(stripeProduct.Metadata[MetadataKeyUsageType])
+	if stripePrice.TransformQuantity != nil {
+		i := int(stripePrice.TransformQuantity.DivideBy)
+		price.TransformQuantityDivideBy = &i
+		price.TransformQuantityRound = model.TransformQuantityRound(stripePrice.TransformQuantity.Round)
+	}
+
+	if usageTypeStr, ok := stripeProduct.Metadata[MetadataKeyUsageType]; ok {
+		usageType := model.UsageType(usageTypeStr)
 		err = usageType.Valid()
 		if err != nil {
 			return
 		}
-		smsRegion := model.SMSRegion(stripeProduct.Metadata[MetadatakeySMSRegion])
+		price.UsageType = usageType
+	}
+
+	if smsRegionStr, ok := stripeProduct.Metadata[MetadatakeySMSRegion]; ok {
+		smsRegion := model.SMSRegion(smsRegionStr)
 		err = smsRegion.Valid()
 		if err != nil {
 			return
 		}
-		price.UsageType = usageType
 		price.SMSRegion = smsRegion
+	}
+
+	if freeQuantityStr, ok := stripePrice.Metadata[MetadataKeyFreeQuantity]; ok {
+		var freeQuantity int
+		freeQuantity, err = strconv.Atoi(freeQuantityStr)
+		if err != nil {
+			return
+		}
+		price.FreeQuantity = &freeQuantity
 	}
 
 	return
