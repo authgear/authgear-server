@@ -63,6 +63,7 @@
 }
 
 .input {
+  border-radius: 0;
   border-bottom-width: 1px;
   border-bottom-color: var(--color-text-shaded-3);
 }
