@@ -215,17 +215,21 @@ Each Stripe Product can have one or more Stripe Prices.
 
 The following metadata are known to Authgear.
 
-- `price_type`: valid values are `fixed` and `usage`.
-- `plan_name`: valid values are `developers`, `startups` and `business`.
-- `usage_type`: valid values are `sms` and `mau`.
-- `sms_region`: valid values are `north-america` and `other-regions`.
-- `mau_free_limit`: valid values are non-negative integers.
+- `price_type`: Valid values are `fixed` and `usage`. Only appear in Product.
+- `plan_name`: Valid values are `developers`, `startups` and `business`. Only appear in Product.
+- `usage_type`: Valid values are `sms` and `mau`. Only appear in Product.
+- `sms_region`: Valid values are `north-america` and `other-regions`. Only appear in Product.
+- `free_quantity`: valid values are non-negative integers. Only appear in Price.
 
 Each Stripe Product MUST have `price_type`.
+If a Stripe Product has `plan_name`, then it is applicable ONLY to that plan.
+Otherwise a Stripe Product is applicable to every plan.
+Only the default Price of a Stripe Product is used for creating new subscriptions.
 
-- If a Stripe Product have `plan_name`, then the product is applicable ONLY to that plan.
-- Otherwise, if one of the Stripe Prices of the Stripe Product has a matching `plan_name`, then the price is applicable ONLY to that plan.
-  - Otherwise, the default price is applicable.
+When the Price of a Product needs adjustment,
+create a new Price and set it as the default.
+Future subscription will use that new Price.
+Existing subscriptions still reference the old Prices.
 
 #### Fixed Price
 
@@ -249,7 +253,7 @@ MAU Price is a Stripe Price with `recurring.usage_type=metered`, `recurring.aggr
 The quantity is the last value being uploaded to Stripe within the billing period.
 It is used for billing MAU cost.
 
-If `mau_free_limit` is present, then `mau_free_limit` is subtracted from the actual MAU count.
+If `free_quantity` is present, then `free_quantity` is subtracted from the actual MAU count.
 If the result is positive, the result is uploaded as quantity.
 
 See [Configure Products and Prices](#configure-products-and-prices) for details.
@@ -313,10 +317,14 @@ The MAU cost of Business Plan
 Product
 metadata.price_type=usage
 metadata.usage_type=mau
+metadata.plan_name=business
 
 Price
-metadata.mau_free_limit=30000
-metadata.plan_name=business
+recurring.usage_type=metered
+recurring.aggregate_usage=last_during_period
+transform_quantity.divide_by=5000
+transform_quantity.round=up
+metadata.free_quantity=30000
 ```
 
 Reference: https://stripe.com/docs/products-prices/manage-prices
