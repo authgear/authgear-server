@@ -228,6 +228,34 @@ MAU Price is a Stripe Price with `recurring.usage_type=metered`, `recurring.aggr
 The quantity is the maximum value seen in the billing period.
 It is used for billing MAU cost.
 
+### Configure the Customer Portal
+
+- ONLY turn on the following Functionality
+  - Allow customers to view their Invoice history
+  - Allow customers to update the following billing information: Email address and Billing address
+  - Allow customer to update payment methods
+- Leave anything else turned off
+
+Reference: https://stripe.com/docs/billing/subscriptions/integrating-customer-portal?platform=billing#configure
+
+### Configure Products and Prices
+
+The metadata is for recognizing various Stripe Objects in Authgear.
+
+- Create a Product for each pricing item we have.
+  - A Product represents a single billable item, for example, Developer plan base price, SMS price for North America.
+  - For products representing base price, attach the metadata `price_type=fixed,plan_name=PLAN_NAME`
+  - For products representing usage price, attach the metadata `price_type=usage,usage_type=sms,sms_region=north-america` or `price_type=usage,usage_type=sms,sms_region=other-regions`
+  - Only the default price is used by Authgear at the moment.
+
+Reference: https://stripe.com/docs/products-prices/manage-prices
+
+### Configure Webhooks
+
+- Go to Stripe dashboard *Webhooks* section
+- Add endpoint `https://PORTAL_DOMAIN/api/subscription/webhook/stripe`
+- Select events: `checkout.session.completed`, `customer.subscription.created` and `customer.subscription.updated`
+
 ### Create Stripe Subscription
 
 When the developer clicks to subscribe one of the plan, the portal does the following:
