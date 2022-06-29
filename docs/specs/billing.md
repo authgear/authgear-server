@@ -252,6 +252,12 @@ If the result is positive, the result is uploaded as quantity.
 
 See [Configure Products and Prices](#configure-products-and-prices) for details.
 
+#### Clear usage rule
+
+- Fixed Price DOES NOT clear usage because it has no usage.
+- Usage Price DOES NOT clear usage because if we cleared the usage, the developer is charged less.
+- MAU Price clears usage because if we did not clear the usage, the developer is charged more when they downgrade from Business plan.
+
 ### Configure the Customer Portal
 
 - ONLY turn on the following Functionality
@@ -334,14 +340,15 @@ When the developer clicks to subscribe one of the plan, the portal does the foll
 
 ### Switch plan
 
-When the developer switches plan, the portal does the following:
+When the developer switches plan, the following steps are taken:
 
-- Update the Stripe Subscription Item's underlying Stripe Prices.
-- Update the plan of the app.
+- Let SetA be (the set of old Prices - the set of new Prices)
+- Mark the SubscriptionItem whose price is in SetA as [deleted](https://stripe.com/docs/api/subscriptions/update#update_subscription-items-deleted). Set [clear_usage](https://stripe.com/docs/api/subscriptions/update#update_subscription-items-clear_usage) according to [Clear usage rule](#clear-usage-rule)
+- Let SetB be (the set of new Prices - the set of old Prices)
+- Add the price in SetB to the subscription.
 
-Fixed Standard Price is subject to proration.
-However, metered usage is billed using the updated price.
-Therefore, if the prices are different, the developer could pay more or less.
+> Fixed Price is subject to proration.
+> Usage Price is billed using the updated price. Therefore, if the prices are different, the developer could pay more or less.
 
 See https://stripe.com/docs/billing/subscriptions/upgrade-downgrade
 
