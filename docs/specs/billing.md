@@ -205,15 +205,32 @@ CREATE TABLE _portal_subscription_checkout (
 
 ### Pricing model
 
-Create the necessary Products and Prices in Dashboard.
-Authgear recognizes the Products and Prices with pre-defined metadata.
+A Stripe Product represents a single billable item.
+For example, the Business Plan has 4 billable items,
+namely the base cost, 2 SMS costs and the MAU costs.
 
-We use the following specifically configured Stripe Prices to represent our pricing model.
+Each Stripe Product can have one or more Stripe Prices.
+
+The following metadata are known to Authgear.
+
+- `price_type`: valid values are `fixed` and `usage`.
+- `plan_name`: valid values are `developers`, `startups` and `business`.
+- `usage_type`: valid values are `sms` and `mau`.
+- `sms_region`: valid values are `north-america` and `other-regions`.
+- `mau_free_limit`: valid values are non-negative integers.
+
+Each Stripe Product MUST have `price_type`.
+
+- If a Stripe Product have `plan_name`, then the product is applicable ONLY to that plan.
+- Otherwise, if one of the Stripe Prices of the Stripe Product has a matching `plan_name`, then the price is applicable ONLY to that plan.
+  - Otherwise, the default price is applicable.
 
 #### Fixed Price
 
 Fixed Price is a Stripe Price with `recurring.usage_type=licensed`.
 It is used for billing the base price of a subscription plan.
+
+See [Configure Products and Prices](#configure-products-and-prices) for details.
 
 #### Usage Price
 
@@ -221,12 +238,19 @@ Usage Price is a Stripe Price with `recurring.usage_type=metered` and `recurring
 The quantity is calculated by summing all usage records within the billing period.
 It is used for billing SMS cost.
 
+See [Configure Products and Prices](#configure-products-and-prices) for details.
+
 #### MAU Price
 
-MAU Price is a Stripe Price with `recurring.usage_type=metered`, `recurring.aggregate_usage=max`,
+MAU Price is a Stripe Price with `recurring.usage_type=metered`, `recurring.aggregate_usage=last_during_period`,
 `transform_quantity.divide_by=5000`, and `transform_quantity.round=down`.
-The quantity is the maximum value seen in the billing period.
+The quantity is the last value being uploaded to Stripe within the billing period.
 It is used for billing MAU cost.
+
+If `mau_free_limit` is present, then `mau_free_limit` is subtracted from the actual MAU count.
+If the result is positive, the result is uploaded as quantity.
+
+See [Configure Products and Prices](#configure-products-and-prices) for details.
 
 ### Configure the Customer Portal
 
@@ -240,13 +264,52 @@ Reference: https://stripe.com/docs/billing/subscriptions/integrating-customer-po
 
 ### Configure Products and Prices
 
-The metadata is for recognizing various Stripe Objects in Authgear.
+The base cost of a plan
 
-- Create a Product for each pricing item we have.
-  - A Product represents a single billable item, for example, Developer plan base price, SMS price for North America.
-  - For products representing base price, attach the metadata `price_type=fixed,plan_name=PLAN_NAME`
-  - For products representing usage price, attach the metadata `price_type=usage,usage_type=sms,sms_region=north-america` or `price_type=usage,usage_type=sms,sms_region=other-regions`
-  - Only the default price is used by Authgear at the moment.
+```
+Product
+metadata.price_type=fixed
+metadata.plan_name=PLAN_NAME
+
+Price
+recurring.usage_type=licensed
+```
+
+The SMS cost for North America
+
+```
+Product
+metadata.price_type=usage
+metadata.usage_type=sms
+metadata.sms_region=north-america
+
+Price
+recurring.usage_type=metered
+recurring.aggregate_usage=sum
+```
+
+The SMS cost for other regions
+```
+Product
+metadata.price_type=usage
+metadata.usage_type=sms
+metadata.sms_region=other-regions
+
+Price
+recurring.usage_type=metered
+recurring.aggregate_usage=sum
+```
+
+The MAU cost of Business Plan
+```
+Product
+metadata.price_type=usage
+metadata.usage_type=mau
+
+Price
+metadata.mau_free_limit=30000
+metadata.plan_name=business
+```
 
 Reference: https://stripe.com/docs/products-prices/manage-prices
 
@@ -254,7 +317,10 @@ Reference: https://stripe.com/docs/products-prices/manage-prices
 
 - Go to Stripe dashboard *Webhooks* section
 - Add endpoint `https://PORTAL_DOMAIN/api/subscription/webhook/stripe`
-- Select events: `checkout.session.completed`, `customer.subscription.created` and `customer.subscription.updated`
+- Select events:
+  - `checkout.session.completed`
+  - `customer.subscription.created`
+  - `customer.subscription.updated`
 
 ### Create Stripe Subscription
 
