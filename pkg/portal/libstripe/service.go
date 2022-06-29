@@ -269,7 +269,9 @@ func (s *Service) fetchSubscriptionPlans() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	subscriptionPlans, err := s.convertToSubscriptionPlans(plans, products)
+
+	knownPlanNames := s.intersectPlanNames(plans, products)
+	subscriptionPlans, err := s.convertToSubscriptionPlans(knownPlanNames, products)
 	if err != nil {
 		return nil, err
 	}
@@ -305,45 +307,66 @@ func (s *Service) fetchProducts() ([]*stripe.Product, error) {
 	return products, nil
 }
 
-func (s *Service) convertToSubscriptionPlans(plans []*model.Plan, products []*stripe.Product) ([]*SubscriptionPlan, error) {
-	knownPlanNames := make(map[string]struct{})
+func (s *Service) intersectPlanNames(plans []*model.Plan, products []*stripe.Product) map[string]struct{} {
+	// plans can contain free plan that is not a paid plan.
+	// products do not contain non-paid plan.
+	// Therefore, we perform an intersection between the two.
+	setA := make(map[string]struct{})
 	for _, plan := range plans {
-		knownPlanNames[plan.Name] = struct{}{}
+		setA[plan.Name] = struct{}{}
 	}
 
+	setB := make(map[string]struct{})
+	for _, product := range products {
+		planName, ok := product.Metadata[MetadataKeyPlanName]
+		if ok && planName != "" {
+			setB[planName] = struct{}{}
+		}
+	}
+
+	intersection := make(map[string]struct{})
+
+	for a := range setA {
+		_, ok := setB[a]
+		if ok {
+			intersection[a] = struct{}{}
+		}
+	}
+
+	return intersection
+}
+
+func (s *Service) convertToSubscriptionPlans(knownPlanNames map[string]struct{}, products []*stripe.Product) ([]*SubscriptionPlan, error) {
 	m := make(map[string]*SubscriptionPlan)
-	usagePrices := []*Price{}
+	for planName := range knownPlanNames {
+		m[planName] = NewSubscriptionPlan(planName)
+	}
+
 	for _, product := range products {
 		price, err := NewPrice(product)
 		if err != nil {
 			// skip the unknown product
 			continue
 		}
-		switch price.Type {
-		case model.PriceTypeFixed:
-			// New SubscriptionPlan for the fixed price products
-			planName := product.Metadata[MetadataKeyPlanName]
-			// There could exist some unknown Products on Stripe.
-			// We tolerate that.
-			_, ok := knownPlanNames[planName]
-			if !ok {
-				continue
+
+		// If Product has plan name, then the product only applies to that plan.
+		// Otherwise the product applies to every plan.
+		planName := product.Metadata[MetadataKeyPlanName]
+		if planName != "" {
+			subscriptionPlan, ok := m[planName]
+			// Tolerate product with unknown plan names.
+			if ok {
+				subscriptionPlan.Prices = append(subscriptionPlan.Prices, price)
 			}
-			// If there are multiple fixed price products have the same plan name
-			// Add the price to the same SubscriptionPlan
-			if _, exists := m[planName]; !exists {
-				m[planName] = NewSubscriptionPlan(planName)
+		} else {
+			for _, subscriptionPlan := range m {
+				subscriptionPlan.Prices = append(subscriptionPlan.Prices, price)
 			}
-			m[planName].Prices = append(m[planName].Prices, price)
-		case model.PriceTypeUsage:
-			usagePrices = append(usagePrices, price)
 		}
 	}
 
 	var out []*SubscriptionPlan
 	for _, subscriptionPlan := range m {
-		// Add usage prices to all subscription plans
-		subscriptionPlan.Prices = append(subscriptionPlan.Prices, usagePrices...)
 		out = append(out, subscriptionPlan)
 	}
 
