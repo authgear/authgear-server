@@ -186,6 +186,8 @@ CREATE TABLE _portal_subscription (
     stripe_subscription_id      text NOT NULL,
     created_at                  timestamp WITHOUT TIME ZONE NOT NULL,
     updated_at                  timestamp WITHOUT TIME ZONE NOT NULL,
+    cancelled_at                timestamp WITHOUT TIME ZONE,
+    end_at                      timestamp WITHOUT TIME ZONE,
     UNIQUE (app_id)
 );
 
@@ -328,7 +330,7 @@ Reference: https://stripe.com/docs/products-prices/manage-prices
   - `customer.subscription.created`
   - `customer.subscription.updated`
 
-### Create Stripe Subscription
+### Create subscription
 
 When the developer clicks to subscribe one of the plan, the portal does the following:
 
@@ -338,7 +340,7 @@ When the developer clicks to subscribe one of the plan, the portal does the foll
 - Listen `checkout.session.completed` and create a Stripe Subscription. Update `_portal_subscription_checkout` with `status=completed`.
 - Listen `customer.subscription.created` and insert into `_portal_subscription`. Update `_portal_subscription_checkout` with `status=subscribed`.
 
-### Switch plan
+### Update subscription
 
 When the developer switches plan, the following steps are taken:
 
@@ -351,6 +353,14 @@ When the developer switches plan, the following steps are taken:
 > Usage Price is billed using the updated price. Therefore, if the prices are different, the developer could pay more or less.
 
 See https://stripe.com/docs/billing/subscriptions/upgrade-downgrade
+
+### Cancel subscription
+
+When the developer cancels subscription, the following steps are taken:
+
+- Update the Stripe subscription to set `cancel_at_period_end` to true.
+- Update `_portal_subscription` to set `cancelled_at` to now and `end_at` to the `current_period_end` of the Stripe subscription.
+- Listen for `customer.subscription.deleted`. Downgrade the app to free plan.
 
 ### Report [Usage Price](#usage-price) to Stripe
 
