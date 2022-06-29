@@ -833,7 +833,7 @@
   "SubscriptionCurrentPlanSummary.mau.limit-reached": "Upgrade to avoid account deactivation",
   "SubscriptionCurrentPlanSummary.mau.previous": " (Last month: {count})",
   "SubscriptionCurrentPlanSummary.mau.tooltip": "MAU usage is updated on a daily basis{br, react}Usage calculated by the end of the billing cycle would be most accurate",
-  "SubscriptionCurrentPlanSummary.manage-subscription": "View invoices and change billing methods",
+  "SubscriptionCurrentPlanSummary.manage-subscription": "View invoices or change billing methods",
   "SubscriptionCurrentPlanSummary.next-billing-date": "Next billing date: {date}",
   "SubscriptionCurrentPlanSummary.whatsapp.title": "Whatsapp",
   "SubscriptionCurrentPlanSummary.whatsapp.tooltip": "{count} Whatsapp authentication completed",
@@ -878,6 +878,7 @@
 
   "SubscriptionScreen.footer.enterprise-plan": "Get 50,000+ MAUs and customization with our {ExternalLink, react, onClick{{onClick}} children{Enterprise Plan}}",
   "SubscriptionScreen.footer.pricing-details": "Check out more details and compare plan features on our {ExternalLink, react, href{https://www.authgear.com/pricing} children{pricing page}}",
+  "SubscriptionScreen.footer.usage-delay-disclaimer": "Reporting is not realtime. The MAU and SMS numbers are delayed up to 24 hours.",
   "SubscriptionScreen.footer.cancel": "Switch back to Free plan",
 
   "SubscriptionScreen.title": "Billing",
