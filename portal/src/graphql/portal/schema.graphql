@@ -378,6 +378,9 @@ type Mutation {
   """Send test STMP configuration email"""
   sendTestSMTPConfigurationEmail(input: sendTestSMTPConfigurationEmailInput!): Boolean
 
+  """Set app subscription cancellation status"""
+  setSubscriptionCancelledStatus(input: SetSubscriptionCancelledStatusInput!): SetSubscriptionCancelledStatusPayload!
+
   """Skip the tutorial of the app"""
   skipAppTutorial(input: SkipAppTutorialInput!): SkipAppTutorialPayload!
 
@@ -590,6 +593,21 @@ input SecretConfigInput {
 
   """"""
   smtpSecret: SMTPSecretInput
+}
+
+""""""
+input SetSubscriptionCancelledStatusInput {
+  """Target app ID."""
+  appID: ID!
+
+  """Target app subscription cancellation status."""
+  cancelled: Boolean!
+}
+
+""""""
+type SetSubscriptionCancelledStatusPayload {
+  """"""
+  app: App!
 }
 
 """Signup conversion rate dashboard data"""

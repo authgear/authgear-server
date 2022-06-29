@@ -280,6 +280,8 @@ export type Mutation = {
   reconcileCheckoutSession: ReconcileCheckoutSessionPayload;
   /** Send test STMP configuration email */
   sendTestSMTPConfigurationEmail?: Maybe<Scalars['Boolean']>;
+  /** Set app subscription cancellation status */
+  setSubscriptionCancelledStatus: SetSubscriptionCancelledStatusPayload;
   /** Skip the tutorial of the app */
   skipAppTutorial: SkipAppTutorialPayload;
   /** Skip a progress of the tutorial of the app */
@@ -350,6 +352,11 @@ export type MutationReconcileCheckoutSessionArgs = {
 
 export type MutationSendTestSmtpConfigurationEmailArgs = {
   input: SendTestSmtpConfigurationEmailInput;
+};
+
+
+export type MutationSetSubscriptionCancelledStatusArgs = {
+  input: SetSubscriptionCancelledStatusInput;
 };
 
 
@@ -530,6 +537,18 @@ export type SecretConfig = {
 export type SecretConfigInput = {
   oauthClientSecrets?: InputMaybe<Array<OauthClientSecretInput>>;
   smtpSecret?: InputMaybe<SmtpSecretInput>;
+};
+
+export type SetSubscriptionCancelledStatusInput = {
+  /** Target app ID. */
+  appID: Scalars['ID'];
+  /** Target app subscription cancellation status. */
+  cancelled: Scalars['Boolean'];
+};
+
+export type SetSubscriptionCancelledStatusPayload = {
+  __typename?: 'SetSubscriptionCancelledStatusPayload';
+  app: App;
 };
 
 /** Signup conversion rate dashboard data */

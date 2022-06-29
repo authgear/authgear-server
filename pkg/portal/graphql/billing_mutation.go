@@ -450,3 +450,63 @@ var _ = registerMutationField(
 		},
 	},
 )
+
+var setSubscriptionCancelledStatusInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SetSubscriptionCancelledStatusInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"appID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target app ID.",
+		},
+		"cancelled": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.Boolean),
+			Description: "Target app subscription cancellation status.",
+		},
+	},
+})
+
+var setSubscriptionCancelledStatusPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "SetSubscriptionCancelledStatusPayload",
+	Fields: graphql.Fields{
+		"app": &graphql.Field{Type: graphql.NewNonNull(nodeApp)},
+	},
+})
+
+var _ = registerMutationField(
+	"setSubscriptionCancelledStatus",
+	&graphql.Field{
+		Description: "Set app subscription cancellation status",
+		Type:        graphql.NewNonNull(setSubscriptionCancelledStatusPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(setSubscriptionCancelledStatusInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			// Access Control: authenticated user.
+			sessionInfo := session.GetValidSessionInfo(p.Context)
+			if sessionInfo == nil {
+				return nil, AccessDenied.New("only authenticated users can delete domain")
+			}
+
+			input := p.Args["input"].(map[string]interface{})
+			appNodeID := input["appID"].(string)
+			resolvedNodeID := relay.FromGlobalID(appNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
+				return nil, apierrors.NewInvalid("invalid app ID")
+			}
+			appID := resolvedNodeID.ID
+			ctx := GQLContext(p.Context)
+
+			// Access Control: collaborator.
+			_, err := ctx.AuthzService.CheckAccessOfViewer(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"app": ctx.Apps.Load(appID),
+			}).Value, nil
+		},
+	},
+)
