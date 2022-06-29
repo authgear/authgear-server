@@ -26,6 +26,7 @@ import ScreenTitle from "../../ScreenTitle";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import {
+  Subscription,
   SubscriptionItemPriceSmsRegion,
   SubscriptionItemPriceType,
   SubscriptionItemPriceUsageType,
@@ -54,6 +55,7 @@ import SubscriptionPlanCard, {
 } from "./SubscriptionPlanCard";
 import { useCreateCheckoutSessionMutation } from "./mutations/createCheckoutSessionMutation";
 import { useLoading, useIsLoading } from "./../../hook/loading";
+import { formatDatetime } from "../../util/formatDatetime";
 
 const ALL_KNOWN_PLANS = ["free", "developers", "startups", "business"];
 const PAID_PLANS = ALL_KNOWN_PLANS.slice(1);
@@ -138,13 +140,19 @@ function PlanDetailsLines(props: PlanDetailsLinesProps) {
 
 interface SubscriptionPlanCardRenderProps {
   currentPlanName: string;
+  subscriptionCancelled: boolean;
   subscriptionPlan: SubscriptionPlan;
   nextBillingDate?: Date;
 }
 
 // eslint-disable-next-line complexity
 function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
-  const { currentPlanName, subscriptionPlan, nextBillingDate } = props;
+  const {
+    currentPlanName,
+    subscriptionCancelled,
+    subscriptionPlan,
+    nextBillingDate,
+  } = props;
   const { appID } = useParams() as { appID: string };
   const { createCheckoutSession, loading: createCheckoutSessionLoading } =
     useCreateCheckoutSessionMutation();
@@ -165,13 +173,19 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
     const targetPlan = subscriptionPlan.name;
     const currentPlanIdx = ALL_KNOWN_PLANS.indexOf(currentPlanName);
     const targetPlanIdx = ALL_KNOWN_PLANS.indexOf(targetPlan);
+    if (subscriptionCancelled) {
+      if (currentPlanIdx === targetPlanIdx) {
+        return "reactivate";
+      }
+      return "non-applicable";
+    }
     if (currentPlanIdx > targetPlanIdx) {
       return "downgrade";
     } else if (currentPlanIdx < targetPlanIdx) {
       return "upgrade";
     }
     return "current";
-  }, [currentPlanName, subscriptionPlan.name]);
+  }, [currentPlanName, subscriptionPlan.name, subscriptionCancelled]);
 
   const onClickSubscribe = useCallback(
     (planName: string) => {
@@ -337,6 +351,7 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
 interface SubscriptionScreenContentProps {
   appID: string;
   planName: string;
+  subscription?: Subscription;
   subscriptionPlans: SubscriptionPlan[];
   thisMonthUsage?: SubscriptionUsage;
   previousMonthUsage?: SubscriptionUsage;
@@ -440,14 +455,29 @@ const CANCEL_THEME: PartialTheme = {
   },
 };
 
+// eslint-disable-next-line complexity
 function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
+  const { locale } = useContext(Context);
   const {
     appID,
     planName,
+    subscription,
     subscriptionPlans,
     thisMonthUsage,
     previousMonthUsage,
   } = props;
+
+  const hasSubscription = useMemo(() => !!subscription, [subscription]);
+
+  const subscriptionEndedAt = useMemo(() => {
+    return subscription?.endedAt
+      ? formatDatetime(locale, subscription.endedAt, DateTime.DATETIME_SHORT)
+      : null;
+  }, [subscription?.endedAt, locale]);
+
+  const subscriptionCancelled = useMemo(() => {
+    return !!subscription?.endedAt;
+  }, [subscription?.endedAt]);
 
   const totalCost = useMemo(() => {
     if (thisMonthUsage == null) {
@@ -706,6 +736,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
                 return (
                   <SubscriptionPlanCardRenderer
                     key={plan.name}
+                    subscriptionCancelled={subscriptionCancelled}
                     subscriptionPlan={plan}
                     currentPlanName={planName}
                     nextBillingDate={nextBillingDate}
@@ -733,13 +764,26 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
               <Text block={true}>
                 <FormattedMessage id="SubscriptionScreen.footer.usage-delay-disclaimer" />
               </Text>
-              <ThemeProvider theme={CANCEL_THEME}>
-                <Link onClick={onClickCancel}>
-                  <Text>
-                    <FormattedMessage id="SubscriptionScreen.footer.cancel" />
+              {hasSubscription ? (
+                subscriptionCancelled ? (
+                  <Text block={true}>
+                    <FormattedMessage
+                      id="SubscriptionScreen.footer.expire"
+                      values={{
+                        date: subscriptionEndedAt ?? "",
+                      }}
+                    />
                   </Text>
-                </Link>
-              </ThemeProvider>
+                ) : (
+                  <ThemeProvider theme={CANCEL_THEME}>
+                    <Link onClick={onClickCancel}>
+                      <Text>
+                        <FormattedMessage id="SubscriptionScreen.footer.cancel" />
+                      </Text>
+                    </Link>
+                  </ThemeProvider>
+                )
+              ) : null}
             </>
           ) : null}
         </div>
@@ -824,6 +868,9 @@ const SubscriptionScreen: React.FC = function SubscriptionScreen() {
 
   const planName = (subscriptionScreenQuery.data?.node as AppFragmentFragment)
     .planName;
+  const subscription = (
+    subscriptionScreenQuery.data?.node as AppFragmentFragment
+  ).subscription;
   const subscriptionPlans =
     subscriptionScreenQuery.data?.subscriptionPlans ?? [];
   const thisMonthUsage = (
@@ -837,6 +884,7 @@ const SubscriptionScreen: React.FC = function SubscriptionScreen() {
     <SubscriptionScreenContent
       appID={appID}
       planName={planName}
+      subscription={subscription ?? undefined}
       subscriptionPlans={subscriptionPlans}
       thisMonthUsage={thisMonthUsage ?? undefined}
       previousMonthUsage={previousMonthUsage ?? undefined}

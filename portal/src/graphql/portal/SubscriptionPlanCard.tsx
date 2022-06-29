@@ -165,12 +165,19 @@ export function UsagePriceTag(props: UsagePriceTagProps): React.ReactElement {
 export interface CTAProps {
   appID: string;
   planName: string;
-  variant: "subscribe" | "upgrade" | "downgrade" | "current" | "non-applicable";
+  variant:
+    | "subscribe"
+    | "upgrade"
+    | "downgrade"
+    | "current"
+    | "non-applicable"
+    | "reactivate";
   nextBillingDate?: Date;
   disabled?: IButtonProps["disabled"];
   onClickSubscribe?: (planName: string) => void;
   onClickUpgrade?: (planName: string) => void;
   onClickDowngrade?: (planName: string) => void;
+  onClickReactivate?: () => void;
 }
 
 const DOWNGRADE_BUTTON_THEME: PartialTheme = {
@@ -198,6 +205,7 @@ export function CTA(props: CTAProps): React.ReactElement {
     onClickSubscribe: onClickSubscribeProps,
     onClickUpgrade: onClickUpgradeProps,
     onClickDowngrade: onClickDowngradeProps,
+    onClickReactivate: onClickReactivateProps,
   } = props;
   const { locale } = useContext(Context);
   const [hidden, setHidden] = useState(true);
@@ -321,6 +329,15 @@ export function CTA(props: CTAProps): React.ReactElement {
     [planName, onClickDowngradeProps]
   );
 
+  const onClickReactivate = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onClickReactivateProps?.();
+    },
+    [onClickReactivateProps]
+  );
+
   const onDismiss = useCallback(() => {
     setHidden(true);
   }, []);
@@ -412,6 +429,16 @@ export function CTA(props: CTAProps): React.ReactElement {
             <FormattedMessage id="SubscriptionPlanCard.label.subscribe" />
           </DefaultButton>
         </ThemeProvider>
+      );
+    case "reactivate":
+      return (
+        <PrimaryButton
+          className={styles.cta}
+          onClick={onClickReactivate}
+          disabled={disabled}
+        >
+          <FormattedMessage id="SubscriptionPlanCard.label.reactivate" />
+        </PrimaryButton>
       );
   }
 }
