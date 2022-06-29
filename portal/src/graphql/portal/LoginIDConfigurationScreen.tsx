@@ -42,9 +42,18 @@ import {
 import { useResourceForm } from "../../hook/useResourceForm";
 import CustomTagPicker from "../../CustomTagPicker";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
+import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
 import ALL_COUNTRIES from "../../data/country.json";
 
 import styles from "./LoginIDConfigurationScreen.module.scss";
+
+const errorRules = [
+  makeValidationErrorMatchUnknownKindParseRule(
+    "minItems",
+    /^\/ui\/phone_input\/allowlist$/,
+    "LoginIDConfigurationScreen.error.calling-code-min-items"
+  ),
+];
 
 // email domain lists are not language specific
 // so the locale in ResourceSpecifier is not important
@@ -1083,7 +1092,7 @@ const LoginIDConfigurationScreen: React.FC =
     }
 
     return (
-      <FormContainer form={form}>
+      <FormContainer form={form} errorRules={errorRules}>
         <AuthenticationLoginIDSettingsContent form={form} />
       </FormContainer>
     );
