@@ -584,13 +584,18 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             <FormattedMessage id="SubscriptionScreen.footer.pricing-details" />
           </Text>
           {isKnownPaidPlan(planName) ? (
-            <ThemeProvider theme={CANCEL_THEME}>
-              <Link onClick={onClickCancel}>
-                <Text>
-                  <FormattedMessage id="SubscriptionScreen.footer.cancel" />
-                </Text>
-              </Link>
-            </ThemeProvider>
+            <>
+              <Text block={true}>
+                <FormattedMessage id="SubscriptionScreen.footer.usage-delay-disclaimer" />
+              </Text>
+              <ThemeProvider theme={CANCEL_THEME}>
+                <Link onClick={onClickCancel}>
+                  <Text>
+                    <FormattedMessage id="SubscriptionScreen.footer.cancel" />
+                  </Text>
+                </Link>
+              </ThemeProvider>
+            </>
           ) : null}
         </div>
       </div>
