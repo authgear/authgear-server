@@ -387,3 +387,21 @@ The cronjob takes the following steps:
   - Set `QUANTITY` to the sum of the count of the usage records.
   - Create a single Stripe Usage Record with `quantity=${QUANTITY}`, `action=set` and `timestamp=${MIDNIGHT}`.
   - Update the records to set `stripe_timestamp` to `MIDNIGHT`.
+
+### Report [MAU Price](#mau-price) to Stripe
+
+The cronjob takes the following steps:
+
+- Set `NOW` as `time.Now().UTC()`
+- Get the `_portal_subscription`
+- Fetch the Stripe Subscription
+- Set `CURRENT_PERIOD_START` be the `current_period_start` of the Stripe subscription
+- Set `CURRENT_PERIOD_END` be the `current_period_end` of the Stripe subscription
+- Identify the Stripe Subscription Item that contains the target Stripe Price with `metadata`. If not found, exit.
+- Fetch the monthly usage records from [the usage record table](#the-usage-record-table) with this condition.
+  ```sql
+  end_time = CURRENT_PERIOD_END
+  ```
+- SET `QUANTITY` to the sum of the count of the usage records.
+- Create a single Stripe Usage Record with `quantity=${QUANTITY}`, `action=set` and `timestamp=${CURRENT_PERIOD_START}`.
+- Update the records to set `stripe_timestamp` to `CURRENT_PERIOD_START`.
