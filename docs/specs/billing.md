@@ -364,7 +364,7 @@ When the developer cancels subscription, the following steps are taken:
 
 ### Report [Usage Price](#usage-price) to Stripe
 
-When the reporting job reports the usage for a specific app, it does the following.
+The cronjob takes the following steps:
 
 - Set `NOW` as `time.Now().UTC()`
 - Set `MIDNIGHT` to `NOW` adjusted to the midnight of the day.
@@ -373,7 +373,7 @@ When the reporting job reports the usage for a specific app, it does the followi
 - Set `SUBSCRIPTION_CREATED_AT` be the creation time of the Stripe subscription.
 - If `MIDNIGHT` is NOT within [current\_period\_start](https://stripe.com/docs/api/subscriptions/object#subscription_object-current_period_start) and [current\_period\_end](https://stripe.com/docs/api/subscriptions/object#subscription_object-current_period_end), exit.
 - For each kind of usage we keep track of, do the following
-  - Identify the Stripe Subscription Item that contains the target Stripe Price for this usage. This is done via `metadata`. If the Stripe Subscription Item cannot be found, log an error telling the Stripe Subscription of which app is missing a Stripe Price for usage reporting, and then exit.
+  - Identify the Stripe Subscription Item that contains the target Stripe Price for this usage with `metadata`. If not found, exit.
   - Fetch the daily usage records from [the usage record table](#the-usage-record-table) with this condition.
     ```sql
     -- We do not report usage prior to subscription creation.
