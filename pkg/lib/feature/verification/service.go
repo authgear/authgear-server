@@ -310,6 +310,15 @@ func (s *Service) NewVerifiedClaim(userID string, claimName string, claimValue s
 }
 
 func (s *Service) MarkClaimVerified(claim *Claim) error {
+	claims, err := s.GetClaims(claim.UserID)
+	if err != nil {
+		return err
+	}
+	for _, c := range claims {
+		if c.Name == claim.Name && c.Value == claim.Value {
+			return nil
+		}
+	}
 	claim.CreatedAt = s.Clock.NowUTC()
 	return s.ClaimStore.Create(claim)
 }
