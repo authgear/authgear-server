@@ -303,46 +303,37 @@ func (s *StripeService) uploadUsage(ctx context.Context, appID string) (err erro
 		stripeSubscription.CurrentPeriodStart,
 		0,
 	)
-
 	if midnight.Before(currentPeriodStart) {
 		s.Logger.Infof("%v: skip upload usage due to current_period_start", appID)
 		return
 	}
 
-	smsNorthAmerica, ok := s.findSubscriptionItem(stripeSubscription, metadataSMSNorthAmerica)
-	if !ok {
-		err = fmt.Errorf("%v: subscription %v is missing SMS %v price", appID, stripeSubscription.ID, model.SMSRegionNorthAmerica)
-		return
+	if smsNorthAmerica, ok := s.findSubscriptionItem(stripeSubscription, metadataSMSNorthAmerica); ok {
+		err = s.uploadUsageRecordToSubscriptionItem(
+			ctx,
+			appID,
+			stripeSubscription,
+			smsNorthAmerica,
+			usage.RecordNameSMSSentNorthAmerica,
+			midnight,
+		)
+		if err != nil {
+			return
+		}
 	}
 
-	smsOtherRegions, ok := s.findSubscriptionItem(stripeSubscription, metadataSMSOtherRegions)
-	if !ok {
-		err = fmt.Errorf("%v: subscription %v is missing SMS %v price", appID, stripeSubscription.ID, model.SMSRegionOtherRegions)
-		return
-	}
-
-	err = s.uploadUsageRecordToSubscriptionItem(
-		ctx,
-		appID,
-		stripeSubscription,
-		smsNorthAmerica,
-		usage.RecordNameSMSSentNorthAmerica,
-		midnight,
-	)
-	if err != nil {
-		return
-	}
-
-	err = s.uploadUsageRecordToSubscriptionItem(
-		ctx,
-		appID,
-		stripeSubscription,
-		smsOtherRegions,
-		usage.RecordNameSMSSentOtherRegions,
-		midnight,
-	)
-	if err != nil {
-		return
+	if smsOtherRegions, ok := s.findSubscriptionItem(stripeSubscription, metadataSMSOtherRegions); ok {
+		err = s.uploadUsageRecordToSubscriptionItem(
+			ctx,
+			appID,
+			stripeSubscription,
+			smsOtherRegions,
+			usage.RecordNameSMSSentOtherRegions,
+			midnight,
+		)
+		if err != nil {
+			return
+		}
 	}
 
 	return
