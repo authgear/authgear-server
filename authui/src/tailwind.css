@@ -138,16 +138,16 @@
     background-size: 50%;
   }
 
-  .input {
-    @apply rounded-none border-b;
-  }
-
   .select {
     @apply rounded-none border-b text-base py-1.5 pr-7;
   }
 
+  .textarea {
+    @apply rounded-none border-b text-base;
+  }
+
   .text-input {
-    @apply py-1.5 text-base;
+    @apply rounded-none border-b py-1.5 text-base;
   }
 
   .modal {

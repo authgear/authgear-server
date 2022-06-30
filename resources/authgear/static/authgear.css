@@ -62,13 +62,23 @@
   color: var(--color-error-unshaded);
 }
 
-.input {
+.textarea {
   border-bottom-color: var(--color-text-shaded-3);
 }
-.input:disabled, .input:read-only {
+.textarea:disabled, .textarea:read-only {
   opacity: 0.4;
 }
-.input::placeholder {
+.textarea::placeholder {
+  color: var(--color-text-shaded-3);
+}
+
+.text-input {
+  border-bottom-color: var(--color-text-shaded-3);
+}
+.text-input:disabled, .text-input:read-only {
+  opacity: 0.4;
+}
+.text-input::placeholder {
   color: var(--color-text-shaded-3);
 }
 

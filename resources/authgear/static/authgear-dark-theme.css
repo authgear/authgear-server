@@ -66,16 +66,20 @@
   width: initial;
 }
 
-.dark .input:focus {
+.dark .text-input:focus {
+  border-bottom-color: var(--color-primary-shaded-5);
+}
+
+.dark .textarea:focus {
+  border-bottom-color: var(--color-primary-shaded-5);
+}
+
+.dark .select:focus {
   border-bottom-color: var(--color-primary-shaded-5);
 }
 
 .dark .secondary-txt {
   color: var(--color-text-shaded-6);
-}
-
-.dark .select:focus {
-  border-bottom-color: var(--color-primary-shaded-5);
 }
 
 .dark .primary-btn {
