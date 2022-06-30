@@ -202,7 +202,11 @@
   color: var(--color-text-shaded-1);
 }
 
-.input:focus {
+.text-input:focus {
+  border-bottom-color: var(--color-primary-unshaded);
+}
+
+.textarea:focus {
   border-bottom-color: var(--color-primary-unshaded);
 }
 

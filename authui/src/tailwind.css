@@ -138,6 +138,30 @@
     background-size: 50%;
   }
 
+  .select {
+    @apply rounded-none text-base py-1.5 pr-7 border border-solid;
+    border-top-color: transparent;
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+    border-left-color: transparent;
+  }
+
+  .textarea {
+    @apply rounded-none text-base border border-solid;
+    border-top-color: transparent;
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+    border-left-color: transparent;
+  }
+
+  .text-input {
+    @apply rounded-none py-1.5 text-base border border-solid;
+    border-top-color: transparent;
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+    border-left-color: transparent;
+  }
+
   .modal {
     @apply fixed flex top-0 left-0 w-full h-full justify-center items-center transition-opacity duration-300;
   }
