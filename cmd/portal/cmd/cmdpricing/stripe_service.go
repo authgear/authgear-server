@@ -5,8 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/lib/pq"
 	"github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/client"
@@ -48,6 +50,11 @@ var metadataSMSOtherRegions = map[string]string{
 	libstripe.MetadataKeyPriceType: string(model.PriceTypeUsage),
 	libstripe.MetadataKeyUsageType: string(model.UsageTypeSMS),
 	libstripe.MetadatakeySMSRegion: string(model.SMSRegionOtherRegions),
+}
+
+var metadataMAU = map[string]string{
+	libstripe.MetadataKeyPriceType: string(model.PriceTypeUsage),
+	libstripe.MetadataKeyUsageType: string(model.UsageTypeMAU),
 }
 
 type StripeService struct {
@@ -124,9 +131,9 @@ func (s *StripeService) scanUsageRecord(scanner db.Scanner) (*usage.UsageRecord,
 	return &r, nil
 }
 
-func (s *StripeService) getUsageRecordsForUpload(appID string, recordName usage.RecordName, subscriptionCreatedAt time.Time, midnight time.Time) (out []*usage.UsageRecord, err error) {
+func (s *StripeService) getUsageRecords(f func(builder squirrel.SelectBuilder) squirrel.SelectBuilder) (out []*usage.UsageRecord, err error) {
 	err = s.Handle.ReadOnly(func() (err error) {
-		q := s.SQLBuilder.Select(
+		q := f(s.SQLBuilder.Select(
 			"id",
 			"app_id",
 			"name",
@@ -135,28 +142,12 @@ func (s *StripeService) getUsageRecordsForUpload(appID string, recordName usage.
 			"end_time",
 			"count",
 			"stripe_timestamp",
-		).
-			From(s.SQLBuilder.TableName("_portal_usage_record")).
-			// We have two conditions here.
-			// 1st condition is to retrieve usage records that have not been uploaded.
-			// 2nd condition is to retrieve usage records that have been uploaded the same day, so that if this command
-			// is ever re-run, we still sum up to a correct quantity.
-			Where(
-				"app_id = ? AND name = ? AND period = ? AND start_time > ? AND ((stripe_timestamp IS NULL AND end_time <= ?) OR stripe_timestamp IS NOT NULL AND stripe_timestamp = ?)",
-				appID,
-				string(recordName),
-				string(periodical.Daily),
-				subscriptionCreatedAt,
-				midnight,
-				midnight,
-			)
-
+		).From(s.SQLBuilder.TableName("_portal_usage_record")))
 		rows, err := s.SQLExecutor.QueryWith(q)
 		if err != nil {
 			return
 		}
 		defer rows.Close()
-
 		for rows.Next() {
 			var r *usage.UsageRecord
 			r, err = s.scanUsageRecord(rows)
@@ -165,10 +156,39 @@ func (s *StripeService) getUsageRecordsForUpload(appID string, recordName usage.
 			}
 			out = append(out, r)
 		}
-
 		return
 	})
 	return
+}
+
+func (s *StripeService) getDailyUsageRecordsForUpload(appID string, recordName usage.RecordName, subscriptionCreatedAt time.Time, midnight time.Time) (out []*usage.UsageRecord, err error) {
+	return s.getUsageRecords(func(b squirrel.SelectBuilder) squirrel.SelectBuilder {
+		// We have two conditions here.
+		// 1st condition is to retrieve usage records that have not been uploaded.
+		// 2nd condition is to retrieve usage records that have been uploaded the same day, so that if this command
+		// is ever re-run, we still sum up to a correct quantity.
+		return b.Where(
+			"app_id = ? AND name = ? AND period = ? AND start_time > ? AND ((stripe_timestamp IS NULL AND end_time <= ?) OR stripe_timestamp IS NOT NULL AND stripe_timestamp = ?)",
+			appID,
+			string(recordName),
+			string(periodical.Daily),
+			subscriptionCreatedAt,
+			midnight,
+			midnight,
+		)
+	})
+}
+
+func (s *StripeService) getMonthlyUsageRecordsForUpload(appID string, recordName usage.RecordName, currentPeriodEnd time.Time) (out []*usage.UsageRecord, err error) {
+	return s.getUsageRecords(func(b squirrel.SelectBuilder) squirrel.SelectBuilder {
+		return b.Where(
+			"app_id = ? AND name = ? AND period = ? AND end_time = ?",
+			appID,
+			string(recordName),
+			string(periodical.Monthly),
+			currentPeriodEnd,
+		)
+	})
 }
 
 func (s *StripeService) markStripeTimestamp(usageRecords []*usage.UsageRecord, midnight time.Time) (err error) {
@@ -204,7 +224,7 @@ func (s *StripeService) markStripeTimestamp(usageRecords []*usage.UsageRecord, m
 	return
 }
 
-func (s *StripeService) uploadUsageRecordToSubscriptionItem(
+func (s *StripeService) uploadDailyUsageRecordToSubscriptionItem(
 	ctx context.Context,
 	appID string,
 	subscription *stripe.Subscription,
@@ -212,8 +232,8 @@ func (s *StripeService) uploadUsageRecordToSubscriptionItem(
 	recordName usage.RecordName,
 	midnight time.Time,
 ) (err error) {
-	subscriptionCreatedAt := time.Unix(subscription.Created, 0)
-	records, err := s.getUsageRecordsForUpload(
+	subscriptionCreatedAt := time.Unix(subscription.Created, 0).UTC()
+	records, err := s.getDailyUsageRecordsForUpload(
 		appID,
 		recordName,
 		subscriptionCreatedAt,
@@ -245,6 +265,70 @@ func (s *StripeService) uploadUsageRecordToSubscriptionItem(
 	}
 
 	err = s.markStripeTimestamp(records, midnight)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (s *StripeService) uploadMonthlyUsageRecordToSubscriptionItem(
+	ctx context.Context,
+	appID string,
+	subscription *stripe.Subscription,
+	si *stripe.SubscriptionItem,
+	recordName usage.RecordName,
+) (err error) {
+	currentPeriodStart := time.Unix(
+		subscription.CurrentPeriodStart,
+		0,
+	).UTC()
+	currentPeriodEnd := time.Unix(
+		subscription.CurrentPeriodEnd,
+		0,
+	).UTC()
+
+	records, err := s.getMonthlyUsageRecordsForUpload(
+		appID,
+		recordName,
+		currentPeriodEnd,
+	)
+
+	// Skip when there are no records.
+	if len(records) <= 0 {
+		return
+	}
+
+	quantity := 0
+	for _, record := range records {
+		quantity += record.Count
+	}
+
+	if freeQuantityStr, ok := si.Price.Metadata[libstripe.MetadataKeyFreeQuantity]; ok {
+		var freeQuantity int
+		freeQuantity, err = strconv.Atoi(freeQuantityStr)
+		if err != nil {
+			return fmt.Errorf("price %v has invalid free_quantity %#v: %w", si.Price.ID, freeQuantityStr, err)
+		}
+
+		quantity = quantity - freeQuantity
+		if quantity < 0 {
+			quantity = 0
+		}
+	}
+
+	timestamp := currentPeriodStart.Unix()
+	_, err = s.ClientAPI.UsageRecords.New(&stripe.UsageRecordParams{
+		SubscriptionItem: stripe.String(si.ID),
+		Action:           stripe.String(stripe.UsageRecordActionSet),
+		Quantity:         stripe.Int64(int64(quantity)),
+		Timestamp:        &timestamp,
+	})
+	if err != nil {
+		return
+	}
+
+	err = s.markStripeTimestamp(records, currentPeriodStart)
 	if err != nil {
 		return
 	}
@@ -302,38 +386,50 @@ func (s *StripeService) uploadUsage(ctx context.Context, appID string) (err erro
 	currentPeriodStart := time.Unix(
 		stripeSubscription.CurrentPeriodStart,
 		0,
-	)
-	if midnight.Before(currentPeriodStart) {
-		s.Logger.Infof("%v: skip upload usage due to current_period_start", appID)
-		return
-	}
+	).UTC()
 
-	if smsNorthAmerica, ok := s.findSubscriptionItem(stripeSubscription, metadataSMSNorthAmerica); ok {
-		err = s.uploadUsageRecordToSubscriptionItem(
-			ctx,
-			appID,
-			stripeSubscription,
-			smsNorthAmerica,
-			usage.RecordNameSMSSentNorthAmerica,
-			midnight,
-		)
-		if err != nil {
-			return
+	canUploadDailyUsage := !midnight.Before(currentPeriodStart)
+
+	if canUploadDailyUsage {
+		if smsNorthAmerica, ok := s.findSubscriptionItem(stripeSubscription, metadataSMSNorthAmerica); ok {
+			err = s.uploadDailyUsageRecordToSubscriptionItem(
+				ctx,
+				appID,
+				stripeSubscription,
+				smsNorthAmerica,
+				usage.RecordNameSMSSentNorthAmerica,
+				midnight,
+			)
+			if err != nil {
+				return
+			}
 		}
 	}
 
-	if smsOtherRegions, ok := s.findSubscriptionItem(stripeSubscription, metadataSMSOtherRegions); ok {
-		err = s.uploadUsageRecordToSubscriptionItem(
+	if canUploadDailyUsage {
+		if smsOtherRegions, ok := s.findSubscriptionItem(stripeSubscription, metadataSMSOtherRegions); ok {
+			err = s.uploadDailyUsageRecordToSubscriptionItem(
+				ctx,
+				appID,
+				stripeSubscription,
+				smsOtherRegions,
+				usage.RecordNameSMSSentOtherRegions,
+				midnight,
+			)
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	if mau, ok := s.findSubscriptionItem(stripeSubscription, metadataMAU); ok {
+		err = s.uploadMonthlyUsageRecordToSubscriptionItem(
 			ctx,
 			appID,
 			stripeSubscription,
-			smsOtherRegions,
-			usage.RecordNameSMSSentOtherRegions,
-			midnight,
+			mau,
+			usage.RecordNameActiveUser,
 		)
-		if err != nil {
-			return
-		}
 	}
 
 	return
