@@ -875,6 +875,7 @@
 
   "SubscriptionPlanCard.sms.north-america": "USD {unitAmount} per SMS (US, Canada)",
   "SubscriptionPlanCard.sms.other-regions": "USD {unitAmount} per SMS (Other regions)",
+  "SubscriptionPlanCard.mau": "USD {unitAmount}/mo per {divisor} additional MAUs",
 
   "SubscriptionScreen.footer.enterprise-plan": "Get 50,000+ MAUs and customization with our {ExternalLink, react, onClick{{onClick}} children{Enterprise Plan}}",
   "SubscriptionScreen.footer.pricing-details": "Check out more details and compare plan features on our {ExternalLink, react, href{https://www.authgear.com/pricing} children{pricing page}}",

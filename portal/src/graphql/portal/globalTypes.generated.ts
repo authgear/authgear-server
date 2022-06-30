@@ -537,7 +537,10 @@ export type SkipAppTutorialProgressPayload = {
 export type SubscriptionItemPrice = {
   __typename?: 'SubscriptionItemPrice';
   currency: Scalars['String'];
+  freeQuantity?: Maybe<Scalars['Int']>;
   smsRegion: SubscriptionItemPriceSmsRegion;
+  transformQuantityDivideBy?: Maybe<Scalars['Int']>;
+  transformQuantityRound: TransformQuantityRound;
   type: SubscriptionItemPriceType;
   unitAmount: Scalars['Int'];
   usageType: SubscriptionItemPriceUsageType;
@@ -575,13 +578,22 @@ export type SubscriptionUsage = {
 export type SubscriptionUsageItem = {
   __typename?: 'SubscriptionUsageItem';
   currency?: Maybe<Scalars['String']>;
+  freeQuantity?: Maybe<Scalars['Int']>;
   quantity: Scalars['Int'];
   smsRegion: SubscriptionItemPriceSmsRegion;
   totalAmount?: Maybe<Scalars['Int']>;
+  transformQuantityDivideBy?: Maybe<Scalars['Int']>;
+  transformQuantityRound: TransformQuantityRound;
   type: SubscriptionItemPriceType;
   unitAmount?: Maybe<Scalars['Int']>;
   usageType: SubscriptionItemPriceUsageType;
 };
+
+export enum TransformQuantityRound {
+  Down = 'DOWN',
+  None = 'NONE',
+  Up = 'UP'
+}
 
 /** Tutorial status of an app */
 export type TutorialStatus = {

@@ -610,7 +610,16 @@ type SubscriptionItemPrice {
   currency: String!
 
   """"""
+  freeQuantity: Int
+
+  """"""
   smsRegion: SubscriptionItemPriceSMSRegion!
+
+  """"""
+  transformQuantityDivideBy: Int
+
+  """"""
+  transformQuantityRound: TransformQuantityRound!
 
   """"""
   type: SubscriptionItemPriceType!
@@ -679,6 +688,9 @@ type SubscriptionUsageItem {
   currency: String
 
   """"""
+  freeQuantity: Int
+
+  """"""
   quantity: Int!
 
   """"""
@@ -688,6 +700,12 @@ type SubscriptionUsageItem {
   totalAmount: Int
 
   """"""
+  transformQuantityDivideBy: Int
+
+  """"""
+  transformQuantityRound: TransformQuantityRound!
+
+  """"""
   type: SubscriptionItemPriceType!
 
   """"""
@@ -695,6 +713,18 @@ type SubscriptionUsageItem {
 
   """"""
   usageType: SubscriptionItemPriceUsageType!
+}
+
+""""""
+enum TransformQuantityRound {
+  """"""
+  DOWN
+
+  """"""
+  NONE
+
+  """"""
+  UP
 }
 
 """Tutorial status of an app"""

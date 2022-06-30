@@ -197,6 +197,11 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
       price.usageType === SubscriptionItemPriceUsageType.Sms &&
       price.smsRegion === SubscriptionItemPriceSmsRegion.OtherRegions
   );
+  const mauPrice = subscriptionPlan.prices.find(
+    (price) =>
+      price.type === SubscriptionItemPriceType.Usage &&
+      price.usageType === SubscriptionItemPriceUsageType.Mau
+  );
 
   const previousPlanName = previousPlan(name);
   const cardTag = showRecommendedTag(name, currentPlanName) ? (
@@ -221,7 +226,9 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
       }
       basePriceTag={
         <BasePriceTag>
-          {basePrice != null ? `$${basePrice.unitAmount / 100}/mo` : "-"}
+          {basePrice != null
+            ? `$${basePrice.unitAmount / 100}${mauPrice == null ? "" : "+"}/mo`
+            : "-"}
         </BasePriceTag>
       }
       mauRestriction={
@@ -233,6 +240,17 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
       }
       usagePriceTags={
         <>
+          {mauPrice != null ? (
+            <UsagePriceTag>
+              <FormattedMessage
+                id="SubscriptionPlanCard.mau"
+                values={{
+                  unitAmount: mauPrice.unitAmount / 100,
+                  divisor: mauPrice.transformQuantityDivideBy ?? 1,
+                }}
+              />
+            </UsagePriceTag>
+          ) : null}
           {northAmericaSMSPrice != null ? (
             <UsagePriceTag>
               <FormattedMessage
