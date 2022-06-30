@@ -213,6 +213,9 @@ func (s *Service) CreateSubscriptionIfNotExists(checkoutSessionID string, subscr
 	}
 
 	// Check if the app has subscription to avoid duplicate subscription
+	// It was observed that in test mode, the following search query INCLUDES
+	// subscriptions with status=canceled.
+	// Therefore we have to check the actual result.
 	hasSubscription := false
 	iter := s.ClientAPI.Subscriptions.Search(&stripe.SubscriptionSearchParams{
 		SearchParams: stripe.SearchParams{
@@ -221,7 +224,10 @@ func (s *Service) CreateSubscriptionIfNotExists(checkoutSessionID string, subscr
 		},
 	})
 	for iter.Next() {
-		hasSubscription = true
+		sub := iter.Current().(*stripe.Subscription)
+		if sub.Status == stripe.SubscriptionStatusActive && sub.Metadata[MetadataKeyAppID] == appID {
+			hasSubscription = true
+		}
 	}
 	if err := iter.Err(); err != nil {
 		return fmt.Errorf("failed to search app's subscription: %w", err)
