@@ -61,7 +61,7 @@ const MAU_LIMIT: Record<string, number> = {
   free: 5000,
   developers: 1000,
   startups: 5000,
-  business: 30000,
+  business: 50000,
 };
 
 const CHECK_IS_PROCESSING_SUBSCRIPTION_INTERVAL = 5000;
@@ -357,6 +357,41 @@ function getSMSCost(
   return cost;
 }
 
+interface MAUCost {
+  totalCost: number;
+  additionalMAU: number;
+}
+
+function getMAUCost(
+  planName: string,
+  subscriptionUsage: SubscriptionUsage
+): MAUCost | undefined {
+  if (!isKnownPaidPlan(planName)) {
+    return undefined;
+  }
+
+  for (const item of subscriptionUsage.items) {
+    if (
+      item.type === SubscriptionItemPriceType.Usage &&
+      item.usageType === SubscriptionItemPriceUsageType.Mau
+    ) {
+      const additionalMAU = Math.max(
+        0,
+        item.quantity - (item.freeQuantity ?? 0)
+      );
+      const totalCost = item.totalAmount;
+      if (totalCost != null) {
+        return {
+          totalCost,
+          additionalMAU,
+        };
+      }
+    }
+  }
+
+  return undefined;
+}
+
 const CANCEL_THEME: PartialTheme = {
   palette: {
     themePrimary: "#c8c8c8",
@@ -388,6 +423,13 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
       return undefined;
     }
     return getSMSCost(planName, thisMonthUsage);
+  }, [planName, thisMonthUsage]);
+
+  const mauCost = useMemo(() => {
+    if (thisMonthUsage == null) {
+      return undefined;
+    }
+    return getMAUCost(planName, thisMonthUsage);
   }, [planName, thisMonthUsage]);
 
   const baseAmount = useMemo(() => {
@@ -561,6 +603,23 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
               )
             }
           />
+          {mauCost != null ? (
+            <CostItem
+              title={
+                <FormattedMessage id="SubscriptionCurrentPlanSummary.additional-mau.title" />
+              }
+              kind="billed"
+              amount={mauCost.totalCost}
+              tooltip={
+                <FormattedMessage
+                  id="SubscriptionCurrentPlanSummary.additional-mau.tooltip"
+                  values={{
+                    count: mauCost.additionalMAU,
+                  }}
+                />
+              }
+            />
+          ) : null}
         </SubscriptionCurrentPlanSummary>
         <div
           className={cn(styles.section, styles.cardsContainer)}

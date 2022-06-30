@@ -841,6 +841,8 @@
   "SubscriptionCurrentPlanSummary.sms.tooltip": "{count1} SMS (US, Canada) sent{br, react}{count2} SMS (Other regions) sent",
   "SubscriptionCurrentPlanSummary.total-cost.title": "Total Cost (Estimated)",
   "SubscriptionCurrentPlanSummary.total-cost.tooltip": "This is an estimated cost based on your usage{br, react}Your total cost will be fully calcaluated by the end of the billing cycle",
+  "SubscriptionCurrentPlanSummary.additional-mau.title": "Additional MAU",
+  "SubscriptionCurrentPlanSummary.additional-mau.tooltip": "{count} Additional MAU added",
 
   "SubscriptionPlanCard.label.upgrade": "Upgrade",
   "SubscriptionPlanCard.label.downgrade": "Downgrade",
