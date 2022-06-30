@@ -63,8 +63,6 @@
 }
 
 .input {
-  border-radius: 0;
-  border-bottom-width: 1px;
   border-bottom-color: var(--color-text-shaded-3);
 }
 .input:disabled, .input:read-only {
@@ -75,11 +73,6 @@
 }
 
 .select {
-  height: 36px;
-  padding: 0 28px 0 0;
-  font-size: 1rem;
-
-  border-bottom-width: 1px;
   border-bottom-color: var(--color-text-shaded-2);
 
   background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAAH2U1dRAAAABGdBTUEAALGPC/xhBQAAAA9QTFRFAAAAaGhdYV9cYF9dYF5cYSRWqgAAAAR0Uk5TABZp1J65f3sAAAB5SURBVCjPxdDLDYJQEIXhb7wUcBMswIUFDIECRPrvyQVXEY0rTTyrOX/mDQibIrewyh3YqSO5FHQfUrZOcEDMlISYS75N/EInqBjbGCU5VhhXQMkVMM6trlT/1Xm4R/11/cfUSL+03Rp5+EaePDENO09My8tt8ctbbxZSCTDnykmRAAAAAElFTkSuQmCC');
@@ -92,12 +85,6 @@
 }
 .select:disabled {
   opacity: 0.4;
-}
-
-/* FIXME(CSS): text-input is not compatible with atomic CSS. */
-.text-input {
-  height: 36px;
-  padding: 0;
 }
 
 .destructive-btn {

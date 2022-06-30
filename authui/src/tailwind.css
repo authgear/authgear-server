@@ -138,6 +138,18 @@
     background-size: 50%;
   }
 
+  .input {
+    @apply rounded-none border-b;
+  }
+
+  .select {
+    @apply rounded-none border-b text-base py-1.5 pr-7;
+  }
+
+  .text-input {
+    @apply py-1.5 text-base;
+  }
+
   .modal {
     @apply fixed flex top-0 left-0 w-full h-full justify-center items-center transition-opacity duration-300;
   }
