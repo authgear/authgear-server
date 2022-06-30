@@ -60,7 +60,7 @@
   <p class="text-sm break-words primary-txt text-center">
     {{ template "whatsapp-otp-installed-on-this-device-hint" }}
   </p>
-  <a href="{{ $.OpenWhatsappLink }}"
+  <a href="{{ if $.IsNativePlatform }}{{ $.WhatsappCustomURLScheme }}{{ else }}{{ $.OpenWhatsappLink }}{{end}}"
     target="_blank"
     class="as-btn not-a btn primary-btn"
     data-authgear-event="authgear.button.open_in_whatsapp"

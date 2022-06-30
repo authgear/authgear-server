@@ -63,6 +63,7 @@ type WhatsappOTPViewModel struct {
 	UserPhone                  string
 	StateQuery                 WhatsappOTPPageQueryState
 	OpenWhatsappLink           string // Link to open whatsapp with phone number
+	WhatsappCustomURLScheme    htmltemplate.URL
 	FormActionPath             string
 	OpenWhatsappQRCodeImageURI htmltemplate.URL
 	XDeviceToken               bool // value of x_device_token query is used to preserve the checkbox value between whatsapp otp pages
@@ -89,10 +90,6 @@ func (m *WhatsappOTPViewModel) AddData(r *http.Request, graph *interaction.Graph
 	u.RawQuery = q.Encode()
 	m.FormActionPath = u.String()
 
-	waURL := url.URL{}
-	waURL.Scheme = "https"
-	waURL.Host = "wa.me"
-	waURL.Path = strings.TrimPrefix(m.WhatsappOTPPhone, "+")
 	preFilledMessage, err := translations.RenderText(
 		"whatsapp-otp-pre-filled-message",
 		map[string]interface{}{
@@ -104,13 +101,36 @@ func (m *WhatsappOTPViewModel) AddData(r *http.Request, graph *interaction.Graph
 		return err
 	}
 
+	waRecipientPhone := strings.TrimPrefix(m.WhatsappOTPPhone, "+")
+
+	// whatsapp universal link
+	waURL := url.URL{}
+	waURL.Scheme = "https"
+	waURL.Host = "wa.me"
+	waURL.Path = waRecipientPhone
 	q = waURL.Query()
 	q.Set("text", preFilledMessage)
 	waURL.RawQuery = q.Encode()
-	m.OpenWhatsappLink = waURL.String()
+	openWhatsappLink := waURL.String()
+
+	// whatsapp custom url scheme
+	waCustomURL := url.URL{}
+	waCustomURL.Scheme = "whatsapp"
+	waCustomURL.Host = "send"
+	q = waCustomURL.Query()
+	q.Set("text", preFilledMessage)
+	q.Set("phone", waRecipientPhone)
+	waCustomURL.RawQuery = q.Encode()
+	whatsappCustomURLScheme := waCustomURL.String()
+
+	m.OpenWhatsappLink = openWhatsappLink
+	// WhatsappCustomURLScheme is generated here and not user generated,
+	// so it is safe to use htmltemplate.URL with it.
+	// nolint:gosec
+	m.WhatsappCustomURLScheme = htmltemplate.URL(whatsappCustomURLScheme)
 
 	// Using H error correction level for adding logo
-	img, err := createQRCodeImage(m.OpenWhatsappLink, 512, 512, qr.H)
+	img, err := createQRCodeImage(openWhatsappLink, 512, 512, qr.H)
 	if err != nil {
 		return err
 	}
