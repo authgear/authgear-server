@@ -51,31 +51,31 @@
   {{ if (call $.IsEditable "/name") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-name" }}
-    <input class="primary-txt input text-input text-base" name="/name" value="{{ $.Name }}">
+    <input class="primary-txt input text-input" name="/name" value="{{ $.Name }}">
   </label>
   {{ end }}
   {{ if (call $.IsEditable "/nickname") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-nickname" }}
-    <input class="primary-txt input text-input text-base" name="/nickname" value="{{ $.Nickname }}">
+    <input class="primary-txt input text-input" name="/nickname" value="{{ $.Nickname }}">
   </label>
   {{ end }}
   {{ if (call $.IsEditable "/given_name") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-given-name" }}
-    <input class="primary-txt input text-input text-base" name="/given_name" value="{{ $.GivenName }}">
+    <input class="primary-txt input text-input" name="/given_name" value="{{ $.GivenName }}">
   </label>
   {{ end }}
   {{ if (call $.IsEditable "/middle_name") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-middle-name" }}
-    <input class="primary-txt input text-input text-base" name="/middle_name" value="{{ $.MiddleName }}">
+    <input class="primary-txt input text-input" name="/middle_name" value="{{ $.MiddleName }}">
   </label>
   {{ end }}
   {{ if (call $.IsEditable "/family_name") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-family-name" }}
-    <input class="primary-txt input text-input text-base" name="/family_name" value="{{ $.FamilyName }}">
+    <input class="primary-txt input text-input" name="/family_name" value="{{ $.FamilyName }}">
   </label>
   {{ end }}
   {{ end }}
@@ -150,7 +150,7 @@
   {{ if (call $.IsEditable "/profile") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-profile" }}
-    <input class="primary-txt input text-input text-base" name="/profile" value="{{ $.Profile }}">
+    <input class="primary-txt input text-input" name="/profile" value="{{ $.Profile }}">
   </label>
   {{ end }}
   {{ end }}
@@ -222,7 +222,7 @@
   {{ if (call $.IsEditable "/website") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-website" }}
-    <input class="primary-txt input text-input text-base" name="/website" value="{{ $.Website }}">
+    <input class="primary-txt input text-input" name="/website" value="{{ $.Website }}">
   </label>
   {{ end }}
   {{ end }}
@@ -237,15 +237,15 @@
   </label>
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-locality" }}
-    <input class="primary-txt input text-input text-base" name="/address/locality" value="{{ $.AddressLocality }}">
+    <input class="primary-txt input text-input" name="/address/locality" value="{{ $.AddressLocality }}">
   </label>
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-postal-code" }}
-    <input class="primary-txt input text-input text-base" name="/address/postal_code" value="{{ $.AddressPostalCode }}">
+    <input class="primary-txt input text-input" name="/address/postal_code" value="{{ $.AddressPostalCode }}">
   </label>
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-region" }}
-    <input class="primary-txt input text-input text-base" name="/address/region" value="{{ $.AddressRegion }}">
+    <input class="primary-txt input text-input" name="/address/region" value="{{ $.AddressRegion }}">
   </label>
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-country" }}
@@ -269,7 +269,7 @@
   {{ if (call $.IsEditable "/birthdate") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-birthdate" }}
-    <input class="primary-txt input text-input text-base" type="date" name="/birthdate" value="{{ $.Birthdate }}" max="{{ $.Today }}">
+    <input class="primary-txt input text-input" type="date" name="/birthdate" value="{{ $.Birthdate }}" max="{{ $.Today }}">
   </label>
   {{ end }}
   {{ end }}
@@ -291,7 +291,7 @@
       <option value="other" {{ if (and (not (eq $.Gender "female")) (not (eq $.Gender "male")) $.Gender) }}selected{{ end }}>{{ template "settings-profile-edit-gender-other" }}</option>
     </select>
     <input
-    class="primary-txt input text-input text-base"
+    class="primary-txt input text-input"
     name="gender-input"
     value="{{ $.Gender }}"
     data-gender-select-target="input"
@@ -348,14 +348,14 @@
     {{/* The control */}}
 
     {{ if (eq $ca.Type "string") }}
-    <input type="text" class="primary-txt input text-input text-base" name="{{ $ca.Pointer }}" value="{{ showAttributeValue $ca.Value }}">
+    <input type="text" class="primary-txt input text-input" name="{{ $ca.Pointer }}" value="{{ showAttributeValue $ca.Value }}">
     {{ end }}
 
     {{ if (eq $ca.Type "number") }}
     <input
       type="text"
       inputmode="decimal"
-      class="primary-txt input text-input text-base"
+      class="primary-txt input text-input"
       name="{{ $ca.Pointer }}"
       value="{{ showAttributeValue $ca.Value }}">
     {{ end }}
@@ -364,7 +364,7 @@
     <input
       type="text"
       inputmode="numeric"
-      class="primary-txt input text-input text-base"
+      class="primary-txt input text-input"
       name="{{ $ca.Pointer }}"
       value="{{ showAttributeValue $ca.Value }}">
     {{ end }}
@@ -397,7 +397,7 @@
       data-intl-tel-input-class-value="flex flex-row"
       type="text"
       inputmode="tel"
-      class="primary-txt input text-input text-base w-full"
+      class="primary-txt input text-input w-full"
       name="{{ $ca.Pointer }}"
       value="{{ showAttributeValue $ca.Value }}"
       data-controller="intl-tel-input"
@@ -409,7 +409,7 @@
     <input
       type="email"
       inputmode="email"
-      class="primary-txt input text-input text-base"
+      class="primary-txt input text-input"
       name="{{ $ca.Pointer }}"
       value="{{ showAttributeValue $ca.Value }}">
     {{ end }}
@@ -418,7 +418,7 @@
     <input
       type="url"
       inputmode="url"
-      class="primary-txt input text-input text-base"
+      class="primary-txt input text-input"
       name="{{ $ca.Pointer }}"
       value="{{ showAttributeValue $ca.Value }}">
     {{ end }}
