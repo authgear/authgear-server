@@ -10,12 +10,14 @@ import {
   DialogFooter,
   DialogType,
   IDialogContentProps,
+  IButtonProps,
 } from "@fluentui/react";
 import { DateTime } from "luxon";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import styles from "./SubscriptionPlanCard.module.scss";
 import { formatDatetime } from "../../util/formatDatetime";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import { useLoading, useIsLoading } from "../../hook/loading";
 import { usePreviewUpdateSubscriptionMutation } from "./mutations/previewUpdateSubscriptionMutation";
 
 interface CardProps {
@@ -165,7 +167,7 @@ export interface CTAProps {
   planName: string;
   variant: "subscribe" | "upgrade" | "downgrade" | "current" | "non-applicable";
   nextBillingDate?: Date;
-  disabled?: boolean;
+  disabled?: IButtonProps["disabled"];
   onClickSubscribe?: (planName: string) => void;
   onClickUpgrade?: (planName: string) => void;
   onClickDowngrade?: (planName: string) => void;
@@ -211,6 +213,9 @@ export function CTA(props: CTAProps): React.ReactElement {
 
   const [previewUpdateSubscription, { data, loading }] =
     usePreviewUpdateSubscriptionMutation();
+  useLoading(loading);
+
+  const isLoading = useIsLoading();
 
   const amountDue =
     data?.previewUpdateSubscription.amountDue != null
@@ -340,7 +345,10 @@ export function CTA(props: CTAProps): React.ReactElement {
             dialogContentProps={upgradeDialogContentProps}
           >
             <DialogFooter>
-              <PrimaryButton onClick={onClickConfirmUpgrade} disabled={loading}>
+              <PrimaryButton
+                onClick={onClickConfirmUpgrade}
+                disabled={isLoading}
+              >
                 <FormattedMessage id="SubscriptionPlanCard.label.upgrade" />
               </PrimaryButton>
               <DefaultButton onClick={onDismiss}>
@@ -369,7 +377,7 @@ export function CTA(props: CTAProps): React.ReactElement {
               <PrimaryButton
                 onClick={onClickConfirmDowngrade}
                 theme={destructive}
-                disabled={loading}
+                disabled={isLoading}
               >
                 <FormattedMessage id="SubscriptionPlanCard.label.downgrade" />
               </PrimaryButton>
