@@ -11,6 +11,8 @@ import {
   ProgressIndicator,
   PartialTheme,
   ThemeProvider,
+  Spinner,
+  SpinnerSize,
 } from "@fluentui/react";
 import { useId } from "@fluentui/react-hooks";
 import { DateTime } from "luxon";
@@ -266,6 +268,9 @@ function SubscriptionManagement(props: SubscriptionManagementProps) {
         disabled={manageSubscriptionLoading ?? manageSubscriptionDisabled}
       >
         <FormattedMessage id="SubscriptionCurrentPlanSummary.manage-subscription" />
+        {manageSubscriptionLoading === true ? (
+          <Spinner size={SpinnerSize.xSmall} />
+        ) : null}
       </Link>
     </div>
   );
