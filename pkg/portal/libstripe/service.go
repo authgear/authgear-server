@@ -66,7 +66,7 @@ type Service struct {
 	Endpoints         EndpointsProvider
 }
 
-func (s *Service) FetchSubscriptionPlans() (subscriptionPlans []*SubscriptionPlan, err error) {
+func (s *Service) FetchSubscriptionPlans() (subscriptionPlans []*model.SubscriptionPlan, err error) {
 	item := redisutil.Item{
 		Key:        RedisCacheKeySubscriptionPlans,
 		Expiration: duration.PerHour,
@@ -91,7 +91,7 @@ func (s *Service) FetchSubscriptionPlans() (subscriptionPlans []*SubscriptionPla
 	return
 }
 
-func (s *Service) CreateCheckoutSession(appID string, customerEmail string, subscriptionPlan *SubscriptionPlan) (*CheckoutSession, error) {
+func (s *Service) CreateCheckoutSession(appID string, customerEmail string, subscriptionPlan *model.SubscriptionPlan) (*CheckoutSession, error) {
 	relayGlobalAppID := relay.ToGlobalID("App", appID)
 	billingPageURL := s.Endpoints.BillingEndpointURL(relayGlobalAppID).String()
 	billingRedirectPageURL := s.Endpoints.BillingRedirectEndpointURL(relayGlobalAppID).String()
@@ -127,7 +127,7 @@ func (s *Service) CreateCheckoutSession(appID string, customerEmail string, subs
 	return NewCheckoutSession(checkoutSession), nil
 }
 
-func (s *Service) GetSubscriptionPlan(planName string) (*SubscriptionPlan, error) {
+func (s *Service) GetSubscriptionPlan(planName string) (*model.SubscriptionPlan, error) {
 	subscriptionPlans, err := s.FetchSubscriptionPlans()
 	if err != nil {
 		return nil, err
@@ -167,7 +167,7 @@ func (s *Service) ConstructEvent(r *http.Request) (Event, error) {
 	return event, err
 }
 
-func (s *Service) CreateSubscriptionIfNotExists(checkoutSessionID string, subscriptionPlans []*SubscriptionPlan) error {
+func (s *Service) CreateSubscriptionIfNotExists(checkoutSessionID string, subscriptionPlans []*model.SubscriptionPlan) error {
 	// Fetch the checkout session
 	expandSetupIntentPaymentMethod := "setup_intent.payment_method"
 	expandCustomerSubscriptions := "customer.subscriptions"
@@ -336,10 +336,10 @@ func (s *Service) intersectPlanNames(plans []*model.Plan, products []*stripe.Pro
 	return intersection
 }
 
-func (s *Service) convertToSubscriptionPlans(knownPlanNames map[string]struct{}, products []*stripe.Product) ([]*SubscriptionPlan, error) {
-	m := make(map[string]*SubscriptionPlan)
+func (s *Service) convertToSubscriptionPlans(knownPlanNames map[string]struct{}, products []*stripe.Product) ([]*model.SubscriptionPlan, error) {
+	m := make(map[string]*model.SubscriptionPlan)
 	for planName := range knownPlanNames {
-		m[planName] = NewSubscriptionPlan(planName)
+		m[planName] = model.NewSubscriptionPlan(planName)
 	}
 
 	for _, product := range products {
@@ -365,7 +365,7 @@ func (s *Service) convertToSubscriptionPlans(knownPlanNames map[string]struct{},
 		}
 	}
 
-	var out []*SubscriptionPlan
+	var out []*model.SubscriptionPlan
 	for _, subscriptionPlan := range m {
 		out = append(out, subscriptionPlan)
 	}
@@ -373,8 +373,8 @@ func (s *Service) convertToSubscriptionPlans(knownPlanNames map[string]struct{},
 	return out, nil
 }
 
-func (s *Service) getStripeSubscription(planName string, subscriptionPlans []*SubscriptionPlan) (*SubscriptionPlan, error) {
-	var subscriptionPlan *SubscriptionPlan
+func (s *Service) getStripeSubscription(planName string, subscriptionPlans []*model.SubscriptionPlan) (*model.SubscriptionPlan, error) {
+	var subscriptionPlan *model.SubscriptionPlan
 	for _, sp := range subscriptionPlans {
 		if sp.Name == planName {
 			subscriptionPlan = sp

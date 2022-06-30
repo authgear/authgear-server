@@ -18,20 +18,7 @@ const (
 	MetadataKeyFreeQuantity = "free_quantity"
 )
 
-type Price struct {
-	StripePriceID             string                       `json:"stripePriceID"`
-	StripeProductID           string                       `json:"stripeProductID"`
-	Currency                  string                       `json:"currency"`
-	UnitAmount                int                          `json:"unitAmount"`
-	Type                      model.PriceType              `json:"type"`
-	UsageType                 model.UsageType              `json:"usageType,omitempty"`
-	SMSRegion                 model.SMSRegion              `json:"smsRegion,omitempty"`
-	FreeQuantity              *int                         `json:"freeQuantity,omitempty"`
-	TransformQuantityDivideBy *int                         `json:"transformQuantityDivideBy,omitempty"`
-	TransformQuantityRound    model.TransformQuantityRound `json:"transformQuantityRound,omitempty"`
-}
-
-func NewPrice(stripeProduct *stripe.Product) (price *Price, err error) {
+func NewPrice(stripeProduct *stripe.Product) (price *model.Price, err error) {
 	priceType := model.PriceType(stripeProduct.Metadata[MetadataKeyPriceType])
 	err = priceType.Valid()
 	if err != nil {
@@ -44,7 +31,7 @@ func NewPrice(stripeProduct *stripe.Product) (price *Price, err error) {
 		return
 	}
 
-	price = &Price{
+	price = &model.Price{
 		StripeProductID: stripeProduct.ID,
 		StripePriceID:   stripePrice.ID,
 		Type:            priceType,
@@ -86,17 +73,6 @@ func NewPrice(stripeProduct *stripe.Product) (price *Price, err error) {
 	}
 
 	return
-}
-
-type SubscriptionPlan struct {
-	Name   string   `json:"name"`
-	Prices []*Price `json:"prices,omitempty"`
-}
-
-func NewSubscriptionPlan(planName string) *SubscriptionPlan {
-	return &SubscriptionPlan{
-		Name: planName,
-	}
 }
 
 type CheckoutSession struct {
