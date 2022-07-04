@@ -139,11 +139,12 @@ function PlanDetailsLines(props: PlanDetailsLinesProps) {
 interface SubscriptionPlanCardRenderProps {
   currentPlanName: string;
   subscriptionPlan: SubscriptionPlan;
+  nextBillingDate?: Date;
 }
 
 // eslint-disable-next-line complexity
 function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
-  const { currentPlanName, subscriptionPlan } = props;
+  const { currentPlanName, subscriptionPlan, nextBillingDate } = props;
   const { appID } = useParams() as { appID: string };
   const { createCheckoutSession, loading: createCheckoutSessionLoading } =
     useCreateCheckoutSessionMutation();
@@ -305,12 +306,14 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
       }
       cta={
         <CTA
+          appID={appID}
           planName={subscriptionPlan.name}
           variant={ctaVariant}
           disabled={loading}
           onClickSubscribe={onClickSubscribe}
           onClickUpgrade={onClickUpgrade}
           onClickDowngrade={onClickDowngrade}
+          nextBillingDate={nextBillingDate}
         />
       }
       planDetailsTitle={
@@ -673,6 +676,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
                     key={plan.name}
                     subscriptionPlan={plan}
                     currentPlanName={planName}
+                    nextBillingDate={nextBillingDate}
                   />
                 );
               }

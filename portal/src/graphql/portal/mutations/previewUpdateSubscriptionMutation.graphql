@@ -1,0 +1,6 @@
+mutation previewUpdateSubscriptionMutation($appID: ID!, $planName: String!) {
+  previewUpdateSubscription(input: { appID: $appID, planName: $planName }) {
+    currency
+    amountDue
+  }
+}
