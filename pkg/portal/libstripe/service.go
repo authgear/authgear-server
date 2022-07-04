@@ -349,7 +349,7 @@ func (s *Service) convertToSubscriptionPlans(knownPlanNames map[string]struct{},
 	}
 
 	for _, product := range products {
-		price, err := NewPrice(product)
+		price, err := NewPriceFromProductOfProductList(product)
 		if err != nil {
 			// skip the unknown product
 			continue
