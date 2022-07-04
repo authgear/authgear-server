@@ -1,12 +1,14 @@
 package configsource
 
 import (
+	"bytes"
 	"context"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/readcloserthunk"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -28,7 +30,7 @@ func TestAuthgearYAML(t *testing.T) {
 						Fs:   app,
 						Path: path,
 					},
-					Data: []byte(`id: test
+					ReadCloserThunk: readcloserthunk.Reader(bytes.NewReader([]byte(`id: test
 http:
   public_origin: http://test
 user_profile:
@@ -37,7 +39,7 @@ user_profile:
     - id: "0000"
       pointer: /a
       type: string
-`),
+`))),
 				},
 				[]byte(`id: test
 http:
@@ -57,7 +59,7 @@ http:
 						Fs:   app,
 						Path: path,
 					},
-					Data: []byte(`id: test
+					ReadCloserThunk: readcloserthunk.Reader(bytes.NewReader([]byte(`id: test
 http:
   public_origin: http://test
 user_profile:
@@ -66,7 +68,7 @@ user_profile:
     - id: "0000"
       pointer: /a
       type: string
-`),
+`))),
 				},
 				[]byte(`id: test
 http:
@@ -92,7 +94,7 @@ user_profile:
 						Fs:   app,
 						Path: path,
 					},
-					Data: []byte(`id: test
+					ReadCloserThunk: readcloserthunk.Reader(bytes.NewReader([]byte(`id: test
 http:
   public_origin: http://test
 user_profile:
@@ -101,7 +103,7 @@ user_profile:
     - id: "0000"
       pointer: /a
       type: string
-`),
+`))),
 				},
 				[]byte(`id: test
 http:
@@ -127,7 +129,7 @@ user_profile:
 						Fs:   app,
 						Path: path,
 					},
-					Data: []byte(`id: test
+					ReadCloserThunk: readcloserthunk.Reader(bytes.NewReader([]byte(`id: test
 http:
   public_origin: http://test
 user_profile:
@@ -136,7 +138,7 @@ user_profile:
     - id: "0000"
       pointer: /a
       type: string
-`),
+`))),
 				},
 				[]byte(`id: test
 http:
@@ -164,7 +166,7 @@ user_profile:
 						Fs:   app,
 						Path: path,
 					},
-					Data: []byte(`id: test
+					ReadCloserThunk: readcloserthunk.Reader(bytes.NewReader([]byte(`id: test
 http:
   public_origin: http://test
 user_profile:
@@ -176,7 +178,7 @@ user_profile:
     - id: "0001"
       pointer: /b
       type: string
-`),
+`))),
 				},
 				[]byte(`id: test
 http:

@@ -1,6 +1,7 @@
 package configsource
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/readcloserthunk"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -42,7 +44,7 @@ func (d AuthgearYAMLDescriptor) FindResources(fs resource.Fs) ([]resource.Locati
 		Fs:   fs,
 		Path: AuthgearYAML,
 	}
-	_, err := resource.ReadLocation(location)
+	_, err := resource.StatLocation(location)
 	if os.IsNotExist(err) {
 		return nil, nil
 	} else if err != nil {
@@ -64,7 +66,12 @@ func (d AuthgearYAMLDescriptor) ViewResources(resources []resource.ResourceFile,
 			return nil, resource.ErrResourceNotFound
 		}
 
-		return target.Data, nil
+		b, err := readcloserthunk.Performance_Bytes(target.ReadCloserThunk)
+		if err != nil {
+			return nil, err
+		}
+
+		return b, nil
 	}
 
 	effective := func() (interface{}, error) {
@@ -104,7 +111,12 @@ func (d AuthgearYAMLDescriptor) UpdateResource(ctx context.Context, _ []resource
 		return nil, fmt.Errorf("missing feature config in context")
 	}
 
-	original, err := config.Parse(resrc.Data)
+	b, err := readcloserthunk.Performance_Bytes(resrc.ReadCloserThunk)
+	if err != nil {
+		return nil, err
+	}
+
+	original, err := config.Parse(b)
 	if err != nil {
 		return nil, fmt.Errorf("cannot parse original app config %w", err)
 	}
@@ -120,8 +132,8 @@ func (d AuthgearYAMLDescriptor) UpdateResource(ctx context.Context, _ []resource
 	}
 
 	return &resource.ResourceFile{
-		Location: resrc.Location,
-		Data:     data,
+		Location:        resrc.Location,
+		ReadCloserThunk: readcloserthunk.Reader(bytes.NewReader(data)),
 	}, nil
 }
 
@@ -237,7 +249,7 @@ func (d AuthgearSecretYAMLDescriptor) FindResources(fs resource.Fs) ([]resource.
 		Fs:   fs,
 		Path: AuthgearSecretYAML,
 	}
-	_, err := resource.ReadLocation(location)
+	_, err := resource.StatLocation(location)
 	if os.IsNotExist(err) {
 		return nil, nil
 	} else if err != nil {
@@ -275,7 +287,11 @@ func (d AuthgearSecretYAMLDescriptor) viewAppFile(resources []resource.ResourceF
 	}
 
 	var cfg config.SecretConfig
-	if err := yaml.Unmarshal(target.Data, &cfg); err != nil {
+	b, err := readcloserthunk.Performance_Bytes(target.ReadCloserThunk)
+	if err != nil {
+		return nil, err
+	}
+	if err := yaml.Unmarshal(b, &cfg); err != nil {
 		return nil, fmt.Errorf("malformed secret config: %w", err)
 	}
 
@@ -291,7 +307,11 @@ func (d AuthgearSecretYAMLDescriptor) viewEffectiveResource(resources []resource
 	var cfgs []*config.SecretConfig
 	for _, layer := range resources {
 		var cfg config.SecretConfig
-		if err := yaml.Unmarshal(layer.Data, &cfg); err != nil {
+		b, err := readcloserthunk.Performance_Bytes(layer.ReadCloserThunk)
+		if err != nil {
+			return nil, err
+		}
+		if err := yaml.Unmarshal(b, &cfg); err != nil {
 			return nil, fmt.Errorf("malformed secret config: %w", err)
 		}
 		cfgs = append(cfgs, &cfg)
@@ -316,7 +336,11 @@ func (d AuthgearSecretYAMLDescriptor) UpdateResource(_ context.Context, _ []reso
 	}
 
 	var original config.SecretConfig
-	err := yaml.Unmarshal(resrc.Data, &original)
+	b, err := readcloserthunk.Performance_Bytes(resrc.ReadCloserThunk)
+	if err != nil {
+		return nil, err
+	}
+	err = yaml.Unmarshal(b, &original)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse original secret config: %w", err)
 	}
@@ -334,7 +358,7 @@ func (d AuthgearSecretYAMLDescriptor) UpdateResource(_ context.Context, _ []reso
 	}
 
 	newResrc := *resrc
-	newResrc.Data = updatedYAML
+	newResrc.ReadCloserThunk = readcloserthunk.Reader(bytes.NewReader(updatedYAML))
 	return &newResrc, nil
 }
 
@@ -356,7 +380,7 @@ func (d AuthgearFeatureYAMLDescriptor) FindResources(fs resource.Fs) ([]resource
 		Fs:   fs,
 		Path: AuthgearFeatureYAML,
 	}
-	_, err := resource.ReadLocation(location)
+	_, err := resource.StatLocation(location)
 	if os.IsNotExist(err) {
 		return nil, nil
 	} else if err != nil {
@@ -378,7 +402,12 @@ func (d AuthgearFeatureYAMLDescriptor) ViewResources(resources []resource.Resour
 			return nil, resource.ErrResourceNotFound
 		}
 
-		return target.Data, nil
+		b, err := readcloserthunk.Performance_Bytes(target.ReadCloserThunk)
+		if err != nil {
+			return nil, err
+		}
+
+		return b, nil
 	}
 
 	effective := func() (interface{}, error) {
