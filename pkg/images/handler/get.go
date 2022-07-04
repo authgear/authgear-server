@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime"
 	"net/http"
 	"net/http/httputil"
@@ -124,7 +123,7 @@ func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (h *GetHandler) modifyResponse(resp *http.Response) error {
 	originalBody := resp.Body
-	originalBytes, err := ioutil.ReadAll(originalBody)
+	originalBytes, err := io.ReadAll(originalBody)
 	if err != nil {
 		return err
 	}

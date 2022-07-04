@@ -7,6 +7,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -41,7 +42,7 @@ func Do(cldrLocalenamesModernDir string) error {
 		if err != nil {
 			return err
 		}
-		jsonBytes, err := ioutil.ReadAll(jsonFile)
+		jsonBytes, err := io.ReadAll(jsonFile)
 		if err != nil {
 			return err
 		}

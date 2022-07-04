@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"sort"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonschema"
@@ -21,7 +20,7 @@ func (v *SchemaValidator) Parse(r io.Reader, value interface{}) error {
 }
 
 func (v *SchemaValidator) ParseWithMessage(r io.Reader, msg string, value interface{}) error {
-	data, err := ioutil.ReadAll(r)
+	data, err := io.ReadAll(r)
 	if err != nil {
 		return fmt.Errorf("%s: %w", msg, err)
 	}

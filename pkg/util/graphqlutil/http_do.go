@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -41,7 +42,7 @@ func HTTPDo(r *http.Request, params DoParams) (result *graphql.Result, err error
 
 	if resp.StatusCode != 200 {
 		var body []byte
-		body, err = ioutil.ReadAll(resp.Body)
+		body, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return
 		}

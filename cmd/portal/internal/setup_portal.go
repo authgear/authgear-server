@@ -7,7 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"time"
 
@@ -189,7 +189,7 @@ func constructConfigSourceData(resourceDir string) (map[string]string, error) {
 			return nil, err
 		}
 		defer f.Close()
-		data, err := ioutil.ReadAll(f)
+		data, err := io.ReadAll(f)
 		if err != nil {
 			return nil, err
 		}

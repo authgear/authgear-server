@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -151,7 +151,7 @@ func (s *Service) FetchCheckoutSession(checkoutSessionID string) (*CheckoutSessi
 }
 
 func (s *Service) ConstructEvent(r *http.Request) (Event, error) {
-	payload, err := ioutil.ReadAll(r.Body)
+	payload, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, err
 	}

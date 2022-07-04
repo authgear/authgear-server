@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 
 	gographql "github.com/graphql-go/graphql"
@@ -33,7 +33,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	query, err := ioutil.ReadAll(os.Stdin)
+	query, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		panic(err)
 	}
