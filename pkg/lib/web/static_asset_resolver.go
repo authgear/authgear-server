@@ -12,6 +12,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/intl"
+	"github.com/authgear/authgear-server/pkg/util/readcloserthunk"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -57,9 +58,15 @@ func (r *StaticAssetResolver) StaticAssetURL(id string) (string, error) {
 	asset := result.(*StaticAsset)
 
 	assetPath := strings.TrimPrefix(asset.Path, StaticAssetResourcePrefix)
+
+	b, err := readcloserthunk.Performance_Bytes(asset.ReadCloserThunk)
+	if err != nil {
+		return "", err
+	}
+
 	// md5 is used to compute the hash in the filename for caching purpose only
 	// nolint:gosec
-	hash := md5.Sum(asset.Data)
+	hash := md5.Sum(b)
 
 	hashPath := PathWithHash(assetPath, fmt.Sprintf("%x", hash))
 	return staticAssetURL(r.Config.PublicOrigin, string(r.StaticAssetsPrefix), hashPath)
