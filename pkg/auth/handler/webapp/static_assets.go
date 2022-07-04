@@ -1,19 +1,20 @@
 package webapp
 
 import (
+	"bytes"
 	// nolint:gosec
 	"crypto/md5"
 	"errors"
 	"fmt"
+	"mime"
 	"net/http"
 	"os"
 	"path"
 	"strings"
 
-	aferomem "github.com/spf13/afero/mem"
-
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/readcloserthunk"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -33,20 +34,26 @@ type StaticAssetsHandler struct {
 }
 
 func (h *StaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fileServer := http.StripPrefix("/static/", http.FileServer(h))
-
 	filePath := strings.TrimPrefix(r.URL.Path, "/static/")
-	_, err := h.Open(filePath)
-	if err == nil {
-		// set cache control header if the file is found
-		// 604800 seconds is a week
-		w.Header().Set("Cache-Control", "public, max-age=604800")
+	thunk, err := h.GetThunk(filePath)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+	// set cache control header if the file is found
+	// 604800 seconds is a week
+	w.Header().Set("Cache-Control", "public, max-age=604800")
 
-	fileServer.ServeHTTP(w, r)
+	w.Header().Set("Content-Type", mime.TypeByExtension(path.Ext(filePath)))
+	_, err = readcloserthunk.Copy(w, thunk)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
-func (h *StaticAssetsHandler) Open(name string) (http.File, error) {
+func (h *StaticAssetsHandler) GetThunk(name string) (readcloserthunk.ReadCloserThunk, error) {
 	p := path.Join(web.StaticAssetResourcePrefix, name)
 
 	filePath, hashInPath := web.ParsePathWithHash(p)
@@ -72,19 +79,22 @@ func (h *StaticAssetsHandler) Open(name string) (http.File, error) {
 		return nil, err
 	}
 
-	bytes := result.([]byte)
-	if !web.LookLikeAHash(hashInPath) {
+	// Given that there are different output types from different descriptors with EffectiveFile view
+	switch v := result.(type) {
+	// every generated asset always output ReadCloserThunk
+	case readcloserthunk.ReadCloserThunk:
+		return v, nil
+	// other asset output []byte
+	case []byte:
 		// check the hash
 		// md5 is used to compute the hash in the filename for caching purpose only
 		// nolint:gosec
-		dataHash := md5.Sum(bytes)
+		dataHash := md5.Sum(v)
 		if fmt.Sprintf("%x", dataHash) != hashInPath {
 			return nil, os.ErrNotExist
 		}
+		return readcloserthunk.Reader(bytes.NewReader(v)), nil
 	}
 
-	data := aferomem.CreateFile(p)
-	file := aferomem.NewFileHandle(data)
-	_, _ = file.Write(bytes)
-	return aferomem.NewReadOnlyFileHandle(data), nil
+	return nil, os.ErrNotExist
 }
