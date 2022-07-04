@@ -102,6 +102,98 @@ var _ = registerMutationField(
 	},
 )
 
+var previewUpdateSubscriptionInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "PreviewUpdateSubscriptionInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"appID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "App ID.",
+		},
+		"planName": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "Plan name.",
+		},
+	},
+})
+
+var previewUpdateSubscriptionPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "PreviewUpdateSubscriptionPayload",
+	Fields: graphql.Fields{
+		"currency":  &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
+		"amountDue": &graphql.Field{Type: graphql.NewNonNull(graphql.Int)},
+	},
+})
+
+var _ = registerMutationField(
+	"previewUpdateSubscription",
+	&graphql.Field{
+		Description: "Preview update subscription",
+		Type:        graphql.NewNonNull(previewUpdateSubscriptionPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(previewUpdateSubscriptionInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			// Access Control: authenticated user.
+			sessionInfo := session.GetValidSessionInfo(p.Context)
+			if sessionInfo == nil {
+				return nil, AccessDenied.New("only authenticated users can preview update subscription")
+			}
+
+			input := p.Args["input"].(map[string]interface{})
+			appNodeID := input["appID"].(string)
+			planName := input["planName"].(string)
+
+			resolvedNodeID := relay.FromGlobalID(appNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
+				return nil, apierrors.NewInvalid("invalid app ID")
+			}
+			appID := resolvedNodeID.ID
+			gqlCtx := GQLContext(p.Context)
+			// Access Control: collaborator.
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			// Fetch the subscription plan
+			ctx := GQLContext(p.Context)
+			plan, err := ctx.StripeService.GetSubscriptionPlan(planName)
+			if err != nil {
+				return nil, err
+			}
+
+			// Fetch the subscription
+			subscription, err := ctx.SubscriptionService.GetSubscription(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			// Fetch the app
+			app, err := ctx.AppService.Get(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			// Changing to the same plan is disallowed.
+			if app.Context.PlanName == planName {
+				return nil, apierrors.NewInvalid("changing to the same plan is disallowed")
+			}
+
+			preview, err := ctx.StripeService.PreviewUpdateSubscription(
+				subscription.StripeSubscriptionID,
+				plan,
+			)
+			if err != nil {
+				return nil, err
+			}
+
+			return preview, nil
+		},
+	},
+)
+
 var updateSubscriptionInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "UpdateSubscriptionInput",
 	Fields: graphql.InputObjectConfigFieldMap{

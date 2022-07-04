@@ -502,6 +502,70 @@ func (s *Service) UpdateSubscription(stripeSubscriptionID string, subscriptionPl
 		return
 	}
 
+	// Update the plan name in metadata
+	sub.Metadata[MetadataKeyPlanName] = subscriptionPlan.Name
+
+	itemsParams, err := s.deriveSubscriptionItemsParams(sub, subscriptionPlan)
+	if err != nil {
+		return
+	}
+
+	updateParams := &stripe.SubscriptionParams{
+		Params: stripe.Params{
+			Context: s.Context,
+			// Update metadata
+			Metadata: sub.Metadata,
+		},
+		Items: itemsParams,
+	}
+
+	_, err = s.ClientAPI.Subscriptions.Update(stripeSubscriptionID, updateParams)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (s *Service) PreviewUpdateSubscription(stripeSubscriptionID string, subscriptionPlan *model.SubscriptionPlan) (preview *model.SubscriptionUpdatePreview, err error) {
+	getParams := &stripe.SubscriptionParams{
+		Params: stripe.Params{
+			Context: s.Context,
+			Expand:  []*string{stripe.String("items.data.price.product")},
+		},
+	}
+	sub, err := s.ClientAPI.Subscriptions.Get(stripeSubscriptionID, getParams)
+	if err != nil {
+		return
+	}
+
+	itemsParams, err := s.deriveSubscriptionItemsParams(sub, subscriptionPlan)
+	if err != nil {
+		return
+	}
+
+	invoiceParams := &stripe.InvoiceParams{
+		Params: stripe.Params{
+			Context: s.Context,
+		},
+		Customer:          stripe.String(sub.Customer.ID),
+		Subscription:      stripe.String(sub.ID),
+		SubscriptionItems: itemsParams,
+	}
+
+	inv, err := s.ClientAPI.Invoices.GetNext(invoiceParams)
+	if err != nil {
+		return
+	}
+
+	preview = &model.SubscriptionUpdatePreview{
+		Currency:  string(inv.Currency),
+		AmountDue: int(inv.AmountDue),
+	}
+	return
+}
+
+func (s *Service) deriveSubscriptionItemsParams(sub *stripe.Subscription, subscriptionPlan *model.SubscriptionPlan) (out []*stripe.SubscriptionItemsParams, err error) {
 	oldPrices, err := stripeSubscriptionToPrices(sub)
 	if err != nil {
 		return
@@ -525,21 +589,10 @@ func (s *Service) UpdateSubscription(stripeSubscriptionID string, subscriptionPl
 		f,
 	)
 
-	// Update the plan name in metadata
-	sub.Metadata[MetadataKeyPlanName] = subscriptionPlan.Name
-
-	updateParams := &stripe.SubscriptionParams{
-		Params: stripe.Params{
-			Context: s.Context,
-			// Update metadata
-			Metadata: sub.Metadata,
-		},
-	}
-
 	for _, priceToBeRemoved := range pricesToBeRemoved {
 		for _, item := range sub.Items.Data {
 			if item.Price.ID == priceToBeRemoved.StripePriceID {
-				updateParams.Items = append(updateParams.Items, &stripe.SubscriptionItemsParams{
+				out = append(out, &stripe.SubscriptionItemsParams{
 					ID:         stripe.String(item.ID),
 					Deleted:    stripe.Bool(true),
 					ClearUsage: stripe.Bool(priceToBeRemoved.ShouldClearUsage()),
@@ -547,16 +600,10 @@ func (s *Service) UpdateSubscription(stripeSubscriptionID string, subscriptionPl
 			}
 		}
 	}
-
 	for _, priceToBeAdded := range pricesToBeAdded {
-		updateParams.Items = append(updateParams.Items, &stripe.SubscriptionItemsParams{
+		out = append(out, &stripe.SubscriptionItemsParams{
 			Price: stripe.String(priceToBeAdded.StripePriceID),
 		})
-	}
-
-	_, err = s.ClientAPI.Subscriptions.Update(stripeSubscriptionID, updateParams)
-	if err != nil {
-		return
 	}
 
 	return

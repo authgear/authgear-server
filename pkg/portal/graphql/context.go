@@ -102,6 +102,7 @@ type StripeService interface {
 	GetSubscriptionPlan(planName string) (*model.SubscriptionPlan, error)
 	GenerateCustomerPortalSession(appID string, customerID string) (*stripe.BillingPortalSession, error)
 	UpdateSubscription(stripeSubscriptionID string, subscriptionPlan *model.SubscriptionPlan) error
+	PreviewUpdateSubscription(stripeSubscriptionID string, subscriptionPlan *model.SubscriptionPlan) (*model.SubscriptionUpdatePreview, error)
 }
 
 type SubscriptionService interface {

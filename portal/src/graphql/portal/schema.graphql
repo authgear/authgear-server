@@ -366,6 +366,9 @@ type Mutation {
   """Generate Stripe customer portal session"""
   generateStripeCustomerPortalSession(input: GenerateStripeCustomerPortalSessionInput!): GenerateStripeCustomerPortalSessionPayload!
 
+  """Preview update subscription"""
+  previewUpdateSubscription(input: PreviewUpdateSubscriptionInput!): PreviewUpdateSubscriptionPayload!
+
   """Reconcile the completed checkout session"""
   reconcileCheckoutSession(input: reconcileCheckoutSession!): reconcileCheckoutSessionPayload!
 
@@ -434,6 +437,24 @@ enum Periodical {
 
   """"""
   WEEKLY
+}
+
+""""""
+input PreviewUpdateSubscriptionInput {
+  """App ID."""
+  appID: ID!
+
+  """Plan name."""
+  planName: String!
+}
+
+""""""
+type PreviewUpdateSubscriptionPayload {
+  """"""
+  amountDue: Int!
+
+  """"""
+  currency: String!
 }
 
 """"""

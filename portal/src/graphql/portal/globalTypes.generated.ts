@@ -273,6 +273,8 @@ export type Mutation = {
   deleteDomain: DeleteDomainPayload;
   /** Generate Stripe customer portal session */
   generateStripeCustomerPortalSession: GenerateStripeCustomerPortalSessionPayload;
+  /** Preview update subscription */
+  previewUpdateSubscription: PreviewUpdateSubscriptionPayload;
   /** Reconcile the completed checkout session */
   reconcileCheckoutSession: ReconcileCheckoutSessionPayload;
   /** Send test STMP configuration email */
@@ -332,6 +334,11 @@ export type MutationDeleteDomainArgs = {
 
 export type MutationGenerateStripeCustomerPortalSessionArgs = {
   input: GenerateStripeCustomerPortalSessionInput;
+};
+
+
+export type MutationPreviewUpdateSubscriptionArgs = {
+  input: PreviewUpdateSubscriptionInput;
 };
 
 
@@ -404,6 +411,19 @@ export enum Periodical {
   Monthly = 'MONTHLY',
   Weekly = 'WEEKLY'
 }
+
+export type PreviewUpdateSubscriptionInput = {
+  /** App ID. */
+  appID: Scalars['ID'];
+  /** Plan name. */
+  planName: Scalars['String'];
+};
+
+export type PreviewUpdateSubscriptionPayload = {
+  __typename?: 'PreviewUpdateSubscriptionPayload';
+  amountDue: Scalars['Int'];
+  currency: Scalars['String'];
+};
 
 export type Query = {
   __typename?: 'Query';

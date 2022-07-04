@@ -197,3 +197,8 @@ func NewSubscriptionPlan(planName string) *SubscriptionPlan {
 		Name: planName,
 	}
 }
+
+type SubscriptionUpdatePreview struct {
+	Currency  string `json:"currency"`
+	AmountDue int    `json:"amountDue"`
+}
