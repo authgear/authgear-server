@@ -52,13 +52,8 @@ func (f LeveledAferoFs) GetFsLevel() FsLevel {
 	return f.FsLevel
 }
 
-func ReadLocation(location Location) ([]byte, error) {
-	file, err := location.Fs.Open(location.Path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-	return io.ReadAll(file)
+func StatLocation(location Location) (os.FileInfo, error) {
+	return location.Fs.Stat(location.Path)
 }
 
 func readDirNames(fs Fs, dir string) ([]string, error) {
