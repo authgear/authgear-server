@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/authgear/authgear-server/pkg/util/readcloserthunk"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -9,8 +10,8 @@ const GeneratedStaticAssetResourcePrefix = "static/generated/"
 const StaticAssetFontResourcePrefix = "static/fonts/"
 
 type StaticAsset struct {
-	Path string
-	Data []byte
+	Path            string
+	ReadCloserThunk readcloserthunk.ReadCloserThunk
 }
 
 var GeneratedAsset = resource.RegisterResource(NewGeneratedAssetDescriptor())
