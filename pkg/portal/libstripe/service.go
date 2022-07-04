@@ -132,7 +132,7 @@ func (s *Service) GetSubscriptionPlan(planName string) (*model.SubscriptionPlan,
 	if err != nil {
 		return nil, err
 	}
-	return s.getStripeSubscription(planName, subscriptionPlans)
+	return s.getSubscriptionPlan(planName, subscriptionPlans)
 }
 
 func (s *Service) FetchCheckoutSession(checkoutSessionID string) (*CheckoutSession, error) {
@@ -185,7 +185,7 @@ func (s *Service) CreateSubscriptionIfNotExists(checkoutSessionID string, subscr
 	appID := checkoutSession.Metadata[MetadataKeyAppID]
 
 	// Find the subscription plan
-	subscriptionPlan, err := s.getStripeSubscription(planName, subscriptionPlans)
+	subscriptionPlan, err := s.getSubscriptionPlan(planName, subscriptionPlans)
 	if err != nil {
 		return err
 	}
@@ -379,7 +379,7 @@ func (s *Service) convertToSubscriptionPlans(knownPlanNames map[string]struct{},
 	return out, nil
 }
 
-func (s *Service) getStripeSubscription(planName string, subscriptionPlans []*model.SubscriptionPlan) (*model.SubscriptionPlan, error) {
+func (s *Service) getSubscriptionPlan(planName string, subscriptionPlans []*model.SubscriptionPlan) (*model.SubscriptionPlan, error) {
 	var subscriptionPlan *model.SubscriptionPlan
 	for _, sp := range subscriptionPlans {
 		if sp.Name == planName {
