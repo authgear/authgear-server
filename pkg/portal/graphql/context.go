@@ -101,6 +101,7 @@ type StripeService interface {
 	FetchCheckoutSession(checkoutSessionID string) (*libstripe.CheckoutSession, error)
 	GetSubscriptionPlan(planName string) (*model.SubscriptionPlan, error)
 	GenerateCustomerPortalSession(appID string, customerID string) (*stripe.BillingPortalSession, error)
+	UpdateSubscription(stripeSubscriptionID string, subscriptionPlan *model.SubscriptionPlan) error
 }
 
 type SubscriptionService interface {
@@ -114,6 +115,7 @@ type SubscriptionService interface {
 		subscriptionPlans []*model.SubscriptionPlan,
 	) (*model.SubscriptionUsage, error)
 	GetIsProcessingSubscription(appID string) (bool, error)
+	UpdateAppPlan(appID string, planName string) error
 }
 
 type Logger struct{ *log.Logger }

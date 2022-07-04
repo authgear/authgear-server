@@ -158,13 +158,13 @@ var _ = registerMutationField(
 
 			// Fetch the subscription plan
 			ctx := GQLContext(p.Context)
-			_, err = ctx.StripeService.GetSubscriptionPlan(planName)
+			plan, err := ctx.StripeService.GetSubscriptionPlan(planName)
 			if err != nil {
 				return nil, err
 			}
 
 			// Fetch the subscription
-			_, err = ctx.SubscriptionService.GetSubscription(appID)
+			subscription, err := ctx.SubscriptionService.GetSubscription(appID)
 			if err != nil {
 				return nil, err
 			}
@@ -180,7 +180,21 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("changing to the same plan is disallowed")
 			}
 
-			// FIXME(subscription): update subscription
+			err = ctx.StripeService.UpdateSubscription(
+				subscription.StripeSubscriptionID,
+				plan,
+			)
+			if err != nil {
+				return nil, err
+			}
+
+			err = ctx.SubscriptionService.UpdateAppPlan(
+				appID,
+				planName,
+			)
+			if err != nil {
+				return nil, err
+			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"app": ctx.Apps.Load(appID),

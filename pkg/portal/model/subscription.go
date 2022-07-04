@@ -143,6 +143,10 @@ type Price struct {
 	TransformQuantityRound    TransformQuantityRound `json:"transformQuantityRound,omitempty"`
 }
 
+func (p *Price) ShouldClearUsage() bool {
+	return p.Type == PriceTypeUsage && p.UsageType == UsageTypeMAU
+}
+
 func (i *SubscriptionUsageItem) Match(p *Price) bool {
 	return i.Type == p.Type && i.UsageType == p.UsageType && i.SMSRegion == p.SMSRegion
 }

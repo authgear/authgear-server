@@ -78,6 +78,7 @@ func (h *StripeWebhookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			event.(*libstripe.CustomerSubscriptionCreatedEvent).CustomerSubscriptionEvent,
 		)
 	case libstripe.EventTypeCustomerSubscriptionUpdated:
+		// FIXME(subscription): handle update subscription
 		err = h.handleCustomerSubscriptionEvent(
 			event.(*libstripe.CustomerSubscriptionUpdatedEvent).CustomerSubscriptionEvent,
 		)

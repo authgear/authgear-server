@@ -22,6 +22,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/redisutil"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 	"github.com/authgear/authgear-server/pkg/util/timeutil"
 )
 
@@ -487,4 +488,90 @@ func (s *Service) GenerateCustomerPortalSession(appID string, customerID string)
 	}
 
 	return s.ClientAPI.BillingPortalSessions.New(params)
+}
+
+func (s *Service) UpdateSubscription(stripeSubscriptionID string, subscriptionPlan *model.SubscriptionPlan) (err error) {
+	getParams := &stripe.SubscriptionParams{
+		Params: stripe.Params{
+			Context: s.Context,
+			Expand:  []*string{stripe.String("items.data.price.product")},
+		},
+	}
+	sub, err := s.ClientAPI.Subscriptions.Get(stripeSubscriptionID, getParams)
+	if err != nil {
+		return
+	}
+
+	oldPrices, err := stripeSubscriptionToPrices(sub)
+	if err != nil {
+		return
+	}
+	newPrices := subscriptionPlan.Prices
+
+	f := func(p *model.Price) string {
+		return p.StripePriceID
+	}
+	oldPriceSet := setutil.NewSetFromSlice(oldPrices, f)
+	newPriceSet := setutil.NewSetFromSlice(newPrices, f)
+
+	pricesToBeRemoved := setutil.SetToSlice(
+		oldPrices,
+		oldPriceSet.Subtract(newPriceSet),
+		f,
+	)
+	pricesToBeAdded := setutil.SetToSlice(
+		newPrices,
+		newPriceSet.Subtract(oldPriceSet),
+		f,
+	)
+
+	// Update the plan name in metadata
+	sub.Metadata[MetadataKeyPlanName] = subscriptionPlan.Name
+
+	updateParams := &stripe.SubscriptionParams{
+		Params: stripe.Params{
+			Context: s.Context,
+			// Update metadata
+			Metadata: sub.Metadata,
+		},
+	}
+
+	for _, priceToBeRemoved := range pricesToBeRemoved {
+		for _, item := range sub.Items.Data {
+			if item.Price.ID == priceToBeRemoved.StripePriceID {
+				updateParams.Items = append(updateParams.Items, &stripe.SubscriptionItemsParams{
+					ID:         stripe.String(item.ID),
+					Deleted:    stripe.Bool(true),
+					ClearUsage: stripe.Bool(priceToBeRemoved.ShouldClearUsage()),
+				})
+			}
+		}
+	}
+
+	for _, priceToBeAdded := range pricesToBeAdded {
+		updateParams.Items = append(updateParams.Items, &stripe.SubscriptionItemsParams{
+			Price: stripe.String(priceToBeAdded.StripePriceID),
+		})
+	}
+
+	_, err = s.ClientAPI.Subscriptions.Update(stripeSubscriptionID, updateParams)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func stripeSubscriptionToPrices(subscription *stripe.Subscription) ([]*model.Price, error) {
+	var prices []*model.Price
+	for _, item := range subscription.Items.Data {
+		stripePrice := item.Price
+		stripeProduct := stripePrice.Product
+		price, err := NewPriceFromProductOfSubscription(stripeProduct, stripePrice)
+		if err != nil {
+			return nil, err
+		}
+		prices = append(prices, price)
+	}
+	return prices, nil
 }
