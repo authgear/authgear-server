@@ -15,6 +15,7 @@ import (
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/readcloserthunk"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -128,7 +129,7 @@ func (s *ConfigService) DeleteDomain(domain *model.Domain) error {
 func (s *ConfigService) updateLocalFS(l *configsource.LocalFS, appID string, updates []*resource.ResourceFile) error {
 	fs := l.Fs
 	for _, file := range updates {
-		if file.Data == nil {
+		if file.ReadCloserThunk == nil {
 			err := fs.Remove(file.Location.Path)
 			// Ignore file not found errors
 			if err != nil && !os.IsNotExist(err) {
@@ -139,7 +140,11 @@ func (s *ConfigService) updateLocalFS(l *configsource.LocalFS, appID string, upd
 			if err != nil {
 				return err
 			}
-			err = afero.WriteFile(fs, file.Location.Path, file.Data, 0666)
+			b, err := readcloserthunk.Performance_Bytes(file.ReadCloserThunk)
+			if err != nil {
+				return err
+			}
+			err = afero.WriteFile(fs, file.Location.Path, b, 0666)
 			if err != nil {
 				return err
 			}
