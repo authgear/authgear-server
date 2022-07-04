@@ -283,6 +283,8 @@ export type Mutation = {
   skipAppTutorialProgress: SkipAppTutorialProgressPayload;
   /** Update app */
   updateApp: UpdateAppPayload;
+  /** Update subscription */
+  updateSubscription: UpdateSubscriptionPayload;
   /** Request verification of a domain of target app */
   verifyDomain: VerifyDomainPayload;
 };
@@ -355,6 +357,11 @@ export type MutationSkipAppTutorialProgressArgs = {
 
 export type MutationUpdateAppArgs = {
   input: UpdateAppInput;
+};
+
+
+export type MutationUpdateSubscriptionArgs = {
+  input: UpdateSubscriptionInput;
 };
 
 
@@ -615,6 +622,18 @@ export type UpdateAppInput = {
 
 export type UpdateAppPayload = {
   __typename?: 'UpdateAppPayload';
+  app: App;
+};
+
+export type UpdateSubscriptionInput = {
+  /** App ID. */
+  appID: Scalars['ID'];
+  /** Plan name. */
+  planName: Scalars['String'];
+};
+
+export type UpdateSubscriptionPayload = {
+  __typename?: 'UpdateSubscriptionPayload';
   app: App;
 };
 

@@ -89,7 +89,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			//	Insert subscription checkout record to the db
+			// Insert subscription checkout record to the db
 			_, err = ctx.SubscriptionService.CreateSubscriptionCheckout(cs)
 			if err != nil {
 				return nil, err
@@ -97,6 +97,93 @@ var _ = registerMutationField(
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"url": cs.URL,
+			}).Value, nil
+		},
+	},
+)
+
+var updateSubscriptionInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "UpdateSubscriptionInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"appID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "App ID.",
+		},
+		"planName": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "Plan name.",
+		},
+	},
+})
+
+var updateSubscriptionPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "UpdateSubscriptionPayload",
+	Fields: graphql.Fields{
+		"app": &graphql.Field{Type: graphql.NewNonNull(nodeApp)},
+	},
+})
+
+var _ = registerMutationField(
+	"updateSubscription",
+	&graphql.Field{
+		Description: "Update subscription",
+		Type:        graphql.NewNonNull(updateSubscriptionPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(updateSubscriptionInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			// Access Control: authenticated user.
+			sessionInfo := session.GetValidSessionInfo(p.Context)
+			if sessionInfo == nil {
+				return nil, AccessDenied.New("only authenticated users can update subscription")
+			}
+
+			input := p.Args["input"].(map[string]interface{})
+			appNodeID := input["appID"].(string)
+			planName := input["planName"].(string)
+
+			resolvedNodeID := relay.FromGlobalID(appNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
+				return nil, apierrors.NewInvalid("invalid app ID")
+			}
+			appID := resolvedNodeID.ID
+			gqlCtx := GQLContext(p.Context)
+			// Access Control: collaborator.
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			// Fetch the subscription plan
+			ctx := GQLContext(p.Context)
+			_, err = ctx.StripeService.GetSubscriptionPlan(planName)
+			if err != nil {
+				return nil, err
+			}
+
+			// Fetch the subscription
+			_, err = ctx.SubscriptionService.GetSubscription(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			// Fetch the app
+			app, err := ctx.AppService.Get(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			// Changing to the same plan is disallowed.
+			if app.Context.PlanName == planName {
+				return nil, apierrors.NewInvalid("changing to the same plan is disallowed")
+			}
+
+			// FIXME(subscription): update subscription
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"app": ctx.Apps.Load(appID),
 			}).Value, nil
 		},
 	},

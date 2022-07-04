@@ -381,6 +381,9 @@ type Mutation {
   """Update app"""
   updateApp(input: UpdateAppInput!): UpdateAppPayload!
 
+  """Update subscription"""
+  updateSubscription(input: UpdateSubscriptionInput!): UpdateSubscriptionPayload!
+
   """Request verification of a domain of target app"""
   verifyDomain(input: VerifyDomainInput!): VerifyDomainPayload!
 }
@@ -756,6 +759,21 @@ input UpdateAppInput {
 
 """"""
 type UpdateAppPayload {
+  """"""
+  app: App!
+}
+
+""""""
+input UpdateSubscriptionInput {
+  """App ID."""
+  appID: ID!
+
+  """Plan name."""
+  planName: String!
+}
+
+""""""
+type UpdateSubscriptionPayload {
   """"""
   app: App!
 }
