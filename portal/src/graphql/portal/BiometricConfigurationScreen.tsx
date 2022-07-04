@@ -1,9 +1,9 @@
-import React, { useCallback, useContext } from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { Toggle } from "@fluentui/react";
-import { PortalAPIAppConfig } from "../../types";
+import { Toggle, MessageBar } from "@fluentui/react";
+import { PortalAPIAppConfig, IdentityFeatureConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
@@ -17,6 +17,7 @@ import {
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
+import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import styles from "./BiometricConfigurationScreen.module.scss";
 
 interface FormState {
@@ -64,11 +65,14 @@ function constructConfig(
 
 interface BiometricConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
+  identityFeatureConfig?: IdentityFeatureConfig;
 }
 
 const BiometricConfigurationContent: React.FC<BiometricConfigurationContentProps> =
   function BiometricConfigurationContent(props) {
     const { state, setState } = props.form;
+
+    const { identityFeatureConfig } = props;
 
     const { renderToString } = useContext(Context);
 
@@ -90,6 +94,10 @@ const BiometricConfigurationContent: React.FC<BiometricConfigurationContentProps
       [setState]
     );
 
+    const biometricDisabled = useMemo(() => {
+      return identityFeatureConfig?.biometric?.disabled ?? false;
+    }, [identityFeatureConfig]);
+
     return (
       <ScreenContent>
         <ScreenTitle className={styles.widget}>
@@ -99,17 +107,28 @@ const BiometricConfigurationContent: React.FC<BiometricConfigurationContentProps
           <FormattedMessage id="BiometricConfigurationScreen.description" />
         </ScreenDescription>
         <Widget className={styles.widget}>
+          {biometricDisabled && (
+            <MessageBar>
+              <FormattedMessage
+                id="FeatureConfig.disabled"
+                values={{
+                  planPagePath: "./../../../billing",
+                }}
+              />
+            </MessageBar>
+          )}
           <WidgetTitle>
             <FormattedMessage id="BiometricConfigurationScreen.title" />
           </WidgetTitle>
           <Toggle
+            disabled={biometricDisabled}
             checked={state.enabled}
             onChange={onEnableChange}
             label={renderToString("BiometricConfigurationScreen.enable.label")}
             inlineLabel={true}
           />
           <Toggle
-            disabled={!state.enabled}
+            disabled={!state.enabled || biometricDisabled}
             checked={state.list_enabled ?? false}
             onChange={onListEnabledChange}
             label={renderToString(
@@ -127,7 +146,9 @@ const BiometricConfigurationScreen: React.FC =
     const { appID } = useParams() as { appID: string };
     const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
-    if (form.isLoading) {
+    const featureConfig = useAppFeatureConfigQuery(appID);
+
+    if (form.isLoading || featureConfig.loading) {
       return <ShowLoading />;
     }
 
@@ -135,9 +156,21 @@ const BiometricConfigurationScreen: React.FC =
       return <ShowError error={form.loadError} onRetry={form.reload} />;
     }
 
+    if (featureConfig.error) {
+      return (
+        <ShowError
+          error={featureConfig.error}
+          onRetry={featureConfig.refetch}
+        />
+      );
+    }
+
     return (
       <FormContainer form={form}>
-        <BiometricConfigurationContent form={form} />
+        <BiometricConfigurationContent
+          form={form}
+          identityFeatureConfig={featureConfig.effectiveFeatureConfig?.identity}
+        />
       </FormContainer>
     );
   };
