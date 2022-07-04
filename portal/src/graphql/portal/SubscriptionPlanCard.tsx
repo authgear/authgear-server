@@ -13,6 +13,7 @@ import {
 } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import styles from "./SubscriptionPlanCard.module.scss";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
 interface CardProps {
   isActive: boolean;
@@ -159,8 +160,10 @@ export function UsagePriceTag(props: UsagePriceTagProps): React.ReactElement {
 export interface CTAProps {
   planName: string;
   variant: "subscribe" | "upgrade" | "downgrade" | "current" | "non-applicable";
-  disabledSubscribeButton?: boolean;
+  disabled?: boolean;
   onClickSubscribe?: (planName: string) => void;
+  onClickUpgrade?: (planName: string) => void;
+  onClickDowngrade?: (planName: string) => void;
 }
 
 const DOWNGRADE_BUTTON_THEME: PartialTheme = {
@@ -182,10 +185,15 @@ export function CTA(props: CTAProps): React.ReactElement {
   const {
     planName,
     variant,
-    disabledSubscribeButton,
+    disabled,
     onClickSubscribe: onClickSubscribeProps,
+    onClickUpgrade: onClickUpgradeProps,
+    onClickDowngrade: onClickDowngradeProps,
   } = props;
   const [hidden, setHidden] = useState(true);
+  const {
+    themes: { destructive },
+  } = useSystemConfig();
 
   // @ts-expect-error
   const upgradeDialogContentProps: IDialogContentProps = useMemo(() => {
@@ -225,11 +233,29 @@ export function CTA(props: CTAProps): React.ReactElement {
     (e) => {
       e.preventDefault();
       e.stopPropagation();
-      if (onClickSubscribeProps) {
-        onClickSubscribeProps(planName);
-      }
+      onClickSubscribeProps?.(planName);
     },
     [planName, onClickSubscribeProps]
+  );
+
+  const onClickConfirmUpgrade = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setHidden(true);
+      onClickUpgradeProps?.(planName);
+    },
+    [planName, onClickUpgradeProps]
+  );
+
+  const onClickConfirmDowngrade = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setHidden(true);
+      onClickDowngradeProps?.(planName);
+    },
+    [planName, onClickDowngradeProps]
   );
 
   const onDismiss = useCallback(() => {
@@ -242,7 +268,7 @@ export function CTA(props: CTAProps): React.ReactElement {
         <PrimaryButton
           className={styles.cta}
           onClick={onClickSubscribe}
-          disabled={disabledSubscribeButton}
+          disabled={disabled}
         >
           <FormattedMessage id="SubscriptionPlanCard.label.subscribe" />
         </PrimaryButton>
@@ -256,12 +282,19 @@ export function CTA(props: CTAProps): React.ReactElement {
             dialogContentProps={upgradeDialogContentProps}
           >
             <DialogFooter>
-              <PrimaryButton onClick={onDismiss}>
-                <FormattedMessage id="understood" />
+              <PrimaryButton onClick={onClickConfirmUpgrade}>
+                <FormattedMessage id="SubscriptionPlanCard.label.upgrade" />
               </PrimaryButton>
+              <DefaultButton onClick={onDismiss}>
+                <FormattedMessage id="cancel" />
+              </DefaultButton>
             </DialogFooter>
           </Dialog>
-          <PrimaryButton className={styles.cta} onClick={onClickUpgrade}>
+          <PrimaryButton
+            className={styles.cta}
+            onClick={onClickUpgrade}
+            disabled={disabled}
+          >
             <FormattedMessage id="SubscriptionPlanCard.label.upgrade" />
           </PrimaryButton>
         </>
@@ -275,13 +308,23 @@ export function CTA(props: CTAProps): React.ReactElement {
             dialogContentProps={downgradeDialogContentProps}
           >
             <DialogFooter>
-              <PrimaryButton onClick={onDismiss}>
-                <FormattedMessage id="understood" />
+              <PrimaryButton
+                onClick={onClickConfirmDowngrade}
+                theme={destructive}
+              >
+                <FormattedMessage id="SubscriptionPlanCard.label.downgrade" />
               </PrimaryButton>
+              <DefaultButton onClick={onDismiss}>
+                <FormattedMessage id="cancel" />
+              </DefaultButton>
             </DialogFooter>
           </Dialog>
           <ThemeProvider theme={DOWNGRADE_BUTTON_THEME}>
-            <DefaultButton className={styles.cta} onClick={onClickDowngrade}>
+            <DefaultButton
+              className={styles.cta}
+              onClick={onClickDowngrade}
+              disabled={disabled}
+            >
               <FormattedMessage id="SubscriptionPlanCard.label.downgrade" />
             </DefaultButton>
           </ThemeProvider>

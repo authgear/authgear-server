@@ -848,9 +848,9 @@
   "SubscriptionPlanCard.label.downgrade": "Downgrade",
   "SubscriptionPlanCard.label.current": "Current",
   "SubscriptionPlanCard.label.subscribe": "Subscribe",
-  "SubscriptionPlanCard.upgrade.title": "Upgrade Instructions",
-  "SubscriptionPlanCard.downgrade.title": "Downgrade Instructions",
-  "SubscriptionPlanCard.change-plan.instructions": "Please send an email to {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}} from the email address associated with your Authgear account and the plan you would like to change.",
+  "SubscriptionPlanCard.upgrade.title": "Upgrade Your Plan",
+  "SubscriptionPlanCard.downgrade.title": "Downgrade Your Plan",
+  "SubscriptionPlanCard.change-plan.instructions": "When you change your plan, the prorated charges will be reflected in the next invoice. Do you want to change your plan?",
 
   "SubscriptionPlanCard.plan.features.title": "Everything in {previousPlan}, plus:",
 

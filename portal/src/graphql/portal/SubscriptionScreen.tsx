@@ -36,6 +36,7 @@ import {
 import { AppFragmentFragment } from "./query/subscriptionScreenQuery.generated";
 import { useSubscriptionScreenQueryQuery } from "./query/subscriptionScreenQuery";
 import { useGenerateStripeCustomerPortalSessionMutationMutation } from "./mutations/generateStripeCustomerPortalSessionMutation";
+import { useUpdateSubscriptionMutation } from "./mutations/updateSubscriptionMutation";
 import styles from "./SubscriptionScreen.module.scss";
 import SubscriptionCurrentPlanSummary, {
   CostItem,
@@ -140,10 +141,15 @@ interface SubscriptionPlanCardRenderProps {
   subscriptionPlan: SubscriptionPlan;
 }
 
+// eslint-disable-next-line complexity
 function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
   const { currentPlanName, subscriptionPlan } = props;
   const { appID } = useParams() as { appID: string };
-  const { createCheckoutSession, loading } = useCreateCheckoutSessionMutation();
+  const { createCheckoutSession, loading: createCheckoutSessionLoading } =
+    useCreateCheckoutSessionMutation();
+  const [updateSubscription, { loading: updateSubscriptionLoading }] =
+    useUpdateSubscriptionMutation();
+  const loading = createCheckoutSessionLoading || updateSubscriptionLoading;
 
   const ctaVariant = useMemo(() => {
     if (!isKnownPlan(currentPlanName)) {
@@ -174,6 +180,30 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
         .finally(() => {});
     },
     [appID, createCheckoutSession]
+  );
+
+  const onClickUpgrade = useCallback(
+    (planName: string) => {
+      updateSubscription({
+        variables: {
+          appID,
+          planName,
+        },
+      }).finally(() => {});
+    },
+    [appID, updateSubscription]
+  );
+
+  const onClickDowngrade = useCallback(
+    (planName: string) => {
+      updateSubscription({
+        variables: {
+          appID,
+          planName,
+        },
+      }).finally(() => {});
+    },
+    [appID, updateSubscription]
   );
 
   const isKnown = isKnownPaidPlan(subscriptionPlan.name);
@@ -277,8 +307,10 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
         <CTA
           planName={subscriptionPlan.name}
           variant={ctaVariant}
-          disabledSubscribeButton={loading}
+          disabled={loading}
           onClickSubscribe={onClickSubscribe}
+          onClickUpgrade={onClickUpgrade}
+          onClickDowngrade={onClickDowngrade}
         />
       }
       planDetailsTitle={

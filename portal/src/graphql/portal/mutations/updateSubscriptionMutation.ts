@@ -13,7 +13,11 @@ export function useUpdateSubscriptionMutation(
     UpdateSubscriptionMutationMutationVariables
   >
 ): UpdateSubscriptionMutationMutationHookResult {
-  const options = { ...{ client }, ...baseOptions };
+  const options = {
+    ...{ client },
+    ...baseOptions,
+    refetchQueries: ["subscriptionScreenQuery"],
+  };
   return Apollo.useMutation<
     UpdateSubscriptionMutationMutation,
     UpdateSubscriptionMutationMutationVariables
