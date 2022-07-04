@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/web"
+	"github.com/authgear/authgear-server/pkg/util/readcloserthunk"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -83,7 +84,12 @@ func (s *Service) detectAuthgearYAML(resourceInTargetFs *resource.ResourceFile, 
 		return
 	}
 
-	original, err := config.Parse(resourceInTargetFs.Data)
+	b, err := readcloserthunk.Performance_Bytes(resourceInTargetFs.ReadCloserThunk)
+	if err != nil {
+		return
+	}
+
+	original, err := config.Parse(b)
 	if err != nil {
 		return
 	}

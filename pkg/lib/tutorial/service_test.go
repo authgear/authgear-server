@@ -1,10 +1,12 @@
 package tutorial
 
 import (
+	"bytes"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/util/readcloserthunk"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -23,10 +25,10 @@ func TestServiceDetectProgresses(t *testing.T) {
 				Location: resource.Location{
 					Path: "authgear.yaml",
 				},
-				Data: []byte(`id: test
+				ReadCloserThunk: readcloserthunk.Reader(bytes.NewReader([]byte(`id: test
 http:
   public_origin: http://test
-`),
+`))),
 			}, []byte(`id: test
 http:
   public_origin: http://test
@@ -44,10 +46,10 @@ oauth:
 				Location: resource.Location{
 					Path: "authgear.yaml",
 				},
-				Data: []byte(`id: test
+				ReadCloserThunk: readcloserthunk.Reader(bytes.NewReader([]byte(`id: test
 http:
   public_origin: http://test
-`),
+`))),
 			}, []byte(`id: test
 http:
   public_origin: http://test
