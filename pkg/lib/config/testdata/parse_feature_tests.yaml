@@ -128,3 +128,10 @@ error: null
 config:
   google_tag_manager:
     disabled: true
+---
+name: disable-biometric-authentication
+error: null
+config:
+  identity:
+    biometric:
+      disabled: true
