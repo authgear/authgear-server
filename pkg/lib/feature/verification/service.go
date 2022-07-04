@@ -70,25 +70,6 @@ func (s *Service) IsClaimVerifiable(claimName string) bool {
 	return false
 }
 
-func (s *Service) GetClaimVerificationStatus(userID string, name string, value string) (string, error) {
-	c := s.claimVerificationConfig(name)
-	if c == nil || !*c.Enabled {
-		return StatusDisabled, nil
-	}
-
-	_, err := s.ClaimStore.Get(userID, name, value)
-	if errors.Is(err, ErrClaimUnverified) {
-		if *c.Required {
-			return StatusRequired, nil
-		}
-		return StatusPending, nil
-	} else if err != nil {
-		return "", err
-	}
-
-	return StatusVerified, nil
-}
-
 func (s *Service) getVerificationStatus(i *identity.Info, verifiedClaims map[claim]struct{}) []ClaimStatus {
 	var statuses []ClaimStatus
 	for claimName, claimValue := range i.Claims {

@@ -2,13 +2,6 @@ package verification
 
 import "time"
 
-const (
-	StatusRequired = "required"
-	StatusDisabled = "disabled"
-	StatusPending  = "pending"
-	StatusVerified = "verified"
-)
-
 type ClaimStatus struct {
 	Name                       string
 	Verified                   bool

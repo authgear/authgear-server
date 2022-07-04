@@ -74,11 +74,6 @@ func TestService(t *testing.T) {
 			}
 		}
 
-		must := func(value string, err error) string {
-			So(err, ShouldBeNil)
-			return value
-		}
-
 		mustBool := func(value bool, err error) bool {
 			So(err, ShouldBeNil)
 			return value
@@ -88,30 +83,6 @@ func TestService(t *testing.T) {
 			So(service.IsClaimVerifiable("email"), ShouldBeTrue)
 			So(service.IsClaimVerifiable("phone_number"), ShouldBeTrue)
 			So(service.IsClaimVerifiable("username"), ShouldBeFalse)
-		})
-
-		Convey("GetClaimVerificationStatus", func() {
-			So(must(service.GetClaimVerificationStatus("user-id", "username", "test")), ShouldEqual, StatusDisabled)
-
-			claimStore.EXPECT().
-				Get("user-id", "email", "test@example.com").
-				Return(verifiedClaim("user-id", "email", "test@example.com"), nil)
-			So(must(service.GetClaimVerificationStatus("user-id", "email", "test@example.com")), ShouldEqual, StatusVerified)
-
-			claimStore.EXPECT().
-				Get("user-id", "email", "test@example.com").
-				Return(nil, ErrClaimUnverified)
-			So(must(service.GetClaimVerificationStatus("user-id", "email", "test@example.com")), ShouldEqual, StatusPending)
-
-			claimStore.EXPECT().
-				Get("user-id", "phone_number", "+85212345678").
-				Return(verifiedClaim("user-id", "phone_number", "+85212345678"), nil)
-			So(must(service.GetClaimVerificationStatus("user-id", "phone_number", "+85212345678")), ShouldEqual, StatusVerified)
-
-			claimStore.EXPECT().
-				Get("user-id", "phone_number", "+85212345678").
-				Return(nil, ErrClaimUnverified)
-			So(must(service.GetClaimVerificationStatus("user-id", "phone_number", "+85212345678")), ShouldEqual, StatusRequired)
 		})
 
 		Convey("IsVerified", func() {
