@@ -2,19 +2,18 @@ package verification
 
 import "time"
 
-type Status string
-
 const (
-	StatusRequired Status = "required"
-	StatusDisabled Status = "disabled"
-	StatusPending  Status = "pending"
-	StatusVerified Status = "verified"
+	StatusRequired = "required"
+	StatusDisabled = "disabled"
+	StatusPending  = "pending"
+	StatusVerified = "verified"
 )
 
 type ClaimStatus struct {
-	Name      string
-	Status    Status
-	IsEnabled bool
+	Name                       string
+	Verified                   bool
+	RequiredToVerifyOnCreation bool
+	EndUserTriggerable         bool
 }
 
 type Claim struct {
@@ -28,4 +27,8 @@ type Claim struct {
 type claim struct {
 	Name  string
 	Value string
+}
+
+func (s ClaimStatus) IsVerifiable() bool {
+	return s.RequiredToVerifyOnCreation || s.EndUserTriggerable
 }

@@ -74,7 +74,7 @@ func TestService(t *testing.T) {
 			}
 		}
 
-		must := func(value Status, err error) Status {
+		must := func(value string, err error) string {
 			So(err, ShouldBeNil)
 			return value
 		}

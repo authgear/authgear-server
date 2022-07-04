@@ -70,7 +70,7 @@ func (s *Service) IsClaimVerifiable(claimName string) bool {
 	return false
 }
 
-func (s *Service) GetClaimVerificationStatus(userID string, name string, value string) (Status, error) {
+func (s *Service) GetClaimVerificationStatus(userID string, name string, value string) (string, error) {
 	c := s.claimVerificationConfig(name)
 	if c == nil || !*c.Enabled {
 		return StatusDisabled, nil
@@ -102,24 +102,14 @@ func (s *Service) getVerificationStatus(i *identity.Info, verifiedClaims map[cla
 			continue
 		}
 
-		isEnabled := *c.Enabled
+		_, verified := verifiedClaims[claim{claimName, value}]
 
-		var status Status
-		if _, verified := verifiedClaims[claim{claimName, value}]; verified {
-			status = StatusVerified
-		} else if *c.Required {
-			status = StatusRequired
-		} else {
-			status = StatusPending
-		}
-
-		if status != StatusDisabled {
-			statuses = append(statuses, ClaimStatus{
-				Name:      claimName,
-				Status:    status,
-				IsEnabled: isEnabled,
-			})
-		}
+		statuses = append(statuses, ClaimStatus{
+			Name:                       claimName,
+			Verified:                   verified,
+			RequiredToVerifyOnCreation: *c.Required,
+			EndUserTriggerable:         *c.Enabled,
+		})
 	}
 	return statuses
 }
@@ -206,16 +196,11 @@ func (s *Service) IsUserVerified(identities []*identity.Info) (bool, error) {
 	numVerified := 0
 	for _, claimStatuses := range statuses {
 		for _, claim := range claimStatuses {
-			switch claim.Status {
-			case StatusVerified:
+			if claim.IsVerifiable() {
 				numVerifiable++
+			}
+			if claim.Verified {
 				numVerified++
-			case StatusPending, StatusRequired:
-				numVerifiable++
-			case StatusDisabled:
-				break
-			default:
-				panic("verification: unknown status:" + claim.Status)
 			}
 		}
 	}

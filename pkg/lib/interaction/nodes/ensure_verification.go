@@ -37,7 +37,7 @@ type NodeEnsureVerificationBegin struct {
 	RequestedByUser    bool                             `json:"requested_by_user"`
 	SkipVerification   bool                             `json:"skip_verification"`
 	PhoneOTPMode       config.AuthenticatorPhoneOTPMode `json:"phone_otp_mode"`
-	VerificationStatus verification.Status              `json:"-"`
+	VerificationStatus string                           `json:"-"`
 }
 
 // GetVerifyIdentityEdges implements EnsureVerificationBeginNode
@@ -53,7 +53,14 @@ func (n *NodeEnsureVerificationBegin) Prepare(ctx *interaction.Context, graph *i
 
 	// TODO(verification): handle multiple verifiable claims per identity
 	if len(claims) > 0 {
-		n.VerificationStatus = claims[0].Status
+		claim := claims[0]
+		if claim.Verified {
+			n.VerificationStatus = verification.StatusVerified
+		} else if claim.RequiredToVerifyOnCreation {
+			n.VerificationStatus = verification.StatusRequired
+		} else {
+			n.VerificationStatus = verification.StatusPending
+		}
 	} else {
 		n.VerificationStatus = verification.StatusDisabled
 	}
