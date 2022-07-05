@@ -19,7 +19,6 @@ import {
   Link,
   ThemeProvider,
   PartialTheme,
-  IButtonProps,
 } from "@fluentui/react";
 import { useConst } from "@fluentui/react-hooks";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -54,6 +53,7 @@ import SubscriptionPlanCard, {
   PlanDetailsLine,
 } from "./SubscriptionPlanCard";
 import { useCreateCheckoutSessionMutation } from "./mutations/createCheckoutSessionMutation";
+import { useLoading, useIsLoading } from "./../../hook/loading";
 
 const ALL_KNOWN_PLANS = ["free", "developers", "startups", "business"];
 const PAID_PLANS = ALL_KNOWN_PLANS.slice(1);
@@ -148,9 +148,12 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
   const { appID } = useParams() as { appID: string };
   const { createCheckoutSession, loading: createCheckoutSessionLoading } =
     useCreateCheckoutSessionMutation();
+  useLoading(createCheckoutSessionLoading);
   const [updateSubscription, { loading: updateSubscriptionLoading }] =
     useUpdateSubscriptionMutation();
-  const loading = createCheckoutSessionLoading || updateSubscriptionLoading;
+  useLoading(updateSubscriptionLoading);
+
+  const isLoading = useIsLoading();
 
   const ctaVariant = useMemo(() => {
     if (!isKnownPlan(currentPlanName)) {
@@ -309,7 +312,7 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
           appID={appID}
           planName={subscriptionPlan.name}
           variant={ctaVariant}
-          disabled={loading}
+          disabled={isLoading}
           onClickSubscribe={onClickSubscribe}
           onClickUpgrade={onClickUpgrade}
           onClickDowngrade={onClickDowngrade}
@@ -332,11 +335,11 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
 }
 
 interface SubscriptionScreenContentProps {
+  appID: string;
   planName: string;
   subscriptionPlans: SubscriptionPlan[];
   thisMonthUsage?: SubscriptionUsage;
   previousMonthUsage?: SubscriptionUsage;
-  onClickManageSubscription?: IButtonProps["onClick"];
 }
 
 function getTotalCost(
@@ -439,11 +442,11 @@ const CANCEL_THEME: PartialTheme = {
 
 function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   const {
+    appID,
     planName,
     subscriptionPlans,
     thisMonthUsage,
     previousMonthUsage,
-    onClickManageSubscription,
   } = props;
 
   const totalCost = useMemo(() => {
@@ -557,6 +560,33 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     setCancelDialogHidden(true);
   }, []);
 
+  const [generateCustomPortalSession, { loading: manageSubscriptionLoading }] =
+    useGenerateStripeCustomerPortalSessionMutationMutation({
+      variables: {
+        appID,
+      },
+    });
+  useLoading(manageSubscriptionLoading);
+
+  const onClickManageSubscription = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      generateCustomPortalSession().then(
+        (r) => {
+          const url = r.data?.generateStripeCustomerPortalSession.url;
+          if (url != null) {
+            window.location.href = url;
+          }
+        },
+        () => {}
+      );
+    },
+    [generateCustomPortalSession]
+  );
+
+  const isLoading = useIsLoading();
+
   return (
     <>
       <Dialog
@@ -596,6 +626,8 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
           mauPrevious={mauPrevious}
           nextBillingDate={nextBillingDate}
           onClickManageSubscription={onClickManageSubscription}
+          manageSubscriptionLoading={manageSubscriptionLoading}
+          manageSubscriptionDisabled={isLoading}
         >
           <CostItem
             title={
@@ -733,30 +765,6 @@ const SubscriptionScreen: React.FC = function SubscriptionScreen() {
 
   const { appID } = useParams() as { appID: string };
 
-  const [generateCustomPortalSession] =
-    useGenerateStripeCustomerPortalSessionMutationMutation({
-      variables: {
-        appID,
-      },
-    });
-
-  const onClickManageSubscription = useCallback(
-    (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      generateCustomPortalSession().then(
-        (r) => {
-          const url = r.data?.generateStripeCustomerPortalSession.url;
-          if (url != null) {
-            window.location.href = url;
-          }
-        },
-        () => {}
-      );
-    },
-    [generateCustomPortalSession]
-  );
-
   const subscriptionScreenQuery = useSubscriptionScreenQueryQuery({
     variables: {
       id: appID,
@@ -827,11 +835,11 @@ const SubscriptionScreen: React.FC = function SubscriptionScreen() {
 
   return (
     <SubscriptionScreenContent
+      appID={appID}
       planName={planName}
       subscriptionPlans={subscriptionPlans}
       thisMonthUsage={thisMonthUsage ?? undefined}
       previousMonthUsage={previousMonthUsage ?? undefined}
-      onClickManageSubscription={onClickManageSubscription}
     />
   );
 };

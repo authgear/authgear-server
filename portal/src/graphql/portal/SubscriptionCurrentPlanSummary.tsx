@@ -11,6 +11,8 @@ import {
   ProgressIndicator,
   PartialTheme,
   ThemeProvider,
+  Spinner,
+  SpinnerSize,
 } from "@fluentui/react";
 import { useId } from "@fluentui/react-hooks";
 import { DateTime } from "luxon";
@@ -27,6 +29,8 @@ export interface SubscriptionCurrentPlanSummaryProps {
   mauPrevious?: number;
   nextBillingDate?: Date;
   onClickManageSubscription?: IButtonProps["onClick"];
+  manageSubscriptionLoading?: boolean;
+  manageSubscriptionDisabled?: boolean;
   children?: React.ReactNode;
 }
 
@@ -221,12 +225,19 @@ function UsageMeter(props: UsageMeterProps) {
 interface SubscriptionManagementProps {
   nextBillingDate?: Date;
   onClickManageSubscription?: IButtonProps["onClick"];
+  manageSubscriptionLoading?: boolean;
+  manageSubscriptionDisabled?: boolean;
 }
 
 function SubscriptionManagement(props: SubscriptionManagementProps) {
   const { locale } = useContext(Context);
   const theme = useTheme();
-  const { nextBillingDate, onClickManageSubscription } = props;
+  const {
+    nextBillingDate,
+    onClickManageSubscription,
+    manageSubscriptionLoading,
+    manageSubscriptionDisabled,
+  } = props;
   const formattedDate = formatDatetime(
     locale,
     nextBillingDate ?? null,
@@ -254,8 +265,12 @@ function SubscriptionManagement(props: SubscriptionManagementProps) {
       <Link
         className={styles.subscriptionManagementLink}
         onClick={onClickManageSubscription}
+        disabled={manageSubscriptionLoading ?? manageSubscriptionDisabled}
       >
         <FormattedMessage id="SubscriptionCurrentPlanSummary.manage-subscription" />
+        {manageSubscriptionLoading === true ? (
+          <Spinner size={SpinnerSize.xSmall} />
+        ) : null}
       </Link>
     </div>
   );
@@ -273,6 +288,8 @@ function SubscriptionCurrentPlanSummary(
     mauPrevious,
     nextBillingDate,
     onClickManageSubscription,
+    manageSubscriptionLoading,
+    manageSubscriptionDisabled,
     children,
   } = props;
   return (
@@ -301,6 +318,8 @@ function SubscriptionCurrentPlanSummary(
           <SubscriptionManagement
             nextBillingDate={nextBillingDate}
             onClickManageSubscription={onClickManageSubscription}
+            manageSubscriptionLoading={manageSubscriptionLoading}
+            manageSubscriptionDisabled={manageSubscriptionDisabled}
           />
         ) : null}
       </div>
