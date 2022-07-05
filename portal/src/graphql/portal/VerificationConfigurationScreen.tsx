@@ -110,6 +110,23 @@ function constructConfig(
     if (initialState.phoneOTPMode !== currentState.phoneOTPMode) {
       a.oob_otp.sms.phone_otp_mode = currentState.phoneOTPMode;
     }
+
+    if (v.claims.email.enabled === true) {
+      delete v.claims.email.enabled;
+    }
+    if (v.claims.email.required === true) {
+      delete v.claims.email.required;
+    }
+    if (v.claims.phone_number.enabled === true) {
+      delete v.claims.phone_number.enabled;
+    }
+    if (v.claims.phone_number.required === true) {
+      delete v.claims.phone_number.required;
+    }
+    if (v.criteria === "any") {
+      delete v.criteria;
+    }
+
     if (a.oob_otp.sms.phone_otp_mode === "sms") {
       delete a.oob_otp.sms.phone_otp_mode;
     }
