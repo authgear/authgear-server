@@ -1,6 +1,7 @@
 package intlresource
 
 import (
+	"bytes"
 	"errors"
 	"os"
 	"strings"
@@ -8,6 +9,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/util/readcloserthunk"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -36,7 +38,7 @@ func TestPrepare(t *testing.T) {
 					Fs:   testFS{resource.FsLevelBuiltin},
 					Path: "/en",
 				},
-				Data: []byte("en"),
+				ReadCloserThunk: readcloserthunk.Reader(bytes.NewReader([]byte("en"))),
 			},
 			// The resource in fallback language.
 			{
@@ -44,7 +46,7 @@ func TestPrepare(t *testing.T) {
 					Fs:   testFS{resource.FsLevelApp},
 					Path: "/zh",
 				},
-				Data: []byte("zh"),
+				ReadCloserThunk: readcloserthunk.Reader(bytes.NewReader([]byte("zh"))),
 			},
 			// The resource in non-fallback language.
 			{
@@ -52,7 +54,7 @@ func TestPrepare(t *testing.T) {
 					Fs:   testFS{resource.FsLevelApp},
 					Path: "/ko",
 				},
-				Data: []byte("ko"),
+				ReadCloserThunk: readcloserthunk.Reader(bytes.NewReader([]byte("ko"))),
 			},
 		}
 
@@ -62,14 +64,18 @@ func TestPrepare(t *testing.T) {
 			PreferredTags: []string{"ja"},
 		}
 
-		extractLanguageTag := func(resrc resource.ResourceFile) string {
-			return strings.TrimPrefix(resrc.Location.Path, "/")
+		extractLanguageTag := func(location resource.Location) string {
+			return strings.TrimPrefix(location.Path, "/")
 		}
 
 		bag := make(map[string][]byte)
 		add := func(langTag string, resrc resource.ResourceFile) error {
 			value := bag[langTag]
-			value = append(value, resrc.Data...)
+			b, err := readcloserthunk.Performance_Bytes(resrc.ReadCloserThunk)
+			if err != nil {
+				return err
+			}
+			value = append(value, b...)
 			bag[langTag] = value
 			return nil
 		}

@@ -9,7 +9,7 @@ import (
 func PrepareNonFallback(
 	resources []resource.ResourceFile,
 	view resource.EffectiveResourceView,
-	extractLanguageTag func(resrc resource.ResourceFile) string,
+	extractLanguageTag func(location resource.Location) string,
 	add func(langTag string, resrc resource.ResourceFile) error,
 ) error {
 	supportedLanguageTags := view.SupportedLanguageTags()
@@ -23,7 +23,7 @@ func PrepareNonFallback(
 	delete(nonFallbackSet, defaultLanguageTag)
 
 	for _, resrc := range resources {
-		langTag := extractLanguageTag(resrc)
+		langTag := extractLanguageTag(resrc.Location)
 
 		_, isNonFallback := nonFallbackSet[langTag]
 		if !isNonFallback {
@@ -42,14 +42,14 @@ func PrepareNonFallback(
 func PrepareFallback(
 	resources []resource.ResourceFile,
 	view resource.EffectiveResourceView,
-	extractLanguageTag func(resrc resource.ResourceFile) string,
+	extractLanguageTag func(location resource.Location) string,
 	add func(langTag string, resrc resource.ResourceFile) error,
 ) error {
 	defaultLanguageTag := view.DefaultLanguageTag()
 
 	// Add the builtin resource of intl.BuiltinBaseLanguage first.
 	for _, resrc := range resources {
-		langTag := extractLanguageTag(resrc)
+		langTag := extractLanguageTag(resrc.Location)
 		if resrc.Location.Fs.GetFsLevel() == resource.FsLevelBuiltin && langTag == intl.BuiltinBaseLanguage {
 			err := add(defaultLanguageTag, resrc)
 			if err != nil {
@@ -60,7 +60,7 @@ func PrepareFallback(
 
 	// Add the resources of fallback language.
 	for _, resrc := range resources {
-		langTag := extractLanguageTag(resrc)
+		langTag := extractLanguageTag(resrc.Location)
 		if langTag == defaultLanguageTag {
 			err := add(defaultLanguageTag, resrc)
 			if err != nil {
@@ -78,7 +78,7 @@ func PrepareFallback(
 func Prepare(
 	resources []resource.ResourceFile,
 	view resource.EffectiveResourceView,
-	extractLanguageTag func(resrc resource.ResourceFile) string,
+	extractLanguageTag func(location resource.Location) string,
 	add func(langTag string, resrc resource.ResourceFile) error,
 ) error {
 	err := PrepareFallback(resources, view, extractLanguageTag, add)
