@@ -1,6 +1,8 @@
 package resource
 
 import (
+	"io"
+
 	"github.com/spf13/afero"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -62,13 +64,12 @@ func (m *Manager) Read(desc Descriptor, view View) (interface{}, error) {
 
 	files := make([]ResourceFile, len(locations))
 	for idx, location := range locations {
-		data, err := ReadLocation(location)
-		if err != nil {
-			return nil, err
-		}
+		l := location
 		files[idx] = ResourceFile{
-			Location: location,
-			Data:     data,
+			Location: l,
+			ReadCloserThunk: func() (io.ReadCloser, error) {
+				return l.Fs.Open(l.Path)
+			},
 		}
 	}
 
