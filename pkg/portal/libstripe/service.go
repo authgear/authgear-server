@@ -275,7 +275,7 @@ func (s *Service) SetSubscriptionCancelAtPeriodEnd(stripeSubscriptionID string, 
 	if err != nil {
 		return nil, err
 	}
-	periodEnd := time.Unix(subscription.CurrentPeriodEnd, 0)
+	periodEnd := time.Unix(subscription.CurrentPeriodEnd, 0).UTC()
 	return &periodEnd, nil
 }
 
