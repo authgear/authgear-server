@@ -60,9 +60,12 @@
   {{ $show_more_button := false }}
   {{ range .IdentityCandidates }}
   {{ $claim_verification_statuses := index $.VerificationStatuses .identity_id }}
-  {{ $verification_status := "disabled" }}
+  {{ $verification_verified := false }}
+  {{ $verification_triggerable := false }}
   {{ if ne (len $claim_verification_statuses) 0 }}
-    {{ $verification_status = (index $claim_verification_statuses 0).Status }}
+    {{ $claim_verification_status := index $claim_verification_statuses 0 }}
+    {{ $verification_verified = $claim_verification_status.Verified }}
+    {{ $verification_triggerable = $claim_verification_status.EndUserTriggerable }}
   {{ end }}
 
   {{/* We do not want to show unset row */}}
@@ -126,15 +129,16 @@
         <!-- TODO(verification): show verification for all identity types -->
         {{ if eq .type "login_id" }}
         {{ if .identity_id }}
-        {{ if or (eq $verification_status "pending") (eq $verification_status "required") }}
+        {{ if $verification_triggerable }}
+        {{ if not $verification_verified }}
         <span class="error-txt">
           {{ template "verification-status-label--unverified" }}
         </span>
-        {{ end }}
-        {{ if eq $verification_status "verified" }}
+        {{ else }}
         <span class="good-txt">
           {{ template "verification-status-label--verified" }}
         </span>
+        {{ end }}
         {{ end }}
         {{ end }}
         {{ end }}
@@ -144,7 +148,8 @@
       {{/* Row */}}
       {{ if eq .type "login_id" }}
       {{ if .identity_id }}
-      {{ if or (eq $verification_status "pending") (eq $verification_status "required") }}
+      {{ if $verification_triggerable }}
+      {{ if not $verification_verified }}
       <form class="" method="post" novalidate>
         {{ $.CSRFField }}
         <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
@@ -152,7 +157,7 @@
           {{ template "verify-via-button-label" (dict "loginIDType" .login_id_type ) }}
         </button>
       </form>
-      {{ end }}{{ end }}{{ end }}
+      {{ end }}{{ end }}{{ end }}{{ end }}
 
     </div>
 
@@ -251,7 +256,7 @@
 {{ $show_mfa := (and (not $.SecondaryAuthenticationDisabled) (or $show_secondary_totp $show_secondary_oob_otp_email $show_secondary_oob_otp_sms $show_secondary_password)) }}
 
 
-<div class="pane grid grid grid-cols-1 auto-rows-auto gap-y-2.5 pt-4 pb-5">
+<div class="pane grid grid-cols-1 auto-rows-auto gap-y-2.5 pt-4 pb-5">
 <!-- The title and the description -->
 <div class="px-5 grid grid-cols-1 auto-rows-auto gap-y-1">
   <h1 class="m-0 primary-txt text-xl font-bold">
@@ -266,7 +271,7 @@
   {{ range $.Authenticators }}
   <!-- Primary Password -->
   {{ if eq .Type "password" }}{{ if eq .Kind "primary" }}
-  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/change_password">
+  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/change_password">
     <i class="ti ti-key text-3xl block primary-txt" aria-hidden="true"></i>
     <p class="m-0 primary-txt text-base">
       {{ template "settings-page-primary-password-title" }}
@@ -280,7 +285,7 @@
 
   <!-- Primary OOB OTP Email -->
   {{ if eq .Type "oob_otp_email" }}{{ if eq .Kind "primary" }}
-  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/identity">
+  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/identity">
     <i class="ti ti-mail text-3xl block primary-txt" aria-hidden="true"></i>
     <p class="m-0 primary-txt text-base">
       {{ template "settings-page-primary-oob-otp-title--email" }}
@@ -296,7 +301,7 @@
 
   <!-- Primary OOB OTP SMS -->
   {{ if eq .Type "oob_otp_sms" }}{{ if eq .Kind "primary" }}
-  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/identity">
+  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/identity">
     <i class="ti ti-message-dots text-3xl block primary-txt" aria-hidden="true"></i>
     <p class="m-0 primary-txt text-base">
       {{ template "settings-page-primary-oob-otp-title--phone" }}
@@ -313,7 +318,7 @@
 
   <!-- MFA -->
   {{ if $show_mfa }}
-  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/mfa">
+  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/mfa">
     <i class="ti ti-shield-lock text-3xl block  primary-txt" aria-hidden="true"></i>
     <p class="m-0 primary-txt text-base">
       {{ template "settings-page-mfa-section-title" }}
@@ -326,7 +331,7 @@
 
   {{ if $.ShowBiometric }}
   <!-- Biometric -->
-  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/biometric">
+  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/biometric">
     <i class="ti ti-fingerprint text-3xl block primary-txt" aria-hidden="true"></i>
     <p class="m-0 primary-txt text-base">
       {{ template "settings-page-biometric-section-title" }}
@@ -337,7 +342,7 @@
   </a>
   {{ end }}
 
-  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/sessions">
+  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/sessions">
     <i class="ti ti-shield-check text-3xl block primary-txt" aria-hidden="true"></i>
     <p class="m-0 primary-txt text-base">
       {{ template "settings-page-session-section-title" }}

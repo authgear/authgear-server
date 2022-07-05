@@ -62,9 +62,11 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     criteria: config.verification?.criteria ?? "any",
     email: {
       required: config.verification?.claims?.email?.required ?? true,
+      enabled: config.verification?.claims?.email?.enabled ?? true,
     },
     phone: {
       required: config.verification?.claims?.phone_number?.required ?? true,
+      enabled: config.verification?.claims?.phone_number?.enabled ?? true,
     },
     phoneOTPMode: config.authenticator?.oob_otp?.sms?.phone_otp_mode ?? "sms",
   };
@@ -96,12 +98,35 @@ function constructConfig(
     if (initialState.email.required !== currentState.email.required) {
       v.claims.email.required = currentState.email.required;
     }
+    if (initialState.email.enabled !== currentState.email.enabled) {
+      v.claims.email.enabled = currentState.email.enabled;
+    }
     if (initialState.phone.required !== currentState.phone.required) {
       v.claims.phone_number.required = currentState.phone.required;
+    }
+    if (initialState.phone.enabled !== currentState.phone.enabled) {
+      v.claims.phone_number.enabled = currentState.phone.enabled;
     }
     if (initialState.phoneOTPMode !== currentState.phoneOTPMode) {
       a.oob_otp.sms.phone_otp_mode = currentState.phoneOTPMode;
     }
+
+    if (v.claims.email.enabled === true) {
+      delete v.claims.email.enabled;
+    }
+    if (v.claims.email.required === true) {
+      delete v.claims.email.required;
+    }
+    if (v.claims.phone_number.enabled === true) {
+      delete v.claims.phone_number.enabled;
+    }
+    if (v.claims.phone_number.required === true) {
+      delete v.claims.phone_number.required;
+    }
+    if (v.criteria === "any") {
+      delete v.criteria;
+    }
+
     if (a.oob_otp.sms.phone_otp_mode === "sms") {
       delete a.oob_otp.sms.phone_otp_mode;
     }
@@ -198,7 +223,21 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
       (_, value?: boolean) => {
         setState((s) => ({
           ...s,
-          email: { ...s.email, required: value ?? false },
+          email: {
+            ...s.email,
+            required: value ?? false,
+            enabled: value ? true : s.email.enabled,
+          },
+        }));
+      },
+      [setState]
+    );
+
+    const onEmailEnabledChange = useCallback(
+      (_, value?: boolean) => {
+        setState((s) => ({
+          ...s,
+          email: { ...s.email, enabled: value ?? false },
         }));
       },
       [setState]
@@ -208,7 +247,21 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
       (_, value?: boolean) => {
         setState((s) => ({
           ...s,
-          phone: { ...s.phone, required: value ?? false },
+          phone: {
+            ...s.phone,
+            required: value ?? false,
+            enabled: value ? true : s.phone.enabled,
+          },
+        }));
+      },
+      [setState]
+    );
+
+    const onPhoneEnabledChange = useCallback(
+      (_, value?: boolean) => {
+        setState((s) => ({
+          ...s,
+          phone: { ...s.phone, enabled: value ?? false },
         }));
       },
       [setState]
@@ -256,8 +309,19 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
               "VerificationConfigurationScreen.verification.email.required.label"
             )}
           />
+          <Checkbox
+            disabled={state.email.required}
+            checked={state.email.enabled}
+            onChange={onEmailEnabledChange}
+            label={renderToString(
+              "VerificationConfigurationScreen.verification.email.allowed.label"
+            )}
+          />
         </Widget>
         <Widget className={styles.widget}>
+          <WidgetTitle>
+            <FormattedMessage id="VerificationConfigurationScreen.verification.claims.phoneNumber" />
+          </WidgetTitle>
           {loginIDPhoneDisabled && (
             <MessageBar>
               <FormattedMessage
@@ -268,10 +332,8 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
               />
             </MessageBar>
           )}
-          <WidgetTitle>
-            <FormattedMessage id="VerificationConfigurationScreen.verification.claims.phoneNumber" />
-          </WidgetTitle>
           <Dropdown
+            disabled={loginIDPhoneDisabled}
             label={renderToString(
               "VerificationConfigurationScreen.verification.phoneNumber.verify-by.label"
             )}
@@ -285,6 +347,14 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
             onChange={onPhoneRequiredChange}
             label={renderToString(
               "VerificationConfigurationScreen.verification.phone.required.label"
+            )}
+          />
+          <Checkbox
+            disabled={state.phone.required ?? loginIDPhoneDisabled}
+            checked={state.phone.enabled}
+            onChange={onPhoneEnabledChange}
+            label={renderToString(
+              "VerificationConfigurationScreen.verification.phone.allowed.label"
             )}
           />
         </Widget>

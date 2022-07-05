@@ -70,30 +70,11 @@ func (s *Service) IsClaimVerifiable(claimName string) bool {
 	return false
 }
 
-func (s *Service) GetClaimVerificationStatus(userID string, name string, value string) (Status, error) {
-	c := s.claimVerificationConfig(name)
-	if c == nil || !*c.Enabled {
-		return StatusDisabled, nil
-	}
-
-	_, err := s.ClaimStore.Get(userID, name, value)
-	if errors.Is(err, ErrClaimUnverified) {
-		if *c.Required {
-			return StatusRequired, nil
-		}
-		return StatusPending, nil
-	} else if err != nil {
-		return "", err
-	}
-
-	return StatusVerified, nil
-}
-
 func (s *Service) getVerificationStatus(i *identity.Info, verifiedClaims map[claim]struct{}) []ClaimStatus {
 	var statuses []ClaimStatus
 	for claimName, claimValue := range i.Claims {
 		c := s.claimVerificationConfig(claimName)
-		if c == nil || !*c.Enabled {
+		if c == nil {
 			continue
 		}
 
@@ -102,21 +83,14 @@ func (s *Service) getVerificationStatus(i *identity.Info, verifiedClaims map[cla
 			continue
 		}
 
-		var status Status
-		if _, verified := verifiedClaims[claim{claimName, value}]; verified {
-			status = StatusVerified
-		} else if *c.Required {
-			status = StatusRequired
-		} else {
-			status = StatusPending
-		}
+		_, verified := verifiedClaims[claim{claimName, value}]
 
-		if status != StatusDisabled {
-			statuses = append(statuses, ClaimStatus{
-				Name:   claimName,
-				Status: status,
-			})
-		}
+		statuses = append(statuses, ClaimStatus{
+			Name:                       claimName,
+			Verified:                   verified,
+			RequiredToVerifyOnCreation: *c.Required,
+			EndUserTriggerable:         *c.Enabled,
+		})
 	}
 	return statuses
 }
@@ -203,16 +177,11 @@ func (s *Service) IsUserVerified(identities []*identity.Info) (bool, error) {
 	numVerified := 0
 	for _, claimStatuses := range statuses {
 		for _, claim := range claimStatuses {
-			switch claim.Status {
-			case StatusVerified:
+			if claim.IsVerifiable() {
 				numVerifiable++
+			}
+			if claim.Verified {
 				numVerified++
-			case StatusPending, StatusRequired:
-				numVerifiable++
-			case StatusDisabled:
-				break
-			default:
-				panic("verification: unknown status:" + claim.Status)
 			}
 		}
 	}
@@ -307,6 +276,15 @@ func (s *Service) NewVerifiedClaim(userID string, claimName string, claimValue s
 }
 
 func (s *Service) MarkClaimVerified(claim *Claim) error {
+	claims, err := s.GetClaims(claim.UserID)
+	if err != nil {
+		return err
+	}
+	for _, c := range claims {
+		if c.Name == claim.Name && c.Value == claim.Value {
+			return nil
+		}
+	}
 	claim.CreatedAt = s.Clock.NowUTC()
 	return s.ClaimStore.Create(claim)
 }

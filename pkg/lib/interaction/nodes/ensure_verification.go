@@ -33,11 +33,11 @@ func (e *EdgeEnsureVerificationBegin) Instantiate(ctx *interaction.Context, grap
 }
 
 type NodeEnsureVerificationBegin struct {
-	Identity           *identity.Info                   `json:"identity"`
-	RequestedByUser    bool                             `json:"requested_by_user"`
-	SkipVerification   bool                             `json:"skip_verification"`
-	PhoneOTPMode       config.AuthenticatorPhoneOTPMode `json:"phone_otp_mode"`
-	VerificationStatus verification.Status              `json:"-"`
+	Identity                *identity.Info                   `json:"identity"`
+	RequestedByUser         bool                             `json:"requested_by_user"`
+	SkipVerification        bool                             `json:"skip_verification"`
+	PhoneOTPMode            config.AuthenticatorPhoneOTPMode `json:"phone_otp_mode"`
+	VerificationClaimStatus verification.ClaimStatus         `json:"-"`
 }
 
 // GetVerifyIdentityEdges implements EnsureVerificationBeginNode
@@ -53,10 +53,10 @@ func (n *NodeEnsureVerificationBegin) Prepare(ctx *interaction.Context, graph *i
 
 	// TODO(verification): handle multiple verifiable claims per identity
 	if len(claims) > 0 {
-		n.VerificationStatus = claims[0].Status
-	} else {
-		n.VerificationStatus = verification.StatusDisabled
+		claim := claims[0]
+		n.VerificationClaimStatus = claim
 	}
+
 	return nil
 }
 
@@ -93,17 +93,10 @@ func (n *NodeEnsureVerificationBegin) deriveEdges() ([]interaction.Edge, error) 
 		}
 		return edges
 	}
-	switch n.VerificationStatus {
-	case verification.StatusDisabled, verification.StatusVerified:
-		break
-	case verification.StatusPending:
-		if n.RequestedByUser && !n.SkipVerification {
-			return verifyIdentityEdges(), nil
-		}
-	case verification.StatusRequired:
-		if !n.SkipVerification {
-			return verifyIdentityEdges(), nil
-		}
+
+	shouldVerify := !n.VerificationClaimStatus.Verified && !n.SkipVerification && (n.RequestedByUser || n.VerificationClaimStatus.RequiredToVerifyOnCreation)
+	if shouldVerify {
+		return verifyIdentityEdges(), nil
 	}
 
 	return []interaction.Edge{&EdgeEnsureVerificationEnd{Identity: n.Identity}}, nil
