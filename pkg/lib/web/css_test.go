@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/afero"
 
 	"github.com/authgear/authgear-server/pkg/lib/web"
+	"github.com/authgear/authgear-server/pkg/util/readcloserthunk"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -38,7 +39,8 @@ func TestCSSDescriptor(t *testing.T) {
 			}
 			switch v := result.(type) {
 			case *web.StaticAsset:
-				str = string(v.Data)
+				data, _ := readcloserthunk.Performance_Bytes(v.ReadCloserThunk)
+				str = string(data)
 			case []byte:
 				str = string(v)
 			default:
