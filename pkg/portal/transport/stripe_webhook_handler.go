@@ -31,7 +31,7 @@ type StripeService interface {
 type SubscriptionService interface {
 	UpdateSubscriptionCheckoutStatusAndCustomerID(appID string, stripCheckoutSessionID string, status model.SubscriptionCheckoutStatus, customerID string) error
 	UpdateSubscriptionCheckoutStatusByCustomerID(appID string, customerID string, status model.SubscriptionCheckoutStatus) error
-	CreateSubscription(appID string, stripeSubscriptionID string, stripeCustomerID string) (*model.Subscription, error)
+	UpsertSubscription(appID string, stripeSubscriptionID string, stripeCustomerID string) (*model.Subscription, error)
 	UpdateAppPlan(appID string, planName string) error
 }
 
@@ -78,6 +78,7 @@ func (h *StripeWebhookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			event.(*libstripe.CustomerSubscriptionCreatedEvent).CustomerSubscriptionEvent,
 		)
 	case libstripe.EventTypeCustomerSubscriptionUpdated:
+		// FIXME(subscription): handle update subscription
 		err = h.handleCustomerSubscriptionEvent(
 			event.(*libstripe.CustomerSubscriptionUpdatedEvent).CustomerSubscriptionEvent,
 		)
@@ -162,20 +163,20 @@ func (h *StripeWebhookHandler) handleCustomerSubscriptionEvent(event *libstripe.
 			model.SubscriptionCheckoutStatusSubscribed,
 		)
 		if err != nil {
-			if errors.Is(err, service.ErrSubscriptionCheckoutNotFound) {
-				// The checkout is not found or the checkout is already subscribed
-				// Tolerate it.
-				h.Logger.
-					WithField("app_id", event.AppID).
-					WithField("stripe_subscription_id", event.StripeSubscriptionID).
-					Info("the subscription checkout does not exists or the status is subscribed already")
-				return nil
+			if !errors.Is(err, service.ErrSubscriptionCheckoutNotFound) {
+				return err
 			}
-			return err
+			// The checkout is not found or the checkout is already subscribed
+			// Tolerate it.
+			h.Logger.
+				WithField("app_id", event.AppID).
+				WithField("stripe_subscription_id", event.StripeSubscriptionID).
+				Info("the subscription checkout does not exists or the status is subscribed already")
+			// Fallthrough here so subscription will be upserted.
 		}
 
-		// Insert _portal_subscription
-		_, err = h.Subscriptions.CreateSubscription(event.AppID, event.StripeSubscriptionID, event.StripeCustomerID)
+		// Upsert _portal_subscription
+		_, err = h.Subscriptions.UpsertSubscription(event.AppID, event.StripeSubscriptionID, event.StripeCustomerID)
 		if err != nil {
 			return err
 		}

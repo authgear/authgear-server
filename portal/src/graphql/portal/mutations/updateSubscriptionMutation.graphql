@@ -1,0 +1,8 @@
+mutation updateSubscriptionMutation($appID: ID!, $planName: String!) {
+  updateSubscription(input: { appID: $appID, planName: $planName }) {
+    app {
+      id
+      planName
+    }
+  }
+}

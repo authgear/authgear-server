@@ -18,16 +18,23 @@ const (
 	MetadataKeyFreeQuantity = "free_quantity"
 )
 
-func NewPrice(stripeProduct *stripe.Product) (price *model.Price, err error) {
-	priceType := model.PriceType(stripeProduct.Metadata[MetadataKeyPriceType])
-	err = priceType.Valid()
-	if err != nil {
-		return
-	}
-
+func NewPriceFromProductOfProductList(stripeProduct *stripe.Product) (price *model.Price, err error) {
 	stripePrice := stripeProduct.DefaultPrice
 	if stripePrice == nil {
 		err = fmt.Errorf("missing default price in the stripe product: %s", stripeProduct.Name)
+		return
+	}
+	return newPrice(stripeProduct, stripePrice)
+}
+
+func NewPriceFromProductOfSubscription(stripeProduct *stripe.Product, stripePrice *stripe.Price) (price *model.Price, err error) {
+	return newPrice(stripeProduct, stripePrice)
+}
+
+func newPrice(stripeProduct *stripe.Product, stripePrice *stripe.Price) (price *model.Price, err error) {
+	priceType := model.PriceType(stripeProduct.Metadata[MetadataKeyPriceType])
+	err = priceType.Valid()
+	if err != nil {
 		return
 	}
 

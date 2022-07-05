@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useContext } from "react";
 import {
   useTheme,
   Text,
@@ -11,8 +11,12 @@ import {
   DialogType,
   IDialogContentProps,
 } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { DateTime } from "luxon";
+import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import styles from "./SubscriptionPlanCard.module.scss";
+import { formatDatetime } from "../../util/formatDatetime";
+import { useSystemConfig } from "../../context/SystemConfigContext";
+import { usePreviewUpdateSubscriptionMutation } from "./mutations/previewUpdateSubscriptionMutation";
 
 interface CardProps {
   isActive: boolean;
@@ -157,10 +161,14 @@ export function UsagePriceTag(props: UsagePriceTagProps): React.ReactElement {
 }
 
 export interface CTAProps {
+  appID: string;
   planName: string;
   variant: "subscribe" | "upgrade" | "downgrade" | "current" | "non-applicable";
-  disabledSubscribeButton?: boolean;
+  nextBillingDate?: Date;
+  disabled?: boolean;
   onClickSubscribe?: (planName: string) => void;
+  onClickUpgrade?: (planName: string) => void;
+  onClickDowngrade?: (planName: string) => void;
 }
 
 const DOWNGRADE_BUTTON_THEME: PartialTheme = {
@@ -180,56 +188,132 @@ const CURRENT_BUTTON_THEME: PartialTheme = {
 
 export function CTA(props: CTAProps): React.ReactElement {
   const {
+    appID,
     planName,
     variant,
-    disabledSubscribeButton,
+    disabled,
+    nextBillingDate,
     onClickSubscribe: onClickSubscribeProps,
+    onClickUpgrade: onClickUpgradeProps,
+    onClickDowngrade: onClickDowngradeProps,
   } = props;
+  const { locale } = useContext(Context);
   const [hidden, setHidden] = useState(true);
+  const {
+    themes: { destructive },
+  } = useSystemConfig();
+
+  const formattedDate = formatDatetime(
+    locale,
+    nextBillingDate ?? null,
+    DateTime.DATE_SHORT
+  );
+
+  const [previewUpdateSubscription, { data, loading }] =
+    usePreviewUpdateSubscriptionMutation();
+
+  const amountDue =
+    data?.previewUpdateSubscription.amountDue != null
+      ? data.previewUpdateSubscription.amountDue / 100
+      : null;
 
   // @ts-expect-error
   const upgradeDialogContentProps: IDialogContentProps = useMemo(() => {
     return {
       type: DialogType.normal,
       title: <FormattedMessage id="SubscriptionPlanCard.upgrade.title" />,
-      subText: (
-        <FormattedMessage id="SubscriptionPlanCard.change-plan.instructions" />
-      ),
+      subText:
+        amountDue == null ? (
+          <FormattedMessage id="loading" />
+        ) : (
+          <FormattedMessage
+            id="SubscriptionPlanCard.upgrade.description"
+            values={{
+              amount: amountDue,
+              date: formattedDate ?? "",
+            }}
+          />
+        ),
     };
-  }, []);
+  }, [amountDue, formattedDate]);
 
   // @ts-expect-error
   const downgradeDialogContentProps: IDialogContentProps = useMemo(() => {
     return {
       type: DialogType.normal,
       title: <FormattedMessage id="SubscriptionPlanCard.downgrade.title" />,
-      subText: (
-        <FormattedMessage id="SubscriptionPlanCard.change-plan.instructions" />
-      ),
+      subText:
+        amountDue == null ? (
+          <FormattedMessage id="loading" />
+        ) : (
+          <FormattedMessage
+            id="SubscriptionPlanCard.downgrade.description"
+            values={{
+              amount: amountDue,
+              date: formattedDate ?? "",
+            }}
+          />
+        ),
     };
-  }, []);
+  }, [amountDue, formattedDate]);
 
-  const onClickUpgrade = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setHidden(false);
-  }, []);
+  const onClickUpgrade = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      previewUpdateSubscription({
+        variables: {
+          appID,
+          planName,
+        },
+      }).finally(() => {});
+      setHidden(false);
+    },
+    [appID, planName, previewUpdateSubscription]
+  );
 
-  const onClickDowngrade = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setHidden(false);
-  }, []);
+  const onClickDowngrade = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      previewUpdateSubscription({
+        variables: {
+          appID,
+          planName,
+        },
+      }).finally(() => {});
+      setHidden(false);
+    },
+    [appID, planName, previewUpdateSubscription]
+  );
 
   const onClickSubscribe = useCallback(
     (e) => {
       e.preventDefault();
       e.stopPropagation();
-      if (onClickSubscribeProps) {
-        onClickSubscribeProps(planName);
-      }
+      onClickSubscribeProps?.(planName);
     },
     [planName, onClickSubscribeProps]
+  );
+
+  const onClickConfirmUpgrade = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setHidden(true);
+      onClickUpgradeProps?.(planName);
+    },
+    [planName, onClickUpgradeProps]
+  );
+
+  const onClickConfirmDowngrade = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setHidden(true);
+      onClickDowngradeProps?.(planName);
+    },
+    [planName, onClickDowngradeProps]
   );
 
   const onDismiss = useCallback(() => {
@@ -242,7 +326,7 @@ export function CTA(props: CTAProps): React.ReactElement {
         <PrimaryButton
           className={styles.cta}
           onClick={onClickSubscribe}
-          disabled={disabledSubscribeButton}
+          disabled={disabled}
         >
           <FormattedMessage id="SubscriptionPlanCard.label.subscribe" />
         </PrimaryButton>
@@ -256,12 +340,19 @@ export function CTA(props: CTAProps): React.ReactElement {
             dialogContentProps={upgradeDialogContentProps}
           >
             <DialogFooter>
-              <PrimaryButton onClick={onDismiss}>
-                <FormattedMessage id="understood" />
+              <PrimaryButton onClick={onClickConfirmUpgrade} disabled={loading}>
+                <FormattedMessage id="SubscriptionPlanCard.label.upgrade" />
               </PrimaryButton>
+              <DefaultButton onClick={onDismiss}>
+                <FormattedMessage id="cancel" />
+              </DefaultButton>
             </DialogFooter>
           </Dialog>
-          <PrimaryButton className={styles.cta} onClick={onClickUpgrade}>
+          <PrimaryButton
+            className={styles.cta}
+            onClick={onClickUpgrade}
+            disabled={disabled}
+          >
             <FormattedMessage id="SubscriptionPlanCard.label.upgrade" />
           </PrimaryButton>
         </>
@@ -275,13 +366,24 @@ export function CTA(props: CTAProps): React.ReactElement {
             dialogContentProps={downgradeDialogContentProps}
           >
             <DialogFooter>
-              <PrimaryButton onClick={onDismiss}>
-                <FormattedMessage id="understood" />
+              <PrimaryButton
+                onClick={onClickConfirmDowngrade}
+                theme={destructive}
+                disabled={loading}
+              >
+                <FormattedMessage id="SubscriptionPlanCard.label.downgrade" />
               </PrimaryButton>
+              <DefaultButton onClick={onDismiss}>
+                <FormattedMessage id="cancel" />
+              </DefaultButton>
             </DialogFooter>
           </Dialog>
           <ThemeProvider theme={DOWNGRADE_BUTTON_THEME}>
-            <DefaultButton className={styles.cta} onClick={onClickDowngrade}>
+            <DefaultButton
+              className={styles.cta}
+              onClick={onClickDowngrade}
+              disabled={disabled}
+            >
               <FormattedMessage id="SubscriptionPlanCard.label.downgrade" />
             </DefaultButton>
           </ThemeProvider>

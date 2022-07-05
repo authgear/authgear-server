@@ -57,22 +57,19 @@ type SubscriptionService struct {
 	Clock             clock.Clock
 }
 
-func (s *SubscriptionService) CreateSubscription(appID string, stripeSubscriptionID string, stripeCustomerID string) (*model.Subscription, error) {
+func (s *SubscriptionService) UpsertSubscription(appID string, stripeSubscriptionID string, stripeCustomerID string) (*model.Subscription, error) {
 	now := s.Clock.NowUTC()
-	subscription := &model.Subscription{
+	if err := s.upsertSubscription(&model.Subscription{
 		ID:                   uuid.New(),
 		AppID:                appID,
 		StripeCustomerID:     stripeCustomerID,
 		StripeSubscriptionID: stripeSubscriptionID,
 		CreatedAt:            now,
 		UpdatedAt:            now,
-	}
-
-	if err := s.createSubscription(subscription); err != nil {
+	}); err != nil {
 		return nil, err
 	}
-
-	return subscription, nil
+	return s.GetSubscription(appID)
 }
 
 func (s *SubscriptionService) CreateSubscriptionCheckout(checkoutSession *libstripe.CheckoutSession) (*model.SubscriptionCheckout, error) {
@@ -235,7 +232,7 @@ func (s *SubscriptionService) GetIsProcessingSubscription(appID string) (bool, e
 	return count > 0 && !hasSubscription, nil
 }
 
-func (s *SubscriptionService) createSubscription(sub *model.Subscription) error {
+func (s *SubscriptionService) upsertSubscription(sub *model.Subscription) error {
 	_, err := s.SQLExecutor.ExecWith(s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_portal_subscription")).
 		Columns(
@@ -253,7 +250,7 @@ func (s *SubscriptionService) createSubscription(sub *model.Subscription) error 
 			sub.StripeSubscriptionID,
 			sub.CreatedAt,
 			sub.UpdatedAt,
-		),
+		).Suffix("ON CONFLICT (app_id) DO UPDATE SET stripe_customer_id = EXCLUDED.stripe_customer_id, stripe_subscription_id = EXCLUDED.stripe_subscription_id, updated_at = EXCLUDED.updated_at"),
 	)
 	if err != nil {
 		return err

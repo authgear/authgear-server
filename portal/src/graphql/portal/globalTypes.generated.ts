@@ -273,6 +273,8 @@ export type Mutation = {
   deleteDomain: DeleteDomainPayload;
   /** Generate Stripe customer portal session */
   generateStripeCustomerPortalSession: GenerateStripeCustomerPortalSessionPayload;
+  /** Preview update subscription */
+  previewUpdateSubscription: PreviewUpdateSubscriptionPayload;
   /** Reconcile the completed checkout session */
   reconcileCheckoutSession: ReconcileCheckoutSessionPayload;
   /** Send test STMP configuration email */
@@ -283,6 +285,8 @@ export type Mutation = {
   skipAppTutorialProgress: SkipAppTutorialProgressPayload;
   /** Update app */
   updateApp: UpdateAppPayload;
+  /** Update subscription */
+  updateSubscription: UpdateSubscriptionPayload;
   /** Request verification of a domain of target app */
   verifyDomain: VerifyDomainPayload;
 };
@@ -333,6 +337,11 @@ export type MutationGenerateStripeCustomerPortalSessionArgs = {
 };
 
 
+export type MutationPreviewUpdateSubscriptionArgs = {
+  input: PreviewUpdateSubscriptionInput;
+};
+
+
 export type MutationReconcileCheckoutSessionArgs = {
   input: ReconcileCheckoutSession;
 };
@@ -355,6 +364,11 @@ export type MutationSkipAppTutorialProgressArgs = {
 
 export type MutationUpdateAppArgs = {
   input: UpdateAppInput;
+};
+
+
+export type MutationUpdateSubscriptionArgs = {
+  input: UpdateSubscriptionInput;
 };
 
 
@@ -397,6 +411,19 @@ export enum Periodical {
   Monthly = 'MONTHLY',
   Weekly = 'WEEKLY'
 }
+
+export type PreviewUpdateSubscriptionInput = {
+  /** App ID. */
+  appID: Scalars['ID'];
+  /** Plan name. */
+  planName: Scalars['String'];
+};
+
+export type PreviewUpdateSubscriptionPayload = {
+  __typename?: 'PreviewUpdateSubscriptionPayload';
+  amountDue: Scalars['Int'];
+  currency: Scalars['String'];
+};
 
 export type Query = {
   __typename?: 'Query';
@@ -615,6 +642,18 @@ export type UpdateAppInput = {
 
 export type UpdateAppPayload = {
   __typename?: 'UpdateAppPayload';
+  app: App;
+};
+
+export type UpdateSubscriptionInput = {
+  /** App ID. */
+  appID: Scalars['ID'];
+  /** Plan name. */
+  planName: Scalars['String'];
+};
+
+export type UpdateSubscriptionPayload = {
+  __typename?: 'UpdateSubscriptionPayload';
   app: App;
 };
 

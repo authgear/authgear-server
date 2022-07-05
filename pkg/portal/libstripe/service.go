@@ -22,6 +22,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/redisutil"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 	"github.com/authgear/authgear-server/pkg/util/timeutil"
 )
 
@@ -132,7 +133,7 @@ func (s *Service) GetSubscriptionPlan(planName string) (*model.SubscriptionPlan,
 	if err != nil {
 		return nil, err
 	}
-	return s.getStripeSubscription(planName, subscriptionPlans)
+	return s.getSubscriptionPlan(planName, subscriptionPlans)
 }
 
 func (s *Service) FetchCheckoutSession(checkoutSessionID string) (*CheckoutSession, error) {
@@ -185,7 +186,7 @@ func (s *Service) CreateSubscriptionIfNotExists(checkoutSessionID string, subscr
 	appID := checkoutSession.Metadata[MetadataKeyAppID]
 
 	// Find the subscription plan
-	subscriptionPlan, err := s.getStripeSubscription(planName, subscriptionPlans)
+	subscriptionPlan, err := s.getSubscriptionPlan(planName, subscriptionPlans)
 	if err != nil {
 		return err
 	}
@@ -349,7 +350,7 @@ func (s *Service) convertToSubscriptionPlans(knownPlanNames map[string]struct{},
 	}
 
 	for _, product := range products {
-		price, err := NewPrice(product)
+		price, err := NewPriceFromProductOfProductList(product)
 		if err != nil {
 			// skip the unknown product
 			continue
@@ -379,7 +380,7 @@ func (s *Service) convertToSubscriptionPlans(knownPlanNames map[string]struct{},
 	return out, nil
 }
 
-func (s *Service) getStripeSubscription(planName string, subscriptionPlans []*model.SubscriptionPlan) (*model.SubscriptionPlan, error) {
+func (s *Service) getSubscriptionPlan(planName string, subscriptionPlans []*model.SubscriptionPlan) (*model.SubscriptionPlan, error) {
 	var subscriptionPlan *model.SubscriptionPlan
 	for _, sp := range subscriptionPlans {
 		if sp.Name == planName {
@@ -487,4 +488,137 @@ func (s *Service) GenerateCustomerPortalSession(appID string, customerID string)
 	}
 
 	return s.ClientAPI.BillingPortalSessions.New(params)
+}
+
+func (s *Service) UpdateSubscription(stripeSubscriptionID string, subscriptionPlan *model.SubscriptionPlan) (err error) {
+	getParams := &stripe.SubscriptionParams{
+		Params: stripe.Params{
+			Context: s.Context,
+			Expand:  []*string{stripe.String("items.data.price.product")},
+		},
+	}
+	sub, err := s.ClientAPI.Subscriptions.Get(stripeSubscriptionID, getParams)
+	if err != nil {
+		return
+	}
+
+	// Update the plan name in metadata
+	sub.Metadata[MetadataKeyPlanName] = subscriptionPlan.Name
+
+	itemsParams, err := s.deriveSubscriptionItemsParams(sub, subscriptionPlan)
+	if err != nil {
+		return
+	}
+
+	updateParams := &stripe.SubscriptionParams{
+		Params: stripe.Params{
+			Context: s.Context,
+			// Update metadata
+			Metadata: sub.Metadata,
+		},
+		Items: itemsParams,
+	}
+
+	_, err = s.ClientAPI.Subscriptions.Update(stripeSubscriptionID, updateParams)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (s *Service) PreviewUpdateSubscription(stripeSubscriptionID string, subscriptionPlan *model.SubscriptionPlan) (preview *model.SubscriptionUpdatePreview, err error) {
+	getParams := &stripe.SubscriptionParams{
+		Params: stripe.Params{
+			Context: s.Context,
+			Expand:  []*string{stripe.String("items.data.price.product")},
+		},
+	}
+	sub, err := s.ClientAPI.Subscriptions.Get(stripeSubscriptionID, getParams)
+	if err != nil {
+		return
+	}
+
+	itemsParams, err := s.deriveSubscriptionItemsParams(sub, subscriptionPlan)
+	if err != nil {
+		return
+	}
+
+	invoiceParams := &stripe.InvoiceParams{
+		Params: stripe.Params{
+			Context: s.Context,
+		},
+		Customer:          stripe.String(sub.Customer.ID),
+		Subscription:      stripe.String(sub.ID),
+		SubscriptionItems: itemsParams,
+	}
+
+	inv, err := s.ClientAPI.Invoices.GetNext(invoiceParams)
+	if err != nil {
+		return
+	}
+
+	preview = &model.SubscriptionUpdatePreview{
+		Currency:  string(inv.Currency),
+		AmountDue: int(inv.AmountDue),
+	}
+	return
+}
+
+func (s *Service) deriveSubscriptionItemsParams(sub *stripe.Subscription, subscriptionPlan *model.SubscriptionPlan) (out []*stripe.SubscriptionItemsParams, err error) {
+	oldPrices, err := stripeSubscriptionToPrices(sub)
+	if err != nil {
+		return
+	}
+	newPrices := subscriptionPlan.Prices
+
+	f := func(p *model.Price) string {
+		return p.StripePriceID
+	}
+	oldPriceSet := setutil.NewSetFromSlice(oldPrices, f)
+	newPriceSet := setutil.NewSetFromSlice(newPrices, f)
+
+	pricesToBeRemoved := setutil.SetToSlice(
+		oldPrices,
+		oldPriceSet.Subtract(newPriceSet),
+		f,
+	)
+	pricesToBeAdded := setutil.SetToSlice(
+		newPrices,
+		newPriceSet.Subtract(oldPriceSet),
+		f,
+	)
+
+	for _, priceToBeRemoved := range pricesToBeRemoved {
+		for _, item := range sub.Items.Data {
+			if item.Price.ID == priceToBeRemoved.StripePriceID {
+				out = append(out, &stripe.SubscriptionItemsParams{
+					ID:         stripe.String(item.ID),
+					Deleted:    stripe.Bool(true),
+					ClearUsage: stripe.Bool(priceToBeRemoved.ShouldClearUsage()),
+				})
+			}
+		}
+	}
+	for _, priceToBeAdded := range pricesToBeAdded {
+		out = append(out, &stripe.SubscriptionItemsParams{
+			Price: stripe.String(priceToBeAdded.StripePriceID),
+		})
+	}
+
+	return
+}
+
+func stripeSubscriptionToPrices(subscription *stripe.Subscription) ([]*model.Price, error) {
+	var prices []*model.Price
+	for _, item := range subscription.Items.Data {
+		stripePrice := item.Price
+		stripeProduct := stripePrice.Product
+		price, err := NewPriceFromProductOfSubscription(stripeProduct, stripePrice)
+		if err != nil {
+			return nil, err
+		}
+		prices = append(prices, price)
+	}
+	return prices, nil
 }

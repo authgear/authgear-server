@@ -850,9 +850,10 @@
   "SubscriptionPlanCard.label.downgrade": "Downgrade",
   "SubscriptionPlanCard.label.current": "Current",
   "SubscriptionPlanCard.label.subscribe": "Subscribe",
-  "SubscriptionPlanCard.upgrade.title": "Upgrade Instructions",
-  "SubscriptionPlanCard.downgrade.title": "Downgrade Instructions",
-  "SubscriptionPlanCard.change-plan.instructions": "Please send an email to {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}} from the email address associated with your Authgear account and the plan you would like to change.",
+  "SubscriptionPlanCard.upgrade.title": "Upgrade Your Plan",
+  "SubscriptionPlanCard.upgrade.description": "When you change your plan, the prorated charges will be reflected in the next invoice. ${amount} (estimated) will be charged on {date}.{br, react}{br, react}Do you want to change your plan?",
+  "SubscriptionPlanCard.downgrade.title": "Downgrade Your Plan",
+  "SubscriptionPlanCard.downgrade.description": "{strong, react, children{Warning:}} Your apps may stop working if you downgrade to less features. To avoid this, make sure your project configuration fit the plan you are downgrading to.{br, react}{br, react}When you change your plan, the prorated charges will be reflected in the next invoice. ${amount} (estimated) will be charged on {date}.{br, react}{br, react}Do you want to change your plan?",
 
   "SubscriptionPlanCard.plan.features.title": "Everything in {previousPlan}, plus:",
 
