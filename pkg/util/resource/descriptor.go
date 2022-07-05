@@ -5,6 +5,9 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
+
+	"github.com/authgear/authgear-server/pkg/util/readcloserthunk"
 )
 
 type Location struct {
@@ -14,8 +17,8 @@ type Location struct {
 
 // nolint: golint
 type ResourceFile struct {
-	Location Location
-	Data     []byte
+	Location        Location
+	ReadCloserThunk readcloserthunk.ReadCloserThunk
 }
 
 type Match struct {
@@ -48,7 +51,7 @@ func (d SimpleDescriptor) FindResources(fs Fs) ([]Location, error) {
 		Fs:   fs,
 		Path: d.Path,
 	}
-	_, err := ReadLocation(location)
+	_, err := StatLocation(location)
 	if os.IsNotExist(err) {
 		return nil, nil
 	} else if err != nil {
@@ -84,13 +87,13 @@ func (d SimpleDescriptor) viewResources(resources []ResourceFile) (interface{}, 
 		return nil, ErrResourceNotFound
 	}
 	last := resources[len(resources)-1]
-	return last.Data, nil
+	return readcloserthunk.Performance_Bytes(last.ReadCloserThunk)
 }
 
 func (d SimpleDescriptor) UpdateResource(_ context.Context, _ []ResourceFile, resource *ResourceFile, data []byte) (*ResourceFile, error) {
 	return &ResourceFile{
-		Location: resource.Location,
-		Data:     data,
+		Location:        resource.Location,
+		ReadCloserThunk: readcloserthunk.Reader(bytes.NewReader(data)),
 	}, nil
 }
 
@@ -113,7 +116,7 @@ func (d NewlineJoinedDescriptor) FindResources(fs Fs) ([]Location, error) {
 		Fs:   fs,
 		Path: d.Path,
 	}
-	_, err := ReadLocation(location)
+	_, err := StatLocation(location)
 	if os.IsNotExist(err) {
 		return nil, nil
 	} else if err != nil {
@@ -163,17 +166,19 @@ func (d NewlineJoinedDescriptor) viewResources(resources []ResourceFile) ([]byte
 		return nil, ErrResourceNotFound
 	}
 
-	output := bytes.Buffer{}
+	var thunks []readcloserthunk.ReadCloserThunk
 	for _, resrc := range resources {
-		output.Write(resrc.Data)
-		output.WriteString("\n")
+		rct := resrc.ReadCloserThunk
+		thunks = append(thunks, rct, readcloserthunk.Reader(strings.NewReader("\n")))
 	}
-	return output.Bytes(), nil
+
+	output := readcloserthunk.MultiReadCloserThunk(thunks...)
+	return readcloserthunk.Performance_Bytes(output)
 }
 
 func (d NewlineJoinedDescriptor) UpdateResource(_ context.Context, _ []ResourceFile, resource *ResourceFile, data []byte) (*ResourceFile, error) {
 	return &ResourceFile{
-		Location: resource.Location,
-		Data:     data,
+		Location:        resource.Location,
+		ReadCloserThunk: readcloserthunk.Reader(bytes.NewReader(data)),
 	}, nil
 }
