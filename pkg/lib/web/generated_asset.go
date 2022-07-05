@@ -12,6 +12,7 @@ import (
 
 	"gopkg.in/fsnotify.v1"
 
+	"github.com/authgear/authgear-server/pkg/util/readcloserthunk"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -136,7 +137,7 @@ func (d *GeneratedAssetDescriptor) FindResources(fs resource.Fs) ([]resource.Loc
 			Fs:   fs,
 			Path: path.Join(GeneratedStaticAssetResourcePrefix, value),
 		}
-		_, err := resource.ReadLocation(location)
+		_, err := resource.StatLocation(location)
 
 		if os.IsNotExist(err) || err != nil {
 			continue
@@ -148,7 +149,7 @@ func (d *GeneratedAssetDescriptor) FindResources(fs resource.Fs) ([]resource.Loc
 			Fs:   fs,
 			Path: path.Join(GeneratedStaticAssetResourcePrefix, mapValue),
 		}
-		_, err = resource.ReadLocation(locationMap)
+		_, err = resource.StatLocation(locationMap)
 
 		if os.IsNotExist(err) || err != nil {
 			continue
@@ -173,7 +174,7 @@ func (d *GeneratedAssetDescriptor) ViewResources(resources []resource.ResourceFi
 	}
 }
 
-func (d *GeneratedAssetDescriptor) viewResources(resources []resource.ResourceFile, rawView resource.View) ([]byte, error) {
+func (d *GeneratedAssetDescriptor) viewResources(resources []resource.ResourceFile, rawView resource.View) (readcloserthunk.ReadCloserThunk, error) {
 	switch rawView.(type) {
 	case resource.AppFileView:
 		break
@@ -208,7 +209,7 @@ func (d *GeneratedAssetDescriptor) viewResources(resources []resource.ResourceFi
 
 	for _, r := range resources {
 		if r.Location.Path == assetPath {
-			return r.Data, nil
+			return r.ReadCloserThunk, nil
 		}
 	}
 
