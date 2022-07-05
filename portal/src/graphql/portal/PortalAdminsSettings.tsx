@@ -7,6 +7,7 @@ import { makeReasonErrorParseRule } from "../../error/parse";
 import { useCollaboratorsAndInvitationsQuery } from "./query/collaboratorsAndInvitationsQuery";
 import { useDeleteCollaboratorInvitationMutation } from "./mutations/deleteCollaboratorInvitationMutation";
 import { useDeleteCollaboratorMutation } from "./mutations/deleteCollaboratorMutation";
+import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import PortalAdminList from "./PortalAdminList";
 import RemovePortalAdminConfirmationDialog, {
   RemovePortalAdminConfirmationDialogData,
@@ -27,6 +28,13 @@ const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
   const { renderToString } = useContext(Context);
   const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
+
+  const {
+    effectiveFeatureConfig,
+    loading: featureConfigLoading,
+    error: featureConfigError,
+    refetch: featureConfigRefetch,
+  } = useAppFeatureConfigQuery(appID);
 
   const {
     collaborators,
@@ -64,18 +72,39 @@ const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
     setRemovePortalAdminInvitationConfirmationDialogData,
   ] = useState<RemovePortalAdminInvitationConfirmationDialogData | null>(null);
 
+  const retry = useCallback(() => {
+    refetchCollaboratorsAndInvitations().finally(() => {});
+    featureConfigRefetch().finally(() => {});
+  }, [refetchCollaboratorsAndInvitations, featureConfigRefetch]);
+
   const primaryItems: ICommandBarItemProps[] = useMemo(() => {
+    let disabled = false;
+    if (effectiveFeatureConfig?.collaborator.maximum != null) {
+      const maximum = effectiveFeatureConfig?.collaborator.maximum;
+      const length1 = collaborators?.length ?? 0;
+      const length2 = collaboratorInvitations?.length ?? 0;
+      if (length1 + length2 >= maximum) {
+        disabled = true;
+      }
+    }
     return [
       {
         key: "invite",
         text: renderToString("PortalAdminsSettings.invite"),
         iconProps: { iconName: "CirclePlus" },
+        disabled,
         onClick: () => {
           navigate("./invite");
         },
       },
     ];
-  }, [navigate, renderToString]);
+  }, [
+    navigate,
+    renderToString,
+    collaborators,
+    collaboratorInvitations,
+    effectiveFeatureConfig,
+  ]);
 
   const onRemoveCollaboratorClicked = useCallback(
     (_event: React.MouseEvent<unknown>, id: string) => {
@@ -152,16 +181,13 @@ const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
     ];
   }, []);
 
-  if (loadingCollaboratorsAndInvitations) {
+  if (loadingCollaboratorsAndInvitations || featureConfigLoading) {
     return <ShowLoading />;
   }
 
-  if (collaboratorsAndInvitationsError != null) {
+  if (collaboratorsAndInvitationsError != null || featureConfigError != null) {
     return (
-      <ShowError
-        error={collaboratorsAndInvitationsError}
-        onRetry={refetchCollaboratorsAndInvitations}
-      />
+      <ShowError error={collaboratorsAndInvitationsError} onRetry={retry} />
     );
   }
 

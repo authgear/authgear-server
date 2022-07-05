@@ -494,6 +494,11 @@ export interface PortalAPIFeatureConfig {
   hook?: HookFeatureConfig;
   audit_log?: AuditLogFeatureConfig;
   google_tag_manager?: GoogleTagManagerFeatureConfig;
+  collaborator?: CollaboratorFeatureConfig;
+}
+
+export interface CollaboratorFeatureConfig {
+  maximum?: number;
 }
 
 export interface GoogleTagManagerFeatureConfig {
