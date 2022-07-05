@@ -3,6 +3,7 @@ package readcloserthunk
 import (
 	"bytes"
 	"errors"
+	"hash"
 	"io"
 	"net/http"
 )
@@ -33,6 +34,21 @@ func HTTPDetectContentType(thunk ReadCloserThunk) (out string) {
 		return
 	}
 	return http.DetectContentType(w.Bytes())
+}
+
+func Hash(thunk ReadCloserThunk, hash hash.Hash) ([]byte, error) {
+	rc, err := thunk()
+	if err != nil {
+		return nil, err
+	}
+	defer rc.Close()
+
+	_, err = io.Copy(hash, rc)
+	if err != nil {
+		return nil, err
+	}
+
+	return hash.Sum(nil), nil
 }
 
 func Copy(w io.Writer, thunk ReadCloserThunk) (written int64, err error) {

@@ -2,6 +2,10 @@ package readcloserthunk
 
 import (
 	"bytes"
+	"fmt"
+
+	// nolint:gosec
+	"crypto/md5"
 	"io"
 	"os"
 	"strings"
@@ -112,6 +116,25 @@ func TestHTTPDetectContentType(t *testing.T) {
 		Convey("should only read the first 512 bytes with image size less than 512 bytes", func() {
 			out := HTTPDetectContentType(pngB)
 			So(out, ShouldEqual, "image/png")
+		})
+	})
+}
+
+func TestHash(t *testing.T) {
+	Convey("Hash", t, func() {
+		Convey("should be the same as the original hash", func() {
+			rct, _, _ := getTestReadCloserThunks()
+			// nolint:gosec
+			newDataHash, err := Hash(rct, md5.New())
+			s1 := fmt.Sprintf("%x", newDataHash)
+			So(err, ShouldBeNil)
+
+			b, err := Performance_Bytes(rct)
+			// nolint:gosec
+			OldDataHash := md5.Sum(b)
+			s2 := fmt.Sprintf("%x", OldDataHash)
+			So(s2, ShouldEqual, s1)
+			So(err, ShouldBeNil)
 		})
 	})
 }
