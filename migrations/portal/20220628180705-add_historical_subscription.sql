@@ -2,7 +2,7 @@
 ALTER TABLE _portal_subscription ADD COLUMN cancelled_at timestamp without time zone;
 ALTER TABLE _portal_subscription ADD COLUMN ended_at timestamp without time zone;
 
-CREATE TABLE _portal_historial_subscription (
+CREATE TABLE _portal_historical_subscription (
     id                          text PRIMARY KEY,
     app_id                      text NOT NULL,
     stripe_customer_id          text NOT NULL,
@@ -15,7 +15,7 @@ CREATE TABLE _portal_historial_subscription (
 );
 
 -- +migrate Down
-DROP TABLE _portal_historial_subscription;
+DROP TABLE _portal_historical_subscription;
 
 ALTER TABLE _portal_subscription DROP COLUMN cancelled_at;
 ALTER TABLE _portal_subscription DROP COLUMN ended_at;
