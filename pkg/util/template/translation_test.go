@@ -9,6 +9,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/spf13/afero"
 
+	"github.com/authgear/authgear-server/pkg/util/readcloserthunk"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -651,15 +652,15 @@ func TestTranslationResource(t *testing.T) {
 			updated, err := template.TranslationJSON.UpdateResource(
 				ctx,
 				[]resource.ResourceFile{
-					resource.ResourceFile{
+					{
 						Location: resource.Location{
 							Fs:   builtin,
 							Path: path,
 						},
-						Data: []byte(`{
+						ReadCloserThunk: readcloserthunk.Reader(bytes.NewReader([]byte(`{
 							"a": "default a",
 							"b": "default b"
-						}`),
+						}`))),
 					},
 				},
 				&resource.ResourceFile{
@@ -667,7 +668,7 @@ func TestTranslationResource(t *testing.T) {
 						Fs:   app,
 						Path: path,
 					},
-					Data: nil,
+					ReadCloserThunk: nil,
 				},
 				[]byte(`{
 					"a": "default a",
@@ -677,13 +678,14 @@ func TestTranslationResource(t *testing.T) {
 			)
 
 			So(err, ShouldBeNil)
-			So(updated, ShouldResemble, &resource.ResourceFile{
-				Location: resource.Location{
-					Fs:   app,
-					Path: path,
-				},
-				Data: []byte(`{"b":"new b","unknown":"key"}`),
+			So(updated.Location, ShouldResemble, resource.Location{
+				Fs:   app,
+				Path: path,
 			})
+
+			b, err := readcloserthunk.Performance_Bytes(updated.ReadCloserThunk)
+			So(err, ShouldBeNil)
+			So(string(b), ShouldEqual, `{"b":"new b","unknown":"key"}`)
 		})
 
 		Convey("it should delete the file if the file is empty", func() {
@@ -691,15 +693,15 @@ func TestTranslationResource(t *testing.T) {
 			updated, err := template.TranslationJSON.UpdateResource(
 				ctx,
 				[]resource.ResourceFile{
-					resource.ResourceFile{
+					{
 						Location: resource.Location{
 							Fs:   builtin,
 							Path: path,
 						},
-						Data: []byte(`{
+						ReadCloserThunk: readcloserthunk.Reader(bytes.NewReader([]byte(`{
 							"a": "default a",
 							"b": "default b"
-						}`),
+						}`))),
 					},
 				},
 				&resource.ResourceFile{
@@ -707,7 +709,7 @@ func TestTranslationResource(t *testing.T) {
 						Fs:   app,
 						Path: path,
 					},
-					Data: nil,
+					ReadCloserThunk: nil,
 				},
 				[]byte(`{
 					"a": "default a"
@@ -715,13 +717,11 @@ func TestTranslationResource(t *testing.T) {
 			)
 
 			So(err, ShouldBeNil)
-			So(updated, ShouldResemble, &resource.ResourceFile{
-				Location: resource.Location{
-					Fs:   app,
-					Path: path,
-				},
-				Data: nil,
+			So(updated.Location, ShouldResemble, resource.Location{
+				Fs:   app,
+				Path: path,
 			})
+			So(updated.ReadCloserThunk, ShouldBeNil)
 		})
 	})
 

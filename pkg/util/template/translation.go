@@ -12,6 +12,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/util/intlresource"
 	"github.com/authgear/authgear-server/pkg/util/messageformat"
+	"github.com/authgear/authgear-server/pkg/util/readcloserthunk"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -104,7 +105,11 @@ func (t *translationJSON) UpdateResource(_ context.Context, all []resource.Resou
 		}
 
 		var jsonObj map[string]interface{}
-		err := json.Unmarshal(r.Data, &jsonObj)
+		b, err := readcloserthunk.Performance_Bytes(r.ReadCloserThunk)
+		if err != nil {
+			return nil, err
+		}
+		err = json.Unmarshal(b, &jsonObj)
 		if err != nil {
 			return nil, fmt.Errorf("translation file must be JSON: %w", err)
 		}
@@ -143,18 +148,20 @@ func (t *translationJSON) UpdateResource(_ context.Context, all []resource.Resou
 	}
 
 	// If the translation is empty, delete the file instead.
+	var rct readcloserthunk.ReadCloserThunk
 	if len(appTranslationObj) <= 0 {
-		data = nil
+		rct = nil
 	} else {
 		data, err = json.Marshal(appTranslationObj)
 		if err != nil {
 			return nil, err
 		}
+		rct = readcloserthunk.Reader(bytes.NewReader(data))
 	}
 
 	return &resource.ResourceFile{
-		Location: fileToUpdate.Location,
-		Data:     data,
+		Location:        fileToUpdate.Location,
+		ReadCloserThunk: rct,
 	}, nil
 }
 
@@ -163,7 +170,11 @@ func (t *translationJSON) viewValidateResource(resources []resource.ResourceFile
 		langTag := templateLanguageTagRegex.FindStringSubmatch(resrc.Location.Path)[1]
 
 		var jsonObj map[string]interface{}
-		if err := json.Unmarshal(resrc.Data, &jsonObj); err != nil {
+		b, err := readcloserthunk.Performance_Bytes(resrc.ReadCloserThunk)
+		if err != nil {
+			return nil, err
+		}
+		if err := json.Unmarshal(b, &jsonObj); err != nil {
 			return nil, fmt.Errorf("translation file must be JSON: %w", err)
 		}
 
@@ -195,7 +206,11 @@ func (t *translationJSON) viewEffectiveResource(resources []resource.ResourceFil
 
 	add := func(langTag string, resrc resource.ResourceFile) error {
 		var jsonObj map[string]interface{}
-		if err := json.Unmarshal(resrc.Data, &jsonObj); err != nil {
+		b, err := readcloserthunk.Performance_Bytes(resrc.ReadCloserThunk)
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(b, &jsonObj); err != nil {
 			return fmt.Errorf("translation file must be JSON: %w", err)
 		}
 
@@ -231,8 +246,8 @@ func (t *translationJSON) viewEffectiveResource(resources []resource.ResourceFil
 		}
 		return nil
 	}
-	extractLanguageTag := func(resrc resource.ResourceFile) string {
-		langTag := templateLanguageTagRegex.FindStringSubmatch(resrc.Location.Path)[1]
+	extractLanguageTag := func(location resource.Location) string {
+		langTag := templateLanguageTagRegex.FindStringSubmatch(location.Path)[1]
 		return langTag
 	}
 
@@ -324,7 +339,11 @@ func (t *translationJSON) viewAppFile(resources []resource.ResourceFile, view re
 	for _, resrc := range resources {
 		if resrc.Location.Fs.GetFsLevel() == resource.FsLevelApp && path == resrc.Location.Path {
 			found = true
-			bytes = resrc.Data
+			var err error
+			bytes, err = readcloserthunk.Performance_Bytes(resrc.ReadCloserThunk)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -350,11 +369,16 @@ func (t *translationJSON) viewEffectiveFile(resources []resource.ResourceFile, v
 
 	translationObj := make(map[string]string)
 	for _, resrc := range resources {
-		langTag := templateLanguageTagRegex.FindStringSubmatch(resrc.Location.Path)[1]
+		r := resrc
+		langTag := templateLanguageTagRegex.FindStringSubmatch(r.Location.Path)[1]
 
 		if langTag == requestedLangTag {
 			var jsonObj map[string]interface{}
-			err := json.Unmarshal(resrc.Data, &jsonObj)
+			b, err := readcloserthunk.Performance_Bytes(r.ReadCloserThunk)
+			if err != nil {
+				return nil, err
+			}
+			err = json.Unmarshal(b, &jsonObj)
 			if err != nil {
 				return nil, fmt.Errorf("translation file must be JSON: %w", err)
 			}
