@@ -1,6 +1,7 @@
 package template
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/intlresource"
+	"github.com/authgear/authgear-server/pkg/util/readcloserthunk"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -45,8 +47,8 @@ func (t *HTML) ViewResources(resources []resource.ResourceFile, view resource.Vi
 
 func (t *HTML) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
 	return &resource.ResourceFile{
-		Location: resrc.Location,
-		Data:     data,
+		Location:        resrc.Location,
+		ReadCloserThunk: readcloserthunk.Reader(bytes.NewReader(data)),
 	}, nil
 }
 
@@ -76,8 +78,8 @@ func (t *PlainText) ViewResources(resources []resource.ResourceFile, view resour
 
 func (t *PlainText) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
 	return &resource.ResourceFile{
-		Location: resrc.Location,
-		Data:     data,
+		Location:        resrc.Location,
+		ReadCloserThunk: readcloserthunk.Reader(bytes.NewReader(data)),
 	}, nil
 }
 
@@ -137,7 +139,7 @@ func readTemplates(fs resource.Fs, templateName string) ([]resource.Location, er
 			Fs:   fs,
 			Path: p,
 		}
-		_, err := resource.ReadLocation(location)
+		_, err := resource.StatLocation(location)
 		if os.IsNotExist(err) {
 			continue
 		} else if err != nil {
@@ -183,7 +185,11 @@ func viewTemplatesAppFile(resources []resource.ResourceFile, view resource.AppFi
 	for _, resrc := range resources {
 		if resrc.Location.Fs.GetFsLevel() == resource.FsLevelApp && resrc.Location.Path == path {
 			found = true
-			bytes = resrc.Data
+			var err error
+			bytes, err = readcloserthunk.Performance_Bytes(resrc.ReadCloserThunk)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -211,7 +217,11 @@ func viewTemplatesEffectiveFile(resources []resource.ResourceFile, view resource
 		langTag := templateLanguageTagRegex.FindStringSubmatch(resrc.Location.Path)[1]
 		if langTag == requestedLangTag {
 			found = true
-			bytes = resrc.Data
+			var err error
+			bytes, err = readcloserthunk.Performance_Bytes(resrc.ReadCloserThunk)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -228,15 +238,19 @@ func viewTemplatesEffectiveResource(resources []resource.ResourceFile, view reso
 
 	languageTemplates := make(map[string]languageTemplate)
 	add := func(langTag string, resrc resource.ResourceFile) error {
+		b, err := readcloserthunk.Performance_Bytes(resrc.ReadCloserThunk)
+		if err != nil {
+			return err
+		}
 		t := languageTemplate{
 			languageTag: langTag,
-			data:        resrc.Data,
+			data:        b,
 		}
 		languageTemplates[langTag] = t
 		return nil
 	}
-	extractLanguageTag := func(resrc resource.ResourceFile) string {
-		langTag := templateLanguageTagRegex.FindStringSubmatch(resrc.Location.Path)[1]
+	extractLanguageTag := func(location resource.Location) string {
+		langTag := templateLanguageTagRegex.FindStringSubmatch(location.Path)[1]
 		return langTag
 	}
 
@@ -298,7 +312,11 @@ func viewHTMLTemplates(name string, resources []resource.ResourceFile, view reso
 		for _, resrc := range resources {
 			tpl := htmltemplate.New(name)
 			tpl.Funcs(DefaultFuncMap)
-			_, err := tpl.Parse(string(resrc.Data))
+			b, err := readcloserthunk.Performance_Bytes(resrc.ReadCloserThunk)
+			if err != nil {
+				return nil, err
+			}
+			_, err = tpl.Parse(string(b))
 			if err != nil {
 				return nil, fmt.Errorf("invalid HTML template: %w", err)
 			}
@@ -341,7 +359,11 @@ func viewTextTemplates(name string, resources []resource.ResourceFile, view reso
 		for _, resrc := range resources {
 			tpl := texttemplate.New(name)
 			tpl.Funcs(DefaultFuncMap)
-			_, err := tpl.Parse(string(resrc.Data))
+			b, err := readcloserthunk.Performance_Bytes(resrc.ReadCloserThunk)
+			if err != nil {
+				return nil, err
+			}
+			_, err = tpl.Parse(string(b))
 			if err != nil {
 				return nil, fmt.Errorf("invalid text template: %w", err)
 			}
