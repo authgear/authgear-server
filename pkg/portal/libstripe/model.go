@@ -2,6 +2,7 @@ package libstripe
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/stripe/stripe-go/v72"
 
@@ -9,24 +10,15 @@ import (
 )
 
 const (
-	MetadataKeyAppID     = "app_id"
-	MetadataKeyPlanName  = "plan_name"
-	MetadataKeyPriceType = "price_type"
-	MetadataKeyUsageType = "usage_type"
-	MetadatakeySMSRegion = "sms_region"
+	MetadataKeyAppID        = "app_id"
+	MetadataKeyPlanName     = "plan_name"
+	MetadataKeyPriceType    = "price_type"
+	MetadataKeyUsageType    = "usage_type"
+	MetadatakeySMSRegion    = "sms_region"
+	MetadataKeyFreeQuantity = "free_quantity"
 )
 
-type Price struct {
-	StripePriceID   string          `json:"stripePriceID"`
-	StripeProductID string          `json:"stripeProductID"`
-	Currency        string          `json:"currency"`
-	UnitAmount      int             `json:"unitAmount"`
-	Type            model.PriceType `json:"type"`
-	UsageType       model.UsageType `json:"usageType,omitempty"`
-	SMSRegion       model.SMSRegion `json:"smsRegion,omitempty"`
-}
-
-func NewPrice(stripeProduct *stripe.Product) (price *Price, err error) {
+func NewPrice(stripeProduct *stripe.Product) (price *model.Price, err error) {
 	priceType := model.PriceType(stripeProduct.Metadata[MetadataKeyPriceType])
 	err = priceType.Valid()
 	if err != nil {
@@ -39,7 +31,7 @@ func NewPrice(stripeProduct *stripe.Product) (price *Price, err error) {
 		return
 	}
 
-	price = &Price{
+	price = &model.Price{
 		StripeProductID: stripeProduct.ID,
 		StripePriceID:   stripePrice.ID,
 		Type:            priceType,
@@ -47,36 +39,40 @@ func NewPrice(stripeProduct *stripe.Product) (price *Price, err error) {
 		UnitAmount:      int(stripePrice.UnitAmount),
 	}
 
-	switch priceType {
-	case model.PriceTypeFixed:
-		break
-	case model.PriceTypeUsage:
-		usageType := model.UsageType(stripeProduct.Metadata[MetadataKeyUsageType])
+	if stripePrice.TransformQuantity != nil {
+		i := int(stripePrice.TransformQuantity.DivideBy)
+		price.TransformQuantityDivideBy = &i
+		price.TransformQuantityRound = model.TransformQuantityRound(stripePrice.TransformQuantity.Round)
+	}
+
+	if usageTypeStr, ok := stripeProduct.Metadata[MetadataKeyUsageType]; ok {
+		usageType := model.UsageType(usageTypeStr)
 		err = usageType.Valid()
 		if err != nil {
 			return
 		}
-		smsRegion := model.SMSRegion(stripeProduct.Metadata[MetadatakeySMSRegion])
+		price.UsageType = usageType
+	}
+
+	if smsRegionStr, ok := stripeProduct.Metadata[MetadatakeySMSRegion]; ok {
+		smsRegion := model.SMSRegion(smsRegionStr)
 		err = smsRegion.Valid()
 		if err != nil {
 			return
 		}
-		price.UsageType = usageType
 		price.SMSRegion = smsRegion
 	}
 
-	return
-}
-
-type SubscriptionPlan struct {
-	Name   string   `json:"name"`
-	Prices []*Price `json:"prices,omitempty"`
-}
-
-func NewSubscriptionPlan(planName string) *SubscriptionPlan {
-	return &SubscriptionPlan{
-		Name: planName,
+	if freeQuantityStr, ok := stripePrice.Metadata[MetadataKeyFreeQuantity]; ok {
+		var freeQuantity int
+		freeQuantity, err = strconv.Atoi(freeQuantityStr)
+		if err != nil {
+			return
+		}
+		price.FreeQuantity = &freeQuantity
 	}
+
+	return
 }
 
 type CheckoutSession struct {

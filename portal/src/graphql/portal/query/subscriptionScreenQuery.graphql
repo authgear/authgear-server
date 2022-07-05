@@ -13,6 +13,9 @@ fragment AppFragment on App {
       currency
       unitAmount
       totalAmount
+      freeQuantity
+      transformQuantityDivideBy
+      transformQuantityRound
     }
   }
   thisMonth: subscriptionUsage(date: $thisMonth) {
@@ -25,6 +28,9 @@ fragment AppFragment on App {
       currency
       unitAmount
       totalAmount
+      freeQuantity
+      transformQuantityDivideBy
+      transformQuantityRound
     }
   }
 }
@@ -43,6 +49,9 @@ query subscriptionScreenQuery($id: ID!, $thisMonth: DateTime!, $previousMonth: D
       type
       unitAmount
       usageType
+      freeQuantity
+      transformQuantityDivideBy
+      transformQuantityRound
     }
   }
 }

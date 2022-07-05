@@ -843,6 +843,8 @@
   "SubscriptionCurrentPlanSummary.sms.tooltip": "{count1} SMS (US, Canada) sent{br, react}{count2} SMS (Other regions) sent",
   "SubscriptionCurrentPlanSummary.total-cost.title": "Total Cost (Estimated)",
   "SubscriptionCurrentPlanSummary.total-cost.tooltip": "This is an estimated cost based on your usage{br, react}Your total cost will be fully calcaluated by the end of the billing cycle",
+  "SubscriptionCurrentPlanSummary.additional-mau.title": "Additional MAU",
+  "SubscriptionCurrentPlanSummary.additional-mau.tooltip": "{count} Additional MAU added",
 
   "SubscriptionPlanCard.label.upgrade": "Upgrade",
   "SubscriptionPlanCard.label.downgrade": "Downgrade",
@@ -877,6 +879,7 @@
 
   "SubscriptionPlanCard.sms.north-america": "USD {unitAmount} per SMS (US, Canada)",
   "SubscriptionPlanCard.sms.other-regions": "USD {unitAmount} per SMS (Other regions)",
+  "SubscriptionPlanCard.mau": "USD {unitAmount}/mo per {divisor} additional MAUs",
 
   "SubscriptionScreen.footer.enterprise-plan": "Get 50,000+ MAUs and customization with our {ExternalLink, react, onClick{{onClick}} children{Enterprise Plan}}",
   "SubscriptionScreen.footer.pricing-details": "Check out more details and compare plan features on our {ExternalLink, react, href{https://www.authgear.com/pricing} children{pricing page}}",

@@ -24,8 +24,8 @@ func NewStripeWebhookLogger(lf *log.Factory) StripeWebhookLogger {
 
 type StripeService interface {
 	ConstructEvent(r *http.Request) (libstripe.Event, error)
-	CreateSubscriptionIfNotExists(stripeCheckoutSessionID string, subscriptionPlans []*libstripe.SubscriptionPlan) error
-	FetchSubscriptionPlans() (subscriptionPlans []*libstripe.SubscriptionPlan, err error)
+	CreateSubscriptionIfNotExists(stripeCheckoutSessionID string, subscriptionPlans []*model.SubscriptionPlan) error
+	FetchSubscriptionPlans() (subscriptionPlans []*model.SubscriptionPlan, err error)
 }
 
 type SubscriptionService interface {
@@ -108,7 +108,7 @@ func (h *StripeWebhookHandler) handleCheckoutSessionCompletedEvent(event *libstr
 	}
 
 	// Check and create stripe subscription
-	var subscriptionPlan []*libstripe.SubscriptionPlan
+	var subscriptionPlan []*model.SubscriptionPlan
 	err = h.Database.ReadOnly(func() error {
 		subscriptionPlan, err = h.StripeService.FetchSubscriptionPlans()
 		if err != nil {

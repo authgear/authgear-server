@@ -314,11 +314,14 @@ func (s *SubscriptionService) getCompletedSubscriptionCheckoutCount(appID string
 	return count, nil
 }
 
+// GetSubscriptionUsage uses the current plan to estimate the usage and the cost.
+// However, if we ever adjust the prices, the estimation will become inaccurate.
+// A accurate estimation should use the Prices in the Stripe Subscription to perform calculation.
 func (s *SubscriptionService) GetSubscriptionUsage(
 	appID string,
 	planName string,
 	date time.Time,
-	subscriptionPlans []*libstripe.SubscriptionPlan,
+	subscriptionPlans []*model.SubscriptionPlan,
 ) (*model.SubscriptionUsage, error) {
 	firstDayOfMonth := timeutil.FirstDayOfTheMonth(date)
 	stripeStart := firstDayOfMonth
@@ -374,14 +377,18 @@ func (s *SubscriptionService) GetSubscriptionUsage(
 		Quantity:  sumUsageRecord(rs3),
 	}
 
-	subscriptionUsage := &model.SubscriptionUsage{
+	incompleteSubscriptionUsage := &model.SubscriptionUsage{
 		NextBillingDate: stripeEnd,
 		Items:           []*model.SubscriptionUsageItem{item1, item2, item3},
 	}
 
-	fillCost(subscriptionUsage, planName, subscriptionPlans)
+	targetPlan, ok := findPlan(planName, subscriptionPlans)
+	if !ok {
+		return incompleteSubscriptionUsage, nil
+	}
 
-	return subscriptionUsage, nil
+	fillCost(incompleteSubscriptionUsage, targetPlan)
+	return incompleteSubscriptionUsage, nil
 }
 
 func sumUsageRecord(records []*usage.UsageRecord) int {
@@ -392,22 +399,33 @@ func sumUsageRecord(records []*usage.UsageRecord) int {
 	return sum
 }
 
-func fillCost(subscriptionUsage *model.SubscriptionUsage, planName string, subscriptionPlans []*libstripe.SubscriptionPlan) {
+func findPlan(planName string, subscriptionPlans []*model.SubscriptionPlan) (*model.SubscriptionPlan, bool) {
 	// The first step is to find the plan.
-	var targetPlan *libstripe.SubscriptionPlan
+	var targetPlan *model.SubscriptionPlan
 	for _, plan := range subscriptionPlans {
 		if plan.Name == planName {
 			p := plan
 			targetPlan = p
 		}
 	}
-	// The plan is unknown, we cannot calculate the cost.
 	if targetPlan == nil {
-		return
+		return nil, false
+	}
+	return targetPlan, true
+}
+
+func fillCost(subscriptionUsage *model.SubscriptionUsage, subscriptionPlan *model.SubscriptionPlan) {
+	// First fill in the cost of metered usage items.
+	for _, item := range subscriptionUsage.Items {
+		for _, price := range subscriptionPlan.Prices {
+			if item.Match(price) {
+				item.FillFrom(price)
+			}
+		}
 	}
 
 	// First of all, add an usage item to represent the fixed cost.
-	for _, price := range targetPlan.Prices {
+	for _, price := range subscriptionPlan.Prices {
 		if price.Type == model.PriceTypeFixed {
 			subscriptionUsage.Items = append(subscriptionUsage.Items, &model.SubscriptionUsageItem{
 				Type:        price.Type,
@@ -418,26 +436,6 @@ func fillCost(subscriptionUsage *model.SubscriptionUsage, planName string, subsc
 				UnitAmount:  &price.UnitAmount,
 				TotalAmount: &price.UnitAmount,
 			})
-		}
-	}
-
-	// Then fill in the cost of metered usage items.
-	for _, price := range targetPlan.Prices {
-		if price.Type != model.PriceTypeUsage {
-			continue
-		}
-
-		for _, item := range subscriptionUsage.Items {
-			if item.Type != model.PriceTypeUsage {
-				continue
-			}
-
-			if price.UsageType == item.UsageType && price.SMSRegion == item.SMSRegion {
-				item.Currency = &price.Currency
-				item.UnitAmount = &price.UnitAmount
-				totalAmount := item.Quantity * (*item.UnitAmount)
-				item.TotalAmount = &totalAmount
-			}
 		}
 	}
 }

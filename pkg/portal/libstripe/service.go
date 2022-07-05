@@ -66,7 +66,7 @@ type Service struct {
 	Endpoints         EndpointsProvider
 }
 
-func (s *Service) FetchSubscriptionPlans() (subscriptionPlans []*SubscriptionPlan, err error) {
+func (s *Service) FetchSubscriptionPlans() (subscriptionPlans []*model.SubscriptionPlan, err error) {
 	item := redisutil.Item{
 		Key:        RedisCacheKeySubscriptionPlans,
 		Expiration: duration.PerHour,
@@ -91,7 +91,7 @@ func (s *Service) FetchSubscriptionPlans() (subscriptionPlans []*SubscriptionPla
 	return
 }
 
-func (s *Service) CreateCheckoutSession(appID string, customerEmail string, subscriptionPlan *SubscriptionPlan) (*CheckoutSession, error) {
+func (s *Service) CreateCheckoutSession(appID string, customerEmail string, subscriptionPlan *model.SubscriptionPlan) (*CheckoutSession, error) {
 	relayGlobalAppID := relay.ToGlobalID("App", appID)
 	billingPageURL := s.Endpoints.BillingEndpointURL(relayGlobalAppID).String()
 	billingRedirectPageURL := s.Endpoints.BillingRedirectEndpointURL(relayGlobalAppID).String()
@@ -127,7 +127,7 @@ func (s *Service) CreateCheckoutSession(appID string, customerEmail string, subs
 	return NewCheckoutSession(checkoutSession), nil
 }
 
-func (s *Service) GetSubscriptionPlan(planName string) (*SubscriptionPlan, error) {
+func (s *Service) GetSubscriptionPlan(planName string) (*model.SubscriptionPlan, error) {
 	subscriptionPlans, err := s.FetchSubscriptionPlans()
 	if err != nil {
 		return nil, err
@@ -167,7 +167,7 @@ func (s *Service) ConstructEvent(r *http.Request) (Event, error) {
 	return event, err
 }
 
-func (s *Service) CreateSubscriptionIfNotExists(checkoutSessionID string, subscriptionPlans []*SubscriptionPlan) error {
+func (s *Service) CreateSubscriptionIfNotExists(checkoutSessionID string, subscriptionPlans []*model.SubscriptionPlan) error {
 	// Fetch the checkout session
 	expandSetupIntentPaymentMethod := "setup_intent.payment_method"
 	expandCustomerSubscriptions := "customer.subscriptions"
@@ -213,6 +213,9 @@ func (s *Service) CreateSubscriptionIfNotExists(checkoutSessionID string, subscr
 	}
 
 	// Check if the app has subscription to avoid duplicate subscription
+	// It was observed that in test mode, the following search query INCLUDES
+	// subscriptions with status=canceled.
+	// Therefore we have to check the actual result.
 	hasSubscription := false
 	iter := s.ClientAPI.Subscriptions.Search(&stripe.SubscriptionSearchParams{
 		SearchParams: stripe.SearchParams{
@@ -221,7 +224,10 @@ func (s *Service) CreateSubscriptionIfNotExists(checkoutSessionID string, subscr
 		},
 	})
 	for iter.Next() {
-		hasSubscription = true
+		sub := iter.Current().(*stripe.Subscription)
+		if sub.Status == stripe.SubscriptionStatusActive && sub.Metadata[MetadataKeyAppID] == appID {
+			hasSubscription = true
+		}
 	}
 	if err := iter.Err(); err != nil {
 		return fmt.Errorf("failed to search app's subscription: %w", err)
@@ -269,7 +275,9 @@ func (s *Service) fetchSubscriptionPlans() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	subscriptionPlans, err := s.convertToSubscriptionPlans(plans, products)
+
+	knownPlanNames := s.intersectPlanNames(plans, products)
+	subscriptionPlans, err := s.convertToSubscriptionPlans(knownPlanNames, products)
 	if err != nil {
 		return nil, err
 	}
@@ -305,53 +313,74 @@ func (s *Service) fetchProducts() ([]*stripe.Product, error) {
 	return products, nil
 }
 
-func (s *Service) convertToSubscriptionPlans(plans []*model.Plan, products []*stripe.Product) ([]*SubscriptionPlan, error) {
-	knownPlanNames := make(map[string]struct{})
+func (s *Service) intersectPlanNames(plans []*model.Plan, products []*stripe.Product) map[string]struct{} {
+	// plans can contain free plan that is not a paid plan.
+	// products do not contain non-paid plan.
+	// Therefore, we perform an intersection between the two.
+	setA := make(map[string]struct{})
 	for _, plan := range plans {
-		knownPlanNames[plan.Name] = struct{}{}
+		setA[plan.Name] = struct{}{}
 	}
 
-	m := make(map[string]*SubscriptionPlan)
-	usagePrices := []*Price{}
+	setB := make(map[string]struct{})
+	for _, product := range products {
+		planName, ok := product.Metadata[MetadataKeyPlanName]
+		if ok && planName != "" {
+			setB[planName] = struct{}{}
+		}
+	}
+
+	intersection := make(map[string]struct{})
+
+	for a := range setA {
+		_, ok := setB[a]
+		if ok {
+			intersection[a] = struct{}{}
+		}
+	}
+
+	return intersection
+}
+
+func (s *Service) convertToSubscriptionPlans(knownPlanNames map[string]struct{}, products []*stripe.Product) ([]*model.SubscriptionPlan, error) {
+	m := make(map[string]*model.SubscriptionPlan)
+	for planName := range knownPlanNames {
+		m[planName] = model.NewSubscriptionPlan(planName)
+	}
+
 	for _, product := range products {
 		price, err := NewPrice(product)
 		if err != nil {
 			// skip the unknown product
 			continue
 		}
-		switch price.Type {
-		case model.PriceTypeFixed:
-			// New SubscriptionPlan for the fixed price products
-			planName := product.Metadata[MetadataKeyPlanName]
-			// There could exist some unknown Products on Stripe.
-			// We tolerate that.
-			_, ok := knownPlanNames[planName]
-			if !ok {
-				continue
+
+		// If Product has plan name, then the product only applies to that plan.
+		// Otherwise the product applies to every plan.
+		planName := product.Metadata[MetadataKeyPlanName]
+		if planName != "" {
+			subscriptionPlan, ok := m[planName]
+			// Tolerate product with unknown plan names.
+			if ok {
+				subscriptionPlan.Prices = append(subscriptionPlan.Prices, price)
 			}
-			// If there are multiple fixed price products have the same plan name
-			// Add the price to the same SubscriptionPlan
-			if _, exists := m[planName]; !exists {
-				m[planName] = NewSubscriptionPlan(planName)
+		} else {
+			for _, subscriptionPlan := range m {
+				subscriptionPlan.Prices = append(subscriptionPlan.Prices, price)
 			}
-			m[planName].Prices = append(m[planName].Prices, price)
-		case model.PriceTypeUsage:
-			usagePrices = append(usagePrices, price)
 		}
 	}
 
-	var out []*SubscriptionPlan
+	var out []*model.SubscriptionPlan
 	for _, subscriptionPlan := range m {
-		// Add usage prices to all subscription plans
-		subscriptionPlan.Prices = append(subscriptionPlan.Prices, usagePrices...)
 		out = append(out, subscriptionPlan)
 	}
 
 	return out, nil
 }
 
-func (s *Service) getStripeSubscription(planName string, subscriptionPlans []*SubscriptionPlan) (*SubscriptionPlan, error) {
-	var subscriptionPlan *SubscriptionPlan
+func (s *Service) getStripeSubscription(planName string, subscriptionPlans []*model.SubscriptionPlan) (*model.SubscriptionPlan, error) {
+	var subscriptionPlan *model.SubscriptionPlan
 	for _, sp := range subscriptionPlans {
 		if sp.Name == planName {
 			subscriptionPlan = sp

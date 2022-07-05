@@ -96,10 +96,10 @@ type AnalyticChartService interface {
 }
 
 type StripeService interface {
-	FetchSubscriptionPlans() ([]*libstripe.SubscriptionPlan, error)
-	CreateCheckoutSession(appID string, customerEmail string, subscriptionPlan *libstripe.SubscriptionPlan) (*libstripe.CheckoutSession, error)
+	FetchSubscriptionPlans() ([]*model.SubscriptionPlan, error)
+	CreateCheckoutSession(appID string, customerEmail string, subscriptionPlan *model.SubscriptionPlan) (*libstripe.CheckoutSession, error)
 	FetchCheckoutSession(checkoutSessionID string) (*libstripe.CheckoutSession, error)
-	GetSubscriptionPlan(planName string) (*libstripe.SubscriptionPlan, error)
+	GetSubscriptionPlan(planName string) (*model.SubscriptionPlan, error)
 	GenerateCustomerPortalSession(appID string, customerID string) (*stripe.BillingPortalSession, error)
 }
 
@@ -111,7 +111,7 @@ type SubscriptionService interface {
 		appID string,
 		planName string,
 		date time.Time,
-		subscriptionPlans []*libstripe.SubscriptionPlan,
+		subscriptionPlans []*model.SubscriptionPlan,
 	) (*model.SubscriptionUsage, error)
 	GetIsProcessingSubscription(appID string) (bool, error)
 }
