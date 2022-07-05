@@ -43,6 +43,7 @@ var configDeps = wire.NewSet(
 		"Identity",
 		"UI",
 		"AuditLog",
+		"Collaborator",
 	),
 	ProvideDefaultLanguageTag,
 	ProvideSupportedLanguageTags,

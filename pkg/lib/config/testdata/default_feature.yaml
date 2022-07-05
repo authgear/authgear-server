@@ -49,3 +49,4 @@ rate_limit:
   sms:
     size: 100000
     reset_period: 2592000
+collaborator: {}
