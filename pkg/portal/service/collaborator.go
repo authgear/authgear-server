@@ -14,6 +14,7 @@ import (
 	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
@@ -41,6 +42,8 @@ var ErrCollaboratorInvitationInvalidCode = apierrors.Invalid.WithReason("Collabo
 
 var ErrCollaboratorInvitationInvalidEmail = apierrors.Invalid.WithReason("CollaboratorInvitationInvalidEmail").New("the email with the actor does match the invitee email")
 
+var ErrCollaboratorQuotaExceeded = apierrors.Invalid.WithReason("CollaboratorQuotaExceeded").New("collaborator quota exceeded")
+
 type CollaboratorServiceTaskQueue interface {
 	Enqueue(param task.Param)
 }
@@ -51,6 +54,10 @@ type CollaboratorServiceEndpointsProvider interface {
 
 type CollaboratorServiceAdminAPIService interface {
 	SelfDirector() (func(*http.Request), error)
+}
+
+type CollaboratorAppConfigService interface {
+	ResolveContext(appID string) (*config.AppContext, error)
 }
 
 type CollaboratorService struct {
@@ -64,6 +71,8 @@ type CollaboratorService struct {
 	Endpoints      CollaboratorServiceEndpointsProvider
 	TemplateEngine *template.Engine
 	AdminAPI       CollaboratorServiceAdminAPIService
+
+	AppConfigs CollaboratorAppConfigService
 }
 
 func (s *CollaboratorService) selectCollaborator() sq.SelectBuilder {
@@ -278,6 +287,11 @@ func (s *CollaboratorService) SendInvitation(
 	sessionInfo := session.GetValidSessionInfo(s.Context)
 	invitedBy := sessionInfo.UserID
 
+	err := s.checkQuotaInSend(appID)
+	if err != nil {
+		return nil, err
+	}
+
 	// TODO(collaborator): Ideally we should prevent sending invitation to existing collaborator.
 	// However, this is not harmful to not have it.
 	// The collaborator will receive the invitation and they cannot accept it because
@@ -420,6 +434,11 @@ func (s *CollaboratorService) AcceptInvitation(code string) (*model.Collaborator
 	actorID := session.GetValidSessionInfo(s.Context).UserID
 
 	invitation, err := s.GetInvitationWithCode(code)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.checkQuotaInAccept(invitation.AppID)
 	if err != nil {
 		return nil, err
 	}
@@ -573,6 +592,56 @@ func (s *CollaboratorService) CheckInviteeEmail(i *model.CollaboratorInvitation,
 
 	if user.Email != i.InviteeEmail {
 		return ErrCollaboratorInvitationInvalidEmail
+	}
+
+	return nil
+}
+
+func (s *CollaboratorService) checkQuotaInSend(appID string) error {
+	appCtx, err := s.AppConfigs.ResolveContext(appID)
+	if err != nil {
+		return err
+	}
+
+	collaborators, err := s.ListCollaborators(appID)
+	if err != nil {
+		return err
+	}
+
+	invitations, err := s.ListInvitations(appID)
+	if err != nil {
+		return err
+	}
+
+	if appCtx.Config.FeatureConfig.Collaborator.Maximum != nil {
+		maximum := *appCtx.Config.FeatureConfig.Collaborator.Maximum
+		length1 := len(collaborators)
+		length2 := len(invitations)
+		if length1+length2 >= maximum {
+			return ErrCollaboratorQuotaExceeded
+		}
+	}
+
+	return nil
+}
+
+func (s *CollaboratorService) checkQuotaInAccept(appID string) error {
+	appCtx, err := s.AppConfigs.ResolveContext(appID)
+	if err != nil {
+		return err
+	}
+
+	collaborators, err := s.ListCollaborators(appID)
+	if err != nil {
+		return err
+	}
+
+	if appCtx.Config.FeatureConfig.Collaborator.Maximum != nil {
+		maximum := *appCtx.Config.FeatureConfig.Collaborator.Maximum
+		length1 := len(collaborators)
+		if length1 >= maximum {
+			return ErrCollaboratorQuotaExceeded
+		}
 	}
 
 	return nil

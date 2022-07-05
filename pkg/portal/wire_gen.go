@@ -179,6 +179,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:      endpointsProvider,
 		TemplateEngine: engine,
 		AdminAPI:       adminAPIService,
+		AppConfigs:     configService,
 	}
 	authzService := &service.AuthzService{
 		Context:       context,
@@ -433,6 +434,7 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:      endpointsProvider,
 		TemplateEngine: engine,
 		AdminAPI:       adminAPIService,
+		AppConfigs:     configService,
 	}
 	authzService := &service.AuthzService{
 		Context:       context,
