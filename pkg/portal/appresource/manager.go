@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/util/readcloserthunk"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -140,25 +141,21 @@ func (m *Manager) ApplyUpdates(appID string, updates []Update) ([]*resource.Reso
 }
 
 func (m *Manager) getFromAppFs(newAppFs resource.LeveledAferoFs, location resource.Location) (*resource.ResourceFile, error) {
-	f, err := newAppFs.Fs.Open(location.Path)
+	_, err := newAppFs.Fs.Stat(location.Path)
 	if os.IsNotExist(err) {
 		return &resource.ResourceFile{
-			Location: location,
-			Data:     nil,
+			Location:        location,
+			ReadCloserThunk: nil,
 		}, nil
 	} else if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	data, err := io.ReadAll(f)
-	if err != nil {
 		return nil, err
 	}
 
 	return &resource.ResourceFile{
 		Location: location,
-		Data:     data,
+		ReadCloserThunk: func() (io.ReadCloser, error) {
+			return newAppFs.Fs.Open(location.Path)
+		},
 	}, nil
 }
 
@@ -174,13 +171,12 @@ func (m *Manager) getFromAllFss(desc resource.Descriptor) ([]resource.ResourceFi
 
 	files := make([]resource.ResourceFile, len(locations))
 	for idx, location := range locations {
-		data, err := resource.ReadLocation(location)
-		if err != nil {
-			return nil, err
-		}
+		l := location
 		files[idx] = resource.ResourceFile{
-			Location: location,
-			Data:     data,
+			Location: l,
+			ReadCloserThunk: func() (io.ReadCloser, error) {
+				return l.Fs.Open(l.Path)
+			},
 		}
 	}
 
@@ -235,11 +231,18 @@ func (m *Manager) applyUpdates(appID string, appFs resource.Fs, updates []Update
 			return nil, nil, err
 		}
 
-		if resrc.Data == nil {
+		if resrc.ReadCloserThunk == nil {
 			_ = newFs.Remove(resrc.Location.Path)
 		} else {
 			_ = newFs.MkdirAll(path.Dir(resrc.Location.Path), 0666)
-			_ = afero.WriteFile(newFs, resrc.Location.Path, resrc.Data, 0666)
+			b, err := readcloserthunk.Performance_Bytes(resrc.ReadCloserThunk)
+			if err != nil {
+				return nil, nil, err
+			}
+			_ = afero.WriteFile(newFs, resrc.Location.Path, b, 0666)
+			resrc.ReadCloserThunk = func() (io.ReadCloser, error) {
+				return newFs.Open(resrc.Location.Path)
+			}
 		}
 
 		files = append(files, resrc)
