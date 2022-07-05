@@ -377,7 +377,8 @@ interface SubscriptionScreenContentProps {
 
 function getTotalCost(
   planName: string,
-  subscriptionUsage: SubscriptionUsage
+  subscriptionUsage: SubscriptionUsage,
+  skipFixedPriceType: boolean
 ): number | undefined {
   if (!isKnownPaidPlan(planName)) {
     return undefined;
@@ -385,6 +386,9 @@ function getTotalCost(
 
   let totalCost = 0;
   for (const item of subscriptionUsage.items) {
+    if (skipFixedPriceType && item.type === "FIXED") {
+      continue;
+    }
     totalCost += item.totalAmount ?? 0;
   }
   return totalCost;
@@ -502,8 +506,9 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     if (thisMonthUsage == null) {
       return undefined;
     }
-    return getTotalCost(planName, thisMonthUsage);
-  }, [planName, thisMonthUsage]);
+    const skipFixedPriceType = subscriptionCancelled;
+    return getTotalCost(planName, thisMonthUsage, skipFixedPriceType);
+  }, [planName, thisMonthUsage, subscriptionCancelled]);
 
   const smsCost = useMemo(() => {
     if (thisMonthUsage == null) {
@@ -707,6 +712,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
           mauCurrent={mauCurrent}
           mauLimit={mauLimit}
           mauPrevious={mauPrevious}
+          subscriptionEndedAt={subscription?.endedAt}
           nextBillingDate={nextBillingDate}
           onClickManageSubscription={onClickManageSubscription}
           manageSubscriptionLoading={manageSubscriptionLoading}
