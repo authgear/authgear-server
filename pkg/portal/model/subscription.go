@@ -12,6 +12,7 @@ const (
 	SubscriptionCheckoutStatusOpen       SubscriptionCheckoutStatus = "open"
 	SubscriptionCheckoutStatusCompleted  SubscriptionCheckoutStatus = "completed"
 	SubscriptionCheckoutStatusSubscribed SubscriptionCheckoutStatus = "subscribed"
+	SubscriptionCheckoutStatusCancelled  SubscriptionCheckoutStatus = "cancelled"
 )
 
 // Subscription represents an app subscription.

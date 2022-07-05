@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
+	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/libstripe"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -56,6 +57,7 @@ type SubscriptionService struct {
 	PlanStore         SubscriptionPlanStore
 	UsageStore        UsageStore
 	Clock             clock.Clock
+	AppConfig         *portalconfig.AppConfig
 }
 
 func (s *SubscriptionService) UpsertSubscription(appID string, stripeSubscriptionID string, stripeCustomerID string) (*model.Subscription, error) {
@@ -162,6 +164,16 @@ func (s *SubscriptionService) UpdateSubscriptionCheckoutStatusByCustomerID(appID
 	})
 }
 
+// UpdatedSubscriptionCheckoutStatusToCancelled updates subscription status to cancelled
+// It is used when a subscription is cancelled
+func (s *SubscriptionService) UpdatedSubscriptionCheckoutStatusToCancelled(appID string, customerID string) error {
+	return s.updateSubscriptionCheckoutStatus(func(b squirrel.UpdateBuilder) squirrel.UpdateBuilder {
+		return b.Set("status", model.SubscriptionCheckoutStatusCancelled).
+			Where("app_id = ?", appID).
+			Where("stripe_customer_id = ?", customerID)
+	})
+}
+
 func (s *SubscriptionService) UpdateAppPlan(appID string, planName string) error {
 	consrc, err := s.ConfigSourceStore.GetDatabaseSourceByAppID(appID)
 	if err != nil {
@@ -188,6 +200,11 @@ func (s *SubscriptionService) UpdateAppPlan(appID string, planName string) error
 	}
 
 	return nil
+}
+
+func (s *SubscriptionService) UpdateAppPlanToDefault(appID string) error {
+	defaultPlan := s.AppConfig.DefaultPlan
+	return s.UpdateAppPlan(appID, defaultPlan)
 }
 
 func (s *SubscriptionService) GetIsProcessingSubscription(appID string) (bool, error) {
@@ -238,6 +255,48 @@ func (s *SubscriptionService) SetSubscriptionCancelledStatus(id string, cancelle
 
 	if rowsAffected == 0 {
 		return ErrSubscriptionCheckoutNotFound
+	}
+
+	return nil
+}
+
+func (s *SubscriptionService) ArchiveSubscription(sub *model.Subscription) error {
+	now := s.Clock.NowUTC()
+	_, err := s.SQLExecutor.ExecWith(s.SQLBuilder.
+		Insert(s.SQLBuilder.TableName("_portal_historical_subscription")).
+		Columns(
+			"id",
+			"app_id",
+			"stripe_customer_id",
+			"stripe_subscription_id",
+			"subscription_created_at",
+			"subscription_updated_at",
+			"subscription_cancelled_at",
+			"subscription_ended_at",
+			"created_at",
+		).
+		Values(
+			uuid.New(),
+			sub.AppID,
+			sub.StripeCustomerID,
+			sub.StripeSubscriptionID,
+			sub.CreatedAt,
+			sub.UpdatedAt,
+			sub.CancelledAt,
+			sub.EndedAt,
+			now,
+		),
+	)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.SQLExecutor.ExecWith(s.SQLBuilder.
+		Delete(s.SQLBuilder.TableName("_portal_subscription")).
+		Where("id = ?", sub.ID),
+	)
+	if err != nil {
+		return err
 	}
 
 	return nil

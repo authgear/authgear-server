@@ -439,7 +439,8 @@ func (s *Service) constructEvent(stripeEvent *stripe.Event) (Event, error) {
 			StripeCustomerID:        customerID,
 		}, nil
 	case string(EventTypeCustomerSubscriptionCreated),
-		string(EventTypeCustomerSubscriptionUpdated):
+		string(EventTypeCustomerSubscriptionUpdated),
+		string(EventTypeCustomerSubscriptionDeleted):
 		object := stripeEvent.Data.Object
 		subscriptionID, ok := object["id"].(string)
 		if !ok {
@@ -476,17 +477,28 @@ func (s *Service) constructEvent(stripeEvent *stripe.Event) (Event, error) {
 					StripeSubscriptionStatus: stripe.SubscriptionStatus(subscriptionStatus),
 				},
 			}, nil
+		} else if stripeEvent.Type == string(EventTypeCustomerSubscriptionUpdated) {
+			return &CustomerSubscriptionUpdatedEvent{
+				&CustomerSubscriptionEvent{
+					StripeSubscriptionID:     subscriptionID,
+					StripeCustomerID:         customerID,
+					AppID:                    appID,
+					PlanName:                 planName,
+					StripeSubscriptionStatus: stripe.SubscriptionStatus(subscriptionStatus),
+				},
+			}, nil
+		} else if stripeEvent.Type == string(EventTypeCustomerSubscriptionDeleted) {
+			return &CustomerSubscriptionDeletedEvent{
+				&CustomerSubscriptionEvent{
+					StripeSubscriptionID:     subscriptionID,
+					StripeCustomerID:         customerID,
+					AppID:                    appID,
+					PlanName:                 planName,
+					StripeSubscriptionStatus: stripe.SubscriptionStatus(subscriptionStatus),
+				},
+			}, nil
 		}
-
-		return &CustomerSubscriptionUpdatedEvent{
-			&CustomerSubscriptionEvent{
-				StripeSubscriptionID:     subscriptionID,
-				StripeCustomerID:         customerID,
-				AppID:                    appID,
-				PlanName:                 planName,
-				StripeSubscriptionStatus: stripe.SubscriptionStatus(subscriptionStatus),
-			},
-		}, nil
+		return nil, ErrUnknownEvent
 	default:
 		return nil, ErrUnknownEvent
 	}

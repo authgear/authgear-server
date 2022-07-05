@@ -29,10 +29,14 @@ type StripeService interface {
 }
 
 type SubscriptionService interface {
+	GetSubscription(appID string) (*model.Subscription, error)
 	UpdateSubscriptionCheckoutStatusAndCustomerID(appID string, stripCheckoutSessionID string, status model.SubscriptionCheckoutStatus, customerID string) error
 	UpdateSubscriptionCheckoutStatusByCustomerID(appID string, customerID string, status model.SubscriptionCheckoutStatus) error
+	UpdatedSubscriptionCheckoutStatusToCancelled(appID string, customerID string) error
 	UpsertSubscription(appID string, stripeSubscriptionID string, stripeCustomerID string) (*model.Subscription, error)
+	ArchiveSubscription(sub *model.Subscription) error
 	UpdateAppPlan(appID string, planName string) error
+	UpdateAppPlanToDefault(appID string) error
 }
 
 type StripeWebhookHandler struct {
@@ -81,6 +85,10 @@ func (h *StripeWebhookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		// FIXME(subscription): handle update subscription
 		err = h.handleCustomerSubscriptionEvent(
 			event.(*libstripe.CustomerSubscriptionUpdatedEvent).CustomerSubscriptionEvent,
+		)
+	case libstripe.EventTypeCustomerSubscriptionDeleted:
+		err = h.handleCustomerSubscriptionDeletedEvent(
+			event.(*libstripe.CustomerSubscriptionDeletedEvent).CustomerSubscriptionEvent,
 		)
 	}
 }
@@ -190,6 +198,79 @@ func (h *StripeWebhookHandler) handleCustomerSubscriptionEvent(event *libstripe.
 			WithField("app_id", event.AppID).
 			WithField("plan_name", event.PlanName).
 			Info("updated app plan")
+
+		return nil
+	})
+	return err
+}
+
+func (h *StripeWebhookHandler) handleCustomerSubscriptionDeletedEvent(event *libstripe.CustomerSubscriptionEvent) error {
+	if !event.IsSubscriptionCanceled() {
+		// The status should be cancelled in the `customer.subscription.deleted` event
+		// In case it is not, log it as warning and ignore it
+		h.Logger.
+			WithField("stripe_subscription_id", event.StripeSubscriptionID).
+			WithField("stripe_subscription_status", event.StripeSubscriptionStatus).
+			Warn("unexpected subscription status, it should be cancelled")
+		return nil
+	}
+
+	err := h.Database.WithTx(func() error {
+		// Mark checkout session as subscribed
+		err := h.Subscriptions.UpdatedSubscriptionCheckoutStatusToCancelled(
+			event.AppID,
+			event.StripeCustomerID,
+		)
+		if err != nil {
+			if !errors.Is(err, service.ErrSubscriptionCheckoutNotFound) {
+				return err
+			}
+			// The checkout session doesn't exist
+			// It may happen if the subscription is created via Stripe portal
+			// Tolerate it.
+			h.Logger.
+				WithField("app_id", event.AppID).
+				WithField("stripe_subscription_id", event.StripeSubscriptionID).
+				Info("the subscription checkout does not exist for cancellation")
+		}
+
+		sub, err := h.Subscriptions.GetSubscription(event.AppID)
+		if err != nil {
+			if errors.Is(err, service.ErrSubscriptionNotFound) {
+				// Subscription doesn't exist in the db.
+				// Ignore the event.
+				h.Logger.
+					WithField("app_id", event.AppID).
+					WithField("stripe_subscription_id", event.StripeSubscriptionID).
+					Warn("the subscription does not exist for cancellation")
+				return nil
+			}
+			return err
+		}
+
+		if sub.StripeSubscriptionID != event.StripeSubscriptionID {
+			// The cancelled subscription id doesn't match the one in the db.
+			// It may happen if the subscription is managed in Stripe portal manually.
+			// Ignore the event.
+			h.Logger.
+				WithField("app_id", event.AppID).
+				WithField("stripe_subscription_id", event.StripeSubscriptionID).
+				Warn("the subscription id doesn't match the one in the db for cancellation")
+			return nil
+		}
+
+		err = h.Subscriptions.ArchiveSubscription(sub)
+		if err != nil {
+			return err
+		}
+
+		err = h.Subscriptions.UpdateAppPlanToDefault(event.AppID)
+		if err != nil {
+			return err
+		}
+		h.Logger.
+			WithField("app_id", event.AppID).
+			Info("cancelled app plan")
 
 		return nil
 	})

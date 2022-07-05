@@ -10,6 +10,7 @@ const (
 	EventTypeCheckoutSessionCompleted    EventType = "checkout.session.completed"
 	EventTypeCustomerSubscriptionCreated EventType = "customer.subscription.created"
 	EventTypeCustomerSubscriptionUpdated EventType = "customer.subscription.updated"
+	EventTypeCustomerSubscriptionDeleted EventType = "customer.subscription.deleted"
 )
 
 // type StripeSubscription
@@ -41,6 +42,10 @@ func (e *CustomerSubscriptionEvent) IsSubscriptionActive() bool {
 	return e.StripeSubscriptionStatus == stripe.SubscriptionStatusActive
 }
 
+func (e *CustomerSubscriptionEvent) IsSubscriptionCanceled() bool {
+	return e.StripeSubscriptionStatus == stripe.SubscriptionStatusCanceled
+}
+
 type CustomerSubscriptionCreatedEvent struct {
 	*CustomerSubscriptionEvent
 }
@@ -57,6 +62,15 @@ func (e *CustomerSubscriptionUpdatedEvent) EventType() EventType {
 	return EventTypeCustomerSubscriptionUpdated
 }
 
+type CustomerSubscriptionDeletedEvent struct {
+	*CustomerSubscriptionEvent
+}
+
+func (e *CustomerSubscriptionDeletedEvent) EventType() EventType {
+	return EventTypeCustomerSubscriptionDeleted
+}
+
 var _ Event = &CheckoutSessionCompletedEvent{}
 var _ Event = &CustomerSubscriptionCreatedEvent{}
 var _ Event = &CustomerSubscriptionUpdatedEvent{}
+var _ Event = &CustomerSubscriptionDeletedEvent{}
