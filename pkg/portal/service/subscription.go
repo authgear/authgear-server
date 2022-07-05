@@ -7,6 +7,7 @@ import (
 
 	"sigs.k8s.io/yaml"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
@@ -135,60 +136,30 @@ func (s *SubscriptionService) GetSubscription(appID string) (*model.Subscription
 // UpdateSubscriptionCheckoutStatus updates subscription checkout status and customer id
 // It returns ErrSubscriptionCheckoutNotFound when the checkout is not found
 // or the checkout status is already subscribed
+// It is used when the checkout session is completed
 func (s *SubscriptionService) UpdateSubscriptionCheckoutStatusAndCustomerID(appID string, stripCheckoutSessionID string, status model.SubscriptionCheckoutStatus, customerID string) error {
-	now := s.Clock.NowUTC()
-	q := s.SQLBuilder.
-		Update(s.SQLBuilder.TableName("_portal_subscription_checkout")).
-		Set("status", status).
-		Set("stripe_customer_id", customerID).
-		Set("updated_at", now).
-		Where("stripe_checkout_session_id = ?", stripCheckoutSessionID).
-		Where("app_id = ?", appID).
-		// Only allow updating status if it is not subscribed
-		Where("status != 'subscribed'")
-
-	result, err := s.SQLExecutor.ExecWith(q)
-	if err != nil {
-		return err
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	if rowsAffected == 0 {
-		return ErrSubscriptionCheckoutNotFound
-	}
-
-	return nil
+	return s.updateSubscriptionCheckoutStatus(func(b squirrel.UpdateBuilder) squirrel.UpdateBuilder {
+		return b.Set("status", status).
+			Set("stripe_customer_id", customerID).
+			Where("stripe_checkout_session_id = ?", stripCheckoutSessionID).
+			Where("app_id = ?", appID).
+			// Only allow updating status if it is not subscribed
+			Where("status != ?", model.SubscriptionCheckoutStatusSubscribed)
+	})
 }
 
+// UpdateSubscriptionCheckoutStatusByCustomerID updates subscription checkout status by customer id
+// It returns ErrSubscriptionCheckoutNotFound when the checkout is not found
+// or the checkout status is already subscribed
+// It is used when a subscription is created or updated
 func (s *SubscriptionService) UpdateSubscriptionCheckoutStatusByCustomerID(appID string, customerID string, status model.SubscriptionCheckoutStatus) error {
-	now := s.Clock.NowUTC()
-	q := s.SQLBuilder.
-		Update(s.SQLBuilder.TableName("_portal_subscription_checkout")).
-		Set("status", status).
-		Set("updated_at", now).
-		Where("app_id = ?", appID).
-		Where("stripe_customer_id = ?", customerID).
-		// Only allow updating status if it is not subscribed
-		Where("status != 'subscribed'")
-
-	result, err := s.SQLExecutor.ExecWith(q)
-	if err != nil {
-		return err
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	if rowsAffected == 0 {
-		return ErrSubscriptionCheckoutNotFound
-	}
-	return nil
+	return s.updateSubscriptionCheckoutStatus(func(b squirrel.UpdateBuilder) squirrel.UpdateBuilder {
+		return b.Set("status", status).
+			Where("app_id = ?", appID).
+			Where("stripe_customer_id = ?", customerID).
+			// Only allow updating status if it is not subscribed
+			Where("status != ?", model.SubscriptionCheckoutStatusSubscribed)
+	})
 }
 
 func (s *SubscriptionService) UpdateAppPlan(appID string, planName string) error {
@@ -349,6 +320,30 @@ func (s *SubscriptionService) getCompletedSubscriptionCheckoutCount(appID string
 	}
 
 	return count, nil
+}
+
+func (s *SubscriptionService) updateSubscriptionCheckoutStatus(
+	f func(builder squirrel.UpdateBuilder) squirrel.UpdateBuilder,
+) error {
+	now := s.Clock.NowUTC()
+	q := f(s.SQLBuilder.
+		Update(s.SQLBuilder.TableName("_portal_subscription_checkout")).
+		Set("updated_at", now))
+
+	result, err := s.SQLExecutor.ExecWith(q)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrSubscriptionCheckoutNotFound
+	}
+	return nil
 }
 
 // GetSubscriptionUsage uses the current plan to estimate the usage and the cost.
