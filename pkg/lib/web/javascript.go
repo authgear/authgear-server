@@ -5,7 +5,9 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
+	"github.com/authgear/authgear-server/pkg/util/readcloserthunk"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -27,7 +29,7 @@ func (d JavaScriptDescriptor) FindResources(fs resource.Fs) ([]resource.Location
 		Fs:   fs,
 		Path: d.Path,
 	}
-	_, err := resource.ReadLocation(location)
+	_, err := resource.StatLocation(location)
 	if os.IsNotExist(err) {
 		return nil, nil
 	} else if err != nil {
@@ -37,7 +39,7 @@ func (d JavaScriptDescriptor) FindResources(fs resource.Fs) ([]resource.Location
 }
 
 func (d JavaScriptDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
-	output := bytes.Buffer{}
+	var thunks []readcloserthunk.ReadCloserThunk
 
 	app := func() error {
 		var target *resource.ResourceFile
@@ -51,15 +53,18 @@ func (d JavaScriptDescriptor) ViewResources(resources []resource.ResourceFile, r
 			return resource.ErrResourceNotFound
 		}
 
-		output.Write(target.Data)
+		thunks = append(thunks, target.ReadCloserThunk)
 		return nil
 	}
 
 	concat := func() {
 		for _, resrc := range resources {
-			output.WriteString("(function(){")
-			output.Write(resrc.Data)
-			output.WriteString("})();")
+			thunks = append(
+				thunks,
+				readcloserthunk.Reader(strings.NewReader("(function(){")),
+				resrc.ReadCloserThunk,
+				readcloserthunk.Reader(strings.NewReader("})();")),
+			)
 		}
 	}
 
@@ -69,21 +74,21 @@ func (d JavaScriptDescriptor) ViewResources(resources []resource.ResourceFile, r
 		if err != nil {
 			return nil, err
 		}
-		return output.Bytes(), nil
+		return readcloserthunk.Performance_Bytes(readcloserthunk.MultiReadCloserThunk(thunks...))
 	case resource.EffectiveFileView:
 		concat()
-		return output.Bytes(), nil
+		return readcloserthunk.Performance_Bytes(readcloserthunk.MultiReadCloserThunk(thunks...))
 	case resource.EffectiveResourceView:
 		concat()
 		return &StaticAsset{
-			Path: d.Path,
-			Data: output.Bytes(),
+			Path:            d.Path,
+			ReadCloserThunk: readcloserthunk.MultiReadCloserThunk(thunks...),
 		}, nil
 	case resource.ValidateResourceView:
 		concat()
 		return &StaticAsset{
-			Path: d.Path,
-			Data: output.Bytes(),
+			Path:            d.Path,
+			ReadCloserThunk: readcloserthunk.MultiReadCloserThunk(thunks...),
 		}, nil
 	default:
 		return nil, fmt.Errorf("unsupported view: %T", rawView)
@@ -92,7 +97,7 @@ func (d JavaScriptDescriptor) ViewResources(resources []resource.ResourceFile, r
 
 func (d JavaScriptDescriptor) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
 	return &resource.ResourceFile{
-		Location: resrc.Location,
-		Data:     data,
+		Location:        resrc.Location,
+		ReadCloserThunk: readcloserthunk.Reader(bytes.NewReader(data)),
 	}, nil
 }
