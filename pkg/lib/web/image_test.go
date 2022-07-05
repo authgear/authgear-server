@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/afero"
 
 	"github.com/authgear/authgear-server/pkg/lib/web"
+	"github.com/authgear/authgear-server/pkg/util/readcloserthunk"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -91,9 +92,10 @@ func TestTemplateResource(t *testing.T) {
 				DefaultTag:    "en",
 				SupportedTags: []string{"en"},
 			})
+			data, _ := readcloserthunk.Performance_Bytes(asset.ReadCloserThunk)
 			So(err, ShouldBeNil)
 			So(asset.Path, ShouldEqual, "static/en/myimage.png")
-			So(asset.Data, ShouldResemble, pngA)
+			So(data, ShouldResemble, pngA)
 		})
 
 		Convey("it should return resource with preferred language", func() {
@@ -105,9 +107,10 @@ func TestTemplateResource(t *testing.T) {
 				DefaultTag:    "en",
 				SupportedTags: []string{"zh", "en"},
 			})
+			data, _ := readcloserthunk.Performance_Bytes(asset.ReadCloserThunk)
 			So(err, ShouldBeNil)
 			So(asset.Path, ShouldEqual, "static/zh/myimage.png")
-			So(asset.Data, ShouldResemble, pngB)
+			So(data, ShouldResemble, pngB)
 		})
 
 		Convey("it should use more specific resource", func() {
@@ -118,9 +121,10 @@ func TestTemplateResource(t *testing.T) {
 				DefaultTag:    "en",
 				SupportedTags: []string{"en"},
 			})
+			data, _ := readcloserthunk.Performance_Bytes(asset.ReadCloserThunk)
 			So(err, ShouldBeNil)
 			So(asset.Path, ShouldEqual, "static/en/myimage.png")
-			So(asset.Data, ShouldResemble, pngB)
+			So(data, ShouldResemble, pngB)
 		})
 
 		Convey("it should not fail when fallback is not en", func() {
@@ -130,9 +134,10 @@ func TestTemplateResource(t *testing.T) {
 				DefaultTag:    "zh",
 				SupportedTags: []string{"zh"},
 			})
+			data, _ := readcloserthunk.Performance_Bytes(asset.ReadCloserThunk)
 			So(err, ShouldBeNil)
 			So(asset.Path, ShouldEqual, "static/en/myimage.png")
-			So(asset.Data, ShouldResemble, pngA)
+			So(data, ShouldResemble, pngA)
 		})
 
 		Convey("it should use fallback language in the app fs first", func() {
@@ -144,18 +149,20 @@ func TestTemplateResource(t *testing.T) {
 				DefaultTag:    "jp",
 				PreferredTags: []string{"en"},
 			})
+			data, _ := readcloserthunk.Performance_Bytes(asset.ReadCloserThunk)
 			So(err, ShouldBeNil)
 			So(asset.Path, ShouldEqual, "static/jp/myimage.png")
-			So(asset.Data, ShouldResemble, pngB)
+			So(data, ShouldResemble, pngB)
 
 			asset, err = read(resource.EffectiveResource{
 				SupportedTags: []string{"jp", "zh"},
 				DefaultTag:    "jp",
 				PreferredTags: []string{"fr"},
 			})
+			data, _ = readcloserthunk.Performance_Bytes(asset.ReadCloserThunk)
 			So(err, ShouldBeNil)
 			So(asset.Path, ShouldEqual, "static/jp/myimage.png")
-			So(asset.Data, ShouldResemble, pngB)
+			So(data, ShouldResemble, pngB)
 		})
 
 		Convey("it should disallow duplicate resource", func() {

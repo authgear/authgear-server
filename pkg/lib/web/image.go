@@ -1,11 +1,11 @@
 package web
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"mime"
-	"net/http"
 	"os"
 	"path"
 	"regexp"
@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/util/intlresource"
 	"github.com/authgear/authgear-server/pkg/util/libmagic"
+	"github.com/authgear/authgear-server/pkg/util/readcloserthunk"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -24,7 +25,7 @@ var imageResolveFsLevelPriority = []resource.FsLevel{
 type languageImage struct {
 	LanguageTag     string
 	RealLanguageTag string
-	Data            []byte
+	ReadCloserThunk readcloserthunk.ReadCloserThunk
 }
 
 func (i languageImage) GetLanguageTag() string {
@@ -91,7 +92,7 @@ func (a ImageDescriptor) FindResources(fs resource.Fs) ([]resource.Location, err
 					Fs:   fs,
 					Path: p,
 				}
-				_, err := resource.ReadLocation(location)
+				_, err := resource.StatLocation(location)
 				if os.IsNotExist(err) {
 					continue
 				} else if err != nil {
@@ -132,8 +133,8 @@ func (a ImageDescriptor) UpdateResource(_ context.Context, _ []resource.Resource
 	}
 
 	return &resource.ResourceFile{
-		Location: resrc.Location,
-		Data:     data,
+		Location:        resrc.Location,
+		ReadCloserThunk: readcloserthunk.Reader(bytes.NewReader(data)),
 	}, nil
 }
 
@@ -170,16 +171,16 @@ func (a ImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile
 
 	var fallbackImage *languageImage
 	images := make(map[resource.FsLevel]map[string]intlresource.LanguageItem)
-	extractLanguageTag := func(resrc resource.ResourceFile) string {
-		langTag := imageRegex.FindStringSubmatch(resrc.Location.Path)[1]
+	extractLanguageTag := func(location resource.Location) string {
+		langTag := imageRegex.FindStringSubmatch(location.Path)[1]
 		return langTag
 	}
 	add := func(langTag string, resrc resource.ResourceFile) error {
 		fsLevel := resrc.Location.Fs.GetFsLevel()
 		i := languageImage{
 			LanguageTag:     langTag,
-			RealLanguageTag: extractLanguageTag(resrc),
-			Data:            resrc.Data,
+			RealLanguageTag: extractLanguageTag(resrc.Location),
+			ReadCloserThunk: resrc.ReadCloserThunk,
 		}
 		if images[fsLevel] == nil {
 			images[fsLevel] = make(map[string]intlresource.LanguageItem)
@@ -230,7 +231,7 @@ func (a ImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile
 
 	tagger := matched.(languageImage)
 
-	mimeType := http.DetectContentType(tagger.Data)
+	mimeType := readcloserthunk.HTTPDetectContentType(tagger.ReadCloserThunk)
 	ext, ok := preferredExtensions[mimeType]
 	if !ok {
 		return nil, fmt.Errorf("invalid image format: %s", mimeType)
@@ -238,8 +239,8 @@ func (a ImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile
 
 	path := fmt.Sprintf("%s%s/%s%s", StaticAssetResourcePrefix, tagger.RealLanguageTag, a.Name, ext)
 	return &StaticAsset{
-		Path: path,
-		Data: tagger.Data,
+		Path:            path,
+		ReadCloserThunk: tagger.ReadCloserThunk,
 	}, nil
 }
 
@@ -255,7 +256,7 @@ func (a ImageDescriptor) viewAppFile(resources []resource.ResourceFile, view res
 	if err != nil {
 		return nil, err
 	}
-	return asset.Data, nil
+	return readcloserthunk.Performance_Bytes(asset.ReadCloserThunk)
 }
 
 func (a ImageDescriptor) viewEffectiveFile(resources []resource.ResourceFile, view resource.EffectiveFileView) (interface{}, error) {
@@ -264,7 +265,7 @@ func (a ImageDescriptor) viewEffectiveFile(resources []resource.ResourceFile, vi
 	if err != nil {
 		return nil, err
 	}
-	return asset.Data, nil
+	return readcloserthunk.Performance_Bytes(asset.ReadCloserThunk)
 }
 
 func (a ImageDescriptor) viewByPath(resources []resource.ResourceFile, path string) (*StaticAsset, error) {
@@ -276,14 +277,14 @@ func (a ImageDescriptor) viewByPath(resources []resource.ResourceFile, path stri
 	requestedExtension := matches[3]
 
 	var found bool
-	var bytes []byte
+	var rct readcloserthunk.ReadCloserThunk
 	for _, resrc := range resources {
 		m := imageRegex.FindStringSubmatch(resrc.Location.Path)
 		langTag := m[1]
 		extension := m[3]
 		if langTag == requestedLangTag && extension == requestedExtension {
 			found = true
-			bytes = resrc.Data
+			rct = resrc.ReadCloserThunk
 		}
 	}
 
@@ -291,7 +292,7 @@ func (a ImageDescriptor) viewByPath(resources []resource.ResourceFile, path stri
 		return nil, resource.ErrResourceNotFound
 	}
 
-	mimeType := http.DetectContentType(bytes)
+	mimeType := readcloserthunk.HTTPDetectContentType(rct)
 	ext, ok := preferredExtensions[mimeType]
 	if !ok {
 		return nil, fmt.Errorf("invalid image format: %s", mimeType)
@@ -299,7 +300,7 @@ func (a ImageDescriptor) viewByPath(resources []resource.ResourceFile, path stri
 
 	p := fmt.Sprintf("%s%s/%s%s", StaticAssetResourcePrefix, requestedLangTag, a.Name, ext)
 	return &StaticAsset{
-		Path: p,
-		Data: bytes,
+		Path:            p,
+		ReadCloserThunk: rct,
 	}, nil
 }
