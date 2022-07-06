@@ -112,7 +112,7 @@ const BiometricConfigurationContent: React.FC<BiometricConfigurationContentProps
               <FormattedMessage
                 id="FeatureConfig.disabled"
                 values={{
-                  planPagePath: "./../../../billing",
+                  planPagePath: "./../../billing",
                 }}
               />
             </MessageBar>
