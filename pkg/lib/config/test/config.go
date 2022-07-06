@@ -37,26 +37,26 @@ func FixtureSecretConfig(seed int64) *config.SecretConfig {
 func FixtureFeatureConfig(plan FixturePlanName) *config.FeatureConfig {
 	switch plan {
 	case FixtureLimitedPlanName:
-		return &config.FeatureConfig{
-			OAuth: &config.OAuthFeatureConfig{
-				Client: &config.OAuthClientFeatureConfig{
-					Maximum: newInt(1),
-				},
-			},
-			Identity: &config.IdentityFeatureConfig{
-				OAuth: &config.OAuthSSOFeatureConfig{
-					MaximumProviders: newInt(1),
-				},
-			},
-			Hook: &config.HookFeatureConfig{
-				BlockingHandler: &config.BlockingHandlerFeatureConfig{
-					Maximum: newInt(1),
-				},
-				NonBlockingHandler: &config.NonBlockingHandlerFeatureConfig{
-					Maximum: newInt(1),
-				},
+		cfg := config.NewEffectiveDefaultFeatureConfig()
+		cfg.OAuth = &config.OAuthFeatureConfig{
+			Client: &config.OAuthClientFeatureConfig{
+				Maximum: newInt(1),
 			},
 		}
+		cfg.Identity = &config.IdentityFeatureConfig{
+			OAuth: &config.OAuthSSOFeatureConfig{
+				MaximumProviders: newInt(1),
+			},
+		}
+		cfg.Hook = &config.HookFeatureConfig{
+			BlockingHandler: &config.BlockingHandlerFeatureConfig{
+				Maximum: newInt(1),
+			},
+			NonBlockingHandler: &config.NonBlockingHandlerFeatureConfig{
+				Maximum: newInt(1),
+			},
+		}
+		return cfg
 	case FixtureUnlimitedPlanName:
 		return config.NewEffectiveDefaultFeatureConfig()
 	}

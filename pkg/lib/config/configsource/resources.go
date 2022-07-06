@@ -126,6 +126,7 @@ func (d AuthgearYAMLDescriptor) UpdateResource(ctx context.Context, _ []resource
 	}, nil
 }
 
+// nolint:gocyclo
 func (d AuthgearYAMLDescriptor) validate(original *config.AppConfig, incoming *config.AppConfig, fc *config.FeatureConfig) error {
 	validationCtx := &validation.Context{}
 
@@ -223,6 +224,87 @@ func (d AuthgearYAMLDescriptor) validate(original *config.AppConfig, incoming *c
 				"authentication",
 				"identities",
 			).EmitErrorMessage("enabling biometric authentication is not supported")
+		}
+	}
+
+	// Password policy
+	if *fc.Authenticator.Password.Policy.MinLength.Disabled {
+		if incoming.Authenticator.Password.Policy.MinLength != nil {
+			validationCtx.Child(
+				"authenticator",
+				"password",
+				"policy",
+				"min_length",
+			).EmitErrorMessage("min_length is disallowed")
+		}
+	}
+	if *fc.Authenticator.Password.Policy.UppercaseRequired.Disabled {
+		if incoming.Authenticator.Password.Policy.UppercaseRequired {
+			validationCtx.Child(
+				"authenticator",
+				"password",
+				"policy",
+				"uppercase_required",
+			).EmitErrorMessage("uppercase_required is disallowed")
+		}
+	}
+	if *fc.Authenticator.Password.Policy.LowercaseRequired.Disabled {
+		if incoming.Authenticator.Password.Policy.LowercaseRequired {
+			validationCtx.Child(
+				"authenticator",
+				"password",
+				"policy",
+				"lowercase_required",
+			).EmitErrorMessage("lowercase_required is disallowed")
+		}
+	}
+	if *fc.Authenticator.Password.Policy.DigitRequired.Disabled {
+		if incoming.Authenticator.Password.Policy.DigitRequired {
+			validationCtx.Child(
+				"authenticator",
+				"password",
+				"policy",
+				"digit_required",
+			).EmitErrorMessage("digit_required is disallowed")
+		}
+	}
+	if *fc.Authenticator.Password.Policy.SymbolRequired.Disabled {
+		if incoming.Authenticator.Password.Policy.SymbolRequired {
+			validationCtx.Child(
+				"authenticator",
+				"password",
+				"policy",
+				"symbol_required",
+			).EmitErrorMessage("symbol_required is disallowed")
+		}
+	}
+	if *fc.Authenticator.Password.Policy.MinimumGuessableLevel.Disabled {
+		if incoming.Authenticator.Password.Policy.MinimumGuessableLevel != 0 {
+			validationCtx.Child(
+				"authenticator",
+				"password",
+				"policy",
+				"minimum_guessable_level",
+			).EmitErrorMessage("minimum_guessable_level is disallowed")
+		}
+	}
+	if *fc.Authenticator.Password.Policy.ExcludedKeywords.Disabled {
+		if len(incoming.Authenticator.Password.Policy.ExcludedKeywords) > 0 {
+			validationCtx.Child(
+				"authenticator",
+				"password",
+				"policy",
+				"excluded_keywords",
+			).EmitErrorMessage("excluded_keywords is disallowed")
+		}
+	}
+	if *fc.Authenticator.Password.Policy.History.Disabled {
+		if incoming.Authenticator.Password.Policy.IsEnabled() {
+			validationCtx.Child(
+				"authenticator",
+				"password",
+				"policy",
+			).EmitErrorMessage("password history is disallowed")
 		}
 	}
 
