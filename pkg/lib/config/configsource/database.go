@@ -18,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/readcloserthunk"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -215,14 +216,18 @@ func (d *Database) UpdateDatabaseSource(appID string, updates []*resource.Resour
 		updated := false
 		for _, u := range updates {
 			key := EscapePath(u.Location.Path)
-			if u.Data == nil {
+			if u.ReadCloserThunk == nil {
 				if _, ok := dbs.Data[key]; ok {
 					delete(dbs.Data, key)
 					updated = true
 				}
 			} else {
-				if !bytes.Equal(dbs.Data[key], u.Data) {
-					dbs.Data[key] = u.Data
+				b, err := readcloserthunk.Performance_Bytes(u.ReadCloserThunk)
+				if err != nil {
+					return err
+				}
+				if !bytes.Equal(dbs.Data[key], b) {
+					dbs.Data[key] = b
 					updated = true
 				}
 			}
