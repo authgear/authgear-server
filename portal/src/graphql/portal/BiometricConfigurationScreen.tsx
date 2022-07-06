@@ -107,6 +107,9 @@ const BiometricConfigurationContent: React.FC<BiometricConfigurationContentProps
           <FormattedMessage id="BiometricConfigurationScreen.description" />
         </ScreenDescription>
         <Widget className={styles.widget}>
+          <WidgetTitle>
+            <FormattedMessage id="BiometricConfigurationScreen.title" />
+          </WidgetTitle>
           {biometricDisabled && (
             <MessageBar>
               <FormattedMessage
@@ -117,9 +120,6 @@ const BiometricConfigurationContent: React.FC<BiometricConfigurationContentProps
               />
             </MessageBar>
           )}
-          <WidgetTitle>
-            <FormattedMessage id="BiometricConfigurationScreen.title" />
-          </WidgetTitle>
           <Toggle
             disabled={biometricDisabled}
             checked={state.enabled}
