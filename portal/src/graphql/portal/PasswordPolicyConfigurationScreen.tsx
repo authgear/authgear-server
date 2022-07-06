@@ -308,16 +308,17 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
     );
 
     const anyBasicPolicyDisabled =
-      passwordPolicyFeatureConfig?.min_length?.disabled ??
-      passwordPolicyFeatureConfig?.digit_required?.disabled ??
-      passwordPolicyFeatureConfig?.lowercase_required?.disabled ??
-      passwordPolicyFeatureConfig?.uppercase_required?.disabled ??
-      passwordPolicyFeatureConfig?.symbol_required?.disabled;
+      (passwordPolicyFeatureConfig?.min_length?.disabled ?? false) ||
+      (passwordPolicyFeatureConfig?.digit_required?.disabled ?? false) ||
+      (passwordPolicyFeatureConfig?.lowercase_required?.disabled ?? false) ||
+      (passwordPolicyFeatureConfig?.uppercase_required?.disabled ?? false) ||
+      (passwordPolicyFeatureConfig?.symbol_required?.disabled ?? false);
 
     const anyAdvancedPolicyDisabled =
-      passwordPolicyFeatureConfig?.minimum_guessable_level?.disabled ??
-      passwordPolicyFeatureConfig?.history?.disabled ??
-      passwordPolicyFeatureConfig?.excluded_keywords?.disabled;
+      (passwordPolicyFeatureConfig?.minimum_guessable_level?.disabled ??
+        false) ||
+      (passwordPolicyFeatureConfig?.history?.disabled ?? false) ||
+      (passwordPolicyFeatureConfig?.excluded_keywords?.disabled ?? false);
 
     return (
       <ScreenContent>
