@@ -1,8 +1,10 @@
 package readcloserthunk
 
 import (
+	"bytes"
 	"errors"
 	"io"
+	"net/http"
 )
 
 type ReadCloserThunk = func() (io.ReadCloser, error)
@@ -16,6 +18,21 @@ func Performance_Bytes(thunk ReadCloserThunk) (b []byte, err error) {
 	defer rc.Close()
 	b, err = io.ReadAll(rc)
 	return
+}
+
+func HTTPDetectContentType(thunk ReadCloserThunk) (out string) {
+	rc, err := thunk()
+	if err != nil {
+		return
+	}
+	defer rc.Close()
+	r := &io.LimitedReader{R: rc, N: 512}
+	var w bytes.Buffer
+	_, err = io.Copy(&w, r)
+	if err != nil {
+		return
+	}
+	return http.DetectContentType(w.Bytes())
 }
 
 func Copy(w io.Writer, thunk ReadCloserThunk) (written int64, err error) {

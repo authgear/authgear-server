@@ -91,3 +91,27 @@ func TestCopy(t *testing.T) {
 		})
 	})
 }
+
+func TestHTTPDetectContentType(t *testing.T) {
+	Convey("HTTPDetectContentType", t, func() {
+		// image with size over 512 bytes
+		pngA := func() (io.ReadCloser, error) {
+			return os.Open("testdata/pngA.png")
+		}
+
+		// image with size less than 512 bytes
+		pngB := func() (io.ReadCloser, error) {
+			return os.Open("testdata/pngB.png")
+		}
+
+		Convey("should only read the first 512 bytes with image size over 512 bytes", func() {
+			out := HTTPDetectContentType(pngA)
+			So(out, ShouldEqual, "image/png")
+		})
+
+		Convey("should only read the first 512 bytes with image size less than 512 bytes", func() {
+			out := HTTPDetectContentType(pngB)
+			So(out, ShouldEqual, "image/png")
+		})
+	})
+}
