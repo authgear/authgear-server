@@ -14,6 +14,7 @@ var _ = FeatureConfigSchema.Add("FeatureConfig", `
 	"properties": {
 		"identity": { "$ref": "#/$defs/IdentityFeatureConfig" },
 		"authentication": { "$ref": "#/$defs/AuthenticationFeatureConfig" },
+		"authenticator": { "$ref": "#/$defs/AuthenticatorFeatureConfig" },
 		"custom_domain": { "$ref": "#/$defs/CustomDomainFeatureConfig" },
 		"ui": { "$ref": "#/$defs/UIFeatureConfig" },
 		"oauth": { "$ref": "#/$defs/OAuthFeatureConfig" },
@@ -29,6 +30,7 @@ var _ = FeatureConfigSchema.Add("FeatureConfig", `
 type FeatureConfig struct {
 	Identity         *IdentityFeatureConfig         `json:"identity,omitempty"`
 	Authentication   *AuthenticationFeatureConfig   `json:"authentication,omitempty"`
+	Authenticator    *AuthenticatorFeatureConfig    `json:"authenticator,omitempty"`
 	CustomDomain     *CustomDomainFeatureConfig     `json:"custom_domain,omitempty"`
 	UI               *UIFeatureConfig               `json:"ui,omitempty"`
 	OAuth            *OAuthFeatureConfig            `json:"oauth,omitempty"`

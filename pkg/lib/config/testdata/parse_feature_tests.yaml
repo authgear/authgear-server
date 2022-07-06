@@ -135,3 +135,26 @@ config:
   identity:
     biometric:
       disabled: true
+---
+name: disable-password-policy
+error: null
+config:
+  authenticator:
+    password:
+      policy:
+        min_length:
+          disabled: true
+        uppercase_required:
+          disabled: true
+        lowercase_required:
+          disabled: true
+        digit_required:
+          disabled: true
+        symbol_required:
+          disabled: true
+        minimum_guessable_level:
+          disabled: true
+        excluded_keywords:
+          disabled: true
+        history:
+          disabled: true
