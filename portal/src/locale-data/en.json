@@ -826,6 +826,7 @@
   "FeatureConfig.webhook.blocking-events.maximum": "You can only add {maximum, plural, one{1 blocking event handler} other{# blocking event handlers}} at once on your plan. To add more, {ReactRouterLink, react, to{{planPagePath}} children{upgrade your project plan} target{_blank}}.",
   "FeatureConfig.webhook.non-blocking-events.maximum": "You can only add {maximum, plural, one{1 non-blocking event endpoint} other{# non-blocking event endpoints}} at once on your plan. To add more, {ReactRouterLink, react, to{{planPagePath}} children{upgrade your project plan} target{_blank}}.",
   "FeatureConfig.audit-log.retrieval-days": "You can only retrieve audit logs for the last {logRetrievalDays, plural, one{1 day} other{# days}}. To retrieve more logs, {ReactRouterLink, react, to{{planPagePath}} children{upgrade your project plan} target{_blank}}.",
+  "FeatureConfig.collaborator": "You can only have {maximum, plural, one{1 admin} other{# admins}}. To invite more, {ReactRouterLink, react, to{{planPagePath}} children{upgrade your project plan} target{_blank}}",
 
   "SubscriptionCurrentPlanSummary.title.known-plan": "Current Plan: {name} {expiredAt, select, false{(${amount}/mo)} other{(Expire at: {expiredAt})}}",
   "SubscriptionCurrentPlanSummary.title.custom-plan": "Custom Plan: {name}",

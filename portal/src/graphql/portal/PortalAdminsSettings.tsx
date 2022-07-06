@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { ICommandBarItemProps } from "@fluentui/react";
+import { ICommandBarItemProps, MessageBar } from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { makeReasonErrorParseRule } from "../../error/parse";
@@ -194,7 +194,20 @@ const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
   return (
     <CommandBarContainer isLoading={false} primaryItems={primaryItems}>
       <ScreenContent>
-        <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+        <div className={styles.widget}>
+          <NavBreadcrumb items={navBreadcrumbItems} />
+          {effectiveFeatureConfig?.collaborator.maximum != null && (
+            <MessageBar className={styles.messageBar}>
+              <FormattedMessage
+                id="FeatureConfig.collaborator"
+                values={{
+                  planPagePath: "./../billing",
+                  maximum: effectiveFeatureConfig?.collaborator.maximum,
+                }}
+              />
+            </MessageBar>
+          )}
+        </div>
         <PortalAdminList
           className={styles.widget}
           loading={false}
