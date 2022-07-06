@@ -852,9 +852,9 @@
   "SubscriptionPlanCard.label.subscribe": "Subscribe",
   "SubscriptionPlanCard.label.reactivate": "Reactivate",
   "SubscriptionPlanCard.upgrade.title": "Upgrade Your Plan",
-  "SubscriptionPlanCard.upgrade.description": "When you change your plan, the prorated charges will be reflected in the next invoice. ${amount} (estimated) will be charged on {date}.{br, react}{br, react}Do you want to change your plan?",
+  "SubscriptionPlanCard.upgrade.description": "When you change your plan, the prorated charges will be reflected in the next invoice. ${amount} (estimated) and any further additional SMS and MAU will be charged on {date}.{br, react}{br, react}Do you want to change your plan?",
   "SubscriptionPlanCard.downgrade.title": "Downgrade Your Plan",
-  "SubscriptionPlanCard.downgrade.description": "{strong, react, children{Warning:}} Your apps may stop working if you downgrade to less features. To avoid this, make sure your project configuration fit the plan you are downgrading to.{br, react}{br, react}When you change your plan, the prorated charges will be reflected in the next invoice. ${amount} (estimated) will be charged on {date}.{br, react}{br, react}Do you want to change your plan?",
+  "SubscriptionPlanCard.downgrade.description": "{strong, react, children{Warning:}} Your apps may stop working if you downgrade to less features. To avoid this, make sure your project configuration fit the plan you are downgrading to.{br, react}{br, react}When you change your plan, the prorated charges will be reflected in the next invoice. ${amount} (estimated) and any further additional SMS and MAU will be charged on {date}.{br, react}{br, react}Do you want to change your plan?",
 
   "SubscriptionPlanCard.cancel.title": "Cancel Subscription",
   "SubscriptionPlanCard.cancel.confirmation": "We are sad to see you go. Are you sure to cancel the subscription? The subscription will expire at the end of the billing period. If you change your mind, you can reactivate it anytime.",
