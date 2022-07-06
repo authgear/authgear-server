@@ -24,6 +24,8 @@ identity:
         disabled: false
       wechat:
         disabled: false
+  biometric:
+    disabled: false
 authentication:
   secondary_authenticators:
     oob_otp_sms:

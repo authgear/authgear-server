@@ -9,6 +9,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -213,6 +214,15 @@ func (d AuthgearYAMLDescriptor) validate(original *config.AppConfig, incoming *c
 			).EmitErrorMessage(
 				fmt.Sprintf("custom attribute of id '%v' was deleted", originalCustomAttr.ID),
 			)
+		}
+	}
+
+	for _, identity := range incoming.Authentication.Identities {
+		if identity == model.IdentityTypeBiometric && *fc.Identity.Biometric.Disabled {
+			validationCtx.Child(
+				"authentication",
+				"identities",
+			).EmitErrorMessage("enabling biometric authentication is not supported")
 		}
 	}
 

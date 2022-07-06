@@ -520,6 +520,7 @@ export interface AuthenticatorOOBOTBSMSFeatureConfig {
 export interface IdentityFeatureConfig {
   login_id?: LoginIDFeatureConfig;
   oauth?: OAuthSSOFeatureConfig;
+  biometric?: BiometricFeatureConfig;
 }
 
 export interface LoginIDFeatureConfig {
@@ -551,6 +552,10 @@ export interface OAuthSSOProvidersFeatureConfig {
 }
 
 export interface OAuthSSOProviderFeatureConfig {
+  disabled?: boolean;
+}
+
+export interface BiometricFeatureConfig {
   disabled?: boolean;
 }
 

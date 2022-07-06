@@ -62,9 +62,10 @@ func NewTokenHandlerLogger(lf *log.Factory) TokenHandlerLogger {
 }
 
 type TokenHandler struct {
-	AppID  config.AppID
-	Config *config.OAuthConfig
-	Logger TokenHandlerLogger
+	AppID                 config.AppID
+	Config                *config.OAuthConfig
+	IdentityFeatureConfig *config.IdentityFeatureConfig
+	Logger                TokenHandlerLogger
 
 	Authorizations   oauth.AuthorizationStore
 	CodeGrants       oauth.CodeGrantStore
@@ -379,6 +380,13 @@ func (h *TokenHandler) handleBiometricRequest(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
+	if *h.IdentityFeatureConfig.Biometric.Disabled {
+		return nil, protocol.NewError(
+			"invalid_request",
+			"biometric authentication is disabled",
+		)
+	}
+
 	if !*client.IsFirstParty {
 		return nil, protocol.NewError(
 			"unauthorized_client",

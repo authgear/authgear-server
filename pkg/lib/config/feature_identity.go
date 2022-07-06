@@ -6,14 +6,16 @@ var _ = FeatureConfigSchema.Add("IdentityFeatureConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"login_id": { "$ref": "#/$defs/LoginIDFeatureConfig" },
-		"oauth": { "$ref": "#/$defs/OAuthSSOFeatureConfig" }
+		"oauth": { "$ref": "#/$defs/OAuthSSOFeatureConfig" },
+		"biometric": { "$ref": "#/$defs/BiometricFeatureConfig" }
 	}
 }
 `)
 
 type IdentityFeatureConfig struct {
-	LoginID *LoginIDFeatureConfig  `json:"login_id,omitempty"`
-	OAuth   *OAuthSSOFeatureConfig `json:"oauth,omitempty"`
+	LoginID   *LoginIDFeatureConfig   `json:"login_id,omitempty"`
+	OAuth     *OAuthSSOFeatureConfig  `json:"oauth,omitempty"`
+	Biometric *BiometricFeatureConfig `json:"biometric,omitempty"`
 }
 
 var _ = FeatureConfigSchema.Add("LoginIDFeatureConfig", `
@@ -122,4 +124,24 @@ var _ = FeatureConfigSchema.Add("OAuthSSOProviderFeatureConfig", `
 
 type OAuthSSOProviderFeatureConfig struct {
 	Disabled bool `json:"disabled,omitempty"`
+}
+
+var _ = FeatureConfigSchema.Add("BiometricFeatureConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"disabled": { "type": "boolean" }
+	}
+}
+`)
+
+type BiometricFeatureConfig struct {
+	Disabled *bool `json:"disabled,omitempty"`
+}
+
+func (c *BiometricFeatureConfig) SetDefaults() {
+	if c.Disabled == nil {
+		c.Disabled = newBool(false)
+	}
 }
