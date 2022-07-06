@@ -101,7 +101,7 @@ CREATE _portal_usage_record (
 ```
 
 - `period` is one of `monthly`, `weekly` or `daily`.
-- `name` is a usage-specific name, e.g. `sms-count.north-america`, which could stand for the number of sent SMS messages to North American phone numbers.
+- `name` is a usage-specific name, e.g. `sms-sent.north-america`, which could stand for the number of sent SMS messages to North American phone numbers.
 - `start_time` is the timestamp at the beginning of the period.
   - For `monthly` usage record, it is the midnight of the first day of the month in UTC.
   - For `weekly` usage record, it is the midnight of the Monday of the week in UTC.
@@ -138,8 +138,9 @@ The SMS count aggregator reads from the event data written by [the non-blocking 
 For example
 
 ```csv
-,myapp,sms-count.north-america,daily,2022-06-01,54
-,myapp,sms-count.other-regions,daily,2022-06-01,68
+,myapp,sms-sent.north-america,daily,2022-06-01,54
+,myapp,sms-sent.other-regions,daily,2022-06-01,68
+,myapp,sms-total.other-regions,daily,2022-06-01,122
 ```
 
 ### Email count aggregator
@@ -149,7 +150,7 @@ The email count aggregator reads from the event data written by [the non-blockin
 For example
 
 ```csv
-,myapp,email-count,daily,2022-06-01,101
+,myapp,email-sent,daily,2022-06-01,101
 ```
 
 ### Whatsapp OTP aggregator
@@ -162,7 +163,7 @@ only valid OTP code is counted as 1.
 For example
 
 ```csv
-,myapp,whatsapp-otp-count,daily,2022-06-01,101
+,myapp,whatsapp-otp-verified,daily,2022-06-01,101
 ```
 
 ## Usage alert
