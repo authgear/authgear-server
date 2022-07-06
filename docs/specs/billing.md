@@ -338,6 +338,7 @@ Reference: https://stripe.com/docs/products-prices/manage-prices
   - `checkout.session.completed`
   - `customer.subscription.created`
   - `customer.subscription.updated`
+  - `customer.subscription.deleted`
 
 ### Create subscription
 
