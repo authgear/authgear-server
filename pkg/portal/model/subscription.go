@@ -12,15 +12,22 @@ const (
 	SubscriptionCheckoutStatusOpen       SubscriptionCheckoutStatus = "open"
 	SubscriptionCheckoutStatusCompleted  SubscriptionCheckoutStatus = "completed"
 	SubscriptionCheckoutStatusSubscribed SubscriptionCheckoutStatus = "subscribed"
+	SubscriptionCheckoutStatusCancelled  SubscriptionCheckoutStatus = "cancelled"
 )
 
+// Subscription represents an app subscription.
+// The keys in JSON struct tags are in camel case
+// because this struct is directly returned in the GraphQL endpoint.
+// Making the keys in camel case saves us from writing boilerplate resolver code.
 type Subscription struct {
-	ID                   string
-	AppID                string
-	StripeSubscriptionID string
-	StripeCustomerID     string
-	CreatedAt            time.Time
-	UpdatedAt            time.Time
+	ID                   string     `json:"id"`
+	AppID                string     `json:"appID"`
+	StripeSubscriptionID string     `json:"stripeSubscriptionID"`
+	StripeCustomerID     string     `json:"stripeCustomerID"`
+	CreatedAt            time.Time  `json:"createdAt"`
+	UpdatedAt            time.Time  `json:"updatedAt"`
+	CancelledAt          *time.Time `json:"cancelledAt"`
+	EndedAt              *time.Time `json:"endedAt"`
 }
 
 type SubscriptionCheckout struct {

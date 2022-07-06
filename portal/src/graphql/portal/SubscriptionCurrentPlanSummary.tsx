@@ -28,6 +28,7 @@ export interface SubscriptionCurrentPlanSummaryProps {
   mauLimit?: number;
   mauPrevious?: number;
   nextBillingDate?: Date;
+  subscriptionEndedAt?: Date;
   onClickManageSubscription?: IButtonProps["onClick"];
   manageSubscriptionLoading?: boolean;
   manageSubscriptionDisabled?: boolean;
@@ -37,15 +38,22 @@ export interface SubscriptionCurrentPlanSummaryProps {
 interface TitleProps {
   planName: string;
   baseAmount?: number;
+  subscriptionEndedAt?: Date;
 }
 
 function Title(props: TitleProps) {
-  const { planName, baseAmount } = props;
+  const { locale } = useContext(Context);
+  const { planName, baseAmount, subscriptionEndedAt } = props;
   const { renderToString } = useContext(Context);
   const planDisplayName =
     baseAmount == null
       ? planName
       : renderToString("SubscriptionScreen.plan-name." + planName);
+  const formattedDate = formatDatetime(
+    locale,
+    subscriptionEndedAt ?? null,
+    DateTime.DATE_SHORT
+  );
   return (
     <Text block={true} variant="xLarge">
       {baseAmount == null ? (
@@ -61,6 +69,7 @@ function Title(props: TitleProps) {
           values={{
             name: planDisplayName,
             amount: baseAmount / 100,
+            expiredAt: formattedDate ?? "false",
           }}
         />
       )}
@@ -286,6 +295,7 @@ function SubscriptionCurrentPlanSummary(
     mauCurrent,
     mauLimit,
     mauPrevious,
+    subscriptionEndedAt,
     nextBillingDate,
     onClickManageSubscription,
     manageSubscriptionLoading,
@@ -299,7 +309,11 @@ function SubscriptionCurrentPlanSummary(
         boxShadow: DefaultEffects.elevation4,
       }}
     >
-      <Title planName={planName} baseAmount={baseAmount} />
+      <Title
+        planName={planName}
+        baseAmount={baseAmount}
+        subscriptionEndedAt={subscriptionEndedAt}
+      />
       <CostItems>{children}</CostItems>
       <div className={styles.usageMeterContainer}>
         <UsageMeter

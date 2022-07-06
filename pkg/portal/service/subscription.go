@@ -7,10 +7,12 @@ import (
 
 	"sigs.k8s.io/yaml"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
+	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/libstripe"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -55,6 +57,7 @@ type SubscriptionService struct {
 	PlanStore         SubscriptionPlanStore
 	UsageStore        UsageStore
 	Clock             clock.Clock
+	AppConfig         *portalconfig.AppConfig
 }
 
 func (s *SubscriptionService) UpsertSubscription(appID string, stripeSubscriptionID string, stripeCustomerID string) (*model.Subscription, error) {
@@ -97,6 +100,8 @@ func (s *SubscriptionService) GetSubscription(appID string) (*model.Subscription
 		"stripe_subscription_id",
 		"created_at",
 		"updated_at",
+		"cancelled_at",
+		"ended_at",
 	).
 		From(s.SQLBuilder.TableName("_portal_subscription")).
 		Where("app_id = ?", appID)
@@ -117,6 +122,8 @@ func (s *SubscriptionService) GetSubscription(appID string) (*model.Subscription
 		&subscription.StripeSubscriptionID,
 		&subscription.CreatedAt,
 		&subscription.UpdatedAt,
+		&subscription.CancelledAt,
+		&subscription.EndedAt,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrSubscriptionNotFound
@@ -131,60 +138,40 @@ func (s *SubscriptionService) GetSubscription(appID string) (*model.Subscription
 // UpdateSubscriptionCheckoutStatus updates subscription checkout status and customer id
 // It returns ErrSubscriptionCheckoutNotFound when the checkout is not found
 // or the checkout status is already subscribed
+// It is used when the checkout session is completed
 func (s *SubscriptionService) UpdateSubscriptionCheckoutStatusAndCustomerID(appID string, stripCheckoutSessionID string, status model.SubscriptionCheckoutStatus, customerID string) error {
-	now := s.Clock.NowUTC()
-	q := s.SQLBuilder.
-		Update(s.SQLBuilder.TableName("_portal_subscription_checkout")).
-		Set("status", status).
-		Set("stripe_customer_id", customerID).
-		Set("updated_at", now).
-		Where("stripe_checkout_session_id = ?", stripCheckoutSessionID).
-		Where("app_id = ?", appID).
-		// Only allow updating status if it is not subscribed
-		Where("status != 'subscribed'")
-
-	result, err := s.SQLExecutor.ExecWith(q)
-	if err != nil {
-		return err
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	if rowsAffected == 0 {
-		return ErrSubscriptionCheckoutNotFound
-	}
-
-	return nil
+	return s.updateSubscriptionCheckoutStatus(func(b squirrel.UpdateBuilder) squirrel.UpdateBuilder {
+		return b.Set("status", status).
+			Set("stripe_customer_id", customerID).
+			Where("stripe_checkout_session_id = ?", stripCheckoutSessionID).
+			Where("app_id = ?", appID).
+			// Only allow updating status if it is not subscribed
+			Where("status != ?", model.SubscriptionCheckoutStatusSubscribed)
+	})
 }
 
+// UpdateSubscriptionCheckoutStatusByCustomerID updates subscription checkout status by customer id
+// It returns ErrSubscriptionCheckoutNotFound when the checkout is not found
+// or the checkout status is already subscribed
+// It is used when a subscription is created or updated
 func (s *SubscriptionService) UpdateSubscriptionCheckoutStatusByCustomerID(appID string, customerID string, status model.SubscriptionCheckoutStatus) error {
-	now := s.Clock.NowUTC()
-	q := s.SQLBuilder.
-		Update(s.SQLBuilder.TableName("_portal_subscription_checkout")).
-		Set("status", status).
-		Set("updated_at", now).
-		Where("app_id = ?", appID).
-		Where("stripe_customer_id = ?", customerID).
-		// Only allow updating status if it is not subscribed
-		Where("status != 'subscribed'")
+	return s.updateSubscriptionCheckoutStatus(func(b squirrel.UpdateBuilder) squirrel.UpdateBuilder {
+		return b.Set("status", status).
+			Where("app_id = ?", appID).
+			Where("stripe_customer_id = ?", customerID).
+			// Only allow updating status if it is not subscribed
+			Where("status != ?", model.SubscriptionCheckoutStatusSubscribed)
+	})
+}
 
-	result, err := s.SQLExecutor.ExecWith(q)
-	if err != nil {
-		return err
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	if rowsAffected == 0 {
-		return ErrSubscriptionCheckoutNotFound
-	}
-	return nil
+// UpdatedSubscriptionCheckoutStatusToCancelled updates subscription status to cancelled
+// It is used when a subscription is cancelled
+func (s *SubscriptionService) UpdatedSubscriptionCheckoutStatusToCancelled(appID string, customerID string) error {
+	return s.updateSubscriptionCheckoutStatus(func(b squirrel.UpdateBuilder) squirrel.UpdateBuilder {
+		return b.Set("status", model.SubscriptionCheckoutStatusCancelled).
+			Where("app_id = ?", appID).
+			Where("stripe_customer_id = ?", customerID)
+	})
 }
 
 func (s *SubscriptionService) UpdateAppPlan(appID string, planName string) error {
@@ -215,6 +202,11 @@ func (s *SubscriptionService) UpdateAppPlan(appID string, planName string) error
 	return nil
 }
 
+func (s *SubscriptionService) UpdateAppPlanToDefault(appID string) error {
+	defaultPlan := s.AppConfig.DefaultPlan
+	return s.UpdateAppPlan(appID, defaultPlan)
+}
+
 func (s *SubscriptionService) GetIsProcessingSubscription(appID string) (bool, error) {
 	count, err := s.getCompletedSubscriptionCheckoutCount(appID)
 	if err != nil {
@@ -230,6 +222,84 @@ func (s *SubscriptionService) GetIsProcessingSubscription(appID string) (bool, e
 	}
 
 	return count > 0 && !hasSubscription, nil
+}
+
+func (s *SubscriptionService) SetSubscriptionCancelledStatus(id string, cancelled bool, endedAt *time.Time) error {
+	now := s.Clock.NowUTC()
+	var subCancelledAt *time.Time
+	var subEndedAt *time.Time
+	if cancelled {
+		subCancelledAt = &now
+		subEndedAt = endedAt
+	} else {
+		subCancelledAt = nil
+		subEndedAt = nil
+	}
+
+	q := s.SQLBuilder.
+		Update(s.SQLBuilder.TableName("_portal_subscription")).
+		Set("cancelled_at", subCancelledAt).
+		Set("ended_at", subEndedAt).
+		Set("updated_at", now).
+		Where("id = ?", id)
+
+	result, err := s.SQLExecutor.ExecWith(q)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrSubscriptionCheckoutNotFound
+	}
+
+	return nil
+}
+
+func (s *SubscriptionService) ArchiveSubscription(sub *model.Subscription) error {
+	now := s.Clock.NowUTC()
+	_, err := s.SQLExecutor.ExecWith(s.SQLBuilder.
+		Insert(s.SQLBuilder.TableName("_portal_historical_subscription")).
+		Columns(
+			"id",
+			"app_id",
+			"stripe_customer_id",
+			"stripe_subscription_id",
+			"subscription_created_at",
+			"subscription_updated_at",
+			"subscription_cancelled_at",
+			"subscription_ended_at",
+			"created_at",
+		).
+		Values(
+			uuid.New(),
+			sub.AppID,
+			sub.StripeCustomerID,
+			sub.StripeSubscriptionID,
+			sub.CreatedAt,
+			sub.UpdatedAt,
+			sub.CancelledAt,
+			sub.EndedAt,
+			now,
+		),
+	)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.SQLExecutor.ExecWith(s.SQLBuilder.
+		Delete(s.SQLBuilder.TableName("_portal_subscription")).
+		Where("id = ?", sub.ID),
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *SubscriptionService) upsertSubscription(sub *model.Subscription) error {
@@ -309,6 +379,30 @@ func (s *SubscriptionService) getCompletedSubscriptionCheckoutCount(appID string
 	}
 
 	return count, nil
+}
+
+func (s *SubscriptionService) updateSubscriptionCheckoutStatus(
+	f func(builder squirrel.UpdateBuilder) squirrel.UpdateBuilder,
+) error {
+	now := s.Clock.NowUTC()
+	q := f(s.SQLBuilder.
+		Update(s.SQLBuilder.TableName("_portal_subscription_checkout")).
+		Set("updated_at", now))
+
+	result, err := s.SQLExecutor.ExecWith(q)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrSubscriptionCheckoutNotFound
+	}
+	return nil
 }
 
 // GetSubscriptionUsage uses the current plan to estimate the usage and the cost.

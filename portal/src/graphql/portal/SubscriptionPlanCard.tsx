@@ -19,6 +19,8 @@ import { formatDatetime } from "../../util/formatDatetime";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useLoading, useIsLoading } from "../../hook/loading";
 import { usePreviewUpdateSubscriptionMutation } from "./mutations/previewUpdateSubscriptionMutation";
+import ErrorDialog from "../../error/ErrorDialog";
+import ButtonWithLoading from "../../ButtonWithLoading";
 
 interface CardProps {
   isActive: boolean;
@@ -165,12 +167,21 @@ export function UsagePriceTag(props: UsagePriceTagProps): React.ReactElement {
 export interface CTAProps {
   appID: string;
   planName: string;
-  variant: "subscribe" | "upgrade" | "downgrade" | "current" | "non-applicable";
+  variant:
+    | "subscribe"
+    | "upgrade"
+    | "downgrade"
+    | "current"
+    | "non-applicable"
+    | "reactivate";
   nextBillingDate?: Date;
   disabled?: IButtonProps["disabled"];
   onClickSubscribe?: (planName: string) => void;
   onClickUpgrade?: (planName: string) => void;
   onClickDowngrade?: (planName: string) => void;
+  onClickReactivate?: () => Promise<void>;
+  reactivateLoading: boolean;
+  reactivateError: any;
 }
 
 const DOWNGRADE_BUTTON_THEME: PartialTheme = {
@@ -198,6 +209,9 @@ export function CTA(props: CTAProps): React.ReactElement {
     onClickSubscribe: onClickSubscribeProps,
     onClickUpgrade: onClickUpgradeProps,
     onClickDowngrade: onClickDowngradeProps,
+    onClickReactivate: onClickReactivateProps,
+    reactivateLoading,
+    reactivateError,
   } = props;
   const { locale } = useContext(Context);
   const [hidden, setHidden] = useState(true);
@@ -262,6 +276,17 @@ export function CTA(props: CTAProps): React.ReactElement {
     };
   }, [amountDue, formattedDate]);
 
+  // @ts-expect-error
+  const reactivateDialogContentProps: IDialogContentProps = useMemo(() => {
+    return {
+      type: DialogType.normal,
+      title: <FormattedMessage id="SubscriptionPlanCard.reactivate.title" />,
+      subText: (
+        <FormattedMessage id="SubscriptionPlanCard.reactivate.confirmation" />
+      ),
+    };
+  }, []);
+
   const onClickUpgrade = useCallback(
     (e) => {
       e.preventDefault();
@@ -319,6 +344,25 @@ export function CTA(props: CTAProps): React.ReactElement {
       onClickDowngradeProps?.(planName);
     },
     [planName, onClickDowngradeProps]
+  );
+
+  const onClickReactivate = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setHidden(false);
+  }, []);
+
+  const onClickReactivateConfirm = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onClickReactivateProps?.()
+        .catch(() => {})
+        .finally(() => {
+          setHidden(true);
+        });
+    },
+    [onClickReactivateProps, setHidden]
   );
 
   const onDismiss = useCallback(() => {
@@ -412,6 +456,43 @@ export function CTA(props: CTAProps): React.ReactElement {
             <FormattedMessage id="SubscriptionPlanCard.label.subscribe" />
           </DefaultButton>
         </ThemeProvider>
+      );
+    case "reactivate":
+      return (
+        <>
+          <Dialog
+            hidden={hidden}
+            onDismiss={onDismiss}
+            dialogContentProps={reactivateDialogContentProps}
+          >
+            <DialogFooter>
+              <ButtonWithLoading
+                loading={reactivateLoading}
+                onClick={onClickReactivateConfirm}
+                disabled={hidden}
+                labelId="confirm"
+              />
+              <DefaultButton
+                onClick={onDismiss}
+                disabled={hidden || reactivateLoading}
+              >
+                <FormattedMessage id="cancel" />
+              </DefaultButton>
+            </DialogFooter>
+          </Dialog>
+          <ErrorDialog
+            error={reactivateError}
+            rules={[]}
+            fallbackErrorMessageID="SubscriptionPlanCard.reactivate.error"
+          />
+          <PrimaryButton
+            className={styles.cta}
+            onClick={onClickReactivate}
+            disabled={disabled}
+          >
+            <FormattedMessage id="SubscriptionPlanCard.label.reactivate" />
+          </PrimaryButton>
+        </>
       );
   }
 }

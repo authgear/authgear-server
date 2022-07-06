@@ -1,0 +1,19 @@
+mutation setSubscriptionCancelledStatusMutation(
+  $appID: ID!
+  $cancelled: Boolean!
+) {
+  setSubscriptionCancelledStatus(
+    input: {
+      appID: $appID
+      cancelled: $cancelled
+    }
+  ) {
+    app {
+      id
+      subscription {
+        id
+        endedAt
+      }
+    }
+  }
+}

@@ -33,6 +33,13 @@ fragment AppFragment on App {
       transformQuantityRound
     }
   }
+  subscription {
+    id
+    createdAt
+    updatedAt
+    cancelledAt
+    endedAt
+  }
 }
 
 query subscriptionScreenQuery($id: ID!, $thisMonth: DateTime!, $previousMonth: DateTime!) {

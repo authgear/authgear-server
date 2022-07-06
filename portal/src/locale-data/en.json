@@ -827,7 +827,7 @@
   "FeatureConfig.webhook.non-blocking-events.maximum": "You can only add {maximum, plural, one{1 non-blocking event endpoint} other{# non-blocking event endpoints}} at once on your plan. To add more, {ReactRouterLink, react, to{{planPagePath}} children{upgrade your project plan} target{_blank}}.",
   "FeatureConfig.audit-log.retrieval-days": "You can only retrieve audit logs for the last {logRetrievalDays, plural, one{1 day} other{# days}}. To retrieve more logs, {ReactRouterLink, react, to{{planPagePath}} children{upgrade your project plan} target{_blank}}.",
 
-  "SubscriptionCurrentPlanSummary.title.known-plan": "Current Plan: {name} (${amount}/mo)",
+  "SubscriptionCurrentPlanSummary.title.known-plan": "Current Plan: {name} {expiredAt, select, false{(${amount}/mo)} other{(Expire at: {expiredAt})}}",
   "SubscriptionCurrentPlanSummary.title.custom-plan": "Custom Plan: {name}",
   "SubscriptionCurrentPlanSummary.label.free": "Free",
   "SubscriptionCurrentPlanSummary.mau.title": "Montly Active User",
@@ -850,10 +850,19 @@
   "SubscriptionPlanCard.label.downgrade": "Downgrade",
   "SubscriptionPlanCard.label.current": "Current",
   "SubscriptionPlanCard.label.subscribe": "Subscribe",
+  "SubscriptionPlanCard.label.reactivate": "Reactivate",
   "SubscriptionPlanCard.upgrade.title": "Upgrade Your Plan",
   "SubscriptionPlanCard.upgrade.description": "When you change your plan, the prorated charges will be reflected in the next invoice. ${amount} (estimated) will be charged on {date}.{br, react}{br, react}Do you want to change your plan?",
   "SubscriptionPlanCard.downgrade.title": "Downgrade Your Plan",
   "SubscriptionPlanCard.downgrade.description": "{strong, react, children{Warning:}} Your apps may stop working if you downgrade to less features. To avoid this, make sure your project configuration fit the plan you are downgrading to.{br, react}{br, react}When you change your plan, the prorated charges will be reflected in the next invoice. ${amount} (estimated) will be charged on {date}.{br, react}{br, react}Do you want to change your plan?",
+
+  "SubscriptionPlanCard.cancel.title": "Cancel Subscription",
+  "SubscriptionPlanCard.cancel.confirmation": "We are sad to see you go. Are you sure to cancel the subscription? The subscription will expire at the end of the billing period. If you change your mind, you can reactivate it anytime.",
+  "SubscriptionPlanCard.cancel.error": "Failed to cancel plan. Please send an email to {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}} from the email address associated with your Authgear account and the plan you would like to cancel.",
+
+  "SubscriptionPlanCard.reactivate.title": "Reactivate Subscription",
+  "SubscriptionPlanCard.reactivate.confirmation": "Are you sure to reactivate the subscription?",
+  "SubscriptionPlanCard.reactivate.error": "Failed to reactivate plan. Please send an email to {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}} from the email address associated with your Authgear account and the plan you would like to reactivate.",
 
   "SubscriptionPlanCard.plan.features.title": "Everything in {previousPlan}, plus:",
 
@@ -886,7 +895,8 @@
   "SubscriptionScreen.footer.pricing-details": "Check out more details and compare plan features on our {ExternalLink, react, href{https://www.authgear.com/pricing} children{pricing page}}",
   "SubscriptionScreen.footer.usage-delay-disclaimer": "Reporting is not realtime. The MAU and SMS numbers are delayed up to 24 hours.",
   "SubscriptionScreen.footer.cancel": "Switch back to Free plan",
-
+  "SubscriptionScreen.footer.expire": "Your subscription will expire on {date}",
+  
   "SubscriptionScreen.title": "Billing",
   "SubscriptionScreen.recommended": "Recommended",
 

@@ -281,6 +281,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		PlanStore:         store,
 		UsageStore:        globalDBStore,
 		Clock:             clock,
+		AppConfig:         appConfig,
 	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:               logger,
@@ -525,6 +526,7 @@ func newStripeWebhookHandler(p *deps.RequestProvider) http.Handler {
 		PlanStore:         store,
 		UsageStore:        globalDBStore,
 		Clock:             clockClock,
+		AppConfig:         appConfig,
 	}
 	stripeWebhookHandler := &transport.StripeWebhookHandler{
 		StripeService: libstripeService,

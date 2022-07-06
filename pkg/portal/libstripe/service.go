@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"time"
 
 	relay "github.com/authgear/graphql-go-relay"
 	goredis "github.com/go-redis/redis/v8"
@@ -266,6 +267,18 @@ func (s *Service) CreateSubscriptionIfNotExists(checkoutSessionID string, subscr
 	return nil
 }
 
+func (s *Service) SetSubscriptionCancelAtPeriodEnd(stripeSubscriptionID string, cancelAtPeriodEnd bool) (*time.Time, error) {
+	params := &stripe.SubscriptionParams{
+		CancelAtPeriodEnd: stripe.Bool(cancelAtPeriodEnd),
+	}
+	subscription, err := s.ClientAPI.Subscriptions.Update(stripeSubscriptionID, params)
+	if err != nil {
+		return nil, err
+	}
+	periodEnd := time.Unix(subscription.CurrentPeriodEnd, 0).UTC()
+	return &periodEnd, nil
+}
+
 func (s *Service) fetchSubscriptionPlans() ([]byte, error) {
 	plans, err := s.Plans.ListPlans()
 	if err != nil {
@@ -426,7 +439,8 @@ func (s *Service) constructEvent(stripeEvent *stripe.Event) (Event, error) {
 			StripeCustomerID:        customerID,
 		}, nil
 	case string(EventTypeCustomerSubscriptionCreated),
-		string(EventTypeCustomerSubscriptionUpdated):
+		string(EventTypeCustomerSubscriptionUpdated),
+		string(EventTypeCustomerSubscriptionDeleted):
 		object := stripeEvent.Data.Object
 		subscriptionID, ok := object["id"].(string)
 		if !ok {
@@ -463,17 +477,28 @@ func (s *Service) constructEvent(stripeEvent *stripe.Event) (Event, error) {
 					StripeSubscriptionStatus: stripe.SubscriptionStatus(subscriptionStatus),
 				},
 			}, nil
+		} else if stripeEvent.Type == string(EventTypeCustomerSubscriptionUpdated) {
+			return &CustomerSubscriptionUpdatedEvent{
+				&CustomerSubscriptionEvent{
+					StripeSubscriptionID:     subscriptionID,
+					StripeCustomerID:         customerID,
+					AppID:                    appID,
+					PlanName:                 planName,
+					StripeSubscriptionStatus: stripe.SubscriptionStatus(subscriptionStatus),
+				},
+			}, nil
+		} else if stripeEvent.Type == string(EventTypeCustomerSubscriptionDeleted) {
+			return &CustomerSubscriptionDeletedEvent{
+				&CustomerSubscriptionEvent{
+					StripeSubscriptionID:     subscriptionID,
+					StripeCustomerID:         customerID,
+					AppID:                    appID,
+					PlanName:                 planName,
+					StripeSubscriptionStatus: stripe.SubscriptionStatus(subscriptionStatus),
+				},
+			}, nil
 		}
-
-		return &CustomerSubscriptionUpdatedEvent{
-			&CustomerSubscriptionEvent{
-				StripeSubscriptionID:     subscriptionID,
-				StripeCustomerID:         customerID,
-				AppID:                    appID,
-				PlanName:                 planName,
-				StripeSubscriptionStatus: stripe.SubscriptionStatus(subscriptionStatus),
-			},
-		}, nil
+		return nil, ErrUnknownEvent
 	default:
 		return nil, ErrUnknownEvent
 	}
