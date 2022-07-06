@@ -30,6 +30,25 @@ authentication:
   secondary_authenticators:
     oob_otp_sms:
       disabled: false
+authenticator:
+  password:
+    policy:
+      min_length:
+        disabled: false
+      uppercase_required:
+        disabled: false
+      lowercase_required:
+        disabled: false
+      digit_required:
+        disabled: false
+      symbol_required:
+        disabled: false
+      minimum_guessable_level:
+        disabled: false
+      excluded_keywords:
+        disabled: false
+      history:
+        disabled: false
 ui:
   white_labeling:
     disabled: false

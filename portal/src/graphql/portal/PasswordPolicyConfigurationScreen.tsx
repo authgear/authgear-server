@@ -7,6 +7,7 @@ import {
   Label,
   TextField,
   Toggle,
+  MessageBar,
 } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import produce from "immer";
@@ -17,12 +18,14 @@ import {
   PasswordPolicyConfig,
   passwordPolicyGuessableLevels,
   PortalAPIAppConfig,
+  PasswordPolicyFeatureConfig,
 } from "../../types";
 import { useParams } from "react-router-dom";
 import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
+import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { useTagPickerWithNewTags } from "../../hook/useInput";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
@@ -138,10 +141,13 @@ function constructConfig(
 
 interface PasswordPolicyConfigurationScreenContentProps {
   form: AppConfigFormModel<FormState>;
+  passwordPolicyFeatureConfig?: PasswordPolicyFeatureConfig;
 }
 
 const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigurationScreenContentProps> =
+  // eslint-disable-next-line complexity
   function PasswordPolicyConfigurationScreenContent(props) {
+    const { passwordPolicyFeatureConfig } = props;
     const { state, setState } = props.form;
 
     const { renderToString } = useContext(Context);
@@ -301,6 +307,19 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
       updateExcludedKeywords
     );
 
+    const anyBasicPolicyDisabled =
+      (passwordPolicyFeatureConfig?.min_length?.disabled ?? false) ||
+      (passwordPolicyFeatureConfig?.digit_required?.disabled ?? false) ||
+      (passwordPolicyFeatureConfig?.lowercase_required?.disabled ?? false) ||
+      (passwordPolicyFeatureConfig?.uppercase_required?.disabled ?? false) ||
+      (passwordPolicyFeatureConfig?.symbol_required?.disabled ?? false);
+
+    const anyAdvancedPolicyDisabled =
+      (passwordPolicyFeatureConfig?.minimum_guessable_level?.disabled ??
+        false) ||
+      (passwordPolicyFeatureConfig?.history?.disabled ?? false) ||
+      (passwordPolicyFeatureConfig?.excluded_keywords?.disabled ?? false);
+
     return (
       <ScreenContent>
         <ScreenTitle className={styles.widget}>
@@ -323,11 +342,22 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
           <WidgetTitle>
             <FormattedMessage id="PasswordPolicyConfigurationScreen.basic-policies" />
           </WidgetTitle>
+          {anyBasicPolicyDisabled && (
+            <MessageBar>
+              <FormattedMessage
+                id="FeatureConfig.disabled"
+                values={{
+                  planPagePath: "./../../billing",
+                }}
+              />
+            </MessageBar>
+          )}
           <TextField
             type="text"
             label={renderToString(
               "PasswordPolicyConfigurationScreen.min-length.label"
             )}
+            disabled={passwordPolicyFeatureConfig?.min_length?.disabled}
             value={state.policy.min_length?.toFixed(0) ?? ""}
             onChange={onMinLengthChange}
           />
@@ -335,6 +365,7 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
             label={renderToString(
               "PasswordPolicyConfigurationScreen.require-digit.label"
             )}
+            disabled={passwordPolicyFeatureConfig?.digit_required?.disabled}
             checked={state.policy.digit_required}
             onChange={onDigitRequiredChange}
           />
@@ -342,6 +373,7 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
             label={renderToString(
               "PasswordPolicyConfigurationScreen.require-lowercase.label"
             )}
+            disabled={passwordPolicyFeatureConfig?.lowercase_required?.disabled}
             checked={state.policy.lowercase_required}
             onChange={onLowercaseRequiredChange}
           />
@@ -349,6 +381,7 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
             label={renderToString(
               "PasswordPolicyConfigurationScreen.require-uppercase.label"
             )}
+            disabled={passwordPolicyFeatureConfig?.uppercase_required?.disabled}
             checked={state.policy.uppercase_required}
             onChange={onUppercaseRequiredChange}
           />
@@ -356,6 +389,7 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
             label={renderToString(
               "PasswordPolicyConfigurationScreen.require-symbol.label"
             )}
+            disabled={passwordPolicyFeatureConfig?.symbol_required?.disabled}
             checked={state.policy.symbol_required}
             onChange={onSymbolRequiredChange}
           />
@@ -365,15 +399,29 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
           <WidgetTitle>
             <FormattedMessage id="PasswordPolicyConfigurationScreen.advanced-policies" />
           </WidgetTitle>
+          {anyAdvancedPolicyDisabled && (
+            <MessageBar>
+              <FormattedMessage
+                id="FeatureConfig.disabled"
+                values={{
+                  planPagePath: "./../../billing",
+                }}
+              />
+            </MessageBar>
+          )}
           <Dropdown
             label={renderToString(
               "PasswordPolicyConfigurationScreen.min-guessable-level.label"
             )}
+            disabled={
+              passwordPolicyFeatureConfig?.minimum_guessable_level?.disabled
+            }
             options={minGuessableLevelOptions}
             selectedKey={state.policy.minimum_guessable_level}
             onChange={onMinimumGuessableLevelChange}
           />
           <Toggle
+            disabled={passwordPolicyFeatureConfig?.history?.disabled}
             checked={state.isPreventPasswordReuseEnabled}
             inlineLabel={true}
             label={
@@ -383,7 +431,10 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
           />
           <TextField
             type="text"
-            disabled={!state.isPreventPasswordReuseEnabled}
+            disabled={
+              (passwordPolicyFeatureConfig?.history?.disabled ?? false) ||
+              !state.isPreventPasswordReuseEnabled
+            }
             label={renderToString(
               "PasswordPolicyConfigurationScreen.history-days.label"
             )}
@@ -392,7 +443,10 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
           />
           <TextField
             type="text"
-            disabled={!state.isPreventPasswordReuseEnabled}
+            disabled={
+              (passwordPolicyFeatureConfig?.history?.disabled ?? false) ||
+              !state.isPreventPasswordReuseEnabled
+            }
             label={renderToString(
               "PasswordPolicyConfigurationScreen.history-size.label"
             )}
@@ -410,6 +464,9 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
                   "PasswordPolicyConfigurationScreen.excluded-keywords.label"
                 ),
               }}
+              disabled={
+                passwordPolicyFeatureConfig?.excluded_keywords?.disabled
+              }
               selectedItems={excludedKeywords}
               onChange={onExcludedKeywordsChange}
               onResolveSuggestions={onExcludedKeywordsSuggestions}
@@ -425,8 +482,9 @@ const PasswordPolicyConfigurationScreen: React.FC =
   function PasswordPolicyConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
     const form = useAppConfigForm(appID, constructFormState, constructConfig);
+    const featureConfig = useAppFeatureConfigQuery(appID);
 
-    if (form.isLoading) {
+    if (form.isLoading || featureConfig.loading) {
       return <ShowLoading />;
     }
 
@@ -434,9 +492,24 @@ const PasswordPolicyConfigurationScreen: React.FC =
       return <ShowError error={form.loadError} onRetry={form.reload} />;
     }
 
+    if (featureConfig.error != null) {
+      return (
+        <ShowError
+          error={featureConfig.error}
+          onRetry={featureConfig.refetch}
+        />
+      );
+    }
+
     return (
       <FormContainer form={form}>
-        <PasswordPolicyConfigurationScreenContent form={form} />
+        <PasswordPolicyConfigurationScreenContent
+          form={form}
+          passwordPolicyFeatureConfig={
+            featureConfig.effectiveFeatureConfig?.authenticator?.password
+              ?.policy
+          }
+        />
       </FormContainer>
     );
   };

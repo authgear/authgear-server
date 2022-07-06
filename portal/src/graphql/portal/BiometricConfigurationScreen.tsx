@@ -107,19 +107,19 @@ const BiometricConfigurationContent: React.FC<BiometricConfigurationContentProps
           <FormattedMessage id="BiometricConfigurationScreen.description" />
         </ScreenDescription>
         <Widget className={styles.widget}>
+          <WidgetTitle>
+            <FormattedMessage id="BiometricConfigurationScreen.title" />
+          </WidgetTitle>
           {biometricDisabled && (
             <MessageBar>
               <FormattedMessage
                 id="FeatureConfig.disabled"
                 values={{
-                  planPagePath: "./../../../billing",
+                  planPagePath: "./../../billing",
                 }}
               />
             </MessageBar>
           )}
-          <WidgetTitle>
-            <FormattedMessage id="BiometricConfigurationScreen.title" />
-          </WidgetTitle>
           <Toggle
             disabled={biometricDisabled}
             checked={state.enabled}
