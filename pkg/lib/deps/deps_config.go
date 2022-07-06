@@ -41,6 +41,7 @@ var configDeps = wire.NewSet(
 	),
 	wire.FieldsOf(new(*config.FeatureConfig),
 		"Identity",
+		"Authenticator",
 		"UI",
 		"AuditLog",
 		"Collaborator",
