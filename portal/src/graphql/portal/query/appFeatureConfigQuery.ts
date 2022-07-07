@@ -16,9 +16,7 @@ interface AppFeatureConfigQueryResult
     >,
     "loading" | "error" | "refetch"
   > {
-  effectiveFeatureConfig:
-    | AppFeatureConfigFragment["effectiveFeatureConfig"]
-    | null;
+  effectiveFeatureConfig: AppFeatureConfigFragment["effectiveFeatureConfig"];
   planName: AppFeatureConfigFragment["planName"] | null;
 }
 

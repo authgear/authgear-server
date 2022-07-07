@@ -162,7 +162,7 @@ const defaultComponents = {
 // ReactApp is responsible for fetching runtime config and initialize authgear SDK.
 const ReactApp: React.FC = function ReactApp() {
   const [systemConfig, setSystemConfig] = useState<SystemConfig | null>(null);
-  const [error, setError] = useState<null | unknown>(null);
+  const [error, setError] = useState<unknown>(null);
 
   useEffect(() => {
     if (!systemConfig && error == null) {
