@@ -156,6 +156,33 @@ func TestManager(t *testing.T) {
 			}})
 			So(err, ShouldBeNil)
 
+			err = applyUpdatesWithPlan(configtest.FixtureLimitedPlanName, []appresource.Update{{
+				Path: "authgear.yaml",
+				Data: []byte("id: app-id\nhttp:\n  public_origin: http://test\nauthentication:\n  identities:\n  - biometric\n"),
+			}})
+			So(err, ShouldBeError, `invalid authgear.yaml:
+/authentication/identities: enabling biometric authentication is not supported`)
+
+			err = applyUpdatesWithPlan(configtest.FixtureUnlimitedPlanName, []appresource.Update{{
+				Path: "authgear.yaml",
+				Data: []byte("id: app-id\nhttp:\n  public_origin: http://test\nauthentication:\n  identities:\n  - biometric\n"),
+			}})
+			So(err, ShouldBeNil)
+
+			err = applyUpdatesWithPlan(configtest.FixtureLimitedPlanName, []appresource.Update{{
+				Path: "authgear.yaml",
+				Data: []byte("id: app-id\nhttp:\n  public_origin: http://test\nauthenticator:\n  password:\n    force_change: true\n    policy:\n      min_length: 8\n      uppercase_required: true\n      lowercase_required: true\n      digit_required: true\n      symbol_required: true\n      minimum_guessable_level: 4\n      excluded_keywords:\n      - \"text\"\n      history_size: 3\n      history_days: 30"),
+			}})
+			So(err, ShouldBeError, `invalid authgear.yaml:
+/authenticator/password/policy/minimum_guessable_level: minimum_guessable_level is disallowed
+/authenticator/password/policy/excluded_keywords: excluded_keywords is disallowed
+/authenticator/password/policy: password history is disallowed`)
+
+			err = applyUpdatesWithPlan(configtest.FixtureUnlimitedPlanName, []appresource.Update{{
+				Path: "authgear.yaml",
+				Data: []byte("id: app-id\nhttp:\n  public_origin: http://test\nauthenticator:\n  password:\n    force_change: true\n    policy:\n      min_length: 8\n      uppercase_required: true\n      lowercase_required: true\n      digit_required: true\n      symbol_required: true\n      minimum_guessable_level: 4\n      excluded_keywords:\n      - \"text\"\n      history_size: 3\n      history_days: 30"),
+			}})
+			So(err, ShouldBeNil)
 		})
 
 		Convey("allow updating secrets", func() {
