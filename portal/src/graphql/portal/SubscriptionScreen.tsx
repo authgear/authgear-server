@@ -492,11 +492,18 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
 
   const hasSubscription = useMemo(() => !!subscription, [subscription]);
 
-  const subscriptionEndedAt = useMemo(() => {
+  const formattedSubscriptionEndedAt = useMemo(() => {
     return subscription?.endedAt
       ? formatDatetime(locale, subscription.endedAt, DateTime.DATETIME_SHORT)
       : null;
   }, [subscription?.endedAt, locale]);
+
+  const subscriptionEndedAt = useMemo(() => {
+    if (subscription?.endedAt != null) {
+      return new Date(subscription.endedAt);
+    }
+    return undefined;
+  }, [subscription?.endedAt]);
 
   const subscriptionCancelled = useMemo(() => {
     return !!subscription?.endedAt;
@@ -712,7 +719,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
           mauCurrent={mauCurrent}
           mauLimit={mauLimit}
           mauPrevious={mauPrevious}
-          subscriptionEndedAt={subscription?.endedAt}
+          subscriptionEndedAt={subscriptionEndedAt}
           nextBillingDate={nextBillingDate}
           onClickManageSubscription={onClickManageSubscription}
           manageSubscriptionLoading={manageSubscriptionLoading}
@@ -829,7 +836,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
                     <FormattedMessage
                       id="SubscriptionScreen.footer.expire"
                       values={{
-                        date: subscriptionEndedAt ?? "",
+                        date: formattedSubscriptionEndedAt ?? "",
                       }}
                     />
                   </Text>

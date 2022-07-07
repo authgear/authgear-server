@@ -11,17 +11,17 @@ export type Scalars = {
   Int: number;
   Float: number;
   /** The `AuditLogData` scalar type represents the data of the audit log */
-  AuditLogData: any;
+  AuditLogData: GQL_AuditLogData;
   /** The `AuthenticatorClaims` scalar type represents a set of claims belonging to an authenticator */
-  AuthenticatorClaims: any;
+  AuthenticatorClaims: GQL_AuthenticatorClaims;
   /** The `DateTime` scalar type represents a DateTime. The DateTime is serialized as an RFC 3339 quoted string */
-  DateTime: any;
+  DateTime: GQL_DateTime;
   /** The `IdentityClaims` scalar type represents a set of claims belonging to an identity */
-  IdentityClaims: any;
+  IdentityClaims: GQL_IdentityClaims;
   /** The `UserCustomAttributes` scalar type represents the custom attributes of the user */
-  UserCustomAttributes: any;
+  UserCustomAttributes: GQL_UserCustomAttributes;
   /** The `UserStandardAttributes` scalar type represents the standard attributes of the user */
-  UserStandardAttributes: any;
+  UserStandardAttributes: GQL_UserStandardAttributes;
 };
 
 /** Audit log */

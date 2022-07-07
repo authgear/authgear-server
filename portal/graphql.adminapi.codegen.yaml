@@ -4,6 +4,14 @@ generates:
   ./src/graphql/adminapi/globalTypes.generated.ts:
     plugins:
       - typescript
+    config:
+      scalars:
+        AuditLogData: GQL_AuditLogData
+        AuthenticatorClaims: GQL_AuthenticatorClaims
+        DateTime: GQL_DateTime
+        IdentityClaims: GQL_IdentityClaims
+        UserCustomAttributes: GQL_UserCustomAttributes
+        UserStandardAttributes: GQL_UserStandardAttributes
 
   ./src/graphql/adminapi/:
     preset: near-operation-file

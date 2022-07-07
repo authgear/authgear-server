@@ -4,6 +4,13 @@ generates:
   ./src/graphql/portal/globalTypes.generated.ts:
     plugins:
       - typescript
+    config:
+      scalars:
+        AppConfig: GQL_AppConfig
+        Date: GQL_Date
+        DateTime: GQL_DateTime
+        FeatureConfig: GQL_FeatureConfig
+        TutorialStatusData: GQL_TutorialStatusData
 
   ./src/graphql/portal/:
     preset: near-operation-file
