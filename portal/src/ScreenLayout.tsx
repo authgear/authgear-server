@@ -1,7 +1,7 @@
 import React from "react";
 import ScreenHeader from "./ScreenHeader";
 import ScreenNav from "./ScreenNav";
-import styles from "./ScreenLayout.module.scss";
+import styles from "./ScreenLayout.module.css";
 
 interface ScreenLayoutProps {
   children: React.ReactElement;
