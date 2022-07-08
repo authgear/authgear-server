@@ -205,6 +205,16 @@ come back, we introduce the custom `useBlocker` hook by referencing the last com
 still exist.
 See [https://github.com/remix-run/react-router/commit/256cad70d3fd4500b1abcfea66f3ee622fb90874](https://github.com/remix-run/react-router/commit/256cad70d3fd4500b1abcfea66f3ee622fb90874)
 
+NPM has an outstanding issue related to optional native dependencies.
+https://github.com/npm/cli/issues/4828
+The issue will happen if the following conditions hold:
+- The package.json, package-lock.json and node\_modules are in correct state. node\_modules only contain macOS arm dependencies.
+- We update the version of parcel and run npm install to update package-lock.json
+- package-lock.json becomes invalid.
+- npm ci becomes broken on non macOS arm machines
+So whenever we want to update dependencies, we first delete node\_modules and package-lock.json.
+Then npm install will generate a correct package-lock.json.
+
 When Parcel cannot resolve nodejs globals such as `process` and `Buffer`,
 it installs them for us.
 But we do not want to do that.
