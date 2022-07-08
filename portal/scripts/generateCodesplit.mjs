@@ -14,6 +14,6 @@ const filehandle = await open("./src/codesplit.ts", "w");
 for (const dep of deps) {
   await filehandle.write("import(");
   await filehandle.write(JSON.stringify(dep));
-  await filehandle.write(").then(()=>{});\n");
+  await filehandle.write(").finally(()=>{});\n");
 }
 await filehandle.close();
