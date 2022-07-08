@@ -28,8 +28,14 @@ type ResourceManager interface {
 	Resolve(path string) (resource.Descriptor, bool)
 }
 
+type GlobalEmbeddedResourceManager interface {
+	Resolve(resourcePath string) (string, bool)
+	Open(assetPath string) (http.File, error)
+}
+
 type StaticAssetsHandler struct {
-	Resources ResourceManager
+	Resources         ResourceManager
+	EmbeddedResources GlobalEmbeddedResourceManager
 }
 
 func (h *StaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -56,6 +62,12 @@ func (h *StaticAssetsHandler) Open(name string) (http.File, error) {
 
 	resolvePath := filePath
 
+	// Use GlobalEmbeddedResourceManager to check if the static asset is belong to it
+	if asset, ok := h.EmbeddedResources.Resolve(resolvePath); ok {
+		return h.EmbeddedResources.Open(asset)
+	}
+
+	// Fallback ResourceManager
 	desc, ok := h.Resources.Resolve(resolvePath)
 	if !ok {
 		return nil, os.ErrNotExist

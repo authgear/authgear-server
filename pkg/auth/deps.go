@@ -139,6 +139,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.LogoutSessionManager), new(*session.Manager)),
 	wire.Bind(new(handlerwebapp.PageService), new(*webapp.Service2)),
 	wire.Bind(new(handlerwebapp.ResourceManager), new(*resource.Manager)),
+	wire.Bind(new(handlerwebapp.GlobalEmbeddedResourceManager), new(*web.GlobalEmbeddedResourceManager)),
 	wire.Bind(new(handlerwebapp.RateLimiter), new(*ratelimit.Limiter)),
 	wire.Bind(new(handlerwebapp.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
 	wire.Bind(new(handlerwebapp.FlashMessage), new(*httputil.FlashMessage)),
