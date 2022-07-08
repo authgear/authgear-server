@@ -30,12 +30,17 @@ type ResourceManager interface {
 	Read(desc resource.Descriptor, view resource.View) (interface{}, error)
 }
 
+type EmbeddedResourceManager interface {
+	AssetPath(key string) (prefix string, name string, err error)
+}
+
 type StaticAssetResolver struct {
 	Context            context.Context
 	Config             *config.HTTPConfig
 	Localization       *config.LocalizationConfig
 	StaticAssetsPrefix config.StaticAssetURLPrefix
 	Resources          ResourceManager
+	EmbeddedResources  *GlobalEmbeddedResourceManager
 }
 
 func (r *StaticAssetResolver) StaticAssetURL(id string) (string, error) {
@@ -66,14 +71,12 @@ func (r *StaticAssetResolver) StaticAssetURL(id string) (string, error) {
 }
 
 func (r *StaticAssetResolver) GeneratedStaticAssetURL(key string) (string, error) {
-	desc := GeneratedAsset
-
-	assetPath, err := desc.(*GeneratedAssetDescriptor).GetAssetPathForKey(key)
+	prefix, assetPath, err := r.EmbeddedResources.AssetPath(key)
 	if err != nil {
 		return "", err
 	}
 
-	return staticAssetURL(r.Config.PublicOrigin, path.Join(string(r.StaticAssetsPrefix), "generated"), assetPath)
+	return staticAssetURL(r.Config.PublicOrigin, prefix, assetPath)
 }
 
 func staticAssetURL(origin string, prefix string, assetPath string) (string, error) {
