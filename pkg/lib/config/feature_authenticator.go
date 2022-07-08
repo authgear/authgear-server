@@ -33,11 +33,6 @@ var _ = FeatureConfigSchema.Add("PasswordPolicyFeatureConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"min_length": { "$ref": "#/$defs/PasswordPolicyItemFeatureConfig" },
-		"uppercase_required": { "$ref": "#/$defs/PasswordPolicyItemFeatureConfig" },
-		"lowercase_required": { "$ref": "#/$defs/PasswordPolicyItemFeatureConfig" },
-		"digit_required": { "$ref": "#/$defs/PasswordPolicyItemFeatureConfig" },
-		"symbol_required": { "$ref": "#/$defs/PasswordPolicyItemFeatureConfig" },
 		"minimum_guessable_level": { "$ref": "#/$defs/PasswordPolicyItemFeatureConfig" },
 		"excluded_keywords": { "$ref": "#/$defs/PasswordPolicyItemFeatureConfig" },
 		"history": { "$ref": "#/$defs/PasswordPolicyItemFeatureConfig" }
@@ -46,11 +41,6 @@ var _ = FeatureConfigSchema.Add("PasswordPolicyFeatureConfig", `
 `)
 
 type PasswordPolicyFeatureConfig struct {
-	MinLength             *PasswordPolicyItemFeatureConfig `json:"min_length,omitempty"`
-	UppercaseRequired     *PasswordPolicyItemFeatureConfig `json:"uppercase_required,omitempty"`
-	LowercaseRequired     *PasswordPolicyItemFeatureConfig `json:"lowercase_required,omitempty"`
-	DigitRequired         *PasswordPolicyItemFeatureConfig `json:"digit_required,omitempty"`
-	SymbolRequired        *PasswordPolicyItemFeatureConfig `json:"symbol_required,omitempty"`
 	MinimumGuessableLevel *PasswordPolicyItemFeatureConfig `json:"minimum_guessable_level,omitempty"`
 	ExcludedKeywords      *PasswordPolicyItemFeatureConfig `json:"excluded_keywords,omitempty"`
 	History               *PasswordPolicyItemFeatureConfig `json:"history,omitempty"`

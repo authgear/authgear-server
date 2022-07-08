@@ -507,11 +507,6 @@ export interface AuthenticatorPasswordFeatureConfig {
 }
 
 export interface PasswordPolicyFeatureConfig {
-  min_length?: PasswordPolicyItemFeatureConfig;
-  uppercase_required?: PasswordPolicyItemFeatureConfig;
-  lowercase_required?: PasswordPolicyItemFeatureConfig;
-  digit_required?: PasswordPolicyItemFeatureConfig;
-  symbol_required?: PasswordPolicyItemFeatureConfig;
   minimum_guessable_level?: PasswordPolicyItemFeatureConfig;
   excluded_keywords?: PasswordPolicyItemFeatureConfig;
   history?: PasswordPolicyItemFeatureConfig;

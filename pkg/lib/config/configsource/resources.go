@@ -228,56 +228,6 @@ func (d AuthgearYAMLDescriptor) validate(original *config.AppConfig, incoming *c
 	}
 
 	// Password policy
-	if *fc.Authenticator.Password.Policy.MinLength.Disabled {
-		if incoming.Authenticator.Password.Policy.MinLength != nil {
-			validationCtx.Child(
-				"authenticator",
-				"password",
-				"policy",
-				"min_length",
-			).EmitErrorMessage("min_length is disallowed")
-		}
-	}
-	if *fc.Authenticator.Password.Policy.UppercaseRequired.Disabled {
-		if incoming.Authenticator.Password.Policy.UppercaseRequired {
-			validationCtx.Child(
-				"authenticator",
-				"password",
-				"policy",
-				"uppercase_required",
-			).EmitErrorMessage("uppercase_required is disallowed")
-		}
-	}
-	if *fc.Authenticator.Password.Policy.LowercaseRequired.Disabled {
-		if incoming.Authenticator.Password.Policy.LowercaseRequired {
-			validationCtx.Child(
-				"authenticator",
-				"password",
-				"policy",
-				"lowercase_required",
-			).EmitErrorMessage("lowercase_required is disallowed")
-		}
-	}
-	if *fc.Authenticator.Password.Policy.DigitRequired.Disabled {
-		if incoming.Authenticator.Password.Policy.DigitRequired {
-			validationCtx.Child(
-				"authenticator",
-				"password",
-				"policy",
-				"digit_required",
-			).EmitErrorMessage("digit_required is disallowed")
-		}
-	}
-	if *fc.Authenticator.Password.Policy.SymbolRequired.Disabled {
-		if incoming.Authenticator.Password.Policy.SymbolRequired {
-			validationCtx.Child(
-				"authenticator",
-				"password",
-				"policy",
-				"symbol_required",
-			).EmitErrorMessage("symbol_required is disallowed")
-		}
-	}
 	if *fc.Authenticator.Password.Policy.MinimumGuessableLevel.Disabled {
 		if incoming.Authenticator.Password.Policy.MinimumGuessableLevel != 0 {
 			validationCtx.Child(

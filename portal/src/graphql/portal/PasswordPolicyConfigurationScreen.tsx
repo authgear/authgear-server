@@ -307,13 +307,6 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
       updateExcludedKeywords
     );
 
-    const anyBasicPolicyDisabled =
-      (passwordPolicyFeatureConfig?.min_length?.disabled ?? false) ||
-      (passwordPolicyFeatureConfig?.digit_required?.disabled ?? false) ||
-      (passwordPolicyFeatureConfig?.lowercase_required?.disabled ?? false) ||
-      (passwordPolicyFeatureConfig?.uppercase_required?.disabled ?? false) ||
-      (passwordPolicyFeatureConfig?.symbol_required?.disabled ?? false);
-
     const anyAdvancedPolicyDisabled =
       (passwordPolicyFeatureConfig?.minimum_guessable_level?.disabled ??
         false) ||
@@ -342,22 +335,11 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
           <WidgetTitle>
             <FormattedMessage id="PasswordPolicyConfigurationScreen.basic-policies" />
           </WidgetTitle>
-          {anyBasicPolicyDisabled && (
-            <MessageBar>
-              <FormattedMessage
-                id="FeatureConfig.disabled"
-                values={{
-                  planPagePath: "./../../billing",
-                }}
-              />
-            </MessageBar>
-          )}
           <TextField
             type="text"
             label={renderToString(
               "PasswordPolicyConfigurationScreen.min-length.label"
             )}
-            disabled={passwordPolicyFeatureConfig?.min_length?.disabled}
             value={state.policy.min_length?.toFixed(0) ?? ""}
             onChange={onMinLengthChange}
           />
@@ -365,7 +347,6 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
             label={renderToString(
               "PasswordPolicyConfigurationScreen.require-digit.label"
             )}
-            disabled={passwordPolicyFeatureConfig?.digit_required?.disabled}
             checked={state.policy.digit_required}
             onChange={onDigitRequiredChange}
           />
@@ -373,7 +354,6 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
             label={renderToString(
               "PasswordPolicyConfigurationScreen.require-lowercase.label"
             )}
-            disabled={passwordPolicyFeatureConfig?.lowercase_required?.disabled}
             checked={state.policy.lowercase_required}
             onChange={onLowercaseRequiredChange}
           />
@@ -381,7 +361,6 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
             label={renderToString(
               "PasswordPolicyConfigurationScreen.require-uppercase.label"
             )}
-            disabled={passwordPolicyFeatureConfig?.uppercase_required?.disabled}
             checked={state.policy.uppercase_required}
             onChange={onUppercaseRequiredChange}
           />
@@ -389,7 +368,6 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
             label={renderToString(
               "PasswordPolicyConfigurationScreen.require-symbol.label"
             )}
-            disabled={passwordPolicyFeatureConfig?.symbol_required?.disabled}
             checked={state.policy.symbol_required}
             onChange={onSymbolRequiredChange}
           />
