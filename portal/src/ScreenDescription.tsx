@@ -1,7 +1,7 @@
 import React from "react";
 import cn from "classnames";
 import { DefaultEffects, Text } from "@fluentui/react";
-import styles from "./ScreenDescription.module.scss";
+import styles from "./ScreenDescription.module.css";
 
 export interface ScreenDescriptionProps {
   className?: string;
