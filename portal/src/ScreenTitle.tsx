@@ -1,7 +1,7 @@
 import React from "react";
 import cn from "classnames";
 import { Text } from "@fluentui/react";
-import styles from "./ScreenTitle.module.scss";
+import styles from "./ScreenTitle.module.css";
 
 export interface ScreenTitleProps {
   className?: string;
