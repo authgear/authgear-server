@@ -42,14 +42,33 @@ func (h *StaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	fileServer := http.StripPrefix("/static/", http.FileServer(h))
 
 	filePath := strings.TrimPrefix(r.URL.Path, "/static/")
-	_, err := h.Open(filePath)
-	if err == nil {
+	ok := h.Resolve(filePath)
+	if ok {
 		// set cache control header if the file is found
 		// 604800 seconds is a week
 		w.Header().Set("Cache-Control", "public, max-age=604800")
 	}
 
 	fileServer.ServeHTTP(w, r)
+}
+
+func (h *StaticAssetsHandler) Resolve(name string) bool {
+	p := path.Join(web.StaticAssetResourcePrefix, name)
+
+	filePath, hashInPath := web.ParsePathWithHash(p)
+	if filePath == "" || hashInPath == "" {
+		return false
+	}
+
+	if _, ok := h.EmbeddedResources.Resolve(p); ok {
+		return true
+	}
+
+	if _, ok := h.Resources.Resolve(filePath); ok {
+		return true
+	}
+
+	return false
 }
 
 func (h *StaticAssetsHandler) Open(name string) (http.File, error) {
