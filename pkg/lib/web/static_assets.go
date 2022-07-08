@@ -5,15 +5,12 @@ import (
 )
 
 const StaticAssetResourcePrefix = "static/"
-const GeneratedStaticAssetResourcePrefix = "static/generated/"
 const StaticAssetFontResourcePrefix = "static/fonts/"
 
 type StaticAsset struct {
 	Path string
 	Data []byte
 }
-
-var GeneratedAsset = resource.RegisterResource(NewGeneratedAssetDescriptor())
 
 var AuthgearLightThemeCSS = resource.RegisterResource(CSSDescriptor{
 	Path: StaticAssetResourcePrefix + "authgear-light-theme.css",
