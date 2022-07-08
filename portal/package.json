@@ -5,7 +5,6 @@
     "packages/*"
   ],
   "scripts": {
-    "postinstall": "node scripts/generateCodesplit.mjs",
     "test": "jest",
     "start": "parcel serve --port 1234 --no-cache './src/*.html'",
     "build": "PARCEL_BUNDLE_ANALYZER=1 parcel build --no-cache './src/*.html'",

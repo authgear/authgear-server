@@ -1,3 +1,8 @@
+// This script generates ./src/codesplit.ts
+// This script is NOT automatically run in postinstall phase
+// because our Dockerfile only copies package.json and package-lock.json
+// Fortunately this script rarely needs rerun because we rarely add new
+// dependencies.
 import { readFile, open } from "fs/promises";
 
 const packageJSON = JSON.parse(
