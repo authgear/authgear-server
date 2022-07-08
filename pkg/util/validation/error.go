@@ -2,6 +2,7 @@ package validation
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 )
 
@@ -42,4 +43,36 @@ func (e *AggregatedError) Error() string {
 		lines = append(lines, err.String())
 	}
 	return strings.Join(lines, "\n")
+}
+
+func (e *AggregatedError) Subtract(that *AggregatedError) *AggregatedError {
+	if e == nil {
+		return nil
+	}
+	if that == nil {
+		return e
+	}
+
+	errors := []Error{}
+	for _, thisErr := range e.Errors {
+		matched := false
+		for _, thatErr := range that.Errors {
+			if reflect.DeepEqual(thisErr, thatErr) {
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			errors = append(errors, thisErr)
+		}
+	}
+
+	if len(errors) == 0 {
+		return nil
+	}
+
+	return &AggregatedError{
+		Message: e.Message,
+		Errors:  errors,
+	}
 }

@@ -130,61 +130,6 @@ func (d AuthgearYAMLDescriptor) UpdateResource(ctx context.Context, _ []resource
 func (d AuthgearYAMLDescriptor) validate(original *config.AppConfig, incoming *config.AppConfig, fc *config.FeatureConfig) error {
 	validationCtx := &validation.Context{}
 
-	// Enforce feature config.
-	if len(original.OAuth.Clients) < len(incoming.OAuth.Clients) {
-		if len(incoming.OAuth.Clients) > *fc.OAuth.Client.Maximum {
-			validationCtx.Child(
-				"oauth",
-				"clients",
-			).EmitErrorMessage(
-				fmt.Sprintf("exceed the maximum number of oauth clients, actual: %d, expected: %d",
-					len(incoming.OAuth.Clients),
-					*fc.OAuth.Client.Maximum,
-				),
-			)
-		}
-	}
-	if len(original.Identity.OAuth.Providers) < len(incoming.Identity.OAuth.Providers) {
-		if len(incoming.Identity.OAuth.Providers) > *fc.Identity.OAuth.MaximumProviders {
-			validationCtx.Child(
-				"identity",
-				"oauth",
-				"providers",
-			).EmitErrorMessage(
-				fmt.Sprintf("exceed the maximum number of sso providers, actual: %d, expected: %d",
-					len(incoming.Identity.OAuth.Providers),
-					*fc.Identity.OAuth.MaximumProviders,
-				),
-			)
-		}
-	}
-	if len(original.Hook.BlockingHandlers) < len(incoming.Hook.BlockingHandlers) {
-		if len(incoming.Hook.BlockingHandlers) > *fc.Hook.BlockingHandler.Maximum {
-			validationCtx.Child(
-				"hook",
-				"blocking_handlers",
-			).EmitErrorMessage(
-				fmt.Sprintf("exceed the maximum number of blocking handlers, actual: %d, expected: %d",
-					len(incoming.Hook.BlockingHandlers),
-					*fc.Hook.BlockingHandler.Maximum,
-				),
-			)
-		}
-	}
-	if len(original.Hook.NonBlockingHandlers) < len(incoming.Hook.NonBlockingHandlers) {
-		if len(incoming.Hook.NonBlockingHandlers) > *fc.Hook.NonBlockingHandler.Maximum {
-			validationCtx.Child(
-				"hook",
-				"non_blocking_handlers",
-			).EmitErrorMessage(
-				fmt.Sprintf("exceed the maximum number of non blocking handlers, actual: %d, expected: %d",
-					len(incoming.Hook.NonBlockingHandlers),
-					*fc.Hook.NonBlockingHandler.Maximum,
-				),
-			)
-		}
-	}
-
 	// Check custom attributes not removed nor edited.
 	for _, originalCustomAttr := range original.UserProfile.CustomAttributes.Attributes {
 		found := false
@@ -218,7 +163,81 @@ func (d AuthgearYAMLDescriptor) validate(original *config.AppConfig, incoming *c
 		}
 	}
 
-	for _, identity := range incoming.Authentication.Identities {
+	// Enforce feature config.
+	featureConfigErr := func() error {
+		incomingFCError := d.validateBasedOnFeatureConfig(incoming, fc)
+		incomingAggregatedError, ok := incomingFCError.(*validation.AggregatedError)
+		if incomingFCError == nil || !ok {
+			return incomingFCError
+		}
+		originalFCError := d.validateBasedOnFeatureConfig(original, fc)
+		originalAggregatedError, ok := originalFCError.(*validation.AggregatedError)
+		if originalFCError == nil || !ok {
+			return incomingFCError
+		}
+
+		aggregatedError := incomingAggregatedError.Subtract(originalAggregatedError)
+		return aggregatedError
+	}()
+
+	validationCtx.AddError(featureConfigErr)
+
+	return validationCtx.Error(fmt.Sprintf("invalid %v", AuthgearYAML))
+}
+
+func (d AuthgearYAMLDescriptor) validateBasedOnFeatureConfig(appConfig *config.AppConfig, fc *config.FeatureConfig) error {
+	validationCtx := &validation.Context{}
+
+	if len(appConfig.OAuth.Clients) > *fc.OAuth.Client.Maximum {
+		validationCtx.Child(
+			"oauth",
+			"clients",
+		).EmitErrorMessage(
+			fmt.Sprintf("exceed the maximum number of oauth clients, actual: %d, expected: %d",
+				len(appConfig.OAuth.Clients),
+				*fc.OAuth.Client.Maximum,
+			),
+		)
+	}
+
+	if len(appConfig.Identity.OAuth.Providers) > *fc.Identity.OAuth.MaximumProviders {
+		validationCtx.Child(
+			"identity",
+			"oauth",
+			"providers",
+		).EmitErrorMessage(
+			fmt.Sprintf("exceed the maximum number of sso providers, actual: %d, expected: %d",
+				len(appConfig.Identity.OAuth.Providers),
+				*fc.Identity.OAuth.MaximumProviders,
+			),
+		)
+	}
+
+	if len(appConfig.Hook.BlockingHandlers) > *fc.Hook.BlockingHandler.Maximum {
+		validationCtx.Child(
+			"hook",
+			"blocking_handlers",
+		).EmitErrorMessage(
+			fmt.Sprintf("exceed the maximum number of blocking handlers, actual: %d, expected: %d",
+				len(appConfig.Hook.BlockingHandlers),
+				*fc.Hook.BlockingHandler.Maximum,
+			),
+		)
+	}
+
+	if len(appConfig.Hook.NonBlockingHandlers) > *fc.Hook.NonBlockingHandler.Maximum {
+		validationCtx.Child(
+			"hook",
+			"non_blocking_handlers",
+		).EmitErrorMessage(
+			fmt.Sprintf("exceed the maximum number of non blocking handlers, actual: %d, expected: %d",
+				len(appConfig.Hook.NonBlockingHandlers),
+				*fc.Hook.NonBlockingHandler.Maximum,
+			),
+		)
+	}
+
+	for _, identity := range appConfig.Authentication.Identities {
 		if identity == model.IdentityTypeBiometric && *fc.Identity.Biometric.Disabled {
 			validationCtx.Child(
 				"authentication",
@@ -229,7 +248,7 @@ func (d AuthgearYAMLDescriptor) validate(original *config.AppConfig, incoming *c
 
 	// Password policy
 	if *fc.Authenticator.Password.Policy.MinimumGuessableLevel.Disabled {
-		if incoming.Authenticator.Password.Policy.MinimumGuessableLevel != 0 {
+		if appConfig.Authenticator.Password.Policy.MinimumGuessableLevel != 0 {
 			validationCtx.Child(
 				"authenticator",
 				"password",
@@ -239,7 +258,7 @@ func (d AuthgearYAMLDescriptor) validate(original *config.AppConfig, incoming *c
 		}
 	}
 	if *fc.Authenticator.Password.Policy.ExcludedKeywords.Disabled {
-		if len(incoming.Authenticator.Password.Policy.ExcludedKeywords) > 0 {
+		if len(appConfig.Authenticator.Password.Policy.ExcludedKeywords) > 0 {
 			validationCtx.Child(
 				"authenticator",
 				"password",
@@ -249,7 +268,7 @@ func (d AuthgearYAMLDescriptor) validate(original *config.AppConfig, incoming *c
 		}
 	}
 	if *fc.Authenticator.Password.Policy.History.Disabled {
-		if incoming.Authenticator.Password.Policy.IsEnabled() {
+		if appConfig.Authenticator.Password.Policy.IsEnabled() {
 			validationCtx.Child(
 				"authenticator",
 				"password",
@@ -258,7 +277,7 @@ func (d AuthgearYAMLDescriptor) validate(original *config.AppConfig, incoming *c
 		}
 	}
 
-	return validationCtx.Error(fmt.Sprintf("invalid %v", AuthgearYAML))
+	return validationCtx.Error("features are limited by feature config")
 }
 
 var AppConfig = resource.RegisterResource(AuthgearYAMLDescriptor{})

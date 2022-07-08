@@ -40,6 +40,12 @@ func (c *Context) AddError(err error) {
 
 	var aErr *AggregatedError
 	if errors.As(err, &aErr) {
+		if aErr == nil || len(aErr.Errors) == 0 {
+			return
+		}
+		if c.errors == nil {
+			c.errors = &[]Error{}
+		}
 		for _, err := range aErr.Errors {
 			err.Location = c.pointer.String() + err.Location
 			*c.errors = append(*c.errors, err)
