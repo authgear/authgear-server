@@ -17,9 +17,9 @@
   border-radius: 0;
   border-width: 2px;
   border-color: var(--PhoneTextField-border-color-focus);
-  // stylelint-disable-next-line declaration-no-important
+  /* stylelint-disable-next-line declaration-no-important */
   padding-left: 51px !important;
-  // stylelint-disable-next-line declaration-no-important
+  /* stylelint-disable-next-line declaration-no-important */
   padding-right: 5px !important;
 }
 
