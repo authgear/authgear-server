@@ -13,7 +13,7 @@ import {
   TextField,
   getColorFromString,
 } from "@fluentui/react";
-import styles from "./PortalColorPicker.module.scss";
+import styles from "./PortalColorPicker.module.css";
 
 export interface PortalColorPickerProps {
   className?: string;
