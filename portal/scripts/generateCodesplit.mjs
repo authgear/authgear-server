@@ -12,8 +12,11 @@ deps.sort();
 
 const filehandle = await open("./src/codesplit.ts", "w");
 for (const dep of deps) {
-  await filehandle.write("import(");
-  await filehandle.write(JSON.stringify(dep));
-  await filehandle.write(").finally(()=>{});\n");
+  // Special case: normalize.css is referenced by index.html.
+  if (dep !== "normalize.css") {
+    await filehandle.write("import(");
+    await filehandle.write(JSON.stringify(dep));
+    await filehandle.write(").finally(()=>{});\n");
+  }
 }
 await filehandle.close();
