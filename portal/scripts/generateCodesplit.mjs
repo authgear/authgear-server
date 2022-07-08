@@ -16,7 +16,10 @@ for (const dep of deps) {
   if (dep !== "normalize.css") {
     await filehandle.write("import(");
     await filehandle.write(JSON.stringify(dep));
-    await filehandle.write(").finally(()=>{});\n");
+    // We include whitespaces here so that the generated file is formatted
+    // according to Prettier's taste.
+    // So npm run fmt WILL NOT format that file again.
+    await filehandle.write(").finally(() => {});\n");
   }
 }
 await filehandle.close();
