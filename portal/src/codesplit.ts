@@ -18,6 +18,7 @@ import("intl-tel-input").then(()=>{});
 import("js-yaml").then(()=>{});
 import("luxon").then(()=>{});
 import("monaco-editor").then(()=>{});
+import("normalize.css").then(()=>{});
 import("postcss").then(()=>{});
 import("react").then(()=>{});
 import("react-chartjs-2").then(()=>{});
