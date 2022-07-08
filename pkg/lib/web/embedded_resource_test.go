@@ -149,13 +149,18 @@ func TestGlobalEmbeddedResourceManager(t *testing.T) {
 			So(err, ShouldBeNil)
 			defer m.Close()
 
-			// if key exists
-			assetFileName, ok := m.Resolve(web.DefaultResourcePrefix + "test.js")
+			// if key exists with correct hash
+			assetFileName, ok := m.Resolve(web.DefaultResourcePrefix + "test.12345678.js")
 			So(ok, ShouldBeTrue)
 			So(assetFileName, ShouldEqual, "test.12345678.js")
 
+			// if key exists with incorrect hash
+			assetFileName, ok = m.Resolve(web.DefaultResourcePrefix + "test.abcdefgh.js")
+			So(ok, ShouldBeFalse)
+			So(assetFileName, ShouldBeEmpty)
+
 			// if key does not exist
-			assetFileName, ok = m.Resolve(web.DefaultResourcePrefix + "test123.js")
+			assetFileName, ok = m.Resolve(web.DefaultResourcePrefix + "test123.12345678.js")
 			So(ok, ShouldBeFalse)
 			So(assetFileName, ShouldBeEmpty)
 		})

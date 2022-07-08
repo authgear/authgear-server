@@ -148,18 +148,25 @@ func (m *GlobalEmbeddedResourceManager) AssetPath(key string) (prefix string, na
 func (m *GlobalEmbeddedResourceManager) Resolve(resourcePath string) (string, bool) {
 	manifest := m.GetManifestContext().Content
 
-	key := strings.TrimPrefix(resourcePath, m.Manifest.ResourcePrefix)
+	filePathWithoutHash, hashInPath := ParsePathWithHash(resourcePath)
+
+	key := strings.TrimPrefix(filePathWithoutHash, m.Manifest.ResourcePrefix)
 	if IsSourceMapPath(key) {
 		key = strings.TrimSuffix(key, ".map")
 	}
 
 	if assetFileName, ok := manifest[key]; ok {
+		if _, hash := ParsePathWithHash(assetFileName); hash != hashInPath {
+			return "", false
+		}
+
 		// Add source map extension to the file name if resourcePath is a source map path
 		ae := path.Ext(assetFileName)
 		ve := path.Ext(resourcePath)
 		if ae != ve {
 			assetFileName += ve
 		}
+
 		return assetFileName, true
 	}
 	return "", false

@@ -60,15 +60,13 @@ func (h *StaticAssetsHandler) Open(name string) (http.File, error) {
 		return nil, os.ErrNotExist
 	}
 
-	resolvePath := filePath
-
 	// Use GlobalEmbeddedResourceManager to check if the static asset is belong to it
-	if asset, ok := h.EmbeddedResources.Resolve(resolvePath); ok {
+	if asset, ok := h.EmbeddedResources.Resolve(p); ok {
 		return h.EmbeddedResources.Open(asset)
 	}
 
 	// Fallback ResourceManager
-	desc, ok := h.Resources.Resolve(resolvePath)
+	desc, ok := h.Resources.Resolve(filePath)
 	if !ok {
 		return nil, os.ErrNotExist
 	}
