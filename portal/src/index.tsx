@@ -1,10 +1,4 @@
 // /* global process */
-import "normalize.css";
-import "./index.css";
-import "intl-tel-input/build/css/intlTelInput.css";
-import "intl-tel-input/build/js/utils.js";
-import "cropperjs/dist/cropper.min.css";
-
 import React from "react";
 import { render } from "react-dom";
 import { initializeIcons } from "@fluentui/react";
