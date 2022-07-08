@@ -8,7 +8,7 @@ import {
 } from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
 import { getPaginationRenderData } from "./util/pagination";
-import styles from "./PaginationWidget.module.scss";
+import styles from "./PaginationWidget.module.css";
 
 export interface Props {
   className?: string;
