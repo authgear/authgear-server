@@ -11,7 +11,7 @@ import {
 import { useAppAndSecretConfigQuery } from "./graphql/portal/query/appAndSecretConfigQuery";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 
-import styles from "./ScreenHeader.module.scss";
+import styles from "./ScreenHeader.module.css";
 import { useSystemConfig } from "./context/SystemConfigContext";
 
 interface ScreenHeaderAppSectionProps {
