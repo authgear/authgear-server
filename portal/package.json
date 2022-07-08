@@ -48,6 +48,7 @@
     "@apollo/client": "3.6.9",
     "@authgear/web": "0.22.0",
     "@fluentui/react": "8.78.0",
+    "@fluentui/react-hooks": "8.6.0",
     "@monaco-editor/react": "4.4.5",
     "@oursky/react-messageformat": "2.0.2",
     "axios": "0.27.2",

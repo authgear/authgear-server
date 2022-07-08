@@ -1,6 +1,7 @@
 import("@apollo/client").then(()=>{});
 import("@authgear/web").then(()=>{});
 import("@fluentui/react").then(()=>{});
+import("@fluentui/react-hooks").then(()=>{});
 import("@monaco-editor/react").then(()=>{});
 import("@oursky/react-messageformat").then(()=>{});
 import("axios").then(()=>{});
