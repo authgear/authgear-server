@@ -38,6 +38,7 @@ var rootDeps = wire.NewSet(
 		"EnvironmentConfig",
 		"ConfigSourceConfig",
 		"DatabasePool",
+		"EmbeddedResources",
 	),
 
 	envConfigDeps,
@@ -130,6 +131,7 @@ var BackgroundDependencySet = wire.NewSet(
 		"RedisPool",
 		"RedisHub",
 		"BaseResources",
+		"EmbeddedResources",
 	),
 
 	envConfigDeps,
