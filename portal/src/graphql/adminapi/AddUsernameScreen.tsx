@@ -14,7 +14,7 @@ import {
   makeInvariantViolatedErrorParseRule,
 } from "../../error/parse";
 
-import styles from "./AddUsernameScreen.module.scss";
+import styles from "./AddUsernameScreen.module.css";
 
 const errorRules: ErrorParseRule[] = [
   makeInvariantViolatedErrorParseRule(
