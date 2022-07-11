@@ -19,7 +19,7 @@ import {
 import EditCustomAttributeForm, {
   CustomAttributeDraft,
 } from "../../EditCustomAttributeForm";
-import styles from "./CreateCustomAttributeScreen.module.scss";
+import styles from "./CreateCustomAttributeScreen.module.css";
 
 interface FormState extends CustomAttributeDraft {
   id: string;
