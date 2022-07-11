@@ -2,7 +2,7 @@ import React from "react";
 import cn from "classnames";
 import { Checkbox, ICheckboxProps } from "@fluentui/react";
 
-import styles from "./CheckboxWithTooltip.module.scss";
+import styles from "./CheckboxWithTooltip.module.css";
 import Tooltip from "./Tooltip";
 
 interface CheckboxWithTooltipProps extends ICheckboxProps {
