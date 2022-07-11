@@ -1,6 +1,6 @@
 import React from "react";
 import ScreenHeader from "./ScreenHeader";
-import styles from "./WizardScreenLayout.module.scss";
+import styles from "./WizardScreenLayout.module.css";
 
 export interface WizardScreenLayoutProps {
   children?: React.ReactNode;
