@@ -3,7 +3,7 @@ import cn from "classnames";
 import { Dialog, DialogFooter, PrimaryButton } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
-import styles from "./TodoButtonWrapper.module.scss";
+import styles from "./TodoButtonWrapper.module.css";
 
 interface TodoButtonWrapperProps {
   children: React.ReactNode;
