@@ -10,14 +10,12 @@
   grid-column: 7 / span 6;
 }
 
-.commandBarButtonLabelValue {
-  .label {
-    margin: 0 4px;
-  }
+.commandBarButtonLabelValue .label {
+  margin: 0 4px;
+}
 
-  .value {
-    margin: 0 4px;
-  }
+.commandBarButtonLabelValue .value {
+  margin: 0 4px;
 }
 
 .commandBarButtonTo {

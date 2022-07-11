@@ -17,7 +17,7 @@ import AnalyticsSignupConversionWidget from "./AnalyticsSignupConversionWidget";
 import AnalyticsSignupMethodsWidget from "./AnalyticsSignupMethodsWidget";
 import ShowError from "../../ShowError";
 import CommandBarContainer from "../../CommandBarContainer";
-import styles from "./AnalyticsScreen.module.scss";
+import styles from "./AnalyticsScreen.module.css";
 import useTransactionalState from "../../hook/useTransactionalState";
 import DateRangeDialog from "./DateRangeDialog";
 import { useSystemConfig } from "../../context/SystemConfigContext";
