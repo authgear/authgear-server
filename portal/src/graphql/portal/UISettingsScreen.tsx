@@ -53,7 +53,7 @@ import {
   addDarkBannerConfiguration,
 } from "../../util/theme";
 
-import styles from "./UISettingsScreen.module.scss";
+import styles from "./UISettingsScreen.module.css";
 import { useAppConfigForm } from "../../hook/useAppConfigForm";
 import { clearEmptyObject } from "../../util/misc";
 import { useResourceForm } from "../../hook/useResourceForm";
