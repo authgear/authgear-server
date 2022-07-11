@@ -30,7 +30,7 @@ import { OAuthSSOProviderType } from "../../types";
 import { UserQueryNodeFragment } from "./query/userQuery.generated";
 import { makeInvariantViolatedErrorParseRule } from "../../error/parse";
 
-import styles from "./UserDetailsConnectedIdentities.module.scss";
+import styles from "./UserDetailsConnectedIdentities.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 
 interface IdentityClaim extends Record<string, unknown> {
