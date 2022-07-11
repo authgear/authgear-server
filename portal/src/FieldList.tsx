@@ -6,7 +6,7 @@ import { useSystemConfig } from "./context/SystemConfigContext";
 import { useFormField } from "./form";
 import ErrorRenderer from "./ErrorRenderer";
 
-import styles from "./FieldList.module.scss";
+import styles from "./FieldList.module.css";
 
 type RenderFieldListItem<T> = (
   index: number,
