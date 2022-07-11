@@ -3,7 +3,7 @@ import { IconButton, DefaultEffects } from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
 import cn from "classnames";
 
-import styles from "./ExtendableWidget.module.scss";
+import styles from "./ExtendableWidget.module.css";
 
 interface ExtendableWidgetProps {
   HeaderComponent: React.ReactNode;
