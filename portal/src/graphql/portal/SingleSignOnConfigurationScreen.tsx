@@ -30,7 +30,7 @@ import {
   PortalAPIAppConfig,
   PortalAPISecretConfig,
 } from "../../types";
-import styles from "./SingleSignOnConfigurationScreen.module.scss";
+import styles from "./SingleSignOnConfigurationScreen.module.css";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 
 interface SSOProviderFormState {
