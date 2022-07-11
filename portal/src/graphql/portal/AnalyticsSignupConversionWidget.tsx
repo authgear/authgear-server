@@ -10,7 +10,7 @@ import { AnalyticChartsQueryQuery } from "./query/analyticChartsQuery.generated"
 import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
 import ShowLoading from "../../ShowLoading";
-import styles from "./AnalyticsSignupConversionWidget.module.scss";
+import styles from "./AnalyticsSignupConversionWidget.module.css";
 
 interface AnalyticsSignupConversionChartProps {
   signupConversionRate: AnalyticChartsQueryQuery["signupConversionRate"] | null;
