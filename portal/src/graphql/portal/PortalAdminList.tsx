@@ -10,7 +10,7 @@ import {
 import cn from "classnames";
 
 import { Collaborator, CollaboratorInvitation } from "./globalTypes.generated";
-import styles from "./PortalAdminList.module.scss";
+import styles from "./PortalAdminList.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 
 interface PortalAdminListProps {
