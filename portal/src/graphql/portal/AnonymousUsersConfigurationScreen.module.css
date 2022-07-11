@@ -16,10 +16,10 @@
   grid-template-columns: max-content auto;
   gap: 16px 32px;
   padding: 16px 0;
+}
 
-  .tooltipLabel {
-    display: flex;
-  }
+.sessionInfo .tooltipLabel {
+  display: flex;
 }
 
 .detailsHeader {
