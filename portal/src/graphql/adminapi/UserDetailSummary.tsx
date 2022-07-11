@@ -6,7 +6,7 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import { formatDatetime } from "../../util/formatDatetime";
 
-import styles from "./UserDetailSummary.module.scss";
+import styles from "./UserDetailSummary.module.css";
 
 interface UserDetailSummaryProps {
   className?: string;
