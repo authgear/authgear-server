@@ -9,7 +9,7 @@ import cn from "classnames";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { getShades, BannerConfiguration } from "./util/theme";
 import { base64EncodedDataToDataURI } from "./util/uri";
-import styles from "./ThemePreviewWidget.module.scss";
+import styles from "./ThemePreviewWidget.module.css";
 
 export interface ThemePreviewWidgetProps {
   ref?: Ref<HTMLElement>;
