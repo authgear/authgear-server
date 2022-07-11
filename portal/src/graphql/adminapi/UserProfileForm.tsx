@@ -42,7 +42,7 @@ import {
   parseJSONPointerIntoParentChild,
 } from "../../util/jsonpointer";
 
-import styles from "./UserProfileForm.module.scss";
+import styles from "./UserProfileForm.module.css";
 
 export interface StandardAttributesAddressState {
   street_address: string;
