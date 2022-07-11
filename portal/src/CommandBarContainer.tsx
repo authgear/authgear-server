@@ -4,7 +4,7 @@ import {
   ICommandBarItemProps,
   ProgressIndicator,
 } from "@fluentui/react";
-import styles from "./CommandBarContainer.module.scss";
+import styles from "./CommandBarContainer.module.css";
 
 const progressIndicatorStyles = {
   itemProgress: {
