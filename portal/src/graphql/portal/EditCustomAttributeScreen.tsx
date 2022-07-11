@@ -12,7 +12,7 @@ import {
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
 import { PortalAPIAppConfig } from "../../types";
-import styles from "./EditCustomAttributeScreen.module.scss";
+import styles from "./EditCustomAttributeScreen.module.css";
 import EditCustomAttributeForm, {
   CustomAttributeDraft,
 } from "../../EditCustomAttributeForm";
