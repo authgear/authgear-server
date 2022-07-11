@@ -49,75 +49,75 @@
   justify-content: center;
   align-items: center;
   border-radius: 6px;
+}
 
-  .actionIcon {
-    padding: 0 15px;
-  }
+.actionButton .actionIcon {
+  padding: 0 15px;
+}
 
-  .labelText {
-    flex-grow: 1;
-    font-size: 12px;
-  }
+.actionButton .labelText {
+  flex-grow: 1;
+  font-size: 12px;
+}
 
-  .arrowIcon {
-    padding: 0 15px;
-  }
+.actionButton .arrowIcon {
+  padding: 0 15px;
 }
 
 .nowYouMaySection {
   background: #f1f1f1;
   padding: 30px;
+}
 
-  .title {
-    display: block;
-    text-align: center;
-    font-weight: 600;
-    margin-bottom: 20px;
-  }
+.nowYouMaySection .title {
+  display: block;
+  text-align: center;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
 
-  .actionButton {
-    margin: 10px 0;
-    font-size: smaller;
-  }
+.nowYouMaySection .actionButton {
+  margin: 10px 0;
+  font-size: smaller;
 }
 
 .stepSection {
   display: flex;
   flex-direction: row;
   margin: 20px 0;
+}
 
-  .screenshot {
-    width: 55%;
+.stepSection .screenshot {
+  width: 55%;
+}
 
-    img {
-      max-width: 100%;
-    }
-  }
+.stepSection .screenshot img {
+  max-width: 100%;
+}
 
-  .info {
-    width: 45%;
-    align-self: center;
-    margin: 0 15px;
+.stepSection .info {
+  width: 45%;
+  align-self: center;
+  margin: 0 15px;
+}
 
-    .title {
-      line-height: 20px;
-      margin-bottom: 15px;
+.stepSection .info .title {
+  line-height: 20px;
+  margin-bottom: 15px;
+}
 
-      .stepCount {
-        display: inline-block;
-        color: #ffffff;
-        text-align: center;
-        border-radius: 10px;
-        width: 20px;
-        line-height: 20px;
-        margin-right: 5px;
-      }
-    }
+.stepSection .info .title .stepCount {
+  display: inline-block;
+  color: var(--white);
+  text-align: center;
+  border-radius: 10px;
+  width: 20px;
+  line-height: 20px;
+  margin-right: 5px;
+}
 
-    .desc {
-      margin-bottom: 15px;
-    }
-  }
+.stepSection .info .desc {
+  margin-bottom: 15px;
 }
 
 .stepSection.rightScreenshot {

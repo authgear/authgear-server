@@ -11,7 +11,7 @@ import {
 } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import ScreenHeader from "../../ScreenHeader";
-import styles from "./ProjectWizardDoneScreen.module.scss";
+import styles from "./ProjectWizardDoneScreen.module.css";
 import SignupScreenImg from "../../images/onboarding_signup_screen.png";
 import SettingScreenImg from "../../images/onboarding_settings_screen.png";
 import SSOLogoImg from "../../images/onboarding_sso_logo.png";
