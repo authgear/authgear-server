@@ -14,7 +14,7 @@ import { OAuthClientConfig } from "../../types";
 import { ensureNonEmptyString } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
 
-import styles from "./ModifyOAuthClientForm.module.scss";
+import styles from "./ModifyOAuthClientForm.module.css";
 
 const CHECKBOX_STYLES = {
   label: {
