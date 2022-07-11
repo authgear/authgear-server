@@ -21,7 +21,7 @@ import {
   OAuthSSOWeChatAppType,
 } from "../../types";
 
-import styles from "./SingleSignOnConfigurationWidget.module.scss";
+import styles from "./SingleSignOnConfigurationWidget.module.css";
 import FormTextFieldList from "../../FormTextFieldList";
 import LabelWithTooltip from "../../LabelWithTooltip";
 
