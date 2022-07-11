@@ -2,7 +2,7 @@ import React, { Fragment } from "react";
 import { Label, Text } from "@fluentui/react";
 import CodeEditor from "../../CodeEditor";
 import cn from "classnames";
-import styles from "./EditTemplatesWidget.module.scss";
+import styles from "./EditTemplatesWidget.module.css";
 
 export interface EditTemplatesWidgetItem {
   key: string;
