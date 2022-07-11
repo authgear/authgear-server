@@ -13,7 +13,7 @@ import {
   makeInvariantViolatedErrorParseRule,
 } from "../../error/parse";
 
-import styles from "./AddEmailScreen.module.scss";
+import styles from "./AddEmailScreen.module.css";
 
 const errorRules: ErrorParseRule[] = [
   makeInvariantViolatedErrorParseRule(
