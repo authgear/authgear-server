@@ -25,7 +25,7 @@ import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
 import FormTextField from "../../FormTextField";
 import FormContainer from "../../FormContainer";
 
-import styles from "./AddUserScreen.module.scss";
+import styles from "./AddUserScreen.module.css";
 import { validatePassword } from "../../error/password";
 
 interface FormState {
