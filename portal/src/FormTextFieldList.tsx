@@ -2,7 +2,7 @@ import { ITextFieldProps, TextField } from "@fluentui/react";
 import React, { useCallback, useMemo } from "react";
 import FieldList from "./FieldList";
 import cn from "classnames";
-import styles from "./FormTextFieldList.module.scss";
+import styles from "./FormTextFieldList.module.css";
 import { useFormField } from "./form";
 import { joinParentChild } from "./util/jsonpointer";
 import ErrorRenderer from "./ErrorRenderer";
