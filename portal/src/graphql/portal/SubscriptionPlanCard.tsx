@@ -14,7 +14,7 @@ import {
 } from "@fluentui/react";
 import { DateTime } from "luxon";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
-import styles from "./SubscriptionPlanCard.module.scss";
+import styles from "./SubscriptionPlanCard.module.css";
 import { formatDatetime } from "../../util/formatDatetime";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useLoading, useIsLoading } from "../../hook/loading";
