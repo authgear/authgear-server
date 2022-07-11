@@ -29,7 +29,7 @@ import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
 import FormContainer from "../../FormContainer";
 
-import styles from "./CreateOAuthClientScreen.module.scss";
+import styles from "./CreateOAuthClientScreen.module.css";
 import deepEqual from "deep-equal";
 
 interface FormState {
