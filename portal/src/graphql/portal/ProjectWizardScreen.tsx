@@ -32,7 +32,7 @@ import {
 import { TooltipIcon, useTooltipTargetElement } from "../../Tooltip";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import styles from "./ProjectWizardScreen.module.scss";
+import styles from "./ProjectWizardScreen.module.css";
 
 const TOOLTIP_HOST_STYLES = {
   root: {
