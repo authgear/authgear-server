@@ -8,7 +8,7 @@ import { AnalyticChartsQueryQuery } from "./query/analyticChartsQuery.generated"
 import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
 import ShowLoading from "../../ShowLoading";
-import styles from "./AnalyticsSignupMethodsWidget.module.scss";
+import styles from "./AnalyticsSignupMethodsWidget.module.css";
 
 const NoDataPlaceholderColor = "#EAEAEA";
 const ColorMap: Record<string, string> = {
