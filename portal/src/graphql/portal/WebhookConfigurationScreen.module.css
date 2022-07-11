@@ -26,12 +26,13 @@
 .handlerEdit {
   flex-grow: 1;
   display: flex;
+}
 
-  .handlerEventField {
-    width: 200px;
-    margin-right: 8px;
-  }
-  .handlerURLField {
-    flex: 1 0 0;
-  }
+.handlerEdit .handlerEventField {
+  width: 200px;
+  margin-right: 8px;
+}
+
+.handlerEdit .handlerURLField {
+  flex: 1 0 0;
 }
