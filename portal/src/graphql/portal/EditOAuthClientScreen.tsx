@@ -19,7 +19,7 @@ import {
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
-import styles from "./EditOAuthClientScreen.module.scss";
+import styles from "./EditOAuthClientScreen.module.css";
 
 interface FormState {
   clients: OAuthClientConfig[];
