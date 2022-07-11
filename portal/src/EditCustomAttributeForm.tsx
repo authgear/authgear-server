@@ -26,7 +26,7 @@ import {
 } from "./types";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import FormErrorMessageText from "./FormErrorMessageText";
-import styles from "./EditCustomAttributeForm.module.scss";
+import styles from "./EditCustomAttributeForm.module.css";
 import { makeValidationErrorMatchUnknownKindParseRule } from "./error/parse";
 
 const REMOVE_BUTTON_ICON_PROPS = {
