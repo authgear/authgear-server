@@ -40,7 +40,7 @@ import {
   UseSendTestEmailMutationReturnType,
 } from "./mutations/sendTestEmail";
 import logoSendgrid from "../../images/sendgrid_logo.png";
-import styles from "./SMTPConfigurationScreen.module.scss";
+import styles from "./SMTPConfigurationScreen.module.css";
 
 type ProviderType = "sendgrid" | "custom";
 
