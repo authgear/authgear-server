@@ -15,7 +15,7 @@ import FormContainer from "../../FormContainer";
 import ScreenContent from "../../ScreenContent";
 import FormTextField from "../../FormTextField";
 
-import styles from "./ResetPasswordScreen.module.scss";
+import styles from "./ResetPasswordScreen.module.css";
 import { validatePassword } from "../../error/password";
 
 interface FormState {
