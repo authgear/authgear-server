@@ -42,7 +42,7 @@ import { clearEmptyObject } from "../../util/misc";
 import { useResourceForm } from "../../hook/useResourceForm";
 import FormContainer from "../../FormContainer";
 import { useSystemConfig } from "../../context/SystemConfigContext";
-import styles from "./LocalizationConfigurationScreen.module.scss";
+import styles from "./LocalizationConfigurationScreen.module.css";
 
 interface ConfigFormState {
   supportedLanguages: string[];
