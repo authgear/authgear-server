@@ -1,7 +1,7 @@
 import React from "react";
 import cn from "classnames";
 import { DefaultEffects } from "@fluentui/react";
-import styles from "./Widget.module.scss";
+import styles from "./Widget.module.css";
 
 export interface WidgetProps {
   className?: string;
