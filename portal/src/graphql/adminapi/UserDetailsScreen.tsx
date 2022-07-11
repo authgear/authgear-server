@@ -47,7 +47,7 @@ import {
 import { jsonPointerToString, parseJSONPointer } from "../../util/jsonpointer";
 import { formatDatetime } from "../../util/formatDatetime";
 
-import styles from "./UserDetailsScreen.module.scss";
+import styles from "./UserDetailsScreen.module.css";
 
 interface UserDetailsProps {
   form: SimpleFormModel<FormState>;
