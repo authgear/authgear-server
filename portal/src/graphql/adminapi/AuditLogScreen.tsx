@@ -42,7 +42,7 @@ import {
   AuditLogListQueryDocument,
 } from "./query/auditLogListQuery.generated";
 import { AuditLogActivityType, SortDirection } from "./globalTypes.generated";
-import styles from "./AuditLogScreen.module.scss";
+import styles from "./AuditLogScreen.module.css";
 import { useAppFeatureConfigQuery } from "../portal/query/appFeatureConfigQuery";
 
 const pageSize = 10;
