@@ -1,7 +1,7 @@
 import React from "react";
 import Widget from "./Widget";
 import OrderButtons from "./OrderButtons";
-import styles from "./WidgetWithOrdering.module.scss";
+import styles from "./WidgetWithOrdering.module.css";
 
 interface WidgetWithOrderingProps {
   disabled: boolean;
