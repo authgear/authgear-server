@@ -18,7 +18,7 @@ import { useId } from "@fluentui/react-hooks";
 import { DateTime } from "luxon";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { formatDatetime } from "../../util/formatDatetime";
-import styles from "./SubscriptionCurrentPlanSummary.module.scss";
+import styles from "./SubscriptionCurrentPlanSummary.module.css";
 
 export interface SubscriptionCurrentPlanSummaryProps {
   className?: string;
