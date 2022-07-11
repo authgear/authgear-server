@@ -6,7 +6,7 @@ import { useCreateLoginIDIdentityMutation } from "./mutations/createIdentityMuta
 import { LoginIDKeyType, PortalAPIAppConfig } from "../../types";
 import { AuthenticatorKind, AuthenticatorType } from "./globalTypes.generated";
 
-import styles from "./AddIdentityForm.module.scss";
+import styles from "./AddIdentityForm.module.css";
 import { useSimpleForm } from "../../hook/useSimpleForm";
 import FormContainer from "../../FormContainer";
 import ScreenContent from "../../ScreenContent";
