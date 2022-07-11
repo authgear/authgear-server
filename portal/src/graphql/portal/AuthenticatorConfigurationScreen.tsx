@@ -42,7 +42,7 @@ import WidgetDescription from "../../WidgetDescription";
 import Widget from "../../Widget";
 import FormContainer from "../../FormContainer";
 
-import styles from "./AuthenticatorConfigurationScreen.module.scss";
+import styles from "./AuthenticatorConfigurationScreen.module.css";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 
 interface AuthenticatorTypeFormState<T> {
