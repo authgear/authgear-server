@@ -36,6 +36,11 @@
     ],
     "no-mixed-operators": "off",
     "no-undefined": "off",
-    "no-console": ["error", { "allow": ["warn", "error"] }]
+    "no-console": ["error", { "allow": ["warn", "error"] }],
+    "@typescript-eslint/no-misused-promises": ["error", {
+      "checksVoidReturn": {
+        "attributes": false
+      }
+    }]
   }
 }

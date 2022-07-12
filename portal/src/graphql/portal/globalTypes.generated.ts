@@ -11,15 +11,15 @@ export type Scalars = {
   Int: number;
   Float: number;
   /** The `AppConfig` scalar type represents an app config JSON object */
-  AppConfig: any;
+  AppConfig: GQL_AppConfig;
   /** The `Date` scalar type represents a Date. The Date is serialized in ISO 8601 format */
-  Date: any;
+  Date: GQL_Date;
   /** The `DateTime` scalar type represents a DateTime. The DateTime is serialized as an RFC 3339 quoted string */
-  DateTime: any;
+  DateTime: GQL_DateTime;
   /** The `FeatureConfig` scalar type represents an feature config JSON object */
-  FeatureConfig: any;
+  FeatureConfig: GQL_FeatureConfig;
   /** The `TutorialStatusData` scalar type represents tutorial status data */
-  TutorialStatusData: any;
+  TutorialStatusData: GQL_TutorialStatusData;
 };
 
 export type AcceptCollaboratorInvitationInput = {

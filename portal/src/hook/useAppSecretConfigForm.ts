@@ -147,6 +147,7 @@ export function useAppSecretConfigForm<State>(
     updateError,
     state,
     setState,
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     reload,
     reset,
     save,

@@ -45,9 +45,7 @@ import FormContainer from "../../FormContainer";
 import styles from "./AuthenticatorConfigurationScreen.module.scss";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 
-interface AuthenticatorTypeFormState<
-  T = PrimaryAuthenticatorType | SecondaryAuthenticatorType
-> {
+interface AuthenticatorTypeFormState<T> {
   isEnabled: boolean;
   type: T;
 }
@@ -391,7 +389,11 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
       (item: AuthenticatorColumnItem, checked: boolean) =>
         setState((state) =>
           produce(state, (state) => {
-            let t: AuthenticatorTypeFormState | undefined;
+            let t:
+              | AuthenticatorTypeFormState<
+                  PrimaryAuthenticatorType | SecondaryAuthenticatorType
+                >
+              | undefined;
             switch (item.kind) {
               case "primary":
                 t = state.primary.find((t) => t.type === item.type);

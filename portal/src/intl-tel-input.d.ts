@@ -46,7 +46,7 @@ declare interface IntlTelInputInitOptions {
     success: (alpha2: IntlTelInputAlpha2) => void,
     failure: (err: unknown) => void
   ) => void;
-  initialCountry?: "auto" | IntlTelInputAlpha2;
+  initialCountry?: IntlTelInputAlpha2;
   excludeCountries?: IntlTelInputAlpha2[];
   onlyCountries?: IntlTelInputAlpha2[];
   preferredCountries?: IntlTelInputAlpha2[];

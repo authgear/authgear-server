@@ -150,6 +150,7 @@ export function useAppConfigForm<State>(
     setCanSave,
     state,
     setState,
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     reload,
     reset,
     save,

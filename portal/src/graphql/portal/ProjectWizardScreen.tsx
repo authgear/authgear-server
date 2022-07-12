@@ -121,6 +121,7 @@ function Step1(props: StepProps) {
       {
         key: "oob_otp_email",
         text: renderToString("ProjectWizardScreen.step1.option.oob-otp-email"),
+        // eslint-disable-next-line react/no-unstable-nested-components
         onRenderField: (props, render) => {
           return (
             <>
