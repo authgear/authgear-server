@@ -1,5 +1,3 @@
-@import "../../styles/variable.scss";
-
 .activityWidget {
   grid-column: 1 / span 12;
 }
@@ -18,13 +16,11 @@
   }
 
   .value {
-    color: $neutral-tertiary-color;
     margin: 0 4px;
   }
 }
 
 .commandBarButtonTo {
-  color: $neutral-secondary-color;
   display: flex;
   height: 100%;
   flex-wrap: nowrap;

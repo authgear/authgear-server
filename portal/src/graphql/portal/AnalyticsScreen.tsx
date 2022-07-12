@@ -1,6 +1,11 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useConst } from "@fluentui/react-hooks";
-import { CommandBarButton, ICommandBarItemProps, Text } from "@fluentui/react";
+import {
+  CommandBarButton,
+  ICommandBarItemProps,
+  Text,
+  useTheme,
+} from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useAnalyticChartsQuery } from "./query/analyticChartsQuery";
@@ -27,21 +32,34 @@ function truncateTimeAndReplaceTimezoneToUTC(date: Date): Date {
 const CommandBarLabelValue = (label: string, value: string) => {
   return (props: ICommandBarItemProps) => {
     const { commandBarButtonProps } = props;
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const theme = useTheme();
     return (
       <CommandBarButton
         className={styles.commandBarButtonLabelValue}
         {...commandBarButtonProps}
       >
         <span className={styles.label}>{label}</span>
-        <span className={styles.value}>{value}</span>
+        <span
+          className={styles.value}
+          style={{ color: theme.palette.neutralTertiary }}
+        >
+          {value}
+        </span>
       </CommandBarButton>
     );
   };
 };
 
 const OnRenderCommandBarToLabel = () => {
+  const theme = useTheme();
   return (
-    <div className={styles.commandBarButtonTo}>
+    <div
+      className={styles.commandBarButtonTo}
+      style={{
+        color: theme.palette.neutralSecondary,
+      }}
+    >
       <FormattedMessage id="AnalyticsScreen.to.label"></FormattedMessage>
     </div>
   );
