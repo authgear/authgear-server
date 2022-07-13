@@ -24,7 +24,6 @@
     "@graphql-codegen/typescript-react-apollo": "3.2.17",
     "@oursky/eslint-plugin": "8.0.0",
     "@oursky/stylelint-oursky": "2.0.0",
-    "@parcel/transformer-sass": "2.6.2",
     "@types/deep-equal": "1.0.1",
     "@types/jest": "28.1.4",
     "@types/js-yaml": "4.0.5",
@@ -40,7 +39,6 @@
     "normalize.css": "8.0.1",
     "parcel": "2.6.2",
     "prettier": "2.7.1",
-    "sass": "1.53.0",
     "stylelint": "13.13.1",
     "ts-jest": "28.0.5",
     "typescript": "4.7.4"

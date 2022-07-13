@@ -35,7 +35,7 @@ import {
   BannerConfiguration,
   DEFAULT_BANNER_CONFIGURATION,
 } from "./util/theme";
-import styles from "./ThemeConfigurationWidget.module.scss";
+import styles from "./ThemeConfigurationWidget.module.css";
 
 export interface ThemeConfigurationWidgetProps {
   className?: string;

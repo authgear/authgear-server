@@ -9,7 +9,7 @@ import { isoWeekLabels, monthLabel } from "../../util/date";
 import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
 import ShowLoading from "../../ShowLoading";
-import styles from "./AnalyticsActivityWidget.module.scss";
+import styles from "./AnalyticsActivityWidget.module.css";
 
 interface AnalyticsActivityWidgetActiveUserChartProps {
   chartData: AnalyticChartsQueryQuery["activeUserChart"] | null;

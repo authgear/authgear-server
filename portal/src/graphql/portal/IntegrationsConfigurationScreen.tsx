@@ -23,7 +23,7 @@ import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import { PortalAPIAppConfig } from "../../types";
 import { useSystemConfig } from "../../context/SystemConfigContext";
-import styles from "./IntegrationsConfigurationScreen.module.scss";
+import styles from "./IntegrationsConfigurationScreen.module.css";
 
 import gtmLogoURL from "../../images/gtm_logo.png";
 

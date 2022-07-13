@@ -18,7 +18,7 @@ import ButtonWithLoading from "../../ButtonWithLoading";
 import ErrorDialog from "../../error/ErrorDialog";
 import { formatDatetime } from "../../util/formatDatetime";
 
-import styles from "./UserDetailsAccountSecurity.module.scss";
+import styles from "./UserDetailsAccountSecurity.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 
 // authenticator type recognized by portal

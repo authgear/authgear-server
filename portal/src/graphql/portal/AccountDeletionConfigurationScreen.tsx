@@ -13,7 +13,7 @@ import FormContainer from "../../FormContainer";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import { PortalAPIAppConfig } from "../../types";
-import styles from "./AccountDeletionConfigurationScreen.module.scss";
+import styles from "./AccountDeletionConfigurationScreen.module.css";
 import Widget from "../../Widget";
 import WidgetTitle from "../../WidgetTitle";
 import FormTextField from "../../FormTextField";

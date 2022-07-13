@@ -16,7 +16,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAcceptCollaboratorInvitationMutation } from "./mutations/acceptCollaboratorInvitationMutation";
 import ButtonWithLoading from "../../ButtonWithLoading";
 
-import styles from "./AcceptAdminInvitationScreen.module.scss";
+import styles from "./AcceptAdminInvitationScreen.module.css";
 import ScreenHeader from "../../ScreenHeader";
 import {
   makeReasonErrorParseRule,

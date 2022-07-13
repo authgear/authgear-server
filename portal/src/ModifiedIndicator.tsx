@@ -12,7 +12,7 @@ import {
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
-import styles from "./ModifiedIndicator.module.scss";
+import styles from "./ModifiedIndicator.module.css";
 
 export interface ModifiedIndicatorProps {
   className?: string;

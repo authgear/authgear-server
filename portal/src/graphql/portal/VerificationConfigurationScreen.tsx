@@ -34,7 +34,7 @@ import {
 } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
 
-import styles from "./VerificationConfigurationScreen.module.scss";
+import styles from "./VerificationConfigurationScreen.module.css";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import LabelWithTooltip from "../../LabelWithTooltip";
 

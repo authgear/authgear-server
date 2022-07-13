@@ -4,7 +4,7 @@ import { FormattedMessage } from "@oursky/react-messageformat";
 
 import { GuessableLevel, GuessableLevelNames } from "./PasswordField";
 
-import styles from "./PasswordStrengthMeter.module.scss";
+import styles from "./PasswordStrengthMeter.module.css";
 
 interface PasswordStrengthMeterProps {
   className?: string;

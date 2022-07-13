@@ -28,7 +28,7 @@ import { useGetTelecomCountryName } from "../../util/translations";
 import ALL_COUNTRIES from "../../data/country.json";
 import { useExactKeywordSearch } from "../../util/search";
 
-import styles from "./AuthenticationCountryCallingCodeList.module.scss";
+import styles from "./AuthenticationCountryCallingCodeList.module.css";
 
 export interface CountryCallingCodeListProps {
   className?: string;

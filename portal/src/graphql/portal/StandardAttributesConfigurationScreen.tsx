@@ -22,7 +22,7 @@ import {
 } from "../../types";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { parseJSONPointer } from "../../util/jsonpointer";
-import styles from "./StandardAttributesConfigurationScreen.module.scss";
+import styles from "./StandardAttributesConfigurationScreen.module.css";
 
 interface FormState {
   standardAttributesItems: StandardAttributesAccessControlConfig[];

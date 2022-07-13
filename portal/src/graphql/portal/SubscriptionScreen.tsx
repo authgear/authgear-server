@@ -38,7 +38,7 @@ import { AppFragmentFragment } from "./query/subscriptionScreenQuery.generated";
 import { useSubscriptionScreenQueryQuery } from "./query/subscriptionScreenQuery";
 import { useGenerateStripeCustomerPortalSessionMutationMutation } from "./mutations/generateStripeCustomerPortalSessionMutation";
 import { useUpdateSubscriptionMutation } from "./mutations/updateSubscriptionMutation";
-import styles from "./SubscriptionScreen.module.scss";
+import styles from "./SubscriptionScreen.module.css";
 import SubscriptionCurrentPlanSummary, {
   CostItem,
   CostItemSeparator,

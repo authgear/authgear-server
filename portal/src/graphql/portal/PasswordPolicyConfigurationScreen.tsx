@@ -38,7 +38,7 @@ import FormContainer from "../../FormContainer";
 import CustomTagPicker from "../../CustomTagPicker";
 import { fixTagPickerStyles } from "../../bugs";
 
-import styles from "./PasswordPolicyConfigurationScreen.module.scss";
+import styles from "./PasswordPolicyConfigurationScreen.module.css";
 
 interface FormState {
   forceChange: boolean;

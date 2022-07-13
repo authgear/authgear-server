@@ -1,6 +1,6 @@
 // /* global process */
 import "normalize.css";
-import "./index.scss";
+import "./index.css";
 import "intl-tel-input/build/css/intlTelInput.css";
 import "intl-tel-input/build/js/utils.js";
 import "cropperjs/dist/cropper.min.css";

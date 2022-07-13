@@ -3,7 +3,7 @@ import cn from "classnames";
 import Cropperjs from "cropperjs";
 import { Image, ImageFit, FontIcon } from "@fluentui/react";
 
-import styles from "./ReactCropperjs.module.scss";
+import styles from "./ReactCropperjs.module.css";
 
 export interface ReactCropperjsProps {
   className?: string;

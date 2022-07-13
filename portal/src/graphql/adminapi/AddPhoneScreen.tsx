@@ -22,7 +22,7 @@ import {
 import { PortalAPIAppConfig } from "../../types";
 import FormPhoneTextField from "../../FormPhoneTextField";
 
-import styles from "./AddPhoneScreen.module.scss";
+import styles from "./AddPhoneScreen.module.css";
 
 const errorRules: ErrorParseRule[] = [
   makeInvariantViolatedErrorParseRule(

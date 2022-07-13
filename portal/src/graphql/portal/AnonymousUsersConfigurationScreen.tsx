@@ -37,7 +37,7 @@ import {
 } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
 import Tooltip from "../../Tooltip";
-import styles from "./AnonymousUsersConfigurationScreen.module.scss";
+import styles from "./AnonymousUsersConfigurationScreen.module.css";
 
 const dropDownStyles = {
   dropdown: {

@@ -13,7 +13,7 @@ import {
 import { useTooltipTargetElement } from "./Tooltip";
 import { FormattedMessage } from "@oursky/react-messageformat";
 
-import styles from "./LabelWithTooltip.module.scss";
+import styles from "./LabelWithTooltip.module.css";
 
 interface LabelWithTooltipProps {
   className?: string;

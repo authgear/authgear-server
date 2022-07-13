@@ -1,6 +1,6 @@
 import React from "react";
 import cn from "classnames";
-import styles from "./ScreenContent.module.scss";
+import styles from "./ScreenContent.module.css";
 
 export interface ScreenContentProps {
   className?: string;

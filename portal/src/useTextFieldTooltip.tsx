@@ -10,7 +10,7 @@ import {
 } from "@fluentui/react";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import { useTooltipTargetElement } from "./Tooltip";
-import styles from "./useTextFieldTooltip.module.scss";
+import styles from "./useTextFieldTooltip.module.css";
 
 const iconButtonStyles = {
   root: {

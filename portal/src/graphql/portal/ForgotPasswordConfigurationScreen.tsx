@@ -18,7 +18,7 @@ import ScreenDescription from "../../ScreenDescription";
 import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
 import FormContainer from "../../FormContainer";
-import styles from "./ForgotPasswordConfigurationScreen.module.scss";
+import styles from "./ForgotPasswordConfigurationScreen.module.css";
 
 interface FormState {
   codeExpirySeconds: number | undefined;

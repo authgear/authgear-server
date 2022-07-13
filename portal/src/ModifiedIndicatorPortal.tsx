@@ -4,7 +4,7 @@ import { ScrollablePane } from "@fluentui/react";
 
 import { ModifiedIndicator, ModifiedIndicatorProps } from "./ModifiedIndicator";
 
-import styles from "./ModifiedIndicator.module.scss";
+import styles from "./ModifiedIndicator.module.css";
 
 interface ModifiedIndicatorWrapperProps {
   className?: string;

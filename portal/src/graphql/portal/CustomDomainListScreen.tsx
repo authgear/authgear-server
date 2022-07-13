@@ -44,7 +44,7 @@ import ErrorDialog from "../../error/ErrorDialog";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
-import styles from "./CustomDomainListScreen.module.scss";
+import styles from "./CustomDomainListScreen.module.css";
 import { CustomDomainFeatureConfig, PortalAPIAppConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import {

@@ -6,7 +6,7 @@ import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import ScreenHeader from "../../ScreenHeader";
 import { App, useAppListQuery } from "./query/appListQuery";
-import styles from "./AppsScreen.module.scss";
+import styles from "./AppsScreen.module.css";
 
 interface AppListProps {
   apps: App[] | null;

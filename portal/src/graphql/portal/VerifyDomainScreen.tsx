@@ -20,7 +20,7 @@ import { useDomainsQuery } from "./query/domainsQuery";
 import { useVerifyDomainMutation } from "./mutations/verifyDomainMutation";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
 
-import styles from "./VerifyDomainScreen.module.scss";
+import styles from "./VerifyDomainScreen.module.css";
 import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 import ScreenContent from "../../ScreenContent";
 import Widget from "../../Widget";

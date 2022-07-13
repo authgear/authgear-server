@@ -8,7 +8,7 @@ import {
   dataURIToBase64EncodedData,
 } from "./util/uri";
 
-import styles from "./ImageFilePicker.module.scss";
+import styles from "./ImageFilePicker.module.css";
 
 export type ImageFileExtension = ".jpeg" | ".png" | ".gif";
 

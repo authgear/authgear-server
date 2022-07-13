@@ -19,7 +19,7 @@ import {
   AuditLogEntryFragment,
 } from "./query/auditLogEntryQuery.generated";
 
-import styles from "./AuditLogEntryScreen.module.scss";
+import styles from "./AuditLogEntryScreen.module.css";
 
 function getRawUserIDFromAuditLog(
   node: AuditLogEntryFragment

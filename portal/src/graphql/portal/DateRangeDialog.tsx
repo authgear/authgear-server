@@ -8,7 +8,7 @@ import {
 } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import React, { useMemo } from "react";
-import styles from "./DateRangeDialog.module.scss";
+import styles from "./DateRangeDialog.module.css";
 
 interface DateRangeDialogProps {
   hidden: boolean;

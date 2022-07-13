@@ -20,7 +20,7 @@ import { formatDatetime } from "../../util/formatDatetime";
 import { extractRawID } from "../../util/graphql";
 import useDelayedValue from "../../hook/useDelayedValue";
 
-import styles from "./AuditLogList.module.scss";
+import styles from "./AuditLogList.module.css";
 
 const PLACEHOLDER = "-";
 

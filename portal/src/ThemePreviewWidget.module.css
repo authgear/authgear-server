@@ -109,7 +109,7 @@
   padding-top: 16px;
   padding-right: 16px;
   padding-bottom: 16px;
-  // stylelint-disable-next-line declaration-block-no-redundant-longhand-properties
+  /* stylelint-disable-next-line declaration-block-no-redundant-longhand-properties */
   padding-left: 16px;
 }
 
@@ -137,7 +137,7 @@
   border-radius: 0;
   border-bottom-style: solid;
   border-bottom-width: 1px;
-  // stylelint-disable-next-line declaration-block-no-redundant-longhand-properties
+  /* stylelint-disable-next-line declaration-block-no-redundant-longhand-properties */
   border-bottom-color: var(--color-text-shaded-3);
 }
 

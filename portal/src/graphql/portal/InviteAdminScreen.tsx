@@ -9,7 +9,7 @@ import FormContainer from "../../FormContainer";
 import ScreenContent from "../../ScreenContent";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
-import styles from "./InviteAdminScreen.module.scss";
+import styles from "./InviteAdminScreen.module.css";
 
 interface FormState {
   email: string;

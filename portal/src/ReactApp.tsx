@@ -16,7 +16,7 @@ import MESSAGES from "./locale-data/en.json";
 import { client } from "./graphql/portal/apollo";
 import { registerLocale } from "i18n-iso-countries";
 import i18nISOCountriesEnLocale from "i18n-iso-countries/langs/en.json";
-import styles from "./ReactApp.module.scss";
+import styles from "./ReactApp.module.css";
 import OAuthRedirect from "./OAuthRedirect";
 import AcceptAdminInvitationScreen from "./graphql/portal/AcceptAdminInvitationScreen";
 import { SystemConfigContext } from "./context/SystemConfigContext";

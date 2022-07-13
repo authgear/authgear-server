@@ -21,7 +21,7 @@ import {
   CustomAttributesAttributeConfig,
 } from "../../types";
 import { parseJSONPointer } from "../../util/jsonpointer";
-import styles from "./CustomAttributesConfigurationScreen.module.scss";
+import styles from "./CustomAttributesConfigurationScreen.module.css";
 
 interface FormState {
   items: CustomAttributesAttributeConfig[];

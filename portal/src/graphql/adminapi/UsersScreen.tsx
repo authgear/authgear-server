@@ -28,7 +28,7 @@ import { UserSortBy, SortDirection } from "./globalTypes.generated";
 import ShowError from "../../ShowError";
 import useDelayedValue from "../../hook/useDelayedValue";
 
-import styles from "./UsersScreen.module.scss";
+import styles from "./UsersScreen.module.css";
 
 const LocalSearchBoxContext = createContext<LocalSearchBoxProps | null>(null);
 

@@ -1,7 +1,7 @@
 import React from "react";
 import cn from "classnames";
 
-import styles from "./CheckboxWithContentLayout.module.scss";
+import styles from "./CheckboxWithContentLayout.module.css";
 
 interface CheckboxWithContentLayoutProps {
   className?: string;

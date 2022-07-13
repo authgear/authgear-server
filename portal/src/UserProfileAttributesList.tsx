@@ -31,7 +31,7 @@ import {
   AccessControlLevelString,
 } from "./types";
 import { parseJSONPointer } from "./util/jsonpointer";
-import styles from "./UserProfileAttributesList.module.scss";
+import styles from "./UserProfileAttributesList.module.css";
 
 export type UserProfileAttributesListAccessControlAdjustment = [
   keyof UserProfileAttributesAccessControl,

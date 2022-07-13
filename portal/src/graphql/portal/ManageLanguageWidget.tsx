@@ -30,7 +30,7 @@ import { useSystemConfig } from "../../context/SystemConfigContext";
 import { LanguageTag } from "../../util/resource";
 import { useExactKeywordSearch } from "../../util/search";
 
-import styles from "./ManageLanguageWidget.module.scss";
+import styles from "./ManageLanguageWidget.module.css";
 
 interface ManageLanguageWidgetProps {
   className?: string;

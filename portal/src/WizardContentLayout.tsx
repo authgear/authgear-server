@@ -8,7 +8,7 @@ import {
 } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import ReactRouterLink from "./ReactRouterLink";
-import styles from "./WizardContentLayout.module.scss";
+import styles from "./WizardContentLayout.module.css";
 
 export interface WizardContentLayoutProps {
   title?: React.ReactNode;

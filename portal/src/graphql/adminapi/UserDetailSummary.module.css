@@ -1,5 +1,3 @@
-@import "../../styles/variable.scss";
-
 .root {
   width: 600px;
   font-size: 13px;
@@ -55,11 +53,11 @@
 }
 
 .accountID {
-  color: $black;
+  color: #000000;
 }
 
 .formattedName {
-  color: $black;
+  color: #000000;
 }
 
 .anonymousUserLabel {

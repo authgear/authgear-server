@@ -7,7 +7,7 @@ import {
   DirectionalHint,
 } from "@fluentui/react";
 
-import styles from "./Tooltip.module.scss";
+import styles from "./Tooltip.module.css";
 import { FormattedMessage } from "@oursky/react-messageformat";
 
 interface TooltipProps {

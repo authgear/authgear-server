@@ -1,8 +1,8 @@
-$descriptionTextColor: #888888;
-
 .root {
   margin: 12px 8px 50px;
   width: 640px;
+
+  --descriptionTextColor: #888888;
 }
 
 .authenticatorContainer {
@@ -101,7 +101,7 @@ $descriptionTextColor: #888888;
 .oobOtpCellAddedOn {
   grid-area: odesc;
   padding-left: 2px;
-  color: $descriptionTextColor;
+  color: var(--descriptionTextColor);
 }
 
 .oobOtpRemoveButton {

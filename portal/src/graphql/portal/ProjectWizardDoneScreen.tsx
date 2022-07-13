@@ -7,10 +7,11 @@ import {
   IIconProps,
   PrimaryButton,
   Text,
+  useTheme,
 } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import ScreenHeader from "../../ScreenHeader";
-import styles from "./ProjectWizardDoneScreen.module.scss";
+import styles from "./ProjectWizardDoneScreen.module.css";
 import SignupScreenImg from "../../images/onboarding_signup_screen.png";
 import SettingScreenImg from "../../images/onboarding_settings_screen.png";
 import SSOLogoImg from "../../images/onboarding_sso_logo.png";
@@ -32,6 +33,7 @@ export interface ProjectWizardDoneStepContentProps {
 const ProjectWizardDoneStepContent: React.FC<ProjectWizardDoneStepContentProps> =
   function ProjectWizardDoneStepContent(props) {
     const { renderToString } = useContext(Context);
+    const theme = useTheme();
     const {
       image,
       titleId,
@@ -52,10 +54,22 @@ const ProjectWizardDoneStepContent: React.FC<ProjectWizardDoneStepContentProps> 
         </div>
         <div className={styles.info}>
           <Text className={styles.title} block={true}>
-            {stepCount && <span className={styles.stepCount}>{stepCount}</span>}
+            {stepCount && (
+              <span
+                className={styles.stepCount}
+                style={{ backgroundColor: theme.palette.themePrimary }}
+              >
+                {stepCount}
+              </span>
+            )}
             <FormattedMessage id={titleId} />
           </Text>
-          <Text className={styles.desc} block={true} variant="small">
+          <Text
+            className={styles.desc}
+            styles={{ root: { color: theme.palette.neutralSecondary } }}
+            block={true}
+            variant="small"
+          >
             <FormattedMessage id={messageId} />
           </Text>
           {!!actionLabelId && !!actionHref && (
@@ -76,6 +90,7 @@ function makeActionButton(
 ): React.FC<React.AnchorHTMLAttributes<HTMLAnchorElement>> {
   return function ActionButton(props) {
     const { children, ...rest } = props;
+    const theme = useTheme();
     return (
       <a
         className={styles.actionButton}
@@ -84,7 +99,11 @@ function makeActionButton(
       >
         <Icon {...iconProps} className={styles.actionIcon} />
         <Text className={styles.labelText}>{children}</Text>
-        <Icon className={styles.arrowIcon} iconName="ChromeBackMirrored" />
+        <Icon
+          className={styles.arrowIcon}
+          styles={{ root: { color: theme.palette.themePrimary } }}
+          iconName="ChromeBackMirrored"
+        />
       </a>
     );
   };

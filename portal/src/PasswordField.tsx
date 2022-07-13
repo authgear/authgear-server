@@ -9,7 +9,7 @@ import { PasswordPolicyConfig } from "./types";
 import FormTextField, { FormTextFieldProps } from "./FormTextField";
 import { checkPasswordPolicy } from "./error/password";
 
-import styles from "./PasswordField.module.scss";
+import styles from "./PasswordField.module.css";
 
 export type GuessableLevel = 0 | 1 | 2 | 3 | 4 | 5;
 export type GuessableLevelNames = Record<GuessableLevel, string>;

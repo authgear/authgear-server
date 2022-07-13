@@ -30,7 +30,7 @@ import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import FormContainer from "../../FormContainer";
 
-import styles from "./ApplicationsConfigurationScreen.module.scss";
+import styles from "./ApplicationsConfigurationScreen.module.css";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import WidgetTitle from "../../WidgetTitle";

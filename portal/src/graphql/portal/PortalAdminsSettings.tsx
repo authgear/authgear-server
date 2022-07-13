@@ -19,7 +19,7 @@ import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ErrorDialog from "../../error/ErrorDialog";
 
-import styles from "./PortalAdminsSettings.module.scss";
+import styles from "./PortalAdminsSettings.module.css";
 import CommandBarContainer from "../../CommandBarContainer";
 import ScreenContent from "../../ScreenContent";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";

@@ -24,7 +24,7 @@ import SetUserDisabledDialog from "./SetUserDisabledDialog";
 import { extractRawID } from "../../util/graphql";
 import { formatDatetime } from "../../util/formatDatetime";
 
-import styles from "./UsersList.module.scss";
+import styles from "./UsersList.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import useDelayedValue from "../../hook/useDelayedValue";
 

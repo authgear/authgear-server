@@ -1,7 +1,7 @@
 import React from "react";
 import cn from "classnames";
 
-import styles from "./ListCellLayout.module.scss";
+import styles from "./ListCellLayout.module.css";
 
 interface ListCellLayoutProps {
   className?: string;

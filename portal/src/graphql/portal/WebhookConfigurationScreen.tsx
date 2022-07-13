@@ -34,7 +34,7 @@ import FormContainer from "../../FormContainer";
 import FormTextField from "../../FormTextField";
 import { clearEmptyObject } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
-import styles from "./WebhookConfigurationScreen.module.scss";
+import styles from "./WebhookConfigurationScreen.module.css";
 import WidgetDescription from "../../WidgetDescription";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { startReauthentication } from "./Authenticated";

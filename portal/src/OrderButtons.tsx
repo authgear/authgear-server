@@ -2,7 +2,7 @@ import React, { useCallback, useContext, useMemo } from "react";
 import { IconButton } from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
 
-import styles from "./OrderButtons.module.scss";
+import styles from "./OrderButtons.module.css";
 
 interface OrderButtonsProps {
   index?: number;

@@ -45,7 +45,7 @@ import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
 import ALL_COUNTRIES from "../../data/country.json";
 
-import styles from "./LoginIDConfigurationScreen.module.scss";
+import styles from "./LoginIDConfigurationScreen.module.css";
 
 const errorRules = [
   makeValidationErrorMatchUnknownKindParseRule(

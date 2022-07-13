@@ -13,7 +13,7 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import { formatDatetime } from "../../util/formatDatetime";
 
-import styles from "./UserDetailsSession.module.scss";
+import styles from "./UserDetailsSession.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import { useRevokeSessionMutation } from "./mutations/revokeSessionMutation";

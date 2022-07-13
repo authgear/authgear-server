@@ -29,7 +29,7 @@ import { downloadStringAsFile } from "../../util/download";
 import { startReauthentication } from "./Authenticated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { makeGraphQLEndpoint } from "../adminapi/apollo";
-import styles from "./AdminAPIConfigurationScreen.module.scss";
+import styles from "./AdminAPIConfigurationScreen.module.css";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
 
 interface AdminAPIConfigurationScreenContentProps {

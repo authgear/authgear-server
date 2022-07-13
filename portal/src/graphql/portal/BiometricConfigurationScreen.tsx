@@ -18,7 +18,7 @@ import {
 } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
-import styles from "./BiometricConfigurationScreen.module.scss";
+import styles from "./BiometricConfigurationScreen.module.css";
 
 interface FormState {
   enabled: boolean;

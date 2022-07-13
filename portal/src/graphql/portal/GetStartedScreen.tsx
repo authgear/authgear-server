@@ -40,7 +40,7 @@ import iconApplication from "../../images/getting-started-icon-application.png";
 import iconSSO from "../../images/getting-started-icon-sso.png";
 import iconTeam from "../../images/getting-started-icon-team.png";
 import iconTick from "../../images/getting-started-icon-tick.png";
-import styles from "./GetStartedScreen.module.scss";
+import styles from "./GetStartedScreen.module.css";
 
 type Progress = keyof TutorialStatusData["progress"];
 

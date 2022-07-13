@@ -38,7 +38,7 @@ import { AccessControlLevelString } from "../../types";
 import { APIError } from "../../error/error";
 import { ErrorParseRule, makeLocalErrorParseRule } from "../../error/parse";
 
-import styles from "./EditPictureScreen.module.scss";
+import styles from "./EditPictureScreen.module.css";
 
 interface FormState {
   picture?: string;

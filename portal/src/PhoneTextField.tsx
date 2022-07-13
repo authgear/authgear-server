@@ -3,7 +3,7 @@ import React, { createRef } from "react";
 import { Text, Label } from "@fluentui/react";
 import intlTelInput from "intl-tel-input";
 import { SystemConfigContext } from "./context/SystemConfigContext";
-import styles from "./PhoneTextField.module.scss";
+import styles from "./PhoneTextField.module.css";
 
 export interface PhoneTextFieldProps {
   className?: string;

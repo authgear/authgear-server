@@ -9,7 +9,7 @@ import {
   IIconStyleProps,
 } from "@fluentui/react";
 
-import styles from "./CommandBarDropdown.module.scss";
+import styles from "./CommandBarDropdown.module.css";
 
 export interface CommandBarDropdownProps extends IDropdownProps {
   iconProps?: IIconProps;

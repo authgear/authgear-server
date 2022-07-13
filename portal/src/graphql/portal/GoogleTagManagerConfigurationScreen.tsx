@@ -16,7 +16,7 @@ import { PortalAPIAppConfig } from "../../types";
 import Widget from "../../Widget";
 import WidgetDescription from "../../WidgetDescription";
 import FormTextField from "../../FormTextField";
-import styles from "./GoogleTagManagerConfigurationScreen.module.scss";
+import styles from "./GoogleTagManagerConfigurationScreen.module.css";
 
 interface FormState {
   enabled: boolean;
