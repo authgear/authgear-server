@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"sort"
 
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -29,7 +30,7 @@ func (a authorizationResultCode) WriteResponse(rw http.ResponseWriter, r *http.R
 	for _, cookie := range a.Cookies {
 		httputil.UpdateCookie(rw, cookie)
 	}
-	writeResponse(rw, r, a.RedirectURI, a.ResponseMode, a.Response)
+	oauth.WriteResponse(rw, r, a.RedirectURI, a.ResponseMode, a.Response)
 }
 
 func (a authorizationResultCode) IsInternalError() bool {
@@ -38,7 +39,7 @@ func (a authorizationResultCode) IsInternalError() bool {
 
 func (a authorizationResultError) WriteResponse(rw http.ResponseWriter, r *http.Request) {
 	if a.RedirectURI != nil {
-		writeResponse(rw, r, a.RedirectURI, a.ResponseMode, a.Response)
+		oauth.WriteResponse(rw, r, a.RedirectURI, a.ResponseMode, a.Response)
 	} else {
 		err := "Invalid OAuth authorization request:\n"
 		keys := make([]string, 0, len(a.Response))
