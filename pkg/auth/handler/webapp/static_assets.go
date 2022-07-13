@@ -28,22 +28,47 @@ type ResourceManager interface {
 	Resolve(path string) (resource.Descriptor, bool)
 }
 
+type GlobalEmbeddedResourceManager interface {
+	Resolve(resourcePath string) (string, bool)
+	Open(assetPath string) (http.File, error)
+}
+
 type StaticAssetsHandler struct {
-	Resources ResourceManager
+	Resources         ResourceManager
+	EmbeddedResources GlobalEmbeddedResourceManager
 }
 
 func (h *StaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fileServer := http.StripPrefix("/static/", http.FileServer(h))
 
 	filePath := strings.TrimPrefix(r.URL.Path, "/static/")
-	_, err := h.Open(filePath)
-	if err == nil {
+	ok := h.Resolve(filePath)
+	if ok {
 		// set cache control header if the file is found
 		// 604800 seconds is a week
 		w.Header().Set("Cache-Control", "public, max-age=604800")
 	}
 
 	fileServer.ServeHTTP(w, r)
+}
+
+func (h *StaticAssetsHandler) Resolve(name string) bool {
+	p := path.Join(web.StaticAssetResourcePrefix, name)
+
+	filePath, hashInPath := web.ParsePathWithHash(p)
+	if filePath == "" || hashInPath == "" {
+		return false
+	}
+
+	if _, ok := h.EmbeddedResources.Resolve(p); ok {
+		return true
+	}
+
+	if _, ok := h.Resources.Resolve(filePath); ok {
+		return true
+	}
+
+	return false
 }
 
 func (h *StaticAssetsHandler) Open(name string) (http.File, error) {
@@ -54,9 +79,13 @@ func (h *StaticAssetsHandler) Open(name string) (http.File, error) {
 		return nil, os.ErrNotExist
 	}
 
-	resolvePath := filePath
+	// Use GlobalEmbeddedResourceManager to check if the static asset is belong to it
+	if asset, ok := h.EmbeddedResources.Resolve(p); ok {
+		return h.EmbeddedResources.Open(asset)
+	}
 
-	desc, ok := h.Resources.Resolve(resolvePath)
+	// Fallback ResourceManager
+	desc, ok := h.Resources.Resolve(filePath)
 	if !ok {
 		return nil, os.ErrNotExist
 	}

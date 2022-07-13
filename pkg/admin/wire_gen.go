@@ -403,12 +403,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	httpConfig := appConfig.HTTP
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,

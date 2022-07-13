@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/resource"
@@ -31,6 +32,7 @@ type RootProvider struct {
 	RedisHub           *redis.Hub
 	TaskQueueFactory   TaskQueueFactory
 	BaseResources      *resource.Manager
+	EmbeddedResources  *web.GlobalEmbeddedResourceManager
 }
 
 func NewRootProvider(
@@ -62,6 +64,11 @@ func NewRootProvider(
 	redisPool := redis.NewPool()
 	redisHub := redis.NewHub(redisPool, loggerFactory)
 
+	embeddedResources, err := web.NewDefaultGlobalEmbeddedResourceManager()
+	if err != nil {
+		return nil, err
+	}
+
 	p = RootProvider{
 		EnvironmentConfig:  cfg,
 		ConfigSourceConfig: configSourceConfig,
@@ -76,6 +83,7 @@ func NewRootProvider(
 			builtinResourceDirectory,
 			customResourceDirectory,
 		),
+		EmbeddedResources: embeddedResources,
 	}
 	return &p, nil
 }
@@ -238,6 +246,7 @@ type BackgroundProvider struct {
 	RedisPool          *redis.Pool
 	RedisHub           *redis.Hub
 	BaseResources      *resource.Manager
+	EmbeddedResources  *web.GlobalEmbeddedResourceManager
 }
 
 func NewBackgroundProvider(
@@ -268,6 +277,11 @@ func NewBackgroundProvider(
 	redisPool := redis.NewPool()
 	redisHub := redis.NewHub(redisPool, loggerFactory)
 
+	embeddedResources, err := web.NewDefaultGlobalEmbeddedResourceManager()
+	if err != nil {
+		return nil, err
+	}
+
 	p = BackgroundProvider{
 		EnvironmentConfig:  cfg,
 		ConfigSourceConfig: configSourceConfig,
@@ -281,6 +295,7 @@ func NewBackgroundProvider(
 			builtinResourceDirectory,
 			customResourceDirectory,
 		),
+		EmbeddedResources: embeddedResources,
 	}
 
 	return &p, nil
