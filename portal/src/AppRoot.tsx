@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, lazy, Suspense } from "react";
 import { Routes, Route, useParams, Navigate } from "react-router-dom";
 import { ApolloProvider } from "@apollo/client";
 
@@ -7,50 +7,132 @@ import { useAppAndSecretConfigQuery } from "./graphql/portal/query/appAndSecretC
 import ScreenLayout from "./ScreenLayout";
 import ShowLoading from "./ShowLoading";
 
-import UsersScreen from "./graphql/adminapi/UsersScreen";
-import AddUserScreen from "./graphql/adminapi/AddUserScreen";
-import UserDetailsScreen from "./graphql/adminapi/UserDetailsScreen";
-import AddEmailScreen from "./graphql/adminapi/AddEmailScreen";
-import AddPhoneScreen from "./graphql/adminapi/AddPhoneScreen";
-import AddUsernameScreen from "./graphql/adminapi/AddUsernameScreen";
-import ResetPasswordScreen from "./graphql/adminapi/ResetPasswordScreen";
-import EditPictureScreen from "./graphql/adminapi/EditPictureScreen";
+const UsersScreen = lazy(async () => import("./graphql/adminapi/UsersScreen"));
+const AddUserScreen = lazy(
+  async () => import("./graphql/adminapi/AddUserScreen")
+);
+const UserDetailsScreen = lazy(
+  async () => import("./graphql/adminapi/UserDetailsScreen")
+);
+const AddEmailScreen = lazy(
+  async () => import("./graphql/adminapi/AddEmailScreen")
+);
+const AddPhoneScreen = lazy(
+  async () => import("./graphql/adminapi/AddPhoneScreen")
+);
+const AddUsernameScreen = lazy(
+  async () => import("./graphql/adminapi/AddUsernameScreen")
+);
+const ResetPasswordScreen = lazy(
+  async () => import("./graphql/adminapi/ResetPasswordScreen")
+);
+const EditPictureScreen = lazy(
+  async () => import("./graphql/adminapi/EditPictureScreen")
+);
 
-import AuditLogScreen from "./graphql/adminapi/AuditLogScreen";
-import AuditLogEntryScreen from "./graphql/adminapi/AuditLogEntryScreen";
+const AuditLogScreen = lazy(
+  async () => import("./graphql/adminapi/AuditLogScreen")
+);
+const AuditLogEntryScreen = lazy(
+  async () => import("./graphql/adminapi/AuditLogEntryScreen")
+);
 
-import ProjectRootScreen from "./graphql/portal/ProjectRootScreen";
-import GetStartedScreen from "./graphql/portal/GetStartedScreen";
-import AnonymousUsersConfigurationScreen from "./graphql/portal/AnonymousUsersConfigurationScreen";
-import SingleSignOnConfigurationScreen from "./graphql/portal/SingleSignOnConfigurationScreen";
-import PasswordPolicyConfigurationScreen from "./graphql/portal/PasswordPolicyConfigurationScreen";
-import ForgotPasswordConfigurationScreen from "./graphql/portal/ForgotPasswordConfigurationScreen";
-import ApplicationsConfigurationScreen from "./graphql/portal/ApplicationsConfigurationScreen";
-import CreateOAuthClientScreen from "./graphql/portal/CreateOAuthClientScreen";
-import EditOAuthClientScreen from "./graphql/portal/EditOAuthClientScreen";
-import CustomDomainListScreen from "./graphql/portal/CustomDomainListScreen";
-import VerifyDomainScreen from "./graphql/portal/VerifyDomainScreen";
-import UISettingsScreen from "./graphql/portal/UISettingsScreen";
-import LocalizationConfigurationScreen from "./graphql/portal/LocalizationConfigurationScreen";
-import InviteAdminScreen from "./graphql/portal/InviteAdminScreen";
-import PortalAdminsSettings from "./graphql/portal/PortalAdminsSettings";
-import WebhookConfigurationScreen from "./graphql/portal/WebhookConfigurationScreen";
-import AdminAPIConfigurationScreen from "./graphql/portal/AdminAPIConfigurationScreen";
-import LoginIDConfigurationScreen from "./graphql/portal/LoginIDConfigurationScreen";
-import AuthenticatorConfigurationScreen from "./graphql/portal/AuthenticatorConfigurationScreen";
-import VerificationConfigurationScreen from "./graphql/portal/VerificationConfigurationScreen";
-import BiometricConfigurationScreen from "./graphql/portal/BiometricConfigurationScreen";
-import SubscriptionScreen from "./graphql/portal/SubscriptionScreen";
-import SMTPConfigurationScreen from "./graphql/portal/SMTPConfigurationScreen";
-import StandardAttributesConfigurationScreen from "./graphql/portal/StandardAttributesConfigurationScreen";
-import CustomAttributesConfigurationScreen from "./graphql/portal/CustomAttributesConfigurationScreen";
-import EditCustomAttributeScreen from "./graphql/portal/EditCustomAttributeScreen";
-import CreateCustomAttributeScreen from "./graphql/portal/CreateCustomAttributeScreen";
-import AccountDeletionConfigurationScreen from "./graphql/portal/AccountDeletionConfigurationScreen";
-import AnalyticsScreen from "./graphql/portal/AnalyticsScreen";
-import IntegrationsConfigurationScreen from "./graphql/portal/IntegrationsConfigurationScreen";
-import GoogleTagManagerConfigurationScreen from "./graphql/portal/GoogleTagManagerConfigurationScreen";
-import SubscriptionRedirect from "./graphql/portal/SubscriptionRedirect";
+const ProjectRootScreen = lazy(
+  async () => import("./graphql/portal/ProjectRootScreen")
+);
+const GetStartedScreen = lazy(
+  async () => import("./graphql/portal/GetStartedScreen")
+);
+const AnonymousUsersConfigurationScreen = lazy(
+  async () => import("./graphql/portal/AnonymousUsersConfigurationScreen")
+);
+const SingleSignOnConfigurationScreen = lazy(
+  async () => import("./graphql/portal/SingleSignOnConfigurationScreen")
+);
+const PasswordPolicyConfigurationScreen = lazy(
+  async () => import("./graphql/portal/PasswordPolicyConfigurationScreen")
+);
+const ForgotPasswordConfigurationScreen = lazy(
+  async () => import("./graphql/portal/ForgotPasswordConfigurationScreen")
+);
+const ApplicationsConfigurationScreen = lazy(
+  async () => import("./graphql/portal/ApplicationsConfigurationScreen")
+);
+const CreateOAuthClientScreen = lazy(
+  async () => import("./graphql/portal/CreateOAuthClientScreen")
+);
+const EditOAuthClientScreen = lazy(
+  async () => import("./graphql/portal/EditOAuthClientScreen")
+);
+const CustomDomainListScreen = lazy(
+  async () => import("./graphql/portal/CustomDomainListScreen")
+);
+const VerifyDomainScreen = lazy(
+  async () => import("./graphql/portal/VerifyDomainScreen")
+);
+const UISettingsScreen = lazy(
+  async () => import("./graphql/portal/UISettingsScreen")
+);
+const LocalizationConfigurationScreen = lazy(
+  async () => import("./graphql/portal/LocalizationConfigurationScreen")
+);
+const InviteAdminScreen = lazy(
+  async () => import("./graphql/portal/InviteAdminScreen")
+);
+const PortalAdminsSettings = lazy(
+  async () => import("./graphql/portal/PortalAdminsSettings")
+);
+const WebhookConfigurationScreen = lazy(
+  async () => import("./graphql/portal/WebhookConfigurationScreen")
+);
+const AdminAPIConfigurationScreen = lazy(
+  async () => import("./graphql/portal/AdminAPIConfigurationScreen")
+);
+const LoginIDConfigurationScreen = lazy(
+  async () => import("./graphql/portal/LoginIDConfigurationScreen")
+);
+const AuthenticatorConfigurationScreen = lazy(
+  async () => import("./graphql/portal/AuthenticatorConfigurationScreen")
+);
+const VerificationConfigurationScreen = lazy(
+  async () => import("./graphql/portal/VerificationConfigurationScreen")
+);
+const BiometricConfigurationScreen = lazy(
+  async () => import("./graphql/portal/BiometricConfigurationScreen")
+);
+const SubscriptionScreen = lazy(
+  async () => import("./graphql/portal/SubscriptionScreen")
+);
+const SMTPConfigurationScreen = lazy(
+  async () => import("./graphql/portal/SMTPConfigurationScreen")
+);
+const StandardAttributesConfigurationScreen = lazy(
+  async () => import("./graphql/portal/StandardAttributesConfigurationScreen")
+);
+const CustomAttributesConfigurationScreen = lazy(
+  async () => import("./graphql/portal/CustomAttributesConfigurationScreen")
+);
+const EditCustomAttributeScreen = lazy(
+  async () => import("./graphql/portal/EditCustomAttributeScreen")
+);
+const CreateCustomAttributeScreen = lazy(
+  async () => import("./graphql/portal/CreateCustomAttributeScreen")
+);
+const AccountDeletionConfigurationScreen = lazy(
+  async () => import("./graphql/portal/AccountDeletionConfigurationScreen")
+);
+const AnalyticsScreen = lazy(
+  async () => import("./graphql/portal/AnalyticsScreen")
+);
+const IntegrationsConfigurationScreen = lazy(
+  async () => import("./graphql/portal/IntegrationsConfigurationScreen")
+);
+const GoogleTagManagerConfigurationScreen = lazy(
+  async () => import("./graphql/portal/GoogleTagManagerConfigurationScreen")
+);
+const SubscriptionRedirect = lazy(
+  async () => import("./graphql/portal/SubscriptionRedirect")
+);
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams() as { appID: string };
@@ -78,162 +160,414 @@ const AppRoot: React.FC = function AppRoot() {
     <ApolloProvider client={client}>
       <ScreenLayout>
         <Routes>
-          <Route index={true} element={<ProjectRootScreen />} />
+          <Route
+            index={true}
+            element={
+              <Suspense fallback={<ShowLoading />}>
+                <ProjectRootScreen />
+              </Suspense>
+            }
+          />
 
           <Route path="getting-started">
-            <Route index={true} element={<GetStartedScreen />} />
+            <Route
+              index={true}
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <GetStartedScreen />
+                </Suspense>
+              }
+            />
           </Route>
 
           <Route path="analytics">
-            <Route index={true} element={<AnalyticsScreen />} />
+            <Route
+              index={true}
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <AnalyticsScreen />
+                </Suspense>
+              }
+            />
           </Route>
 
           <Route path="users">
-            <Route index={true} element={<UsersScreen />} />
-            <Route path="add-user" element={<AddUserScreen />} />
+            <Route
+              index={true}
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <UsersScreen />
+                </Suspense>
+              }
+            />
+            <Route
+              path="add-user"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <AddUserScreen />
+                </Suspense>
+              }
+            />
             <Route path=":userID">
               <Route
                 index={true}
                 element={<Navigate to="details" replace={true} />}
               />
               <Route path="details">
-                <Route index={true} element={<UserDetailsScreen />} />
-                <Route path="add-email" element={<AddEmailScreen />} />
-                <Route path="add-phone" element={<AddPhoneScreen />} />
-                <Route path="add-username" element={<AddUsernameScreen />} />
+                <Route
+                  index={true}
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <UserDetailsScreen />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="add-email"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <AddEmailScreen />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="add-phone"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <AddPhoneScreen />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="add-username"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <AddUsernameScreen />
+                    </Suspense>
+                  }
+                />
                 <Route
                   path="reset-password"
-                  element={<ResetPasswordScreen />}
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <ResetPasswordScreen />
+                    </Suspense>
+                  }
                 />
-                <Route path="edit-picture" element={<EditPictureScreen />} />
+                <Route
+                  path="edit-picture"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <EditPictureScreen />
+                    </Suspense>
+                  }
+                />
               </Route>
             </Route>
           </Route>
 
           <Route path="custom-domains">
-            <Route index={true} element={<CustomDomainListScreen />} />
+            <Route
+              index={true}
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <CustomDomainListScreen />
+                </Suspense>
+              }
+            />
             <Route path=":domainID">
               <Route
                 index={true}
                 element={<Navigate to="verify" replace={true} />}
               />
-              <Route path="verify" element={<VerifyDomainScreen />} />
+              <Route
+                path="verify"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <VerifyDomainScreen />
+                  </Suspense>
+                }
+              />
             </Route>
           </Route>
 
           <Route path="configuration">
             <Route path="authentication">
-              <Route path="login-id" element={<LoginIDConfigurationScreen />} />
+              <Route
+                path="login-id"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <LoginIDConfigurationScreen />
+                  </Suspense>
+                }
+              />
               <Route
                 path="authenticators"
-                element={<AuthenticatorConfigurationScreen />}
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <AuthenticatorConfigurationScreen />
+                  </Suspense>
+                }
               />
               <Route
                 path="verification"
-                element={<VerificationConfigurationScreen />}
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <VerificationConfigurationScreen />
+                  </Suspense>
+                }
               />
             </Route>
             <Route
               path="anonymous-users"
-              element={<AnonymousUsersConfigurationScreen />}
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <AnonymousUsersConfigurationScreen />
+                </Suspense>
+              }
             />
             <Route
               path="biometric"
-              element={<BiometricConfigurationScreen />}
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <BiometricConfigurationScreen />
+                </Suspense>
+              }
             />
             <Route
               path="single-sign-on"
-              element={<SingleSignOnConfigurationScreen />}
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <SingleSignOnConfigurationScreen />
+                </Suspense>
+              }
             />
             <Route
               path="password-policy"
-              element={<PasswordPolicyConfigurationScreen />}
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <PasswordPolicyConfigurationScreen />
+                </Suspense>
+              }
             />
             <Route path="apps">
               <Route
                 index={true}
-                element={<ApplicationsConfigurationScreen />}
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <ApplicationsConfigurationScreen />
+                  </Suspense>
+                }
               />
-              <Route path="add" element={<CreateOAuthClientScreen />} />
+              <Route
+                path="add"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <CreateOAuthClientScreen />
+                  </Suspense>
+                }
+              />
               <Route path=":clientID">
                 <Route
                   index={true}
                   element={<Navigate to="edit" replace={true} />}
                 />
-                <Route path="edit" element={<EditOAuthClientScreen />} />
+                <Route
+                  path="edit"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <EditOAuthClientScreen />
+                    </Suspense>
+                  }
+                />
               </Route>
             </Route>
-            <Route path="smtp" element={<SMTPConfigurationScreen />} />
-            <Route path="ui-settings" element={<UISettingsScreen />} />
+            <Route
+              path="smtp"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <SMTPConfigurationScreen />
+                </Suspense>
+              }
+            />
+            <Route
+              path="ui-settings"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <UISettingsScreen />
+                </Suspense>
+              }
+            />
             <Route
               path="localization"
-              element={<LocalizationConfigurationScreen />}
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <LocalizationConfigurationScreen />
+                </Suspense>
+              }
             />
             <Route path="user-profile">
               <Route
                 path="standard-attributes"
-                element={<StandardAttributesConfigurationScreen />}
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <StandardAttributesConfigurationScreen />
+                  </Suspense>
+                }
               />
               <Route path="custom-attributes">
                 <Route
                   index={true}
-                  element={<CustomAttributesConfigurationScreen />}
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <CustomAttributesConfigurationScreen />
+                    </Suspense>
+                  }
                 />
-                <Route path="add" element={<CreateCustomAttributeScreen />} />
+                <Route
+                  path="add"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <CreateCustomAttributeScreen />
+                    </Suspense>
+                  }
+                />
                 <Route path=":index">
                   <Route
                     index={true}
                     element={<Navigate to="edit" replace={true} />}
                   />
-                  <Route path="edit" element={<EditCustomAttributeScreen />} />
+                  <Route
+                    path="edit"
+                    element={
+                      <Suspense fallback={<ShowLoading />}>
+                        <EditCustomAttributeScreen />
+                      </Suspense>
+                    }
+                  />
                 </Route>
               </Route>
             </Route>
           </Route>
 
           <Route path="integrations">
-            <Route index={true} element={<IntegrationsConfigurationScreen />} />
+            <Route
+              index={true}
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <IntegrationsConfigurationScreen />
+                </Suspense>
+              }
+            />
             <Route
               path="google-tag-manager"
-              element={<GoogleTagManagerConfigurationScreen />}
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <GoogleTagManagerConfigurationScreen />
+                </Suspense>
+              }
             />
           </Route>
 
           <Route path="billing">
-            <Route index={true} element={<SubscriptionScreen />} />
+            <Route
+              index={true}
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <SubscriptionScreen />
+                </Suspense>
+              }
+            />
           </Route>
 
           <Route path="billing-redirect">
-            <Route index={true} element={<SubscriptionRedirect />} />
+            <Route
+              index={true}
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <SubscriptionRedirect />
+                </Suspense>
+              }
+            />
           </Route>
 
           <Route path="advanced">
-            <Route path="webhooks" element={<WebhookConfigurationScreen />} />
-            <Route path="admin-api" element={<AdminAPIConfigurationScreen />} />
+            <Route
+              path="webhooks"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <WebhookConfigurationScreen />
+                </Suspense>
+              }
+            />
+            <Route
+              path="admin-api"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <AdminAPIConfigurationScreen />
+                </Suspense>
+              }
+            />
             <Route
               path="account-deletion"
-              element={<AccountDeletionConfigurationScreen />}
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <AccountDeletionConfigurationScreen />
+                </Suspense>
+              }
             />
             <Route
               path="password-reset-code"
-              element={<ForgotPasswordConfigurationScreen />}
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <ForgotPasswordConfigurationScreen />
+                </Suspense>
+              }
             />
           </Route>
 
           <Route path="audit-log">
-            <Route index={true} element={<AuditLogScreen />} />
+            <Route
+              index={true}
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <AuditLogScreen />
+                </Suspense>
+              }
+            />
             <Route path=":logID">
               <Route
                 index={true}
                 element={<Navigate to="details" replace={true} />}
               />
-              <Route path="details" element={<AuditLogEntryScreen />} />
+              <Route
+                path="details"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <AuditLogEntryScreen />
+                  </Suspense>
+                }
+              />
             </Route>
           </Route>
 
           <Route path="portal-admins">
-            <Route index={true} element={<PortalAdminsSettings />} />
-            <Route path="invite" element={<InviteAdminScreen />} />
+            <Route
+              index={true}
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <PortalAdminsSettings />
+                </Suspense>
+              }
+            />
+            <Route
+              path="invite"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <InviteAdminScreen />
+                </Suspense>
+              }
+            />
           </Route>
         </Routes>
       </ScreenLayout>

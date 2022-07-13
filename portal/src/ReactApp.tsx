@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import {
   LocaleProvider,
@@ -8,17 +8,12 @@ import {
 import { ApolloProvider } from "@apollo/client";
 import authgear from "@authgear/web";
 import { Helmet, HelmetProvider } from "react-helmet-async";
-import AppsScreen from "./graphql/portal/AppsScreen";
-import CreateProjectScreen from "./graphql/portal/CreateProjectScreen";
-import ProjectWizardScreen from "./graphql/portal/ProjectWizardScreen";
 import AppRoot from "./AppRoot";
 import MESSAGES from "./locale-data/en.json";
 import { client } from "./graphql/portal/apollo";
 import { registerLocale } from "i18n-iso-countries";
 import i18nISOCountriesEnLocale from "i18n-iso-countries/langs/en.json";
 import styles from "./ReactApp.module.css";
-import OAuthRedirect from "./OAuthRedirect";
-import AcceptAdminInvitationScreen from "./graphql/portal/AcceptAdminInvitationScreen";
 import { SystemConfigContext } from "./context/SystemConfigContext";
 import {
   SystemConfig,
@@ -28,11 +23,26 @@ import {
   mergeSystemConfig,
 } from "./system-config";
 import { loadTheme, Link as FluentLink, ILinkProps } from "@fluentui/react";
-import ProjectWizardDoneScreen from "./graphql/portal/ProjectWizardDoneScreen";
-import OnboardingRedirect from "./OnboardingRedirect";
 import { ReactRouterLink, ReactRouterLinkProps } from "./ReactRouterLink";
 import Authenticated from "./graphql/portal/Authenticated";
 import { LoadingContextProvider } from "./hook/loading";
+import ShowLoading from "./ShowLoading";
+
+const AppsScreen = lazy(async () => import("./graphql/portal/AppsScreen"));
+const CreateProjectScreen = lazy(
+  async () => import("./graphql/portal/CreateProjectScreen")
+);
+const ProjectWizardScreen = lazy(
+  async () => import("./graphql/portal/ProjectWizardScreen")
+);
+const ProjectWizardDoneScreen = lazy(
+  async () => import("./graphql/portal/ProjectWizardDoneScreen")
+);
+const OnboardingRedirect = lazy(async () => import("./OnboardingRedirect"));
+const OAuthRedirect = lazy(async () => import("./OAuthRedirect"));
+const AcceptAdminInvitationScreen = lazy(
+  async () => import("./graphql/portal/AcceptAdminInvitationScreen")
+);
 
 async function loadSystemConfig(): Promise<SystemConfig> {
   const resp = await fetch("/api/system-config.json");
@@ -68,7 +78,9 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
             index={true}
             element={
               <Authenticated>
-                <AppsScreen />
+                <Suspense fallback={<ShowLoading />}>
+                  <AppsScreen />
+                </Suspense>
               </Authenticated>
             }
           />
@@ -76,7 +88,9 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
             path="create"
             element={
               <Authenticated>
-                <CreateProjectScreen />
+                <Suspense fallback={<ShowLoading />}>
+                  <CreateProjectScreen />
+                </Suspense>
               </Authenticated>
             }
           />
@@ -101,7 +115,9 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
                 path="*"
                 element={
                   <Authenticated>
-                    <ProjectWizardScreen />
+                    <Suspense fallback={<ShowLoading />}>
+                      <ProjectWizardScreen />
+                    </Suspense>
                   </Authenticated>
                 }
               />
@@ -109,7 +125,9 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
                 path="done"
                 element={
                   <Authenticated>
-                    <ProjectWizardDoneScreen />
+                    <Suspense fallback={<ShowLoading />}>
+                      <ProjectWizardDoneScreen />
+                    </Suspense>
                   </Authenticated>
                 }
               />
@@ -117,13 +135,31 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
           </Route>
         </Route>
 
-        <Route path="/oauth-redirect" element={<OAuthRedirect />} />
+        <Route
+          path="/oauth-redirect"
+          element={
+            <Suspense fallback={<ShowLoading />}>
+              <OAuthRedirect />
+            </Suspense>
+          }
+        />
 
-        <Route path="/onboarding-redirect" element={<OnboardingRedirect />} />
+        <Route
+          path="/onboarding-redirect"
+          element={
+            <Suspense fallback={<ShowLoading />}>
+              <OnboardingRedirect />
+            </Suspense>
+          }
+        />
 
         <Route
           path="/collaborators/invitation"
-          element={<AcceptAdminInvitationScreen />}
+          element={
+            <Suspense fallback={<ShowLoading />}>
+              <AcceptAdminInvitationScreen />
+            </Suspense>
+          }
         />
       </Routes>
     </BrowserRouter>
