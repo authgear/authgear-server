@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -78,7 +79,7 @@ func (h *EndSessionHandler) Handle(s session.Session, req protocol.EndSessionReq
 		redirectURI = urlutil.WithQueryParamsAdded(uri, map[string]string{"state": state}).String()
 	}
 
-	http.Redirect(rw, r, redirectURI, http.StatusFound)
+	oauth.HTMLRedirect(rw, redirectURI)
 	return nil
 }
 

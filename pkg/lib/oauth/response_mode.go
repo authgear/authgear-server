@@ -1,4 +1,4 @@
-package handler
+package oauth
 
 import (
 	"fmt"
@@ -59,27 +59,28 @@ func init() {
 	}
 }
 
-func writeResponse(w http.ResponseWriter, r *http.Request, redirectURI *url.URL, responseMode string, response map[string]string) {
+func WriteResponse(w http.ResponseWriter, r *http.Request, redirectURI *url.URL, responseMode string, response map[string]string) {
 	if responseMode == "" {
 		responseMode = "query"
 	}
 
 	switch responseMode {
 	case "query":
-		htmlRedirect(w, urlutil.WithQueryParamsAdded(redirectURI, response).String())
+		HTMLRedirect(w, urlutil.WithQueryParamsAdded(redirectURI, response).String())
 	case "fragment":
-		htmlRedirect(w, urlutil.WithQueryParamsSetToFragment(redirectURI, response).String())
+		HTMLRedirect(w, urlutil.WithQueryParamsSetToFragment(redirectURI, response).String())
 	case "form_post":
-		formPost(w, redirectURI, response)
+		FormPost(w, redirectURI, response)
 	default:
 		http.Error(w, fmt.Sprintf("oauth: invalid response_mode %s", responseMode), http.StatusBadRequest)
 	}
 }
 
-func htmlRedirect(rw http.ResponseWriter, redirectURI string) {
+func HTMLRedirect(rw http.ResponseWriter, redirectURI string) {
 	rw.Header().Set("Content-Type", "text/html; charset=utf-8")
 	// XHR and redirect.
 	//
+
 	// Normally we should use HTTP 302 to redirect.
 	// However, when XHR is used, redirect is followed automatically.
 	// The final redirect URI may be custom URI which is considered unsecure by user agent.
@@ -94,7 +95,7 @@ func htmlRedirect(rw http.ResponseWriter, redirectURI string) {
 	}
 }
 
-func formPost(w http.ResponseWriter, redirectURI *url.URL, response map[string]string) {
+func FormPost(w http.ResponseWriter, redirectURI *url.URL, response map[string]string) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	err := formPostTemplate.Execute(w, map[string]interface{}{

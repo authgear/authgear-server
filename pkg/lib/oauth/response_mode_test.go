@@ -1,4 +1,4 @@
-package handler
+package oauth
 
 import (
 	"net/http"
@@ -10,7 +10,7 @@ import (
 )
 
 func TestWriteResponse(t *testing.T) {
-	Convey("writeResponse", t, func() {
+	Convey("WriteResponse", t, func() {
 		test := func(responseMode string, expected string) {
 			w := httptest.NewRecorder()
 			r, _ := http.NewRequest("GET", "/", nil)
@@ -19,7 +19,7 @@ func TestWriteResponse(t *testing.T) {
 				"code":  "this_is_the_code",
 				"state": "this_is_the_state",
 			}
-			writeResponse(w, r, redirectURI, responseMode, response)
+			WriteResponse(w, r, redirectURI, responseMode, response)
 			So(w.Body.String(), ShouldEqual, expected)
 		}
 
