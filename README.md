@@ -152,10 +152,7 @@ go run ./cmd/authgear database migrate new add user table
 
 ## HTTPS setup
 
-If you are testing external OAuth provider, you must enable TLS.
-
-1. Cookie is only included in third party redirect if it has SameSite=None attribute.
-2. Cookie with SameSite=None attribute without Secure attribute is rejected.
+TLS is required to perform OAuth and WebAuthn.
 
 To setup HTTPS easily, you can use [mkcert](https://github.com/FiloSottile/mkcert)
 
@@ -164,8 +161,10 @@ To setup HTTPS easily, you can use [mkcert](https://github.com/FiloSottile/mkcer
 brew install mkcert
 # Install the root CA into Keychain Access.
 mkcert -install
-# Create TLS certificate and private key with the given host.
-mkcert -cert-file tls-cert.pem -key-file tls-key.pem localhost 127.0.0.1 ::1
+# Generate the TLS certificate
+make mkcert
+# Uncomment the TLS config in nginx.conf to enable TLS
+# Restart proxy
 ```
 
 One caveat is HTTP redirect to HTTPS is not supported, you have to type in https in the browser address bar manually.
