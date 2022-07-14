@@ -143,3 +143,8 @@ generate-timezones:
 .PHONY: logs-summary
 logs-summary:
 	git log --first-parent --format='%as (%h) %s' $(A)..$(B)
+
+.PHONY: mkcert
+mkcert:
+	rm -f tls-cert.pem tls-key.pem
+	mkcert -cert-file tls-cert.pem -key-file tls-key.pem "::1" "127.0.0.1" localhost portal.localhost accounts.localhost accounts.portal.localhost $$(ifconfig | grep 'inet 192' | awk '{print $$2}')
