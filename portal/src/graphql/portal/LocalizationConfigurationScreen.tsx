@@ -211,27 +211,53 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
       }
     }, []);
 
-    const getValue = useCallback(
-      (def: ResourceDefinition) => {
+    const getValueFromState = useCallback(
+      (
+        resources: Partial<Record<string, Resource>>,
+        selectedLanguage: string,
+        fallbackLanguage: string,
+        def: ResourceDefinition,
+        getValueFn: (
+          resource: Resource | undefined
+        ) => string | undefined | null
+      ) => {
         const specifier: ResourceSpecifier = {
           def,
-          locale: state.selectedLanguage,
+          locale: selectedLanguage,
           extension: null,
         };
-        const value = state.resources[specifierId(specifier)]?.nullableValue;
+        const value = getValueFn(resources[specifierId(specifier)]);
 
         if (value == null) {
           const specifier: ResourceSpecifier = {
             def,
-            locale: state.fallbackLanguage,
+            locale: fallbackLanguage,
             extension: null,
           };
-          return state.resources[specifierId(specifier)]?.nullableValue ?? "";
+          return getValueFn(resources[specifierId(specifier)]) ?? "";
         }
 
         return value;
       },
-      [state.resources, state.selectedLanguage, state.fallbackLanguage]
+      []
+    );
+
+    const getValue = useCallback(
+      (def: ResourceDefinition) => {
+        return getValueFromState(
+          state.resources,
+          state.selectedLanguage,
+          state.fallbackLanguage,
+          def,
+          (res) => res?.nullableValue
+        );
+      },
+      [
+        state.resources,
+        state.selectedLanguage,
+        state.fallbackLanguage,
+        getValueFromState,
+      ]
     );
 
     const getOnChange = useCallback(
@@ -248,6 +274,8 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
               specifier,
               path: expandSpecifier(specifier),
               nullableValue: value ?? "",
+              effectiveData:
+                prev.resources[specifierId(specifier)]?.effectiveData,
             };
             updatedResources[specifierId(resource.specifier)] = resource;
             return { ...prev, resources: updatedResources };
@@ -255,6 +283,106 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         };
       },
       [state.selectedLanguage, setState]
+    );
+
+    const getTranslationValue = useCallback(
+      (key: string) => {
+        // get from the translation json first
+        const translationJSONStr = getValueFromState(
+          state.resources,
+          state.selectedLanguage,
+          state.fallbackLanguage,
+          RESOURCE_TRANSLATION_JSON,
+          (res) => res?.nullableValue
+        );
+        const translationJSON = JSON.parse(translationJSONStr);
+        if (translationJSON[key] != null) {
+          return translationJSON[key];
+        }
+        // fallback to the effective data
+        const effTranslationJSONStr = getValueFromState(
+          state.resources,
+          state.selectedLanguage,
+          state.fallbackLanguage,
+          RESOURCE_TRANSLATION_JSON,
+          (res) => res?.effectiveData
+        );
+        const jsonValue = JSON.parse(effTranslationJSONStr);
+        return jsonValue[key] ?? "";
+      },
+      [
+        state.resources,
+        state.selectedLanguage,
+        state.fallbackLanguage,
+        getValueFromState,
+      ]
+    );
+
+    const getTranslationOnChange = useCallback(
+      (key: string) => {
+        const specifier: ResourceSpecifier = {
+          def: RESOURCE_TRANSLATION_JSON,
+          locale: state.selectedLanguage,
+          extension: null,
+        };
+        return (value: string | undefined, _e: unknown) => {
+          setState((prev) => {
+            // get the translation JSON, decode and alter
+            const translationJSONStr = getValueFromState(
+              prev.resources,
+              prev.selectedLanguage,
+              prev.fallbackLanguage,
+              RESOURCE_TRANSLATION_JSON,
+              (res) => res?.nullableValue
+            );
+            const translationJSON = JSON.parse(translationJSONStr);
+            if (value) {
+              translationJSON[key] = value;
+            } else {
+              delete translationJSON[key];
+            }
+            const resultTranslationJSON = JSON.stringify(
+              translationJSON,
+              null,
+              2
+            );
+
+            // get the translation JSON effective data, decode and alter
+            const effTranslationJSONStr = getValueFromState(
+              prev.resources,
+              prev.selectedLanguage,
+              prev.fallbackLanguage,
+              RESOURCE_TRANSLATION_JSON,
+              (res) => res?.effectiveData
+            );
+            const effTranslationJSON = JSON.parse(effTranslationJSONStr);
+            if (value) {
+              effTranslationJSON[key] = value;
+            } else {
+              delete effTranslationJSON[key];
+            }
+            const resultEffTranslationJSON = JSON.stringify(
+              effTranslationJSON,
+              null,
+              2
+            );
+
+            // When the value is updated, both value and effective data of
+            // translation.json need to be updated
+            // Otherwise there will be inconsistent in the ui
+            const updatedResources = { ...prev.resources };
+            const resource: Resource = {
+              specifier,
+              path: expandSpecifier(specifier),
+              nullableValue: resultTranslationJSON,
+              effectiveData: resultEffTranslationJSON,
+            };
+            updatedResources[specifierId(resource.specifier)] = resource;
+            return { ...prev, resources: updatedResources };
+          });
+        };
+      },
+      [setState, getValueFromState, state.selectedLanguage]
     );
 
     const sectionsTranslationJSON: EditTemplatesWidgetSection[] = [
