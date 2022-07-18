@@ -298,9 +298,13 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           RESOURCE_TRANSLATION_JSON,
           (res) => res?.nullableValue
         );
-        const translationJSON = JSON.parse(translationJSONStr);
-        if (translationJSON[key] != null) {
-          return translationJSON[key];
+        try {
+          const translationJSON = JSON.parse(translationJSONStr);
+          if (translationJSON[key] != null) {
+            return translationJSON[key];
+          }
+        } catch (_e: unknown) {
+          // if failed to decode the translation.json, use the effective data
         }
         // fallback to the effective data
         const effTranslationJSONStr = getValueFromState(
@@ -338,17 +342,21 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
               RESOURCE_TRANSLATION_JSON,
               (res) => res?.nullableValue
             );
-            const translationJSON = JSON.parse(translationJSONStr);
-            if (value) {
-              translationJSON[key] = value;
-            } else {
-              delete translationJSON[key];
+
+            let resultTranslationJSON;
+            try {
+              const translationJSON = JSON.parse(translationJSONStr);
+              if (value) {
+                translationJSON[key] = value;
+              } else {
+                delete translationJSON[key];
+              }
+              resultTranslationJSON = JSON.stringify(translationJSON, null, 2);
+            } catch (error: unknown) {
+              // if failed to decode the translation.json, don't update it
+              console.error(error);
+              return prev;
             }
-            const resultTranslationJSON = JSON.stringify(
-              translationJSON,
-              null,
-              2
-            );
 
             // get the translation JSON effective data, decode and alter
             const effTranslationJSONStr = getValueFromState(
