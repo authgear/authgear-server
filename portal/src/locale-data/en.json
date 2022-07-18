@@ -545,8 +545,8 @@
   "UISettingsScreen.branding.disable-authgear-logo.label": "Display Authgear logo in Login and Signup page",
 
   "LocalizationConfigurationScreen.title": "Localization",
-  "LocalizationConfigurationScreen.description": "Manage languages and template contents.",
-  "LocalizationConfigurationScreen.template-content-title": "Manage Template Contents",
+  "LocalizationConfigurationScreen.description": "Update template contents and localizations.",
+  "LocalizationConfigurationScreen.template-content-title": "Update Template Contents",
   "LocalizationConfigurationScreen.translationjson.title": "Translations",
   "LocalizationConfigurationScreen.forgot-password.title": "Forgot Password",
   "LocalizationConfigurationScreen.passwordless-authenticator.title": "Passwordless Authenticator",
@@ -563,8 +563,8 @@
   "EditTemplatesWidget.custom-css.title": "Custom CSS",
   "EditTemplatesWidget.custom-css.subtitle": "Custom CSS to be included in every page",
 
-  "EditTemplatesWidget.passwordless.setup.title": "First Time Setup",
-  "EditTemplatesWidget.passwordless.login.title": "Subsequent Logins",
+  "EditTemplatesWidget.passwordless.setup.title": "Sign up",
+  "EditTemplatesWidget.passwordless.login.title": "Login",
 
   "PaginationWidget.First": "Go to the first page",
   "PaginationWidget.Prev": "Go to the previous page",
