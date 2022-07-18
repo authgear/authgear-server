@@ -127,6 +127,8 @@ interface FormModel {
 interface ResourcesConfigurationContentProps {
   form: FormModel;
   supportedLanguages: LanguageTag[];
+  passwordlessViaEmailEnabled: boolean;
+  passwordlessViaSMSEnabled: boolean;
 }
 
 const PIVOT_KEY_FORGOT_PASSWORD = "forgot_password";
@@ -146,7 +148,11 @@ const ALL_PIVOT_KEYS = [
 const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps> =
   function ResourcesConfigurationContent(props) {
     const { state, setState } = props.form;
-    const { supportedLanguages } = props;
+    const {
+      supportedLanguages,
+      passwordlessViaEmailEnabled,
+      passwordlessViaSMSEnabled,
+    } = props;
     const { renderToString } = useContext(Context);
     const { gitCommitHash } = useSystemConfig();
 
@@ -428,22 +434,26 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             >
               <EditTemplatesWidget sections={sectionsForgotPassword} />
             </PivotItem>
-            <PivotItem
-              headerText={renderToString(
-                "LocalizationConfigurationScreen.passwordless-via-email.title"
-              )}
-              itemKey={PIVOT_KEY_PASSWORDLESS_VIA_EMAIL}
-            >
-              <EditTemplatesWidget sections={sectionsPasswordlessViaEmail} />
-            </PivotItem>
-            <PivotItem
-              headerText={renderToString(
-                "LocalizationConfigurationScreen.passwordless-via-sms.title"
-              )}
-              itemKey={PIVOT_KEY_PASSWORDLESS_VIA_SMS}
-            >
-              <EditTemplatesWidget sections={sectionsPasswordlessViaSMS} />
-            </PivotItem>
+            {passwordlessViaEmailEnabled && (
+              <PivotItem
+                headerText={renderToString(
+                  "LocalizationConfigurationScreen.passwordless-via-email.title"
+                )}
+                itemKey={PIVOT_KEY_PASSWORDLESS_VIA_EMAIL}
+              >
+                <EditTemplatesWidget sections={sectionsPasswordlessViaEmail} />
+              </PivotItem>
+            )}
+            {passwordlessViaSMSEnabled && (
+              <PivotItem
+                headerText={renderToString(
+                  "LocalizationConfigurationScreen.passwordless-via-sms.title"
+                )}
+                itemKey={PIVOT_KEY_PASSWORDLESS_VIA_SMS}
+              >
+                <EditTemplatesWidget sections={sectionsPasswordlessViaSMS} />
+              </PivotItem>
+            )}
             <PivotItem
               headerText={renderToString(
                 "LocalizationConfigurationScreen.translationjson.title"
@@ -477,6 +487,22 @@ const LocalizationConfigurationScreen: React.FC =
         ]
       );
     }, [config.effectiveConfig.localization]);
+
+    const passwordlessViaEmailEnabled = useMemo(() => {
+      return (
+        config.effectiveConfig.authentication?.primary_authenticators?.indexOf(
+          "oob_otp_email"
+        ) !== -1
+      );
+    }, [config.effectiveConfig]);
+
+    const passwordlessViaSMSEnabled = useMemo(() => {
+      return (
+        config.effectiveConfig.authentication?.primary_authenticators?.indexOf(
+          "oob_otp_sms"
+        ) !== -1
+      );
+    }, [config.effectiveConfig]);
 
     const specifiers = useMemo<ResourceSpecifier[]>(() => {
       const specifiers = [];
@@ -558,6 +584,8 @@ const LocalizationConfigurationScreen: React.FC =
         <ResourcesConfigurationContent
           form={form}
           supportedLanguages={config.state.supportedLanguages}
+          passwordlessViaEmailEnabled={passwordlessViaEmailEnabled}
+          passwordlessViaSMSEnabled={passwordlessViaSMSEnabled}
         />
       </FormContainer>
     );
