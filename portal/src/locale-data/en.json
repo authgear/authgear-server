@@ -547,9 +547,10 @@
   "LocalizationConfigurationScreen.title": "Localization",
   "LocalizationConfigurationScreen.description": "Update template contents and localizations.",
   "LocalizationConfigurationScreen.template-content-title": "Update Template Contents",
-  "LocalizationConfigurationScreen.translationjson.title": "Translations",
-  "LocalizationConfigurationScreen.forgot-password.title": "Forgot Password",
-  "LocalizationConfigurationScreen.passwordless-authenticator.title": "Passwordless Authenticator",
+  "LocalizationConfigurationScreen.translationjson.title": "Other Translations",
+  "LocalizationConfigurationScreen.forgot-password.title": "Reset Password",
+  "LocalizationConfigurationScreen.passwordless-via-email.title": "Passwordless via Email",
+  "LocalizationConfigurationScreen.passwordless-via-sms.title": "Passwordless via SMS",
 
   "EditTemplatesWidget.email": "Email",
   "EditTemplatesWidget.html-email": "HTML Email",

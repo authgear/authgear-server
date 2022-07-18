@@ -130,14 +130,16 @@ interface ResourcesConfigurationContentProps {
 }
 
 const PIVOT_KEY_FORGOT_PASSWORD = "forgot_password";
-const PIVOT_KEY_PASSWORDLESS = "passwordless";
+const PIVOT_KEY_PASSWORDLESS_VIA_EMAIL = "passwordless_via_email";
+const PIVOT_KEY_PASSWORDLESS_VIA_SMS = "passwordless_via_sms";
 const PIVOT_KEY_TRANSLATION_JSON = "translation.json";
 
-const PIVOT_KEY_DEFAULT = PIVOT_KEY_TRANSLATION_JSON;
+const PIVOT_KEY_DEFAULT = PIVOT_KEY_FORGOT_PASSWORD;
 
 const ALL_PIVOT_KEYS = [
   PIVOT_KEY_FORGOT_PASSWORD,
-  PIVOT_KEY_PASSWORDLESS,
+  PIVOT_KEY_PASSWORDLESS_VIA_EMAIL,
+  PIVOT_KEY_PASSWORDLESS_VIA_SMS,
   PIVOT_KEY_TRANSLATION_JSON,
 ];
 
@@ -312,7 +314,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
       },
     ];
 
-    const sectionsPasswordless: EditTemplatesWidgetSection[] = [
+    const sectionsPasswordlessViaEmail: EditTemplatesWidgetSection[] = [
       {
         key: "setup",
         title: (
@@ -334,13 +336,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             language: "plaintext",
             value: getValue(RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT),
             onChange: getOnChange(RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT),
-          },
-          {
-            key: "sms",
-            title: <FormattedMessage id="EditTemplatesWidget.sms-body" />,
-            language: "plaintext",
-            value: getValue(RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT),
-            onChange: getOnChange(RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT),
           },
         ],
       },
@@ -366,6 +361,32 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             value: getValue(RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT),
             onChange: getOnChange(RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT),
           },
+        ],
+      },
+    ];
+
+    const sectionsPasswordlessViaSMS: EditTemplatesWidgetSection[] = [
+      {
+        key: "setup",
+        title: (
+          <FormattedMessage id="EditTemplatesWidget.passwordless.setup.title" />
+        ),
+        items: [
+          {
+            key: "sms",
+            title: <FormattedMessage id="EditTemplatesWidget.sms-body" />,
+            language: "plaintext",
+            value: getValue(RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT),
+            onChange: getOnChange(RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT),
+          },
+        ],
+      },
+      {
+        key: "login",
+        title: (
+          <FormattedMessage id="EditTemplatesWidget.passwordless.login.title" />
+        ),
+        items: [
           {
             key: "sms",
             title: <FormattedMessage id="EditTemplatesWidget.sms-body" />,
@@ -401,14 +422,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           <Pivot onLinkClick={onLinkClick} selectedKey={selectedKey}>
             <PivotItem
               headerText={renderToString(
-                "LocalizationConfigurationScreen.translationjson.title"
-              )}
-              itemKey={PIVOT_KEY_TRANSLATION_JSON}
-            >
-              <EditTemplatesWidget sections={sectionsTranslationJSON} />
-            </PivotItem>
-            <PivotItem
-              headerText={renderToString(
                 "LocalizationConfigurationScreen.forgot-password.title"
               )}
               itemKey={PIVOT_KEY_FORGOT_PASSWORD}
@@ -417,11 +430,27 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             </PivotItem>
             <PivotItem
               headerText={renderToString(
-                "LocalizationConfigurationScreen.passwordless-authenticator.title"
+                "LocalizationConfigurationScreen.passwordless-via-email.title"
               )}
-              itemKey={PIVOT_KEY_PASSWORDLESS}
+              itemKey={PIVOT_KEY_PASSWORDLESS_VIA_EMAIL}
             >
-              <EditTemplatesWidget sections={sectionsPasswordless} />
+              <EditTemplatesWidget sections={sectionsPasswordlessViaEmail} />
+            </PivotItem>
+            <PivotItem
+              headerText={renderToString(
+                "LocalizationConfigurationScreen.passwordless-via-sms.title"
+              )}
+              itemKey={PIVOT_KEY_PASSWORDLESS_VIA_SMS}
+            >
+              <EditTemplatesWidget sections={sectionsPasswordlessViaSMS} />
+            </PivotItem>
+            <PivotItem
+              headerText={renderToString(
+                "LocalizationConfigurationScreen.translationjson.title"
+              )}
+              itemKey={PIVOT_KEY_TRANSLATION_JSON}
+            >
+              <EditTemplatesWidget sections={sectionsTranslationJSON} />
             </PivotItem>
           </Pivot>
         </Widget>
