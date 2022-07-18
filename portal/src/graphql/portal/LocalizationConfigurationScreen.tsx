@@ -28,6 +28,9 @@ import {
   RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT,
   RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT,
   RESOURCE_TRANSLATION_JSON,
+  TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_PRIMARY_OOB_SUBJECT,
+  TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_SUBJECT,
+  TRANSLATION_JSON_KEY_EMAIL_SETUP_PRIMARY_OOB_SUBJECT,
 } from "../../resources";
 import {
   LanguageTag,
@@ -405,6 +408,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             language: "json",
             value: getValue(RESOURCE_TRANSLATION_JSON),
             onChange: getOnChange(RESOURCE_TRANSLATION_JSON),
+            editor: "code",
           },
         ],
       },
@@ -416,11 +420,24 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         title: <FormattedMessage id="EditTemplatesWidget.email" />,
         items: [
           {
+            key: "email-subject",
+            title: <FormattedMessage id="EditTemplatesWidget.email-subject" />,
+            language: "plaintext",
+            value: getTranslationValue(
+              TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_SUBJECT
+            ),
+            onChange: getTranslationOnChange(
+              TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_SUBJECT
+            ),
+            editor: "textfield",
+          },
+          {
             key: "html-email",
             title: <FormattedMessage id="EditTemplatesWidget.html-email" />,
             language: "html",
             value: getValue(RESOURCE_FORGOT_PASSWORD_EMAIL_HTML),
             onChange: getOnChange(RESOURCE_FORGOT_PASSWORD_EMAIL_HTML),
+            editor: "code",
           },
           {
             key: "plaintext-email",
@@ -430,6 +447,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             language: "plaintext",
             value: getValue(RESOURCE_FORGOT_PASSWORD_EMAIL_TXT),
             onChange: getOnChange(RESOURCE_FORGOT_PASSWORD_EMAIL_TXT),
+            editor: "code",
           },
         ],
       },
@@ -443,6 +461,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             language: "plaintext",
             value: getValue(RESOURCE_FORGOT_PASSWORD_SMS_TXT),
             onChange: getOnChange(RESOURCE_FORGOT_PASSWORD_SMS_TXT),
+            editor: "code",
           },
         ],
       },
@@ -456,11 +475,24 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         ),
         items: [
           {
+            key: "email-subject",
+            title: <FormattedMessage id="EditTemplatesWidget.email-subject" />,
+            language: "plaintext",
+            value: getTranslationValue(
+              TRANSLATION_JSON_KEY_EMAIL_SETUP_PRIMARY_OOB_SUBJECT
+            ),
+            onChange: getTranslationOnChange(
+              TRANSLATION_JSON_KEY_EMAIL_SETUP_PRIMARY_OOB_SUBJECT
+            ),
+            editor: "textfield",
+          },
+          {
             key: "html-email",
             title: <FormattedMessage id="EditTemplatesWidget.html-email" />,
             language: "html",
             value: getValue(RESOURCE_SETUP_PRIMARY_OOB_EMAIL_HTML),
             onChange: getOnChange(RESOURCE_SETUP_PRIMARY_OOB_EMAIL_HTML),
+            editor: "code",
           },
           {
             key: "plaintext-email",
@@ -470,6 +502,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             language: "plaintext",
             value: getValue(RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT),
             onChange: getOnChange(RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT),
+            editor: "code",
           },
         ],
       },
@@ -480,11 +513,24 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         ),
         items: [
           {
+            key: "email-subject",
+            title: <FormattedMessage id="EditTemplatesWidget.email-subject" />,
+            language: "plaintext",
+            value: getTranslationValue(
+              TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_PRIMARY_OOB_SUBJECT
+            ),
+            onChange: getTranslationOnChange(
+              TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_PRIMARY_OOB_SUBJECT
+            ),
+            editor: "textfield",
+          },
+          {
             key: "html-email",
             title: <FormattedMessage id="EditTemplatesWidget.html-email" />,
             language: "html",
             value: getValue(RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML),
             onChange: getOnChange(RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML),
+            editor: "code",
           },
           {
             key: "plaintext-email",
@@ -494,6 +540,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             language: "plaintext",
             value: getValue(RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT),
             onChange: getOnChange(RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT),
+            editor: "code",
           },
         ],
       },
@@ -512,6 +559,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             language: "plaintext",
             value: getValue(RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT),
             onChange: getOnChange(RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT),
+            editor: "code",
           },
         ],
       },
@@ -527,6 +575,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             language: "plaintext",
             value: getValue(RESOURCE_AUTHENTICATE_PRIMARY_OOB_SMS_TXT),
             onChange: getOnChange(RESOURCE_AUTHENTICATE_PRIMARY_OOB_SMS_TXT),
+            editor: "code",
           },
         ],
       },

@@ -553,6 +553,7 @@
   "LocalizationConfigurationScreen.passwordless-via-sms.title": "Passwordless via SMS",
 
   "EditTemplatesWidget.email": "Email",
+  "EditTemplatesWidget.email-subject": "Subject",
   "EditTemplatesWidget.html-email": "HTML Email",
   "EditTemplatesWidget.plaintext-email": "Plaintext Email",
   "EditTemplatesWidget.sms": "SMS",
