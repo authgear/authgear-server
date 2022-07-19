@@ -6165,6 +6165,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Renderer:          responseRenderer,
 		MeterService:      meterService,
 		TutorialCookie:    tutorialCookie,
+		ErrorCookie:       errorCookie,
 	}
 	return loginHandler
 }

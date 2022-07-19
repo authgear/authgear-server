@@ -147,6 +147,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.SelectAccountUserService), new(*user.Queries)),
 	wire.Bind(new(handlerwebapp.MeterService), new(*meter.Service)),
 	wire.Bind(new(handlerwebapp.WhatsappCodeProvider), new(*whatsapp.Provider)),
+	wire.Bind(new(handlerwebapp.ErrorCookie), new(*webapp.ErrorCookie)),
 
 	api.DependencySet,
 	wire.Bind(new(api.JSONResponseWriter), new(*httputil.JSONResponseWriter)),

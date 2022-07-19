@@ -55,7 +55,7 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 		}
 	}
 	if oauthConfig == nil {
-		panic("interaction: no OAuth provider with specified alias or provider is disabled")
+		return nil, interaction.ErrOAuthProviderNotFound
 	}
 
 	nonceSource := ctx.Nonces.GenerateAndSet()
