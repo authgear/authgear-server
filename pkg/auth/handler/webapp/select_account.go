@@ -95,6 +95,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	userIDHint := ""
 	canUseIntentReauthenticate := false
 	suppressIDPSessionCookie := false
+	oauthProviderAlias := ""
 
 	if webSession != nil {
 		loginPrompt = slice.ContainsString(webSession.Prompt, "login")
@@ -102,7 +103,9 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		userIDHint = webSession.UserIDHint
 		canUseIntentReauthenticate = webSession.CanUseIntentReauthenticate
 		suppressIDPSessionCookie = webSession.SuppressIDPSessionCookie
+		oauthProviderAlias = webSession.OAuthProviderAlias
 	}
+
 	// When x_suppress_idp_session_cookie is true, ignore IDP session cookie.
 	if suppressIDPSessionCookie {
 		idpSession = nil
@@ -231,9 +234,15 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 		// If anything of the following condition holds,
 		// the end-user does not need to select anything.
-		// 1. The request is not from the authorization endpoint, e.g. /
-		// 2. There is no session, so nothing to select.
-		// 3. prompt=login, in this case, the end-user cannot select existing account.
+		// - If x_oauth_provider_alisa is provided via authorization endpoint
+		// - The request is not from the authorization endpoint, e.g. /
+		// - There is no session, so nothing to select.
+		// - prompt=login, in this case, the end-user cannot select existing account.
+		if oauthProviderAlias != "" {
+			gotoLogin()
+			return nil
+		}
+
 		if !fromAuthzEndpoint || idpSession == nil || loginPrompt {
 			gotoSignupOrLogin()
 			return nil

@@ -31,6 +31,7 @@ type SessionOptions struct {
 	UpdatedAt                  time.Time
 	CanUseIntentReauthenticate bool
 	SuppressIDPSessionCookie   bool
+	OAuthProviderAlias         string
 }
 
 func NewSessionOptionsFromSession(s *Session) SessionOptions {
@@ -45,6 +46,7 @@ func NewSessionOptionsFromSession(s *Session) SessionOptions {
 		UserIDHint:                 s.UserIDHint,
 		CanUseIntentReauthenticate: s.CanUseIntentReauthenticate,
 		SuppressIDPSessionCookie:   s.SuppressIDPSessionCookie,
+		OAuthProviderAlias:         s.OAuthProviderAlias,
 	}
 }
 
@@ -91,6 +93,9 @@ type Session struct {
 
 	// SuppressIDPSessionCookie indicates whether IDP session cookie should neither be read or written.
 	SuppressIDPSessionCookie bool `json:"suppress_idp_session_cookie,omitempty"`
+
+	// OAuthProviderAlias is used to auto redirect user to the given oauth provider in the login page
+	OAuthProviderAlias string `json:"oauth_provider_alias,omitempty"`
 }
 
 func newSessionID() string {
@@ -115,6 +120,7 @@ func NewSession(options SessionOptions) *Session {
 		UserIDHint:                 options.UserIDHint,
 		CanUseIntentReauthenticate: options.CanUseIntentReauthenticate,
 		SuppressIDPSessionCookie:   options.SuppressIDPSessionCookie,
+		OAuthProviderAlias:         options.OAuthProviderAlias,
 	}
 	for k, v := range options.Extra {
 		s.Extra[k] = v

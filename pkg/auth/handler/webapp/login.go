@@ -89,11 +89,13 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	webhookState := ""
 	suppressIDPSessionCookie := false
 	prompt := []string{}
+	oauthProviderAlias := ""
 	if s := webapp.GetSession(r.Context()); s != nil {
 		webhookState = s.WebhookState
 		prompt = s.Prompt
 		userIDHint = s.UserIDHint
 		suppressIDPSessionCookie = s.SuppressIDPSessionCookie
+		oauthProviderAlias = s.OAuthProviderAlias
 	}
 	intent := &intents.IntentAuthenticate{
 		Kind:                     intents.IntentAuthenticateKindLogin,
@@ -103,6 +105,23 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	allowLoginOnly := intent.UserIDHint != ""
+
+	oauthPostAction := func(providerAlias string) error {
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			input = &InputUseOAuth{
+				ProviderAlias:    providerAlias,
+				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
+				Prompt:           prompt,
+			}
+			return
+		})
+		if err != nil {
+			return err
+		}
+
+		result.WriteResponse(w, r)
+		return nil
+	}
 
 	ctrl.Get(func() error {
 		visitorID := webapp.GetVisitorID(r.Context())
@@ -114,6 +133,12 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err := h.MeterService.TrackPageView(visitorID, meter.PageTypeLogin)
 		if err != nil {
 			return err
+		}
+
+		// If x_oauth_provider_alias is provided via authz endpoint
+		// redirect the user to the oauth provider
+		if oauthProviderAlias != "" {
+			return oauthPostAction(oauthProviderAlias)
 		}
 
 		graph, err := ctrl.EntryPointGet(opts, intent)
@@ -132,20 +157,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctrl.PostAction("oauth", func() error {
 		providerAlias := r.Form.Get("x_provider_alias")
-		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
-			input = &InputUseOAuth{
-				ProviderAlias:    providerAlias,
-				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
-				Prompt:           prompt,
-			}
-			return
-		})
-		if err != nil {
-			return err
-		}
-
-		result.WriteResponse(w, r)
-		return nil
+		return oauthPostAction(providerAlias)
 	})
 
 	ctrl.PostAction("login_id", func() error {
