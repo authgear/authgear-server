@@ -155,3 +155,10 @@ export const RESOURCE_USERNAME_EXCLUDED_KEYWORDS_TXT: ResourceDefinition = {
   extensions: [],
   optional: true,
 };
+
+export const TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_SUBJECT =
+  "email.forgot-password.subject";
+export const TRANSLATION_JSON_KEY_EMAIL_SETUP_PRIMARY_OOB_SUBJECT =
+  "email.setup-primary-oob.subject";
+export const TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_PRIMARY_OOB_SUBJECT =
+  "email.authenticate-primary-oob.subject";

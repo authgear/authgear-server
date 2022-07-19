@@ -88,10 +88,14 @@ export function useAppTemplatesQuery(
         value = specifier.def.fallback.fallbackValue;
       }
 
+      const effectiveData =
+        resource?.effectiveData && transform(resource.effectiveData);
+
       resources.push({
         specifier,
         path,
         nullableValue: value,
+        effectiveData: effectiveData,
       });
     }
 

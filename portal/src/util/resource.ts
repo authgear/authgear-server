@@ -14,6 +14,7 @@ export interface Resource {
   path: string;
   nullableValue?: string | null;
   specifier: ResourceSpecifier;
+  effectiveData?: string | null;
 }
 
 export interface ResourceSpecifier {
