@@ -3,6 +3,7 @@
   * [Identity](#identity)
     + [Identity Claims](#identity-claims)
     + [OAuth Identity](#oauth-identity)
+    + [WebAuthn Identity](#webauthn-identity)
     + [Anonymous Identity](#anonymous-identity)
       - [Anonymous Identity JWT](#anonymous-identity-jwt)
       - [Anonymous Identity JWT headers](#anonymous-identity-jwt-headers)
@@ -34,6 +35,7 @@
     + [Secondary Authenticator](#secondary-authenticator)
     + [Authenticator Types](#authenticator-types)
       - [Password Authenticator](#password-authenticator)
+      - [WebAuthn Authenticator](#webauthn-authenticator)
       - [TOTP Authenticator](#totp-authenticator)
       - [OOB-OTP Authenticator](#oob-otp-authenticator)
     + [Device Token](#device-token)
@@ -56,17 +58,18 @@ A user has many identities. A user has many authenticators.
 
 An identity is used to look up a user.
 
-3 types of identity are supported.
+5 types of identity are supported.
 
 - Login ID
 - OAuth
+- WebAuthn
 - Anonymous
 - Biometric
 
 A user either has no anonymous identity, or have exactly one anonymous identity.
 A user with anonymous identity is considered as anonymous user.
 
-A user must have at least one Login ID identity or OAuth identity.
+A user must have at least 1 Login ID identity or 1 OAuth identity.
 
 ### Identity Claims
 
@@ -82,9 +85,17 @@ OAuth identity is external identity from supported OAuth 2 IdPs. Only authorizat
 
 OAuth identity does not require primary authentication.
 
-OAuth identity skips secondary authentication.
+### WebAuthn Identity
+
+WebAuthn identity is an identity backed a WebAuthn public key credential.
+
+WebAuthn identity uses its associated WebAuthn authenticator only.
+
+For the details of WebAuthn, please see [./webauthn.md](./webauthn.md).
 
 ### Anonymous Identity
+
+Anonymous identity does not require primary authentication.
 
 Anonymous identity has the following fields:
 
@@ -141,8 +152,6 @@ where those platforms provide necessary API to protect key material with biometr
 
 Biometric identity does not require primary authentication.
 
-Biometric identity skips secondary authentication.
-
 Biometric identity collects necessary device info so that
 nice name such as "iPhone 12 Mini" can be displayed to the user.
 
@@ -178,6 +187,9 @@ A login ID has the following attributes:
 - Unique key
 
 A user can have many login IDs. For example, a user can have both an email and phone number as their login IDs.
+
+Login ID identity requires primary authentication.
+Primary password authenticator, any primary Webauthn authenticator, or matching primary OOB-OTP authenticator can be used in primary authentication.
 
 #### Login ID Key
 
@@ -268,6 +280,12 @@ Authenticators are further ordered by the configuration.
 When performing authentication, all authenticators possessed by the user can be
 used, regardless of the configured authenticator types.
 
+Whether secondary authentication is needed or not depends on the primary authenticator
+being used in the authentication.
+If no primary authenticator is used, secondary authentication is NOT needed.
+For example, signing in with OAuth does not require secondary authentication because
+no primary authenticator is used.
+
 When an identity is removed, all matching authenticators are also removed. For
 example, removing a login ID identity would also remove the OOB-OTP 
 authenticators using same login ID as target.
@@ -275,7 +293,6 @@ authenticators using same login ID as target.
 ### Primary Authenticator
 
 Primary authenticators authenticate the identity.
-Each identity has specific applicable primary authenticators.
 
 ### Secondary Authenticator
 
@@ -295,6 +312,16 @@ The default mode is `if_exists`.
 
 Password authenticator is either primary or secondary.
 Each user has at most 1 primary password, and at most 1 secondary password.
+
+Primary password authenticator requires secondary authentication.
+
+#### WebAuthn Authenticator
+
+WebAuthn authenticator is a primary authenticator.
+It is always associated with 1 WebAuthn identity.
+When the associated identity is deleted, it is deleted as well.
+
+Primary WebAuthn authenticator DOES NOT require secondary authentication.
 
 #### TOTP Authenticator
 
@@ -320,6 +347,8 @@ configuration.
 Out-of-band One-time-password authenticator is either primary or secondary.
 
 OOB-OTP authenticator is bound to a recipient address. The recipient can be an email address or phone number that can receive SMS messages.
+
+Primary OOB-OTP authenticator requires secondary authentication.
 
 An OOB-OTP authenticator may matches a login ID identity. The normalized email
 address/phone number is used to match login ID identities.
