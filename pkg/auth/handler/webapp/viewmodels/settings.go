@@ -33,7 +33,6 @@ type SettingsMFAService interface {
 
 type SettingsViewModeler struct {
 	Authenticators SettingsAuthenticatorService
-	Identities     SettingsIdentityService
 	MFA            SettingsMFAService
 	Authentication *config.AuthenticationConfig
 	Biometric      *config.BiometricConfig
@@ -45,17 +44,10 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 		return nil, err
 	}
 
-	iis, err := m.Identities.ListByUser(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	someIdentityCanHaveMFA := false
-	for _, ii := range iis {
-		if ii.CanHaveMFA() {
-			someIdentityCanHaveMFA = true
-		}
-	}
+	somePrimaryAuthenticatorCanHaveMFA := len(authenticator.ApplyFilters(
+		authenticators,
+		authenticator.KeepPrimaryAuthenticatorCanHaveMFA,
+	)) > 0
 
 	hasDeviceTokens, err := m.MFA.HasDeviceTokens(userID)
 	if err != nil {
@@ -67,7 +59,7 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 	oobotpsms := false
 	password := false
 
-	if someIdentityCanHaveMFA {
+	if somePrimaryAuthenticatorCanHaveMFA {
 		for _, typ := range *m.Authentication.SecondaryAuthenticators {
 			switch typ {
 			case model.AuthenticatorTypePassword:

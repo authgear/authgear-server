@@ -79,12 +79,6 @@ func KeepPrimaryAuthenticatorOfIdentity(ii *identity.Info) Filter {
 	})
 }
 
-// KeepSecondaryAuthenticatorOfIdentity means only Login ID identity needs MFA.
-func KeepSecondaryAuthenticatorOfIdentity(ii *identity.Info) Filter {
-	return FilterFunc(func(ai *Info) bool {
-		if ai.Kind != KindSecondary {
-			return false
-		}
-		return ii.CanHaveMFA()
-	})
-}
+var KeepPrimaryAuthenticatorCanHaveMFA = FilterFunc(func(ai *Info) bool {
+	return ai.CanHaveMFA()
+})
