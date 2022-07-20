@@ -65,10 +65,15 @@ func (n *NodeDoRemoveAuthenticator) GetEffects() ([]interaction.Effect, error) {
 				if n.BypassMFARequirement {
 					break
 				}
+				primaries := authenticator.ApplyFilters(as, authenticator.KeepPrimaryAuthenticatorCanHaveMFA)
 				secondaries := authenticator.ApplyFilters(as, authenticator.KeepKind(authenticator.KindSecondary))
 				mode := ctx.Config.Authentication.SecondaryAuthenticationMode
-				if mode == config.SecondaryAuthenticationModeRequired &&
-					len(secondaries) == 1 && secondaries[0].ID == n.Authenticator.ID {
+
+				cannotRemove := mode == config.SecondaryAuthenticationModeRequired &&
+					len(primaries) > 0 &&
+					len(secondaries) == 1 && secondaries[0].ID == n.Authenticator.ID
+
+				if cannotRemove {
 					return interaction.NewInvariantViolated(
 						"RemoveLastSecondaryAuthenticator",
 						"cannot remove last secondary authenticator",

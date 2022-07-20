@@ -28,6 +28,7 @@ func (e *EdgeAuthenticationBegin) Instantiate(ctx *interaction.Context, graph *i
 type NodeAuthenticationBegin struct {
 	Stage                authn.AuthenticationStage    `json:"stage"`
 	Identity             *identity.Info               `json:"-"`
+	PrimaryAuthenticator *authenticator.Info          `json:"-"`
 	AuthenticationConfig *config.AuthenticationConfig `json:"-"`
 	AuthenticatorConfig  *config.AuthenticatorConfig  `json:"-"`
 	Authenticators       []*authenticator.Info        `json:"-"`
@@ -40,6 +41,9 @@ func (n *NodeAuthenticationBegin) Prepare(ctx *interaction.Context, graph *inter
 	}
 
 	n.Identity = graph.MustGetUserLastIdentity()
+	if prim, ok := graph.GetUserAuthenticator(authn.AuthenticationStagePrimary); ok {
+		n.PrimaryAuthenticator = prim
+	}
 	n.AuthenticationConfig = ctx.Config.Authentication
 	n.AuthenticatorConfig = ctx.Config.Authenticator
 	n.Authenticators = ais
@@ -77,11 +81,12 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 
 	case authn.AuthenticationStageSecondary:
 		preferred = *n.AuthenticationConfig.SecondaryAuthenticators
-		availableAuthenticators = authenticator.ApplyFilters(
-			n.Authenticators,
-			authenticator.KeepKind(authenticator.KindSecondary),
-			authenticator.KeepSecondaryAuthenticatorOfIdentity(n.Identity),
-		)
+		if n.PrimaryAuthenticator.CanHaveMFA() {
+			availableAuthenticators = authenticator.ApplyFilters(
+				n.Authenticators,
+				authenticator.KeepKind(authenticator.KindSecondary),
+			)
+		}
 
 		switch n.AuthenticationConfig.SecondaryAuthenticationMode {
 		case config.SecondaryAuthenticationModeIfExists,
