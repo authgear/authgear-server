@@ -1,5 +1,7 @@
 package config
 
+import "net/url"
+
 var _ = Schema.Add("OAuthConfig", `
 {
 	"type": "object",
@@ -90,4 +92,19 @@ func (c *OAuthClientConfig) SetDefaults() {
 		b := true
 		c.IsFirstParty = &b
 	}
+}
+
+// RedirectURIHosts derives the list of host from the RedirectURIs
+// items may be duplicate
+func (c *OAuthClientConfig) RedirectURIHosts() []string {
+	result := []string{}
+	for _, uri := range c.RedirectURIs {
+		u, err := url.Parse(uri)
+		if err == nil {
+			if u.Scheme == "http" || u.Scheme == "https" {
+				result = append(result, u.Host)
+			}
+		}
+	}
+	return result
 }
