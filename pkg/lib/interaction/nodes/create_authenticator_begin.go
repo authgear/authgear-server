@@ -178,13 +178,6 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 				IsDefault:          isDefault,
 			})
 
-		case model.AuthenticatorTypeTOTP:
-			edges = append(edges, &EdgeCreateAuthenticatorTOTPSetup{
-				NewAuthenticatorID: n.NewAuthenticatorID,
-				Stage:              n.Stage,
-				IsDefault:          isDefault,
-			})
-
 		case model.AuthenticatorTypeOOBSMS:
 			loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
 
