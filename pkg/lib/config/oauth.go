@@ -25,6 +25,14 @@ func (c *OAuthConfig) GetClient(clientID string) (*OAuthClientConfig, bool) {
 	return nil, false
 }
 
+type OAuthClientApplicationType string
+
+const (
+	OAuthClientApplicationTypeSPA            OAuthClientApplicationType = "spa"
+	OAuthClientApplicationTypeTraditionalWeb OAuthClientApplicationType = "traditional_web"
+	OAuthClientApplicationTypeNative         OAuthClientApplicationType = "native"
+)
+
 var _ = Schema.Add("OAuthClientConfig", `
 {
 	"type": "object",
@@ -33,6 +41,7 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"client_id": { "type": "string" },
 		"client_uri": { "type": "string", "format": "uri" },
 		"name": { "type": "string" },
+		"x_application_type": { "type": "string", "enum": ["spa", "traditional_web", "native"] },
 		"redirect_uris": {
 			"type": "array",
 			"items": { "type": "string", "format": "uri" },
@@ -48,7 +57,27 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"issue_jwt_access_token": { "type": "boolean" },
 		"is_first_party": { "type": "boolean" }
 	},
-	"required": ["name", "client_id", "redirect_uris"]
+	"required": ["name", "client_id", "redirect_uris"],
+	"allOf": [
+		{
+			"if": {
+				"properties": {
+					"x_application_type": {
+						"enum": ["spa", "traditional_web"]
+					}
+				},
+				"required": ["x_application_type"]
+			},
+			"then": {
+				"properties": {
+					"post_logout_redirect_uris": {
+						"minItems": 1
+					}
+				},
+				"required": ["post_logout_redirect_uris"]
+			}
+		}
+	]
 }
 `)
 
@@ -56,6 +85,7 @@ type OAuthClientConfig struct {
 	ClientID                       string          `json:"client_id,omitempty"`
 	ClientURI                      string          `json:"client_uri,omitempty"`
 	Name                           string          `json:"name,omitempty"`
+	ApplicationType                string          `json:"x_application_type,omitempty"`
 	RedirectURIs                   []string        `json:"redirect_uris,omitempty"`
 	GrantTypes                     []string        `json:"grant_types,omitempty"`
 	ResponseTypes                  []string        `json:"response_types,omitempty"`
