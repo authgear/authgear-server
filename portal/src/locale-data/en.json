@@ -451,8 +451,6 @@
   "ApplicationsConfigurationScreen.add-client-button": "Add Application",
   "ApplicationsConfigurationScreen.client-list.name": "Name",
   "ApplicationsConfigurationScreen.client-list.client-id": "Client ID",
-  "ApplicationsConfigurationScreen.cors.title": "Allowed Origins",
-  "ApplicationsConfigurationScreen.cors.desc": "Configure cross-origin resource sharing (CORS), allowing HTTP requests from the list of domains specified here.",
 
   "CreateOAuthClientScreen.title": "Create Application",
   "CreateOAuthClientScreen.success-dialog.title": "Created Application Successfully",

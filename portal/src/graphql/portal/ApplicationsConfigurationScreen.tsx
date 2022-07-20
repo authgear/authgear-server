@@ -36,7 +36,6 @@ import ScreenTitle from "../../ScreenTitle";
 import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
 import WidgetDescription from "../../WidgetDescription";
-import FormTextFieldList from "../../FormTextFieldList";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 
 const COPY_ICON_STLYES: IButtonStyles = {
@@ -49,7 +48,6 @@ interface FormState {
   publicOrigin: string;
   cookieDomain?: string;
   clients: OAuthClientConfig[];
-  allowedOrigins: string[];
   persistentCookie: boolean;
   sessionLifetimeSeconds: number | undefined;
   idleTimeoutEnabled: boolean;
@@ -61,7 +59,6 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     publicOrigin: config.http?.public_origin ?? "",
     cookieDomain: config.http?.cookie_domain,
     clients: config.oauth?.clients ?? [],
-    allowedOrigins: config.http?.allowed_origins ?? [],
     persistentCookie: !(config.session?.cookie_non_persistent ?? false),
     sessionLifetimeSeconds: config.session?.lifetime_seconds,
     idleTimeoutEnabled: config.session?.idle_timeout_enabled ?? false,
@@ -79,7 +76,6 @@ function constructConfig(
     config.oauth ??= {};
     config.oauth.clients = currentState.clients;
     config.http ??= {};
-    config.http.allowed_origins = currentState.allowedOrigins;
     config.session = config.session ?? {};
     if (initialState.persistentCookie !== currentState.persistentCookie) {
       config.session.cookie_non_persistent = !currentState.persistentCookie;
@@ -192,40 +188,6 @@ const OAuthClientListActionCell: React.FC<OAuthClientListActionCellProps> =
           <FormattedMessage id="remove" />
         </ActionButton>
       </div>
-    );
-  };
-
-interface CORSConfigurationWidgetProps {
-  form: AppConfigFormModel<FormState>;
-}
-
-const CORSConfigurationWidget: React.FC<CORSConfigurationWidgetProps> =
-  function CORSConfigurationWidget(props) {
-    const { state, setState } = props.form;
-
-    const onAllowedOriginsChange = useCallback(
-      (allowedOrigins: string[]) => {
-        setState((state) => ({ ...state, allowedOrigins }));
-      },
-      [setState]
-    );
-
-    return (
-      <Widget className={styles.widget}>
-        <WidgetTitle>
-          <FormattedMessage id="ApplicationsConfigurationScreen.cors.title" />
-        </WidgetTitle>
-        <Text className={styles.description} block={true}>
-          <FormattedMessage id="ApplicationsConfigurationScreen.cors.desc" />
-        </Text>
-        <FormTextFieldList
-          parentJSONPointer="/http"
-          fieldName="allowed_origins"
-          list={state.allowedOrigins}
-          onListChange={onAllowedOriginsChange}
-          addButtonLabelMessageID="add"
-        />
-      </Widget>
     );
   };
 
@@ -422,7 +384,6 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
             onRenderItemColumn={onRenderOAuthClientColumns}
           />
         </Widget>
-        <CORSConfigurationWidget form={form} />
         <SessionConfigurationWidget form={form} />
       </ScreenContent>
     );
