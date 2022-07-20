@@ -99,3 +99,10 @@ func TestAppendIfUniqueStrings(t *testing.T) {
 		So(AppendIfUniqueStrings([]string{"a"}, "b"), ShouldResemble, []string{"a", "b"})
 	})
 }
+
+func TestDeduplicate(t *testing.T) {
+	Convey("Deduplicate", t, func() {
+		So(Deduplicate([]string{"1", "2", "3", "2", "1", "3", "3", "3"}), ShouldResemble, []string{"1", "2", "3"})
+		So(Deduplicate([]int{1, 2, 2, 3, 3, 2, 1}), ShouldResemble, []int{1, 2, 3})
+	})
+}

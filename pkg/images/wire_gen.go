@@ -48,6 +48,7 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
+	oAuthConfig := appConfig.OAuth
 	rootProvider := appProvider.RootProvider
 	environmentConfig := &rootProvider.EnvironmentConfig
 	corsAllowedOrigins := environmentConfig.CORSAllowedOrigins
@@ -55,6 +56,7 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	corsMiddlewareLogger := middleware.NewCORSMiddlewareLogger(factory)
 	corsMiddleware := &middleware.CORSMiddleware{
 		Config:             httpConfig,
+		OAuthConfig:        oAuthConfig,
 		CORSAllowedOrigins: corsAllowedOrigins,
 		Logger:             corsMiddlewareLogger,
 	}
