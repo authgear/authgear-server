@@ -51,9 +51,9 @@ type NodeCreateAuthenticatorBegin struct {
 	RequestedByUser    bool                      `json:"requested_by_user"`
 
 	Identity             *identity.Info               `json:"-"`
+	PrimaryAuthenticator *authenticator.Info          `json:"-"`
 	AuthenticationConfig *config.AuthenticationConfig `json:"-"`
 	AuthenticatorConfig  *config.AuthenticatorConfig  `json:"-"`
-	Identities           []*identity.Info             `json:"-"`
 	Authenticators       []*authenticator.Info        `json:"-"`
 }
 
@@ -62,18 +62,16 @@ func (n *NodeCreateAuthenticatorBegin) Prepare(ctx *interaction.Context, graph *
 	if err != nil {
 		return err
 	}
-	iis, err := ctx.Identities.ListByUser(graph.MustGetUserID())
-	if err != nil {
-		return err
-	}
 
-	if n.Stage == authn.AuthenticationStagePrimary {
-		n.Identity = graph.MustGetUserLastIdentity()
+	if iden, ok := graph.GetUserLastIdentity(); ok {
+		n.Identity = iden
+	}
+	if prim, ok := graph.GetUserAuthenticator(authn.AuthenticationStagePrimary); ok {
+		n.PrimaryAuthenticator = prim
 	}
 	n.AuthenticationConfig = ctx.Config.Authentication
 	n.AuthenticatorConfig = ctx.Config.Authenticator
 	n.Authenticators = ais
-	n.Identities = iis
 	return nil
 }
 
@@ -242,15 +240,8 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 		authenticator.KeepKind(authenticator.KindSecondary),
 	)
 
-	// 1.1. Skip setup if the all of the identities of the user cannot use MFA.
-	someIdentityCanHaveMFA := false
-	for _, ii := range n.Identities {
-		if ii.CanHaveMFA() {
-			someIdentityCanHaveMFA = true
-		}
-	}
-	noIdentityCanHaveMFA := !someIdentityCanHaveMFA
-	if noIdentityCanHaveMFA {
+	// 1.1. Skip setup if the primary authenticator being used cannot use MFA.
+	if n.PrimaryAuthenticator == nil || !n.PrimaryAuthenticator.CanHaveMFA() {
 		return nil
 	}
 
