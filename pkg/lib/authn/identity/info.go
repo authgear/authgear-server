@@ -183,21 +183,6 @@ func (i *Info) PrimaryAuthenticatorTypes() []model.AuthenticatorType {
 	}
 }
 
-func (i *Info) CanHaveMFA() bool {
-	switch i.Type {
-	case model.IdentityTypeLoginID:
-		return true
-	case model.IdentityTypeOAuth:
-		return false
-	case model.IdentityTypeAnonymous:
-		return false
-	case model.IdentityTypeBiometric:
-		return false
-	default:
-		panic(fmt.Sprintf("identity: unexpected identity type: %s", i.Type))
-	}
-}
-
 func (i *Info) ModifyDisabled(c *config.IdentityConfig) bool {
 	switch i.Type {
 	case model.IdentityTypeLoginID:

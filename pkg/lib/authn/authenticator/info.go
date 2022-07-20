@@ -124,3 +124,33 @@ func (i *Info) StandardClaims() map[model.ClaimName]string {
 	}
 	return claims
 }
+
+func (i *Info) CanHaveMFA() bool {
+	// No primary authenticator implies no secondary authentication is needed.
+	if i == nil {
+		return false
+	}
+
+	// Only primary authenticator can have MFA.
+	if i.Kind != KindPrimary {
+		return false
+	}
+
+	switch i.Type {
+	case model.AuthenticatorTypePassword:
+		// password is weak so it can have MFA.
+		return true
+	case model.AuthenticatorTypeOOBEmail:
+		// OTP is weak so it can have MFA.
+		return true
+	case model.AuthenticatorTypeOOBSMS:
+		// OTP is weak so it can have MFA.
+		return true
+	case model.AuthenticatorTypeTOTP:
+		// TOTP was disqualified as primary authenticator very long ago.
+		// In case we ever reach here, we treat the situation as no MFA.
+		return false
+	default:
+		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
+	}
+}
