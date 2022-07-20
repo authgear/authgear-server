@@ -199,6 +199,7 @@ func (h *AuthorizationHandler) doHandle(
 		RedirectURI:              h.OAuthURLs.FromWebAppURL(r).String(),
 		Prompt:                   h.handleMaxAgeAndPrompt(r, sidSession),
 		SuppressIDPSessionCookie: r.SuppressIDPSessionCookie(),
+		OAuthProviderAlias:       r.OAuthProviderAlias(),
 	}
 	uiLocales := strings.Join(r.UILocales(), " ")
 	colorScheme := r.ColorScheme()

@@ -41,6 +41,10 @@ type TutorialCookie interface {
 	Pop(r *http.Request, rw http.ResponseWriter, name httputil.TutorialCookieName) bool
 }
 
+type ErrorCookie interface {
+	GetError(r *http.Request) (*webapp.ErrorState, bool)
+}
+
 type LoginViewModel struct {
 	AllowLoginOnly bool
 }
@@ -52,6 +56,7 @@ type LoginHandler struct {
 	Renderer          Renderer
 	MeterService      MeterService
 	TutorialCookie    TutorialCookie
+	ErrorCookie       ErrorCookie
 }
 
 func (h *LoginHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph, allowLoginOnly bool) (map[string]interface{}, error) {
@@ -89,11 +94,13 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	webhookState := ""
 	suppressIDPSessionCookie := false
 	prompt := []string{}
+	oauthProviderAlias := ""
 	if s := webapp.GetSession(r.Context()); s != nil {
 		webhookState = s.WebhookState
 		prompt = s.Prompt
 		userIDHint = s.UserIDHint
 		suppressIDPSessionCookie = s.SuppressIDPSessionCookie
+		oauthProviderAlias = s.OAuthProviderAlias
 	}
 	intent := &intents.IntentAuthenticate{
 		Kind:                     intents.IntentAuthenticateKindLogin,
@@ -103,6 +110,23 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	allowLoginOnly := intent.UserIDHint != ""
+
+	oauthPostAction := func(providerAlias string) error {
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			input = &InputUseOAuth{
+				ProviderAlias:    providerAlias,
+				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
+				Prompt:           prompt,
+			}
+			return
+		})
+		if err != nil {
+			return err
+		}
+
+		result.WriteResponse(w, r)
+		return nil
+	}
 
 	ctrl.Get(func() error {
 		visitorID := webapp.GetVisitorID(r.Context())
@@ -114,6 +138,15 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err := h.MeterService.TrackPageView(visitorID, meter.PageTypeLogin)
 		if err != nil {
 			return err
+		}
+
+		_, hasErr := h.ErrorCookie.GetError(r)
+		// If x_oauth_provider_alias is provided via authz endpoint
+		// redirect the user to the oauth provider
+		// If there is error in the ErrorCookie, the user will stay in the login
+		// page to see the error message and the redirection won't be performed
+		if !hasErr && oauthProviderAlias != "" {
+			return oauthPostAction(oauthProviderAlias)
 		}
 
 		graph, err := ctrl.EntryPointGet(opts, intent)
@@ -132,20 +165,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctrl.PostAction("oauth", func() error {
 		providerAlias := r.Form.Get("x_provider_alias")
-		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
-			input = &InputUseOAuth{
-				ProviderAlias:    providerAlias,
-				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
-				Prompt:           prompt,
-			}
-			return
-		})
-		if err != nil {
-			return err
-		}
-
-		result.WriteResponse(w, r)
-		return nil
+		return oauthPostAction(providerAlias)
 	})
 
 	ctrl.PostAction("login_id", func() error {
