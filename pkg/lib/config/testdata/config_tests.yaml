@@ -331,7 +331,7 @@ name: invalid-totp-primary-authenticator
 error: |-
   invalid configuration:
   /authentication/primary_authenticators/0: enum
-    map[actual:totp expected:[password oob_otp_email oob_otp_sms]]
+    map[actual:totp expected:[password passkey oob_otp_email oob_otp_sms]]
 config:
   id: test
   http:

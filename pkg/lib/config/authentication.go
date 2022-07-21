@@ -37,14 +37,14 @@ var _ = Schema.Add("AuthenticationConfig", `
 var _ = Schema.Add("IdentityType", `
 {
 	"type": "string",
-	"enum": ["login_id", "oauth", "anonymous", "biometric"]
+	"enum": ["login_id", "oauth", "anonymous", "biometric", "passkey"]
 }
 `)
 
 var _ = Schema.Add("PrimaryAuthenticatorType", `
 {
 	"type": "string",
-	"enum": ["password", "oob_otp_email", "oob_otp_sms"]
+	"enum": ["password", "passkey", "oob_otp_email", "oob_otp_sms"]
 }
 `)
 
@@ -70,11 +70,13 @@ func (c *AuthenticationConfig) SetDefaults() {
 		c.Identities = []model.IdentityType{
 			model.IdentityTypeOAuth,
 			model.IdentityTypeLoginID,
+			model.IdentityTypePasskey,
 		}
 	}
 	if c.PrimaryAuthenticators == nil {
 		c.PrimaryAuthenticators = &[]model.AuthenticatorType{
 			model.AuthenticatorTypePassword,
+			model.AuthenticatorTypePasskey,
 		}
 	}
 	if c.SecondaryAuthenticators == nil {

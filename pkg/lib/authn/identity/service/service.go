@@ -10,7 +10,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/webauthn"
 )
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package service
@@ -72,6 +74,22 @@ type BiometricIdentityProvider interface {
 	Delete(i *biometric.Identity) error
 }
 
+type PasskeyIdentityProvider interface {
+	Get(userID, id string) (*passkey.Identity, error)
+	GetMany(ids []string) ([]*passkey.Identity, error)
+	GetByCredentialID(credentialID string) (*passkey.Identity, error)
+	List(userID string) ([]*passkey.Identity, error)
+	ListByClaim(name string, value string) ([]*passkey.Identity, error)
+	New(
+		userID string,
+		credentialID string,
+		creationOptions *webauthn.CreationOptions,
+		attestationResponse []byte,
+	) *passkey.Identity
+	Create(i *passkey.Identity) error
+	Delete(i *passkey.Identity) error
+}
+
 type Service struct {
 	Authentication        *config.AuthenticationConfig
 	Identity              *config.IdentityConfig
@@ -81,6 +99,7 @@ type Service struct {
 	OAuth                 OAuthIdentityProvider
 	Anonymous             AnonymousIdentityProvider
 	Biometric             BiometricIdentityProvider
+	Passkey               PasskeyIdentityProvider
 }
 
 func (s *Service) Get(id string) (*identity.Info, error) {
@@ -115,6 +134,12 @@ func (s *Service) Get(id string) (*identity.Info, error) {
 			return nil, err
 		}
 		return biometricToIdentityInfo(b), nil
+	case model.IdentityTypePasskey:
+		p, err := s.Passkey.Get(ref.UserID, id)
+		if err != nil {
+			return nil, err
+		}
+		return passkeyToIdentityInfo(p), nil
 	}
 
 	panic("identity: unknown identity type " + ref.Type)
@@ -126,7 +151,7 @@ func (s *Service) GetMany(ids []string) ([]*identity.Info, error) {
 		return nil, err
 	}
 
-	var loginIDs, oauthIDs, anonymousIDs, biometricIDs []string
+	var loginIDs, oauthIDs, anonymousIDs, biometricIDs, passkeyIDs []string
 	for _, ref := range refs {
 		switch ref.Type {
 		case model.IdentityTypeLoginID:
@@ -137,6 +162,8 @@ func (s *Service) GetMany(ids []string) ([]*identity.Info, error) {
 			anonymousIDs = append(anonymousIDs, ref.ID)
 		case model.IdentityTypeBiometric:
 			biometricIDs = append(biometricIDs, ref.ID)
+		case model.IdentityTypePasskey:
+			passkeyIDs = append(passkeyIDs, ref.ID)
 		default:
 			panic("identity: unknown identity type " + ref.Type)
 		}
@@ -174,6 +201,14 @@ func (s *Service) GetMany(ids []string) ([]*identity.Info, error) {
 	}
 	for _, i := range b {
 		infos = append(infos, biometricToIdentityInfo(i))
+	}
+
+	p, err := s.Passkey.GetMany(passkeyIDs)
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range p {
+		infos = append(infos, passkeyToIdentityInfo(i))
 	}
 
 	return infos, nil
@@ -226,6 +261,13 @@ func (s *Service) getBySpec(spec *identity.Spec) (*identity.Info, error) {
 			return nil, err
 		}
 		return biometricToIdentityInfo(b), nil
+	case model.IdentityTypePasskey:
+		credentialID := extractPasskeyClaims(spec.Claims)
+		p, err := s.Passkey.GetByCredentialID(credentialID)
+		if err != nil {
+			return nil, err
+		}
+		return passkeyToIdentityInfo(p), nil
 	}
 
 	panic("identity: unknown identity type " + spec.Type)
@@ -340,6 +382,15 @@ func (s *Service) ListByUser(userID string) ([]*identity.Info, error) {
 		infos = append(infos, biometricToIdentityInfo(i))
 	}
 
+	// passkey
+	pis, err := s.Passkey.List(userID)
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range pis {
+		infos = append(infos, passkeyToIdentityInfo(i))
+	}
+
 	return infos, nil
 }
 
@@ -390,6 +441,14 @@ func (s *Service) ListByClaim(name string, value string) ([]*identity.Info, erro
 		infos = append(infos, biometricToIdentityInfo(i))
 	}
 
+	pis, err := s.Passkey.ListByClaim(name, value)
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range pis {
+		infos = append(infos, passkeyToIdentityInfo(i))
+	}
+
 	return infos, nil
 }
 
@@ -417,6 +476,11 @@ func (s *Service) New(userID string, spec *identity.Spec, options identity.NewId
 		keyID, key, deviceInfo := extractBiometricClaims(spec.Claims)
 		b := s.Biometric.New(userID, keyID, []byte(key), deviceInfo)
 		return biometricToIdentityInfo(b), nil
+	case model.IdentityTypePasskey:
+		credentialID := extractPasskeyClaims(spec.Claims)
+		creationOptions, attestationResponse := extractPasskeyCreationClaims(spec.Claims)
+		p := s.Passkey.New(userID, credentialID, creationOptions, attestationResponse)
+		return passkeyToIdentityInfo(p), nil
 	}
 
 	panic("identity: unknown identity type " + spec.Type)
@@ -452,7 +516,12 @@ func (s *Service) Create(info *identity.Info) error {
 			return err
 		}
 		*info = *biometricToIdentityInfo(i)
-
+	case model.IdentityTypePasskey:
+		i := passkeyFromIdentityInfo(info)
+		if err := s.Passkey.Create(i); err != nil {
+			return err
+		}
+		*info = *passkeyToIdentityInfo(i)
 	default:
 		panic("identity: unknown identity type " + info.Type)
 	}
@@ -502,6 +571,8 @@ func (s *Service) Update(info *identity.Info) error {
 		panic("identity: update no support for identity type " + info.Type)
 	case model.IdentityTypeBiometric:
 		panic("identity: update no support for identity type " + info.Type)
+	case model.IdentityTypePasskey:
+		panic("identity: update no support for identity type " + info.Type)
 	default:
 		panic("identity: unknown identity type " + info.Type)
 	}
@@ -529,6 +600,11 @@ func (s *Service) Delete(info *identity.Info) error {
 	case model.IdentityTypeBiometric:
 		i := biometricFromIdentityInfo(info)
 		if err := s.Biometric.Delete(i); err != nil {
+			return err
+		}
+	case model.IdentityTypePasskey:
+		i := passkeyFromIdentityInfo(info)
+		if err := s.Passkey.Delete(i); err != nil {
 			return err
 		}
 	default:
@@ -569,6 +645,8 @@ func (s *Service) CheckDuplicated(is *identity.Info) (dupeIdentity *identity.Inf
 
 	// No need to consider biometric identity
 
+	// No need to consider passkey identity
+
 	return
 }
 
@@ -587,6 +665,7 @@ func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err e
 		}
 		// No need to consider anonymous identity
 		// No need to consider biometric identity
+		// No need to consider passkey identity
 	}
 
 	for _, i := range s.Authentication.Identities {
@@ -802,6 +881,31 @@ func extractBiometricClaims(claims map[string]interface{}) (keyID string, key st
 			panic(fmt.Sprintf("identity: expect map device info, got %T", claims[identity.IdentityClaimBiometricDeviceInfo]))
 		}
 	}
+	return
+}
+
+func extractPasskeyClaims(claims map[string]interface{}) (credentialID string) {
+	if v, ok := claims[identity.IdentityClaimPasskeyCredentialID]; ok {
+		if credentialID, ok = v.(string); !ok {
+			panic(fmt.Sprintf("identity: expect string key ID, got %T", claims[identity.IdentityClaimPasskeyCredentialID]))
+		}
+	}
+	return
+}
+
+func extractPasskeyCreationClaims(claims map[string]interface{}) (creationOptions *webauthn.CreationOptions, attestationResponse []byte) {
+	if v, ok := claims[identity.IdentityClaimPasskeyCreationOptions]; ok {
+		if creationOptions, ok = v.(*webauthn.CreationOptions); ok {
+			panic(fmt.Sprintf("identity: expect *webauthn.CreationOptions, got %T", claims[identity.IdentityClaimPasskeyCreationOptions]))
+		}
+	}
+
+	if v, ok := claims[identity.IdentityClaimPasskeyAttestationResponse]; ok {
+		if attestationResponse, ok = v.([]byte); ok {
+			panic(fmt.Sprintf("identity: expect []byte attestation response, got %T", claims[identity.IdentityClaimPasskeyAttestationResponse]))
+		}
+	}
+
 	return
 }
 
