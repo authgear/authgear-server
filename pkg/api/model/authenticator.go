@@ -8,6 +8,7 @@ type AuthenticatorType string
 
 const (
 	AuthenticatorTypePassword AuthenticatorType = "password"
+	AuthenticatorTypePasskey  AuthenticatorType = "passkey"
 	AuthenticatorTypeTOTP     AuthenticatorType = "totp"
 	AuthenticatorTypeOOBEmail AuthenticatorType = "oob_otp_email"
 	AuthenticatorTypeOOBSMS   AuthenticatorType = "oob_otp_sms"

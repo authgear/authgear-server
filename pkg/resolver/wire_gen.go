@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
@@ -231,6 +232,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Store: biometricStore,
 		Clock: clock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store: passkeyStore,
+		Clock: clock,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -240,6 +249,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -497,6 +507,14 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store: passkeyStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -506,6 +524,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig

@@ -7,6 +7,7 @@ const (
 	IdentityTypeOAuth     IdentityType = "oauth"
 	IdentityTypeAnonymous IdentityType = "anonymous"
 	IdentityTypeBiometric IdentityType = "biometric"
+	IdentityTypePasskey   IdentityType = "passkey"
 )
 
 type Identity struct {
