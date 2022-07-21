@@ -173,13 +173,13 @@ authentication:
     identities:
     - login_id
     - oauth
-    - webauthn
+    - passkey
     primary_authenticators:
     - password
-    - webauthn
+    - passkey
 ```
 
-- `authentication.identities` and `authentication.primary_authenticators` : `webauthn` is added. They have to be present or absent at the same time. If `webauthn` comes before other primary authenticators, the user is prompted to set up a passkey first.
+- `authentication.identities` and `authentication.primary_authenticators` : `passkey` is added. They have to be present or absent at the same time. If `passkey` comes before other primary authenticators, the user is prompted to set up a passkey first.
 
 ## Implementation Details
 
