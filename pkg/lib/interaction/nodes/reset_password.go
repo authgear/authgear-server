@@ -3,8 +3,6 @@ package nodes
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/successpage"
 )
@@ -45,39 +43,15 @@ func (e *EdgeResetPassword) Instantiate(ctx *interaction.Context, graph *interac
 	var codeInput InputResetPasswordByCode
 	successPageCookie := ctx.CookieManager.ValueCookie(successpage.PathCookieDef, "/reset_password/success")
 	if interaction.Input(rawInput, &resetInput) {
-		userID := resetInput.GetResetPasswordUserID()
-		newPassword := resetInput.GetNewPassword()
-
-		oldInfo, newInfo, err := ctx.ResetPassword.ResetPassword(userID, newPassword)
-		if err != nil {
-			return nil, err
-		}
-
 		return &NodeResetPasswordEnd{
-			OldAuthenticator:  oldInfo,
-			NewAuthenticator:  newInfo,
-			SuccessPageCookie: successPageCookie,
+			InputResetPassword: resetInput,
+			SuccessPageCookie:  successPageCookie,
 		}, nil
 
 	} else if interaction.Input(rawInput, &codeInput) {
-		code := codeInput.GetCode()
-		newPassword := codeInput.GetNewPassword()
-
-		codeHash := ctx.ResetPassword.HashCode(code)
-		oldInfo, newInfo, err := ctx.ResetPassword.ResetPasswordByCode(code, newPassword)
-		if err != nil {
-			return nil, err
-		}
-
-		err = ctx.ResetPassword.AfterResetPasswordByCode(codeHash)
-		if err != nil {
-			return nil, err
-		}
-
 		return &NodeResetPasswordEnd{
-			OldAuthenticator:  oldInfo,
-			NewAuthenticator:  newInfo,
-			SuccessPageCookie: successPageCookie,
+			InputResetPasswordByCode: codeInput,
+			SuccessPageCookie:        successPageCookie,
 		}, nil
 	} else {
 		return nil, interaction.ErrIncompatibleInput
@@ -85,9 +59,9 @@ func (e *EdgeResetPassword) Instantiate(ctx *interaction.Context, graph *interac
 }
 
 type NodeResetPasswordEnd struct {
-	OldAuthenticator  *authenticator.Info `json:"old_authenticator"`
-	NewAuthenticator  *authenticator.Info `json:"new_authenticator,omitempty"`
-	SuccessPageCookie *http.Cookie        `json:"success_page_cookie,omitempty"`
+	InputResetPassword       InputResetPassword       `json:"-"`
+	InputResetPasswordByCode InputResetPasswordByCode `json:"-"`
+	SuccessPageCookie        *http.Cookie             `json:"success_page_cookie,omitempty"`
 }
 
 // GetCookies implements CookiesGetter
@@ -103,21 +77,36 @@ func (n *NodeResetPasswordEnd) Prepare(ctx *interaction.Context, graph *interact
 }
 
 func (n *NodeResetPasswordEnd) GetEffects() ([]interaction.Effect, error) {
-	return nil, nil
+	return []interaction.Effect{
+		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			if n.InputResetPassword != nil {
+				resetInput := n.InputResetPassword
+
+				userID := resetInput.GetResetPasswordUserID()
+				newPassword := resetInput.GetNewPassword()
+
+				err := ctx.ResetPassword.ResetPassword(userID, newPassword)
+				if err != nil {
+					return err
+				}
+			}
+
+			if n.InputResetPasswordByCode != nil {
+				codeInput := n.InputResetPasswordByCode
+				code := codeInput.GetCode()
+				newPassword := codeInput.GetNewPassword()
+
+				err := ctx.ResetPassword.ResetPasswordByCode(code, newPassword)
+				if err != nil {
+					return err
+				}
+			}
+
+			return nil
+		}),
+	}, nil
 }
 
 func (n *NodeResetPasswordEnd) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	// Password authenticator is always primary for now
-	if n.NewAuthenticator != nil {
-		return []interaction.Edge{
-			&EdgeDoUpdateAuthenticator{
-				Stage:                     authn.AuthenticationStagePrimary,
-				AuthenticatorBeforeUpdate: n.OldAuthenticator,
-				AuthenticatorAfterUpdate:  n.NewAuthenticator,
-			},
-		}, nil
-	}
-
-	// Password is not changed, ends the interaction
-	return nil, nil
+	return graph.Intent.DeriveEdgesForNode(graph, n)
 }
