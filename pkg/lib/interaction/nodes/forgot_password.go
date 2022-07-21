@@ -1,10 +1,12 @@
 package nodes
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/successpage"
 )
@@ -69,6 +71,9 @@ func (e *EdgeForgotPasswordSelectLoginID) Instantiate(ctx *interaction.Context, 
 	loginID := input.GetLoginID()
 
 	err := ctx.ForgotPassword.SendCode(loginID)
+	if errors.Is(err, forgotpassword.ErrUserNotFound) {
+		return nil, forgotpasswordFillDetails(interaction.ErrUserNotFound)
+	}
 	if err != nil {
 		return nil, err
 	}

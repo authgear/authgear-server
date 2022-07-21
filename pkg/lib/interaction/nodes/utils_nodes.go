@@ -57,3 +57,10 @@ func identityFillDetails(err error, spec *identity.Spec, otherSpec *identity.Spe
 
 	return errorutil.WithDetails(err, details)
 }
+
+func forgotpasswordFillDetails(err error) error {
+	details := errorutil.Details{}
+	details["IdentityTypeIncoming"] = apierrors.APIErrorDetail.Value(model.IdentityTypeLoginID)
+	details["LoginIDTypeIncoming"] = ""
+	return errorutil.WithDetails(err, details)
+}
