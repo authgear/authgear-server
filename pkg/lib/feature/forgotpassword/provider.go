@@ -1,7 +1,6 @@
 package forgotpassword
 
 import (
-	"fmt"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
@@ -32,6 +31,9 @@ type AuthenticatorService interface {
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
 	WithSecret(ai *authenticator.Info, secret string) (bool, *authenticator.Info, error)
+	Update(info *authenticator.Info) error
+	Create(info *authenticator.Info) error
+	Delete(info *authenticator.Info) error
 }
 
 type IdentityService interface {
@@ -86,12 +88,8 @@ type Provider struct {
 	HardSMSBucketer HardSMSBucketer
 }
 
-// SendCode checks if loginID is an existing login ID.
-// For first matched login ID, a code is generated.
-// Other matched login IDs are ignored.
-// The code expires after a specific time.
-// The code becomes invalid if it is consumed.
-// Finally the code is sent to the login ID asynchronously.
+// SendCode uses loginID to look up Email Login IDs and Phone Number Login IDs.
+// For each looked up login ID, a code is generated and delivered asynchronously.
 func (p *Provider) SendCode(loginID string) error {
 	err := p.RateLimiter.TakeToken(AntiSpamSendCodeBucket(loginID))
 	if err != nil {
@@ -110,19 +108,6 @@ func (p *Provider) SendCode(loginID string) error {
 	allIdentities := append(emailIdentities, phoneIdentities...)
 	if len(allIdentities) == 0 {
 		return ErrUserNotFound
-	}
-
-	for _, info := range allIdentities {
-		authenticators, err := p.Authenticators.List(
-			info.UserID,
-			authenticator.KeepType(model.AuthenticatorTypePassword),
-			authenticator.KeepKind(authenticator.KindPrimary),
-		)
-		if err != nil {
-			return err
-		} else if len(authenticators) == 0 {
-			return ErrNoPassword
-		}
 	}
 
 	for _, info := range emailIdentities {
@@ -267,7 +252,7 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 // Otherwise, the password is reset to newPassword.
 // newPassword is checked against the password policy so
 // password policy error may also be returned.
-func (p *Provider) ResetPasswordByCode(codeStr string, newPassword string) (oldInfo *authenticator.Info, newInfo *authenticator.Info, err error) {
+func (p *Provider) ResetPasswordByCode(codeStr string, newPassword string) (err error) {
 	err = p.RateLimiter.TakeToken(AntiBruteForceVerifyBucket(string(p.RemoteIP)))
 	if err != nil {
 		return
@@ -289,11 +274,23 @@ func (p *Provider) ResetPasswordByCode(codeStr string, newPassword string) (oldI
 		return
 	}
 
-	return p.ResetPassword(code.UserID, newPassword)
+	err = p.ResetPassword(code.UserID, newPassword)
+	if err != nil {
+		return
+	}
+
+	err = p.Store.MarkConsumed(codeHash)
+	if err != nil {
+		return
+	}
+
+	return
 }
 
-func (p *Provider) ResetPassword(userID string, newPassword string) (oldInfo *authenticator.Info, newInfo *authenticator.Info, err error) {
-	// First see if the user has password authenticator.
+// ResetPassword ensures the user identified by userID has a password.
+// It perform necessary mutation to make this happens.
+func (p *Provider) ResetPassword(userID string, newPassword string) (err error) {
+	// List out all primary password the user has.
 	ais, err := p.Authenticators.List(
 		userID,
 		authenticator.KeepType(model.AuthenticatorTypePassword),
@@ -303,12 +300,7 @@ func (p *Provider) ResetPassword(userID string, newPassword string) (oldInfo *au
 		return
 	}
 
-	// Ensure user has password authenticator
-	if len(ais) == 0 {
-		err = ErrNoPassword
-		return
-	}
-
+	// The normal case: the user has 1 primary password
 	if len(ais) == 1 {
 		p.Logger.Debugf("resetting password")
 		// The user has 1 password. Reset it.
@@ -319,23 +311,46 @@ func (p *Provider) ResetPassword(userID string, newPassword string) (oldInfo *au
 			return
 		}
 		if changed {
-			oldInfo = ais[0]
-			newInfo = ai
+			err = p.Authenticators.Update(ai)
+			if err != nil {
+				return
+			}
 		}
 	} else {
-		// Otherwise the user has two passwords :(
-		err = fmt.Errorf("forgotpassword: detected user %s having more than 1 password", userID)
-		return
+		// The special case: the user either has no primary password or
+		// more than 1 primary passwords.
+		// We delete the existing primary passwords and then create a new one.
+		isDefault := false
+		for _, ai := range ais {
+			// If one of the authenticator we are going to delete is default,
+			// then the authenticator we are going to create should be default.
+			if ai.IsDefault {
+				isDefault = true
+			}
+
+			err = p.Authenticators.Delete(ai)
+			if err != nil {
+				return
+			}
+		}
+
+		var newInfo *authenticator.Info
+		newInfo, err = p.Authenticators.New(&authenticator.Spec{
+			UserID:    userID,
+			IsDefault: isDefault,
+			Kind:      authenticator.KindPrimary,
+			Type:      model.AuthenticatorTypePassword,
+			Claims:    map[string]interface{}{},
+		}, newPassword)
+		if err != nil {
+			return
+		}
+
+		err = p.Authenticators.Create(newInfo)
+		if err != nil {
+			return
+		}
 	}
 
-	return
-}
-
-func (p *Provider) HashCode(code string) string {
-	return HashCode(code)
-}
-
-func (p *Provider) AfterResetPasswordByCode(codeHash string) (err error) {
-	err = p.Store.MarkConsumed(codeHash)
 	return
 }
