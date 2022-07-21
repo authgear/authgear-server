@@ -25,6 +25,15 @@ func TestCORSMiddleware(t *testing.T) {
 			Config: &config.HTTPConfig{
 				AllowedOrigins: specs,
 			},
+			OAuthConfig: &config.OAuthConfig{
+				Clients: []config.OAuthClientConfig{
+					{
+						RedirectURIs: []string{
+							"http://myapp.example.com/redrect",
+						},
+					},
+				},
+			},
 			Logger:             CORSMiddlewareLogger{log.Null},
 			CORSAllowedOrigins: config.CORSAllowedOrigins(env),
 		}
@@ -117,6 +126,17 @@ func TestCORSMiddleware(t *testing.T) {
 
 			So(resp.Header().Get("Vary"), ShouldEqual, "Origin")
 			So(resp.Header().Get("Access-Control-Allow-Origin"), ShouldEqual, "http://test.example.com")
+			So(resp.Header().Get("Access-Control-Allow-Credentials"), ShouldEqual, "true")
+			So(resp.Body.Bytes(), ShouldResemble, testBody)
+		})
+
+		Convey("should allow origin in oauth client redirect uris", func() {
+			req, handler := fixture("POST", "http://myapp.example.com", []string{""}, "")
+			resp := httptest.NewRecorder()
+			handler.ServeHTTP(resp, req)
+
+			So(resp.Header().Get("Vary"), ShouldEqual, "Origin")
+			So(resp.Header().Get("Access-Control-Allow-Origin"), ShouldEqual, "http://myapp.example.com")
 			So(resp.Header().Get("Access-Control-Allow-Credentials"), ShouldEqual, "true")
 			So(resp.Body.Bytes(), ShouldResemble, testBody)
 		})

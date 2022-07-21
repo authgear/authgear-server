@@ -41,3 +41,15 @@ func AppendIfUniqueStrings(slice []string, elem string) []string {
 	slice = append(slice, elem)
 	return slice
 }
+
+func Deduplicate[T comparable](slice []T) []T {
+	inSet := map[T]struct{}{}
+	var result []T
+	for _, t := range slice {
+		if _, ok := inSet[t]; !ok {
+			inSet[t] = struct{}{}
+			result = append(result, t)
+		}
+	}
+	return result
+}
