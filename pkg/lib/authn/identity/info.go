@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/webauthn"
 )
 
 type Info struct {
@@ -51,6 +52,8 @@ func (i *Info) AMR() []string {
 		return nil
 	case model.IdentityTypeBiometric:
 		return []string{model.AMRXBiometric}
+	case model.IdentityTypePasskey:
+		return nil
 	default:
 		panic("identity: unknown identity type: " + i.Type)
 	}
@@ -96,6 +99,7 @@ func (i *Info) ToModel() model.Identity {
 // If it is a OAuth identity, email, phone_number or preferred_username is returned.
 // If it is a anonymous identity, the kid is returned.
 // If it is a biometric identity, the kid is returned.
+// If it is a passkey identity, the name is returned.
 func (i *Info) DisplayID() string {
 	switch i.Type {
 	case model.IdentityTypeLoginID:
@@ -118,6 +122,9 @@ func (i *Info) DisplayID() string {
 	case model.IdentityTypeBiometric:
 		displayID, _ := i.Claims[IdentityClaimBiometricKeyID].(string)
 		return displayID
+	case model.IdentityTypePasskey:
+		creationOptions, _ := i.Claims[IdentityClaimPasskeyCreationOptions].(*webauthn.CreationOptions)
+		return creationOptions.PublicKey.User.DisplayName
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
 	}
@@ -144,6 +151,8 @@ func (i *Info) StandardClaims() map[model.ClaimName]string {
 	case model.IdentityTypeAnonymous:
 		break
 	case model.IdentityTypeBiometric:
+		break
+	case model.IdentityTypePasskey:
 		break
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
@@ -178,6 +187,10 @@ func (i *Info) PrimaryAuthenticatorTypes() []model.AuthenticatorType {
 		return nil
 	case model.IdentityTypeBiometric:
 		return nil
+	case model.IdentityTypePasskey:
+		return []model.AuthenticatorType{
+			model.AuthenticatorTypePasskey,
+		}
 	default:
 		panic(fmt.Sprintf("identity: unexpected identity type: %s", i.Type))
 	}
@@ -216,6 +229,10 @@ func (i *Info) ModifyDisabled(c *config.IdentityConfig) bool {
 		// So we return false here.
 		return false
 	case model.IdentityTypeBiometric:
+		// modify_disabled is only applicable to login_id and oauth.
+		// So we return false here.
+		return false
+	case model.IdentityTypePasskey:
 		// modify_disabled is only applicable to login_id and oauth.
 		// So we return false here.
 		return false

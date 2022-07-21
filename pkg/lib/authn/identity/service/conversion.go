@@ -7,7 +7,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/webauthn"
 	"github.com/authgear/authgear-server/pkg/util/deviceinfo"
 )
 
@@ -155,4 +157,41 @@ func biometricFromIdentityInfo(i *identity.Info) *biometric.Identity {
 		}
 	}
 	return b
+}
+
+func passkeyToIdentityInfo(p *passkey.Identity) *identity.Info {
+	claims := map[string]interface{}{
+		identity.IdentityClaimPasskeyCredentialID:        p.CredentialID,
+		identity.IdentityClaimPasskeyCreationOptions:     p.CreationOptions,
+		identity.IdentityClaimPasskeyAttestationResponse: p.AttestationResponse,
+	}
+
+	return &identity.Info{
+		ID:        p.ID,
+		UserID:    p.UserID,
+		CreatedAt: p.CreatedAt,
+		UpdatedAt: p.UpdatedAt,
+		Type:      model.IdentityTypePasskey,
+		Claims:    claims,
+	}
+}
+
+func passkeyFromIdentityInfo(i *identity.Info) *passkey.Identity {
+	p := &passkey.Identity{
+		ID:        i.ID,
+		CreatedAt: i.CreatedAt,
+		UpdatedAt: i.UpdatedAt,
+		UserID:    i.UserID,
+	}
+	for k, v := range i.Claims {
+		switch k {
+		case identity.IdentityClaimPasskeyCredentialID:
+			p.CredentialID = v.(string)
+		case identity.IdentityClaimPasskeyCreationOptions:
+			p.CreationOptions = v.(*webauthn.CreationOptions)
+		case identity.IdentityClaimPasskeyAttestationResponse:
+			p.AttestationResponse = v.([]byte)
+		}
+	}
+	return p
 }
