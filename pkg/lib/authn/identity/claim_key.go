@@ -48,10 +48,13 @@ const (
 	IdentityClaimBiometricFormattedDeviceInfo ClaimKey = "https://authgear.com/claims/biometric/formatted_device_info"
 
 	// IdentityClaimPasskeyCredentialID is a claim with a string value.
+	// nolint: gosec
 	IdentityClaimPasskeyCredentialID ClaimKey = "https://authgear.com/claims/passkey/credential_id"
 	// IdentityClaimPasskeyCreationOptions ia a claim with a *CreationOption value.
+	// nolint: gosec
 	IdentityClaimPasskeyCreationOptions ClaimKey = "https://authgear.com/claims/passkey/creation_options"
 	// IdentityClaimPasskeyAttestationResponse ia a claim with a []byte value.
+	// nolint: gosec
 	IdentityClaimPasskeyAttestationResponse ClaimKey = "https://authgear.com/claims/passkey/attestation_response"
 
 	StandardClaimEmail             ClaimKey = "email"
