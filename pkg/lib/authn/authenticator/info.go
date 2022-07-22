@@ -14,7 +14,6 @@ type Info struct {
 	CreatedAt time.Time               `json:"created_at"`
 	UpdatedAt time.Time               `json:"updated_at"`
 	Type      model.AuthenticatorType `json:"type"`
-	Secret    string                  `json:"secret"`
 	IsDefault bool                    `json:"is_default"`
 	Kind      Kind                    `json:"kind"`
 	Claims    map[string]interface{}  `json:"claims"`
@@ -84,7 +83,10 @@ func (i *Info) Equal(that *Info) bool {
 			return false
 		}
 
-		return subtle.ConstantTimeCompare([]byte(i.Secret), []byte(that.Secret)) == 1
+		iSecret := i.Claims[AuthenticatorClaimTOTPSecret].(string)
+		thatSecret := that.Claims[AuthenticatorClaimTOTPSecret].(string)
+
+		return subtle.ConstantTimeCompare([]byte(iSecret), []byte(thatSecret)) == 1
 	case model.AuthenticatorTypeOOBEmail:
 		// If they are OOB, they have the same channel, target, and primary/secondary tag.
 		if i.Kind != that.Kind {
