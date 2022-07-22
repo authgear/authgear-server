@@ -29,8 +29,8 @@ type TemplateData struct {
 
 type AuthenticatorService interface {
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
-	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
-	WithSecret(ai *authenticator.Info, secret string) (bool, *authenticator.Info, error)
+	New(spec *authenticator.Spec) (*authenticator.Info, error)
+	WithSpec(ai *authenticator.Info, spec *authenticator.Spec) (bool, *authenticator.Info, error)
 	Update(info *authenticator.Info) error
 	Create(info *authenticator.Info) error
 	Delete(info *authenticator.Info) error
@@ -306,7 +306,11 @@ func (p *Provider) ResetPassword(userID string, newPassword string) (err error) 
 		// The user has 1 password. Reset it.
 		var changed bool
 		var ai *authenticator.Info
-		changed, ai, err = p.Authenticators.WithSecret(ais[0], newPassword)
+		changed, ai, err = p.Authenticators.WithSpec(ais[0], &authenticator.Spec{
+			Claims: map[authenticator.ClaimKey]interface{}{
+				authenticator.AuthenticatorClaimPasswordPlainPassword: newPassword,
+			},
+		})
 		if err != nil {
 			return
 		}
@@ -340,8 +344,10 @@ func (p *Provider) ResetPassword(userID string, newPassword string) (err error) 
 			IsDefault: isDefault,
 			Kind:      authenticator.KindPrimary,
 			Type:      model.AuthenticatorTypePassword,
-			Claims:    map[authenticator.ClaimKey]interface{}{},
-		}, newPassword)
+			Claims: map[authenticator.ClaimKey]interface{}{
+				authenticator.AuthenticatorClaimPasswordPlainPassword: newPassword,
+			},
+		})
 		if err != nil {
 			return
 		}

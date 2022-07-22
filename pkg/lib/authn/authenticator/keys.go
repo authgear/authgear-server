@@ -5,6 +5,8 @@ type ClaimKey string
 const (
 	// AuthenticatorClaimPasswordPasswordHash is a claim with []byte value.
 	AuthenticatorClaimPasswordPasswordHash ClaimKey = "https://authgear.com/claims/password/password_hash"
+	// AuthenticatorClaimPasswordPlainPassword is a claim with string value.
+	AuthenticatorClaimPasswordPlainPassword ClaimKey = "https://authgear.com/claims/password/plain_password"
 )
 
 const (
