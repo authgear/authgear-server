@@ -51,7 +51,7 @@ type AuthenticatorService interface {
 	Create(authenticatorInfo *authenticator.Info) error
 	Update(authenticatorInfo *authenticator.Info) error
 	Delete(authenticatorInfo *authenticator.Info) error
-	VerifySecret(info *authenticator.Info, secret string) (requireUpdate bool, err error)
+	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec) (requireUpdate bool, err error)
 }
 
 type OOBAuthenticatorProvider interface {

@@ -14,6 +14,8 @@ const (
 	AuthenticatorClaimTOTPDisplayName ClaimKey = "https://authgear.com/claims/totp/display_name"
 	// AuthenticatorClaimTOTPSecret is a claim with string value.
 	AuthenticatorClaimTOTPSecret ClaimKey = "https://authgear.com/claims/totp/secret"
+	// AuthenticatorClaimTOTPCode is a claim with string value.
+	AuthenticatorClaimTOTPCode ClaimKey = "https://authgear.com/claims/totp/code"
 )
 
 const (
@@ -21,6 +23,8 @@ const (
 	AuthenticatorClaimOOBOTPEmail ClaimKey = "https://authgear.com/claims/oob_otp/email"
 	// AuthenticatorClaimOOBOTPPhone is a claim with string value for OOB OTP phone channel.
 	AuthenticatorClaimOOBOTPPhone ClaimKey = "https://authgear.com/claims/oob_otp/phone"
+	// AuthenticatorClaimOOBOTPCode is a claim with string value.
+	AuthenticatorClaimOOBOTPCode ClaimKey = "https://authgear.com/claims/oob_otp/code"
 )
 
 func (k ClaimKey) IsPublic() bool {
