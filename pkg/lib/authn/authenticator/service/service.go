@@ -194,14 +194,15 @@ func (s *Service) ListRefsByUsers(userIDs []string) ([]*authenticator.Ref, error
 	return s.Store.ListRefsByUsers(userIDs)
 }
 
-func (s *Service) New(spec *authenticator.Spec, secret string) (*authenticator.Info, error) {
-	return s.NewWithAuthenticatorID("", spec, secret)
+func (s *Service) New(spec *authenticator.Spec) (*authenticator.Info, error) {
+	return s.NewWithAuthenticatorID("", spec)
 }
 
-func (s *Service) NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec, secret string) (*authenticator.Info, error) {
+func (s *Service) NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error) {
 	switch spec.Type {
 	case model.AuthenticatorTypePassword:
-		p, err := s.Password.New(authenticatorID, spec.UserID, secret, spec.IsDefault, string(spec.Kind))
+		plainPassword := spec.Claims[authenticator.AuthenticatorClaimPasswordPlainPassword].(string)
+		p, err := s.Password.New(authenticatorID, spec.UserID, plainPassword, spec.IsDefault, string(spec.Kind))
 		if err != nil {
 			return nil, err
 		}
@@ -226,12 +227,13 @@ func (s *Service) NewWithAuthenticatorID(authenticatorID string, spec *authentic
 	panic("authenticator: unknown authenticator type " + spec.Type)
 }
 
-func (s *Service) WithSecret(ai *authenticator.Info, secret string) (bool, *authenticator.Info, error) {
+func (s *Service) WithSpec(ai *authenticator.Info, spec *authenticator.Spec) (bool, *authenticator.Info, error) {
 	changed := false
 	switch ai.Type {
 	case model.AuthenticatorTypePassword:
 		a := passwordFromAuthenticatorInfo(ai)
-		newAuth, err := s.Password.WithPassword(a, secret)
+		plainPassword := spec.Claims[authenticator.AuthenticatorClaimPasswordPlainPassword].(string)
+		newAuth, err := s.Password.WithPassword(a, plainPassword)
 		if err != nil {
 			return false, nil, err
 		}

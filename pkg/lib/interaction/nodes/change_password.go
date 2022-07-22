@@ -114,7 +114,11 @@ func (e *EdgeChangePassword) Instantiate(ctx *interaction.Context, graph *intera
 		}
 	}
 
-	changed, newInfo, err := ctx.Authenticators.WithSecret(oldInfo, newPassword)
+	changed, newInfo, err := ctx.Authenticators.WithSpec(oldInfo, &authenticator.Spec{
+		Claims: map[authenticator.ClaimKey]interface{}{
+			authenticator.AuthenticatorClaimPasswordPlainPassword: newPassword,
+		},
+	})
 	if err != nil {
 		return
 	}
