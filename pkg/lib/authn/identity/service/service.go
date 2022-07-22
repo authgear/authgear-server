@@ -730,7 +730,7 @@ func (s *Service) toIdentityInfo(o *oauth.Identity) *identity.Info {
 		provider[k] = v
 	}
 
-	claims := map[string]interface{}{
+	claims := map[identity.ClaimKey]interface{}{
 		identity.IdentityClaimOAuthProviderKeys: provider,
 		identity.IdentityClaimOAuthProviderType: o.ProviderID.Type,
 		identity.IdentityClaimOAuthSubjectID:    o.ProviderSubjectID,
@@ -762,7 +762,7 @@ func (s *Service) toIdentityInfo(o *oauth.Identity) *identity.Info {
 	}
 }
 
-func extractLoginIDValue(claims map[string]interface{}) string {
+func extractLoginIDValue(claims map[identity.ClaimKey]interface{}) string {
 	loginID, ok := claims[identity.IdentityClaimLoginIDValue].(string)
 	if !ok {
 		panic(fmt.Sprintf("identity: expect string login ID value, got %T", claims[identity.IdentityClaimLoginIDValue]))
@@ -771,7 +771,7 @@ func extractLoginIDValue(claims map[string]interface{}) string {
 	return loginID
 }
 
-func extractLoginIDSpec(claims map[string]interface{}) loginid.Spec {
+func extractLoginIDSpec(claims map[identity.ClaimKey]interface{}) loginid.Spec {
 	loginIDKey, ok := claims[identity.IdentityClaimLoginIDKey].(string)
 	if !ok {
 		panic(fmt.Sprintf("identity: expect string login ID key, got %T", claims[identity.IdentityClaimLoginIDKey]))
@@ -794,7 +794,7 @@ func extractLoginIDSpec(claims map[string]interface{}) loginid.Spec {
 	}
 }
 
-func extractOAuthClaims(claims map[string]interface{}) (providerID config.ProviderID, subjectID string) {
+func extractOAuthClaims(claims map[identity.ClaimKey]interface{}) (providerID config.ProviderID, subjectID string) {
 	providerID = extractOAuthProviderClaims(claims)
 
 	subjectID, ok := claims[identity.IdentityClaimOAuthSubjectID].(string)
@@ -805,7 +805,7 @@ func extractOAuthClaims(claims map[string]interface{}) (providerID config.Provid
 	return
 }
 
-func extractOAuthProfile(claims map[string]interface{}) (rawProfile map[string]interface{}, standardClaims map[string]interface{}) {
+func extractOAuthProfile(claims map[identity.ClaimKey]interface{}) (rawProfile map[string]interface{}, standardClaims map[string]interface{}) {
 	var ok bool
 	if rawProfile, ok = claims[identity.IdentityClaimOAuthProfile].(map[string]interface{}); !ok {
 		rawProfile = make(map[string]interface{})
@@ -816,7 +816,7 @@ func extractOAuthProfile(claims map[string]interface{}) (rawProfile map[string]i
 	return
 }
 
-func extractOAuthProviderClaims(claims map[string]interface{}) config.ProviderID {
+func extractOAuthProviderClaims(claims map[identity.ClaimKey]interface{}) config.ProviderID {
 	provider, ok := claims[identity.IdentityClaimOAuthProviderKeys].(map[string]interface{})
 	if !ok {
 		panic(fmt.Sprintf("identity: expect map provider claim, got %T", claims[identity.IdentityClaimOAuthProviderKeys]))
@@ -837,7 +837,7 @@ func extractOAuthProviderClaims(claims map[string]interface{}) config.ProviderID
 	return providerID
 }
 
-func extractAnonymousClaims(claims map[string]interface{}) (keyID string, key string) {
+func extractAnonymousClaims(claims map[identity.ClaimKey]interface{}) (keyID string, key string) {
 	if v, ok := claims[identity.IdentityClaimAnonymousKeyID]; ok {
 		if keyID, ok = v.(string); !ok {
 			panic(fmt.Sprintf("identity: expect string key ID, got %T", claims[identity.IdentityClaimAnonymousKeyID]))
@@ -851,7 +851,7 @@ func extractAnonymousClaims(claims map[string]interface{}) (keyID string, key st
 	return
 }
 
-func extractExistingIDsFromAnonymousClaims(claims map[string]interface{}) (existingUserID string, existingIdentityID string) {
+func extractExistingIDsFromAnonymousClaims(claims map[identity.ClaimKey]interface{}) (existingUserID string, existingIdentityID string) {
 	if v, ok := claims[identity.IdentityClaimAnonymousExistingUserID]; ok {
 		if existingUserID, ok = v.(string); !ok {
 			panic(fmt.Sprintf("identity: expect string existing user id, got %T", claims[identity.IdentityClaimAnonymousExistingUserID]))
@@ -865,7 +865,7 @@ func extractExistingIDsFromAnonymousClaims(claims map[string]interface{}) (exist
 	return
 }
 
-func extractBiometricClaims(claims map[string]interface{}) (keyID string, key string, deviceInfo map[string]interface{}) {
+func extractBiometricClaims(claims map[identity.ClaimKey]interface{}) (keyID string, key string, deviceInfo map[string]interface{}) {
 	if v, ok := claims[identity.IdentityClaimBiometricKeyID]; ok {
 		if keyID, ok = v.(string); !ok {
 			panic(fmt.Sprintf("identity: expect string key ID, got %T", claims[identity.IdentityClaimBiometricKeyID]))
@@ -884,7 +884,7 @@ func extractBiometricClaims(claims map[string]interface{}) (keyID string, key st
 	return
 }
 
-func extractPasskeyClaims(claims map[string]interface{}) (credentialID string) {
+func extractPasskeyClaims(claims map[identity.ClaimKey]interface{}) (credentialID string) {
 	if v, ok := claims[identity.IdentityClaimPasskeyCredentialID]; ok {
 		if credentialID, ok = v.(string); !ok {
 			panic(fmt.Sprintf("identity: expect string key ID, got %T", claims[identity.IdentityClaimPasskeyCredentialID]))
@@ -893,7 +893,7 @@ func extractPasskeyClaims(claims map[string]interface{}) (credentialID string) {
 	return
 }
 
-func extractPasskeyCreationClaims(claims map[string]interface{}) (creationOptions *webauthn.CreationOptions, attestationResponse []byte) {
+func extractPasskeyCreationClaims(claims map[identity.ClaimKey]interface{}) (creationOptions *webauthn.CreationOptions, attestationResponse []byte) {
 	if v, ok := claims[identity.IdentityClaimPasskeyCreationOptions]; ok {
 		if creationOptions, ok = v.(*webauthn.CreationOptions); ok {
 			panic(fmt.Sprintf("identity: expect *webauthn.CreationOptions, got %T", claims[identity.IdentityClaimPasskeyCreationOptions]))
@@ -909,11 +909,11 @@ func extractPasskeyCreationClaims(claims map[string]interface{}) (creationOption
 	return
 }
 
-func extractStandardClaims(claims map[string]interface{}) map[string]string {
+func extractStandardClaims(claims map[identity.ClaimKey]interface{}) map[string]string {
 	standardClaims := map[string]string{}
 	email, hasEmail := claims[identity.StandardClaimEmail].(string)
 	if hasEmail {
-		standardClaims[identity.StandardClaimEmail] = email
+		standardClaims[string(identity.StandardClaimEmail)] = email
 	}
 
 	return standardClaims

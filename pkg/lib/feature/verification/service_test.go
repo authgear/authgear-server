@@ -52,7 +52,7 @@ func TestService(t *testing.T) {
 				UserID: "user-id",
 				ID:     "login-id-" + loginIDValue,
 				Type:   model.IdentityTypeLoginID,
-				Claims: map[string]interface{}{},
+				Claims: map[identity.ClaimKey]interface{}{},
 			}
 			switch loginIDKey {
 			case "email":
@@ -65,7 +65,7 @@ func TestService(t *testing.T) {
 			return i
 		}
 
-		identityOfType := func(t model.IdentityType, claims map[string]interface{}) *identity.Info {
+		identityOfType := func(t model.IdentityType, claims map[identity.ClaimKey]interface{}) *identity.Info {
 			return &identity.Info{
 				UserID: "user-id",
 				ID:     string(t),
@@ -129,7 +129,7 @@ func TestService(t *testing.T) {
 				{
 					Identities: []*identity.Info{
 						identityLoginID("email", "foo@example.com"),
-						identityOfType(model.IdentityTypeOAuth, map[string]interface{}{"email": "bar@example.com"}),
+						identityOfType(model.IdentityTypeOAuth, map[identity.ClaimKey]interface{}{"email": "bar@example.com"}),
 					},
 					Claims: []*Claim{
 						verifiedClaim("user-id", "email", "foo@example.com"),
@@ -139,7 +139,7 @@ func TestService(t *testing.T) {
 				{
 					Identities: []*identity.Info{
 						identityLoginID("email", "foo@example.com"),
-						identityOfType(model.IdentityTypeOAuth, map[string]interface{}{"email": "bar@example.com"}),
+						identityOfType(model.IdentityTypeOAuth, map[identity.ClaimKey]interface{}{"email": "bar@example.com"}),
 					},
 					Claims: []*Claim{
 						verifiedClaim("user-id", "email", "foo@example.com"),

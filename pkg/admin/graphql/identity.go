@@ -60,11 +60,12 @@ var nodeIdentity = node(
 					claims := info.Map(func(value interface{}) (interface{}, error) {
 						claims := value.(*identity.Info).Claims
 						if hasNames {
-							filteredClaims := make(map[string]interface{})
+							filteredClaims := make(map[identity.ClaimKey]interface{})
 							for _, name := range names {
 								name := name.(string)
-								if value, ok := claims[name]; ok {
-									filteredClaims[name] = value
+								claimKey := identity.ClaimKey(name)
+								if value, ok := claims[claimKey]; claimKey.IsPublic() && ok {
+									filteredClaims[claimKey] = value
 								}
 							}
 							claims = filteredClaims

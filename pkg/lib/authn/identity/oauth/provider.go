@@ -63,7 +63,7 @@ func (p *Provider) New(
 		ProviderID:        provider,
 		ProviderSubjectID: subjectID,
 		UserProfile:       profile,
-		Claims:            claims,
+		Claims:            identityClaims(claims),
 	}
 	return i
 }
@@ -75,7 +75,7 @@ func (p *Provider) WithUpdate(
 ) *Identity {
 	newIden := *iden
 	newIden.UserProfile = rawProfile
-	newIden.Claims = claims
+	newIden.Claims = identityClaims(claims)
 
 	return &newIden
 }
@@ -120,4 +120,12 @@ func sortIdentities(is []*Identity) {
 	sort.Slice(is, func(i, j int) bool {
 		return is[i].CreatedAt.Before(is[j].CreatedAt)
 	})
+}
+
+func identityClaims(claims map[string]interface{}) map[identity.ClaimKey]interface{} {
+	out := make(map[identity.ClaimKey]interface{})
+	for k, v := range claims {
+		out[identity.ClaimKey(k)] = v
+	}
+	return out
 }
