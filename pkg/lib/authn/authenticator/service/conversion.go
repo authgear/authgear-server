@@ -15,7 +15,7 @@ func passwordToAuthenticatorInfo(p *password.Authenticator) *authenticator.Info 
 		UserID:    p.UserID,
 		CreatedAt: p.CreatedAt,
 		UpdatedAt: p.UpdatedAt,
-		Claims: map[string]interface{}{
+		Claims: map[authenticator.ClaimKey]interface{}{
 			authenticator.AuthenticatorClaimPasswordPasswordHash: p.PasswordHash,
 		},
 		IsDefault: p.IsDefault,
@@ -42,7 +42,7 @@ func totpToAuthenticatorInfo(t *totp.Authenticator) *authenticator.Info {
 		UserID:    t.UserID,
 		CreatedAt: t.CreatedAt,
 		UpdatedAt: t.UpdatedAt,
-		Claims: map[string]interface{}{
+		Claims: map[authenticator.ClaimKey]interface{}{
 			authenticator.AuthenticatorClaimTOTPDisplayName: t.DisplayName,
 			authenticator.AuthenticatorClaimTOTPSecret:      t.Secret,
 		},
@@ -71,7 +71,7 @@ func oobotpToAuthenticatorInfo(o *oob.Authenticator) *authenticator.Info {
 		UserID:    o.UserID,
 		CreatedAt: o.CreatedAt,
 		UpdatedAt: o.UpdatedAt,
-		Claims:    map[string]interface{}{},
+		Claims:    map[authenticator.ClaimKey]interface{}{},
 		IsDefault: o.IsDefault,
 		Kind:      authenticator.Kind(o.Kind),
 	}

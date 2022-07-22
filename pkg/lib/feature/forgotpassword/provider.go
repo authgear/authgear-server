@@ -340,7 +340,7 @@ func (p *Provider) ResetPassword(userID string, newPassword string) (err error) 
 			IsDefault: isDefault,
 			Kind:      authenticator.KindPrimary,
 			Type:      model.AuthenticatorTypePassword,
-			Claims:    map[string]interface{}{},
+			Claims:    map[authenticator.ClaimKey]interface{}{},
 		}, newPassword)
 		if err != nil {
 			return

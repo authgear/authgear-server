@@ -9,14 +9,14 @@ import (
 )
 
 type Info struct {
-	ID        string                  `json:"id"`
-	UserID    string                  `json:"user_id"`
-	CreatedAt time.Time               `json:"created_at"`
-	UpdatedAt time.Time               `json:"updated_at"`
-	Type      model.AuthenticatorType `json:"type"`
-	IsDefault bool                    `json:"is_default"`
-	Kind      Kind                    `json:"kind"`
-	Claims    map[string]interface{}  `json:"claims"`
+	ID        string                   `json:"id"`
+	UserID    string                   `json:"user_id"`
+	CreatedAt time.Time                `json:"created_at"`
+	UpdatedAt time.Time                `json:"updated_at"`
+	Type      model.AuthenticatorType  `json:"type"`
+	IsDefault bool                     `json:"is_default"`
+	Kind      Kind                     `json:"kind"`
+	Claims    map[ClaimKey]interface{} `json:"claims"`
 }
 
 func (i *Info) ToSpec() Spec {
