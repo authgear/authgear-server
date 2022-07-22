@@ -10,6 +10,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	identityloginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	identityoauth "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -73,7 +74,7 @@ func (q *Reindexer) QueryPage(after model.PageCursor, first uint64) ([]Item, err
 			StandardAttributes: rawStandardAttributes,
 		}
 
-		var arrClaims []map[string]interface{}
+		var arrClaims []map[identity.ClaimKey]interface{}
 		for _, oauthI := range oauthIdentities {
 			arrClaims = append(arrClaims, oauthI.Claims)
 			raw.OAuthSubjectID = append(raw.OAuthSubjectID, oauthI.ProviderSubjectID)

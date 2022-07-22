@@ -13,14 +13,14 @@ import (
 func TestIdentitiesDisplayName(t *testing.T) {
 	emailIdentity := &identity.Info{
 		Type: model.IdentityTypeLoginID,
-		Claims: map[string]interface{}{
+		Claims: map[identity.ClaimKey]interface{}{
 			identity.IdentityClaimLoginIDOriginalValue: "user@example.com",
 		},
 	}
 
 	oauthProviderIdentity := &identity.Info{
 		Type: model.IdentityTypeOAuth,
-		Claims: map[string]interface{}{
+		Claims: map[identity.ClaimKey]interface{}{
 			identity.IdentityClaimOAuthProviderType: "provider",
 			identity.StandardClaimEmail:             "user@oauth-provider.com",
 		},
@@ -28,7 +28,7 @@ func TestIdentitiesDisplayName(t *testing.T) {
 
 	oauthProviderIdentityWithStandardClaims := &identity.Info{
 		Type: model.IdentityTypeOAuth,
-		Claims: map[string]interface{}{
+		Claims: map[identity.ClaimKey]interface{}{
 			identity.IdentityClaimOAuthProviderType: "provider2",
 		},
 	}

@@ -114,7 +114,7 @@ func (e *EdgeVerifyIdentityViaWhatsappCheckCode) Instantiate(ctx *interaction.Co
 
 	verifiedClaim := ctx.Verification.NewVerifiedClaim(
 		e.Identity.UserID,
-		identity.StandardClaimPhoneNumber,
+		string(identity.StandardClaimPhoneNumber),
 		phone,
 	)
 	return &NodeEnsureVerificationEnd{

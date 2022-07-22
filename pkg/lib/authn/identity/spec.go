@@ -5,6 +5,6 @@ import (
 )
 
 type Spec struct {
-	Type   model.IdentityType     `json:"type"`
-	Claims map[string]interface{} `json:"claims"`
+	Type   model.IdentityType       `json:"type"`
+	Claims map[ClaimKey]interface{} `json:"claims"`
 }

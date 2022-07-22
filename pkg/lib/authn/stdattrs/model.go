@@ -7,6 +7,7 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/jsonpointerutil"
@@ -14,6 +15,14 @@ import (
 )
 
 type T map[string]interface{}
+
+func FromIdentityClaims(claims map[identity.ClaimKey]interface{}) T {
+	out := make(T)
+	for k, v := range claims {
+		out[string(k)] = v
+	}
+	return out
+}
 
 func (t T) FormattedName() string {
 	// Choose between name or given_name+middle_name+family_name

@@ -106,7 +106,7 @@ func (e *EdgeUseIdentityBiometric) Instantiate(ctx *interaction.Context, graph *
 
 	spec := &identity.Spec{
 		Type: model.IdentityTypeBiometric,
-		Claims: map[string]interface{}{
+		Claims: map[identity.ClaimKey]interface{}{
 			identity.IdentityClaimBiometricKeyID:      request.KeyID,
 			identity.IdentityClaimBiometricKey:        string(key),
 			identity.IdentityClaimBiometricDeviceInfo: request.DeviceInfo,

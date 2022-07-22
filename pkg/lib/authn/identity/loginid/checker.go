@@ -52,7 +52,7 @@ func (c *Checker) validateOne(ctx *validation.Context, loginID Spec, options Che
 	c.TypeCheckerFactory.NewChecker(loginID.Type, options).Validate(originCtx, loginID.Value)
 }
 
-func (c *Checker) LoginIDKeyClaimName(loginIDKey string) (string, bool) {
+func (c *Checker) LoginIDKeyClaimName(loginIDKey string) (identity.ClaimKey, bool) {
 	for _, keyConfig := range c.Config.Keys {
 		if keyConfig.Key == loginIDKey {
 			switch keyConfig.Type {

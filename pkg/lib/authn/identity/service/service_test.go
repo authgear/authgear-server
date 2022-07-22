@@ -139,7 +139,7 @@ func TestProviderListCandidates(t *testing.T) {
 					LoginIDKey:      "email",
 					LoginID:         "john.doe@example.com",
 					OriginalLoginID: "john.doe@example.com",
-					Claims: map[string]interface{}{
+					Claims: map[identity.ClaimKey]interface{}{
 						"email": "john.doe@example.com",
 					},
 				},
@@ -181,7 +181,7 @@ func TestProviderListCandidates(t *testing.T) {
 						Keys: map[string]interface{}{},
 					},
 					ProviderSubjectID: "john.doe@gmail.com",
-					Claims: map[string]interface{}{
+					Claims: map[identity.ClaimKey]interface{}{
 						"email": "john.doe@gmail.com",
 					},
 				},

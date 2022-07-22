@@ -10,6 +10,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	identity "github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	identityloginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	identityoauth "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -77,7 +78,7 @@ func (s *Service) ReindexUser(userID string, isDelete bool) (err error) {
 		StandardAttributes: u.StandardAttributes,
 	}
 
-	var arrClaims []map[string]interface{}
+	var arrClaims []map[identity.ClaimKey]interface{}
 	for _, oauthI := range oauthIdentities {
 		arrClaims = append(arrClaims, oauthI.Claims)
 		raw.OAuthSubjectID = append(raw.OAuthSubjectID, oauthI.ProviderSubjectID)

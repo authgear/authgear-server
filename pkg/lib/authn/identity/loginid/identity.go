@@ -3,6 +3,7 @@ package loginid
 import (
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -16,5 +17,5 @@ type Identity struct {
 	LoginID         string
 	OriginalLoginID string
 	UniqueKey       string
-	Claims          map[string]interface{}
+	Claims          map[identity.ClaimKey]interface{}
 }

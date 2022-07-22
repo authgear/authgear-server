@@ -10,12 +10,12 @@ import (
 )
 
 type Info struct {
-	ID        string                 `json:"id"`
-	UserID    string                 `json:"user_id"`
-	CreatedAt time.Time              `json:"created_at"`
-	UpdatedAt time.Time              `json:"updated_at"`
-	Type      model.IdentityType     `json:"type"`
-	Claims    map[string]interface{} `json:"claims"`
+	ID        string                   `json:"id"`
+	UserID    string                   `json:"user_id"`
+	CreatedAt time.Time                `json:"created_at"`
+	UpdatedAt time.Time                `json:"updated_at"`
+	Type      model.IdentityType       `json:"type"`
+	Claims    map[ClaimKey]interface{} `json:"claims"`
 }
 
 func (i *Info) ToSpec() Spec {
@@ -62,29 +62,9 @@ func (i *Info) AMR() []string {
 func (i *Info) ToModel() model.Identity {
 	claims := make(map[string]interface{})
 	for key, value := range i.Claims {
-		switch key {
-		// It contains client_id, tenant or team_id, which should not
-		// be exposed to clients.
-		case IdentityClaimOAuthProviderKeys:
-			continue
-
-		// It contains OIDC standard claims, which is already exposed
-		// as top-level claims.
-		case IdentityClaimOAuthClaims:
-			continue
-
-		// It is a implementation details of login ID normalization,
-		// so it should not be used by clients.
-		case IdentityClaimLoginIDUniqueKey:
-			continue
-
-		// It is not useful to clients, since key ID should be
-		// sufficient to identify a key.
-		case IdentityClaimAnonymousKey:
-			continue
-
+		if key.IsPublic() {
+			claims[string(key)] = value
 		}
-		claims[key] = value
 	}
 
 	return model.Identity{
