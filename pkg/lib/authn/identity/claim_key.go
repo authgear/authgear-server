@@ -56,6 +56,9 @@ const (
 	// IdentityClaimPasskeyAttestationResponse ia a claim with a []byte value.
 	// nolint: gosec
 	IdentityClaimPasskeyAttestationResponse ClaimKey = "https://authgear.com/claims/passkey/attestation_response"
+	// IdentityClaimPasskeyAssertionResponse ia a claim with a []byte value.
+	// nolint: gosec
+	IdentityClaimPasskeyAssertionResponse ClaimKey = "https://authgear.com/claims/passkey/assertion_response"
 
 	StandardClaimEmail             ClaimKey = "email"
 	StandardClaimPhoneNumber       ClaimKey = "phone_number"
