@@ -323,7 +323,7 @@ func (s *Service) Delete(info *authenticator.Info) error {
 	return nil
 }
 
-func (s *Service) VerifySecret(info *authenticator.Info, secret string) (requireUpdate bool, err error) {
+func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec) (requireUpdate bool, err error) {
 	err = s.RateLimiter.TakeToken(AntiBruteForceAuthenticateBucket(info.UserID, info.Type))
 	if err != nil {
 		return
@@ -331,23 +331,26 @@ func (s *Service) VerifySecret(info *authenticator.Info, secret string) (require
 
 	switch info.Type {
 	case model.AuthenticatorTypePassword:
+		plainPassword := spec.Claims[authenticator.AuthenticatorClaimPasswordPlainPassword].(string)
 		a := passwordFromAuthenticatorInfo(info)
-		requireUpdate, err = s.Password.Authenticate(a, secret)
+		requireUpdate, err = s.Password.Authenticate(a, plainPassword)
 		if err != nil {
 			err = authenticator.ErrInvalidCredentials
 			return
 		}
 		return
 	case model.AuthenticatorTypeTOTP:
+		code := spec.Claims[authenticator.AuthenticatorClaimTOTPCode].(string)
 		a := totpFromAuthenticatorInfo(info)
-		if s.TOTP.Authenticate(a, secret) != nil {
+		if s.TOTP.Authenticate(a, code) != nil {
 			err = authenticator.ErrInvalidCredentials
 			return
 		}
 		return
 	case model.AuthenticatorTypeOOBEmail, model.AuthenticatorTypeOOBSMS:
+		code := spec.Claims[authenticator.AuthenticatorClaimOOBOTPCode].(string)
 		a := oobotpFromAuthenticatorInfo(info)
-		_, err = s.OOBOTP.VerifyCode(a.ID, secret)
+		_, err = s.OOBOTP.VerifyCode(a.ID, code)
 		if errors.Is(err, oob.ErrInvalidCode) {
 			err = authenticator.ErrInvalidCredentials
 			return

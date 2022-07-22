@@ -41,7 +41,7 @@ type AuthenticatorService interface {
 	Create(authenticatorInfo *authenticator.Info) error
 	Update(authenticatorInfo *authenticator.Info) error
 	Delete(authenticatorInfo *authenticator.Info) error
-	VerifySecret(info *authenticator.Info, secret string) (requireUpdate bool, err error)
+	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec) (requireUpdate bool, err error)
 	RemoveOrphans(identities []*identity.Info) error
 }
 
@@ -255,8 +255,8 @@ func (c *Coordinator) AuthenticatorDelete(authenticatorInfo *authenticator.Info)
 	return nil
 }
 
-func (c *Coordinator) AuthenticatorVerifySecret(info *authenticator.Info, secret string) (requireUpdate bool, err error) {
-	return c.Authenticators.VerifySecret(info, secret)
+func (c *Coordinator) AuthenticatorVerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec) (requireUpdate bool, err error) {
+	return c.Authenticators.VerifyWithSpec(info, spec)
 }
 
 func (c *Coordinator) UserDelete(userID string, isScheduledDeletion bool) error {

@@ -50,11 +50,16 @@ func (e *EdgeAuthenticationPassword) Instantiate(ctx *interaction.Context, graph
 	}
 
 	inputPassword := passwordInput.GetPassword()
+	spec := &authenticator.Spec{
+		Claims: map[authenticator.ClaimKey]interface{}{
+			authenticator.AuthenticatorClaimPasswordPlainPassword: inputPassword,
+		},
+	}
 
 	var requireUpdate bool
 	var info *authenticator.Info
 	for _, a := range e.Authenticators {
-		b, err := ctx.Authenticators.VerifySecret(a, inputPassword)
+		b, err := ctx.Authenticators.VerifyWithSpec(a, spec)
 		if errors.Is(err, authenticator.ErrInvalidCredentials) {
 			continue
 		} else if err != nil {
