@@ -327,13 +327,13 @@ func (c *CountCollector) querySignupCount(appID string, rangeFrom *time.Time, ra
 			iden := payload.Identities[0]
 			switch model.IdentityType(iden.Type) {
 			case model.IdentityTypeLoginID:
-				loginIDType := iden.Claims[identity.IdentityClaimLoginIDType].(string)
+				loginIDType := iden.Claims[string(identity.IdentityClaimLoginIDType)].(string)
 				if loginIDType == "" {
 					log.Fatal("missing type in login id identity claims")
 				}
 				result.CountByLoginID[loginIDType]++
 			case model.IdentityTypeOAuth:
-				provider := iden.Claims[identity.IdentityClaimOAuthProviderType].(string)
+				provider := iden.Claims[string(identity.IdentityClaimOAuthProviderType)].(string)
 				if provider == "" {
 					log.Fatal("missing provider in oauth identity claims")
 				}

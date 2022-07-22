@@ -158,7 +158,7 @@ func (e *EdgeVerifyIdentityCheckCode) Instantiate(ctx *interaction.Context, grap
 		return nil, err
 	}
 
-	claimName := ""
+	var claimName identity.ClaimKey
 	switch config.LoginIDKeyType(code.LoginIDType) {
 	case config.LoginIDKeyTypeEmail:
 		claimName = identity.StandardClaimEmail
@@ -170,7 +170,7 @@ func (e *EdgeVerifyIdentityCheckCode) Instantiate(ctx *interaction.Context, grap
 		panic("interaction: unexpected login ID key")
 	}
 
-	verifiedClaim := ctx.Verification.NewVerifiedClaim(code.UserID, claimName, code.LoginID)
+	verifiedClaim := ctx.Verification.NewVerifiedClaim(code.UserID, string(claimName), code.LoginID)
 	return &NodeEnsureVerificationEnd{
 		Identity:         e.Identity,
 		NewVerifiedClaim: verifiedClaim,

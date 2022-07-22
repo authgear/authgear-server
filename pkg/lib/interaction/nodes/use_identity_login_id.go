@@ -51,7 +51,7 @@ func (e *EdgeUseIdentityLoginID) Instantiate(ctx *interaction.Context, graph *in
 	loginIDKey := input.GetLoginIDKey()
 	loginID := input.GetLoginID()
 
-	claims := map[string]interface{}{
+	claims := map[identity.ClaimKey]interface{}{
 		identity.IdentityClaimLoginIDKey:   loginIDKey,
 		identity.IdentityClaimLoginIDValue: loginID,
 	}

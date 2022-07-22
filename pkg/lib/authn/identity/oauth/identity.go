@@ -3,6 +3,7 @@ package oauth
 import (
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -14,5 +15,5 @@ type Identity struct {
 	ProviderID        config.ProviderID
 	ProviderSubjectID string
 	UserProfile       map[string]interface{}
-	Claims            map[string]interface{}
+	Claims            map[identity.ClaimKey]interface{}
 }

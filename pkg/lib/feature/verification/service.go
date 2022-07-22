@@ -52,7 +52,7 @@ type Service struct {
 	RateLimiter RateLimiter
 }
 
-func (s *Service) claimVerificationConfig(claimName string) *config.VerificationClaimConfig {
+func (s *Service) claimVerificationConfig(claimName identity.ClaimKey) *config.VerificationClaimConfig {
 	switch claimName {
 	case identity.StandardClaimEmail:
 		return s.Config.Claims.Email
@@ -63,7 +63,7 @@ func (s *Service) claimVerificationConfig(claimName string) *config.Verification
 	}
 }
 
-func (s *Service) IsClaimVerifiable(claimName string) bool {
+func (s *Service) IsClaimVerifiable(claimName identity.ClaimKey) bool {
 	if c := s.claimVerificationConfig(claimName); c != nil && *c.Enabled {
 		return true
 	}
@@ -83,10 +83,10 @@ func (s *Service) getVerificationStatus(i *identity.Info, verifiedClaims map[cla
 			continue
 		}
 
-		_, verified := verifiedClaims[claim{claimName, value}]
+		_, verified := verifiedClaims[claim{string(claimName), value}]
 
 		statuses = append(statuses, ClaimStatus{
-			Name:                       claimName,
+			Name:                       string(claimName),
 			Verified:                   verified,
 			RequiredToVerifyOnCreation: *c.Required,
 			EndUserTriggerable:         *c.Enabled,

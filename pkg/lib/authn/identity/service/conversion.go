@@ -14,7 +14,7 @@ import (
 )
 
 func loginIDToIdentityInfo(l *loginid.Identity) *identity.Info {
-	claims := map[string]interface{}{
+	claims := map[identity.ClaimKey]interface{}{
 		identity.IdentityClaimLoginIDKey:           l.LoginIDKey,
 		identity.IdentityClaimLoginIDType:          string(l.LoginIDType),
 		identity.IdentityClaimLoginIDValue:         l.LoginID,
@@ -41,7 +41,7 @@ func loginIDFromIdentityInfo(i *identity.Info) *loginid.Identity {
 		CreatedAt: i.CreatedAt,
 		UpdatedAt: i.UpdatedAt,
 		UserID:    i.UserID,
-		Claims:    make(map[string]interface{}),
+		Claims:    make(map[identity.ClaimKey]interface{}),
 	}
 	for k, v := range i.Claims {
 		switch k {
@@ -68,7 +68,7 @@ func oauthFromIdentityInfo(i *identity.Info) *oauth.Identity {
 		CreatedAt: i.CreatedAt,
 		UpdatedAt: i.UpdatedAt,
 		UserID:    i.UserID,
-		Claims:    map[string]interface{}{},
+		Claims:    map[identity.ClaimKey]interface{}{},
 	}
 	for k, v := range i.Claims {
 		switch k {
@@ -86,7 +86,7 @@ func oauthFromIdentityInfo(i *identity.Info) *oauth.Identity {
 }
 
 func anonymousToIdentityInfo(a *anonymous.Identity) *identity.Info {
-	claims := map[string]interface{}{
+	claims := map[identity.ClaimKey]interface{}{
 		identity.IdentityClaimAnonymousExistingUserID:     a.UserID,
 		identity.IdentityClaimAnonymousExistingIdentityID: a.ID,
 		identity.IdentityClaimAnonymousKeyID:              a.KeyID,
@@ -122,7 +122,7 @@ func anonymousFromIdentityInfo(i *identity.Info) *anonymous.Identity {
 }
 
 func biometricToIdentityInfo(b *biometric.Identity) *identity.Info {
-	claims := map[string]interface{}{
+	claims := map[identity.ClaimKey]interface{}{
 		identity.IdentityClaimBiometricKeyID:               b.KeyID,
 		identity.IdentityClaimBiometricKey:                 string(b.Key),
 		identity.IdentityClaimBiometricDeviceInfo:          b.DeviceInfo,
@@ -160,7 +160,7 @@ func biometricFromIdentityInfo(i *identity.Info) *biometric.Identity {
 }
 
 func passkeyToIdentityInfo(p *passkey.Identity) *identity.Info {
-	claims := map[string]interface{}{
+	claims := map[identity.ClaimKey]interface{}{
 		identity.IdentityClaimPasskeyCredentialID:        p.CredentialID,
 		identity.IdentityClaimPasskeyCreationOptions:     p.CreationOptions,
 		identity.IdentityClaimPasskeyAttestationResponse: p.AttestationResponse,
