@@ -50,10 +50,12 @@ func (e *EdgeCreateAuthenticatorPassword) Instantiate(ctx *interaction.Context, 
 		IsDefault: e.IsDefault,
 		Kind:      stageToAuthenticatorKind(e.Stage),
 		Type:      model.AuthenticatorTypePassword,
-		Claims:    map[authenticator.ClaimKey]interface{}{},
+		Claims: map[authenticator.ClaimKey]interface{}{
+			authenticator.AuthenticatorClaimPasswordPlainPassword: input.GetPassword(),
+		},
 	}
 
-	info, err := ctx.Authenticators.NewWithAuthenticatorID(e.NewAuthenticatorID, spec, input.GetPassword())
+	info, err := ctx.Authenticators.NewWithAuthenticatorID(e.NewAuthenticatorID, spec)
 	if err != nil {
 		return nil, err
 	}

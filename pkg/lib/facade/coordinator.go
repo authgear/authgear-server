@@ -35,9 +35,9 @@ type IdentityService interface {
 type AuthenticatorService interface {
 	Get(id string) (*authenticator.Info, error)
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
-	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
-	NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec, secret string) (*authenticator.Info, error)
-	WithSecret(authenticatorInfo *authenticator.Info, secret string) (changed bool, info *authenticator.Info, err error)
+	New(spec *authenticator.Spec) (*authenticator.Info, error)
+	NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error)
+	WithSpec(authenticatorInfo *authenticator.Info, spec *authenticator.Spec) (changed bool, info *authenticator.Info, err error)
 	Create(authenticatorInfo *authenticator.Info) error
 	Update(authenticatorInfo *authenticator.Info) error
 	Delete(authenticatorInfo *authenticator.Info) error
@@ -210,16 +210,16 @@ func (c *Coordinator) AuthenticatorList(userID string, filters ...authenticator.
 	return c.Authenticators.List(userID, filters...)
 }
 
-func (c *Coordinator) AuthenticatorNew(spec *authenticator.Spec, secret string) (*authenticator.Info, error) {
-	return c.Authenticators.New(spec, secret)
+func (c *Coordinator) AuthenticatorNew(spec *authenticator.Spec) (*authenticator.Info, error) {
+	return c.Authenticators.New(spec)
 }
 
-func (c *Coordinator) AuthenticatorNewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec, secret string) (*authenticator.Info, error) {
-	return c.Authenticators.NewWithAuthenticatorID(authenticatorID, spec, secret)
+func (c *Coordinator) AuthenticatorNewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error) {
+	return c.Authenticators.NewWithAuthenticatorID(authenticatorID, spec)
 }
 
-func (c *Coordinator) AuthenticatorWithSecret(authenticatorInfo *authenticator.Info, secret string) (changed bool, info *authenticator.Info, err error) {
-	return c.Authenticators.WithSecret(authenticatorInfo, secret)
+func (c *Coordinator) AuthenticatorWithSpec(authenticatorInfo *authenticator.Info, spec *authenticator.Spec) (changed bool, info *authenticator.Info, err error) {
+	return c.Authenticators.WithSpec(authenticatorInfo, spec)
 }
 
 func (c *Coordinator) AuthenticatorCreate(authenticatorInfo *authenticator.Info) error {

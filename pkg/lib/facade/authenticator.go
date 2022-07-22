@@ -16,16 +16,16 @@ func (a AuthenticatorFacade) List(userID string, filters ...authenticator.Filter
 	return a.Coordinator.AuthenticatorList(userID, filters...)
 }
 
-func (a AuthenticatorFacade) New(spec *authenticator.Spec, secret string) (*authenticator.Info, error) {
-	return a.Coordinator.AuthenticatorNew(spec, secret)
+func (a AuthenticatorFacade) New(spec *authenticator.Spec) (*authenticator.Info, error) {
+	return a.Coordinator.AuthenticatorNew(spec)
 }
 
-func (a AuthenticatorFacade) NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec, secret string) (*authenticator.Info, error) {
-	return a.Coordinator.AuthenticatorNewWithAuthenticatorID(authenticatorID, spec, secret)
+func (a AuthenticatorFacade) NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error) {
+	return a.Coordinator.AuthenticatorNewWithAuthenticatorID(authenticatorID, spec)
 }
 
-func (a AuthenticatorFacade) WithSecret(authenticatorInfo *authenticator.Info, secret string) (changed bool, info *authenticator.Info, err error) {
-	return a.Coordinator.AuthenticatorWithSecret(authenticatorInfo, secret)
+func (a AuthenticatorFacade) WithSpec(authenticatorInfo *authenticator.Info, spec *authenticator.Spec) (changed bool, info *authenticator.Info, err error) {
+	return a.Coordinator.AuthenticatorWithSpec(authenticatorInfo, spec)
 }
 
 func (a AuthenticatorFacade) Create(authenticatorInfo *authenticator.Info) error {
