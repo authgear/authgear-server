@@ -75,7 +75,7 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(ctx *interaction.C
 		IsDefault: e.IsDefault,
 		Kind:      stageToAuthenticatorKind(e.Stage),
 		Type:      e.AuthenticatorType(),
-		Claims: map[string]interface{}{
+		Claims: map[authenticator.ClaimKey]interface{}{
 			authenticator.AuthenticatorClaimOOBOTPPhone: phone,
 		},
 	}
