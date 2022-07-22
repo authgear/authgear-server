@@ -4,8 +4,10 @@ type ClaimKey string
 
 const (
 	// AuthenticatorClaimPasswordPasswordHash is a claim with []byte value.
+	// nolint: gosec
 	AuthenticatorClaimPasswordPasswordHash ClaimKey = "https://authgear.com/claims/password/password_hash"
 	// AuthenticatorClaimPasswordPlainPassword is a claim with string value.
+	// nolint: gosec
 	AuthenticatorClaimPasswordPlainPassword ClaimKey = "https://authgear.com/claims/password/plain_password"
 )
 
@@ -13,6 +15,7 @@ const (
 	// AuthenticatorClaimTOTPDisplayName is a claim with string value for TOTP display name.
 	AuthenticatorClaimTOTPDisplayName ClaimKey = "https://authgear.com/claims/totp/display_name"
 	// AuthenticatorClaimTOTPSecret is a claim with string value.
+	// nolint: gosec
 	AuthenticatorClaimTOTPSecret ClaimKey = "https://authgear.com/claims/totp/secret"
 	// AuthenticatorClaimTOTPCode is a claim with string value.
 	AuthenticatorClaimTOTPCode ClaimKey = "https://authgear.com/claims/totp/code"
