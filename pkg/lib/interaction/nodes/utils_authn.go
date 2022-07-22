@@ -15,7 +15,7 @@ import (
 
 func cloneAuthenticator(info *authenticator.Info) *authenticator.Info {
 	newInfo := *info
-	newInfo.Claims = map[string]interface{}{}
+	newInfo.Claims = make(map[authenticator.ClaimKey]interface{})
 	for k, v := range info.Claims {
 		newInfo.Claims[k] = v
 	}

@@ -109,7 +109,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 			UserID:    identityInfo.UserID,
 			IsDefault: e.IsDefault,
 			Kind:      stageToAuthenticatorKind(e.Stage),
-			Claims:    map[string]interface{}{},
+			Claims:    map[authenticator.ClaimKey]interface{}{},
 		}
 
 		// Ignore given OOB target, use channel & target inferred from identity
@@ -141,7 +141,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 			UserID:    userID,
 			IsDefault: e.IsDefault,
 			Kind:      stageToAuthenticatorKind(e.Stage),
-			Claims:    map[string]interface{}{},
+			Claims:    map[authenticator.ClaimKey]interface{}{},
 		}
 
 		// Normalize the target.
