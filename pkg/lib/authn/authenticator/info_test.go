@@ -39,26 +39,34 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 			// TOTP with the same secret.
 			{
 				&Info{
-					Type:   model.AuthenticatorTypeTOTP,
-					Kind:   KindPrimary,
-					Secret: "secret",
+					Type: model.AuthenticatorTypeTOTP,
+					Kind: KindPrimary,
+					Claims: map[string]interface{}{
+						AuthenticatorClaimTOTPSecret: "secret",
+					},
 				},
 				&Info{
-					Type:   model.AuthenticatorTypeTOTP,
-					Kind:   KindPrimary,
-					Secret: "secret",
+					Type: model.AuthenticatorTypeTOTP,
+					Kind: KindPrimary,
+					Claims: map[string]interface{}{
+						AuthenticatorClaimTOTPSecret: "secret",
+					},
 				},
 			},
 			{
 				&Info{
-					Type:   model.AuthenticatorTypeTOTP,
-					Kind:   KindSecondary,
-					Secret: "secret",
+					Type: model.AuthenticatorTypeTOTP,
+					Kind: KindSecondary,
+					Claims: map[string]interface{}{
+						AuthenticatorClaimTOTPSecret: "secret",
+					},
 				},
 				&Info{
-					Type:   model.AuthenticatorTypeTOTP,
-					Kind:   KindSecondary,
-					Secret: "secret",
+					Type: model.AuthenticatorTypeTOTP,
+					Kind: KindSecondary,
+					Claims: map[string]interface{}{
+						AuthenticatorClaimTOTPSecret: "secret",
+					},
 				},
 			},
 
@@ -177,14 +185,18 @@ func TestAuthenticatorEqualFalse(t *testing.T) {
 			// TOTP with different secret.
 			{
 				&Info{
-					Type:   model.AuthenticatorTypeTOTP,
-					Kind:   KindPrimary,
-					Secret: "secret1",
+					Type: model.AuthenticatorTypeTOTP,
+					Kind: KindPrimary,
+					Claims: map[string]interface{}{
+						AuthenticatorClaimTOTPSecret: "secret1",
+					},
 				},
 				&Info{
-					Type:   model.AuthenticatorTypeTOTP,
-					Kind:   KindPrimary,
-					Secret: "secret2",
+					Type: model.AuthenticatorTypeTOTP,
+					Kind: KindPrimary,
+					Claims: map[string]interface{}{
+						AuthenticatorClaimTOTPSecret: "secret2",
+					},
 				},
 			},
 
