@@ -77,15 +77,14 @@ type BiometricIdentityProvider interface {
 type PasskeyIdentityProvider interface {
 	Get(userID, id string) (*passkey.Identity, error)
 	GetMany(ids []string) ([]*passkey.Identity, error)
-	GetByCredentialID(credentialID string) (*passkey.Identity, error)
+	GetByAssertionResponse(assertionResponse []byte) (*passkey.Identity, error)
 	List(userID string) ([]*passkey.Identity, error)
 	ListByClaim(name string, value string) ([]*passkey.Identity, error)
 	New(
 		userID string,
-		credentialID string,
 		creationOptions *webauthn.CreationOptions,
 		attestationResponse []byte,
-	) *passkey.Identity
+	) (*passkey.Identity, error)
 	Create(i *passkey.Identity) error
 	Delete(i *passkey.Identity) error
 }
@@ -262,8 +261,8 @@ func (s *Service) getBySpec(spec *identity.Spec) (*identity.Info, error) {
 		}
 		return biometricToIdentityInfo(b), nil
 	case model.IdentityTypePasskey:
-		credentialID := extractPasskeyClaims(spec.Claims)
-		p, err := s.Passkey.GetByCredentialID(credentialID)
+		assertionResponse := extractPasskeyClaims(spec.Claims)
+		p, err := s.Passkey.GetByAssertionResponse(assertionResponse)
 		if err != nil {
 			return nil, err
 		}
@@ -477,9 +476,11 @@ func (s *Service) New(userID string, spec *identity.Spec, options identity.NewId
 		b := s.Biometric.New(userID, keyID, []byte(key), deviceInfo)
 		return biometricToIdentityInfo(b), nil
 	case model.IdentityTypePasskey:
-		credentialID := extractPasskeyClaims(spec.Claims)
 		creationOptions, attestationResponse := extractPasskeyCreationClaims(spec.Claims)
-		p := s.Passkey.New(userID, credentialID, creationOptions, attestationResponse)
+		p, err := s.Passkey.New(userID, creationOptions, attestationResponse)
+		if err != nil {
+			return nil, err
+		}
 		return passkeyToIdentityInfo(p), nil
 	}
 
@@ -884,10 +885,10 @@ func extractBiometricClaims(claims map[identity.ClaimKey]interface{}) (keyID str
 	return
 }
 
-func extractPasskeyClaims(claims map[identity.ClaimKey]interface{}) (credentialID string) {
-	if v, ok := claims[identity.IdentityClaimPasskeyCredentialID]; ok {
-		if credentialID, ok = v.(string); !ok {
-			panic(fmt.Sprintf("identity: expect string key ID, got %T", claims[identity.IdentityClaimPasskeyCredentialID]))
+func extractPasskeyClaims(claims map[identity.ClaimKey]interface{}) (assertionResponse []byte) {
+	if v, ok := claims[identity.IdentityClaimPasskeyAssertionResponse]; ok {
+		if assertionResponse, ok = v.([]byte); !ok {
+			panic(fmt.Sprintf("identity: expect []byte assertion response, got %T", claims[identity.IdentityClaimPasskeyAssertionResponse]))
 		}
 	}
 	return
