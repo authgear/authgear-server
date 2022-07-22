@@ -37,7 +37,11 @@ func (p *Provider) Get(userID, id string) (*Identity, error) {
 	return p.Store.Get(userID, id)
 }
 
-func (p *Provider) GetByCredentialID(credentialID string) (*Identity, error) {
+func (p *Provider) GetByAssertionResponse(assertionResponse []byte) (*Identity, error) {
+	credentialID, err := webauthn.ParseAssertionResponse(assertionResponse)
+	if err != nil {
+		return nil, err
+	}
 	return p.Store.GetByCredentialID(credentialID)
 }
 
@@ -47,10 +51,14 @@ func (p *Provider) GetMany(ids []string) ([]*Identity, error) {
 
 func (p *Provider) New(
 	userID string,
-	credentialID string,
 	creationOptions *webauthn.CreationOptions,
 	attestationResponse []byte,
-) *Identity {
+) (*Identity, error) {
+	credentialID, err := webauthn.VerifyAttestationResponse(attestationResponse)
+	if err != nil {
+		return nil, err
+	}
+
 	i := &Identity{
 		ID:                  uuid.New(),
 		UserID:              userID,
@@ -58,7 +66,7 @@ func (p *Provider) New(
 		CreationOptions:     creationOptions,
 		AttestationResponse: attestationResponse,
 	}
-	return i
+	return i, nil
 }
 
 func (p *Provider) Create(i *Identity) error {

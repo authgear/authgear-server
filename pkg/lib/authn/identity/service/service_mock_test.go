@@ -746,19 +746,19 @@ func (mr *MockPasskeyIdentityProviderMockRecorder) Get(userID, id interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).Get), userID, id)
 }
 
-// GetByCredentialID mocks base method.
-func (m *MockPasskeyIdentityProvider) GetByCredentialID(credentialID string) (*passkey.Identity, error) {
+// GetByAssertionResponse mocks base method.
+func (m *MockPasskeyIdentityProvider) GetByAssertionResponse(assertionResponse []byte) (*passkey.Identity, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByCredentialID", credentialID)
+	ret := m.ctrl.Call(m, "GetByAssertionResponse", assertionResponse)
 	ret0, _ := ret[0].(*passkey.Identity)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetByCredentialID indicates an expected call of GetByCredentialID.
-func (mr *MockPasskeyIdentityProviderMockRecorder) GetByCredentialID(credentialID interface{}) *gomock.Call {
+// GetByAssertionResponse indicates an expected call of GetByAssertionResponse.
+func (mr *MockPasskeyIdentityProviderMockRecorder) GetByAssertionResponse(assertionResponse interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByCredentialID", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).GetByCredentialID), credentialID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByAssertionResponse", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).GetByAssertionResponse), assertionResponse)
 }
 
 // GetMany mocks base method.
@@ -807,15 +807,16 @@ func (mr *MockPasskeyIdentityProviderMockRecorder) ListByClaim(name, value inter
 }
 
 // New mocks base method.
-func (m *MockPasskeyIdentityProvider) New(userID, credentialID string, creationOptions *webauthn.CreationOptions, attestationResponse []byte) *passkey.Identity {
+func (m *MockPasskeyIdentityProvider) New(userID string, creationOptions *webauthn.CreationOptions, attestationResponse []byte) (*passkey.Identity, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "New", userID, credentialID, creationOptions, attestationResponse)
+	ret := m.ctrl.Call(m, "New", userID, creationOptions, attestationResponse)
 	ret0, _ := ret[0].(*passkey.Identity)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // New indicates an expected call of New.
-func (mr *MockPasskeyIdentityProviderMockRecorder) New(userID, credentialID, creationOptions, attestationResponse interface{}) *gomock.Call {
+func (mr *MockPasskeyIdentityProviderMockRecorder) New(userID, creationOptions, attestationResponse interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).New), userID, credentialID, creationOptions, attestationResponse)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).New), userID, creationOptions, attestationResponse)
 }
