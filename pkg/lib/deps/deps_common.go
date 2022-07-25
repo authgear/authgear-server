@@ -28,7 +28,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
-	"github.com/authgear/authgear-server/pkg/lib/feature/passkey"
+	featurepasskey "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
@@ -188,6 +188,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(facade.IdentityService), new(*identityservice.Service)),
 		wire.Bind(new(user.IdentityService), new(*identityservice.Service)),
 		wire.Bind(new(featurestdattrs.IdentityService), new(*identityservice.Service)),
+		wire.Bind(new(featurepasskey.IdentityService), new(*identityservice.Service)),
 
 		wire.Bind(new(oauthhandler.PromotionCodeStore), new(*identityanonymous.StoreRedis)),
 		wire.Bind(new(oauthhandler.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
@@ -211,6 +212,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(featurestdattrs.UserStore), new(*user.Store)),
 		wire.Bind(new(featurecustomattrs.UserStore), new(*user.Store)),
 		wire.Bind(new(featurecustomattrs.UserQueries), new(*user.RawQueries)),
+		wire.Bind(new(featurepasskey.UserService), new(*user.Queries)),
 		wire.Bind(new(facade.UserCommands), new(*user.Commands)),
 		wire.Bind(new(facade.UserQueries), new(*user.Queries)),
 		wire.Bind(new(facade.UserProvider), new(*user.Provider)),
@@ -292,7 +294,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(otp.TranslationService), new(*translation.Service)),
 		wire.Bind(new(forgotpassword.TranslationService), new(*translation.Service)),
 		wire.Bind(new(welcomemessage.TranslationService), new(*translation.Service)),
-		wire.Bind(new(passkey.TranslationService), new(*translation.Service)),
+		wire.Bind(new(featurepasskey.TranslationService), new(*translation.Service)),
 	),
 
 	wire.NewSet(
@@ -335,8 +337,8 @@ var CommonDependencySet = wire.NewSet(
 	),
 
 	wire.NewSet(
-		passkey.DependencySet,
-		wire.Bind(new(identitypasskey.PasskeyService), new(*passkey.Service)),
-		wire.Bind(new(authenticatorpasskey.PasskeyService), new(*passkey.Service)),
+		featurepasskey.DependencySet,
+		wire.Bind(new(identitypasskey.PasskeyService), new(*featurepasskey.Service)),
+		wire.Bind(new(authenticatorpasskey.PasskeyService), new(*featurepasskey.Service)),
 	),
 )

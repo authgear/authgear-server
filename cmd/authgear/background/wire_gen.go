@@ -266,13 +266,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	request := NewDummyHTTPRequest()
-	trustProxy := environmentConfig.TrustProxy
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -548,6 +542,8 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
+	request := NewDummyHTTPRequest()
+	trustProxy := environmentConfig.TrustProxy
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{

@@ -267,36 +267,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clock,
@@ -537,6 +508,31 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -989,36 +985,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -1259,6 +1226,31 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -1648,37 +1640,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpConfig := appConfig.HTTP
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -1921,6 +1883,32 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpConfig := appConfig.HTTP
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -2345,36 +2333,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             resourceManager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          resourceManager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -2746,38 +2705,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpConfig := appConfig.HTTP
-	localizationConfig := appConfig.Localization
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -3045,38 +2973,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpConfig := appConfig.HTTP
-	localizationConfig := appConfig.Localization
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -3391,36 +3288,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             resourceManager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          resourceManager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -3811,37 +3679,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpConfig := appConfig.HTTP
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -4084,6 +3922,32 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpConfig := appConfig.HTTP
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -4480,37 +4344,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpConfig := appConfig.HTTP
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -4754,6 +4588,32 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpConfig := appConfig.HTTP
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -5169,37 +5029,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpConfig := appConfig.HTTP
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -5443,6 +5273,32 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpConfig := appConfig.HTTP
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -5960,36 +5816,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -6232,6 +6059,31 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -6687,36 +6539,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -6959,6 +6782,31 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -7413,36 +7261,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -7685,6 +7504,31 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -8122,36 +7966,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -8394,6 +8209,31 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -8832,36 +8672,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -9104,6 +8915,31 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -9534,36 +9370,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -9806,6 +9613,31 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -10239,36 +10071,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -10511,6 +10314,31 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -10947,36 +10775,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -11219,6 +11018,31 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -11652,36 +11476,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -11924,6 +11719,31 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -12356,36 +12176,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -12628,6 +12419,31 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -13061,36 +12877,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -13333,6 +13120,31 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -13767,36 +13579,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -14039,6 +13822,31 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -14471,36 +14279,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -14743,6 +14522,31 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -15175,36 +14979,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -15447,6 +15222,31 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -15881,36 +15681,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -16153,6 +15924,31 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -16585,36 +16381,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -16857,6 +16624,31 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -17281,37 +17073,7 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpConfig := appConfig.HTTP
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -17673,36 +17435,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -17945,6 +17678,31 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -18377,36 +18135,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -18649,6 +18378,31 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -19081,36 +18835,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -19353,6 +19078,31 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -19787,36 +19537,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -20059,6 +19780,31 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -20491,36 +20237,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -20763,6 +20480,31 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -21200,36 +20942,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -21472,6 +21185,31 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -21904,36 +21642,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -22176,6 +21885,31 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -22609,36 +22343,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -22881,6 +22586,31 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -23313,36 +23043,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -23585,6 +23286,31 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -24043,36 +23769,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -24315,6 +24012,31 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -24758,36 +24480,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -25030,6 +24723,31 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -25486,36 +25204,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -25758,6 +25447,31 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -26193,36 +25907,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -26465,6 +26150,31 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -26898,36 +26608,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -27170,6 +26851,31 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -27611,36 +27317,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -27883,6 +27560,31 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -28316,36 +28018,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -28588,6 +28261,31 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -29021,36 +28719,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -29293,6 +28962,31 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -29727,36 +29421,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -29999,6 +29664,31 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -30437,36 +30127,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -30709,6 +30370,31 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -31142,36 +30828,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -31414,6 +31071,31 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -31847,36 +31529,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -32119,6 +31772,31 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -32552,36 +32230,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -32824,6 +32473,31 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -33257,36 +32931,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -33529,6 +33174,31 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -33969,36 +33639,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -34241,6 +33882,31 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -34675,36 +34341,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -34947,6 +34584,31 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -35379,36 +35041,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -35651,6 +35284,31 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -36105,36 +35763,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -36377,6 +36006,31 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -36809,36 +36463,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -37081,6 +36706,31 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -37774,37 +37424,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	templateResolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: templateResolver,
-	}
-	localizationConfig := appConfig.Localization
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -38223,37 +37843,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpConfig := appConfig.HTTP
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	passkeyService := &passkey2.Service{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
+	passkeyService := &passkey2.Service{}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -38497,6 +38087,32 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpConfig := appConfig.HTTP
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
