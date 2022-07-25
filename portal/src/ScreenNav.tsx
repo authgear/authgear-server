@@ -192,6 +192,10 @@ const ScreenNav: React.FC = function ScreenNav() {
             textKey: "ScreenNav.account-deletion",
             url: "./advanced/account-deletion",
           },
+          {
+            textKey: "ScreenNav.session",
+            url: "./advanced/session",
+          },
         ],
       },
       ...(auditLogEnabled

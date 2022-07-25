@@ -10,7 +10,6 @@ import {
   SelectionMode,
   Text,
   VerticalDivider,
-  Toggle,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useNavigate, useParams } from "react-router-dom";
@@ -25,7 +24,6 @@ import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
-import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import FormContainer from "../../FormContainer";
 
@@ -34,8 +32,6 @@ import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
-import WidgetDescription from "../../WidgetDescription";
-import TextField from "../../TextField";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 
 const COPY_ICON_STLYES: IButtonStyles = {
@@ -46,57 +42,24 @@ const COPY_ICON_STLYES: IButtonStyles = {
 
 interface FormState {
   publicOrigin: string;
-  cookieDomain?: string;
   clients: OAuthClientConfig[];
-  persistentCookie: boolean;
-  sessionLifetimeSeconds: number | undefined;
-  idleTimeoutEnabled: boolean;
-  idleTimeoutSeconds: number | undefined;
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
     publicOrigin: config.http?.public_origin ?? "",
-    cookieDomain: config.http?.cookie_domain,
     clients: config.oauth?.clients ?? [],
-    persistentCookie: !(config.session?.cookie_non_persistent ?? false),
-    sessionLifetimeSeconds: config.session?.lifetime_seconds,
-    idleTimeoutEnabled: config.session?.idle_timeout_enabled ?? false,
-    idleTimeoutSeconds: config.session?.idle_timeout_seconds,
   };
 }
 
 function constructConfig(
   config: PortalAPIAppConfig,
-  initialState: FormState,
+  _: FormState,
   currentState: FormState
 ): PortalAPIAppConfig {
-  // eslint-disable-next-line complexity
   return produce(config, (config) => {
     config.oauth ??= {};
     config.oauth.clients = currentState.clients;
-    config.http ??= {};
-    config.session = config.session ?? {};
-    if (initialState.persistentCookie !== currentState.persistentCookie) {
-      config.session.cookie_non_persistent = !currentState.persistentCookie;
-    }
-    if (
-      initialState.sessionLifetimeSeconds !==
-      currentState.sessionLifetimeSeconds
-    ) {
-      config.session.lifetime_seconds = currentState.sessionLifetimeSeconds;
-    }
-
-    if (initialState.idleTimeoutEnabled !== currentState.idleTimeoutEnabled) {
-      config.session.idle_timeout_enabled = currentState.idleTimeoutEnabled;
-    }
-
-    if (
-      currentState.idleTimeoutEnabled &&
-      initialState.idleTimeoutSeconds !== currentState.idleTimeoutSeconds
-    ) {
-      config.session.idle_timeout_seconds = currentState.idleTimeoutSeconds;
-    }
     clearEmptyObject(config);
   });
 }
@@ -191,107 +154,6 @@ const OAuthClientListActionCell: React.FC<OAuthClientListActionCellProps> =
     );
   };
 
-interface SessionConfigurationWidgetProps {
-  form: AppConfigFormModel<FormState>;
-}
-
-const SessionConfigurationWidget: React.FC<SessionConfigurationWidgetProps> =
-  function SessionConfigurationWidget(props: SessionConfigurationWidgetProps) {
-    const { state, setState } = props.form;
-
-    const { renderToString } = useContext(Context);
-
-    const onPersistentCookieChange = useCallback(
-      (_, value?: boolean) => {
-        setState((state) => ({
-          ...state,
-          persistentCookie: value ?? false,
-        }));
-      },
-      [setState]
-    );
-
-    const onSessionLifetimeSecondsChange = useCallback(
-      (_, value?: string) => {
-        setState((prev) => ({
-          ...prev,
-          sessionLifetimeSeconds: parseIntegerAllowLeadingZeros(value),
-        }));
-      },
-      [setState]
-    );
-
-    const onIdleTimeoutEnabledChange = useCallback(
-      (_, value?: boolean) => {
-        setState((state) => ({
-          ...state,
-          idleTimeoutEnabled: value ?? false,
-        }));
-      },
-      [setState]
-    );
-
-    const onIdleTimeoutSecondsChange = useCallback(
-      (_, value?: string) => {
-        setState((prev) => ({
-          ...prev,
-          idleTimeoutSeconds: parseIntegerAllowLeadingZeros(value),
-        }));
-      },
-      [setState]
-    );
-
-    return (
-      <Widget className={styles.widget}>
-        <WidgetTitle id="cookie-session">
-          <FormattedMessage id="SessionConfigurationWidget.title" />
-        </WidgetTitle>
-        <WidgetDescription>
-          <FormattedMessage
-            id="SessionConfigurationWidget.description"
-            values={{
-              // cookieDomain wil be empty only if authgear.yaml is updated manually
-              domain: state.cookieDomain ?? state.publicOrigin,
-            }}
-          />
-        </WidgetDescription>
-        <Toggle
-          inlineLabel={true}
-          label={renderToString(
-            "SessionConfigurationWidget.persistent-cookie.label"
-          )}
-          checked={state.persistentCookie}
-          onChange={onPersistentCookieChange}
-        />
-        <TextField
-          type="text"
-          label={renderToString(
-            "SessionConfigurationWidget.session-lifetime.label"
-          )}
-          value={state.sessionLifetimeSeconds?.toFixed(0) ?? ""}
-          onChange={onSessionLifetimeSecondsChange}
-        />
-        <Toggle
-          inlineLabel={true}
-          label={renderToString(
-            "SessionConfigurationWidget.invalidate-session-after-idling.label"
-          )}
-          checked={state.idleTimeoutEnabled}
-          onChange={onIdleTimeoutEnabledChange}
-        />
-        <TextField
-          type="text"
-          disabled={!state.idleTimeoutEnabled}
-          label={renderToString(
-            "SessionConfigurationWidget.idle-timeout.label"
-          )}
-          value={state.idleTimeoutSeconds?.toFixed(0) ?? ""}
-          onChange={onIdleTimeoutSecondsChange}
-        />
-      </Widget>
-    );
-  };
-
 interface OAuthClientConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
   oauthClientsMaximum: number;
@@ -301,7 +163,6 @@ interface OAuthClientConfigurationContentProps {
 const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentProps> =
   function OAuthClientConfigurationContent(props) {
     const {
-      form,
       form: { state, setState },
       oauthClientsMaximum,
     } = props;
@@ -384,7 +245,6 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
             onRenderItemColumn={onRenderOAuthClientColumns}
           />
         </Widget>
-        <SessionConfigurationWidget form={form} />
       </ScreenContent>
     );
   };

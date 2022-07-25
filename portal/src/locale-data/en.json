@@ -126,6 +126,7 @@
   "ScreenNav.admin-api": "Admin API",
   "ScreenNav.smtp": "Custom Email Provider",
   "ScreenNav.account-deletion": "Account Deletion",
+  "ScreenNav.session": "Cookie Lifetime",
   "ScreenNav.integrations": "Integrations",
 
   "NavBreadcrumb.label": "Nested navigation",
@@ -649,12 +650,16 @@
 
   "GeneralSettings.app-id.label": "App ID",
 
-  "SessionConfigurationWidget.title": "Cookie Session Settings",
-  "SessionConfigurationWidget.description": "Configure the cookie session settings for {b, react, children{{domain}}}.{br, react}If you only use token-based authentication, you can simply ignore this section.",
-  "SessionConfigurationWidget.persistent-cookie.label": "Persistent Cookie",
-  "SessionConfigurationWidget.session-lifetime.label": "Session Lifetime (seconds)",
-  "SessionConfigurationWidget.invalidate-session-after-idling.label": "Invalidate session after idling",
-  "SessionConfigurationWidget.idle-timeout.label": "Idle Timeout (seconds)",
+  "CookieLifetimeConfigurationScreen.title": "Cookie Lifetime",
+  "CookieLifetimeConfigurationScreen.description": "Change cookie session lifetime and timeout for {b, react, children{{hostname}}}. If you use token-based authentication only (single page applications and native apps), you can simply ignore this config.",
+  "CookieLifetimeConfigurationScreen.persistent-cookie.label": "Persistent Cookie",
+  "CookieLifetimeConfigurationScreen.persistent-cookie.description": "The cookie persists after the browser is closed.",
+  "CookieLifetimeConfigurationScreen.session-lifetime.label": "Cookie Lifetime (seconds)",
+  "CookieLifetimeConfigurationScreen.session-lifetime.description": "This is the maximum lifetime of a user session in {hostname}. The user will need to log in again when the cookie expires.",
+  "CookieLifetimeConfigurationScreen.invalidate-session-after-idling.label": "Expire after idling",
+  "CookieLifetimeConfigurationScreen.invalidate-session-after-idling.description": "After a period of inactivity, the cookie will expire and the user will be logged out.",
+  "CookieLifetimeConfigurationScreen.idle-timeout.label": "Idle Timeout (seconds)",
+  "CookieLifetimeConfigurationScreen.idle-timeout.description": "The length of inactivity before the cookie expires.",
 
   "WebhookConfigurationScreen.title": "Webhooks",
   "WebhookConfigurationScreen.description": "Authgear can deliver webhook events to your server when important events such as new user signup happen.",
