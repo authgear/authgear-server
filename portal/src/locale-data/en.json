@@ -448,7 +448,7 @@
   "ForgotPasswordConfigurationScreen.reset-code-valid-duration.label": "Reset code valid duration (seconds)",
 
   "ApplicationsConfigurationScreen.title": "Applications",
-  "ApplicationsConfigurationScreen.client-endpoint.desc": "Configure applications to be used at the endpoint: {ExternalLink, react, href{{clientEndpoint}} children{{clientEndpoint}}}.\nYou can change this endpoint at the {ReactRouterLink, react, to{{dnsUrl}} children{Custom Domains configuration}} with your custom domains.",
+  "ApplicationsConfigurationScreen.description": "Configure applications to use this project for authentication.",
   "ApplicationsConfigurationScreen.add-client-button": "Add Application",
   "ApplicationsConfigurationScreen.client-list.name": "Name",
   "ApplicationsConfigurationScreen.client-list.client-id": "Client ID",

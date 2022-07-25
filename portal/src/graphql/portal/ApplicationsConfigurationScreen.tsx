@@ -8,7 +8,6 @@ import {
   IconButton,
   MessageBar,
   SelectionMode,
-  Text,
   VerticalDivider,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -30,9 +29,8 @@ import FormContainer from "../../FormContainer";
 import styles from "./ApplicationsConfigurationScreen.module.css";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
-import WidgetTitle from "../../WidgetTitle";
-import Widget from "../../Widget";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
+import ScreenDescription from "../../ScreenDescription";
 
 const COPY_ICON_STLYES: IButtonStyles = {
   root: { margin: 4 },
@@ -41,13 +39,11 @@ const COPY_ICON_STLYES: IButtonStyles = {
 };
 
 interface FormState {
-  publicOrigin: string;
   clients: OAuthClientConfig[];
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
-    publicOrigin: config.http?.public_origin ?? "",
     clients: config.oauth?.clients ?? [],
   };
 }
@@ -213,19 +209,10 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
         <ScreenTitle className={styles.widget}>
           <FormattedMessage id="ApplicationsConfigurationScreen.title" />
         </ScreenTitle>
-        <Widget className={styles.widget}>
-          <WidgetTitle>
-            <FormattedMessage id="ApplicationsConfigurationScreen.title" />
-          </WidgetTitle>
-          <Text className={styles.description}>
-            <FormattedMessage
-              id="ApplicationsConfigurationScreen.client-endpoint.desc"
-              values={{
-                clientEndpoint: state.publicOrigin,
-                dnsUrl: "./../../custom-domains",
-              }}
-            />
-          </Text>
+        <ScreenDescription className={styles.widget}>
+          <FormattedMessage id="ApplicationsConfigurationScreen.description" />
+        </ScreenDescription>
+        <div className={styles.widget}>
           {oauthClientsMaximum < 99 && (
             <MessageBar>
               <FormattedMessage
@@ -244,7 +231,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
             selectionMode={SelectionMode.none}
             onRenderItemColumn={onRenderOAuthClientColumns}
           />
-        </Widget>
+        </div>
       </ScreenContent>
     );
   };

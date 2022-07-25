@@ -1,9 +1,5 @@
 .widget {
-  grid-column: 1 / span 6;
-}
-
-.description {
-  white-space: pre-line;
+  grid-column: 1 / span 9;
 }
 
 .columnHeader {
