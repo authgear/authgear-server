@@ -52,6 +52,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
+	"github.com/authgear/authgear-server/pkg/lib/webauthn"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -291,6 +292,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(otp.TranslationService), new(*translation.Service)),
 		wire.Bind(new(forgotpassword.TranslationService), new(*translation.Service)),
 		wire.Bind(new(welcomemessage.TranslationService), new(*translation.Service)),
+		wire.Bind(new(webauthn.TranslationService), new(*translation.Service)),
 	),
 
 	wire.NewSet(
@@ -331,4 +333,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(forgotpassword.HardSMSBucketer), new(*usage.HardSMSBucketer)),
 		wire.Bind(new(otp.HardSMSBucketer), new(*usage.HardSMSBucketer)),
 	),
+
+	webauthn.DependencySet,
 )
