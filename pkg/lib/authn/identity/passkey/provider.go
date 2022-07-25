@@ -38,7 +38,7 @@ func (p *Provider) Get(userID, id string) (*Identity, error) {
 }
 
 func (p *Provider) GetByAssertionResponse(assertionResponse []byte) (*Identity, error) {
-	credentialID, err := webauthn.ParseAssertionResponse(assertionResponse)
+	credentialID, _, err := webauthn.ParseAssertionResponse(assertionResponse)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func (p *Provider) New(
 	creationOptions *webauthn.CreationOptions,
 	attestationResponse []byte,
 ) (*Identity, error) {
-	credentialID, err := webauthn.VerifyAttestationResponse(attestationResponse)
+	credentialID, _, err := webauthn.VerifyAttestationResponse(attestationResponse)
 	if err != nil {
 		return nil, err
 	}

@@ -147,15 +147,18 @@ func (i *Info) PrimaryAuthenticatorTypes() []model.AuthenticatorType {
 		case config.LoginIDKeyTypeUsername:
 			return []model.AuthenticatorType{
 				model.AuthenticatorTypePassword,
+				model.AuthenticatorTypePasskey,
 			}
 		case config.LoginIDKeyTypeEmail:
 			return []model.AuthenticatorType{
 				model.AuthenticatorTypePassword,
+				model.AuthenticatorTypePasskey,
 				model.AuthenticatorTypeOOBEmail,
 			}
 		case config.LoginIDKeyTypePhone:
 			return []model.AuthenticatorType{
 				model.AuthenticatorTypePassword,
+				model.AuthenticatorTypePasskey,
 				model.AuthenticatorTypeOOBSMS,
 			}
 		default:

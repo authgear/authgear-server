@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
+	passkey2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
@@ -311,6 +312,14 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -352,6 +361,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -1015,6 +1025,14 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -1056,6 +1074,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -1656,6 +1675,14 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -1697,6 +1724,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -2335,6 +2363,14 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -2376,6 +2412,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -2693,6 +2730,14 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -2735,6 +2780,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -2947,6 +2993,14 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -2989,6 +3043,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -3248,6 +3303,14 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -3289,6 +3352,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -3625,6 +3689,14 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -3666,6 +3738,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -4276,6 +4349,14 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -4318,6 +4399,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -4947,6 +5029,14 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -4989,6 +5079,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -5720,6 +5811,14 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -5761,6 +5860,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -6429,6 +6529,14 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -6470,6 +6578,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -7137,6 +7246,14 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -7178,6 +7295,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -7828,6 +7946,14 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -7869,6 +7995,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -8520,6 +8647,14 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -8561,6 +8696,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -9204,6 +9340,14 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -9245,6 +9389,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -9891,6 +10036,14 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -9932,6 +10085,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -10581,6 +10735,14 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -10622,6 +10784,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -11268,6 +11431,14 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -11309,6 +11480,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -11954,6 +12126,14 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -11995,6 +12175,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -12641,6 +12822,14 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -12682,6 +12871,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -13329,6 +13519,14 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -13370,6 +13568,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -14015,6 +14214,14 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -14056,6 +14263,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -14701,6 +14909,14 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -14742,6 +14958,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -15389,6 +15606,14 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -15430,6 +15655,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -16075,6 +16301,14 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -16116,6 +16350,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -16753,6 +16988,14 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -16794,6 +17037,7 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -17101,6 +17345,14 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -17142,6 +17394,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -17787,6 +18040,14 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -17828,6 +18089,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -18473,6 +18735,14 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -18514,6 +18784,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -19161,6 +19432,14 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -19202,6 +19481,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -19847,6 +20127,14 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -19888,6 +20176,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -20538,6 +20827,14 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -20579,6 +20876,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -21224,6 +21522,14 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -21265,6 +21571,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -21911,6 +22218,14 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -21952,6 +22267,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -22597,6 +22913,14 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -22638,6 +22962,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -23309,6 +23634,14 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -23350,6 +23683,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -24006,6 +24340,14 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -24047,6 +24389,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -24716,6 +25059,14 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -24757,6 +25108,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -25405,6 +25757,14 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -25446,6 +25806,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -26092,6 +26453,14 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -26133,6 +26502,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -26787,6 +27157,14 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -26828,6 +27206,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -27474,6 +27853,14 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -27515,6 +27902,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -28161,6 +28549,14 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -28202,6 +28598,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -28849,6 +29246,14 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -28890,6 +29295,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -29541,6 +29947,14 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -29582,6 +29996,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -30228,6 +30643,14 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -30269,6 +30692,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -30915,6 +31339,14 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -30956,6 +31388,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -31602,6 +32035,14 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -31643,6 +32084,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -32289,6 +32731,14 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -32330,6 +32780,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -32983,6 +33434,14 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -33024,6 +33483,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -33671,6 +34131,14 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -33712,6 +34180,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -34357,6 +34826,14 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -34398,6 +34875,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -35065,6 +35543,14 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -35106,6 +35592,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -35751,6 +36238,14 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -35792,6 +36287,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -36698,6 +37194,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -36739,6 +37243,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -37103,6 +37608,14 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -37145,6 +37658,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
