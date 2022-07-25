@@ -5,14 +5,19 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/webauthn"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
+type WebAuthnService interface {
+	VerifyAttestationResponse(attestationResponse []byte) (credentialID string, signCount int64, err error)
+	ParseAssertionResponse(assertionResponse []byte) (credentialID string, signCount int64, err error)
+}
+
 type Provider struct {
-	Store *Store
-	Clock clock.Clock
+	Store           *Store
+	Clock           clock.Clock
+	WebAuthnService WebAuthnService
 }
 
 func (p *Provider) Get(userID string, id string) (*authenticator.Passkey, error) {
@@ -64,7 +69,7 @@ func (p *Provider) New(
 	isDefault bool,
 	kind string,
 ) (*authenticator.Passkey, error) {
-	credentialID, signCount, err := webauthn.VerifyAttestationResponse(attestationResponse)
+	credentialID, signCount, err := p.WebAuthnService.VerifyAttestationResponse(attestationResponse)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +90,7 @@ func (p *Provider) New(
 }
 
 func (p *Provider) Authenticate(a *authenticator.Passkey, assertionResponse []byte) (requireUpdate bool, err error) {
-	_, signCount, err := webauthn.ParseAssertionResponse(assertionResponse)
+	_, signCount, err := p.WebAuthnService.ParseAssertionResponse(assertionResponse)
 	if err != nil {
 		return
 	}

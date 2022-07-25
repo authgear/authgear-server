@@ -64,6 +64,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
+	"github.com/authgear/authgear-server/pkg/lib/webauthn"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -226,9 +227,45 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(configConfig)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(configConfig)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	webauthnService := &webauthn.Service{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
 	passkeyProvider := &passkey.Provider{
-		Store: passkeyStore,
-		Clock: clockClock,
+		Store:           passkeyStore,
+		Clock:           clockClock,
+		WebAuthnService: webauthnService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -279,8 +316,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	provider2 := &passkey2.Provider{
-		Store: store3,
-		Clock: clockClock,
+		Store:           store3,
+		Clock:           clockClock,
+		WebAuthnService: webauthnService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -329,9 +367,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
 	}
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -411,33 +446,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(configConfig)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(configConfig)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpConfig := appConfig.HTTP
-	localizationConfig := appConfig.Localization
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	userAgentString := deps.ProvideUserAgentString(request)

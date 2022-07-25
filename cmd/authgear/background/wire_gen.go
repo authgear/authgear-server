@@ -47,6 +47,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/web"
+	"github.com/authgear/authgear-server/pkg/lib/webauthn"
 	"github.com/authgear/authgear-server/pkg/util/backgroundjob"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -265,9 +266,17 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	request := NewDummyHTTPRequest()
+	trustProxy := environmentConfig.TrustProxy
+	webauthnService := &webauthn.Service{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
 	passkeyProvider := &passkey.Provider{
-		Store: passkeyStore,
-		Clock: clockClock,
+		Store:           passkeyStore,
+		Clock:           clockClock,
+		WebAuthnService: webauthnService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -318,8 +327,9 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		SQLExecutor: sqlExecutor,
 	}
 	provider2 := &passkey2.Provider{
-		Store: store3,
-		Clock: clockClock,
+		Store:           store3,
+		Clock:           clockClock,
+		WebAuthnService: webauthnService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -538,8 +548,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	request := NewDummyHTTPRequest()
-	trustProxy := environmentConfig.TrustProxy
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
