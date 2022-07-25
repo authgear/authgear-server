@@ -9,15 +9,16 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-type WebAuthnService interface {
+// nolint: golint
+type PasskeyService interface {
 	VerifyAttestationResponse(attestationResponse []byte) (credentialID string, signCount int64, err error)
 	ParseAssertionResponse(assertionResponse []byte) (credentialID string, signCount int64, err error)
 }
 
 type Provider struct {
-	Store           *Store
-	Clock           clock.Clock
-	WebAuthnService WebAuthnService
+	Store   *Store
+	Clock   clock.Clock
+	Passkey PasskeyService
 }
 
 func (p *Provider) List(userID string) ([]*identity.Passkey, error) {
@@ -45,7 +46,7 @@ func (p *Provider) Get(userID, id string) (*identity.Passkey, error) {
 }
 
 func (p *Provider) GetByAssertionResponse(assertionResponse []byte) (*identity.Passkey, error) {
-	credentialID, _, err := p.WebAuthnService.ParseAssertionResponse(assertionResponse)
+	credentialID, _, err := p.Passkey.ParseAssertionResponse(assertionResponse)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +62,7 @@ func (p *Provider) New(
 	creationOptions *model.WebAuthnCreationOptions,
 	attestationResponse []byte,
 ) (*identity.Passkey, error) {
-	credentialID, _, err := p.WebAuthnService.VerifyAttestationResponse(attestationResponse)
+	credentialID, _, err := p.Passkey.VerifyAttestationResponse(attestationResponse)
 	if err != nil {
 		return nil, err
 	}

@@ -1,4 +1,4 @@
-package webauthn
+package passkey
 
 import (
 	"context"
@@ -102,5 +102,5 @@ func (s *Store) PeekSession(challenge protocol.URLEncodedBase64) (*Session, erro
 }
 
 func redisSessionKey(appID config.AppID, encodedChallenge string) string {
-	return fmt.Sprintf("app:%s:webauthn-session:%s", appID, encodedChallenge)
+	return fmt.Sprintf("app:%s:passkey-session:%s", appID, encodedChallenge)
 }

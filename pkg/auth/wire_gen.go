@@ -17,7 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
-	passkey2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
+	passkey3 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
@@ -40,6 +40,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
+	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
@@ -67,7 +68,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
-	"github.com/authgear/authgear-server/pkg/lib/webauthn"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -292,15 +292,15 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -346,14 +346,14 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -1014,15 +1014,15 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -1068,14 +1068,14 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -1674,15 +1674,15 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -1728,14 +1728,14 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -2370,15 +2370,15 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -2424,14 +2424,14 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -2773,15 +2773,15 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -2827,14 +2827,14 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -3072,15 +3072,15 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -3126,14 +3126,14 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -3416,15 +3416,15 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -3470,14 +3470,14 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -3837,15 +3837,15 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -3891,14 +3891,14 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -4506,15 +4506,15 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -4560,14 +4560,14 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -5195,15 +5195,15 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -5249,14 +5249,14 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -5985,15 +5985,15 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -6039,14 +6039,14 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -6712,15 +6712,15 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -6766,14 +6766,14 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -7438,15 +7438,15 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -7492,14 +7492,14 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -8147,15 +8147,15 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -8201,14 +8201,14 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -8857,15 +8857,15 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -8911,14 +8911,14 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -9559,15 +9559,15 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -9613,14 +9613,14 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -10264,15 +10264,15 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -10318,14 +10318,14 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -10972,15 +10972,15 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -11026,14 +11026,14 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -11677,15 +11677,15 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -11731,14 +11731,14 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -12381,15 +12381,15 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -12435,14 +12435,14 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -13086,15 +13086,15 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -13140,14 +13140,14 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -13792,15 +13792,15 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -13846,14 +13846,14 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -14496,15 +14496,15 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -14550,14 +14550,14 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -15200,15 +15200,15 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -15254,14 +15254,14 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -15906,15 +15906,15 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -15960,14 +15960,14 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -16610,15 +16610,15 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -16664,14 +16664,14 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -17307,15 +17307,15 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -17361,14 +17361,14 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -17698,15 +17698,15 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -17752,14 +17752,14 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -18402,15 +18402,15 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -18456,14 +18456,14 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -19106,15 +19106,15 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -19160,14 +19160,14 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -19812,15 +19812,15 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -19866,14 +19866,14 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -20516,15 +20516,15 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -20570,14 +20570,14 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -21225,15 +21225,15 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -21279,14 +21279,14 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -21929,15 +21929,15 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -21983,14 +21983,14 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -22634,15 +22634,15 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -22688,14 +22688,14 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -23338,15 +23338,15 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -23392,14 +23392,14 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -24068,15 +24068,15 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -24122,14 +24122,14 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -24783,15 +24783,15 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -24837,14 +24837,14 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -25511,15 +25511,15 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -25565,14 +25565,14 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -26218,15 +26218,15 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -26272,14 +26272,14 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -26923,15 +26923,15 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -26977,14 +26977,14 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -27636,15 +27636,15 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -27690,14 +27690,14 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -28341,15 +28341,15 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -28395,14 +28395,14 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -29046,15 +29046,15 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -29100,14 +29100,14 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -29752,15 +29752,15 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -29806,14 +29806,14 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -30462,15 +30462,15 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -30516,14 +30516,14 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -31167,15 +31167,15 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -31221,14 +31221,14 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -31872,15 +31872,15 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -31926,14 +31926,14 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -32577,15 +32577,15 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -32631,14 +32631,14 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -33282,15 +33282,15 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -33336,14 +33336,14 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -33994,15 +33994,15 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -34048,14 +34048,14 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -34700,15 +34700,15 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -34754,14 +34754,14 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -35404,15 +35404,15 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -35458,14 +35458,14 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -36130,15 +36130,15 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -36184,14 +36184,14 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -36834,15 +36834,15 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -36888,14 +36888,14 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -37800,15 +37800,15 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -37854,14 +37854,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -38249,15 +38249,15 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -38303,14 +38303,14 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
