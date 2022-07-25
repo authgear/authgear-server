@@ -4,8 +4,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
+	"github.com/authgear/authgear-server/pkg/lib/webauthn"
 )
 
 func passwordToAuthenticatorInfo(p *password.Authenticator) *authenticator.Info {
@@ -32,6 +34,39 @@ func passwordFromAuthenticatorInfo(a *authenticator.Info) *password.Authenticato
 		PasswordHash: a.Claims[authenticator.AuthenticatorClaimPasswordPasswordHash].([]byte),
 		IsDefault:    a.IsDefault,
 		Kind:         string(a.Kind),
+	}
+}
+
+func passkeyToAuthenticatorInfo(p *passkey.Authenticator) *authenticator.Info {
+	return &authenticator.Info{
+		Type:      model.AuthenticatorTypePasskey,
+		ID:        p.ID,
+		UserID:    p.UserID,
+		CreatedAt: p.CreatedAt,
+		UpdatedAt: p.UpdatedAt,
+		Claims: map[authenticator.ClaimKey]interface{}{
+			authenticator.AuthenticatorClaimPasskeyCredentialID:        p.CredentialID,
+			authenticator.AuthenticatorClaimPasskeyCreationOptions:     p.CreationOptions,
+			authenticator.AuthenticatorClaimPasskeyAttestationResponse: p.AttestationResponse,
+			authenticator.AuthenticatorClaimPasskeySignCount:           p.SignCount,
+		},
+		IsDefault: p.IsDefault,
+		Kind:      authenticator.Kind(p.Kind),
+	}
+}
+
+func passkeyFromAuthenticatorInfo(a *authenticator.Info) *passkey.Authenticator {
+	return &passkey.Authenticator{
+		ID:                  a.ID,
+		UserID:              a.UserID,
+		CreatedAt:           a.CreatedAt,
+		UpdatedAt:           a.UpdatedAt,
+		IsDefault:           a.IsDefault,
+		Kind:                string(a.Kind),
+		CredentialID:        a.Claims[authenticator.AuthenticatorClaimPasskeyCredentialID].(string),
+		CreationOptions:     a.Claims[authenticator.AuthenticatorClaimPasskeyCreationOptions].(*webauthn.CreationOptions),
+		AttestationResponse: a.Claims[authenticator.AuthenticatorClaimPasskeyAttestationResponse].([]byte),
+		SignCount:           a.Claims[authenticator.AuthenticatorClaimPasskeySignCount].(int64),
 	}
 }
 

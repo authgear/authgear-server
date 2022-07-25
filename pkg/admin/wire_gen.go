@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
+	passkey2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
@@ -271,6 +272,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -313,6 +322,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	service4 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,

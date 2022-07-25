@@ -30,11 +30,31 @@ const (
 	AuthenticatorClaimOOBOTPCode ClaimKey = "https://authgear.com/claims/oob_otp/code"
 )
 
+const (
+	// AuthenticatorClaimPasskeyCredentialID is a claim with a string value.
+	// nolint: gosec
+	AuthenticatorClaimPasskeyCredentialID ClaimKey = "https://authgear.com/claims/passkey/credential_id"
+	// AuthenticatorClaimPasskeyCreationOptions ia a claim with a *CreationOption value.
+	// nolint: gosec
+	AuthenticatorClaimPasskeyCreationOptions ClaimKey = "https://authgear.com/claims/passkey/creation_options"
+	// AuthenticatorClaimPasskeyAttestationResponse ia a claim with a []byte value.
+	// nolint: gosec
+	AuthenticatorClaimPasskeyAttestationResponse ClaimKey = "https://authgear.com/claims/passkey/attestation_response"
+	// AuthenticatorClaimPasskeyAssertionResponse ia a claim with a []byte value.
+	// nolint: gosec
+	AuthenticatorClaimPasskeyAssertionResponse ClaimKey = "https://authgear.com/claims/passkey/assertion_response"
+
+	// AuthenticatorClaimPasskeySignCount is a claim with int64 value.
+	// nolint: gosec
+	AuthenticatorClaimPasskeySignCount ClaimKey = "https://authgear.com/claims/passkey/sign_count"
+)
+
 func (k ClaimKey) IsPublic() bool {
 	switch k {
 	case AuthenticatorClaimTOTPDisplayName,
 		AuthenticatorClaimOOBOTPEmail,
-		AuthenticatorClaimOOBOTPPhone:
+		AuthenticatorClaimOOBOTPPhone,
+		AuthenticatorClaimPasskeyCredentialID:
 		return true
 	default:
 		return false
