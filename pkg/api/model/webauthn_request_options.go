@@ -1,10 +1,10 @@
-package webauthn
+package model
 
 import (
 	"github.com/duo-labs/webauthn/protocol"
 )
 
-type RequestOptions struct {
+type WebAuthnRequestOptions struct {
 	PublicKey PublicKeyCredentialRequestOptions `json:"publicKey"`
 	Mediation string                            `json:"mediation,omitempty"`
 }

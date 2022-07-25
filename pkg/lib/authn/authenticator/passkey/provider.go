@@ -3,6 +3,7 @@ package passkey
 import (
 	"sort"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/webauthn"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -58,7 +59,7 @@ func (p *Provider) List(userID string) ([]*authenticator.Passkey, error) {
 func (p *Provider) New(
 	id string,
 	userID string,
-	creationOptions *webauthn.CreationOptions,
+	creationOptions *model.WebAuthnCreationOptions,
 	attestationResponse []byte,
 	isDefault bool,
 	kind string,

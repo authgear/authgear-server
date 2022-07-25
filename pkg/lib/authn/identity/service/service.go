@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/webauthn"
 )
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package service
@@ -78,7 +77,7 @@ type PasskeyIdentityProvider interface {
 	ListByClaim(name string, value string) ([]*identity.Passkey, error)
 	New(
 		userID string,
-		creationOptions *webauthn.CreationOptions,
+		creationOptions *model.WebAuthnCreationOptions,
 		attestationResponse []byte,
 	) (*identity.Passkey, error)
 	Create(i *identity.Passkey) error
