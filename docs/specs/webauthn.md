@@ -344,3 +344,8 @@ Yubikey supports signCount.
 |navigator.credentials.create|navigator.credentials.get|
 |---|---|
 |Create a new key|Nothing to select|
+
+### The icon of the relying party
+
+`icon` [was removed](https://github.com/w3c/webauthn/pull/1337) from PublicKeyCredentialEntity.
+It is believed that the platform will reuse the current icon mechanism to fetch and show the icon of the relying party.
