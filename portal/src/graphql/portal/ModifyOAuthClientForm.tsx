@@ -1,6 +1,6 @@
 import React, { useCallback, useContext } from "react";
 import produce from "immer";
-import { Checkbox, DirectionalHint, TextField, Text } from "@fluentui/react";
+import { Checkbox, DirectionalHint, Text } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import Widget from "../../Widget";
@@ -13,6 +13,7 @@ import { useTextField } from "../../hook/useInput";
 import { OAuthClientConfig } from "../../types";
 import { ensureNonEmptyString } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
+import TextField from "../../TextField";
 
 import styles from "./ModifyOAuthClientForm.module.css";
 

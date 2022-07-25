@@ -11,7 +11,6 @@ import {
   Text,
   VerticalDivider,
   Toggle,
-  TextField,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useNavigate, useParams } from "react-router-dom";
@@ -36,6 +35,7 @@ import ScreenTitle from "../../ScreenTitle";
 import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
 import WidgetDescription from "../../WidgetDescription";
+import TextField from "../../TextField";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 
 const COPY_ICON_STLYES: IButtonStyles = {

@@ -7,7 +7,6 @@ import {
   ActionButton,
   MessageBar,
   MessageBarType,
-  TextField,
   PrimaryButton,
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
@@ -32,6 +31,7 @@ import { makeGraphQLEndpoint } from "../adminapi/apollo";
 import styles from "./AdminAPIConfigurationScreen.module.css";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
+import TextField from "../../TextField";
 
 interface AdminAPIConfigurationScreenContentProps {
   appID: string;

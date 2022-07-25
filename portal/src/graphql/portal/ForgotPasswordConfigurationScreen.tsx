@@ -1,6 +1,5 @@
 import React, { useCallback, useContext } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { TextField } from "@fluentui/react";
 import produce from "immer";
 import { clearEmptyObject } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
@@ -18,6 +17,7 @@ import ScreenDescription from "../../ScreenDescription";
 import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
 import FormContainer from "../../FormContainer";
+import TextField from "../../TextField";
 import styles from "./ForgotPasswordConfigurationScreen.module.css";
 
 interface FormState {

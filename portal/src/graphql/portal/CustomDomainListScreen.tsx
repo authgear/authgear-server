@@ -23,7 +23,6 @@ import {
   MessageBarType,
   SelectionMode,
   Text,
-  TextField,
   VerticalDivider,
 } from "@fluentui/react";
 import { Domain } from "./globalTypes.generated";
@@ -56,6 +55,7 @@ import ScreenContent from "../../ScreenContent";
 import Widget from "../../Widget";
 import ErrorRenderer from "../../ErrorRenderer";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
+import TextField from "../../TextField";
 
 function getOriginFromDomain(domain: string): string {
   // assume domain has no scheme

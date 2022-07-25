@@ -6,7 +6,6 @@ import {
   Checkbox,
   Dropdown,
   IDropdownOption,
-  TextField,
   MessageBar,
   DirectionalHint,
 } from "@fluentui/react";
@@ -37,6 +36,7 @@ import FormContainer from "../../FormContainer";
 import styles from "./VerificationConfigurationScreen.module.css";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import LabelWithTooltip from "../../LabelWithTooltip";
+import TextField from "../../TextField";
 
 interface FormState {
   codeExpirySeconds: number | undefined;

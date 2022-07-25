@@ -7,7 +7,6 @@ import {
   IDropdownOption,
   ISelectableOption,
   Label,
-  TextField,
   MessageBar,
   PrimaryButton,
 } from "@fluentui/react";
@@ -40,6 +39,7 @@ import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { startReauthentication } from "./Authenticated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useErrorMessage, useErrorMessageString } from "../../formbinding";
+import TextField from "../../TextField";
 
 interface BlockingEventHandler {
   event: string;
