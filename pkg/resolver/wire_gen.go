@@ -9,6 +9,7 @@ package resolver
 import (
 	"context"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
+	passkey2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
@@ -284,6 +285,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store3 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store3,
+		Clock: clock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -325,6 +334,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	service3 := &service2.Service{
 		Store:       store2,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -606,6 +616,14 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store2 := &passkey2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey2.Provider{
+		Store: store2,
+		Clock: clockClock,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -637,6 +655,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	service3 := &service2.Service{
 		Store:       serviceStore,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,

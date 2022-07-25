@@ -53,6 +53,8 @@ func (i *Info) AMR() []string {
 	switch i.Type {
 	case model.AuthenticatorTypePassword:
 		return []string{model.AMRPWD}
+	case model.AuthenticatorTypePasskey:
+		return []string{model.AMRXPasskey}
 	case model.AuthenticatorTypeTOTP:
 		return []string{model.AMROTP}
 	case model.AuthenticatorTypeOOBEmail:
@@ -77,6 +79,11 @@ func (i *Info) Equal(that *Info) bool {
 	case model.AuthenticatorTypePassword:
 		// If they are password, they have the same primary/secondary tag.
 		return i.Kind == that.Kind
+	case model.AuthenticatorTypePasskey:
+		// if they are passkey, they have the same credential ID.
+		iCredentialID := i.Claims[AuthenticatorClaimPasskeyCredentialID].(string)
+		thatCredentialID := i.Claims[AuthenticatorClaimPasskeyCredentialID].(string)
+		return iCredentialID == thatCredentialID
 	case model.AuthenticatorTypeTOTP:
 		// If they are TOTP, they have the same secret, and primary/secondary tag.
 		if i.Kind != that.Kind {
@@ -115,6 +122,8 @@ func (i *Info) StandardClaims() map[model.ClaimName]string {
 	switch i.Type {
 	case model.AuthenticatorTypePassword:
 		break
+	case model.AuthenticatorTypePasskey:
+		break
 	case model.AuthenticatorTypeTOTP:
 		break
 	case model.AuthenticatorTypeOOBEmail:
@@ -142,6 +151,9 @@ func (i *Info) CanHaveMFA() bool {
 	case model.AuthenticatorTypePassword:
 		// password is weak so it can have MFA.
 		return true
+	case model.AuthenticatorTypePasskey:
+		// passkey is strong so it cannot have MFA.
+		return false
 	case model.AuthenticatorTypeOOBEmail:
 		// OTP is weak so it can have MFA.
 		return true

@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	authenticatoroob "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
+	authenticatorpasskey "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
 	authenticatorpassword "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	authenticatortotp "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
@@ -128,9 +129,11 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(interaction.OOBAuthenticatorProvider), new(*authenticatoroob.Provider)),
 		wire.Bind(new(interaction.OOBCodeSender), new(*authenticatoroob.CodeSender)),
 		authenticatortotp.DependencySet,
+		authenticatorpasskey.DependencySet,
 
 		authenticatorservice.DependencySet,
 		wire.Bind(new(authenticatorservice.PasswordAuthenticatorProvider), new(*authenticatorpassword.Provider)),
+		wire.Bind(new(authenticatorservice.PasskeyAuthenticatorProvider), new(*authenticatorpasskey.Provider)),
 		wire.Bind(new(authenticatorservice.OOBOTPAuthenticatorProvider), new(*authenticatoroob.Provider)),
 		wire.Bind(new(authenticatorservice.TOTPAuthenticatorProvider), new(*authenticatortotp.Provider)),
 
