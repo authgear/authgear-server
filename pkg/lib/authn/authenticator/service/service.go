@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
-	"github.com/authgear/authgear-server/pkg/lib/webauthn"
 )
 
 type PasswordAuthenticatorProvider interface {
@@ -32,7 +31,7 @@ type PasskeyAuthenticatorProvider interface {
 	New(
 		id string,
 		userID string,
-		creationOptions *webauthn.CreationOptions,
+		creationOptions *model.WebAuthnCreationOptions,
 		attestationResponse []byte,
 		isDefault bool,
 		kind string,

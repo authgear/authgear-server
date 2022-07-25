@@ -1,11 +1,11 @@
-package webauthn
+package model
 
 import (
 	"github.com/duo-labs/webauthn/protocol"
 	"github.com/duo-labs/webauthn/protocol/webauthncose"
 )
 
-type CreationOptions struct {
+type WebAuthnCreationOptions struct {
 	PublicKey PublicKeyCredentialCreationOptions `json:"publicKey"`
 }
 

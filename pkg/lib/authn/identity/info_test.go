@@ -7,7 +7,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/webauthn"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -129,8 +128,8 @@ func TestInfoJSON(t *testing.T) {
 				CreatedAt:    time.Date(2006, 1, 2, 0, 0, 0, 0, time.UTC),
 				UpdatedAt:    time.Date(2006, 1, 2, 0, 0, 0, 0, time.UTC),
 				CredentialID: "credentialid",
-				CreationOptions: &webauthn.CreationOptions{
-					PublicKey: webauthn.PublicKeyCredentialCreationOptions{},
+				CreationOptions: &model.WebAuthnCreationOptions{
+					PublicKey: model.PublicKeyCredentialCreationOptions{},
 				},
 				AttestationResponse: []byte("abc"),
 			},

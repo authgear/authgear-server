@@ -11,7 +11,6 @@ import (
 	identity "github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	loginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	config "github.com/authgear/authgear-server/pkg/lib/config"
-	webauthn "github.com/authgear/authgear-server/pkg/lib/webauthn"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -805,7 +804,7 @@ func (mr *MockPasskeyIdentityProviderMockRecorder) ListByClaim(name, value inter
 }
 
 // New mocks base method.
-func (m *MockPasskeyIdentityProvider) New(userID string, creationOptions *webauthn.CreationOptions, attestationResponse []byte) (*identity.Passkey, error) {
+func (m *MockPasskeyIdentityProvider) New(userID string, creationOptions *model.WebAuthnCreationOptions, attestationResponse []byte) (*identity.Passkey, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "New", userID, creationOptions, attestationResponse)
 	ret0, _ := ret[0].(*identity.Passkey)
