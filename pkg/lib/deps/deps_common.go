@@ -334,5 +334,9 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(otp.HardSMSBucketer), new(*usage.HardSMSBucketer)),
 	),
 
-	webauthn.DependencySet,
+	wire.NewSet(
+		webauthn.DependencySet,
+		wire.Bind(new(identitypasskey.WebAuthnService), new(*webauthn.Service)),
+		wire.Bind(new(authenticatorpasskey.WebAuthnService), new(*webauthn.Service)),
+	),
 )
