@@ -179,7 +179,7 @@ authentication:
     - passkey
 ```
 
-- `authentication.identities` and `authentication.primary_authenticators` : `passkey` is added. They have to be present or absent at the same time. If `passkey` comes before other primary authenticators, the user is prompted to set up a passkey first.
+- `authentication.identities` and `authentication.primary_authenticators` : `passkey` is added. They have to be present or absent at the same time. If `passkey` comes before other primary authenticators, the user is prompted to set up a passkey first. If `passkey` is present in `authentication.identities`, then `login_id` MUST also be present.
 
 ## Implementation Details
 
