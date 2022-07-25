@@ -28,6 +28,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
+	"github.com/authgear/authgear-server/pkg/lib/feature/passkey"
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
@@ -52,7 +53,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
-	"github.com/authgear/authgear-server/pkg/lib/webauthn"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -292,7 +292,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(otp.TranslationService), new(*translation.Service)),
 		wire.Bind(new(forgotpassword.TranslationService), new(*translation.Service)),
 		wire.Bind(new(welcomemessage.TranslationService), new(*translation.Service)),
-		wire.Bind(new(webauthn.TranslationService), new(*translation.Service)),
+		wire.Bind(new(passkey.TranslationService), new(*translation.Service)),
 	),
 
 	wire.NewSet(
@@ -335,8 +335,8 @@ var CommonDependencySet = wire.NewSet(
 	),
 
 	wire.NewSet(
-		webauthn.DependencySet,
-		wire.Bind(new(identitypasskey.WebAuthnService), new(*webauthn.Service)),
-		wire.Bind(new(authenticatorpasskey.WebAuthnService), new(*webauthn.Service)),
+		passkey.DependencySet,
+		wire.Bind(new(identitypasskey.PasskeyService), new(*passkey.Service)),
+		wire.Bind(new(authenticatorpasskey.PasskeyService), new(*passkey.Service)),
 	),
 )

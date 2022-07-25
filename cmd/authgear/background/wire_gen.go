@@ -10,7 +10,7 @@ import (
 	"context"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
-	passkey2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
+	passkey3 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
@@ -30,6 +30,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/accountdeletion"
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
+	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
@@ -47,7 +48,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/web"
-	"github.com/authgear/authgear-server/pkg/lib/webauthn"
 	"github.com/authgear/authgear-server/pkg/util/backgroundjob"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -268,15 +268,15 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	}
 	request := NewDummyHTTPRequest()
 	trustProxy := environmentConfig.TrustProxy
-	webauthnService := &webauthn.Service{
+	passkeyService := &passkey2.Service{
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 	}
 	passkeyProvider := &passkey.Provider{
-		Store:           passkeyStore,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -322,14 +322,14 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey2.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	provider2 := &passkey2.Provider{
-		Store:           store3,
-		Clock:           clockClock,
-		WebAuthnService: webauthnService,
+	provider2 := &passkey3.Provider{
+		Store:   store3,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,

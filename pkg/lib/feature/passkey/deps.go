@@ -1,4 +1,4 @@
-package webauthn
+package passkey
 
 import (
 	"github.com/google/wire"
