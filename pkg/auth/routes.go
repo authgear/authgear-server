@@ -95,6 +95,9 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	webappWhatsappCallbackChain := httproute.Chain(
 		webappChain,
 	)
+	webappAPIChain := httproute.Chain(
+		webappChain,
+	)
 	webappPageChain := httproute.Chain(
 		webappChain,
 		p.Middleware(newCSRFMiddleware),
@@ -143,6 +146,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	webappSSOCallbackRoute := httproute.Route{Middleware: webappSSOCallbackChain}
 	webappWebsocketRoute := httproute.Route{Middleware: webappWebsocketChain}
 	webappWhatsappCallbackRoute := httproute.Route{Middleware: webappWhatsappCallbackChain}
+	webappAPIRoute := httproute.Route{Middleware: webappAPIChain}
 
 	router.Add(webapphandler.ConfigureRootRoute(webappAuthEntrypointRoute), p.Handler(newWebAppRootHandler))
 	router.Add(webapphandler.ConfigureOAuthEntrypointRoute(webappAuthEntrypointRoute), p.Handler(newWebAppOAuthEntrypointHandler))
@@ -198,6 +202,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandler.ConfigureWechatCallbackRoute(webappSSOCallbackRoute), p.Handler(newWechatCallbackHandler))
 
 	router.Add(webapphandler.ConfigureWhatsappWATICallbackRoute(webappWhatsappCallbackRoute), p.Handler(newWhatsappWATICallbackHandler))
+
+	router.Add(webapphandler.ConfigurePasskeyCreationOptionsRoute(webappAPIRoute), p.Handler(newWebAppPasskeyCreationOptionsHandler))
 
 	router.Add(oauthhandler.ConfigureOIDCMetadataRoute(oauthStaticRoute), p.Handler(newOAuthMetadataHandler))
 	router.Add(oauthhandler.ConfigureOAuthMetadataRoute(oauthStaticRoute), p.Handler(newOAuthMetadataHandler))
