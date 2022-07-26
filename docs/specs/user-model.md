@@ -350,8 +350,8 @@ OOB-OTP authenticator is bound to a recipient address. The recipient can be an e
 
 Primary OOB-OTP authenticator requires secondary authentication.
 
-An OOB-OTP authenticator may matches a login ID identity. The normalized email
-address/phone number is used to match login ID identities.
+A primary OOB-OTP authenticator is associated with a login ID identity.
+When the associated identity is deleted, the authenticator is deleted as well.
 
 The OTP is a numeric code. The number of digits can be customized in the 
 configuration.
