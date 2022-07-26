@@ -230,41 +230,39 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Edge) {
 	// Determine whether we need to create secondary authenticator.
 
-	// 1. Skip setup if explicitly requested
-	if n.SkipMFASetup {
-		return nil
-	}
-
 	ais := authenticator.ApplyFilters(
 		n.Authenticators,
 		authenticator.KeepKind(authenticator.KindSecondary),
 	)
 
-	// 1.1. Skip setup if the primary authenticator being used cannot use MFA.
-	if n.PrimaryAuthenticator == nil || !n.PrimaryAuthenticator.CanHaveMFA() {
+	// Skip setup if explicitly requested
+	if n.SkipMFASetup {
 		return nil
 	}
 
-	// 1.2. Skip setup if MFA is disabled
+	// Skip setup if MFA is disabled
 	mode := n.AuthenticationConfig.SecondaryAuthenticationMode
 	if mode.IsDisabled() {
 		return nil
 	}
 
-	// 2. Check secondary authentication mode.
-	switch mode {
-	case config.SecondaryAuthenticationModeIfExists:
-		// No need to create authenticator if not requested by user.
-		if !n.RequestedByUser {
+	if !n.RequestedByUser {
+		// Skip setup if the primary authenticator being used cannot use MFA.
+		if n.PrimaryAuthenticator == nil || !n.PrimaryAuthenticator.CanHaveMFA() {
 			return nil
 		}
 
-	case config.SecondaryAuthenticationModeRequired:
-		// Require at least one secondary authenticator:
-		// Skip creation if any secondary authenticator exists and
-		// not explicitly requested by user
-		if len(ais) > 0 && !n.RequestedByUser {
+		// Check secondary authentication mode.
+		switch mode {
+		case config.SecondaryAuthenticationModeIfExists:
+			// secondary authentication is optional.
 			return nil
+		case config.SecondaryAuthenticationModeRequired:
+			// secondary authentication is required.
+			// Skip setup if the user has at least one secondary authenticator.
+			if len(ais) > 0 {
+				return nil
+			}
 		}
 	}
 
