@@ -12,8 +12,8 @@ import { useTextField } from "../../hook/useInput";
 import { OAuthClientConfig } from "../../types";
 import { ensureNonEmptyString } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
-import TextField from "../../TextField";
 import Toggle from "../../Toggle";
+import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 
 interface EditOAuthClientFormProps {
   publicOrigin: string;
@@ -168,12 +168,12 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> =
             onChange={onClientNameChange}
             required={true}
           />
-          <TextField
+          <TextFieldWithCopyButton
             label={renderToString("EditOAuthClientForm.client-id.label")}
             value={clientConfig.client_id}
             readOnly={true}
           />
-          <TextField
+          <TextFieldWithCopyButton
             label={renderToString("EditOAuthClientForm.endpoint.label")}
             value={publicOrigin}
             readOnly={true}

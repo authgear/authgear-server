@@ -1,0 +1,14 @@
+.container {
+  display: flex;
+  flex-direction: row;
+}
+
+.textField {
+  flex-grow: 1;
+}
+
+.copyButton {
+  margin-left: 5px;
+  /* height of label */
+  margin-top: 26px;
+}

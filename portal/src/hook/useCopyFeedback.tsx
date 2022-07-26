@@ -61,6 +61,10 @@ const CALLOUT_STYLES = {
   root: {
     padding: "8px",
   },
+  // hide scrollbar in callout
+  calloutMain: {
+    overflowY: "hidden",
+  },
 };
 
 export function useCopyFeedback(
