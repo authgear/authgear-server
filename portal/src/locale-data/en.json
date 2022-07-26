@@ -452,6 +452,7 @@
   "ApplicationsConfigurationScreen.add-client-button": "Add Application",
   "ApplicationsConfigurationScreen.client-list.name": "Name",
   "ApplicationsConfigurationScreen.client-list.client-id": "Client ID",
+  "ApplicationsConfigurationScreen.client-list.application-type": "Type",
 
   "CreateOAuthClientScreen.title": "Create Application",
   "CreateOAuthClientScreen.success-dialog.title": "Created Application Successfully",

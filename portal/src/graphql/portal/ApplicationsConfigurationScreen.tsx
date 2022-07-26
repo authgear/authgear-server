@@ -32,6 +32,7 @@ import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import ScreenDescription from "../../ScreenDescription";
+import { getApplicationTypeMessageID } from "./EditOAuthClientForm";
 
 const COPY_ICON_STLYES: IButtonStyles = {
   root: { margin: 4 },
@@ -72,12 +73,20 @@ function makeOAuthClientListColumns(
       minWidth: 100,
       className: styles.columnHeader,
     },
-
     {
       key: "clientId",
       fieldName: "clientId",
       name: renderToString(
         "ApplicationsConfigurationScreen.client-list.client-id"
+      ),
+      minWidth: 250,
+      className: styles.columnHeader,
+    },
+    {
+      key: "applicationType",
+      fieldName: "applicationType",
+      name: renderToString(
+        "ApplicationsConfigurationScreen.client-list.application-type"
       ),
       minWidth: 250,
       className: styles.columnHeader,
@@ -205,6 +214,14 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
             );
           case "clientId":
             return <OAuthClientIdCell clientId={item.client_id} />;
+          case "applicationType":
+            return (
+              <span className={styles.cellContent}>
+                <FormattedMessage
+                  id={getApplicationTypeMessageID(item.x_application_type)}
+                />
+              </span>
+            );
           default:
             return null;
         }

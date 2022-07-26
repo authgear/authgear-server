@@ -27,6 +27,17 @@ interface EditOAuthClientFormProps {
   onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
 }
 
+export function getApplicationTypeMessageID(key?: string): string {
+  const messageIDMap: Record<string, string> = {
+    spa: "oauth-client.application-type.spa",
+    traditional_web: "oauth-client.application-type.traditional-web",
+    native: "oauth-client.application-type.native",
+  };
+  return key && messageIDMap[key]
+    ? messageIDMap[key]
+    : "oauth-client.application-type.unspecified";
+}
+
 export function getReducedClientConfig(
   clientConfig: OAuthClientConfig
 ): Omit<OAuthClientConfig, "grant_types" | "response_types"> {
@@ -159,14 +170,7 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> =
 
     const renderApplicationType = useCallback(
       (key: ApplicationType) => {
-        const messageIdMap: Record<ApplicationType, string> = {
-          spa: "oauth-client.application-type.spa",
-          traditional_web: "oauth-client.application-type.traditional-web",
-          native: "oauth-client.application-type.native",
-        };
-        const messageID = messageIdMap[key]
-          ? messageIdMap[key]
-          : "oauth-client.application-type.unspecified";
+        const messageID = getApplicationTypeMessageID(key);
         return renderToString(messageID);
       },
       [renderToString]
