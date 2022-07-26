@@ -2,6 +2,7 @@ package viewmodels
 
 import (
 	"encoding/json"
+	"fmt"
 	htmltemplate "html/template"
 	"net/http"
 	"net/url"
@@ -11,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/clientid"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/web"
@@ -61,6 +63,7 @@ type BaseViewModel struct {
 	IsSupportedMobilePlatform   bool
 	GoogleTagManagerContainerID string
 	TutorialMessageType         string
+	GetAuthenticatorClaim       func(claims map[authenticator.ClaimKey]interface{}, key string) string
 }
 
 func (m *BaseViewModel) SetError(err error) {
@@ -218,6 +221,14 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		FlashMessageType:            m.FlashMessage.Pop(r, rw),
 		ResolvedLanguageTag:         resolvedLanguageTag,
 		GoogleTagManagerContainerID: m.GoogleTagManager.ContainerID,
+		GetAuthenticatorClaim: func(claims map[authenticator.ClaimKey]interface{}, key string) string {
+			claimKey := authenticator.ClaimKey(key)
+			val, ok := claims[claimKey]
+			if !ok {
+				return ""
+			}
+			return fmt.Sprintf("%s", val)
+		},
 	}
 
 	if errorState, ok := m.ErrorCookie.GetError(r); ok {

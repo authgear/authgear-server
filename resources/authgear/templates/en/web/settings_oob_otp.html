@@ -21,13 +21,13 @@
       {{ if eq $.OOBAuthenticatorType "oob_otp_email" }}
         <i class="twc-title-icon col-span-1 col-start-1 ti ti-mail text-base primary-txt" aria-hidden="true"></i>
         <p class="col-span-1 col-start-2 self-center font-size-inherit m-0 primary-txt text-base">
-          {{ index .Claims "https://authgear.com/claims/oob_otp/email" }}
+          {{ call $.GetAuthenticatorClaim .Claims "https://authgear.com/claims/oob_otp/email" }}
         </p>
       {{ end }}
       {{ if eq $.OOBAuthenticatorType "oob_otp_sms" }}
         <i class="twc-title-icon col-span-1 col-start-1 ti ti-device-mobile text-base primary-txt" aria-hidden="true"></i>
         <p class="col-span-1 col-start-2 self-center font-size-inherit m-0 primary-txt text-base">
-          {{ index .Claims "https://authgear.com/claims/oob_otp/phone" }}
+          {{ call $.GetAuthenticatorClaim .Claims "https://authgear.com/claims/oob_otp/phone" }}
         </p>
       {{ end }}
       <p class="col-start-1 col-span-2 row-start-2 self-center m-0 secondary-txt text-sm">

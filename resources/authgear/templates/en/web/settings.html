@@ -291,7 +291,7 @@
       {{ template "settings-page-primary-oob-otp-title--email" }}
     </p>
     <p class="m-0 secondary-txt text-xs truncate">
-      {{ index .Claims "https://authgear.com/claims/oob_otp/email" }}
+      {{ call $.GetAuthenticatorClaim .Claims "https://authgear.com/claims/oob_otp/email" }}
       <br>
       <!-- FIXME(ui): Use user preferred timezone -->
       {{ template "settings-page-primary-oob-otp-description" (dict "time" .CreatedAt "rfc3339" (rfc3339 .CreatedAt)) }}
@@ -307,7 +307,7 @@
       {{ template "settings-page-primary-oob-otp-title--phone" }}
     </p>
     <p class="m-0 secondary-txt text-xs">
-      {{ index .Claims "https://authgear.com/claims/oob_otp/phone" }}
+      {{ call $.GetAuthenticatorClaim .Claims "https://authgear.com/claims/oob_otp/phone" }}
       <br>
       <!-- FIXME(ui): Use user preferred timezone -->
       {{ template "settings-page-primary-oob-otp-description" (dict "time" .CreatedAt "rfc3339" (rfc3339 .CreatedAt)) }}
