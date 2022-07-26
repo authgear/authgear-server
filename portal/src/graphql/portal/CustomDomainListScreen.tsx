@@ -55,6 +55,7 @@ import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import ScreenContent from "../../ScreenContent";
 import Widget from "../../Widget";
 import ErrorRenderer from "../../ErrorRenderer";
+import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 
 function getOriginFromDomain(domain: string): string {
   // assume domain has no scheme
@@ -670,47 +671,49 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
     );
 
     return (
-      <ScreenContent>
-        <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-        <Widget className={cn(styles.widget, styles.controlGroup)}>
-          <Text block={true}>
-            <FormattedMessage id="CustomDomainListScreen.desc" />
-          </Text>
-          {customDomainDisabled && (
-            <MessageBar>
-              <FormattedMessage
-                id="FeatureConfig.custom-domain.disabled"
-                values={{
-                  planPagePath: "./../billing",
-                }}
-              />
-            </MessageBar>
-          )}
-          <DetailsList
-            columns={domainListColumns}
-            items={domainListItems}
-            selectionMode={SelectionMode.none}
-            onRenderItemColumn={renderDomainListColumn}
-            onRenderDetailsHeader={renderDomainListHeader}
-          />
-        </Widget>
+      <ScreenLayoutScrollView>
+        <ScreenContent>
+          <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+          <Widget className={cn(styles.widget, styles.controlGroup)}>
+            <Text block={true}>
+              <FormattedMessage id="CustomDomainListScreen.desc" />
+            </Text>
+            {customDomainDisabled && (
+              <MessageBar>
+                <FormattedMessage
+                  id="FeatureConfig.custom-domain.disabled"
+                  values={{
+                    planPagePath: "./../billing",
+                  }}
+                />
+              </MessageBar>
+            )}
+            <DetailsList
+              columns={domainListColumns}
+              items={domainListItems}
+              selectionMode={SelectionMode.none}
+              onRenderItemColumn={renderDomainListColumn}
+              onRenderDetailsHeader={renderDomainListHeader}
+            />
+          </Widget>
 
-        <DeleteDomainDialog
-          domain={deleteDomainDialogData.domain}
-          domainID={deleteDomainDialogData.domainID}
-          visible={deleteDomainDialogVisible}
-          dismissDialog={dismissDeleteDomainDialog}
-        />
-        {/* UpdatePublicOriginDialog depends on app config form state */}
-        <UpdatePublicOriginDialog
-          urlOrigin={state.publicOrigin}
-          visible={isDirty}
-          isSaving={isUpdating}
-          updateError={updateError}
-          onConfirmClick={confirmUpdatePublicOrigin}
-          dismissDialog={dismissUpdatePublicOriginDialog}
-        />
-      </ScreenContent>
+          <DeleteDomainDialog
+            domain={deleteDomainDialogData.domain}
+            domainID={deleteDomainDialogData.domainID}
+            visible={deleteDomainDialogVisible}
+            dismissDialog={dismissDeleteDomainDialog}
+          />
+          {/* UpdatePublicOriginDialog depends on app config form state */}
+          <UpdatePublicOriginDialog
+            urlOrigin={state.publicOrigin}
+            visible={isDirty}
+            isSaving={isUpdating}
+            updateError={updateError}
+            onConfirmClick={confirmUpdatePublicOrigin}
+            dismissDialog={dismissUpdatePublicOriginDialog}
+          />
+        </ScreenContent>
+      </ScreenLayoutScrollView>
     );
   };
 
@@ -763,7 +766,7 @@ const CustomDomainListScreen: React.FC = function CustomDomainListScreen() {
   }
 
   return (
-    <div>
+    <>
       {isVerifySuccessMessageVisible && (
         <MessageBar
           messageBarType={MessageBarType.success}
@@ -777,7 +780,7 @@ const CustomDomainListScreen: React.FC = function CustomDomainListScreen() {
         appConfigForm={form}
         featureConfig={featureConfig.effectiveFeatureConfig?.custom_domain}
       />
-    </div>
+    </>
   );
 };
 
