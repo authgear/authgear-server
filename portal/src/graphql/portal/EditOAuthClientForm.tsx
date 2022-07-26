@@ -1,6 +1,6 @@
-import React, { useCallback, useContext } from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import produce from "immer";
-import { Label } from "@fluentui/react";
+import { Dropdown, Label } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import Widget from "../../Widget";
@@ -8,13 +8,18 @@ import WidgetTitle from "../../WidgetTitle";
 import WidgetDescription from "../../WidgetDescription";
 import FormTextField from "../../FormTextField";
 import FormTextFieldList from "../../FormTextFieldList";
-import { useTextField } from "../../hook/useInput";
-import { OAuthClientConfig } from "../../types";
+import { useDropdown, useTextField } from "../../hook/useInput";
+import {
+  ApplicationType,
+  applicationTypes,
+  OAuthClientConfig,
+} from "../../types";
 import { ensureNonEmptyString } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import Toggle from "../../Toggle";
 import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 
+const ALL_APPLICATION_TYPES: ApplicationType[] = [...applicationTypes];
 interface EditOAuthClientFormProps {
   publicOrigin: string;
   className?: string;
@@ -152,6 +157,71 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> =
       [onClientConfigChange, clientConfig]
     );
 
+    const renderApplicationType = useCallback(
+      (key: ApplicationType) => {
+        const messageIdMap: Record<ApplicationType, string> = {
+          spa: "oauth-client.application-type.spa",
+          traditional_web: "oauth-client.application-type.traditional-web",
+          native: "oauth-client.application-type.native",
+        };
+        const messageID = messageIdMap[key]
+          ? messageIdMap[key]
+          : "oauth-client.application-type.unspecified";
+        return renderToString(messageID);
+      },
+      [renderToString]
+    );
+
+    const {
+      options: applicationTypeOptions,
+      onChange: onApplicationTypeChange,
+    } = useDropdown(
+      ALL_APPLICATION_TYPES,
+      (option) => {
+        onClientConfigChange(
+          updateClientConfig(clientConfig, "x_application_type", option)
+        );
+      },
+      clientConfig.x_application_type,
+      renderApplicationType
+    );
+
+    const redirectURIsDescription = useMemo(() => {
+      const messageIdMap: Record<ApplicationType, string> = {
+        spa: "EditOAuthClientForm.redirect-uris.description.spa",
+        traditional_web:
+          "EditOAuthClientForm.redirect-uris.description.traditional-web",
+        native: "EditOAuthClientForm.redirect-uris.description.native",
+      };
+      const messageID = clientConfig.x_application_type
+        ? messageIdMap[clientConfig.x_application_type]
+        : "EditOAuthClientForm.redirect-uris.description.unspecified";
+      return renderToString(messageID);
+    }, [clientConfig.x_application_type, renderToString]);
+
+    const showPostLogoutRedirectURIsSettings = useMemo(
+      () =>
+        !clientConfig.x_application_type ||
+        clientConfig.x_application_type === "spa" ||
+        clientConfig.x_application_type === "traditional_web",
+      [clientConfig.x_application_type]
+    );
+
+    const showCookieSettings = useMemo(
+      () =>
+        !clientConfig.x_application_type ||
+        clientConfig.x_application_type === "traditional_web",
+      [clientConfig.x_application_type]
+    );
+
+    const showTokenSettings = useMemo(
+      () =>
+        !clientConfig.x_application_type ||
+        clientConfig.x_application_type === "spa" ||
+        clientConfig.x_application_type === "native",
+      [clientConfig.x_application_type]
+    );
+
     const parentJSONPointer = /\/oauth\/clients\/\d+/;
 
     return (
@@ -178,6 +248,15 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> =
             value={publicOrigin}
             readOnly={true}
           />
+          <Dropdown
+            placeholder={renderToString(
+              "oauth-client.application-type.unspecified"
+            )}
+            label={renderToString("EditOAuthClientForm.application-type.label")}
+            options={applicationTypeOptions}
+            selectedKey={clientConfig.x_application_type}
+            onChange={onApplicationTypeChange}
+          />
         </Widget>
 
         <Widget className={className}>
@@ -195,106 +274,115 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> =
                 <FormattedMessage id="EditOAuthClientForm.redirect-uris.label" />
               </Label>
             }
-            description={renderToString(
-              "EditOAuthClientForm.redirect-uris.description"
-            )}
+            description={redirectURIsDescription}
           />
-          <FormTextFieldList
-            parentJSONPointer={parentJSONPointer}
-            fieldName="post_logout_redirect_uris"
-            list={clientConfig.post_logout_redirect_uris ?? []}
-            onListChange={onPostLogoutRedirectUrisChange}
-            addButtonLabelMessageID="EditOAuthClientForm.add-uri"
-            label={
-              <Label>
-                <FormattedMessage id="EditOAuthClientForm.post-logout-redirect-uris.label" />
-              </Label>
-            }
-            description={renderToString(
-              "EditOAuthClientForm.post-logout-redirect-uris.description"
-            )}
-          />
-        </Widget>
-        <Widget className={className}>
-          <WidgetTitle>
-            <FormattedMessage id="EditOAuthClientForm.refresh-token.title" />
-          </WidgetTitle>
-          <FormTextField
-            parentJSONPointer={parentJSONPointer}
-            fieldName="refresh_token_lifetime_seconds"
-            label={renderToString("EditOAuthClientForm.refresh-token.label")}
-            description={renderToString(
-              "EditOAuthClientForm.refresh-token.description"
-            )}
-            value={
-              clientConfig.refresh_token_lifetime_seconds?.toFixed(0) ?? ""
-            }
-            onChange={onRefreshTokenLifetimeChange}
-          />
-          <Toggle
-            checked={clientConfig.refresh_token_idle_timeout_enabled ?? true}
-            onChange={onChangeRefreshTokenIdleTimeoutEnabled}
-            label={renderToString(
-              "EditOAuthClientForm.refresh-token-idle-timeout-enabled.label"
-            )}
-            description={renderToString(
-              "EditOAuthClientForm.refresh-token-idle-timeout-enabled.description"
-            )}
-          />
-          <FormTextField
-            parentJSONPointer={parentJSONPointer}
-            fieldName="refresh_token_idle_timeout_seconds"
-            label={renderToString(
-              "EditOAuthClientForm.refresh-token-idle-timeout.label"
-            )}
-            description={renderToString(
-              "EditOAuthClientForm.refresh-token-idle-timeout.description"
-            )}
-            value={
-              clientConfig.refresh_token_idle_timeout_seconds?.toFixed(0) ?? ""
-            }
-            onChange={onIdleTimeoutChange}
-            disabled={
-              !(clientConfig.refresh_token_idle_timeout_enabled ?? true)
-            }
-          />
-        </Widget>
-        <Widget className={className}>
-          <WidgetTitle>
-            <FormattedMessage id="EditOAuthClientForm.access-token.title" />
-          </WidgetTitle>
-          <FormTextField
-            parentJSONPointer={parentJSONPointer}
-            fieldName="access_token_lifetime_seconds"
-            label={renderToString("EditOAuthClientForm.access-token.label")}
-            description={renderToString(
-              "EditOAuthClientForm.access-token.description"
-            )}
-            value={clientConfig.access_token_lifetime_seconds?.toFixed(0) ?? ""}
-            onChange={onAccessTokenLifetimeChange}
-          />
-          <Toggle
-            checked={clientConfig.issue_jwt_access_token}
-            onChange={onIssueJWTAccessTokenChange}
-            label={renderToString(
-              "EditOAuthClientForm.issue-jwt-access-token.label"
-            )}
-          />
-        </Widget>
-        <Widget className={className}>
-          <WidgetTitle>
-            <FormattedMessage id="EditOAuthClientForm.cookie-settings.title" />
-          </WidgetTitle>
-          <WidgetDescription>
-            <FormattedMessage
-              id="EditOAuthClientForm.cookie-settings.description"
-              values={{
-                to: "./../../advanced/session",
-                hostname: publicOrigin,
-              }}
+          {showPostLogoutRedirectURIsSettings && (
+            <FormTextFieldList
+              parentJSONPointer={parentJSONPointer}
+              fieldName="post_logout_redirect_uris"
+              list={clientConfig.post_logout_redirect_uris ?? []}
+              onListChange={onPostLogoutRedirectUrisChange}
+              addButtonLabelMessageID="EditOAuthClientForm.add-uri"
+              label={
+                <Label>
+                  <FormattedMessage id="EditOAuthClientForm.post-logout-redirect-uris.label" />
+                </Label>
+              }
+              description={renderToString(
+                "EditOAuthClientForm.post-logout-redirect-uris.description"
+              )}
             />
-          </WidgetDescription>
+          )}
         </Widget>
+        {showTokenSettings && (
+          <Widget className={className}>
+            <WidgetTitle>
+              <FormattedMessage id="EditOAuthClientForm.refresh-token.title" />
+            </WidgetTitle>
+            <FormTextField
+              parentJSONPointer={parentJSONPointer}
+              fieldName="refresh_token_lifetime_seconds"
+              label={renderToString("EditOAuthClientForm.refresh-token.label")}
+              description={renderToString(
+                "EditOAuthClientForm.refresh-token.description"
+              )}
+              value={
+                clientConfig.refresh_token_lifetime_seconds?.toFixed(0) ?? ""
+              }
+              onChange={onRefreshTokenLifetimeChange}
+            />
+            <Toggle
+              checked={clientConfig.refresh_token_idle_timeout_enabled ?? true}
+              onChange={onChangeRefreshTokenIdleTimeoutEnabled}
+              label={renderToString(
+                "EditOAuthClientForm.refresh-token-idle-timeout-enabled.label"
+              )}
+              description={renderToString(
+                "EditOAuthClientForm.refresh-token-idle-timeout-enabled.description"
+              )}
+            />
+            <FormTextField
+              parentJSONPointer={parentJSONPointer}
+              fieldName="refresh_token_idle_timeout_seconds"
+              label={renderToString(
+                "EditOAuthClientForm.refresh-token-idle-timeout.label"
+              )}
+              description={renderToString(
+                "EditOAuthClientForm.refresh-token-idle-timeout.description"
+              )}
+              value={
+                clientConfig.refresh_token_idle_timeout_seconds?.toFixed(0) ??
+                ""
+              }
+              onChange={onIdleTimeoutChange}
+              disabled={
+                !(clientConfig.refresh_token_idle_timeout_enabled ?? true)
+              }
+            />
+          </Widget>
+        )}
+        {showTokenSettings && (
+          <Widget className={className}>
+            <WidgetTitle>
+              <FormattedMessage id="EditOAuthClientForm.access-token.title" />
+            </WidgetTitle>
+            <FormTextField
+              parentJSONPointer={parentJSONPointer}
+              fieldName="access_token_lifetime_seconds"
+              label={renderToString("EditOAuthClientForm.access-token.label")}
+              description={renderToString(
+                "EditOAuthClientForm.access-token.description"
+              )}
+              value={
+                clientConfig.access_token_lifetime_seconds?.toFixed(0) ?? ""
+              }
+              onChange={onAccessTokenLifetimeChange}
+            />
+            <Toggle
+              checked={clientConfig.issue_jwt_access_token}
+              onChange={onIssueJWTAccessTokenChange}
+              label={renderToString(
+                "EditOAuthClientForm.issue-jwt-access-token.label"
+              )}
+            />
+          </Widget>
+        )}
+        {showCookieSettings && (
+          <Widget className={className}>
+            <WidgetTitle>
+              <FormattedMessage id="EditOAuthClientForm.cookie-settings.title" />
+            </WidgetTitle>
+            <WidgetDescription>
+              <FormattedMessage
+                id="EditOAuthClientForm.cookie-settings.description"
+                values={{
+                  to: "./../../advanced/session",
+                  hostname: publicOrigin,
+                }}
+              />
+            </WidgetDescription>
+          </Widget>
+        )}
       </>
     );
   };
