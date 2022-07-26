@@ -25,3 +25,7 @@
   pointer-events: none;
   opacity: 0.5;
 }
+
+.description {
+  line-height: 20px;
+}

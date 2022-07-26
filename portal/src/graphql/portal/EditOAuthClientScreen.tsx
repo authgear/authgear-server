@@ -9,9 +9,9 @@ import ScreenContent from "../../ScreenContent";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
-import ModifyOAuthClientForm, {
+import EditOAuthClientForm, {
   getReducedClientConfig,
-} from "./ModifyOAuthClientForm";
+} from "./EditOAuthClientForm";
 import { OAuthClientConfig, PortalAPIAppConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import {
@@ -22,12 +22,14 @@ import FormContainer from "../../FormContainer";
 import styles from "./EditOAuthClientScreen.module.css";
 
 interface FormState {
+  publicOrigin: string;
   clients: OAuthClientConfig[];
   editedClient: OAuthClientConfig | null;
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
+    publicOrigin: config.http?.public_origin ?? "",
     clients: config.oauth?.clients ?? [],
     editedClient: null,
   };
@@ -113,9 +115,9 @@ const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> =
     return (
       <ScreenContent>
         <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-        <ModifyOAuthClientForm
+        <EditOAuthClientForm
+          publicOrigin={state.publicOrigin}
           className={styles.widget}
-          isCreation={false}
           clientConfig={client}
           onClientConfigChange={onClientConfigChange}
         />

@@ -25,6 +25,7 @@ interface FieldListProps<T> {
   renderListItem: RenderFieldListItem<T>;
   addButtonLabelMessageID?: string;
   addDisabled?: boolean;
+  description?: string;
 }
 
 const FieldList = function FieldList<T>(
@@ -41,6 +42,7 @@ const FieldList = function FieldList<T>(
     makeDefaultItem,
     addButtonLabelMessageID,
     addDisabled,
+    description,
   } = props;
 
   const { themes } = useSystemConfig();
@@ -106,6 +108,11 @@ const FieldList = function FieldList<T>(
       >
         <FormattedMessage id={addButtonLabelMessageID ?? "add"} />
       </ActionButton>
+      {description && (
+        <Text block={true} className={styles.description}>
+          {description}
+        </Text>
+      )}
     </section>
   );
 };

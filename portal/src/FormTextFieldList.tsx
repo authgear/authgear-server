@@ -59,6 +59,7 @@ const TextFieldListItem: React.FC<TextFieldListItemProps> =
 export interface FormTextFieldListProps {
   className?: string;
   label?: React.ReactNode;
+  description?: string;
   parentJSONPointer: string | RegExp;
   fieldName: string;
   inputProps?: ITextFieldProps;
@@ -72,6 +73,7 @@ const FormTextFieldList: React.FC<FormTextFieldListProps> =
     const {
       className,
       label,
+      description,
       parentJSONPointer,
       fieldName,
       inputProps,
@@ -97,6 +99,7 @@ const FormTextFieldList: React.FC<FormTextFieldListProps> =
       <FieldList
         className={className}
         label={label}
+        description={description}
         parentJSONPointer={parentJSONPointer}
         fieldName={fieldName}
         list={list}

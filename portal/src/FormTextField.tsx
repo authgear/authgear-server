@@ -1,7 +1,8 @@
 import React, { useMemo } from "react";
-import { ITextFieldProps, TextField } from "@fluentui/react";
+import { ITextFieldProps } from "@fluentui/react";
 import { ErrorParseRule } from "./error/parse";
 import { useErrorMessage } from "./formbinding";
+import TextField from "./TextField";
 
 export interface FormTextFieldProps extends ITextFieldProps {
   parentJSONPointer: string | RegExp;
