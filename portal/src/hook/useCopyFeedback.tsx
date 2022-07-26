@@ -77,11 +77,16 @@ export function useCopyFeedback(
   const scheduleCalloutDismiss = useDelayedAction(dismissCallout);
   const { renderToString } = useContext(Context);
 
-  const onClick = useCallback(() => {
-    copyToClipboard(textToCopy);
-    setIsCalloutVisible(true);
-    scheduleCalloutDismiss(2000);
-  }, [textToCopy, scheduleCalloutDismiss]);
+  const onClick = useCallback(
+    (e: React.MouseEvent<unknown>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      copyToClipboard(textToCopy);
+      setIsCalloutVisible(true);
+      scheduleCalloutDismiss(2000);
+    },
+    [textToCopy, scheduleCalloutDismiss]
+  );
 
   const onMouseLeave = useCallback(() => {
     scheduleCalloutDismiss(500);

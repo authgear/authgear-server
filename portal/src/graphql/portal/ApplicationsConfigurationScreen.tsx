@@ -2,16 +2,17 @@ import React, { useCallback, useContext, useMemo, useState } from "react";
 import {
   ActionButton,
   DetailsList,
+  DetailsRow,
   IButtonStyles,
   IColumn,
   ICommandBarItemProps,
   IconButton,
+  IDetailsRowProps,
   MessageBar,
   SelectionMode,
-  VerticalDivider,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import produce from "immer";
 
 import ShowError from "../../ShowError";
@@ -118,27 +119,19 @@ interface OAuthClientListActionCellProps {
 const OAuthClientListActionCell: React.FC<OAuthClientListActionCellProps> =
   function OAuthClientListActionCell(props: OAuthClientListActionCellProps) {
     const { clientId, onRemoveClientClick } = props;
-    const navigate = useNavigate();
     const { themes } = useSystemConfig();
 
-    const onEditClick = useCallback(() => {
-      navigate(`./${clientId}/edit`);
-    }, [navigate, clientId]);
-
-    const onRemoveClick = useCallback(() => {
-      onRemoveClientClick(clientId);
-    }, [clientId, onRemoveClientClick]);
+    const onRemoveClick = useCallback(
+      (e: React.MouseEvent<unknown>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onRemoveClientClick(clientId);
+      },
+      [clientId, onRemoveClientClick]
+    );
 
     return (
       <div className={styles.cellContent}>
-        <ActionButton
-          className={styles.cellAction}
-          theme={themes.actionButton}
-          onClick={onEditClick}
-        >
-          <FormattedMessage id="edit" />
-        </ActionButton>
-        <VerticalDivider className={styles.cellActionDivider} />
         <ActionButton
           className={styles.cellAction}
           theme={themes.actionButton}
@@ -177,6 +170,21 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
       },
       [setState]
     );
+
+    const onRenderOAuthClientRow = useCallback((props?: IDetailsRowProps) => {
+      if (!props) {
+        return null;
+      }
+
+      const clientID = "client_id" in props.item && props.item.client_id;
+      const targetPath =
+        typeof clientID === "string" ? `./${clientID}/edit` : ".";
+      return (
+        <Link to={targetPath}>
+          <DetailsRow {...props} />
+        </Link>
+      );
+    }, []);
 
     const onRenderOAuthClientColumns = useCallback(
       (item?: OAuthClientConfig, _index?: number, column?: IColumn) => {
@@ -225,6 +233,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
             </MessageBar>
           )}
           <DetailsList
+            onRenderRow={onRenderOAuthClientRow}
             className={styles.clientList}
             columns={oauthClientListColumns}
             items={state.clients}

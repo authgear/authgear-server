@@ -19,12 +19,6 @@
   height: auto;
 }
 
-.cellActionDivider {
-  height: 15px;
-  background-color: #edebe9;
-  margin: 0 5px;
-}
-
 .clientList {
   margin: 6px 0;
 }
