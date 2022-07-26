@@ -69,6 +69,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(WhatsappWATICallbackHandler), "*"),
 	NewWhatsappWATICallbackHandlerLogger,
 	wire.Struct(new(PasskeyCreationOptionsHandler), "*"),
+	wire.Struct(new(PasskeyRequestOptionsHandler), "*"),
 
 	wire.Struct(new(ResponseWriter), "*"),
 )
