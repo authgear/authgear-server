@@ -76,6 +76,9 @@ const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> =
       form: { state, setState },
     } = props;
 
+    const client =
+      state.editedClient ?? state.clients.find((c) => c.client_id === clientID);
+
     const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
       return [
         {
@@ -86,13 +89,10 @@ const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> =
         },
         {
           to: ".",
-          label: <FormattedMessage id="EditOAuthClientScreen.title" />,
+          label: client?.name ?? "",
         },
       ];
-    }, []);
-
-    const client =
-      state.editedClient ?? state.clients.find((c) => c.client_id === clientID);
+    }, [client?.name]);
 
     const onClientConfigChange = useCallback(
       (editedClient: OAuthClientConfig) => {
