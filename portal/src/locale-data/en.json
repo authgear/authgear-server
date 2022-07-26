@@ -454,9 +454,13 @@
   "ApplicationsConfigurationScreen.client-list.client-id": "Client ID",
   "ApplicationsConfigurationScreen.client-list.application-type": "Type",
 
-  "CreateOAuthClientScreen.title": "Create Application",
-  "CreateOAuthClientScreen.success-dialog.title": "Created Application Successfully",
-  "CreateOAuthClientScreen.success-dialog.client-id-label": "Client ID",
+  "CreateOAuthClientScreen.title": "New Application",
+  "CreateOAuthClientScreen.name.label": "Name",
+  "CreateOAuthClientScreen.name.description": "The name is used to identify your application. This can be changed later.me",
+  "CreateOAuthClientScreen.application-type.label": "ApplicationType",
+  "CreateOAuthClientScreen.application-type.description.spa": "Front-end framework that use access tokens to access APIs, e.g. React, Vue, Angular",
+  "CreateOAuthClientScreen.application-type.description.traditional-web": "Websites that use cookie to authenticate requests, e.g. Express, PHP, Go",
+  "CreateOAuthClientScreen.application-type.description.native": "Mobile and desktop apps, e.g. iOS, Android, Electron",
 
   "EditOAuthClientScreen.client-id": "Client ID",
   "EditOAuthClientScreen.client-not-found": "Client ID {clientID} is not found",

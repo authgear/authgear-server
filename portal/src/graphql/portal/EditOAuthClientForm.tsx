@@ -54,7 +54,7 @@ export function getReducedClientConfig(
   };
 }
 
-function updateClientConfig<K extends keyof OAuthClientConfig>(
+export function updateClientConfig<K extends keyof OAuthClientConfig>(
   clientConfig: OAuthClientConfig,
   field: K,
   newValue: OAuthClientConfig[K]
