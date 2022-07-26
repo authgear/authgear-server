@@ -18,6 +18,7 @@ import (
 type PageService interface {
 	UpdateSession(session *webapp.Session) error
 	DeleteSession(id string) error
+	PeekUncommittedChanges(session *webapp.Session, fn func(graph *interaction.Graph) error) error
 	Get(session *webapp.Session) (*interaction.Graph, error)
 	GetSession(id string) (*webapp.Session, error)
 	GetWithIntent(session *webapp.Session, intent interaction.Intent) (*interaction.Graph, error)

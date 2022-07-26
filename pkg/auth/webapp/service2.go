@@ -77,6 +77,33 @@ func (s *Service2) DeleteSession(sessionID string) error {
 	return s.Sessions.Delete(sessionID)
 }
 
+// PeekUncommittedChanges runs fn with the effects of the graph fully applied.
+// This is useful if fn needs the effects of the graph visible to it.
+func (s *Service2) PeekUncommittedChanges(session *Session, fn func(graph *interaction.Graph) error) error {
+	graph, err := s.Graph.Get(session.CurrentStep().GraphID)
+	if err != nil {
+		return ErrInvalidSession
+	}
+
+	err = s.Graph.DryRun(session.ID, func(ctx *interaction.Context) (*interaction.Graph, error) {
+		err = graph.Apply(ctx)
+		if err != nil {
+			return nil, err
+		}
+		err = fn(graph)
+		if err != nil {
+			return nil, err
+		}
+
+		return nil, nil
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *Service2) Get(session *Session) (*interaction.Graph, error) {
 	graph, err := s.Graph.Get(session.CurrentStep().GraphID)
 	if err != nil {
