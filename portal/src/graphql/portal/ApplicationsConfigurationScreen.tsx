@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   ActionButton,
   DetailsList,
@@ -303,23 +309,38 @@ const ApplicationsConfigurationScreen: React.FC =
       [navigate, renderToString, limitReached]
     );
 
-    if (form.isLoading || featureConfig.loading) {
+    const isLoading = useMemo(
+      () => form.isLoading || featureConfig.loading,
+      [form.isLoading, featureConfig.loading]
+    );
+
+    const error = useMemo(
+      () => form.loadError ?? featureConfig.error,
+      [form.loadError, featureConfig.error]
+    );
+
+    const onRetry = useCallback(() => {
+      if (form.loadError) {
+        form.reload();
+      }
+
+      if (featureConfig.error) {
+        featureConfig.refetch().finally(() => {});
+      }
+    }, [form, featureConfig]);
+
+    useEffect(() => {
+      if (!isLoading && !error && form.state.clients.length === 0) {
+        navigate("./add");
+      }
+    }, [isLoading, error, form.state.clients.length, navigate]);
+
+    if (isLoading) {
       return <ShowLoading />;
     }
 
-    if (form.loadError) {
-      return <ShowError error={form.loadError} onRetry={form.reload} />;
-    }
-
-    if (featureConfig.error) {
-      return (
-        <ShowError
-          error={form.loadError}
-          onRetry={() => {
-            featureConfig.refetch().finally(() => {});
-          }}
-        />
-      );
+    if (error) {
+      return <ShowError error={error} onRetry={onRetry} />;
     }
 
     return (
