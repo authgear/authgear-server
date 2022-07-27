@@ -2,8 +2,8 @@ import React, { useMemo } from "react";
 import {
   TextField as FluentUITextField,
   ITextFieldProps,
+  useTheme,
 } from "@fluentui/react";
-import { useSystemConfig } from "./context/SystemConfigContext";
 
 export interface TextFieldProps extends ITextFieldProps {}
 
@@ -11,7 +11,7 @@ const TextField: React.FC<TextFieldProps> = function TextField(
   props: TextFieldProps
 ) {
   const { ...rest } = props;
-  const { themes } = useSystemConfig();
+  const theme = useTheme();
   const styles = useMemo(() => {
     let styles = {};
     if (props.description) {
@@ -22,7 +22,7 @@ const TextField: React.FC<TextFieldProps> = function TextField(
         },
         description: {
           fontSize: "14px",
-          color: themes.main.semanticColors.bodyText,
+          color: theme.semanticColors.bodyText,
           lineHeight: "20px",
         },
         ...styles,
@@ -31,10 +31,10 @@ const TextField: React.FC<TextFieldProps> = function TextField(
     if (props.readOnly) {
       styles = {
         field: {
-          backgroundColor: themes.main.palette.neutralLight,
+          backgroundColor: theme.palette.neutralLight,
         },
         fieldGroup: {
-          borderColor: themes.main.palette.neutralLight,
+          border: "none",
         },
         ...styles,
       };
@@ -45,8 +45,8 @@ const TextField: React.FC<TextFieldProps> = function TextField(
     props.description,
     props.readOnly,
     props.styles,
-    themes.main.semanticColors.bodyText,
-    themes.main.palette.neutralLight,
+    theme.semanticColors.bodyText,
+    theme.palette.neutralLight,
   ]);
 
   return <FluentUITextField styles={styles} {...rest} />;
