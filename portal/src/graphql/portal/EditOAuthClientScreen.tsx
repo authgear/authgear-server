@@ -1,9 +1,21 @@
 import cn from "classnames";
-import React, { useCallback, useContext, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import React, { useCallback, useContext, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import deepEqual from "deep-equal";
 import produce, { createDraft } from "immer";
-import { Icon, Text, Link, useTheme, Image, ImageFit } from "@fluentui/react";
+import {
+  Icon,
+  Text,
+  Link,
+  useTheme,
+  Image,
+  ImageFit,
+  Dialog,
+  IDialogContentProps,
+  DefaultButton,
+  DialogFooter,
+  ICommandBarItemProps,
+} from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import ScreenContent from "../../ScreenContent";
@@ -28,11 +40,14 @@ import styles from "./EditOAuthClientScreen.module.css";
 import Widget from "../../Widget";
 import flutterIconURL from "../../images/framework_flutter.svg";
 import xamarinIconURL from "../../images/framework_xamarin.svg";
+import ButtonWithLoading from "../../ButtonWithLoading";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
 interface FormState {
   publicOrigin: string;
   clients: OAuthClientConfig[];
   editedClient: OAuthClientConfig | null;
+  removeClientByID?: string;
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
@@ -40,6 +55,7 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     publicOrigin: config.http?.public_origin ?? "",
     clients: config.oauth?.clients ?? [],
     editedClient: null,
+    removeClientByID: undefined,
   };
 }
 
@@ -51,6 +67,14 @@ function constructConfig(
   return produce(config, (config) => {
     config.oauth ??= {};
     config.oauth.clients = currentState.clients.slice();
+
+    if (currentState.removeClientByID) {
+      config.oauth.clients = config.oauth.clients.filter(
+        (c) => c.client_id !== currentState.removeClientByID
+      );
+      clearEmptyObject(config);
+      return;
+    }
 
     const client = currentState.editedClient;
     if (client) {
@@ -298,7 +322,56 @@ const EditOAuthClientScreen: React.FC = function EditOAuthClientScreen() {
     appID: string;
     clientID: string;
   };
+  const { renderToString } = useContext(Context);
   const form = useAppConfigForm(appID, constructFormState, constructConfig);
+  const { setState, save, isUpdating } = form;
+  const navigate = useNavigate();
+  const [isRemoveDialogVisible, setIsRemoveDialogVisible] = useState(false);
+  const { themes } = useSystemConfig();
+
+  const dialogContentProps: IDialogContentProps = useMemo(() => {
+    return {
+      title: renderToString("EditOAuthClientScreen.delete-client-dialog.title"),
+      subText: renderToString(
+        "EditOAuthClientScreen.delete-client-dialog.description"
+      ),
+    };
+  }, [renderToString]);
+
+  const showDialogAndSetRemoveClientByID = useCallback(() => {
+    setState((state) => ({ ...state, removeClientByID: clientID }));
+    setIsRemoveDialogVisible(true);
+  }, [setIsRemoveDialogVisible, setState, clientID]);
+
+  const dismissDialogAndResetRemoveClientByID = useCallback(() => {
+    setIsRemoveDialogVisible(false);
+    // It is important to reset the removeClientByID
+    // Otherwise the next save will remove the oauth client
+    setState((state) => ({ ...state, removeClientByID: undefined }));
+  }, [setIsRemoveDialogVisible, setState]);
+
+  const onConfirmRemove = useCallback(() => {
+    save().then(
+      () => {
+        navigate("./../..", { replace: true });
+      },
+      () => {
+        dismissDialogAndResetRemoveClientByID();
+      }
+    );
+  }, [save, navigate, dismissDialogAndResetRemoveClientByID]);
+  const primaryItems: ICommandBarItemProps[] = useMemo(
+    () => [
+      {
+        key: "remove",
+        text: renderToString("EditOAuthClientScreen.delete-client.label"),
+        iconProps: { iconName: "Delete" },
+        theme: themes.destructive,
+        onClick: showDialogAndSetRemoveClientByID,
+      },
+    ],
+    [renderToString, showDialogAndSetRemoveClientByID, themes.destructive]
+  );
 
   if (form.isLoading) {
     return <ShowLoading />;
@@ -309,8 +382,30 @@ const EditOAuthClientScreen: React.FC = function EditOAuthClientScreen() {
   }
 
   return (
-    <FormContainer form={form}>
+    <FormContainer form={form} primaryItems={primaryItems}>
       <EditOAuthClientContent form={form} clientID={clientID} />
+      <Dialog
+        hidden={!isRemoveDialogVisible}
+        dialogContentProps={dialogContentProps}
+        modalProps={{ isBlocking: isUpdating }}
+        onDismiss={dismissDialogAndResetRemoveClientByID}
+      >
+        <DialogFooter>
+          <ButtonWithLoading
+            theme={themes.actionButton}
+            loading={isUpdating}
+            onClick={onConfirmRemove}
+            disabled={!isRemoveDialogVisible}
+            labelId="confirm"
+          />
+          <DefaultButton
+            onClick={dismissDialogAndResetRemoveClientByID}
+            disabled={isUpdating || !isRemoveDialogVisible}
+          >
+            <FormattedMessage id="cancel" />
+          </DefaultButton>
+        </DialogFooter>
+      </Dialog>
     </FormContainer>
   );
 };
