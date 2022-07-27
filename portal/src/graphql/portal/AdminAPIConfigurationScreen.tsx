@@ -31,6 +31,7 @@ import { useLocationEffect } from "../../hook/useLocationEffect";
 import { makeGraphQLEndpoint } from "../adminapi/apollo";
 import styles from "./AdminAPIConfigurationScreen.module.css";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
+import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 
 interface AdminAPIConfigurationScreenContentProps {
   appID: string;
@@ -189,59 +190,61 @@ const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenCo
     }, [renderToString, actionColumnOnRender]);
 
     return (
-      <ScreenContent>
-        <ScreenTitle className={styles.widget}>
-          <FormattedMessage id="AdminAPIConfigurationScreen.title" />
-        </ScreenTitle>
-        <ScreenDescription className={styles.widget}>
-          <FormattedMessage id="AdminAPIConfigurationScreen.description" />
-        </ScreenDescription>
-        <Widget className={styles.widget}>
-          <WidgetTitle>
-            <FormattedMessage id="AdminAPIConfigurationScreen.api-endpoint.title" />
-          </WidgetTitle>
-          <WidgetDescription>
-            <FormattedMessage id="AdminAPIConfigurationScreen.api-endpoint.description" />
-          </WidgetDescription>
-          <div className={styles.copyButtonGroup}>
-            <TextField
-              type="text"
-              readOnly={true}
-              value={adminAPIEndpoint}
-              className={styles.copyTextField}
+      <ScreenLayoutScrollView>
+        <ScreenContent>
+          <ScreenTitle className={styles.widget}>
+            <FormattedMessage id="AdminAPIConfigurationScreen.title" />
+          </ScreenTitle>
+          <ScreenDescription className={styles.widget}>
+            <FormattedMessage id="AdminAPIConfigurationScreen.description" />
+          </ScreenDescription>
+          <Widget className={styles.widget}>
+            <WidgetTitle>
+              <FormattedMessage id="AdminAPIConfigurationScreen.api-endpoint.title" />
+            </WidgetTitle>
+            <WidgetDescription>
+              <FormattedMessage id="AdminAPIConfigurationScreen.api-endpoint.description" />
+            </WidgetDescription>
+            <div className={styles.copyButtonGroup}>
+              <TextField
+                type="text"
+                readOnly={true}
+                value={adminAPIEndpoint}
+                className={styles.copyTextField}
+              />
+              <PrimaryButton {...copyButtonProps} iconProps={undefined} />
+              <Feedback />
+            </div>
+          </Widget>
+          <Widget className={styles.widget}>
+            <WidgetTitle>
+              <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.title" />
+            </WidgetTitle>
+            <WidgetDescription>
+              <FormattedMessage
+                id="AdminAPIConfigurationScreen.graphiql.description"
+                values={{ graphqlEndpoint }}
+              />
+            </WidgetDescription>
+            <MessageBar
+              messageBarType={MessageBarType.warning}
+              styles={messageBarStyles}
+            >
+              <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.warning" />
+            </MessageBar>
+          </Widget>
+          <Widget className={styles.widget}>
+            <WidgetTitle>
+              <FormattedMessage id="AdminAPIConfigurationScreen.keys.title" />
+            </WidgetTitle>
+            <DetailsList
+              items={items}
+              columns={columns}
+              selectionMode={SelectionMode.none}
             />
-            <PrimaryButton {...copyButtonProps} iconProps={undefined} />
-            <Feedback />
-          </div>
-        </Widget>
-        <Widget className={styles.widget}>
-          <WidgetTitle>
-            <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.title" />
-          </WidgetTitle>
-          <WidgetDescription>
-            <FormattedMessage
-              id="AdminAPIConfigurationScreen.graphiql.description"
-              values={{ graphqlEndpoint }}
-            />
-          </WidgetDescription>
-          <MessageBar
-            messageBarType={MessageBarType.warning}
-            styles={messageBarStyles}
-          >
-            <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.warning" />
-          </MessageBar>
-        </Widget>
-        <Widget className={styles.widget}>
-          <WidgetTitle>
-            <FormattedMessage id="AdminAPIConfigurationScreen.keys.title" />
-          </WidgetTitle>
-          <DetailsList
-            items={items}
-            columns={columns}
-            selectionMode={SelectionMode.none}
-          />
-        </Widget>
-      </ScreenContent>
+          </Widget>
+        </ScreenContent>
+      </ScreenLayoutScrollView>
     );
   };
 

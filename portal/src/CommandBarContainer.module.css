@@ -14,3 +14,7 @@
 .hidden {
   visibility: hidden;
 }
+
+.content {
+  overflow: auto;
+}

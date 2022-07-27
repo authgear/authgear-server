@@ -1,3 +1,7 @@
+.scrollableScreen {
+  overflow: auto;
+}
+
 .root {
   padding: 24px;
   min-width: 480px;

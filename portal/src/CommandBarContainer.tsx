@@ -5,6 +5,7 @@ import {
   ProgressIndicator,
 } from "@fluentui/react";
 import styles from "./CommandBarContainer.module.css";
+import cn from "classnames";
 
 const progressIndicatorStyles = {
   itemProgress: {
@@ -33,7 +34,7 @@ const CommandBarContainer: React.FC<CommandBarContainerProps> =
       props;
 
     return (
-      <div className={className}>
+      <>
         <div className={styles.header}>
           <CommandBar
             className={styles.commandBar}
@@ -47,8 +48,8 @@ const CommandBarContainer: React.FC<CommandBarContainerProps> =
             className={!isLoading ? styles.hidden : ""}
           />
         </div>
-        {props.children}
-      </div>
+        <div className={cn(styles.content, className)}>{props.children}</div>
+      </>
     );
   };
 

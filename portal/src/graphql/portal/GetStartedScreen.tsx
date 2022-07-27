@@ -425,19 +425,21 @@ function GetStartedScreenContent(props: GetStartedScreenContentProps) {
   });
 
   return (
-    <div className={styles.root}>
-      <Title />
-      <div className={styles.descriptionRow}>
-        <Description />
-        <Counter cardSpecs={cardSpecs} />
+    <div className={styles.scrollableScreen}>
+      <div className={styles.root}>
+        <Title />
+        <div className={styles.descriptionRow}>
+          <Description />
+          <Counter cardSpecs={cardSpecs} />
+        </div>
+        <Cards
+          cardSpecs={cardSpecs}
+          skipProgress={skipProgress}
+          loading={skipAppTutorialProgressMutationLoading}
+        />
+        <HelpText />
+        <DismissButton onClick={onClickDismissButton} disabled={loading} />
       </div>
-      <Cards
-        cardSpecs={cardSpecs}
-        skipProgress={skipProgress}
-        loading={skipAppTutorialProgressMutationLoading}
-      />
-      <HelpText />
-      <DismissButton onClick={onClickDismissButton} disabled={loading} />
     </div>
   );
 }
