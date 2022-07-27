@@ -41,6 +41,13 @@
       "checksVoidReturn": {
         "attributes": false
       }
+    }],
+    "no-restricted-imports": ["error", {
+      "paths": [{
+        "name": "@fluentui/react",
+        "importNames": ["TextField"],
+        "message": "Please import \"TextField\" from ./src/TextField instead."
+      }]
     }]
   }
 }

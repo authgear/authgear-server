@@ -1,8 +1,9 @@
 import React, { Fragment, useCallback } from "react";
-import { Label, Text, TextField } from "@fluentui/react";
+import { Label, Text } from "@fluentui/react";
 import CodeEditor from "../../CodeEditor";
 import cn from "classnames";
 import styles from "./EditTemplatesWidget.module.css";
+import TextField from "../../TextField";
 
 export interface TextFieldWidgetIteProps {
   className?: string;

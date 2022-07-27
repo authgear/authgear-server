@@ -10,10 +10,10 @@ import {
   Callout,
   ColorPicker,
   IColorPickerProps,
-  TextField,
   getColorFromString,
 } from "@fluentui/react";
 import styles from "./PortalColorPicker.module.css";
+import TextField from "./TextField";
 
 export interface PortalColorPickerProps {
   className?: string;
