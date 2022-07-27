@@ -54,7 +54,7 @@ func (e *EdgeSelectIdentityEnd) Instantiate(ctx *interaction.Context, graph *int
 				// Anonymous and biometric are handled in their own node.
 				break
 			case model.IdentityTypeLoginID:
-				loginIDValue := e.IdentitySpec.Claims[identity.IdentityClaimLoginIDValue].(string)
+				loginIDValue := e.IdentitySpec.LoginID.Value
 				err = ctx.Events.DispatchEvent(&nonblocking.AuthenticationFailedLoginIDEventPayload{
 					LoginID: loginIDValue,
 				})

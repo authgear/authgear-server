@@ -52,36 +52,27 @@ type Service struct {
 	RateLimiter RateLimiter
 }
 
-func (s *Service) claimVerificationConfig(claimName identity.ClaimKey) *config.VerificationClaimConfig {
+func (s *Service) claimVerificationConfig(claimName model.ClaimName) *config.VerificationClaimConfig {
 	switch claimName {
-	case identity.StandardClaimEmail:
+	case model.ClaimEmail:
 		return s.Config.Claims.Email
-	case identity.StandardClaimPhoneNumber:
+	case model.ClaimPhoneNumber:
 		return s.Config.Claims.PhoneNumber
 	default:
 		return nil
 	}
 }
 
-func (s *Service) IsClaimVerifiable(claimName identity.ClaimKey) bool {
-	if c := s.claimVerificationConfig(claimName); c != nil && *c.Enabled {
-		return true
-	}
-	return false
-}
-
 func (s *Service) getVerificationStatus(i *identity.Info, verifiedClaims map[claim]struct{}) []ClaimStatus {
 	var statuses []ClaimStatus
-	for claimName, claimValue := range i.Claims {
+	standardClaims := i.StandardClaims()
+	for claimName, claimValue := range standardClaims {
 		c := s.claimVerificationConfig(claimName)
 		if c == nil {
 			continue
 		}
 
-		value, ok := claimValue.(string)
-		if !ok {
-			continue
-		}
+		value := claimValue
 
 		_, verified := verifiedClaims[claim{string(claimName), value}]
 
@@ -201,7 +192,8 @@ func (s *Service) CreateNewCode(info *identity.Info, webSessionID string, reques
 		panic("verification: expect login ID identity")
 	}
 
-	loginIDType := config.LoginIDKeyType(info.Claims[identity.IdentityClaimLoginIDType].(string))
+	loginIDType := info.LoginID.LoginIDType
+	loginID := info.LoginID.LoginID
 
 	code := secretcode.OOBOTPSecretCode.Generate()
 	codeModel := &Code{
@@ -209,7 +201,7 @@ func (s *Service) CreateNewCode(info *identity.Info, webSessionID string, reques
 		IdentityID:      info.ID,
 		IdentityType:    string(info.Type),
 		LoginIDType:     string(loginIDType),
-		LoginID:         info.Claims[identity.IdentityClaimLoginIDValue].(string),
+		LoginID:         loginID,
 		Code:            code,
 		ExpireAt:        s.Clock.NowUTC().Add(s.Config.CodeExpiry.Duration()),
 		WebSessionID:    webSessionID,
@@ -225,21 +217,21 @@ func (s *Service) CreateNewCode(info *identity.Info, webSessionID string, reques
 }
 
 func (s *Service) GetCode(webSessionID string, info *identity.Info) (*Code, error) {
-	loginIDType := info.Claims[identity.IdentityClaimLoginIDType].(string)
-	loginID := info.Claims[identity.IdentityClaimLoginIDValue].(string)
+	loginIDType := info.LoginID.LoginIDType
+	loginID := info.LoginID.LoginID
 	return s.CodeStore.Get(&CodeKey{
 		WebSessionID: webSessionID,
-		LoginIDType:  loginIDType,
+		LoginIDType:  string(loginIDType),
 		LoginID:      loginID,
 	})
 }
 
 func (s *Service) VerifyCode(webSessionID string, info *identity.Info, code string) (*Code, error) {
-	loginIDType := info.Claims[identity.IdentityClaimLoginIDType].(string)
-	loginID := info.Claims[identity.IdentityClaimLoginIDValue].(string)
+	loginIDType := info.LoginID.LoginIDType
+	loginID := info.LoginID.LoginID
 	codeKey := &CodeKey{
 		WebSessionID: webSessionID,
-		LoginIDType:  loginIDType,
+		LoginIDType:  string(loginIDType),
 		LoginID:      loginID,
 	}
 

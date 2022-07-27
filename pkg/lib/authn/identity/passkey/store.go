@@ -33,8 +33,8 @@ func (s *Store) selectQuery() db.SelectBuilder {
 		Join(s.SQLBuilder.TableName("_auth_identity_passkey"), "p", "i.id = p.id")
 }
 
-func (s *Store) scan(scanner db.Scanner) (*Identity, error) {
-	i := &Identity{}
+func (s *Store) scan(scanner db.Scanner) (*identity.Passkey, error) {
+	i := &identity.Passkey{}
 	var creationOptionsBytes []byte
 
 	err := scanner.Scan(
@@ -60,7 +60,7 @@ func (s *Store) scan(scanner db.Scanner) (*Identity, error) {
 	return i, nil
 }
 
-func (s *Store) GetMany(ids []string) ([]*Identity, error) {
+func (s *Store) GetMany(ids []string) ([]*identity.Passkey, error) {
 	builder := s.selectQuery().Where("i.id = ANY (?)", pq.Array(ids))
 
 	rows, err := s.SQLExecutor.QueryWith(builder)
@@ -69,7 +69,7 @@ func (s *Store) GetMany(ids []string) ([]*Identity, error) {
 	}
 	defer rows.Close()
 
-	var is []*Identity
+	var is []*identity.Passkey
 	for rows.Next() {
 		i, err := s.scan(rows)
 		if err != nil {
@@ -81,7 +81,7 @@ func (s *Store) GetMany(ids []string) ([]*Identity, error) {
 	return is, nil
 }
 
-func (s *Store) List(userID string) ([]*Identity, error) {
+func (s *Store) List(userID string) ([]*identity.Passkey, error) {
 	q := s.selectQuery().Where("i.user_id = ?", userID)
 
 	rows, err := s.SQLExecutor.QueryWith(q)
@@ -90,7 +90,7 @@ func (s *Store) List(userID string) ([]*Identity, error) {
 	}
 	defer rows.Close()
 
-	var is []*Identity
+	var is []*identity.Passkey
 	for rows.Next() {
 		i, err := s.scan(rows)
 		if err != nil {
@@ -102,7 +102,7 @@ func (s *Store) List(userID string) ([]*Identity, error) {
 	return is, nil
 }
 
-func (s *Store) ListByClaim(name string, value string) ([]*Identity, error) {
+func (s *Store) ListByClaim(name string, value string) ([]*identity.Passkey, error) {
 	if name != "kid" {
 		return nil, nil
 	}
@@ -115,7 +115,7 @@ func (s *Store) ListByClaim(name string, value string) ([]*Identity, error) {
 	}
 	defer rows.Close()
 
-	var is []*Identity
+	var is []*identity.Passkey
 	for rows.Next() {
 		i, err := s.scan(rows)
 		if err != nil {
@@ -127,7 +127,7 @@ func (s *Store) ListByClaim(name string, value string) ([]*Identity, error) {
 	return is, nil
 }
 
-func (s *Store) Get(userID, id string) (*Identity, error) {
+func (s *Store) Get(userID, id string) (*identity.Passkey, error) {
 	q := s.selectQuery().Where("i.user_id = ? AND i.id = ?", userID, id)
 	rows, err := s.SQLExecutor.QueryRowWith(q)
 	if err != nil {
@@ -137,7 +137,7 @@ func (s *Store) Get(userID, id string) (*Identity, error) {
 	return s.scan(rows)
 }
 
-func (s *Store) GetByCredentialID(credentialID string) (*Identity, error) {
+func (s *Store) GetByCredentialID(credentialID string) (*identity.Passkey, error) {
 	q := s.selectQuery().Where("p.credential_id = ?", credentialID)
 	rows, err := s.SQLExecutor.QueryRowWith(q)
 	if err != nil {
@@ -147,7 +147,7 @@ func (s *Store) GetByCredentialID(credentialID string) (*Identity, error) {
 	return s.scan(rows)
 }
 
-func (s *Store) Create(i *Identity) error {
+func (s *Store) Create(i *identity.Passkey) error {
 	creationOptionsBytes, err := json.Marshal(i.CreationOptions)
 	if err != nil {
 		return err
@@ -198,7 +198,7 @@ func (s *Store) Create(i *Identity) error {
 	return nil
 }
 
-func (s *Store) Delete(i *Identity) error {
+func (s *Store) Delete(i *identity.Passkey) error {
 	q := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_identity_passkey")).
 		Where("id = ?", i.ID)

@@ -5,6 +5,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
@@ -64,24 +65,24 @@ func TestLoginIDChecker(t *testing.T) {
 			options := CheckerOptions{
 				EmailByPassBlocklistAllowlist: false,
 			}
-			var loginID Spec
+			var loginID identity.LoginIDSpec
 
-			loginID = Spec{Key: "username", Type: config.LoginIDKeyTypeUsername, Value: "johndoe"}
+			loginID = identity.LoginIDSpec{Key: "username", Type: config.LoginIDKeyTypeUsername, Value: "johndoe"}
 
 			So(checker.ValidateOne(loginID, options), ShouldBeNil)
-			loginID = Spec{Key: "email", Type: config.LoginIDKeyTypeEmail, Value: "johndoe@example.com"}
+			loginID = identity.LoginIDSpec{Key: "email", Type: config.LoginIDKeyTypeEmail, Value: "johndoe@example.com"}
 			So(checker.ValidateOne(loginID, options), ShouldBeNil)
 
-			loginID = Spec{Key: "nickname", Type: "", Value: "johndoe"}
+			loginID = identity.LoginIDSpec{Key: "nickname", Type: "", Value: "johndoe"}
 			So(checker.ValidateOne(loginID, options), ShouldBeError, "invalid login ID:\n/login_id: login ID key is not allowed")
 
-			loginID = Spec{Key: "username", Type: config.LoginIDKeyTypeUsername, Value: "foobarexample"}
+			loginID = identity.LoginIDSpec{Key: "username", Type: config.LoginIDKeyTypeUsername, Value: "foobarexample"}
 			So(checker.ValidateOne(loginID, options), ShouldBeError, "invalid login ID:\n/login_id: maxLength\n  map[actual:13 expected:10]")
 
-			loginID = Spec{Key: "email", Type: config.LoginIDKeyTypeEmail, Value: ""}
+			loginID = identity.LoginIDSpec{Key: "email", Type: config.LoginIDKeyTypeEmail, Value: ""}
 			So(checker.ValidateOne(loginID, options), ShouldBeError, "invalid login ID:\n/login_id: required")
 
-			loginID = Spec{Key: "phone", Type: config.LoginIDKeyTypePhone, Value: "51234567"}
+			loginID = identity.LoginIDSpec{Key: "phone", Type: config.LoginIDKeyTypePhone, Value: "51234567"}
 			So(checker.ValidateOne(loginID, options), ShouldBeError, "invalid login ID:\n/login_id: format\n  map[format:phone]")
 		})
 	})
