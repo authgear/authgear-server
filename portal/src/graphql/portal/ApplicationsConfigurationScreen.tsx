@@ -38,7 +38,7 @@ import { getApplicationTypeMessageID } from "./EditOAuthClientForm";
 import CommandBarContainer from "../../CommandBarContainer";
 
 const COPY_ICON_STLYES: IButtonStyles = {
-  root: { margin: 4 },
+  root: { margin: "0 4px" },
   rootHovered: { backgroundColor: "#d8d6d3" },
   rootPressed: { backgroundColor: "#c2c0be" },
 };
@@ -143,6 +143,14 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
       const clientID = "client_id" in props.item && props.item.client_id;
       const targetPath =
         typeof clientID === "string" ? `./${clientID}/edit` : ".";
+      props.styles = {
+        ...props.styles,
+        // Reduce the cell height after adding copy button to the list
+        cell: {
+          paddingTop: 4,
+          paddingBottom: 4,
+        },
+      };
       return (
         <Link to={targetPath}>
           <DetailsRow {...props} />
