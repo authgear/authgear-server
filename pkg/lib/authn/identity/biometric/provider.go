@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 	"sort"
 	"time"
 
@@ -11,11 +12,14 @@ import (
 	"github.com/lestrrat-go/jwx/jws"
 	"github.com/lestrrat-go/jwx/jwt"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
+
+var KeyIDFormat = regexp.MustCompile(`^[-\w]{8,64}$`)
 
 type jwtClock struct {
 	Clock clock.Clock
@@ -30,7 +34,7 @@ type Provider struct {
 	Clock clock.Clock
 }
 
-func (p *Provider) List(userID string) ([]*Identity, error) {
+func (p *Provider) List(userID string) ([]*identity.Biometric, error) {
 	is, err := p.Store.List(userID)
 	if err != nil {
 		return nil, err
@@ -40,7 +44,7 @@ func (p *Provider) List(userID string) ([]*Identity, error) {
 	return is, nil
 }
 
-func (p *Provider) ListByClaim(name string, value string) ([]*Identity, error) {
+func (p *Provider) ListByClaim(name string, value string) ([]*identity.Biometric, error) {
 	is, err := p.Store.ListByClaim(name, value)
 	if err != nil {
 		return nil, err
@@ -50,15 +54,15 @@ func (p *Provider) ListByClaim(name string, value string) ([]*Identity, error) {
 	return is, nil
 }
 
-func (p *Provider) Get(userID, id string) (*Identity, error) {
+func (p *Provider) Get(userID, id string) (*identity.Biometric, error) {
 	return p.Store.Get(userID, id)
 }
 
-func (p *Provider) GetByKeyID(keyID string) (*Identity, error) {
+func (p *Provider) GetByKeyID(keyID string) (*identity.Biometric, error) {
 	return p.Store.GetByKeyID(keyID)
 }
 
-func (p *Provider) GetMany(ids []string) ([]*Identity, error) {
+func (p *Provider) GetMany(ids []string) ([]*identity.Biometric, error) {
 	return p.Store.GetMany(ids)
 }
 
@@ -67,8 +71,8 @@ func (p *Provider) New(
 	keyID string,
 	key []byte,
 	deviceInfo map[string]interface{},
-) *Identity {
-	i := &Identity{
+) *identity.Biometric {
+	i := &identity.Biometric{
 		ID:         uuid.New(),
 		UserID:     userID,
 		KeyID:      keyID,
@@ -78,14 +82,14 @@ func (p *Provider) New(
 	return i
 }
 
-func (p *Provider) Create(i *Identity) error {
+func (p *Provider) Create(i *identity.Biometric) error {
 	now := p.Clock.NowUTC()
 	i.CreatedAt = now
 	i.UpdatedAt = now
 	return p.Store.Create(i)
 }
 
-func (p *Provider) Delete(i *Identity) error {
+func (p *Provider) Delete(i *identity.Biometric) error {
 	return p.Store.Delete(i)
 }
 
@@ -174,8 +178,8 @@ func (p *Provider) ParseRequestUnverified(requestJWT string) (r *Request, err er
 	return
 }
 
-func (p *Provider) ParseRequest(requestJWT string, identity *Identity) (*Request, error) {
-	key, err := identity.toJWK()
+func (p *Provider) ParseRequest(requestJWT string, i *identity.Biometric) (*Request, error) {
+	key, err := i.ToJWK()
 	if err != nil {
 		return nil, err
 	}
@@ -194,12 +198,12 @@ func (p *Provider) ParseRequest(requestJWT string, identity *Identity) (*Request
 		return nil, fmt.Errorf("invalid JWT payload: %w", err)
 	}
 
-	req.KeyID = identity.KeyID
+	req.KeyID = i.KeyID
 	req.Key = key
 	return req, nil
 }
 
-func sortIdentities(is []*Identity) {
+func sortIdentities(is []*identity.Biometric) {
 	sort.Slice(is, func(i, j int) bool {
 		return is[i].CreatedAt.Before(is[j].CreatedAt)
 	})

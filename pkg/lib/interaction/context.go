@@ -74,16 +74,16 @@ type WhatsappCodeProvider interface {
 }
 
 type AnonymousIdentityProvider interface {
-	Get(userID string, id string) (*anonymous.Identity, error)
+	Get(userID string, id string) (*identity.Anonymous, error)
 	ParseRequestUnverified(requestJWT string) (*anonymous.Request, error)
-	GetByKeyID(keyID string) (*anonymous.Identity, error)
-	ParseRequest(requestJWT string, identity *anonymous.Identity) (*anonymous.Request, error)
+	GetByKeyID(keyID string) (*identity.Anonymous, error)
+	ParseRequest(requestJWT string, identity *identity.Anonymous) (*anonymous.Request, error)
 }
 
 type BiometricIdentityProvider interface {
 	ParseRequestUnverified(requestJWT string) (*biometric.Request, error)
-	GetByKeyID(keyID string) (*biometric.Identity, error)
-	ParseRequest(requestJWT string, identity *biometric.Identity) (*biometric.Request, error)
+	GetByKeyID(keyID string) (*identity.Biometric, error)
+	ParseRequest(requestJWT string, identity *identity.Biometric) (*biometric.Request, error)
 }
 
 type ChallengeProvider interface {

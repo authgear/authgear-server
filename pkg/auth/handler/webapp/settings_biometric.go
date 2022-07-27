@@ -61,7 +61,7 @@ func (h *SettingsBiometricHandler) GetData(r *http.Request, rw http.ResponseWrit
 
 	viewModel := SettingsBiometricViewModel{}
 	for _, info := range identityInfos {
-		displayName := info.Claims[identity.IdentityClaimBiometricFormattedDeviceInfo].(string)
+		displayName := info.Biometric.FormattedDeviceInfo()
 		viewModel.BiometricIdentities = append(viewModel.BiometricIdentities, &BiometricIdentity{
 			ID:          info.ID,
 			DisplayName: displayName,

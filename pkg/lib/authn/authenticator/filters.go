@@ -63,7 +63,7 @@ func KeepPrimaryAuthenticatorOfIdentity(ii *identity.Info) Filter {
 				switch {
 				case ii.Type == model.IdentityTypeLoginID &&
 					(ai.Type == model.AuthenticatorTypeOOBEmail || ai.Type == model.AuthenticatorTypeOOBSMS):
-					loginID := ii.Claims[identity.IdentityClaimLoginIDValue]
+					loginID := ii.LoginID.LoginID
 					email, _ := ai.Claims[AuthenticatorClaimOOBOTPEmail].(string)
 					phone, _ := ai.Claims[AuthenticatorClaimOOBOTPPhone].(string)
 					if loginID == email || loginID == phone {

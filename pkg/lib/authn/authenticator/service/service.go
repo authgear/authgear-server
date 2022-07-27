@@ -509,7 +509,7 @@ func (s *Service) RemoveOrphans(identities []*identity.Info) error {
 			orphaned := true
 			for _, i := range identities {
 				if i.Type == model.IdentityTypePasskey {
-					identityCredentialID := i.Claims[identity.IdentityClaimPasskeyCredentialID].(string)
+					identityCredentialID := i.Passkey.CredentialID
 					if authenticatorCredentialID == identityCredentialID {
 						orphaned = false
 					}

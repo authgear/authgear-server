@@ -100,13 +100,14 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 	}
 
 	for _, iden := range identities {
-		if email, ok := iden.Claims[stdattrs.Email].(string); ok && email != "" {
+		standardClaims := iden.StandardClaims()
+		if email, ok := standardClaims[model.ClaimEmail]; ok && email != "" {
 			emails = append(emails, email)
 		}
-		if phoneNumber, ok := iden.Claims[stdattrs.PhoneNumber].(string); ok && phoneNumber != "" {
+		if phoneNumber, ok := standardClaims[model.ClaimPhoneNumber]; ok && phoneNumber != "" {
 			phoneNumbers = append(phoneNumbers, phoneNumber)
 		}
-		if preferredUsername, ok := iden.Claims[stdattrs.PreferredUsername].(string); ok && preferredUsername != "" {
+		if preferredUsername, ok := standardClaims[model.ClaimPreferredUsername]; ok && preferredUsername != "" {
 			preferredUsernames = append(preferredUsernames, preferredUsername)
 		}
 	}

@@ -8,28 +8,36 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func TestIdentitiesDisplayName(t *testing.T) {
 	emailIdentity := &identity.Info{
 		Type: model.IdentityTypeLoginID,
-		Claims: map[identity.ClaimKey]interface{}{
-			identity.IdentityClaimLoginIDOriginalValue: "user@example.com",
+		LoginID: &identity.LoginID{
+			OriginalLoginID: "user@example.com",
 		},
 	}
 
 	oauthProviderIdentity := &identity.Info{
 		Type: model.IdentityTypeOAuth,
-		Claims: map[identity.ClaimKey]interface{}{
-			identity.IdentityClaimOAuthProviderType: "provider",
-			identity.StandardClaimEmail:             "user@oauth-provider.com",
+		OAuth: &identity.OAuth{
+			ProviderID: config.ProviderID{
+				Type: "provider",
+			},
+			Claims: map[string]interface{}{
+				"email": "user@oauth-provider.com",
+			},
 		},
 	}
 
 	oauthProviderIdentityWithStandardClaims := &identity.Info{
 		Type: model.IdentityTypeOAuth,
-		Claims: map[identity.ClaimKey]interface{}{
-			identity.IdentityClaimOAuthProviderType: "provider2",
+		OAuth: &identity.OAuth{
+			ProviderID: config.ProviderID{
+				Type: "provider2",
+			},
+			Claims: map[string]interface{}{},
 		},
 	}
 

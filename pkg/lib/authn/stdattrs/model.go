@@ -7,7 +7,7 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/jsonpointerutil"
@@ -16,7 +16,7 @@ import (
 
 type T map[string]interface{}
 
-func FromIdentityClaims(claims map[identity.ClaimKey]interface{}) T {
+func FromIdentityStandardClaims(claims map[model.ClaimName]string) T {
 	out := make(T)
 	for k, v := range claims {
 		out[string(k)] = v

@@ -31,8 +31,8 @@ func (s *Store) selectQuery() db.SelectBuilder {
 		Join(s.SQLBuilder.TableName("_auth_identity_anonymous"), "a", "p.id = a.id")
 }
 
-func (s *Store) scan(scn db.Scanner) (*Identity, error) {
-	i := &Identity{}
+func (s *Store) scan(scn db.Scanner) (*identity.Anonymous, error) {
+	i := &identity.Anonymous{}
 
 	var keyID sql.NullString
 	var key sql.NullString
@@ -57,7 +57,7 @@ func (s *Store) scan(scn db.Scanner) (*Identity, error) {
 	return i, nil
 }
 
-func (s *Store) GetMany(ids []string) ([]*Identity, error) {
+func (s *Store) GetMany(ids []string) ([]*identity.Anonymous, error) {
 	builder := s.selectQuery().Where("p.id = ANY (?)", pq.Array(ids))
 
 	rows, err := s.SQLExecutor.QueryWith(builder)
@@ -66,7 +66,7 @@ func (s *Store) GetMany(ids []string) ([]*Identity, error) {
 	}
 	defer rows.Close()
 
-	var is []*Identity
+	var is []*identity.Anonymous
 	for rows.Next() {
 		i, err := s.scan(rows)
 		if err != nil {
@@ -78,7 +78,7 @@ func (s *Store) GetMany(ids []string) ([]*Identity, error) {
 	return is, nil
 }
 
-func (s *Store) List(userID string) ([]*Identity, error) {
+func (s *Store) List(userID string) ([]*identity.Anonymous, error) {
 	q := s.selectQuery().Where("p.user_id = ?", userID)
 
 	rows, err := s.SQLExecutor.QueryWith(q)
@@ -87,7 +87,7 @@ func (s *Store) List(userID string) ([]*Identity, error) {
 	}
 	defer rows.Close()
 
-	var is []*Identity
+	var is []*identity.Anonymous
 	for rows.Next() {
 		i, err := s.scan(rows)
 		if err != nil {
@@ -99,7 +99,7 @@ func (s *Store) List(userID string) ([]*Identity, error) {
 	return is, nil
 }
 
-func (s *Store) ListByClaim(name string, value string) ([]*Identity, error) {
+func (s *Store) ListByClaim(name string, value string) ([]*identity.Anonymous, error) {
 	if name != "kid" {
 		return nil, nil
 	}
@@ -112,7 +112,7 @@ func (s *Store) ListByClaim(name string, value string) ([]*Identity, error) {
 	}
 	defer rows.Close()
 
-	var is []*Identity
+	var is []*identity.Anonymous
 	for rows.Next() {
 		i, err := s.scan(rows)
 		if err != nil {
@@ -124,7 +124,7 @@ func (s *Store) ListByClaim(name string, value string) ([]*Identity, error) {
 	return is, nil
 }
 
-func (s *Store) Get(userID, id string) (*Identity, error) {
+func (s *Store) Get(userID, id string) (*identity.Anonymous, error) {
 	if userID == "" || id == "" {
 		return nil, identity.ErrIdentityNotFound
 	}
@@ -137,7 +137,7 @@ func (s *Store) Get(userID, id string) (*Identity, error) {
 	return s.scan(rows)
 }
 
-func (s *Store) GetByKeyID(keyID string) (*Identity, error) {
+func (s *Store) GetByKeyID(keyID string) (*identity.Anonymous, error) {
 	if keyID == "" {
 		return nil, identity.ErrIdentityNotFound
 	}
@@ -151,7 +151,7 @@ func (s *Store) GetByKeyID(keyID string) (*Identity, error) {
 	return s.scan(rows)
 }
 
-func (s *Store) Create(i *Identity) (err error) {
+func (s *Store) Create(i *identity.Anonymous) (err error) {
 	builder := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_identity")).
 		Columns(
@@ -207,7 +207,7 @@ func (s *Store) Create(i *Identity) (err error) {
 	return nil
 }
 
-func (s *Store) Delete(i *Identity) error {
+func (s *Store) Delete(i *identity.Anonymous) error {
 	q := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_identity_anonymous")).
 		Where("id = ?", i.ID)

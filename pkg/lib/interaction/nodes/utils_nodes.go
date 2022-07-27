@@ -39,9 +39,9 @@ func identityFillDetails(err error, spec *identity.Spec, otherSpec *identity.Spe
 		details["IdentityTypeIncoming"] = apierrors.APIErrorDetail.Value(spec.Type)
 		switch spec.Type {
 		case model.IdentityTypeLoginID:
-			details["LoginIDTypeIncoming"] = apierrors.APIErrorDetail.Value(spec.Claims[identity.IdentityClaimLoginIDType])
+			details["LoginIDTypeIncoming"] = apierrors.APIErrorDetail.Value(spec.LoginID.Type)
 		case model.IdentityTypeOAuth:
-			details["OAuthProviderTypeIncoming"] = apierrors.APIErrorDetail.Value(spec.Claims[identity.IdentityClaimOAuthProviderType])
+			details["OAuthProviderTypeIncoming"] = apierrors.APIErrorDetail.Value(spec.OAuth.ProviderID.Type)
 		}
 	}
 
@@ -49,9 +49,9 @@ func identityFillDetails(err error, spec *identity.Spec, otherSpec *identity.Spe
 		details["IdentityTypeExisting"] = apierrors.APIErrorDetail.Value(otherSpec.Type)
 		switch otherSpec.Type {
 		case model.IdentityTypeLoginID:
-			details["LoginIDTypeExisting"] = apierrors.APIErrorDetail.Value(otherSpec.Claims[identity.IdentityClaimLoginIDType])
+			details["LoginIDTypeExisting"] = apierrors.APIErrorDetail.Value(spec.LoginID.Type)
 		case model.IdentityTypeOAuth:
-			details["OAuthProviderTypeExisting"] = apierrors.APIErrorDetail.Value(otherSpec.Claims[identity.IdentityClaimOAuthProviderType])
+			details["OAuthProviderTypeExisting"] = apierrors.APIErrorDetail.Value(spec.OAuth.ProviderID.Type)
 		}
 	}
 

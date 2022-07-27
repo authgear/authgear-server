@@ -1,4 +1,4 @@
-package anonymous
+package identity
 
 import (
 	"crypto/rsa"
@@ -9,7 +9,7 @@ import (
 
 func TestToJWK(t *testing.T) {
 	Convey("IdentityToJWK", t, func() {
-		iden := Identity{
+		iden := Anonymous{
 			Key: []byte(`
 			{
 				"kty": "RSA",
@@ -20,7 +20,7 @@ func TestToJWK(t *testing.T) {
 			}
 			`),
 		}
-		key, err := iden.toJWK()
+		key, err := iden.ToJWK()
 		So(err, ShouldBeNil)
 		So(key.KeyID(), ShouldEqual, "foobar")
 	})
@@ -28,7 +28,7 @@ func TestToJWK(t *testing.T) {
 
 func TestRaw(t *testing.T) {
 	Convey("IdentityToJWK", t, func() {
-		iden := Identity{
+		iden := Anonymous{
 			Key: []byte(`
 			{
 				"kty": "RSA",
@@ -39,7 +39,7 @@ func TestRaw(t *testing.T) {
 			}
 			`),
 		}
-		key, err := iden.toJWK()
+		key, err := iden.ToJWK()
 		So(err, ShouldBeNil)
 
 		var ptrKey interface{}

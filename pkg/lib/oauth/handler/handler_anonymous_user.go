@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -50,7 +51,7 @@ type UserProvider interface {
 }
 
 type AnonymousIdentityProvider interface {
-	List(userID string) ([]*anonymous.Identity, error)
+	List(userID string) ([]*identity.Anonymous, error)
 }
 
 type PromotionCodeStore interface {

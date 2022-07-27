@@ -387,9 +387,7 @@ func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
 		return nil
 	}
 
-	providerID := config.NewProviderID(
-		info.Claims[identity.IdentityClaimOAuthProviderKeys].(map[string]interface{}),
-	)
+	providerID := info.OAuth.ProviderID
 
 	var cfg *config.OAuthSSOProviderConfig
 	for _, c := range c.IdentityConfig.OAuth.Providers {
@@ -400,7 +398,9 @@ func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
 		}
 	}
 
-	email, ok := info.Claims[identity.StandardClaimEmail].(string)
+	standardClaims := info.StandardClaims()
+
+	email, ok := standardClaims[model.ClaimEmail]
 	if ok && cfg != nil && *cfg.Claims.Email.AssumeVerified {
 		// Mark as verified if OAuth email is assumed to be verified
 		err := c.markVerified(info.UserID, map[model.ClaimName]string{
