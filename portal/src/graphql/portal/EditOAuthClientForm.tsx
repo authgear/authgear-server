@@ -30,7 +30,7 @@ interface EditOAuthClientFormProps {
 export function getApplicationTypeMessageID(key?: string): string {
   const messageIDMap: Record<string, string> = {
     spa: "oauth-client.application-type.spa",
-    traditional_web: "oauth-client.application-type.traditional-web",
+    traditional_webapp: "oauth-client.application-type.traditional-webapp",
     native: "oauth-client.application-type.native",
   };
   return key && messageIDMap[key]
@@ -193,8 +193,8 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> =
     const redirectURIsDescription = useMemo(() => {
       const messageIdMap: Record<ApplicationType, string> = {
         spa: "EditOAuthClientForm.redirect-uris.description.spa",
-        traditional_web:
-          "EditOAuthClientForm.redirect-uris.description.traditional-web",
+        traditional_webapp:
+          "EditOAuthClientForm.redirect-uris.description.traditional-webapp",
         native: "EditOAuthClientForm.redirect-uris.description.native",
       };
       const messageID = clientConfig.x_application_type
@@ -207,14 +207,14 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> =
       () =>
         !clientConfig.x_application_type ||
         clientConfig.x_application_type === "spa" ||
-        clientConfig.x_application_type === "traditional_web",
+        clientConfig.x_application_type === "traditional_webapp",
       [clientConfig.x_application_type]
     );
 
     const showCookieSettings = useMemo(
       () =>
         !clientConfig.x_application_type ||
-        clientConfig.x_application_type === "traditional_web",
+        clientConfig.x_application_type === "traditional_webapp",
       [clientConfig.x_application_type]
     );
 

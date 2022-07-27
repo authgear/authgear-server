@@ -29,7 +29,7 @@ type OAuthClientApplicationType string
 
 const (
 	OAuthClientApplicationTypeSPA            OAuthClientApplicationType = "spa"
-	OAuthClientApplicationTypeTraditionalWeb OAuthClientApplicationType = "traditional_web"
+	OAuthClientApplicationTypeTraditionalWeb OAuthClientApplicationType = "traditional_webapp"
 	OAuthClientApplicationTypeNative         OAuthClientApplicationType = "native"
 )
 
@@ -41,7 +41,7 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"client_id": { "type": "string" },
 		"client_uri": { "type": "string", "format": "uri" },
 		"name": { "type": "string" },
-		"x_application_type": { "type": "string", "enum": ["spa", "traditional_web", "native"] },
+		"x_application_type": { "type": "string", "enum": ["spa", "traditional_webapp", "native"] },
 		"redirect_uris": {
 			"type": "array",
 			"items": { "type": "string", "format": "uri" },
@@ -63,7 +63,7 @@ var _ = Schema.Add("OAuthClientConfig", `
 			"if": {
 				"properties": {
 					"x_application_type": {
-						"enum": ["spa", "traditional_web"]
+						"enum": ["spa", "traditional_webapp"]
 					}
 				},
 				"required": ["x_application_type"]

@@ -84,7 +84,7 @@ function constructConfig(
       const draft = createDraft(currentState.newClient);
       if (
         draft.x_application_type === "spa" ||
-        draft.x_application_type === "traditional_web"
+        draft.x_application_type === "traditional_webapp"
       ) {
         draft.redirect_uris = ["http://localhost/after-authentication"];
         draft.post_logout_redirect_uris = ["http://localhost/after-logout"];
@@ -167,11 +167,13 @@ const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> =
           ),
         },
         {
-          key: "traditional_web",
-          text: renderToString("oauth-client.application-type.traditional-web"),
+          key: "traditional_webapp",
+          text: renderToString(
+            "oauth-client.application-type.traditional-webapp"
+          ),
           onRenderLabel: onRenderLabel(
             renderToString(
-              "CreateOAuthClientScreen.application-type.description.traditional-web"
+              "CreateOAuthClientScreen.application-type.description.traditional-webapp"
             )
           ),
         },

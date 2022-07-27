@@ -459,7 +459,7 @@
   "CreateOAuthClientScreen.name.description": "The name is used to identify your application. This can be changed later.me",
   "CreateOAuthClientScreen.application-type.label": "ApplicationType",
   "CreateOAuthClientScreen.application-type.description.spa": "Front-end framework that use access tokens to access APIs, e.g. React, Vue, Angular",
-  "CreateOAuthClientScreen.application-type.description.traditional-web": "Websites that use cookie to authenticate requests, e.g. Express, PHP, Go",
+  "CreateOAuthClientScreen.application-type.description.traditional-webapp": "Websites that use cookie to authenticate requests, e.g. Express, PHP, Go",
   "CreateOAuthClientScreen.application-type.description.native": "Mobile and desktop apps, e.g. iOS, Android, Electron",
 
   "EditOAuthClientScreen.client-not-found": "Client ID {clientID} is not found",
@@ -472,7 +472,7 @@
   "EditOAuthClientForm.uris.title": "URIs",
   "EditOAuthClientForm.redirect-uris.label": "Authorized Redirect URIs",
   "EditOAuthClientForm.redirect-uris.description.spa": "After users are authenticated, users will be redirected to these URIs. Call the finishAuthorization() method in your code to complete the authorization.",
-  "EditOAuthClientForm.redirect-uris.description.traditional-web": "After users are authenticated, users will be redirected to these URIs. Call the finishAuthorization() method in your code to complete the authorization.",
+  "EditOAuthClientForm.redirect-uris.description.traditional-webapp": "After users are authenticated, users will be redirected to these URIs. Call the finishAuthorization() method in your code to complete the authorization.",
   "EditOAuthClientForm.redirect-uris.description.native": "After users are authenticated, users will be redirected to these URIs. This should be a page in your application.",
   "EditOAuthClientForm.redirect-uris.description.unspecified": "After users are authenticated, users will be redirected to these URIs. This should be a page in your application.",
   "EditOAuthClientForm.post-logout-redirect-uris.label": "Post Logout Redirect URIs",
@@ -494,7 +494,7 @@
 
   "oauth-client.application-type.unspecified": "Unspecified",
   "oauth-client.application-type.spa": "Single Page Application",
-  "oauth-client.application-type.traditional-web": "Traditional Web Application",
+  "oauth-client.application-type.traditional-webapp": "Traditional Web Application",
   "oauth-client.application-type.native": "Native App",
 
   "CustomDomainListScreen.title": "Custom Domains",
