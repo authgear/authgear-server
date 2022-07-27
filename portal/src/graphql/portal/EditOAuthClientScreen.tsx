@@ -1,9 +1,10 @@
-import React, { useCallback, useMemo } from "react";
+import cn from "classnames";
+import React, { useCallback, useContext, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import deepEqual from "deep-equal";
 import produce, { createDraft } from "immer";
-import { Text } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { Icon, Text, Link, useTheme, Image, ImageFit } from "@fluentui/react";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import ScreenContent from "../../ScreenContent";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
@@ -12,7 +13,11 @@ import ShowLoading from "../../ShowLoading";
 import EditOAuthClientForm, {
   getReducedClientConfig,
 } from "./EditOAuthClientForm";
-import { OAuthClientConfig, PortalAPIAppConfig } from "../../types";
+import {
+  ApplicationType,
+  OAuthClientConfig,
+  PortalAPIAppConfig,
+} from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import {
   AppConfigFormModel,
@@ -20,6 +25,9 @@ import {
 } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
 import styles from "./EditOAuthClientScreen.module.css";
+import Widget from "../../Widget";
+import flutterIconURL from "../../images/framework_flutter.svg";
+import xamarinIconURL from "../../images/framework_xamarin.svg";
 
 interface FormState {
   publicOrigin: string;
@@ -63,6 +71,162 @@ function constructConfig(
     clearEmptyObject(config);
   });
 }
+
+interface QuickStartFrameworkItem {
+  icon: React.ReactNode;
+  name: string;
+  docLink: string;
+}
+
+interface QuickStartWidgetProps {
+  applicationType?: ApplicationType;
+}
+
+const QuickStartWidget: React.FC<QuickStartWidgetProps> =
+  function QuickStartWidget(props) {
+    const { applicationType } = props;
+    const { renderToString } = useContext(Context);
+    const theme = useTheme();
+
+    const items: QuickStartFrameworkItem[] = useMemo(() => {
+      switch (applicationType) {
+        case "spa":
+          return [
+            {
+              icon: <i className={cn("fab", "fa-react")} />,
+              name: renderToString(
+                "EditOAuthClientScreen.quick-start.framework.react"
+              ),
+              docLink: "https://docs.authgear.com/tutorials/spa/react",
+            },
+            {
+              icon: <i className={cn("fab", "fa-vuejs")} />,
+              name: renderToString(
+                "EditOAuthClientScreen.quick-start.framework.vue"
+              ),
+              docLink: "https://docs.authgear.com/get-started/website",
+            },
+            {
+              icon: <i className={cn("fab", "fa-angular")} />,
+              name: renderToString(
+                "EditOAuthClientScreen.quick-start.framework.angular"
+              ),
+              docLink: "https://docs.authgear.com/get-started/website",
+            },
+            {
+              icon: <i className={cn("fab", "fa-js")} />,
+              name: renderToString(
+                "EditOAuthClientScreen.quick-start.framework.other-js"
+              ),
+              docLink: "https://docs.authgear.com/get-started/website",
+            },
+          ];
+        case "traditional_webapp":
+          return [
+            {
+              icon: <Icon iconName="Globe" />,
+              name: renderToString(
+                "EditOAuthClientScreen.quick-start.framework.traditional-webapp"
+              ),
+              docLink: "https://docs.authgear.com/get-started/website",
+            },
+          ];
+        case "native":
+          return [
+            {
+              icon: <i className={cn("fab", "fa-react")} />,
+              name: renderToString(
+                "EditOAuthClientScreen.quick-start.framework.react-native"
+              ),
+              docLink: "https://docs.authgear.com/get-started/react-native",
+            },
+            {
+              icon: <i className={cn("fab", "fa-apple")} />,
+              name: renderToString(
+                "EditOAuthClientScreen.quick-start.framework.ios"
+              ),
+              docLink: "https://docs.authgear.com/get-started/ios",
+            },
+            {
+              icon: <i className={cn("fab", "fa-android")} />,
+              name: renderToString(
+                "EditOAuthClientScreen.quick-start.framework.android"
+              ),
+              docLink: "https://docs.authgear.com/get-started/android",
+            },
+            {
+              icon: (
+                <Image
+                  src={flutterIconURL}
+                  imageFit={ImageFit.contain}
+                  className={styles.frameworkImage}
+                />
+              ),
+              name: renderToString(
+                "EditOAuthClientScreen.quick-start.framework.flutter"
+              ),
+              docLink: "https://docs.authgear.com/get-started/flutter",
+            },
+            {
+              icon: (
+                <Image
+                  src={xamarinIconURL}
+                  imageFit={ImageFit.contain}
+                  className={styles.frameworkImage}
+                />
+              ),
+              name: renderToString(
+                "EditOAuthClientScreen.quick-start.framework.xamarin"
+              ),
+              docLink: "https://docs.authgear.com/get-started/xamarin",
+            },
+          ];
+        default:
+          return [];
+      }
+    }, [applicationType, renderToString]);
+
+    if (applicationType == null) {
+      return null;
+    }
+
+    return (
+      <Widget>
+        <div className={styles.quickStartWidget}>
+          <div>
+            <Icon
+              className={styles.quickStartTitleIcon}
+              styles={{ root: { color: theme.palette.themePrimary } }}
+              iconName="Lightbulb"
+            />
+            <Text className={styles.quickStartTitle}>
+              <FormattedMessage id="EditOAuthClientScreen.quick-start.title" />
+            </Text>
+          </div>
+          <Text>
+            <FormattedMessage id="EditOAuthClientScreen.quick-start.question" />
+          </Text>
+          {items.map((item, index) => (
+            <Link
+              key={`quick-start-${index}`}
+              className={styles.quickStartItem}
+              href={item.docLink}
+              target="_blank"
+            >
+              <span className={styles.quickStartItemIcon}>{item.icon}</span>
+              <Text variant="small" className={styles.quickStartItemText}>
+                {item.name}
+              </Text>
+              <Icon
+                className={styles.quickStartItemArrowIcon}
+                iconName="ChevronRightSmall"
+              />
+            </Link>
+          ))}
+        </div>
+      </Widget>
+    );
+  };
 
 interface EditOAuthClientContentProps {
   form: AppConfigFormModel<FormState>;
@@ -115,12 +279,16 @@ const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> =
     return (
       <ScreenContent>
         <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-        <EditOAuthClientForm
-          publicOrigin={state.publicOrigin}
-          className={styles.widget}
-          clientConfig={client}
-          onClientConfigChange={onClientConfigChange}
-        />
+        <div className={cn(styles.widget, styles.widgetColumn)}>
+          <EditOAuthClientForm
+            publicOrigin={state.publicOrigin}
+            clientConfig={client}
+            onClientConfigChange={onClientConfigChange}
+          />
+        </div>
+        <div className={styles.quickStartColumn}>
+          <QuickStartWidget applicationType={client.x_application_type} />
+        </div>
       </ScreenContent>
     );
   };

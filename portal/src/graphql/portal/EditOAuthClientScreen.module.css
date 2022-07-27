@@ -1,3 +1,74 @@
 .widget {
   grid-column: 1 / span 6;
 }
+
+.widgetColumn {
+  display: flex;
+  flex-direction: column;
+  row-gap: 16px;
+}
+
+.quickStartColumn {
+  grid-column: 7 / span 3;
+  position: sticky;
+  /* 48px is height of header */
+  /* 47px is height of command bar */
+  /* 24px is padding of ScreenContent */
+  height: calc(100vh - 47px - 48px - 24px);
+  top: 0;
+}
+
+.quickStartWidget {
+  display: flex;
+  flex-direction: column;
+  row-gap: 12px;
+}
+
+.quickStartTitleIcon {
+  padding-right: 8px;
+}
+
+.quickStartTitle {
+  font-weight: 600;
+}
+
+.quickStartItem {
+  border: 1px solid #cecece;
+  color: #201f1e;
+  border-radius: 2px;
+  display: flex;
+  flex-direction: row;
+  padding: 10px 12px;
+  cursor: pointer;
+  align-items: center;
+}
+
+.quickStartItem:hover,
+.quickStartItem:focus,
+.quickStartItem:active,
+.quickStartItem:active:hover {
+  background-color: #edebe9;
+  color: #201f1e;
+  text-decoration: none;
+}
+
+.quickStartItemIcon {
+  font-size: 24px;
+  padding-right: 12px;
+  line-height: 28px;
+}
+
+.quickStartItemText {
+  flex-grow: 1;
+}
+
+.quickStartItemArrowIcon {
+  color: #898989;
+  font-size: 6px;
+}
+
+.frameworkImage {
+  width: 24px;
+  height: 24px;
+  padding: 2px;
+}

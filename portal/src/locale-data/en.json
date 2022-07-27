@@ -463,6 +463,19 @@
   "CreateOAuthClientScreen.application-type.description.native": "Mobile and desktop apps, e.g. iOS, Android, Electron",
 
   "EditOAuthClientScreen.client-not-found": "Client ID {clientID} is not found",
+  "EditOAuthClientScreen.quick-start.title": "Quickstart guide",
+  "EditOAuthClientScreen.quick-start.question": "What framework are you using?",
+
+  "EditOAuthClientScreen.quick-start.framework.react": "React",
+  "EditOAuthClientScreen.quick-start.framework.vue": "Vue",
+  "EditOAuthClientScreen.quick-start.framework.angular": "Angular",
+  "EditOAuthClientScreen.quick-start.framework.other-js": "Other JavaScript Framework",
+  "EditOAuthClientScreen.quick-start.framework.traditional-webapp": "Traditional Web Application",
+  "EditOAuthClientScreen.quick-start.framework.react-native": "React Native",
+  "EditOAuthClientScreen.quick-start.framework.ios": "iOS",
+  "EditOAuthClientScreen.quick-start.framework.android": "Android",
+  "EditOAuthClientScreen.quick-start.framework.flutter": "Flutter",
+  "EditOAuthClientScreen.quick-start.framework.xamarin": "Xamarin",
 
   "EditOAuthClientForm.basic-info.title": "Basic Info",
   "EditOAuthClientForm.name.label": "Name",
