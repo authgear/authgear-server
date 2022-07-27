@@ -6,7 +6,6 @@ import React, {
   useState,
 } from "react";
 import {
-  ActionButton,
   DetailsList,
   DetailsRow,
   IButtonStyles,
@@ -25,20 +24,18 @@ import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import { OAuthClientConfig, PortalAPIAppConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
-import FormContainer from "../../FormContainer";
-
 import styles from "./ApplicationsConfigurationScreen.module.css";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import ScreenDescription from "../../ScreenDescription";
 import { getApplicationTypeMessageID } from "./EditOAuthClientForm";
+import CommandBarContainer from "../../CommandBarContainer";
 
 const COPY_ICON_STLYES: IButtonStyles = {
   root: { margin: 4 },
@@ -97,12 +94,6 @@ function makeOAuthClientListColumns(
       minWidth: 250,
       className: styles.columnHeader,
     },
-    {
-      key: "action",
-      name: renderToString("action"),
-      className: styles.columnHeader,
-      minWidth: 120,
-    },
   ];
 }
 
@@ -126,38 +117,6 @@ const OAuthClientIdCell: React.FC<OAuthClientIdCellProps> =
     );
   };
 
-interface OAuthClientListActionCellProps {
-  clientId: string;
-  onRemoveClientClick: (clientId: string) => void;
-}
-
-const OAuthClientListActionCell: React.FC<OAuthClientListActionCellProps> =
-  function OAuthClientListActionCell(props: OAuthClientListActionCellProps) {
-    const { clientId, onRemoveClientClick } = props;
-    const { themes } = useSystemConfig();
-
-    const onRemoveClick = useCallback(
-      (e: React.MouseEvent<unknown>) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onRemoveClientClick(clientId);
-      },
-      [clientId, onRemoveClientClick]
-    );
-
-    return (
-      <div className={styles.cellContent}>
-        <ActionButton
-          className={styles.cellAction}
-          theme={themes.actionButton}
-          onClick={onRemoveClick}
-        >
-          <FormattedMessage id="remove" />
-        </ActionButton>
-      </div>
-    );
-  };
-
 interface OAuthClientConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
   oauthClientsMaximum: number;
@@ -167,7 +126,7 @@ interface OAuthClientConfigurationContentProps {
 const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentProps> =
   function OAuthClientConfigurationContent(props) {
     const {
-      form: { state, setState },
+      form: { state },
       oauthClientsMaximum,
     } = props;
     const { renderToString } = useContext(Context);
@@ -175,16 +134,6 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
     const oauthClientListColumns = useMemo(() => {
       return makeOAuthClientListColumns(renderToString);
     }, [renderToString]);
-
-    const onRemoveClientClick = useCallback(
-      (clientId: string) => {
-        setState((state) => ({
-          ...state,
-          clients: state.clients.filter((c) => c.client_id !== clientId),
-        }));
-      },
-      [setState]
-    );
 
     const onRenderOAuthClientRow = useCallback((props?: IDetailsRowProps) => {
       if (!props) {
@@ -207,13 +156,6 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
           return null;
         }
         switch (column.key) {
-          case "action":
-            return (
-              <OAuthClientListActionCell
-                clientId={item.client_id}
-                onRemoveClientClick={onRemoveClientClick}
-              />
-            );
           case "name":
             return (
               <span className={styles.cellContent}>{item.name ?? ""}</span>
@@ -232,7 +174,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
             return null;
         }
       },
-      [onRemoveClientClick]
+      []
     );
 
     return (
@@ -344,17 +286,13 @@ const ApplicationsConfigurationScreen: React.FC =
     }
 
     return (
-      <FormContainer
-        form={form}
-        messageBar={messageBar}
-        primaryItems={primaryItems}
-      >
+      <CommandBarContainer messageBar={messageBar} primaryItems={primaryItems}>
         <OAuthClientConfigurationContent
           form={form}
           oauthClientsMaximum={oauthClientsMaximum}
           showNotification={showNotification}
         />
-      </FormContainer>
+      </CommandBarContainer>
     );
   };
 
