@@ -15,8 +15,5 @@ module.exports = {
       desktop: "1024px",
     },
   },
-  variants: {
-    extend: {},
-  },
   plugins: [],
 };
