@@ -500,6 +500,8 @@
   "EditOAuthClientForm.refresh-token-idle-timeout-enabled.description": "After a period of inactivity, the refresh token will expire and the user will be logged out.",
   "EditOAuthClientForm.refresh-token-idle-timeout.label": "Idle Timeout (seconds)",
   "EditOAuthClientForm.refresh-token-idle-timeout.description": "The length of inactivity before the token expires.",
+  "EditOAuthClientForm.refresh-token.help-text.idle-timeout-enabled": "A user's session will expire {refreshTokenLifetime} seconds after login or after {refreshTokenIdleTimeout} seconds of inactivity.",
+  "EditOAuthClientForm.refresh-token.help-text.idle-timeout-disabled": "A user's session will expire {refreshTokenLifetime} seconds after login.",
   "EditOAuthClientForm.access-token.title": "Access Token",
   "EditOAuthClientForm.access-token.label": "Access Token Lifetime (seconds)",
   "EditOAuthClientForm.access-token.description": "How frequent the access token should be refreshed. This will affect the timeliness of the information held in the JWT token.",

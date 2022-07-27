@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import produce from "immer";
-import { Dropdown, Label } from "@fluentui/react";
+import { Dropdown, Label, Text, useTheme } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import Widget from "../../Widget";
@@ -71,6 +71,7 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> =
       props;
 
     const { renderToString } = useContext(Context);
+    const theme = useTheme();
 
     const { onChange: onClientNameChange } = useTextField((value) => {
       onClientConfigChange(
@@ -228,6 +229,32 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> =
 
     const parentJSONPointer = /\/oauth\/clients\/\d+/;
 
+    const refreshTokenHelpText = useMemo(() => {
+      if (clientConfig.refresh_token_idle_timeout_enabled) {
+        return renderToString(
+          "EditOAuthClientForm.refresh-token.help-text.idle-timeout-enabled",
+          {
+            refreshTokenLifetime:
+              clientConfig.refresh_token_lifetime_seconds?.toFixed(0) ?? "",
+            refreshTokenIdleTimeout:
+              clientConfig.refresh_token_idle_timeout_seconds?.toFixed(0) ?? "",
+          }
+        );
+      }
+      return renderToString(
+        "EditOAuthClientForm.refresh-token.help-text.idle-timeout-disabled",
+        {
+          refreshTokenLifetime:
+            clientConfig.refresh_token_lifetime_seconds?.toFixed(0) ?? "",
+        }
+      );
+    }, [
+      clientConfig.refresh_token_lifetime_seconds,
+      clientConfig.refresh_token_idle_timeout_enabled,
+      clientConfig.refresh_token_idle_timeout_seconds,
+      renderToString,
+    ]);
+
     return (
       <>
         <Widget className={className}>
@@ -343,6 +370,18 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> =
                 !(clientConfig.refresh_token_idle_timeout_enabled ?? true)
               }
             />
+            <Text
+              block={true}
+              styles={{
+                root: {
+                  background: theme.palette.neutralLighter,
+                  lineHeight: "20px",
+                  padding: "8px 12px",
+                },
+              }}
+            >
+              {refreshTokenHelpText}
+            </Text>
           </Widget>
         )}
         {showTokenSettings && (
