@@ -1,5 +1,5 @@
 module.exports = {
-  purge: ["../resources/authgear/templates/en/web/**/*.html"],
+  content: ["../resources/authgear/templates/en/web/**/*.html"],
   darkMode: "class",
   theme: {
     extend: {
