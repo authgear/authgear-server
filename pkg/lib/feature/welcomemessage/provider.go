@@ -3,6 +3,7 @@ package welcomemessage
 import (
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
@@ -97,7 +98,8 @@ func (p *Provider) send(emails []string) error {
 func (p *Provider) SendToIdentityInfos(infos []*identity.Info) (err error) {
 	var emails []string
 	for _, info := range infos {
-		if email, ok := info.Claims[identity.StandardClaimEmail].(string); ok {
+		standardClaims := info.StandardClaims()
+		if email, ok := standardClaims[model.ClaimEmail]; ok {
 			emails = append(emails, email)
 		}
 	}

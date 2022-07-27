@@ -15,13 +15,13 @@ type Checker struct {
 	TypeCheckerFactory *TypeCheckerFactory
 }
 
-func (c *Checker) ValidateOne(loginID Spec, options CheckerOptions) error {
+func (c *Checker) ValidateOne(loginID identity.LoginIDSpec, options CheckerOptions) error {
 	ctx := &validation.Context{}
 	c.validateOne(ctx, loginID, options)
 	return ctx.Error("invalid login ID")
 }
 
-func (c *Checker) validateOne(ctx *validation.Context, loginID Spec, options CheckerOptions) {
+func (c *Checker) validateOne(ctx *validation.Context, loginID identity.LoginIDSpec, options CheckerOptions) {
 	originCtx := ctx
 	ctx = ctx.Child("login_id")
 
@@ -52,7 +52,7 @@ func (c *Checker) validateOne(ctx *validation.Context, loginID Spec, options Che
 	c.TypeCheckerFactory.NewChecker(loginID.Type, options).Validate(originCtx, loginID.Value)
 }
 
-func (c *Checker) LoginIDKeyClaimName(loginIDKey string) (identity.ClaimKey, bool) {
+func (c *Checker) LoginIDKeyClaimName(loginIDKey string) (string, bool) {
 	for _, keyConfig := range c.Config.Keys {
 		if keyConfig.Key == loginIDKey {
 			switch keyConfig.Type {

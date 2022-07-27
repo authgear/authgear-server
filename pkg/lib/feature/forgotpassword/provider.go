@@ -111,7 +111,8 @@ func (p *Provider) SendCode(loginID string) error {
 	}
 
 	for _, info := range emailIdentities {
-		email := info.Claims[identity.StandardClaimEmail].(string)
+		standardClaims := info.StandardClaims()
+		email := standardClaims[model.ClaimEmail]
 		code, codeStr := p.newCode(info.UserID)
 
 		if err := p.Store.Create(code); err != nil {
@@ -125,7 +126,8 @@ func (p *Provider) SendCode(loginID string) error {
 	}
 
 	for _, info := range phoneIdentities {
-		phone := info.Claims[identity.StandardClaimPhoneNumber].(string)
+		standardClaims := info.StandardClaims()
+		phone := standardClaims[model.ClaimPhoneNumber]
 		code, codeStr := p.newCode(info.UserID)
 
 		if err := p.Store.Create(code); err != nil {

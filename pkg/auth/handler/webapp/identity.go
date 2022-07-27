@@ -34,7 +34,7 @@ func IdentitiesDisplayName(identities []*identity.Info) string {
 	case model.IdentityTypeLoginID:
 		return i.DisplayID()
 	case model.IdentityTypeOAuth:
-		providerType, _ := i.Claims[identity.IdentityClaimOAuthProviderType].(string)
+		providerType := i.OAuth.ProviderID.Type
 		displayID := i.DisplayID()
 		if displayID != "" {
 			return fmt.Sprintf("%s:%s", providerType, i.DisplayID())

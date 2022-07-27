@@ -58,14 +58,15 @@ var nodeIdentity = node(
 					names, hasNames := p.Args["names"].([]interface{})
 					info := loadIdentity(p.Context, p.Source)
 					claims := info.Map(func(value interface{}) (interface{}, error) {
-						claims := value.(*identity.Info).Claims
+						info := value.(*identity.Info)
+						m := info.ToModel()
+						claims := m.Claims
 						if hasNames {
-							filteredClaims := make(map[identity.ClaimKey]interface{})
+							filteredClaims := make(map[string]interface{})
 							for _, name := range names {
 								name := name.(string)
-								claimKey := identity.ClaimKey(name)
-								if value, ok := claims[claimKey]; claimKey.IsPublic() && ok {
-									filteredClaims[claimKey] = value
+								if value, ok := claims[name]; ok {
+									filteredClaims[name] = value
 								}
 							}
 							claims = filteredClaims

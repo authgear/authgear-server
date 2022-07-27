@@ -4,7 +4,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -48,7 +47,7 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(ctx *interaction.C
 		}
 		identityInfo := graph.MustGetUserLastIdentity()
 		userID = identityInfo.UserID
-		phone = identityInfo.Claims[identity.IdentityClaimLoginIDValue].(string)
+		phone = identityInfo.LoginID.LoginID
 	} else {
 		var input InputCreateAuthenticatorWhatsappOTPSetup
 		if !interaction.Input(rawInput, &input) {

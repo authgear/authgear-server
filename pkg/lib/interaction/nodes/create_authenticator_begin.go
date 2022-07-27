@@ -177,41 +177,41 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 			})
 
 		case model.AuthenticatorTypeOOBSMS:
-			loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
-
 			// check if identity login id type match oob type
-			if loginIDType == string(config.LoginIDKeyTypePhone) {
+			if n.Identity.LoginID != nil {
+				if n.Identity.LoginID.LoginIDType == config.LoginIDKeyTypePhone {
+					if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
+						edges = append(edges, &EdgeCreateAuthenticatorWhatsappOTPSetup{
+							NewAuthenticatorID: n.NewAuthenticatorID,
+							Stage:              n.Stage,
+							IsDefault:          isDefault,
+						})
+					}
 
-				if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
-					edges = append(edges, &EdgeCreateAuthenticatorWhatsappOTPSetup{
-						NewAuthenticatorID: n.NewAuthenticatorID,
-						Stage:              n.Stage,
-						IsDefault:          isDefault,
-					})
-				}
-
-				if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsSMSEnabled() {
-					edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
-						NewAuthenticatorID:   n.NewAuthenticatorID,
-						Stage:                n.Stage,
-						IsDefault:            isDefault,
-						OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
-					})
+					if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsSMSEnabled() {
+						edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
+							NewAuthenticatorID:   n.NewAuthenticatorID,
+							Stage:                n.Stage,
+							IsDefault:            isDefault,
+							OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
+						})
+					}
 				}
 			}
 
 		case model.AuthenticatorTypeOOBEmail:
-			loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
-
 			// check if identity login id type match oob type
-			if loginIDType == string(config.LoginIDKeyTypeEmail) {
-				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
-					NewAuthenticatorID:   n.NewAuthenticatorID,
-					Stage:                n.Stage,
-					IsDefault:            isDefault,
-					OOBAuthenticatorType: model.AuthenticatorTypeOOBEmail,
-				})
+			if n.Identity.LoginID != nil {
+				if n.Identity.LoginID.LoginIDType == config.LoginIDKeyTypeEmail {
+					edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
+						NewAuthenticatorID:   n.NewAuthenticatorID,
+						Stage:                n.Stage,
+						IsDefault:            isDefault,
+						OOBAuthenticatorType: model.AuthenticatorTypeOOBEmail,
+					})
+				}
 			}
+
 		default:
 			panic(fmt.Sprintf("interaction: unknown authenticator type: %s", t))
 		}

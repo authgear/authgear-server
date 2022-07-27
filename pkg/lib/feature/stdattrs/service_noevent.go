@@ -5,6 +5,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -44,13 +45,14 @@ func (s *ServiceNoEvent) PopulateIdentityAwareStandardAttributes(userID string) 
 	var phoneNumbers []string
 	var preferredUsernames []string
 	for _, iden := range identities {
-		if email, ok := iden.Claims[stdattrs.Email].(string); ok && email != "" {
+		standardClaims := iden.StandardClaims()
+		if email, ok := standardClaims[model.ClaimEmail]; ok && email != "" {
 			emails = append(emails, email)
 		}
-		if phoneNumber, ok := iden.Claims[stdattrs.PhoneNumber].(string); ok && phoneNumber != "" {
+		if phoneNumber, ok := standardClaims[model.ClaimPhoneNumber]; ok && phoneNumber != "" {
 			phoneNumbers = append(phoneNumbers, phoneNumber)
 		}
-		if preferredUsername, ok := iden.Claims[stdattrs.PreferredUsername].(string); ok && preferredUsername != "" {
+		if preferredUsername, ok := standardClaims[model.ClaimPreferredUsername]; ok && preferredUsername != "" {
 			preferredUsernames = append(preferredUsernames, preferredUsername)
 		}
 	}
@@ -140,13 +142,14 @@ func (s *ServiceNoEvent) UpdateStandardAttributes(role accesscontrol.Role, userI
 	ownedPhoneNumbers := make(map[string]struct{})
 	ownedPreferredUsernames := make(map[string]struct{})
 	for _, iden := range identities {
-		if email, ok := iden.Claims[stdattrs.Email].(string); ok && email != "" {
+		standardClaims := iden.StandardClaims()
+		if email, ok := standardClaims[model.ClaimEmail]; ok && email != "" {
 			ownedEmails[email] = struct{}{}
 		}
-		if phoneNumber, ok := iden.Claims[stdattrs.PhoneNumber].(string); ok && phoneNumber != "" {
+		if phoneNumber, ok := standardClaims[model.ClaimPhoneNumber]; ok && phoneNumber != "" {
 			ownedPhoneNumbers[phoneNumber] = struct{}{}
 		}
-		if preferredUsername, ok := iden.Claims[stdattrs.PreferredUsername].(string); ok && preferredUsername != "" {
+		if preferredUsername, ok := standardClaims[model.ClaimPreferredUsername]; ok && preferredUsername != "" {
 			ownedPreferredUsernames[preferredUsername] = struct{}{}
 		}
 	}

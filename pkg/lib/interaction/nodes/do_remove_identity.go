@@ -76,11 +76,11 @@ func (n *NodeDoRemoveIdentity) GetEffects() ([]interaction.Effect, error) {
 			var e event.Payload
 			switch n.Identity.Type {
 			case model.IdentityTypeLoginID:
-				loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
+				loginIDType := n.Identity.LoginID.LoginIDType
 				e = nonblocking.NewIdentityLoginIDRemovedEventPayload(
 					userRef,
 					n.Identity.ToModel(),
-					loginIDType,
+					string(loginIDType),
 					n.IsAdminAPI,
 				)
 			case model.IdentityTypeOAuth:

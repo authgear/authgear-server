@@ -59,7 +59,7 @@ func (e *EdgeUseIdentityBiometric) Instantiate(ctx *interaction.Context, graph *
 		return nil, interaction.ErrInvalidCredentials
 	}
 
-	var iden *identitybiometric.Identity
+	var iden *identity.Biometric
 	switch request.Action {
 	case identitybiometric.RequestActionSetup:
 		displayName := deviceinfo.DeviceModel(request.DeviceInfo)
@@ -106,10 +106,10 @@ func (e *EdgeUseIdentityBiometric) Instantiate(ctx *interaction.Context, graph *
 
 	spec := &identity.Spec{
 		Type: model.IdentityTypeBiometric,
-		Claims: map[identity.ClaimKey]interface{}{
-			identity.IdentityClaimBiometricKeyID:      request.KeyID,
-			identity.IdentityClaimBiometricKey:        string(key),
-			identity.IdentityClaimBiometricDeviceInfo: request.DeviceInfo,
+		Biometric: &identity.BiometricSpec{
+			KeyID:      request.KeyID,
+			Key:        string(key),
+			DeviceInfo: request.DeviceInfo,
 		},
 	}
 

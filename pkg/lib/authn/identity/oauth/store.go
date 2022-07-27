@@ -37,8 +37,8 @@ func (s *Store) selectQuery() db.SelectBuilder {
 		Join(s.SQLBuilder.TableName("_auth_identity_oauth"), "o", "p.id = o.id")
 }
 
-func (s *Store) scan(scn db.Scanner) (*Identity, error) {
-	i := &Identity{}
+func (s *Store) scan(scn db.Scanner) (*identity.OAuth, error) {
+	i := &identity.OAuth{}
 	var providerKeys []byte
 	var profile []byte
 	var claims []byte
@@ -73,7 +73,7 @@ func (s *Store) scan(scn db.Scanner) (*Identity, error) {
 	return i, nil
 }
 
-func (s *Store) GetMany(ids []string) ([]*Identity, error) {
+func (s *Store) GetMany(ids []string) ([]*identity.OAuth, error) {
 	builder := s.selectQuery().Where("p.id = ANY (?)", pq.Array(ids))
 
 	rows, err := s.SQLExecutor.QueryWith(builder)
@@ -82,7 +82,7 @@ func (s *Store) GetMany(ids []string) ([]*Identity, error) {
 	}
 	defer rows.Close()
 
-	var is []*Identity
+	var is []*identity.OAuth
 	for rows.Next() {
 		i, err := s.scan(rows)
 		if err != nil {
@@ -94,7 +94,7 @@ func (s *Store) GetMany(ids []string) ([]*Identity, error) {
 	return is, nil
 }
 
-func (s *Store) List(userID string) ([]*Identity, error) {
+func (s *Store) List(userID string) ([]*identity.OAuth, error) {
 	q := s.selectQuery().Where("p.user_id = ?", userID)
 
 	rows, err := s.SQLExecutor.QueryWith(q)
@@ -103,7 +103,7 @@ func (s *Store) List(userID string) ([]*Identity, error) {
 	}
 	defer rows.Close()
 
-	var is []*Identity
+	var is []*identity.OAuth
 	for rows.Next() {
 		i, err := s.scan(rows)
 		if err != nil {
@@ -115,7 +115,7 @@ func (s *Store) List(userID string) ([]*Identity, error) {
 	return is, nil
 }
 
-func (s *Store) ListByClaim(name string, value string) ([]*Identity, error) {
+func (s *Store) ListByClaim(name string, value string) ([]*identity.OAuth, error) {
 	q := s.selectQuery().
 		Where("(o.claims #>> ?) = ?", pq.Array([]string{name}), value)
 
@@ -125,7 +125,7 @@ func (s *Store) ListByClaim(name string, value string) ([]*Identity, error) {
 	}
 	defer rows.Close()
 
-	var is []*Identity
+	var is []*identity.OAuth
 	for rows.Next() {
 		i, err := s.scan(rows)
 		if err != nil {
@@ -137,7 +137,7 @@ func (s *Store) ListByClaim(name string, value string) ([]*Identity, error) {
 	return is, nil
 }
 
-func (s *Store) Get(userID string, id string) (*Identity, error) {
+func (s *Store) Get(userID string, id string) (*identity.OAuth, error) {
 	q := s.selectQuery().Where("p.user_id = ? AND p.id = ?", userID, id)
 	rows, err := s.SQLExecutor.QueryRowWith(q)
 	if err != nil {
@@ -147,7 +147,7 @@ func (s *Store) Get(userID string, id string) (*Identity, error) {
 	return s.scan(rows)
 }
 
-func (s *Store) GetByProviderSubject(provider config.ProviderID, subjectID string) (*Identity, error) {
+func (s *Store) GetByProviderSubject(provider config.ProviderID, subjectID string) (*identity.OAuth, error) {
 	providerKeys, err := json.Marshal(provider.Keys)
 	if err != nil {
 		return nil, err
@@ -164,7 +164,7 @@ func (s *Store) GetByProviderSubject(provider config.ProviderID, subjectID strin
 	return s.scan(rows)
 }
 
-func (s *Store) GetByUserProvider(userID string, provider config.ProviderID) (*Identity, error) {
+func (s *Store) GetByUserProvider(userID string, provider config.ProviderID) (*identity.OAuth, error) {
 	providerKeys, err := json.Marshal(provider.Keys)
 	if err != nil {
 		return nil, err
@@ -181,7 +181,7 @@ func (s *Store) GetByUserProvider(userID string, provider config.ProviderID) (*I
 	return s.scan(rows)
 }
 
-func (s *Store) Create(i *Identity) (err error) {
+func (s *Store) Create(i *identity.OAuth) (err error) {
 	builder := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_identity")).
 		Columns(
@@ -244,7 +244,7 @@ func (s *Store) Create(i *Identity) (err error) {
 	return nil
 }
 
-func (s *Store) Update(i *Identity) error {
+func (s *Store) Update(i *identity.OAuth) error {
 	profile, err := json.Marshal(i.UserProfile)
 	if err != nil {
 		return err
@@ -289,7 +289,7 @@ func (s *Store) Update(i *Identity) error {
 	return nil
 }
 
-func (s *Store) Delete(i *Identity) error {
+func (s *Store) Delete(i *identity.OAuth) error {
 	q := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_identity_oauth")).
 		Where("id = ?", i.ID)

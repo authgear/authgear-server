@@ -10,7 +10,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	identity "github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	identityloginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	identityoauth "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -78,23 +77,23 @@ func (s *Service) ReindexUser(userID string, isDelete bool) (err error) {
 		StandardAttributes: u.StandardAttributes,
 	}
 
-	var arrClaims []map[identity.ClaimKey]interface{}
+	var arrClaims []map[model.ClaimName]string
 	for _, oauthI := range oauthIdentities {
-		arrClaims = append(arrClaims, oauthI.Claims)
+		arrClaims = append(arrClaims, oauthI.ToInfo().StandardClaims())
 		raw.OAuthSubjectID = append(raw.OAuthSubjectID, oauthI.ProviderSubjectID)
 	}
 	for _, loginIDI := range loginIDIdentities {
-		arrClaims = append(arrClaims, loginIDI.Claims)
+		arrClaims = append(arrClaims, loginIDI.ToInfo().StandardClaims())
 	}
 
 	for _, claims := range arrClaims {
-		if email, ok := claims["email"].(string); ok {
+		if email, ok := claims[model.ClaimEmail]; ok {
 			raw.Email = append(raw.Email, email)
 		}
-		if phoneNumber, ok := claims["phone_number"].(string); ok {
+		if phoneNumber, ok := claims[model.ClaimPhoneNumber]; ok {
 			raw.PhoneNumber = append(raw.PhoneNumber, phoneNumber)
 		}
-		if preferredUsername, ok := claims["preferred_username"].(string); ok {
+		if preferredUsername, ok := claims[model.ClaimPreferredUsername]; ok {
 			raw.PreferredUsername = append(raw.PreferredUsername, preferredUsername)
 		}
 	}

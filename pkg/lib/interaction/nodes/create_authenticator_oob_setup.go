@@ -53,9 +53,9 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 			return nil, interaction.ErrIncompatibleInput
 		}
 		identityInfo := graph.MustGetUserLastIdentity()
-		target = identityInfo.Claims[identity.IdentityClaimLoginIDValue].(string)
-		loginIDType := identityInfo.Claims[identity.IdentityClaimLoginIDType].(string)
-		switch config.LoginIDKeyType(loginIDType) {
+		target = identityInfo.LoginID.LoginID
+		loginIDType := identityInfo.LoginID.LoginIDType
+		switch loginIDType {
 		case config.LoginIDKeyTypePhone:
 			channel = model.AuthenticatorOOBChannelSMS
 		case config.LoginIDKeyTypeEmail:
@@ -113,7 +113,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 		}
 
 		// Ignore given OOB target, use channel & target inferred from identity
-		loginIDKey := identityInfo.Claims[identity.IdentityClaimLoginIDKey].(string)
+		loginIDKey := identityInfo.LoginID.LoginIDKey
 		for _, t := range ctx.Config.Identity.LoginID.Keys {
 			if t.Key != loginIDKey {
 				continue
@@ -133,7 +133,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 		if oobAuthenticatorType == "" {
 			panic("interaction: login ID not found for creating OOB authenticator")
 		}
-		target = identityInfo.Claims[identity.IdentityClaimLoginIDValue].(string)
+		target = identityInfo.LoginID.LoginID
 
 	} else {
 		userID := graph.MustGetUserID()

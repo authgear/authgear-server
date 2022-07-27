@@ -3,6 +3,7 @@ package nodes
 import (
 	"errors"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -158,14 +159,14 @@ func (e *EdgeVerifyIdentityCheckCode) Instantiate(ctx *interaction.Context, grap
 		return nil, err
 	}
 
-	var claimName identity.ClaimKey
+	var claimName model.ClaimName
 	switch config.LoginIDKeyType(code.LoginIDType) {
 	case config.LoginIDKeyTypeEmail:
-		claimName = identity.StandardClaimEmail
+		claimName = model.ClaimEmail
 	case config.LoginIDKeyTypePhone:
-		claimName = identity.StandardClaimPhoneNumber
+		claimName = model.ClaimPhoneNumber
 	case config.LoginIDKeyTypeUsername:
-		claimName = identity.StandardClaimPreferredUsername
+		claimName = model.ClaimPreferredUsername
 	default:
 		panic("interaction: unexpected login ID key")
 	}
