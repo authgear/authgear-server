@@ -1,5 +1,19 @@
 package model
 
+type LoginIDKeyType string
+
+const (
+	LoginIDKeyTypeEmail    LoginIDKeyType = "email"
+	LoginIDKeyTypePhone    LoginIDKeyType = "phone"
+	LoginIDKeyTypeUsername LoginIDKeyType = "username"
+)
+
+var LoginIDKeyTypes = []LoginIDKeyType{
+	LoginIDKeyTypeEmail,
+	LoginIDKeyTypePhone,
+	LoginIDKeyTypeUsername,
+}
+
 type IdentityType string
 
 const (

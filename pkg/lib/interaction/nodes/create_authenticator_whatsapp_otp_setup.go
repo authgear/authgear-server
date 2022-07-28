@@ -63,7 +63,7 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(ctx *interaction.C
 		validationCtx.EmitError("format", map[string]interface{}{"format": "phone"})
 		return nil, validationCtx.Error("invalid target")
 	}
-	phone, err = ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypePhone).
+	phone, err = ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyTypePhone).
 		Normalize(phone)
 	if err != nil {
 		return nil, err

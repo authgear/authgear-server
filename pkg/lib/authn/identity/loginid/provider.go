@@ -88,11 +88,11 @@ func (p *Provider) GetMany(ids []string) ([]*identity.LoginID, error) {
 	return p.Store.GetMany(ids)
 }
 
-func (p *Provider) IsLoginIDKeyType(loginIDKey string, loginIDKeyType config.LoginIDKeyType) bool {
+func (p *Provider) IsLoginIDKeyType(loginIDKey string, loginIDKeyType model.LoginIDKeyType) bool {
 	return p.Checker.CheckType(loginIDKey, loginIDKeyType)
 }
 
-func (p *Provider) Normalize(typ config.LoginIDKeyType, value string) (normalized string, uniqueKey string, err error) {
+func (p *Provider) Normalize(typ model.LoginIDKeyType, value string) (normalized string, uniqueKey string, err error) {
 	normalizer := p.NormalizerFactory.NormalizerWithLoginIDType(typ)
 	normalized, err = normalizer.Normalize(value)
 	if err != nil {

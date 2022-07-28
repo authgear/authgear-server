@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 type LoginID struct {
@@ -13,7 +12,7 @@ type LoginID struct {
 	UpdatedAt       time.Time              `json:"updated_at"`
 	UserID          string                 `json:"user_id"`
 	LoginIDKey      string                 `json:"login_id_key"`
-	LoginIDType     config.LoginIDKeyType  `json:"login_id_type"`
+	LoginIDType     model.LoginIDKeyType   `json:"login_id_type"`
 	LoginID         string                 `json:"login_id"`
 	OriginalLoginID string                 `json:"original_login_id"`
 	UniqueKey       string                 `json:"unique_key"`

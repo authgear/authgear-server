@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -56,9 +55,9 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 		target = identityInfo.LoginID.LoginID
 		loginIDType := identityInfo.LoginID.LoginIDType
 		switch loginIDType {
-		case config.LoginIDKeyTypePhone:
+		case model.LoginIDKeyTypePhone:
 			channel = model.AuthenticatorOOBChannelSMS
-		case config.LoginIDKeyTypeEmail:
+		case model.LoginIDKeyTypeEmail:
 			channel = model.AuthenticatorOOBChannelEmail
 		default:
 			panic(fmt.Sprintf("interaction: unexpected login id type: %s", loginIDType))
@@ -119,10 +118,10 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 				continue
 			}
 			switch t.Type {
-			case config.LoginIDKeyTypeEmail:
+			case model.LoginIDKeyTypeEmail:
 				channel = model.AuthenticatorOOBChannelEmail
 				oobAuthenticatorType = model.AuthenticatorTypeOOBEmail
-			case config.LoginIDKeyTypePhone:
+			case model.LoginIDKeyTypePhone:
 				channel = model.AuthenticatorOOBChannelSMS
 				oobAuthenticatorType = model.AuthenticatorTypeOOBSMS
 			default:
@@ -148,14 +147,14 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 		switch channel {
 		case model.AuthenticatorOOBChannelEmail:
 			var err error
-			target, err = ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypeEmail).Normalize(target)
+			target, err = ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyTypeEmail).Normalize(target)
 			if err != nil {
 				return nil, err
 			}
 			oobAuthenticatorType = model.AuthenticatorTypeOOBEmail
 		case model.AuthenticatorOOBChannelSMS:
 			var err error
-			target, err = ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypePhone).Normalize(target)
+			target, err = ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyTypePhone).Normalize(target)
 			if err != nil {
 				return nil, err
 			}

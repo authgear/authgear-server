@@ -129,7 +129,7 @@ func ensurePhoneLoginIDIdentity(info *identity.Info) error {
 	}
 
 	loginIDType := info.LoginID.LoginIDType
-	if loginIDType != config.LoginIDKeyTypePhone {
+	if loginIDType != model.LoginIDKeyTypePhone {
 		return fmt.Errorf("interaction: expect phone login id type: %s", info.Type)
 	}
 

@@ -59,13 +59,13 @@ func TestService(t *testing.T) {
 			}
 			switch loginIDKey {
 			case "email":
-				i.LoginID.LoginIDType = config.LoginIDKeyTypeEmail
+				i.LoginID.LoginIDType = model.LoginIDKeyTypeEmail
 				i.LoginID.Claims[string(model.ClaimEmail)] = loginIDValue
 			case "phone":
-				i.LoginID.LoginIDType = config.LoginIDKeyTypePhone
+				i.LoginID.LoginIDType = model.LoginIDKeyTypePhone
 				i.LoginID.Claims[string(model.ClaimPhoneNumber)] = loginIDValue
 			case "username":
-				i.LoginID.LoginIDType = config.LoginIDKeyTypeUsername
+				i.LoginID.LoginIDType = model.LoginIDKeyTypeUsername
 				i.LoginID.Claims[string(model.ClaimPreferredUsername)] = loginIDValue
 			}
 			return i
