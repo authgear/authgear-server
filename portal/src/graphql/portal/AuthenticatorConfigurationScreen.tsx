@@ -44,10 +44,36 @@ import FormContainer from "../../FormContainer";
 
 import styles from "./AuthenticatorConfigurationScreen.module.css";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
+import { WritableDraft } from "immer/dist/internal";
 
 interface AuthenticatorTypeFormState<T> {
   isEnabled: boolean;
   type: T;
+}
+
+function isOTPAuthenticatorTypeEqual(
+  primaryType: PrimaryAuthenticatorType,
+  secondaryType: SecondaryAuthenticatorType
+): boolean {
+  if (
+    primaryType === secondaryType &&
+    (secondaryType === "oob_otp_email" || secondaryType === "oob_otp_sms")
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function checkAuthenticatorReasonability(state: WritableDraft<FormState>) {
+  state.primary.forEach((primaryItem) => {
+    state.secondary.forEach((secondaryItem) => {
+      if (isOTPAuthenticatorTypeEqual(primaryItem.type, secondaryItem.type)) {
+        if (primaryItem.isEnabled) {
+          secondaryItem.isEnabled = false;
+        }
+      }
+    });
+  });
 }
 
 interface FormState {
@@ -405,6 +431,8 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
             if (t) {
               t.isEnabled = checked;
             }
+
+            checkAuthenticatorReasonability(state);
           })
         ),
       [setState]
