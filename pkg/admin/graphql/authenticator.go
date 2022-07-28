@@ -89,14 +89,13 @@ var nodeAuthenticator = node(
 					names, hasNames := p.Args["names"].([]interface{})
 					info := loadAuthenticator(p.Context, p.Source)
 					claims := info.Map(func(value interface{}) (interface{}, error) {
-						claims := value.(*authenticator.Info).Claims
+						claims := value.(*authenticator.Info).ToPublicClaims()
 						if hasNames {
-							filteredClaims := make(map[authenticator.ClaimKey]interface{})
+							filteredClaims := make(map[string]interface{})
 							for _, name := range names {
 								name := name.(string)
-								claimKey := authenticator.ClaimKey(name)
-								if value, ok := claims[claimKey]; ok && claimKey.IsPublic() {
-									filteredClaims[claimKey] = value
+								if value, ok := claims[name]; ok {
+									filteredClaims[name] = value
 								}
 							}
 							claims = filteredClaims

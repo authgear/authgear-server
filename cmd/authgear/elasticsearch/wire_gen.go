@@ -51,9 +51,11 @@ func NewReindexer(ctx context.Context, pool *db.Pool, databaseCredentials *confi
 		SQLExecutor: sqlExecutor,
 		Clock:       clock,
 	}
+	identityConfig := NewEmptyIdentityConfig()
 	oauthStore := &oauth.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilderApp,

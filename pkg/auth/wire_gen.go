@@ -237,12 +237,14 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clock,
+		Store:          oauthStore,
+		Clock:          clock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -950,12 +952,14 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -1600,12 +1604,14 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -2288,12 +2294,14 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -2655,12 +2663,14 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -2918,12 +2928,14 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -3228,12 +3240,14 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -3614,12 +3628,14 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -4274,12 +4290,14 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -4954,12 +4972,14 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -5736,12 +5756,14 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -6454,12 +6476,14 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -7171,12 +7195,14 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -7871,12 +7897,14 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -8572,12 +8600,14 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -9265,12 +9295,14 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -9961,12 +9993,14 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -10660,12 +10694,14 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -11356,12 +11392,14 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -12051,12 +12089,14 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -12747,12 +12787,14 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -13444,12 +13486,14 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -14139,12 +14183,14 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -14834,12 +14880,14 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -15531,12 +15579,14 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -16226,12 +16276,14 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -16913,12 +16965,14 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -17270,12 +17324,14 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -17965,12 +18021,14 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -18660,12 +18718,14 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -19357,12 +19417,14 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -20052,12 +20114,14 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -20752,12 +20816,14 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -21447,12 +21513,14 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -22143,12 +22211,14 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -22838,12 +22908,14 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -23559,12 +23631,14 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -24265,12 +24339,14 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -24984,12 +25060,14 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -25682,12 +25760,14 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -26378,12 +26458,14 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -27082,12 +27164,14 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -27778,12 +27862,14 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -28474,12 +28560,14 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -29171,12 +29259,14 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -29872,12 +29962,14 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -30568,12 +30660,14 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -31264,12 +31358,14 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -31960,12 +32056,14 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -32656,12 +32754,14 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -33359,12 +33459,14 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -34056,12 +34158,14 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -34751,12 +34855,14 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -35468,12 +35574,14 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -36163,12 +36271,14 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -37119,12 +37229,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -37533,12 +37645,14 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,

@@ -3,6 +3,7 @@ package passkey
 import (
 	"sort"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/webauthn"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
@@ -13,26 +14,26 @@ type Provider struct {
 	Clock clock.Clock
 }
 
-func (p *Provider) Get(userID string, id string) (*Authenticator, error) {
+func (p *Provider) Get(userID string, id string) (*authenticator.Passkey, error) {
 	return p.Store.Get(userID, id)
 }
 
-func (p *Provider) GetMany(ids []string) ([]*Authenticator, error) {
+func (p *Provider) GetMany(ids []string) ([]*authenticator.Passkey, error) {
 	return p.Store.GetMany(ids)
 }
 
-func (p *Provider) Delete(a *Authenticator) error {
+func (p *Provider) Delete(a *authenticator.Passkey) error {
 	return p.Store.Delete(a.ID)
 }
 
-func (p *Provider) Create(a *Authenticator) error {
+func (p *Provider) Create(a *authenticator.Passkey) error {
 	now := p.Clock.NowUTC()
 	a.CreatedAt = now
 	a.UpdatedAt = now
 	return p.Store.Create(a)
 }
 
-func (p *Provider) Update(a *Authenticator) error {
+func (p *Provider) Update(a *authenticator.Passkey) error {
 	now := p.Clock.NowUTC()
 	a.UpdatedAt = now
 
@@ -44,7 +45,7 @@ func (p *Provider) Update(a *Authenticator) error {
 	return nil
 }
 
-func (p *Provider) List(userID string) ([]*Authenticator, error) {
+func (p *Provider) List(userID string) ([]*authenticator.Passkey, error) {
 	authenticators, err := p.Store.List(userID)
 	if err != nil {
 		return nil, err
@@ -61,7 +62,7 @@ func (p *Provider) New(
 	attestationResponse []byte,
 	isDefault bool,
 	kind string,
-) (*Authenticator, error) {
+) (*authenticator.Passkey, error) {
 	credentialID, signCount, err := webauthn.VerifyAttestationResponse(attestationResponse)
 	if err != nil {
 		return nil, err
@@ -69,7 +70,7 @@ func (p *Provider) New(
 	if id == "" {
 		id = uuid.New()
 	}
-	a := &Authenticator{
+	a := &authenticator.Passkey{
 		ID:                  id,
 		UserID:              userID,
 		IsDefault:           isDefault,
@@ -82,7 +83,7 @@ func (p *Provider) New(
 	return a, nil
 }
 
-func (p *Provider) Authenticate(a *Authenticator, assertionResponse []byte) (requireUpdate bool, err error) {
+func (p *Provider) Authenticate(a *authenticator.Passkey, assertionResponse []byte) (requireUpdate bool, err error) {
 	_, signCount, err := webauthn.ParseAssertionResponse(assertionResponse)
 	if err != nil {
 		return
@@ -96,7 +97,7 @@ func (p *Provider) Authenticate(a *Authenticator, assertionResponse []byte) (req
 	return
 }
 
-func sortAuthenticators(as []*Authenticator) {
+func sortAuthenticators(as []*authenticator.Passkey) {
 	sort.Slice(as, func(i, j int) bool {
 		return as[i].CreatedAt.Before(as[j].CreatedAt)
 	})

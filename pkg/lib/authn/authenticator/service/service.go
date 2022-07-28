@@ -6,32 +6,29 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/webauthn"
 )
 
 type PasswordAuthenticatorProvider interface {
-	Get(userID, id string) (*password.Authenticator, error)
-	GetMany(ids []string) ([]*password.Authenticator, error)
-	List(userID string) ([]*password.Authenticator, error)
-	New(id string, userID string, password string, isDefault bool, kind string) (*password.Authenticator, error)
+	Get(userID, id string) (*authenticator.Password, error)
+	GetMany(ids []string) ([]*authenticator.Password, error)
+	List(userID string) ([]*authenticator.Password, error)
+	New(id string, userID string, password string, isDefault bool, kind string) (*authenticator.Password, error)
 	// WithPassword returns new authenticator pointer if password is changed
 	// Otherwise original authenticator will be returned
-	WithPassword(a *password.Authenticator, password string) (*password.Authenticator, error)
-	Create(*password.Authenticator) error
-	UpdatePassword(*password.Authenticator) error
-	Delete(*password.Authenticator) error
-	Authenticate(a *password.Authenticator, password string) (requireUpdate bool, err error)
+	WithPassword(a *authenticator.Password, password string) (*authenticator.Password, error)
+	Create(*authenticator.Password) error
+	UpdatePassword(*authenticator.Password) error
+	Delete(*authenticator.Password) error
+	Authenticate(a *authenticator.Password, password string) (requireUpdate bool, err error)
 }
 
 type PasskeyAuthenticatorProvider interface {
-	Get(userID, id string) (*passkey.Authenticator, error)
-	GetMany(ids []string) ([]*passkey.Authenticator, error)
-	List(userID string) ([]*passkey.Authenticator, error)
+	Get(userID, id string) (*authenticator.Passkey, error)
+	GetMany(ids []string) ([]*authenticator.Passkey, error)
+	List(userID string) ([]*authenticator.Passkey, error)
 	New(
 		id string,
 		userID string,
@@ -39,30 +36,30 @@ type PasskeyAuthenticatorProvider interface {
 		attestationResponse []byte,
 		isDefault bool,
 		kind string,
-	) (*passkey.Authenticator, error)
-	Create(*passkey.Authenticator) error
-	Update(*passkey.Authenticator) error
-	Delete(*passkey.Authenticator) error
-	Authenticate(a *passkey.Authenticator, assertionResponse []byte) (requireUpdate bool, err error)
+	) (*authenticator.Passkey, error)
+	Create(*authenticator.Passkey) error
+	Update(*authenticator.Passkey) error
+	Delete(*authenticator.Passkey) error
+	Authenticate(a *authenticator.Passkey, assertionResponse []byte) (requireUpdate bool, err error)
 }
 
 type TOTPAuthenticatorProvider interface {
-	Get(userID, id string) (*totp.Authenticator, error)
-	GetMany(ids []string) ([]*totp.Authenticator, error)
-	List(userID string) ([]*totp.Authenticator, error)
-	New(id string, userID string, displayName string, isDefault bool, kind string) *totp.Authenticator
-	Create(*totp.Authenticator) error
-	Delete(*totp.Authenticator) error
-	Authenticate(a *totp.Authenticator, code string) error
+	Get(userID, id string) (*authenticator.TOTP, error)
+	GetMany(ids []string) ([]*authenticator.TOTP, error)
+	List(userID string) ([]*authenticator.TOTP, error)
+	New(id string, userID string, displayName string, isDefault bool, kind string) *authenticator.TOTP
+	Create(*authenticator.TOTP) error
+	Delete(*authenticator.TOTP) error
+	Authenticate(a *authenticator.TOTP, code string) error
 }
 
 type OOBOTPAuthenticatorProvider interface {
-	Get(userID, id string) (*oob.Authenticator, error)
-	GetMany(ids []string) ([]*oob.Authenticator, error)
-	List(userID string) ([]*oob.Authenticator, error)
-	New(id string, userID string, oobAuthenticatorType model.AuthenticatorType, target string, isDefault bool, kind string) *oob.Authenticator
-	Create(*oob.Authenticator) error
-	Delete(*oob.Authenticator) error
+	Get(userID, id string) (*authenticator.OOBOTP, error)
+	GetMany(ids []string) ([]*authenticator.OOBOTP, error)
+	List(userID string) ([]*authenticator.OOBOTP, error)
+	New(id string, userID string, oobAuthenticatorType model.AuthenticatorType, target string, isDefault bool, kind string) *authenticator.OOBOTP
+	Create(*authenticator.OOBOTP) error
+	Delete(*authenticator.OOBOTP) error
 	VerifyCode(authenticatorID string, code string) (*oob.Code, error)
 }
 
@@ -90,20 +87,21 @@ func (s *Service) Get(id string) (*authenticator.Info, error) {
 		if err != nil {
 			return nil, err
 		}
-		return passwordToAuthenticatorInfo(p), nil
+		return p.ToInfo(), nil
 
 	case model.AuthenticatorTypePasskey:
 		p, err := s.Passkey.Get(ref.UserID, id)
 		if err != nil {
 			return nil, err
 		}
-		return passkeyToAuthenticatorInfo(p), nil
+		return p.ToInfo(), nil
+
 	case model.AuthenticatorTypeTOTP:
 		t, err := s.TOTP.Get(ref.UserID, id)
 		if err != nil {
 			return nil, err
 		}
-		return totpToAuthenticatorInfo(t), nil
+		return t.ToInfo(), nil
 
 	// FIXME(oob): handle getting different channel
 	case model.AuthenticatorTypeOOBEmail, model.AuthenticatorTypeOOBSMS:
@@ -111,7 +109,7 @@ func (s *Service) Get(id string) (*authenticator.Info, error) {
 		if err != nil {
 			return nil, err
 		}
-		return oobotpToAuthenticatorInfo(o), nil
+		return o.ToInfo(), nil
 	}
 
 	panic("authenticator: unknown authenticator type " + ref.Type)
@@ -147,7 +145,7 @@ func (s *Service) GetMany(ids []string) ([]*authenticator.Info, error) {
 			return nil, err
 		}
 		for _, a := range p {
-			infos = append(infos, passwordToAuthenticatorInfo(a))
+			infos = append(infos, a.ToInfo())
 		}
 	}
 	{
@@ -156,7 +154,7 @@ func (s *Service) GetMany(ids []string) ([]*authenticator.Info, error) {
 			return nil, err
 		}
 		for _, a := range passkeys {
-			infos = append(infos, passkeyToAuthenticatorInfo(a))
+			infos = append(infos, a.ToInfo())
 		}
 	}
 
@@ -166,7 +164,7 @@ func (s *Service) GetMany(ids []string) ([]*authenticator.Info, error) {
 			return nil, err
 		}
 		for _, a := range t {
-			infos = append(infos, totpToAuthenticatorInfo(a))
+			infos = append(infos, a.ToInfo())
 		}
 	}
 
@@ -176,7 +174,7 @@ func (s *Service) GetMany(ids []string) ([]*authenticator.Info, error) {
 			return nil, err
 		}
 		for _, a := range o {
-			infos = append(infos, oobotpToAuthenticatorInfo(a))
+			infos = append(infos, a.ToInfo())
 		}
 	}
 
@@ -191,7 +189,7 @@ func (s *Service) List(userID string, filters ...authenticator.Filter) ([]*authe
 			return nil, err
 		}
 		for _, a := range as {
-			ais = append(ais, passwordToAuthenticatorInfo(a))
+			ais = append(ais, a.ToInfo())
 		}
 	}
 	{
@@ -200,7 +198,7 @@ func (s *Service) List(userID string, filters ...authenticator.Filter) ([]*authe
 			return nil, err
 		}
 		for _, a := range as {
-			ais = append(ais, passkeyToAuthenticatorInfo(a))
+			ais = append(ais, a.ToInfo())
 		}
 	}
 	{
@@ -209,7 +207,7 @@ func (s *Service) List(userID string, filters ...authenticator.Filter) ([]*authe
 			return nil, err
 		}
 		for _, a := range as {
-			ais = append(ais, totpToAuthenticatorInfo(a))
+			ais = append(ais, a.ToInfo())
 		}
 	}
 	{
@@ -218,7 +216,7 @@ func (s *Service) List(userID string, filters ...authenticator.Filter) ([]*authe
 			return nil, err
 		}
 		for _, a := range as {
-			ais = append(ais, oobotpToAuthenticatorInfo(a))
+			ais = append(ais, a.ToInfo())
 		}
 	}
 
@@ -254,15 +252,16 @@ func (s *Service) New(spec *authenticator.Spec) (*authenticator.Info, error) {
 func (s *Service) NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error) {
 	switch spec.Type {
 	case model.AuthenticatorTypePassword:
-		plainPassword := spec.Claims[authenticator.AuthenticatorClaimPasswordPlainPassword].(string)
+		plainPassword := spec.Password.PlainPassword
 		p, err := s.Password.New(authenticatorID, spec.UserID, plainPassword, spec.IsDefault, string(spec.Kind))
 		if err != nil {
 			return nil, err
 		}
-		return passwordToAuthenticatorInfo(p), nil
+		return p.ToInfo(), nil
+
 	case model.AuthenticatorTypePasskey:
-		creationOptions := spec.Claims[authenticator.AuthenticatorClaimPasskeyCreationOptions].(*webauthn.CreationOptions)
-		attestationResponse := spec.Claims[authenticator.AuthenticatorClaimPasskeyAttestationResponse].([]byte)
+		creationOptions := spec.Passkey.CreationOptions
+		attestationResponse := spec.Passkey.AttestationResponse
 
 		p, err := s.Passkey.New(
 			authenticatorID,
@@ -275,21 +274,23 @@ func (s *Service) NewWithAuthenticatorID(authenticatorID string, spec *authentic
 		if err != nil {
 			return nil, err
 		}
-		return passkeyToAuthenticatorInfo(p), nil
+		return p.ToInfo(), nil
+
 	case model.AuthenticatorTypeTOTP:
-		displayName := spec.Claims[authenticator.AuthenticatorClaimTOTPDisplayName].(string)
+		displayName := spec.TOTP.DisplayName
 		t := s.TOTP.New(authenticatorID, spec.UserID, displayName, spec.IsDefault, string(spec.Kind))
-		return totpToAuthenticatorInfo(t), nil
+		return t.ToInfo(), nil
 
 	case model.AuthenticatorTypeOOBEmail:
-		email := spec.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string)
+		email := spec.OOBOTP.Email
 		o := s.OOBOTP.New(authenticatorID, spec.UserID, model.AuthenticatorTypeOOBEmail, email, spec.IsDefault, string(spec.Kind))
-		return oobotpToAuthenticatorInfo(o), nil
+		return o.ToInfo(), nil
 
 	case model.AuthenticatorTypeOOBSMS:
-		phone := spec.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string)
+		phone := spec.OOBOTP.Phone
 		o := s.OOBOTP.New(authenticatorID, spec.UserID, model.AuthenticatorTypeOOBSMS, phone, spec.IsDefault, string(spec.Kind))
-		return oobotpToAuthenticatorInfo(o), nil
+		return o.ToInfo(), nil
+
 	}
 
 	panic("authenticator: unknown authenticator type " + spec.Type)
@@ -299,14 +300,14 @@ func (s *Service) WithSpec(ai *authenticator.Info, spec *authenticator.Spec) (bo
 	changed := false
 	switch ai.Type {
 	case model.AuthenticatorTypePassword:
-		a := passwordFromAuthenticatorInfo(ai)
-		plainPassword := spec.Claims[authenticator.AuthenticatorClaimPasswordPlainPassword].(string)
+		a := ai.Password
+		plainPassword := spec.Password.PlainPassword
 		newAuth, err := s.Password.WithPassword(a, plainPassword)
 		if err != nil {
 			return false, nil, err
 		}
 		changed = (newAuth != a)
-		return changed, passwordToAuthenticatorInfo(newAuth), nil
+		return changed, newAuth.ToInfo(), nil
 	}
 
 	panic("authenticator: update authenticator is not supported for type " + ai.Type)
@@ -327,26 +328,30 @@ func (s *Service) Create(info *authenticator.Info) error {
 
 	switch info.Type {
 	case model.AuthenticatorTypePassword:
-		a := passwordFromAuthenticatorInfo(info)
+		a := info.Password
 		if err := s.Password.Create(a); err != nil {
 			return err
 		}
+		*info = *a.ToInfo()
 	case model.AuthenticatorTypePasskey:
-		a := passkeyFromAuthenticatorInfo(info)
+		a := info.Passkey
 		if err := s.Passkey.Create(a); err != nil {
 			return err
 		}
+		*info = *a.ToInfo()
 	case model.AuthenticatorTypeTOTP:
-		a := totpFromAuthenticatorInfo(info)
+		a := info.TOTP
 		if err := s.TOTP.Create(a); err != nil {
 			return err
 		}
+		*info = *a.ToInfo()
 
 	case model.AuthenticatorTypeOOBEmail, model.AuthenticatorTypeOOBSMS:
-		a := oobotpFromAuthenticatorInfo(info)
+		a := info.OOBOTP
 		if err := s.OOBOTP.Create(a); err != nil {
 			return err
 		}
+		*info = *a.ToInfo()
 
 	default:
 		panic("authenticator: unknown authenticator type " + info.Type)
@@ -358,15 +363,18 @@ func (s *Service) Create(info *authenticator.Info) error {
 func (s *Service) Update(info *authenticator.Info) error {
 	switch info.Type {
 	case model.AuthenticatorTypePassword:
-		a := passwordFromAuthenticatorInfo(info)
+		a := info.Password
 		if err := s.Password.UpdatePassword(a); err != nil {
 			return err
 		}
+		*info = *a.ToInfo()
+
 	case model.AuthenticatorTypePasskey:
-		a := passkeyFromAuthenticatorInfo(info)
+		a := info.Passkey
 		if err := s.Passkey.Update(a); err != nil {
 			return err
 		}
+		*info = *a.ToInfo()
 	default:
 		panic("authenticator: unknown authenticator type for update" + info.Type)
 	}
@@ -377,28 +385,33 @@ func (s *Service) Update(info *authenticator.Info) error {
 func (s *Service) Delete(info *authenticator.Info) error {
 	switch info.Type {
 	case model.AuthenticatorTypePassword:
-		a := passwordFromAuthenticatorInfo(info)
+		a := info.Password
 		if err := s.Password.Delete(a); err != nil {
 			return err
 		}
+		*info = *a.ToInfo()
 
 	case model.AuthenticatorTypePasskey:
-		a := passkeyFromAuthenticatorInfo(info)
+		a := info.Passkey
 		if err := s.Passkey.Delete(a); err != nil {
 			return err
 		}
+		*info = *a.ToInfo()
 
 	case model.AuthenticatorTypeTOTP:
-		a := totpFromAuthenticatorInfo(info)
+		a := info.TOTP
 		if err := s.TOTP.Delete(a); err != nil {
 			return err
 		}
+		*info = *a.ToInfo()
 
 	case model.AuthenticatorTypeOOBEmail, model.AuthenticatorTypeOOBSMS:
-		a := oobotpFromAuthenticatorInfo(info)
+		a := info.OOBOTP
 		if err := s.OOBOTP.Delete(a); err != nil {
 			return err
 		}
+		*info = *a.ToInfo()
+
 	default:
 		panic("authenticator: delete authenticator is not supported yet for type " + info.Type)
 	}
@@ -414,34 +427,39 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 
 	switch info.Type {
 	case model.AuthenticatorTypePassword:
-		plainPassword := spec.Claims[authenticator.AuthenticatorClaimPasswordPlainPassword].(string)
-		a := passwordFromAuthenticatorInfo(info)
+		plainPassword := spec.Password.PlainPassword
+		a := info.Password
 		requireUpdate, err = s.Password.Authenticate(a, plainPassword)
 		if err != nil {
 			err = authenticator.ErrInvalidCredentials
 			return
 		}
+		*info = *a.ToInfo()
 		return
 	case model.AuthenticatorTypePasskey:
-		assertionResponse := spec.Claims[authenticator.AuthenticatorClaimPasskeyAssertionResponse].([]byte)
-		a := passkeyFromAuthenticatorInfo(info)
+		assertionResponse := spec.Passkey.AssertionResponse
+		a := info.Passkey
 		requireUpdate, err = s.Passkey.Authenticate(a, assertionResponse)
 		if err != nil {
 			err = authenticator.ErrInvalidCredentials
 			return
 		}
+		*info = *a.ToInfo()
+
 		return
 	case model.AuthenticatorTypeTOTP:
-		code := spec.Claims[authenticator.AuthenticatorClaimTOTPCode].(string)
-		a := totpFromAuthenticatorInfo(info)
+		code := spec.TOTP.Code
+		a := info.TOTP
 		if s.TOTP.Authenticate(a, code) != nil {
 			err = authenticator.ErrInvalidCredentials
 			return
 		}
+		// Do not update info because by definition TOTP does not update itself during verification.
+
 		return
 	case model.AuthenticatorTypeOOBEmail, model.AuthenticatorTypeOOBSMS:
-		code := spec.Claims[authenticator.AuthenticatorClaimOOBOTPCode].(string)
-		a := oobotpFromAuthenticatorInfo(info)
+		code := spec.OOBOTP.Code
+		a := info.OOBOTP
 		_, err = s.OOBOTP.VerifyCode(a.ID, code)
 		if errors.Is(err, oob.ErrInvalidCode) {
 			err = authenticator.ErrInvalidCredentials
@@ -449,6 +467,8 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		} else if err != nil {
 			return
 		}
+		// Do not update info because by definition OOBOTP does not update itself during verification.
+
 		return
 	}
 
@@ -505,7 +525,7 @@ func (s *Service) RemoveOrphans(identities []*identity.Info) error {
 
 		// Remove orphaned primary passkeys.
 		if a.Kind == authenticator.KindPrimary && a.Type == model.AuthenticatorTypePasskey {
-			authenticatorCredentialID := a.Claims[authenticator.AuthenticatorClaimPasskeyCredentialID].(string)
+			authenticatorCredentialID := a.Passkey.CredentialID
 			orphaned := true
 			for _, i := range identities {
 				if i.Type == model.IdentityTypePasskey {

@@ -41,9 +41,9 @@ func (e *EdgeCreateAuthenticatorTOTPSetup) Instantiate(ctx *interaction.Context,
 		IsDefault: e.IsDefault,
 		Kind:      stageToAuthenticatorKind(e.Stage),
 		Type:      model.AuthenticatorTypeTOTP,
-		Claims: map[authenticator.ClaimKey]interface{}{
+		TOTP: &authenticator.TOTPSpec{
 			// The display name will be filled in in a later node.
-			authenticator.AuthenticatorClaimTOTPDisplayName: "",
+			DisplayName: "",
 		},
 	}
 
