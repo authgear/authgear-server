@@ -131,6 +131,7 @@ func (i *Info) ToModel() model.Identity {
 		claims[IdentityClaimOAuthProviderType] = i.OAuth.ProviderID.Type
 		claims[IdentityClaimOAuthSubjectID] = i.OAuth.ProviderSubjectID
 		claims[IdentityClaimOAuthProfile] = i.OAuth.UserProfile
+		claims[IdentityClaimOAuthProviderAlias] = i.OAuth.ProviderAlias
 
 	case model.IdentityTypeAnonymous:
 		claims[IdentityClaimAnonymousKeyID] = i.Anonymous.KeyID
@@ -146,18 +147,6 @@ func (i *Info) ToModel() model.Identity {
 	default:
 		panic("identity: unknown identity type: " + i.Type)
 	}
-
-	// FIXME(identity): derive oauth provider alias
-	// alias := ""
-	// for _, providerConfig := range s.Identity.OAuth.Providers {
-	// 	providerID := providerConfig.ProviderID()
-	// 	if providerID.Equal(&o.ProviderID) {
-	// 		alias = providerConfig.Alias
-	// 	}
-	// }
-	// if alias != "" {
-	// 	o.Claims[identity.IdentityClaimOAuthProviderAlias] = alias
-	// }
 
 	return model.Identity{
 		Meta:   i.GetMeta(),
@@ -283,7 +272,7 @@ func (i *Info) ModifyDisabled(c *config.IdentityConfig) bool {
 		}
 		return *keyConfig.ModifyDisabled
 	case model.IdentityTypeOAuth:
-		alias := i.OAuth.Claims[IdentityClaimOAuthProviderAlias].(string)
+		alias := i.OAuth.ProviderAlias
 		var providerConfig *config.OAuthSSOProviderConfig
 		for _, pc := range c.OAuth.Providers {
 			if pc.Alias == alias {
