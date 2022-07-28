@@ -5,7 +5,6 @@ import {
   Dropdown,
   IDropdownOption,
   Label,
-  TextField,
   Toggle,
   MessageBar,
 } from "@fluentui/react";
@@ -36,6 +35,7 @@ import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
 import FormContainer from "../../FormContainer";
 import CustomTagPicker from "../../CustomTagPicker";
+import TextField from "../../TextField";
 import { fixTagPickerStyles } from "../../bugs";
 
 import styles from "./PasswordPolicyConfigurationScreen.module.css";

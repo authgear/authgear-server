@@ -11,7 +11,6 @@ import {
   Label,
   Toggle,
   Dropdown,
-  TextField,
   IDropdownOption,
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
@@ -36,6 +35,7 @@ import {
   DEFAULT_BANNER_CONFIGURATION,
 } from "./util/theme";
 import styles from "./ThemeConfigurationWidget.module.css";
+import TextField from "./TextField";
 
 export interface ThemeConfigurationWidgetProps {
   className?: string;

@@ -14,7 +14,6 @@ import {
   Text,
   ITextProps,
   ITheme,
-  TextField,
   Label,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -41,6 +40,7 @@ import {
   jsonPointerToString,
   parseJSONPointerIntoParentChild,
 } from "../../util/jsonpointer";
+import TextField from "../../TextField";
 
 import styles from "./UserProfileForm.module.css";
 

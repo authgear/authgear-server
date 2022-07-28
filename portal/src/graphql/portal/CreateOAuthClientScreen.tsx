@@ -1,36 +1,37 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import {
-  Dialog,
-  DialogFooter,
-  IconButton,
-  Label,
+  ChoiceGroup,
+  IChoiceGroupOption,
+  IChoiceGroupOptionProps,
   PrimaryButton,
   Text,
 } from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
 import produce, { createDraft } from "immer";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import ScreenContent from "../../ScreenContent";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
-import ModifyOAuthClientForm, {
+import {
   getReducedClientConfig,
-} from "./ModifyOAuthClientForm";
+  updateClientConfig,
+} from "./EditOAuthClientForm";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import { OAuthClientConfig, PortalAPIAppConfig } from "../../types";
-import { clearEmptyObject } from "../../util/misc";
+import { clearEmptyObject, ensureNonEmptyString } from "../../util/misc";
 import { genRandomHexadecimalString } from "../../util/random";
 import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
-import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
-import FormContainer from "../../FormContainer";
-
 import styles from "./CreateOAuthClientScreen.module.css";
 import deepEqual from "deep-equal";
+import { FormProvider } from "../../form";
+import FormTextField from "../../FormTextField";
+import { useTextField } from "../../hook/useInput";
+import Widget from "../../Widget";
 
 interface FormState {
   clients: OAuthClientConfig[];
@@ -53,6 +54,7 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     clients: config.oauth?.clients ?? [],
     newClient: {
       name: undefined,
+      x_application_type: "spa",
       client_id: genRandomHexadecimalString(),
       redirect_uris: [],
       grant_types: ["authorization_code", "refresh_token"],
@@ -79,53 +81,22 @@ function constructConfig(
       { strict: true }
     );
     if (isDirty) {
-      config.oauth.clients.push(createDraft(currentState.newClient));
+      const draft = createDraft(currentState.newClient);
+      if (
+        draft.x_application_type === "spa" ||
+        draft.x_application_type === "traditional_webapp"
+      ) {
+        draft.redirect_uris = ["http://localhost/after-authentication"];
+        draft.post_logout_redirect_uris = ["http://localhost/after-logout"];
+      } else if (draft.x_application_type === "native") {
+        draft.redirect_uris = ["com.example.myapp://host/path"];
+        draft.post_logout_redirect_uris = undefined;
+      }
+      config.oauth.clients.push(draft);
     }
     clearEmptyObject(config);
   });
 }
-
-interface CreateClientSuccessDialogProps {
-  visible: boolean;
-  clientId: string;
-}
-
-const CreateClientSuccessDialog: React.FC<CreateClientSuccessDialogProps> =
-  function CreateClientSuccessDialog(props: CreateClientSuccessDialogProps) {
-    const { visible, clientId } = props;
-    const navigate = useNavigate();
-
-    const { copyButtonProps, Feedback } = useCopyFeedback({
-      textToCopy: clientId,
-    });
-
-    const onConfirmCreateClientSuccess = useCallback(() => {
-      navigate(`./../${encodeURIComponent(clientId)}/edit`);
-    }, [navigate, clientId]);
-
-    return (
-      <Dialog
-        hidden={!visible}
-        title={
-          <FormattedMessage id="CreateOAuthClientScreen.success-dialog.title" />
-        }
-      >
-        <Label>
-          <FormattedMessage id="CreateOAuthClientScreen.success-dialog.client-id-label" />
-        </Label>
-        <div className={styles.dialogClientId}>
-          <Text>{clientId}</Text>
-          <IconButton {...copyButtonProps} className={styles.dialogCopyIcon} />
-        </div>
-        <Feedback />
-        <DialogFooter>
-          <PrimaryButton onClick={onConfirmCreateClientSuccess}>
-            <FormattedMessage id="edit" />
-          </PrimaryButton>
-        </DialogFooter>
-      </Dialog>
-    );
-  };
 
 interface CreateOAuthClientContentProps {
   form: AppConfigFormModel<FormState>;
@@ -133,7 +104,9 @@ interface CreateOAuthClientContentProps {
 
 const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> =
   function CreateOAuthClientContent(props) {
-    const { state, setState } = props.form;
+    const { state, setState, save, isDirty } = props.form;
+    const navigate = useNavigate();
+    const { renderToString } = useContext(Context);
 
     const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
       return [
@@ -161,23 +134,116 @@ const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> =
       [setState]
     );
 
-    const isSuccessDialogVisible = state.clients.some(
-      (c) => c.client_id === clientId
+    const { onChange: onClientNameChange } = useTextField((value) => {
+      onClientConfigChange(
+        updateClientConfig(client, "name", ensureNonEmptyString(value))
+      );
+    });
+
+    const onRenderLabel = useCallback((description: string) => {
+      return (option?: IChoiceGroupOptionProps) => {
+        return (
+          <div className={styles.optionLabel}>
+            <Text className={styles.optionLabelText} block={true}>
+              {option?.text}
+            </Text>
+            <Text className={styles.optionLabelDescription} block={true}>
+              {description}
+            </Text>
+          </div>
+        );
+      };
+    }, []);
+
+    const options: IChoiceGroupOption[] = useMemo(() => {
+      return [
+        {
+          key: "spa",
+          text: renderToString("oauth-client.application-type.spa"),
+          onRenderLabel: onRenderLabel(
+            renderToString(
+              "CreateOAuthClientScreen.application-type.description.spa"
+            )
+          ),
+        },
+        {
+          key: "traditional_webapp",
+          text: renderToString(
+            "oauth-client.application-type.traditional-webapp"
+          ),
+          onRenderLabel: onRenderLabel(
+            renderToString(
+              "CreateOAuthClientScreen.application-type.description.traditional-webapp"
+            )
+          ),
+        },
+        {
+          key: "native",
+          text: renderToString("oauth-client.application-type.native"),
+          onRenderLabel: onRenderLabel(
+            renderToString(
+              "CreateOAuthClientScreen.application-type.description.native"
+            )
+          ),
+        },
+      ];
+    }, [renderToString, onRenderLabel]);
+
+    const onApplicationChange = useCallback(
+      (_e, option) => {
+        if (option != null) {
+          onClientConfigChange(
+            updateClientConfig(client, "x_application_type", option.key)
+          );
+        }
+      },
+      [onClientConfigChange, client]
     );
+
+    const onClickSave = useCallback(() => {
+      save()
+        .then(
+          () => {
+            navigate(`./../${encodeURIComponent(clientId)}/edit`, {
+              replace: true,
+            });
+          },
+          () => {}
+        )
+        .catch(() => {});
+    }, [save, navigate, clientId]);
+
+    const parentJSONPointer = /\/oauth\/clients\/\d+/;
 
     return (
       <ScreenContent>
         <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-        <ModifyOAuthClientForm
-          className={styles.widget}
-          isCreation={true}
-          clientConfig={client}
-          onClientConfigChange={onClientConfigChange}
-        />
-        <CreateClientSuccessDialog
-          visible={isSuccessDialogVisible}
-          clientId={clientId}
-        />
+        <Widget className={styles.widget}>
+          <FormTextField
+            parentJSONPointer={parentJSONPointer}
+            fieldName="name"
+            label={renderToString("CreateOAuthClientScreen.name.label")}
+            description={renderToString(
+              "CreateOAuthClientScreen.name.description"
+            )}
+            value={client.name ?? ""}
+            onChange={onClientNameChange}
+            required={true}
+          />
+          <ChoiceGroup
+            label={renderToString(
+              "CreateOAuthClientScreen.application-type.label"
+            )}
+            options={options}
+            selectedKey={client.x_application_type}
+            onChange={onApplicationChange}
+          />
+          <div className={styles.buttons}>
+            <PrimaryButton onClick={onClickSave} disabled={!isDirty}>
+              <FormattedMessage id="save" />
+            </PrimaryButton>
+          </div>
+        </Widget>
       </ScreenContent>
     );
   };
@@ -186,18 +252,20 @@ const CreateOAuthClientScreen: React.FC = function CreateOAuthClientScreen() {
   const { appID } = useParams() as { appID: string };
   const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
-  if (form.isLoading) {
+  const { isLoading, loadError, reload, updateError, isUpdating } = form;
+
+  if (isLoading) {
     return <ShowLoading />;
   }
 
-  if (form.loadError) {
-    return <ShowError error={form.loadError} onRetry={form.reload} />;
+  if (loadError) {
+    return <ShowError error={loadError} onRetry={reload} />;
   }
 
   return (
-    <FormContainer form={form} errorRules={errorRules}>
+    <FormProvider loading={isUpdating} error={updateError} rules={errorRules}>
       <CreateOAuthClientContent form={form} />
-    </FormContainer>
+    </FormProvider>
   );
 };
 

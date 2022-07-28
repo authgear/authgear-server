@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState, useContext } from "react";
 import cn from "classnames";
 import { useParams } from "react-router-dom";
-import { TextField, Toggle, MessageBar } from "@fluentui/react";
+import { Toggle, MessageBar } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { produce } from "immer";
@@ -13,6 +13,7 @@ import ScreenTitle from "../../ScreenTitle";
 import ScreenDescription from "../../ScreenDescription";
 import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
+import TextField from "../../TextField";
 import ManageLanguageWidget from "./ManageLanguageWidget";
 import ThemeConfigurationWidget from "../../ThemeConfigurationWidget";
 import {

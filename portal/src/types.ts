@@ -326,11 +326,19 @@ export interface ForgotPasswordConfig {
   reset_code_expiry_seconds?: DurationSeconds;
 }
 
+export const applicationTypes = [
+  "spa",
+  "traditional_webapp",
+  "native",
+] as const;
+export type ApplicationType = typeof applicationTypes[number];
+
 // OAuthConfig
 export interface OAuthClientConfig {
   name?: string;
   client_id: string;
   client_uri?: string;
+  x_application_type?: ApplicationType;
   redirect_uris: string[];
   grant_types?: string[];
   response_types?: string[];

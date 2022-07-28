@@ -13,7 +13,6 @@ import {
   DefaultEffects,
   Dialog,
   DialogFooter,
-  TextField,
   IIconProps,
   IButtonProps,
 } from "@fluentui/react";
@@ -31,6 +30,7 @@ import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import ScreenDescription from "../../ScreenDescription";
 import Widget from "../../Widget";
+import TextField from "../../TextField";
 import { startReauthentication } from "./Authenticated";
 import { PortalAPIAppConfig, PortalAPISecretConfig } from "../../types";
 import { useSystemConfig } from "../../context/SystemConfigContext";

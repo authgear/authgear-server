@@ -84,7 +84,53 @@ config:
           - "https://example.com"
         refresh_token_lifetime_seconds: 86400
         access_token_lifetime_seconds: 100
-
+---
+name: oauth-native-client-post-logout-redirect-uris
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: test-client
+        x_application_type: "native"
+        redirect_uris:
+          - "myapp://hostname/path"
+---
+name: oauth-spa-client-post-logout-redirect-uris
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: test-client
+        x_application_type: "spa"
+        redirect_uris:
+          - "http://example.com/"
+        post_logout_redirect_uris:
+          - "http://example.com/"
+---
+name: oauth-spa-client-must-have-post-logout-redirect-uris
+error: |-
+  invalid configuration:
+  /oauth/clients/0: required
+    map[actual:[client_id name redirect_uris x_application_type] expected:[post_logout_redirect_uris] missing:[post_logout_redirect_uris]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: test-client
+        x_application_type: "spa"
+        redirect_uris:
+          - "myapp://hostname/path"
 ---
 name: dupe-oauth-provider
 error: |-

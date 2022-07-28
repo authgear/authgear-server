@@ -2,17 +2,22 @@
   grid-column: 1 / span 6;
 }
 
-.dialogClientId {
-  display: flex;
-  width: 230px;
-  height: 35px;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 5px 10px 10px;
-  margin-bottom: 25px;
-  background-color: #edebe9;
+.optionLabel {
+  padding-left: 26px;
 }
 
-.dialogCopyIcon {
-  padding: 0;
+.optionLabelText {
+  line-height: 20px;
+  margin-bottom: 4px;
+}
+
+.optionLabelDescription {
+  line-height: 20px;
+  margin-bottom: 12px;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
 }

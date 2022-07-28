@@ -1,102 +1,66 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
-  ActionButton,
   DetailsList,
+  DetailsRow,
   IButtonStyles,
   IColumn,
   ICommandBarItemProps,
   IconButton,
+  IDetailsRowProps,
   MessageBar,
   SelectionMode,
-  Text,
-  VerticalDivider,
-  Toggle,
-  TextField,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import produce from "immer";
 
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import { OAuthClientConfig, PortalAPIAppConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
-import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
-import FormContainer from "../../FormContainer";
-
 import styles from "./ApplicationsConfigurationScreen.module.css";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
-import WidgetTitle from "../../WidgetTitle";
-import Widget from "../../Widget";
-import WidgetDescription from "../../WidgetDescription";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
+import ScreenDescription from "../../ScreenDescription";
+import { getApplicationTypeMessageID } from "./EditOAuthClientForm";
+import CommandBarContainer from "../../CommandBarContainer";
 
 const COPY_ICON_STLYES: IButtonStyles = {
-  root: { margin: 4 },
+  root: { margin: "0 4px" },
   rootHovered: { backgroundColor: "#d8d6d3" },
   rootPressed: { backgroundColor: "#c2c0be" },
 };
 
 interface FormState {
-  publicOrigin: string;
-  cookieDomain?: string;
   clients: OAuthClientConfig[];
-  persistentCookie: boolean;
-  sessionLifetimeSeconds: number | undefined;
-  idleTimeoutEnabled: boolean;
-  idleTimeoutSeconds: number | undefined;
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
-    publicOrigin: config.http?.public_origin ?? "",
-    cookieDomain: config.http?.cookie_domain,
     clients: config.oauth?.clients ?? [],
-    persistentCookie: !(config.session?.cookie_non_persistent ?? false),
-    sessionLifetimeSeconds: config.session?.lifetime_seconds,
-    idleTimeoutEnabled: config.session?.idle_timeout_enabled ?? false,
-    idleTimeoutSeconds: config.session?.idle_timeout_seconds,
   };
 }
 
 function constructConfig(
   config: PortalAPIAppConfig,
-  initialState: FormState,
+  _: FormState,
   currentState: FormState
 ): PortalAPIAppConfig {
-  // eslint-disable-next-line complexity
   return produce(config, (config) => {
     config.oauth ??= {};
     config.oauth.clients = currentState.clients;
-    config.http ??= {};
-    config.session = config.session ?? {};
-    if (initialState.persistentCookie !== currentState.persistentCookie) {
-      config.session.cookie_non_persistent = !currentState.persistentCookie;
-    }
-    if (
-      initialState.sessionLifetimeSeconds !==
-      currentState.sessionLifetimeSeconds
-    ) {
-      config.session.lifetime_seconds = currentState.sessionLifetimeSeconds;
-    }
-
-    if (initialState.idleTimeoutEnabled !== currentState.idleTimeoutEnabled) {
-      config.session.idle_timeout_enabled = currentState.idleTimeoutEnabled;
-    }
-
-    if (
-      currentState.idleTimeoutEnabled &&
-      initialState.idleTimeoutSeconds !== currentState.idleTimeoutSeconds
-    ) {
-      config.session.idle_timeout_seconds = currentState.idleTimeoutSeconds;
-    }
     clearEmptyObject(config);
   });
 }
@@ -112,7 +76,6 @@ function makeOAuthClientListColumns(
       minWidth: 100,
       className: styles.columnHeader,
     },
-
     {
       key: "clientId",
       fieldName: "clientId",
@@ -123,10 +86,13 @@ function makeOAuthClientListColumns(
       className: styles.columnHeader,
     },
     {
-      key: "action",
-      name: renderToString("action"),
+      key: "applicationType",
+      fieldName: "applicationType",
+      name: renderToString(
+        "ApplicationsConfigurationScreen.client-list.application-type"
+      ),
+      minWidth: 250,
       className: styles.columnHeader,
-      minWidth: 120,
     },
   ];
 }
@@ -151,147 +117,6 @@ const OAuthClientIdCell: React.FC<OAuthClientIdCellProps> =
     );
   };
 
-interface OAuthClientListActionCellProps {
-  clientId: string;
-  onRemoveClientClick: (clientId: string) => void;
-}
-
-const OAuthClientListActionCell: React.FC<OAuthClientListActionCellProps> =
-  function OAuthClientListActionCell(props: OAuthClientListActionCellProps) {
-    const { clientId, onRemoveClientClick } = props;
-    const navigate = useNavigate();
-    const { themes } = useSystemConfig();
-
-    const onEditClick = useCallback(() => {
-      navigate(`./${clientId}/edit`);
-    }, [navigate, clientId]);
-
-    const onRemoveClick = useCallback(() => {
-      onRemoveClientClick(clientId);
-    }, [clientId, onRemoveClientClick]);
-
-    return (
-      <div className={styles.cellContent}>
-        <ActionButton
-          className={styles.cellAction}
-          theme={themes.actionButton}
-          onClick={onEditClick}
-        >
-          <FormattedMessage id="edit" />
-        </ActionButton>
-        <VerticalDivider className={styles.cellActionDivider} />
-        <ActionButton
-          className={styles.cellAction}
-          theme={themes.actionButton}
-          onClick={onRemoveClick}
-        >
-          <FormattedMessage id="remove" />
-        </ActionButton>
-      </div>
-    );
-  };
-
-interface SessionConfigurationWidgetProps {
-  form: AppConfigFormModel<FormState>;
-}
-
-const SessionConfigurationWidget: React.FC<SessionConfigurationWidgetProps> =
-  function SessionConfigurationWidget(props: SessionConfigurationWidgetProps) {
-    const { state, setState } = props.form;
-
-    const { renderToString } = useContext(Context);
-
-    const onPersistentCookieChange = useCallback(
-      (_, value?: boolean) => {
-        setState((state) => ({
-          ...state,
-          persistentCookie: value ?? false,
-        }));
-      },
-      [setState]
-    );
-
-    const onSessionLifetimeSecondsChange = useCallback(
-      (_, value?: string) => {
-        setState((prev) => ({
-          ...prev,
-          sessionLifetimeSeconds: parseIntegerAllowLeadingZeros(value),
-        }));
-      },
-      [setState]
-    );
-
-    const onIdleTimeoutEnabledChange = useCallback(
-      (_, value?: boolean) => {
-        setState((state) => ({
-          ...state,
-          idleTimeoutEnabled: value ?? false,
-        }));
-      },
-      [setState]
-    );
-
-    const onIdleTimeoutSecondsChange = useCallback(
-      (_, value?: string) => {
-        setState((prev) => ({
-          ...prev,
-          idleTimeoutSeconds: parseIntegerAllowLeadingZeros(value),
-        }));
-      },
-      [setState]
-    );
-
-    return (
-      <Widget className={styles.widget}>
-        <WidgetTitle id="cookie-session">
-          <FormattedMessage id="SessionConfigurationWidget.title" />
-        </WidgetTitle>
-        <WidgetDescription>
-          <FormattedMessage
-            id="SessionConfigurationWidget.description"
-            values={{
-              // cookieDomain wil be empty only if authgear.yaml is updated manually
-              domain: state.cookieDomain ?? state.publicOrigin,
-            }}
-          />
-        </WidgetDescription>
-        <Toggle
-          inlineLabel={true}
-          label={renderToString(
-            "SessionConfigurationWidget.persistent-cookie.label"
-          )}
-          checked={state.persistentCookie}
-          onChange={onPersistentCookieChange}
-        />
-        <TextField
-          type="text"
-          label={renderToString(
-            "SessionConfigurationWidget.session-lifetime.label"
-          )}
-          value={state.sessionLifetimeSeconds?.toFixed(0) ?? ""}
-          onChange={onSessionLifetimeSecondsChange}
-        />
-        <Toggle
-          inlineLabel={true}
-          label={renderToString(
-            "SessionConfigurationWidget.invalidate-session-after-idling.label"
-          )}
-          checked={state.idleTimeoutEnabled}
-          onChange={onIdleTimeoutEnabledChange}
-        />
-        <TextField
-          type="text"
-          disabled={!state.idleTimeoutEnabled}
-          label={renderToString(
-            "SessionConfigurationWidget.idle-timeout.label"
-          )}
-          value={state.idleTimeoutSeconds?.toFixed(0) ?? ""}
-          onChange={onIdleTimeoutSecondsChange}
-        />
-      </Widget>
-    );
-  };
-
 interface OAuthClientConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
   oauthClientsMaximum: number;
@@ -301,8 +126,7 @@ interface OAuthClientConfigurationContentProps {
 const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentProps> =
   function OAuthClientConfigurationContent(props) {
     const {
-      form,
-      form: { state, setState },
+      form: { state },
       oauthClientsMaximum,
     } = props;
     const { renderToString } = useContext(Context);
@@ -311,15 +135,28 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
       return makeOAuthClientListColumns(renderToString);
     }, [renderToString]);
 
-    const onRemoveClientClick = useCallback(
-      (clientId: string) => {
-        setState((state) => ({
-          ...state,
-          clients: state.clients.filter((c) => c.client_id !== clientId),
-        }));
-      },
-      [setState]
-    );
+    const onRenderOAuthClientRow = useCallback((props?: IDetailsRowProps) => {
+      if (!props) {
+        return null;
+      }
+
+      const clientID = "client_id" in props.item && props.item.client_id;
+      const targetPath =
+        typeof clientID === "string" ? `./${clientID}/edit` : ".";
+      props.styles = {
+        ...props.styles,
+        // Reduce the cell height after adding copy button to the list
+        cell: {
+          paddingTop: 4,
+          paddingBottom: 4,
+        },
+      };
+      return (
+        <Link to={targetPath}>
+          <DetailsRow {...props} />
+        </Link>
+      );
+    }, []);
 
     const onRenderOAuthClientColumns = useCallback(
       (item?: OAuthClientConfig, _index?: number, column?: IColumn) => {
@@ -327,24 +164,25 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
           return null;
         }
         switch (column.key) {
-          case "action":
-            return (
-              <OAuthClientListActionCell
-                clientId={item.client_id}
-                onRemoveClientClick={onRemoveClientClick}
-              />
-            );
           case "name":
             return (
               <span className={styles.cellContent}>{item.name ?? ""}</span>
             );
           case "clientId":
             return <OAuthClientIdCell clientId={item.client_id} />;
+          case "applicationType":
+            return (
+              <span className={styles.cellContent}>
+                <FormattedMessage
+                  id={getApplicationTypeMessageID(item.x_application_type)}
+                />
+              </span>
+            );
           default:
             return null;
         }
       },
-      [onRemoveClientClick]
+      []
     );
 
     return (
@@ -352,19 +190,10 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
         <ScreenTitle className={styles.widget}>
           <FormattedMessage id="ApplicationsConfigurationScreen.title" />
         </ScreenTitle>
-        <Widget className={styles.widget}>
-          <WidgetTitle>
-            <FormattedMessage id="ApplicationsConfigurationScreen.title" />
-          </WidgetTitle>
-          <Text className={styles.description}>
-            <FormattedMessage
-              id="ApplicationsConfigurationScreen.client-endpoint.desc"
-              values={{
-                clientEndpoint: state.publicOrigin,
-                dnsUrl: "./../../custom-domains",
-              }}
-            />
-          </Text>
+        <ScreenDescription className={styles.widget}>
+          <FormattedMessage id="ApplicationsConfigurationScreen.description" />
+        </ScreenDescription>
+        <div className={styles.widget}>
           {oauthClientsMaximum < 99 && (
             <MessageBar>
               <FormattedMessage
@@ -377,14 +206,14 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
             </MessageBar>
           )}
           <DetailsList
+            onRenderRow={onRenderOAuthClientRow}
             className={styles.clientList}
             columns={oauthClientListColumns}
             items={state.clients}
             selectionMode={SelectionMode.none}
             onRenderItemColumn={onRenderOAuthClientColumns}
           />
-        </Widget>
-        <SessionConfigurationWidget form={form} />
+        </div>
       </ScreenContent>
     );
   };
@@ -430,37 +259,48 @@ const ApplicationsConfigurationScreen: React.FC =
       [navigate, renderToString, limitReached]
     );
 
-    if (form.isLoading || featureConfig.loading) {
+    const isLoading = useMemo(
+      () => form.isLoading || featureConfig.loading,
+      [form.isLoading, featureConfig.loading]
+    );
+
+    const error = useMemo(
+      () => form.loadError ?? featureConfig.error,
+      [form.loadError, featureConfig.error]
+    );
+
+    const onRetry = useCallback(() => {
+      if (form.loadError) {
+        form.reload();
+      }
+
+      if (featureConfig.error) {
+        featureConfig.refetch().finally(() => {});
+      }
+    }, [form, featureConfig]);
+
+    useEffect(() => {
+      if (!isLoading && !error && form.state.clients.length === 0) {
+        navigate("./add", { replace: true });
+      }
+    }, [isLoading, error, form.state.clients.length, navigate]);
+
+    if (isLoading) {
       return <ShowLoading />;
     }
 
-    if (form.loadError) {
-      return <ShowError error={form.loadError} onRetry={form.reload} />;
-    }
-
-    if (featureConfig.error) {
-      return (
-        <ShowError
-          error={form.loadError}
-          onRetry={() => {
-            featureConfig.refetch().finally(() => {});
-          }}
-        />
-      );
+    if (error) {
+      return <ShowError error={error} onRetry={onRetry} />;
     }
 
     return (
-      <FormContainer
-        form={form}
-        messageBar={messageBar}
-        primaryItems={primaryItems}
-      >
+      <CommandBarContainer messageBar={messageBar} primaryItems={primaryItems}>
         <OAuthClientConfigurationContent
           form={form}
           oauthClientsMaximum={oauthClientsMaximum}
           showNotification={showNotification}
         />
-      </FormContainer>
+      </CommandBarContainer>
     );
   };
 

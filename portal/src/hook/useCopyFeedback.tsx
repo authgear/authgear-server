@@ -61,6 +61,10 @@ const CALLOUT_STYLES = {
   root: {
     padding: "8px",
   },
+  // hide scrollbar in callout
+  calloutMain: {
+    overflowY: "hidden",
+  },
 };
 
 export function useCopyFeedback(
@@ -73,11 +77,16 @@ export function useCopyFeedback(
   const scheduleCalloutDismiss = useDelayedAction(dismissCallout);
   const { renderToString } = useContext(Context);
 
-  const onClick = useCallback(() => {
-    copyToClipboard(textToCopy);
-    setIsCalloutVisible(true);
-    scheduleCalloutDismiss(2000);
-  }, [textToCopy, scheduleCalloutDismiss]);
+  const onClick = useCallback(
+    (e: React.MouseEvent<unknown>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      copyToClipboard(textToCopy);
+      setIsCalloutVisible(true);
+      scheduleCalloutDismiss(2000);
+    },
+    [textToCopy, scheduleCalloutDismiss]
+  );
 
   const onMouseLeave = useCallback(() => {
     scheduleCalloutDismiss(500);

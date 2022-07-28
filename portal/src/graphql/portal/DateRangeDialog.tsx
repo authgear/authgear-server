@@ -4,11 +4,11 @@ import {
   Dialog,
   DialogFooter,
   PrimaryButton,
-  TextField,
 } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import React, { useMemo } from "react";
 import styles from "./DateRangeDialog.module.css";
+import TextField from "../../TextField";
 
 interface DateRangeDialogProps {
   hidden: boolean;

@@ -6,6 +6,7 @@ import { makeClient } from "./graphql/adminapi/apollo";
 import { useAppAndSecretConfigQuery } from "./graphql/portal/query/appAndSecretConfigQuery";
 import ScreenLayout from "./ScreenLayout";
 import ShowLoading from "./ShowLoading";
+import CookieLifetimeConfigurationScreen from "./graphql/portal/CookieLifetimeConfigurationScreen";
 
 const UsersScreen = lazy(async () => import("./graphql/adminapi/UsersScreen"));
 const AddUserScreen = lazy(
@@ -521,6 +522,14 @@ const AppRoot: React.FC = function AppRoot() {
               element={
                 <Suspense fallback={<ShowLoading />}>
                   <ForgotPasswordConfigurationScreen />
+                </Suspense>
+              }
+            />
+            <Route
+              path="session"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <CookieLifetimeConfigurationScreen />
                 </Suspense>
               }
             />

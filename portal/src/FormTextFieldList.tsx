@@ -1,4 +1,3 @@
-import { ITextFieldProps, TextField } from "@fluentui/react";
 import React, { useCallback, useMemo } from "react";
 import FieldList from "./FieldList";
 import cn from "classnames";
@@ -6,11 +5,12 @@ import styles from "./FormTextFieldList.module.css";
 import { useFormField } from "./form";
 import { joinParentChild } from "./util/jsonpointer";
 import ErrorRenderer from "./ErrorRenderer";
+import TextField, { TextFieldProps } from "./TextField";
 
 interface TextFieldListItemProps {
   index: number;
   parentJSONPointer: string | RegExp;
-  textFieldProps?: ITextFieldProps;
+  textFieldProps?: TextFieldProps;
   value: string;
   onChange: (value: string) => void;
 }
@@ -59,9 +59,10 @@ const TextFieldListItem: React.FC<TextFieldListItemProps> =
 export interface FormTextFieldListProps {
   className?: string;
   label?: React.ReactNode;
+  description?: string;
   parentJSONPointer: string | RegExp;
   fieldName: string;
-  inputProps?: ITextFieldProps;
+  inputProps?: TextFieldProps;
   list: string[];
   onListChange: (list: string[]) => void;
   addButtonLabelMessageID?: string;
@@ -72,6 +73,7 @@ const FormTextFieldList: React.FC<FormTextFieldListProps> =
     const {
       className,
       label,
+      description,
       parentJSONPointer,
       fieldName,
       inputProps,
@@ -97,6 +99,7 @@ const FormTextFieldList: React.FC<FormTextFieldListProps> =
       <FieldList
         className={className}
         label={label}
+        description={description}
         parentJSONPointer={parentJSONPointer}
         fieldName={fieldName}
         list={list}
