@@ -48,6 +48,7 @@ import { WritableDraft } from "immer/dist/internal";
 
 interface AuthenticatorTypeFormState<T> {
   isEnabled: boolean;
+  shouldBeDisabled: boolean;
   type: T;
 }
 
@@ -70,6 +71,9 @@ function checkAuthenticatorReasonability(state: WritableDraft<FormState>) {
       if (isOTPAuthenticatorTypeEqual(primaryItem.type, secondaryItem.type)) {
         if (primaryItem.isEnabled) {
           secondaryItem.isEnabled = false;
+          secondaryItem.shouldBeDisabled = true;
+        } else {
+          secondaryItem.shouldBeDisabled = false;
         }
       }
     });
@@ -93,22 +97,24 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     config.authentication?.primary_authenticators ?? []
   ).map((t) => ({
     isEnabled: true,
+    shouldBeDisabled: false,
     type: t,
   }));
   for (const type of primaryAuthenticatorTypes) {
     if (!primary.some((t) => t.type === type)) {
-      primary.push({ isEnabled: false, type });
+      primary.push({ isEnabled: false, shouldBeDisabled: false, type });
     }
   }
   const secondary: AuthenticatorTypeFormState<SecondaryAuthenticatorType>[] = (
     config.authentication?.secondary_authenticators ?? []
   ).map((t) => ({
     isEnabled: true,
+    shouldBeDisabled: false,
     type: t,
   }));
   for (const type of secondaryAuthenticatorTypes) {
     if (!secondary.some((t) => t.type === type)) {
-      secondary.push({ isEnabled: false, type });
+      secondary.push({ isEnabled: false, shouldBeDisabled: false, type });
     }
   }
 
@@ -217,7 +223,7 @@ const secondaryAuthenticatorNameIds = {
 type AuthenticatorColumnItem = (
   | { kind: "primary"; type: PrimaryAuthenticatorType }
   | { kind: "secondary"; type: SecondaryAuthenticatorType }
-) & { isEnabled: boolean };
+) & { isEnabled: boolean; shouldBeDisabled: boolean };
 
 interface AuthenticatorCheckboxProps {
   disabled: boolean;
@@ -461,20 +467,22 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
 
     const primaryItems: AuthenticatorColumnItem[] = useMemo(
       () =>
-        state.primary.map(({ type, isEnabled }) => ({
+        state.primary.map(({ type, isEnabled, shouldBeDisabled }) => ({
           kind: "primary",
           type,
           isEnabled,
+          shouldBeDisabled,
         })),
       [state.primary]
     );
 
     const secondaryItems: AuthenticatorColumnItem[] = useMemo(
       () =>
-        state.secondary.map(({ type, isEnabled }) => ({
+        state.secondary.map(({ type, isEnabled, shouldBeDisabled }) => ({
           kind: "secondary",
           type,
           isEnabled,
+          shouldBeDisabled,
         })),
       [state.secondary]
     );
@@ -536,7 +544,8 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
 
     const onRenderSecondaryColumn = useCallback(
       (item: AuthenticatorColumnItem, index?: number, column?: IColumn) => {
-        const disabled = featureDisabled[item.kind][item.type];
+        const disabled =
+          featureDisabled[item.kind][item.type] || item.shouldBeDisabled;
         switch (column?.key) {
           case "activated":
             return (
