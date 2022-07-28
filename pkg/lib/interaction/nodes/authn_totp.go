@@ -37,15 +37,15 @@ func (e *EdgeAuthenticationTOTP) Instantiate(ctx *interaction.Context, graph *in
 		return nil, interaction.ErrIncompatibleInput
 	}
 
-	inputTOTP := input.GetTOTP()
+	spec := &authenticator.Spec{
+		TOTP: &authenticator.TOTPSpec{
+			Code: input.GetTOTP(),
+		},
+	}
 
 	var info *authenticator.Info
 	for _, a := range e.Authenticators {
-		_, err := ctx.Authenticators.VerifyWithSpec(a, &authenticator.Spec{
-			Claims: map[authenticator.ClaimKey]interface{}{
-				authenticator.AuthenticatorClaimTOTPCode: inputTOTP,
-			},
-		})
+		_, err := ctx.Authenticators.VerifyWithSpec(a, spec)
 		if errors.Is(err, authenticator.ErrInvalidCredentials) {
 			continue
 		} else if err != nil {

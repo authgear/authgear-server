@@ -32,8 +32,8 @@ func (s *Store) selectQuery() db.SelectBuilder {
 		Join(s.SQLBuilder.TableName("_auth_authenticator_password"), "ap", "a.id = ap.id")
 }
 
-func (s *Store) scan(scn db.Scanner) (*Authenticator, error) {
-	a := &Authenticator{}
+func (s *Store) scan(scn db.Scanner) (*authenticator.Password, error) {
+	a := &authenticator.Password{}
 
 	err := scn.Scan(
 		&a.ID,
@@ -53,7 +53,7 @@ func (s *Store) scan(scn db.Scanner) (*Authenticator, error) {
 	return a, nil
 }
 
-func (s *Store) GetMany(ids []string) ([]*Authenticator, error) {
+func (s *Store) GetMany(ids []string) ([]*authenticator.Password, error) {
 	builder := s.selectQuery().Where("a.id = ANY (?)", pq.Array(ids))
 
 	rows, err := s.SQLExecutor.QueryWith(builder)
@@ -62,7 +62,7 @@ func (s *Store) GetMany(ids []string) ([]*Authenticator, error) {
 	}
 	defer rows.Close()
 
-	var as []*Authenticator
+	var as []*authenticator.Password
 	for rows.Next() {
 		a, err := s.scan(rows)
 		if err != nil {
@@ -74,7 +74,7 @@ func (s *Store) GetMany(ids []string) ([]*Authenticator, error) {
 	return as, nil
 }
 
-func (s *Store) Get(userID string, id string) (*Authenticator, error) {
+func (s *Store) Get(userID string, id string) (*authenticator.Password, error) {
 	q := s.selectQuery().Where("a.user_id = ? AND a.id = ?", userID, id)
 
 	row, err := s.SQLExecutor.QueryRowWith(q)
@@ -85,7 +85,7 @@ func (s *Store) Get(userID string, id string) (*Authenticator, error) {
 	return s.scan(row)
 }
 
-func (s *Store) List(userID string) ([]*Authenticator, error) {
+func (s *Store) List(userID string) ([]*authenticator.Password, error) {
 	q := s.selectQuery().Where("a.user_id = ?", userID)
 
 	rows, err := s.SQLExecutor.QueryWith(q)
@@ -94,7 +94,7 @@ func (s *Store) List(userID string) ([]*Authenticator, error) {
 	}
 	defer rows.Close()
 
-	var authenticators []*Authenticator
+	var authenticators []*authenticator.Password
 	for rows.Next() {
 		a, err := s.scan(rows)
 		if err != nil {
@@ -126,7 +126,7 @@ func (s *Store) Delete(id string) error {
 	return nil
 }
 
-func (s *Store) Create(a *Authenticator) (err error) {
+func (s *Store) Create(a *authenticator.Password) (err error) {
 	q := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_authenticator")).
 		Columns(
@@ -170,7 +170,7 @@ func (s *Store) Create(a *Authenticator) (err error) {
 	return nil
 }
 
-func (s *Store) UpdatePasswordHash(a *Authenticator) error {
+func (s *Store) UpdatePasswordHash(a *authenticator.Password) error {
 	q := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_authenticator_password")).
 		Set("password_hash", a.PasswordHash).

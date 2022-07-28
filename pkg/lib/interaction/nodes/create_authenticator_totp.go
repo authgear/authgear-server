@@ -28,11 +28,11 @@ func (e *EdgeCreateAuthenticatorTOTP) Instantiate(ctx *interaction.Context, grap
 		return nil, interaction.ErrIncompatibleInput
 	}
 
-	info := cloneAuthenticator(e.Authenticator)
-	info.Claims[authenticator.AuthenticatorClaimTOTPDisplayName] = input.GetTOTPDisplayName()
+	info := e.Authenticator
+	info.TOTP.DisplayName = input.GetTOTPDisplayName()
 	_, err := ctx.Authenticators.VerifyWithSpec(info, &authenticator.Spec{
-		Claims: map[authenticator.ClaimKey]interface{}{
-			authenticator.AuthenticatorClaimTOTPCode: input.GetTOTP(),
+		TOTP: &authenticator.TOTPSpec{
+			Code: input.GetTOTP(),
 		},
 	})
 	if errors.Is(err, authenticator.ErrInvalidCredentials) {

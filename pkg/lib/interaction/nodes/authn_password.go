@@ -51,8 +51,8 @@ func (e *EdgeAuthenticationPassword) Instantiate(ctx *interaction.Context, graph
 
 	inputPassword := passwordInput.GetPassword()
 	spec := &authenticator.Spec{
-		Claims: map[authenticator.ClaimKey]interface{}{
-			authenticator.AuthenticatorClaimPasswordPlainPassword: inputPassword,
+		Password: &authenticator.PasswordSpec{
+			PlainPassword: inputPassword,
 		},
 	}
 

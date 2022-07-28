@@ -25,10 +25,17 @@ func NewGlobalDatabaseCredentials(dbCredentials *config.DatabaseCredentials) *co
 	}
 }
 
+func NewEmptyIdentityConfig() *config.IdentityConfig {
+	return &config.IdentityConfig{
+		OAuth: &config.OAuthSSOConfig{},
+	}
+}
+
 var DependencySet = wire.NewSet(
 	NewLoggerFactory,
 	config.NewDefaultDatabaseEnvironmentConfig,
 	NewGlobalDatabaseCredentials,
+	NewEmptyIdentityConfig,
 	globaldb.DependencySet,
 	appdb.NewHandle,
 	appdb.DependencySet,

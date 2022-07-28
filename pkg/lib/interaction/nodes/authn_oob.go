@@ -31,8 +31,8 @@ func (e *EdgeAuthenticationOOB) Instantiate(ctx *interaction.Context, graph *int
 
 	info := e.Authenticator
 	_, err := ctx.Authenticators.VerifyWithSpec(info, &authenticator.Spec{
-		Claims: map[authenticator.ClaimKey]interface{}{
-			authenticator.AuthenticatorClaimOOBOTPCode: input.GetOOBOTP(),
+		OOBOTP: &authenticator.OOBOTPSpec{
+			Code: input.GetOOBOTP(),
 		},
 	})
 	if err != nil {
