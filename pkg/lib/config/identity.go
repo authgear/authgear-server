@@ -3,6 +3,8 @@ package config
 import (
 	"fmt"
 	"strconv"
+
+	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
 var _ = Schema.Add("IdentityConfig", `
@@ -44,7 +46,7 @@ type LoginIDConfig struct {
 func (c *LoginIDConfig) SetDefaults() {
 	if c.Keys == nil {
 		c.Keys = []LoginIDKeyConfig{
-			{Type: LoginIDKeyTypeEmail},
+			{Type: model.LoginIDKeyTypeEmail},
 		}
 		for i := range c.Keys {
 			c.Keys[i].SetDefaults()
@@ -202,16 +204,16 @@ var _ = Schema.Add("LoginIDKeyConfig", `
 `)
 
 type LoginIDKeyConfig struct {
-	Key            string         `json:"key,omitempty"`
-	Type           LoginIDKeyType `json:"type,omitempty"`
-	MaxLength      *int           `json:"max_length,omitempty"`
-	ModifyDisabled *bool          `json:"modify_disabled,omitempty"`
+	Key            string               `json:"key,omitempty"`
+	Type           model.LoginIDKeyType `json:"type,omitempty"`
+	MaxLength      *int                 `json:"max_length,omitempty"`
+	ModifyDisabled *bool                `json:"modify_disabled,omitempty"`
 }
 
 func (c *LoginIDKeyConfig) SetDefaults() {
 	if c.MaxLength == nil {
 		switch c.Type {
-		case LoginIDKeyTypeUsername:
+		case model.LoginIDKeyTypeUsername:
 			// Facebook is 50.
 			// GitHub is 39.
 			// Instagram is 30.
@@ -219,7 +221,7 @@ func (c *LoginIDKeyConfig) SetDefaults() {
 			// Seems average is around about ~40 characters.
 			c.MaxLength = newInt(40)
 
-		case LoginIDKeyTypePhone:
+		case model.LoginIDKeyTypePhone:
 			c.MaxLength = newInt(40)
 
 		default:
@@ -242,20 +244,6 @@ var _ = Schema.Add("LoginIDKeyType", `
 	"enum": ["email", "phone", "username"]
 }
 `)
-
-type LoginIDKeyType string
-
-const (
-	LoginIDKeyTypeEmail    LoginIDKeyType = "email"
-	LoginIDKeyTypePhone    LoginIDKeyType = "phone"
-	LoginIDKeyTypeUsername LoginIDKeyType = "username"
-)
-
-var LoginIDKeyTypes = []LoginIDKeyType{
-	LoginIDKeyTypeEmail,
-	LoginIDKeyTypePhone,
-	LoginIDKeyTypeUsername,
-}
 
 var _ = Schema.Add("OAuthSSOConfig", `
 {

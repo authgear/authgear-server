@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -34,7 +35,7 @@ type DailySignupCountTypeByMethod struct {
 var DailySignupCountTypeByMethods = []*DailySignupCountTypeByMethod{}
 
 func init() {
-	for _, typ := range config.LoginIDKeyTypes {
+	for _, typ := range model.LoginIDKeyTypes {
 		DailySignupCountTypeByMethods = append(DailySignupCountTypeByMethods, &DailySignupCountTypeByMethod{
 			string(typ), fmt.Sprintf(DailySignupWithLoginIDCountType, typ),
 		})

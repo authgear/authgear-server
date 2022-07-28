@@ -179,7 +179,7 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 		case model.AuthenticatorTypeOOBSMS:
 			// check if identity login id type match oob type
 			if n.Identity.LoginID != nil {
-				if n.Identity.LoginID.LoginIDType == config.LoginIDKeyTypePhone {
+				if n.Identity.LoginID.LoginIDType == model.LoginIDKeyTypePhone {
 					if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
 						edges = append(edges, &EdgeCreateAuthenticatorWhatsappOTPSetup{
 							NewAuthenticatorID: n.NewAuthenticatorID,
@@ -202,7 +202,7 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 		case model.AuthenticatorTypeOOBEmail:
 			// check if identity login id type match oob type
 			if n.Identity.LoginID != nil {
-				if n.Identity.LoginID.LoginIDType == config.LoginIDKeyTypeEmail {
+				if n.Identity.LoginID.LoginIDType == model.LoginIDKeyTypeEmail {
 					edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
 						NewAuthenticatorID:   n.NewAuthenticatorID,
 						Stage:                n.Stage,

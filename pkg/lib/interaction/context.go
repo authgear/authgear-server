@@ -143,7 +143,7 @@ type ResetPasswordService interface {
 }
 
 type LoginIDNormalizerFactory interface {
-	NormalizerWithLoginIDType(loginIDKeyType config.LoginIDKeyType) loginid.Normalizer
+	NormalizerWithLoginIDType(loginIDKeyType model.LoginIDKeyType) loginid.Normalizer
 }
 
 type VerificationService interface {

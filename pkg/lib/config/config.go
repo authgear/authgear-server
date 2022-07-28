@@ -120,7 +120,7 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 
 	for i, it := range c.Authentication.Identities {
 		hasPrimaryAuth := true
-		var loginIDKeyType LoginIDKeyType
+		var loginIDKeyType model.LoginIDKeyType
 		switch it {
 		case model.IdentityTypeLoginID:
 			_, hasPassword := authenticatorTypes[model.AuthenticatorTypePassword]
@@ -129,17 +129,17 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 			_, hasOOBSMS := authenticatorTypes[model.AuthenticatorTypeOOBSMS]
 			for _, k := range c.Identity.LoginID.Keys {
 				switch k.Type {
-				case LoginIDKeyTypeEmail:
+				case model.LoginIDKeyTypeEmail:
 					if !hasPassword && !hasPasskey && !hasOOBEmail {
 						hasPrimaryAuth = false
 						loginIDKeyType = k.Type
 					}
-				case LoginIDKeyTypePhone:
+				case model.LoginIDKeyTypePhone:
 					if !hasPassword && !hasPasskey && !hasOOBSMS {
 						hasPrimaryAuth = false
 						loginIDKeyType = k.Type
 					}
-				case LoginIDKeyTypeUsername:
+				case model.LoginIDKeyTypeUsername:
 					if !hasPassword && !hasPasskey {
 						hasPrimaryAuth = false
 						loginIDKeyType = k.Type

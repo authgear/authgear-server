@@ -5,12 +5,13 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
-func newLoginIDKeyConfig(key string, t config.LoginIDKeyType, maxLength int) config.LoginIDKeyConfig {
+func newLoginIDKeyConfig(key string, t model.LoginIDKeyType, maxLength int) config.LoginIDKeyConfig {
 	return config.LoginIDKeyConfig{
 		Key:       key,
 		Type:      t,
@@ -46,9 +47,9 @@ func TestLoginIDChecker(t *testing.T) {
 	Convey("LoginIDChecker.Validate", t, func() {
 		Convey("Validate by config: username (0-1), email (0-1)", func() {
 			keysConfig := []config.LoginIDKeyConfig{
-				newLoginIDKeyConfig("username", config.LoginIDKeyTypeUsername, 10),
-				newLoginIDKeyConfig("email", config.LoginIDKeyTypeEmail, 30),
-				newLoginIDKeyConfig("phone", config.LoginIDKeyTypePhone, 12),
+				newLoginIDKeyConfig("username", model.LoginIDKeyTypeUsername, 10),
+				newLoginIDKeyConfig("email", model.LoginIDKeyTypeEmail, 30),
+				newLoginIDKeyConfig("phone", model.LoginIDKeyTypePhone, 12),
 			}
 			typesConfig := newLoginIDTypesConfig()
 			cfg := &config.LoginIDConfig{
@@ -67,22 +68,22 @@ func TestLoginIDChecker(t *testing.T) {
 			}
 			var loginID identity.LoginIDSpec
 
-			loginID = identity.LoginIDSpec{Key: "username", Type: config.LoginIDKeyTypeUsername, Value: "johndoe"}
+			loginID = identity.LoginIDSpec{Key: "username", Type: model.LoginIDKeyTypeUsername, Value: "johndoe"}
 
 			So(checker.ValidateOne(loginID, options), ShouldBeNil)
-			loginID = identity.LoginIDSpec{Key: "email", Type: config.LoginIDKeyTypeEmail, Value: "johndoe@example.com"}
+			loginID = identity.LoginIDSpec{Key: "email", Type: model.LoginIDKeyTypeEmail, Value: "johndoe@example.com"}
 			So(checker.ValidateOne(loginID, options), ShouldBeNil)
 
 			loginID = identity.LoginIDSpec{Key: "nickname", Type: "", Value: "johndoe"}
 			So(checker.ValidateOne(loginID, options), ShouldBeError, "invalid login ID:\n/login_id: login ID key is not allowed")
 
-			loginID = identity.LoginIDSpec{Key: "username", Type: config.LoginIDKeyTypeUsername, Value: "foobarexample"}
+			loginID = identity.LoginIDSpec{Key: "username", Type: model.LoginIDKeyTypeUsername, Value: "foobarexample"}
 			So(checker.ValidateOne(loginID, options), ShouldBeError, "invalid login ID:\n/login_id: maxLength\n  map[actual:13 expected:10]")
 
-			loginID = identity.LoginIDSpec{Key: "email", Type: config.LoginIDKeyTypeEmail, Value: ""}
+			loginID = identity.LoginIDSpec{Key: "email", Type: model.LoginIDKeyTypeEmail, Value: ""}
 			So(checker.ValidateOne(loginID, options), ShouldBeError, "invalid login ID:\n/login_id: required")
 
-			loginID = identity.LoginIDSpec{Key: "phone", Type: config.LoginIDKeyTypePhone, Value: "51234567"}
+			loginID = identity.LoginIDSpec{Key: "phone", Type: model.LoginIDKeyTypePhone, Value: "51234567"}
 			So(checker.ValidateOne(loginID, options), ShouldBeError, "invalid login ID:\n/login_id: format\n  map[format:phone]")
 		})
 	})

@@ -194,11 +194,11 @@ func (i *Info) StandardClaims() map[model.ClaimName]string {
 		loginIDType := i.LoginID.LoginIDType
 		loginIDValue := i.LoginID.LoginID
 		switch loginIDType {
-		case config.LoginIDKeyTypeEmail:
+		case model.LoginIDKeyTypeEmail:
 			claims[model.ClaimEmail] = loginIDValue
-		case config.LoginIDKeyTypePhone:
+		case model.LoginIDKeyTypePhone:
 			claims[model.ClaimPhoneNumber] = loginIDValue
-		case config.LoginIDKeyTypeUsername:
+		case model.LoginIDKeyTypeUsername:
 			claims[model.ClaimPreferredUsername] = loginIDValue
 		}
 	case model.IdentityTypeOAuth:
@@ -221,18 +221,18 @@ func (i *Info) PrimaryAuthenticatorTypes() []model.AuthenticatorType {
 	switch i.Type {
 	case model.IdentityTypeLoginID:
 		switch i.LoginID.LoginIDType {
-		case config.LoginIDKeyTypeUsername:
+		case model.LoginIDKeyTypeUsername:
 			return []model.AuthenticatorType{
 				model.AuthenticatorTypePassword,
 				model.AuthenticatorTypePasskey,
 			}
-		case config.LoginIDKeyTypeEmail:
+		case model.LoginIDKeyTypeEmail:
 			return []model.AuthenticatorType{
 				model.AuthenticatorTypePassword,
 				model.AuthenticatorTypePasskey,
 				model.AuthenticatorTypeOOBEmail,
 			}
-		case config.LoginIDKeyTypePhone:
+		case model.LoginIDKeyTypePhone:
 			return []model.AuthenticatorType{
 				model.AuthenticatorTypePassword,
 				model.AuthenticatorTypePasskey,

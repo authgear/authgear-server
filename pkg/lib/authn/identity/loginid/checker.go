@@ -1,6 +1,7 @@
 package loginid
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -56,11 +57,11 @@ func (c *Checker) LoginIDKeyClaimName(loginIDKey string) (string, bool) {
 	for _, keyConfig := range c.Config.Keys {
 		if keyConfig.Key == loginIDKey {
 			switch keyConfig.Type {
-			case config.LoginIDKeyTypeEmail:
+			case model.LoginIDKeyTypeEmail:
 				return identity.StandardClaimEmail, true
-			case config.LoginIDKeyTypePhone:
+			case model.LoginIDKeyTypePhone:
 				return identity.StandardClaimPhoneNumber, true
-			case config.LoginIDKeyTypeUsername:
+			case model.LoginIDKeyTypeUsername:
 				return identity.StandardClaimPreferredUsername, true
 			default:
 				return "", false
@@ -71,7 +72,7 @@ func (c *Checker) LoginIDKeyClaimName(loginIDKey string) (string, bool) {
 	return "", false
 }
 
-func (c *Checker) CheckType(loginIDKey string, t config.LoginIDKeyType) bool {
+func (c *Checker) CheckType(loginIDKey string, t model.LoginIDKeyType) bool {
 	for _, keyConfig := range c.Config.Keys {
 		if keyConfig.Key == loginIDKey {
 			return keyConfig.Type == t

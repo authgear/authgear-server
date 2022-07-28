@@ -5,13 +5,12 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func checkIdentityEventSupportLoginIDType(loginIDType string) bool {
-	return loginIDType == string(config.LoginIDKeyTypeEmail) ||
-		loginIDType == string(config.LoginIDKeyTypePhone) ||
-		loginIDType == string(config.LoginIDKeyTypeUsername)
+	return loginIDType == string(model.LoginIDKeyTypeEmail) ||
+		loginIDType == string(model.LoginIDKeyTypePhone) ||
+		loginIDType == string(model.LoginIDKeyTypeUsername)
 }
 
 const (

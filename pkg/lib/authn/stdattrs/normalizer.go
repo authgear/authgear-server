@@ -3,8 +3,8 @@ package stdattrs
 import (
 	"golang.org/x/text/language"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -12,7 +12,7 @@ import (
 //go:generate mockgen -source=normalizer.go -destination=normalizer_mock_test.go -package stdattrs
 
 type LoginIDNormalizerFactory interface {
-	NormalizerWithLoginIDType(loginIDKeyType config.LoginIDKeyType) loginid.Normalizer
+	NormalizerWithLoginIDType(loginIDKeyType model.LoginIDKeyType) loginid.Normalizer
 }
 
 type Normalizer struct {
@@ -37,7 +37,7 @@ func normalizeBool(t T, key string) {
 
 func (n *Normalizer) normalizeEmail(t T) error {
 	if email, ok := t[Email].(string); ok && email != "" {
-		emailNormalizer := n.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypeEmail)
+		emailNormalizer := n.LoginIDNormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyTypeEmail)
 		email, err := emailNormalizer.Normalize(email)
 		if err != nil {
 			return err
