@@ -281,7 +281,7 @@ const ApplicationsConfigurationScreen: React.FC =
 
     useEffect(() => {
       if (!isLoading && !error && form.state.clients.length === 0) {
-        navigate("./add");
+        navigate("./add", { replace: true });
       }
     }, [isLoading, error, form.state.clients.length, navigate]);
 
