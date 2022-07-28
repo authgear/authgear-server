@@ -309,8 +309,8 @@ func (p *Provider) ResetPassword(userID string, newPassword string) (err error) 
 		var changed bool
 		var ai *authenticator.Info
 		changed, ai, err = p.Authenticators.WithSpec(ais[0], &authenticator.Spec{
-			Claims: map[authenticator.ClaimKey]interface{}{
-				authenticator.AuthenticatorClaimPasswordPlainPassword: newPassword,
+			Password: &authenticator.PasswordSpec{
+				PlainPassword: newPassword,
 			},
 		})
 		if err != nil {
@@ -342,12 +342,12 @@ func (p *Provider) ResetPassword(userID string, newPassword string) (err error) 
 
 		var newInfo *authenticator.Info
 		newInfo, err = p.Authenticators.New(&authenticator.Spec{
+			Type:      model.AuthenticatorTypePassword,
+			Kind:      authenticator.KindPrimary,
 			UserID:    userID,
 			IsDefault: isDefault,
-			Kind:      authenticator.KindPrimary,
-			Type:      model.AuthenticatorTypePassword,
-			Claims: map[authenticator.ClaimKey]interface{}{
-				authenticator.AuthenticatorClaimPasswordPlainPassword: newPassword,
+			Password: &authenticator.PasswordSpec{
+				PlainPassword: newPassword,
 			},
 		})
 		if err != nil {

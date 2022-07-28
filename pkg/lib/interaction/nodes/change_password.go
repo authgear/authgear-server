@@ -108,8 +108,8 @@ func (e *EdgeChangePassword) Instantiate(ctx *interaction.Context, graph *intera
 		// We avoid asking the user to provide the password again.
 	} else {
 		_, err = ctx.Authenticators.VerifyWithSpec(oldInfo, &authenticator.Spec{
-			Claims: map[authenticator.ClaimKey]interface{}{
-				authenticator.AuthenticatorClaimPasswordPlainPassword: oldPassword,
+			Password: &authenticator.PasswordSpec{
+				PlainPassword: oldPassword,
 			},
 		})
 		if err != nil {
@@ -119,8 +119,8 @@ func (e *EdgeChangePassword) Instantiate(ctx *interaction.Context, graph *intera
 	}
 
 	changed, newInfo, err := ctx.Authenticators.WithSpec(oldInfo, &authenticator.Spec{
-		Claims: map[authenticator.ClaimKey]interface{}{
-			authenticator.AuthenticatorClaimPasswordPlainPassword: newPassword,
+		Password: &authenticator.PasswordSpec{
+			PlainPassword: newPassword,
 		},
 	})
 	if err != nil {

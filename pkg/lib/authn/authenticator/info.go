@@ -9,24 +9,18 @@ import (
 )
 
 type Info struct {
-	ID        string                   `json:"id"`
-	UserID    string                   `json:"user_id"`
-	CreatedAt time.Time                `json:"created_at"`
-	UpdatedAt time.Time                `json:"updated_at"`
-	Type      model.AuthenticatorType  `json:"type"`
-	IsDefault bool                     `json:"is_default"`
-	Kind      Kind                     `json:"kind"`
-	Claims    map[ClaimKey]interface{} `json:"claims"`
-}
+	ID        string                  `json:"id"`
+	UserID    string                  `json:"user_id"`
+	CreatedAt time.Time               `json:"created_at"`
+	UpdatedAt time.Time               `json:"updated_at"`
+	Type      model.AuthenticatorType `json:"type"`
+	IsDefault bool                    `json:"is_default"`
+	Kind      Kind                    `json:"kind"`
 
-func (i *Info) ToSpec() Spec {
-	return Spec{
-		UserID:    i.UserID,
-		Type:      i.Type,
-		IsDefault: i.IsDefault,
-		Kind:      i.Kind,
-		Claims:    i.Claims,
-	}
+	Password *Password `json:"password,omitempty"`
+	Passkey  *Passkey  `json:"passkey,omitempty"`
+	TOTP     *TOTP     `json:"totp,omitempty"`
+	OOBOTP   *OOBOTP   `json:"oobotp,omitempty"`
 }
 
 func (i *Info) ToRef() *Ref {
@@ -81,40 +75,49 @@ func (i *Info) Equal(that *Info) bool {
 		return i.Kind == that.Kind
 	case model.AuthenticatorTypePasskey:
 		// if they are passkey, they have the same credential ID.
-		iCredentialID := i.Claims[AuthenticatorClaimPasskeyCredentialID].(string)
-		thatCredentialID := i.Claims[AuthenticatorClaimPasskeyCredentialID].(string)
-		return iCredentialID == thatCredentialID
+		return i.Passkey.CredentialID == that.Passkey.CredentialID
 	case model.AuthenticatorTypeTOTP:
 		// If they are TOTP, they have the same secret, and primary/secondary tag.
 		if i.Kind != that.Kind {
 			return false
 		}
-
-		iSecret := i.Claims[AuthenticatorClaimTOTPSecret].(string)
-		thatSecret := that.Claims[AuthenticatorClaimTOTPSecret].(string)
-
+		iSecret := i.TOTP.Secret
+		thatSecret := that.TOTP.Secret
 		return subtle.ConstantTimeCompare([]byte(iSecret), []byte(thatSecret)) == 1
 	case model.AuthenticatorTypeOOBEmail:
 		// If they are OOB, they have the same channel, target, and primary/secondary tag.
 		if i.Kind != that.Kind {
 			return false
 		}
-
-		iEmail := i.Claims[AuthenticatorClaimOOBOTPEmail].(string)
-		thatEmail := that.Claims[AuthenticatorClaimOOBOTPEmail].(string)
-		return iEmail == thatEmail
+		return i.OOBOTP.Email == that.OOBOTP.Email
 	case model.AuthenticatorTypeOOBSMS:
 		// If they are OOB, they have the same channel, target, and primary/secondary tag.
 		if i.Kind != that.Kind {
 			return false
 		}
 
-		iPhone := i.Claims[AuthenticatorClaimOOBOTPPhone].(string)
-		thatPhone := that.Claims[AuthenticatorClaimOOBOTPPhone].(string)
-		return iPhone == thatPhone
+		return i.OOBOTP.Phone == that.OOBOTP.Phone
 	default:
 		panic("authenticator: unknown authenticator type: " + i.Type)
 	}
+}
+
+func (i *Info) ToPublicClaims() map[string]interface{} {
+	claims := make(map[string]interface{})
+	switch i.Type {
+	case model.AuthenticatorTypeTOTP:
+		claims[AuthenticatorClaimTOTPDisplayName] = i.TOTP.DisplayName
+	case model.AuthenticatorTypeOOBEmail:
+		claims[AuthenticatorClaimOOBOTPEmail] = i.OOBOTP.Email
+	case model.AuthenticatorTypeOOBSMS:
+		claims[AuthenticatorClaimOOBOTPPhone] = i.OOBOTP.Phone
+	case model.AuthenticatorTypePasskey:
+		claims[AuthenticatorClaimPasskeyCredentialID] = i.Passkey.CredentialID
+	default:
+		// no claims to add
+		break
+	}
+	return claims
 }
 
 func (i *Info) StandardClaims() map[model.ClaimName]string {
@@ -127,9 +130,9 @@ func (i *Info) StandardClaims() map[model.ClaimName]string {
 	case model.AuthenticatorTypeTOTP:
 		break
 	case model.AuthenticatorTypeOOBEmail:
-		claims[model.ClaimEmail] = i.Claims[AuthenticatorClaimOOBOTPEmail].(string)
+		claims[model.ClaimEmail] = i.OOBOTP.Email
 	case model.AuthenticatorTypeOOBSMS:
-		claims[model.ClaimPhoneNumber] = i.Claims[AuthenticatorClaimOOBOTPPhone].(string)
+		claims[model.ClaimPhoneNumber] = i.OOBOTP.Phone
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
 	}

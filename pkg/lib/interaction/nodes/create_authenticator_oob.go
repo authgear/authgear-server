@@ -27,8 +27,8 @@ func (e *EdgeCreateAuthenticatorOOB) Instantiate(ctx *interaction.Context, graph
 		return nil, interaction.ErrIncompatibleInput
 	}
 	_, err := ctx.Authenticators.VerifyWithSpec(e.Authenticator, &authenticator.Spec{
-		Claims: map[authenticator.ClaimKey]interface{}{
-			authenticator.AuthenticatorClaimOOBOTPCode: input.GetOOBOTP(),
+		OOBOTP: &authenticator.OOBOTPSpec{
+			Code: input.GetOOBOTP(),
 		},
 	})
 	if errors.Is(err, authenticator.ErrAuthenticatorNotFound) ||

@@ -71,7 +71,7 @@ func (h *SetupTOTPHandler) MakeViewModel(session *webapp.Session, graph *interac
 	}
 
 	a := node.GetTOTPAuthenticator()
-	secret := a.Claims[authenticator.AuthenticatorClaimTOTPSecret].(string)
+	secret := a.TOTP.Secret
 	totp := secretcode.NewTOTPFromSecret(secret)
 
 	issuer := h.Endpoints.BaseURL().String()

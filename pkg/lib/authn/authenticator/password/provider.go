@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -25,19 +26,19 @@ type Provider struct {
 	Housekeeper     *Housekeeper
 }
 
-func (p *Provider) Get(userID string, id string) (*Authenticator, error) {
+func (p *Provider) Get(userID string, id string) (*authenticator.Password, error) {
 	return p.Store.Get(userID, id)
 }
 
-func (p *Provider) GetMany(ids []string) ([]*Authenticator, error) {
+func (p *Provider) GetMany(ids []string) ([]*authenticator.Password, error) {
 	return p.Store.GetMany(ids)
 }
 
-func (p *Provider) Delete(a *Authenticator) error {
+func (p *Provider) Delete(a *authenticator.Password) error {
 	return p.Store.Delete(a.ID)
 }
 
-func (p *Provider) List(userID string) ([]*Authenticator, error) {
+func (p *Provider) List(userID string) ([]*authenticator.Password, error) {
 	authenticators, err := p.Store.List(userID)
 	if err != nil {
 		return nil, err
@@ -47,11 +48,11 @@ func (p *Provider) List(userID string) ([]*Authenticator, error) {
 	return authenticators, nil
 }
 
-func (p *Provider) New(id string, userID string, password string, isDefault bool, kind string) (*Authenticator, error) {
+func (p *Provider) New(id string, userID string, password string, isDefault bool, kind string) (*authenticator.Password, error) {
 	if id == "" {
 		id = uuid.New()
 	}
-	authen := &Authenticator{
+	authen := &authenticator.Password{
 		ID:        id,
 		UserID:    userID,
 		IsDefault: isDefault,
@@ -67,7 +68,7 @@ func (p *Provider) New(id string, userID string, password string, isDefault bool
 
 // WithPassword return new authenticator pointer if password is changed
 // Otherwise original authenticator will be returned
-func (p *Provider) WithPassword(a *Authenticator, password string) (*Authenticator, error) {
+func (p *Provider) WithPassword(a *authenticator.Password, password string) (*authenticator.Password, error) {
 	err := p.PasswordChecker.ValidateNewPassword(a.UserID, password)
 	if err != nil {
 		return nil, err
@@ -83,7 +84,7 @@ func (p *Provider) WithPassword(a *Authenticator, password string) (*Authenticat
 	return newAuthen, nil
 }
 
-func (p *Provider) Create(a *Authenticator) error {
+func (p *Provider) Create(a *authenticator.Password) error {
 	now := p.Clock.NowUTC()
 	a.CreatedAt = now
 	a.UpdatedAt = now
@@ -101,7 +102,7 @@ func (p *Provider) Create(a *Authenticator) error {
 	return nil
 }
 
-func (p *Provider) Authenticate(a *Authenticator, password string) (requireUpdate bool, err error) {
+func (p *Provider) Authenticate(a *authenticator.Password, password string) (requireUpdate bool, err error) {
 	err = pwd.Compare([]byte(password), a.PasswordHash)
 	if err != nil {
 		return
@@ -132,7 +133,7 @@ func (p *Provider) Authenticate(a *Authenticator, password string) (requireUpdat
 	return
 }
 
-func (p *Provider) UpdatePassword(a *Authenticator) error {
+func (p *Provider) UpdatePassword(a *authenticator.Password) error {
 	now := p.Clock.NowUTC()
 	a.UpdatedAt = now
 
@@ -154,13 +155,13 @@ func (p *Provider) UpdatePassword(a *Authenticator) error {
 	return nil
 }
 
-func sortAuthenticators(as []*Authenticator) {
+func sortAuthenticators(as []*authenticator.Password) {
 	sort.Slice(as, func(i, j int) bool {
 		return as[i].ID < as[j].ID
 	})
 }
 
-func (p *Provider) populatePasswordHash(a *Authenticator, password string) *Authenticator {
+func (p *Provider) populatePasswordHash(a *authenticator.Password, password string) *authenticator.Password {
 	hash, err := pwd.Hash([]byte(password))
 	if err != nil {
 		panic(fmt.Errorf("password: failed to hash password: %w", err))

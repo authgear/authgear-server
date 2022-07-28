@@ -50,8 +50,8 @@ func (e *EdgeCreateAuthenticatorPassword) Instantiate(ctx *interaction.Context, 
 		IsDefault: e.IsDefault,
 		Kind:      stageToAuthenticatorKind(e.Stage),
 		Type:      model.AuthenticatorTypePassword,
-		Claims: map[authenticator.ClaimKey]interface{}{
-			authenticator.AuthenticatorClaimPasswordPlainPassword: input.GetPassword(),
+		Password: &authenticator.PasswordSpec{
+			PlainPassword: input.GetPassword(),
 		},
 	}
 

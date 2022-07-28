@@ -48,9 +48,9 @@ func (e *EdgeAuthenticationOOBTrigger) GetOOBOTPTarget(idx int) string {
 	var target string
 	switch info.Type {
 	case model.AuthenticatorTypeOOBSMS:
-		target = info.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string)
+		target = info.OOBOTP.Phone
 	case model.AuthenticatorTypeOOBEmail:
-		target = info.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string)
+		target = info.OOBOTP.Email
 	default:
 		panic("interaction: incompatible authenticator type for oob: " + info.Type)
 	}
