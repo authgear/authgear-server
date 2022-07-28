@@ -11,8 +11,9 @@ import (
 )
 
 type Provider struct {
-	Store *Store
-	Clock clock.Clock
+	Store          *Store
+	Clock          clock.Clock
+	IdentityConfig *config.IdentityConfig
 }
 
 func (p *Provider) List(userID string) ([]*identity.OAuth, error) {
@@ -66,6 +67,18 @@ func (p *Provider) New(
 		UserProfile:       profile,
 		Claims:            claims,
 	}
+
+	alias := ""
+	for _, providerConfig := range p.IdentityConfig.OAuth.Providers {
+		providerID := providerConfig.ProviderID()
+		if providerID.Equal(&i.ProviderID) {
+			alias = providerConfig.Alias
+		}
+	}
+	if alias != "" {
+		i.ProviderAlias = alias
+	}
+
 	return i
 }
 
