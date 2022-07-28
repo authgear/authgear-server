@@ -218,42 +218,11 @@ func (i *Info) StandardClaims() map[model.ClaimName]string {
 }
 
 func (i *Info) PrimaryAuthenticatorTypes() []model.AuthenticatorType {
-	switch i.Type {
-	case model.IdentityTypeLoginID:
-		switch i.LoginID.LoginIDType {
-		case model.LoginIDKeyTypeUsername:
-			return []model.AuthenticatorType{
-				model.AuthenticatorTypePassword,
-				model.AuthenticatorTypePasskey,
-			}
-		case model.LoginIDKeyTypeEmail:
-			return []model.AuthenticatorType{
-				model.AuthenticatorTypePassword,
-				model.AuthenticatorTypePasskey,
-				model.AuthenticatorTypeOOBEmail,
-			}
-		case model.LoginIDKeyTypePhone:
-			return []model.AuthenticatorType{
-				model.AuthenticatorTypePassword,
-				model.AuthenticatorTypePasskey,
-				model.AuthenticatorTypeOOBSMS,
-			}
-		default:
-			panic(fmt.Sprintf("identity: unexpected login ID type: %s", i.LoginID.LoginIDType))
-		}
-	case model.IdentityTypeOAuth:
-		return nil
-	case model.IdentityTypeAnonymous:
-		return nil
-	case model.IdentityTypeBiometric:
-		return nil
-	case model.IdentityTypePasskey:
-		return []model.AuthenticatorType{
-			model.AuthenticatorTypePasskey,
-		}
-	default:
-		panic(fmt.Sprintf("identity: unexpected identity type: %s", i.Type))
+	var loginIDKeyType model.LoginIDKeyType
+	if i.Type == model.IdentityTypeLoginID {
+		loginIDKeyType = i.LoginID.LoginIDType
 	}
+	return i.Type.PrimaryAuthenticatorTypes(loginIDKeyType)
 }
 
 func (i *Info) ModifyDisabled(c *config.IdentityConfig) bool {

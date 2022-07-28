@@ -323,6 +323,7 @@ config:
   http:
     public_origin: http://test
   authentication:
+    identities: [login_id]
     primary_authenticators: [oob_otp_email]
     secondary_authenticators: [totp, oob_otp_sms]
 
@@ -372,7 +373,7 @@ name: no-usable-primary-authenticator-for-username
 error: |-
   invalid configuration:
   /authentication/identities/0: noPrimaryAuthenticator
-    map[login_id_type:username]
+    map[identity_type:login_id login_id_type:username]
 config:
   id: test
   http:
@@ -391,7 +392,7 @@ name: no-usable-primary-authenticator-for-email
 error: |-
   invalid configuration:
   /authentication/identities/0: noPrimaryAuthenticator
-    map[login_id_type:email]
+    map[identity_type:login_id login_id_type:email]
 config:
   id: test
   http:
@@ -410,7 +411,7 @@ name: no-usable-primary-authenticator-for-phone
 error: |-
   invalid configuration:
   /authentication/identities/0: noPrimaryAuthenticator
-    map[login_id_type:phone]
+    map[identity_type:login_id login_id_type:phone]
 config:
   id: test
   http:

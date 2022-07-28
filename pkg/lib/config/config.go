@@ -119,44 +119,43 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 	}
 
 	for i, it := range c.Authentication.Identities {
-		hasPrimaryAuth := true
-		var loginIDKeyType model.LoginIDKeyType
-		switch it {
-		case model.IdentityTypeLoginID:
-			_, hasPassword := authenticatorTypes[model.AuthenticatorTypePassword]
-			_, hasPasskey := authenticatorTypes[model.AuthenticatorTypePasskey]
-			_, hasOOBEmail := authenticatorTypes[model.AuthenticatorTypeOOBEmail]
-			_, hasOOBSMS := authenticatorTypes[model.AuthenticatorTypeOOBSMS]
+		if it == model.IdentityTypeLoginID {
 			for _, k := range c.Identity.LoginID.Keys {
-				switch k.Type {
-				case model.LoginIDKeyTypeEmail:
-					if !hasPassword && !hasPasskey && !hasOOBEmail {
-						hasPrimaryAuth = false
-						loginIDKeyType = k.Type
-					}
-				case model.LoginIDKeyTypePhone:
-					if !hasPassword && !hasPasskey && !hasOOBSMS {
-						hasPrimaryAuth = false
-						loginIDKeyType = k.Type
-					}
-				case model.LoginIDKeyTypeUsername:
-					if !hasPassword && !hasPasskey {
-						hasPrimaryAuth = false
-						loginIDKeyType = k.Type
+				hasAtLeastOnePrimaryAuthenticator := false
+				required := it.PrimaryAuthenticatorTypes(k.Type)
+				for _, typ := range required {
+					if _, ok := authenticatorTypes[typ]; ok {
+						hasAtLeastOnePrimaryAuthenticator = true
 					}
 				}
+				if len(required) > 0 && !hasAtLeastOnePrimaryAuthenticator {
+					ctx.Child("authentication", "identities", strconv.Itoa(i)).
+						EmitError(
+							"noPrimaryAuthenticator",
+							map[string]interface{}{
+								"identity_type": it,
+								"login_id_type": k.Type,
+							},
+						)
+				}
 			}
-		case model.IdentityTypeOAuth, model.IdentityTypeAnonymous:
-			// Primary authenticator is not needed for these types of identity.
-			break
-		}
-
-		if !hasPrimaryAuth {
-			ctx.Child("authentication", "identities", strconv.Itoa(i)).
-				EmitError(
-					"noPrimaryAuthenticator",
-					map[string]interface{}{"login_id_type": loginIDKeyType},
-				)
+		} else {
+			hasAtLeastOnePrimaryAuthenticator := false
+			required := it.PrimaryAuthenticatorTypes("")
+			for _, typ := range required {
+				if _, ok := authenticatorTypes[typ]; ok {
+					hasAtLeastOnePrimaryAuthenticator = true
+				}
+			}
+			if len(required) > 0 && !hasAtLeastOnePrimaryAuthenticator {
+				ctx.Child("authentication", "identities", strconv.Itoa(i)).
+					EmitError(
+						"noPrimaryAuthenticator",
+						map[string]interface{}{
+							"identity_type": it,
+						},
+					)
+			}
 		}
 	}
 
