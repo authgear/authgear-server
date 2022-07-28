@@ -16,8 +16,9 @@ import (
 )
 
 type Store struct {
-	SQLBuilder  *appdb.SQLBuilderApp
-	SQLExecutor *appdb.SQLExecutor
+	SQLBuilder     *appdb.SQLBuilderApp
+	SQLExecutor    *appdb.SQLExecutor
+	IdentityConfig *config.IdentityConfig
 }
 
 func (s *Store) selectQuery() db.SelectBuilder {
@@ -68,6 +69,17 @@ func (s *Store) scan(scn db.Scanner) (*identity.OAuth, error) {
 	}
 	if err = json.Unmarshal(claims, &i.Claims); err != nil {
 		return nil, err
+	}
+
+	alias := ""
+	for _, providerConfig := range s.IdentityConfig.OAuth.Providers {
+		providerID := providerConfig.ProviderID()
+		if providerID.Equal(&i.ProviderID) {
+			alias = providerConfig.Alias
+		}
+	}
+	if alias != "" {
+		i.ProviderAlias = alias
 	}
 
 	return i, nil

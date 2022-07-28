@@ -16,6 +16,9 @@ type OAuth struct {
 	ProviderSubjectID string                 `json:"provider_subject_id"`
 	UserProfile       map[string]interface{} `json:"user_profile,omitempty"`
 	Claims            map[string]interface{} `json:"claims,omitempty"`
+	// This is a derived field and NOT persisted to database.
+	// We still include it in JSON serialization so it can be persisted in the graph.
+	ProviderAlias string `json:"provider_alias,omitempty"`
 }
 
 func (i *OAuth) ToInfo() *Info {
