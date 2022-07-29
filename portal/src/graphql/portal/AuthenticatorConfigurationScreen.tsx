@@ -47,7 +47,7 @@ import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { WritableDraft } from "immer/dist/internal";
 
 interface AuthenticatorTypeFormState<T> {
-  isEnabled: boolean;
+  isChecked: boolean;
   shouldBeDisabled: boolean;
   type: T;
 }
@@ -69,8 +69,8 @@ function makeAuthenticatorReasonable(state: WritableDraft<FormState>) {
   state.primary.forEach((primaryItem) => {
     state.secondary.forEach((secondaryItem) => {
       if (isOTPAuthenticatorTypeEqual(primaryItem.type, secondaryItem.type)) {
-        if (primaryItem.isEnabled) {
-          secondaryItem.isEnabled = false;
+        if (primaryItem.isChecked) {
+          secondaryItem.isChecked = false;
           secondaryItem.shouldBeDisabled = true;
         } else {
           secondaryItem.shouldBeDisabled = false;
@@ -96,25 +96,25 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
   const primary: AuthenticatorTypeFormState<PrimaryAuthenticatorType>[] = (
     config.authentication?.primary_authenticators ?? []
   ).map((t) => ({
-    isEnabled: true,
+    isChecked: true,
     shouldBeDisabled: false,
     type: t,
   }));
   for (const type of primaryAuthenticatorTypes) {
     if (!primary.some((t) => t.type === type)) {
-      primary.push({ isEnabled: false, shouldBeDisabled: false, type });
+      primary.push({ isChecked: false, shouldBeDisabled: false, type });
     }
   }
   const secondary: AuthenticatorTypeFormState<SecondaryAuthenticatorType>[] = (
     config.authentication?.secondary_authenticators ?? []
   ).map((t) => ({
-    isEnabled: true,
+    isChecked: true,
     shouldBeDisabled: false,
     type: t,
   }));
   for (const type of secondaryAuthenticatorTypes) {
     if (!secondary.some((t) => t.type === type)) {
-      secondary.push({ isEnabled: false, shouldBeDisabled: false, type });
+      secondary.push({ isChecked: false, shouldBeDisabled: false, type });
     }
   }
 
@@ -147,7 +147,7 @@ function constructConfig(
     function filterEnabled<T extends string>(
       s: AuthenticatorTypeFormState<T>[]
     ) {
-      return s.filter((t) => t.isEnabled).map((t) => t.type);
+      return s.filter((t) => t.isChecked).map((t) => t.type);
     }
 
     if (
@@ -223,7 +223,7 @@ const secondaryAuthenticatorNameIds = {
 type AuthenticatorColumnItem = (
   | { kind: "primary"; type: PrimaryAuthenticatorType }
   | { kind: "secondary"; type: SecondaryAuthenticatorType }
-) & { isEnabled: boolean; shouldBeDisabled: boolean };
+) & { isChecked: boolean; shouldBeDisabled: boolean };
 
 interface AuthenticatorCheckboxProps {
   disabled: boolean;
@@ -242,9 +242,9 @@ const AuthenticatorCheckbox: React.FC<AuthenticatorCheckboxProps> =
 
     return (
       <Checkbox
-        checked={item.isEnabled}
+        checked={item.isChecked}
         onChange={onCheckboxChange}
-        disabled={disabled && !item.isEnabled}
+        disabled={disabled && !item.isChecked}
       />
     );
   };
@@ -443,7 +443,7 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
                 break;
             }
             if (t) {
-              t.isEnabled = checked;
+              t.isChecked = checked;
             }
 
             makeAuthenticatorReasonable(state);
@@ -475,10 +475,10 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
 
     const primaryItems: AuthenticatorColumnItem[] = useMemo(
       () =>
-        state.primary.map(({ type, isEnabled, shouldBeDisabled }) => ({
+        state.primary.map(({ type, isChecked, shouldBeDisabled }) => ({
           kind: "primary",
           type,
-          isEnabled,
+          isChecked,
           shouldBeDisabled,
         })),
       [state.primary]
@@ -486,10 +486,10 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
 
     const secondaryItems: AuthenticatorColumnItem[] = useMemo(
       () =>
-        state.secondary.map(({ type, isEnabled, shouldBeDisabled }) => ({
+        state.secondary.map(({ type, isChecked, shouldBeDisabled }) => ({
           kind: "secondary",
           type,
-          isEnabled,
+          isChecked,
           shouldBeDisabled,
         })),
       [state.secondary]
