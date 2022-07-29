@@ -783,3 +783,56 @@ config:
         type: integer
         minimum: 10
         maximum: 99
+
+---
+name: missing-passkey-primary-authenticator
+error: |-
+  invalid configuration:
+  /authentication/primary_authenticators/0: const
+    map[actual:password expected:passkey]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication:
+    identities: ["login_id", "passkey"]
+    primary_authenticators: ["password"]
+
+---
+name: missing-passkey-identity
+error: |-
+  invalid configuration:
+  /authentication/identities/0: const
+    map[actual:login_id expected:passkey]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication:
+    identities: ["login_id"]
+    primary_authenticators: ["password", "passkey"]
+
+---
+name: missing-loginid-identity-for-passkey
+error: |-
+  invalid configuration:
+  /authentication/identities/0: const
+    map[actual:passkey expected:login_id]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication:
+    identities: ["passkey"]
+    primary_authenticators: ["password", "passkey"]
+
+---
+name: valid-passkey
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication:
+    identities: ["login_id", "passkey"]
+    primary_authenticators: ["password", "passkey"]

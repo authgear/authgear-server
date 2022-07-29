@@ -30,7 +30,75 @@ var _ = Schema.Add("AuthenticationConfig", `
 		"secondary_authentication_mode": { "$ref": "#/$defs/SecondaryAuthenticationMode" },
 		"device_token": { "$ref": "#/$defs/DeviceTokenConfig" },
 		"recovery_code": { "$ref": "#/$defs/RecoveryCodeConfig" }
-	}
+	},
+	"allOf": [
+		{
+			"if": {
+				"properties": {
+					"identities": {
+						"contains": {
+							"const": "passkey"
+						}
+					}
+				},
+				"required": ["identities"]
+			},
+			"then": {
+				"properties": {
+					"primary_authenticators": {
+						"contains": {
+							"const": "passkey"
+						}
+					}
+				},
+				"required": ["primary_authenticators"]
+			}
+		},
+		{
+			"if": {
+				"properties": {
+					"primary_authenticators": {
+						"contains": {
+							"const": "passkey"
+						}
+					}
+				},
+				"required": ["primary_authenticators"]
+			},
+			"then": {
+				"properties": {
+					"identities": {
+						"contains": {
+							"const": "passkey"
+						}
+					}
+				},
+				"required": ["identities"]
+			}
+		},
+		{
+			"if": {
+				"properties": {
+					"identities": {
+						"contains": {
+							"const": "passkey"
+						}
+					}
+				},
+				"required": ["identities"]
+			},
+			"then": {
+				"properties": {
+					"identities": {
+						"contains": {
+							"const": "login_id"
+						}
+					}
+				},
+				"required": ["identities"]
+			}
+		}
+	]
 }
 `)
 
