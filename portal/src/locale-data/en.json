@@ -488,8 +488,8 @@
   "EditOAuthClientForm.application-type.label": "Application Type",
   "EditOAuthClientForm.uris.title": "URIs",
   "EditOAuthClientForm.redirect-uris.label": "Authorized Redirect URIs",
-  "EditOAuthClientForm.redirect-uris.description.spa": "After users are authenticated, users will be redirected to these URIs. Call the finishAuthorization() method in your code to complete the authorization.",
-  "EditOAuthClientForm.redirect-uris.description.traditional-webapp": "After users are authenticated, users will be redirected to these URIs. Call the finishAuthorization() method in your code to complete the authorization.",
+  "EditOAuthClientForm.redirect-uris.description.spa": "After users login, users will be redirected to these URIs. Call the finishAuthentication() method in your code to complete the authentication.",
+  "EditOAuthClientForm.redirect-uris.description.traditional-webapp": "After users login, users will be redirected to these URIs. Call the finishAuthentication() method in your code to complete the authentication.",
   "EditOAuthClientForm.redirect-uris.description.native": "After users are authenticated, users will be redirected to these URIs. This should be a page in your application.",
   "EditOAuthClientForm.redirect-uris.description.unspecified": "After users are authenticated, users will be redirected to these URIs. This should be a page in your application.",
   "EditOAuthClientForm.post-logout-redirect-uris.label": "Post Logout Redirect URIs",
@@ -509,7 +509,7 @@
   "EditOAuthClientForm.access-token.title": "Access Token",
   "EditOAuthClientForm.access-token.label": "Access Token Lifetime (seconds)",
   "EditOAuthClientForm.access-token.description": "How frequent the access token should be refreshed. This will affect the timeliness of the information held in the JWT token.",
-  "EditOAuthClientForm.issue-jwt-access-token.label":"Issue JWT as access token",
+  "EditOAuthClientForm.issue-jwt-access-token.label": "Issue JWT as access token",
 
   "oauth-client.application-type.unspecified": "Unspecified",
   "oauth-client.application-type.spa": "Single Page Application",
@@ -939,7 +939,7 @@
   "SubscriptionScreen.footer.usage-delay-disclaimer": "Reporting is not realtime. The MAU and SMS numbers are delayed up to 24 hours.",
   "SubscriptionScreen.footer.cancel": "Switch back to Free plan",
   "SubscriptionScreen.footer.expire": "Your subscription will expire on {date}",
-  
+
   "SubscriptionScreen.title": "Billing",
   "SubscriptionScreen.recommended": "Recommended",
 

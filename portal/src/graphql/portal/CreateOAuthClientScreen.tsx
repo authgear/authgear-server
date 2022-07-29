@@ -3,7 +3,6 @@ import {
   ChoiceGroup,
   IChoiceGroupOption,
   IChoiceGroupOptionProps,
-  PrimaryButton,
   Text,
 } from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -32,6 +31,7 @@ import { FormProvider } from "../../form";
 import FormTextField from "../../FormTextField";
 import { useTextField } from "../../hook/useInput";
 import Widget from "../../Widget";
+import ButtonWithLoading from "../../ButtonWithLoading";
 
 interface FormState {
   clients: OAuthClientConfig[];
@@ -104,7 +104,7 @@ interface CreateOAuthClientContentProps {
 
 const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> =
   function CreateOAuthClientContent(props) {
-    const { state, setState, save, isDirty } = props.form;
+    const { state, setState, save, isDirty, isUpdating } = props.form;
     const navigate = useNavigate();
     const { renderToString } = useContext(Context);
 
@@ -239,9 +239,12 @@ const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> =
             onChange={onApplicationChange}
           />
           <div className={styles.buttons}>
-            <PrimaryButton onClick={onClickSave} disabled={!isDirty}>
-              <FormattedMessage id="save" />
-            </PrimaryButton>
+            <ButtonWithLoading
+              onClick={onClickSave}
+              loading={isUpdating}
+              disabled={!isDirty}
+              labelId="save"
+            />
           </div>
         </Widget>
       </ScreenContent>
