@@ -38,6 +38,7 @@ type AlternativeStep struct {
 }
 
 type AlternativeStepsViewModel struct {
+	CurrentStep           webapp.SessionStepKind
 	AuthenticationStage   authn.AuthenticationStage
 	AlternativeSteps      []AlternativeStep
 	CanRequestDeviceToken bool
@@ -45,6 +46,8 @@ type AlternativeStepsViewModel struct {
 
 // nolint: gocyclo
 func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interaction.Graph, currentStepKind webapp.SessionStepKind) error {
+	m.CurrentStep = currentStepKind
+
 	var node AuthenticationBeginNode
 	if !graph.FindLastNode(&node) {
 		panic("authentication_begin: expected graph has node implementing AuthenticationBeginNode")
@@ -172,6 +175,8 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interac
 }
 
 func (m *AlternativeStepsViewModel) AddCreateAuthenticatorAlternatives(graph *interaction.Graph, currentStepKind webapp.SessionStepKind) error {
+	m.CurrentStep = currentStepKind
+
 	var node CreateAuthenticatorBeginNode
 	if !graph.FindLastNode(&node) {
 		panic("create_authenticator_begin: expected graph has node implementing CreateAuthenticatorBeginNode")
