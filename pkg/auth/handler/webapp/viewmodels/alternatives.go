@@ -184,14 +184,7 @@ func (m *AlternativeStepsViewModel) AddCreateAuthenticatorAlternatives(graph *in
 		return err
 	}
 
-	// TODO(webapp): support switching of primary authenticator type to create
-	// Return first edge for now.
-	if m.AuthenticationStage == authn.AuthenticationStagePrimary {
-		edges = edges[:1]
-	}
-
 	phoneOTPStepAdded := false
-
 	for _, edge := range edges {
 		switch edge := edge.(type) {
 		case *nodes.EdgeCreateAuthenticatorPassword:
