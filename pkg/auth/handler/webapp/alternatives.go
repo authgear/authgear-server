@@ -43,13 +43,13 @@ func handleAlternativeSteps(ctrl *Controller) {
 			choiceStep = webapp.SessionStepAuthenticate
 			inputFn = nil
 
-		case webapp.SessionStepSetupOOBOTPEmail,
-			webapp.SessionStepCreatePassword:
+		case webapp.SessionStepCreatePassword:
 			// Simple redirect.
 			choiceStep = webapp.SessionStepCreateAuthenticator
 			inputFn = nil
 
-		case webapp.SessionStepSetupOOBOTPSMS:
+		case webapp.SessionStepSetupOOBOTPEmail,
+			webapp.SessionStepSetupOOBOTPSMS:
 			graph, err := ctrl.InteractionGet()
 			if err != nil {
 				return err
