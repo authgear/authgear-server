@@ -1,9 +1,5 @@
-import("@apollo/client").finally(() => {});
 import("@authgear/web").finally(() => {});
-import("@fluentui/react").finally(() => {});
-import("@fluentui/react-hooks").finally(() => {});
 import("@monaco-editor/react").finally(() => {});
-import("@oursky/react-messageformat").finally(() => {});
 import("axios").finally(() => {});
 import("base64-js").finally(() => {});
 import("chart.js").finally(() => {});
@@ -22,9 +18,16 @@ import("postcss").finally(() => {});
 import("react").finally(() => {});
 import("react-chartjs-2").finally(() => {});
 import("react-code-blocks").finally(() => {});
-import("react-dom").finally(() => {});
-import("react-helmet-async").finally(() => {});
-import("react-router-dom").finally(() => {});
 import("tzdata").finally(() => {});
 import("uuid").finally(() => {});
 import("zxcvbn").finally(() => {});
+
+if (process.env.NODE_ENV === "production") {
+  import("@apollo/client").finally(() => {});
+  import("@fluentui/react").finally(() => {});
+  import("@fluentui/react-hooks").finally(() => {});
+  import("@oursky/react-messageformat").finally(() => {});
+  import("react-dom").finally(() => {});
+  import("react-helmet-async").finally(() => {});
+  import("react-router-dom").finally(() => {});
+}
