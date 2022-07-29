@@ -14,6 +14,7 @@ const (
 	SessionStepCreateAuthenticator       SessionStepKind = "create-authenticator"
 	SessionStepEnterPassword             SessionStepKind = "enter-password"
 	SessionStepCreatePassword            SessionStepKind = "create-password"
+	SessionStepCreatePasskey             SessionStepKind = "create-passkey"
 	SessionStepChangePrimaryPassword     SessionStepKind = "change-primary-password"
 	SessionStepChangeSecondaryPassword   SessionStepKind = "change-secondary-password"
 	SessionStepEnterOOBOTPAuthnEmail     SessionStepKind = "enter-oob-otp-authn-email"
@@ -50,6 +51,9 @@ func (k SessionStepKind) Path() string {
 	case SessionStepEnterPassword:
 		return "/enter_password"
 	case SessionStepCreatePassword:
+		return "/create_password"
+	case SessionStepCreatePasskey:
+		// TODO(passkey): support passkey without password
 		return "/create_password"
 	case SessionStepChangePrimaryPassword:
 		return "/change_password"

@@ -1,6 +1,20 @@
 {{ define "__alternatives.html" }}
     {{ $rendered_separator := false }}
-    {{ range .AlternativeSteps }}
+    {{ $current_step_is_password_or_passkey := (or (eq $.CurrentStep "create-passkey") (eq $.CurrentStep "create-password")) }}
+    {{ range $.AlternativeSteps }}
+        {{ if (and $current_step_is_password_or_passkey (eq .Step "create-passkey")) }}
+            {{ if (and (not $.separatorDisabled) (not $rendered_separator)) }}
+                {{ $rendered_separator = true }}
+                <div class="alternative-separator flex flex-row items-center">
+                    <span class="primary-txt mx-1.5 text-sm">{{ template "or-label" }}</span>
+                </div>
+            {{ end }}
+            <div class="text-sm">
+            <button class="btn secondary-btn" type="button">
+                {{ template "setup-passkey-instead" .Data }}
+            </button>
+            </div>
+        {{ end }}
         {{ if (or (eq .Step "setup-totp")
                   (eq .Step "setup-oob-otp-email")
                   (eq .Step "setup-oob-otp-sms")

@@ -176,6 +176,13 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 				IsDefault:          isDefault,
 			})
 
+		case model.AuthenticatorTypePasskey:
+			edges = append(edges, &EdgeCreateAuthenticatorPasskey{
+				NewAuthenticatorID: n.NewAuthenticatorID,
+				Stage:              n.Stage,
+				IsDefault:          isDefault,
+			})
+
 		case model.AuthenticatorTypeOOBSMS:
 			// check if identity login id type match oob type
 			if n.Identity.LoginID != nil {

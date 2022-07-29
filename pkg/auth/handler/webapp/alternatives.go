@@ -43,7 +43,8 @@ func handleAlternativeSteps(ctrl *Controller) {
 			choiceStep = webapp.SessionStepAuthenticate
 			inputFn = nil
 
-		case webapp.SessionStepCreatePassword:
+		case webapp.SessionStepCreatePassword,
+			webapp.SessionStepCreatePasskey:
 			// Simple redirect.
 			choiceStep = webapp.SessionStepCreateAuthenticator
 			inputFn = nil
