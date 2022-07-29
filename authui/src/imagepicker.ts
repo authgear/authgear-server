@@ -5,7 +5,11 @@ import {
   showProgressBar,
   progressEventHandler,
 } from "./loading";
-import { handleAxiosError, showErrorMessage, hideErrorMessage } from "./error";
+import {
+  handleAxiosError,
+  showErrorMessage,
+  hideErrorMessage,
+} from "./messageBar";
 import { Controller } from "@hotwired/stimulus";
 
 function destroyCropper(img: HTMLImageElement) {
