@@ -43,8 +43,6 @@ for (const dep of deps) {
 }
 
 await filehandle.write("\n");
-// We add this line to ignore "'process' is not defined" eslint warning
-await filehandle.write("// eslint-disable-next-line no-undef\n");
 await filehandle.write('if (process.env.NODE_ENV === "production") {\n');
 for (const dep of productionOnlyDeps) {
   // Indentation for if-else block

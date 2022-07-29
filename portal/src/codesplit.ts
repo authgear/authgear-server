@@ -22,7 +22,6 @@ import("tzdata").finally(() => {});
 import("uuid").finally(() => {});
 import("zxcvbn").finally(() => {});
 
-// eslint-disable-next-line no-undef
 if (process.env.NODE_ENV === "production") {
   import("@apollo/client").finally(() => {});
   import("@fluentui/react").finally(() => {});
