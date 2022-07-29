@@ -65,7 +65,7 @@ function isOTPAuthenticatorTypeEqual(
   return false;
 }
 
-function checkAuthenticatorReasonability(state: WritableDraft<FormState>) {
+function makeAuthenticatorReasonable(state: WritableDraft<FormState>) {
   state.primary.forEach((primaryItem) => {
     state.secondary.forEach((secondaryItem) => {
       if (isOTPAuthenticatorTypeEqual(primaryItem.type, secondaryItem.type)) {
@@ -265,7 +265,7 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
     useEffect(() => {
       setState((state) =>
         produce(state, (state) => {
-          checkAuthenticatorReasonability(state);
+          makeAuthenticatorReasonable(state);
         })
       );
     }, [setState, state]);
@@ -446,7 +446,7 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
               t.isEnabled = checked;
             }
 
-            checkAuthenticatorReasonability(state);
+            makeAuthenticatorReasonable(state);
           })
         ),
       [setState]
