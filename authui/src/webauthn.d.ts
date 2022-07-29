@@ -1,0 +1,3 @@
+interface AuthenticatorAttestationResponse {
+  getTransports(): string[];
+}
