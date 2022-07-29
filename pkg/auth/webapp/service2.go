@@ -161,6 +161,7 @@ func (s *Service2) PostWithInput(
 	})
 }
 
+// noling: gocyclo
 func (s *Service2) doPost(
 	session *Session,
 	inputFn func() (interface{}, error),
@@ -250,6 +251,11 @@ func (s *Service2) doPost(
 			case *nodes.EdgeCreateAuthenticatorPassword:
 				session.Steps = append(session.Steps, NewSessionStep(
 					SessionStepCreatePassword,
+					graph.InstanceID,
+				))
+			case *nodes.EdgeCreateAuthenticatorPasskey:
+				session.Steps = append(session.Steps, NewSessionStep(
+					SessionStepCreatePasskey,
 					graph.InstanceID,
 				))
 			case *nodes.EdgeCreateAuthenticatorOOBSetup:

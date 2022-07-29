@@ -55,6 +55,9 @@ func (n *NodeCreateIdentityBegin) deriveEdges() []interaction.Edge {
 		case model.IdentityTypeBiometric:
 			break
 
+		case model.IdentityTypePasskey:
+			break
+
 		case model.IdentityTypeLoginID:
 			edges = append(edges, &EdgeUseIdentityLoginID{
 				Mode:    UseIdentityLoginIDModeCreate,

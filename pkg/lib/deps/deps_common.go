@@ -340,5 +340,6 @@ var CommonDependencySet = wire.NewSet(
 		featurepasskey.DependencySet,
 		wire.Bind(new(identitypasskey.PasskeyService), new(*featurepasskey.Service)),
 		wire.Bind(new(authenticatorpasskey.PasskeyService), new(*featurepasskey.Service)),
+		wire.Bind(new(interaction.PasskeyService), new(*featurepasskey.Service)),
 	),
 )

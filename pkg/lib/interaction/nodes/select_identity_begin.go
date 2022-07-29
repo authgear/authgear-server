@@ -60,6 +60,9 @@ func (n *NodeSelectIdentityBegin) deriveEdges() []interaction.Edge {
 			break
 		case model.IdentityTypeBiometric:
 			break
+		case model.IdentityTypePasskey:
+			// TODO(passkey): select passkey identity
+			break
 		case model.IdentityTypeLoginID:
 			edges = append(edges, &EdgeUseIdentityLoginID{
 				IsAuthentication: n.IsAuthentication,

@@ -303,6 +303,7 @@
   "setup-oob-otp-sms-instead": "改為使用短訊作雙重驗證",
   "setup-phone-otp-instead": "改為使用手機作雙重驗證",
   "setup-password-instead": "改為設置密碼",
+  "setup-passkey-instead": "改為設置通行密鑰",
   "enter-totp-instead": "改為輸入6位驗證器碼",
   "enter-password-instead": "改為輸入密碼",
   "enter-oob-otp-email-instead": "以電郵發送驗證碼至 {target}",

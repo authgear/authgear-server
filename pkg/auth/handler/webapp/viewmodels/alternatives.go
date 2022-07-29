@@ -198,6 +198,12 @@ func (m *AlternativeStepsViewModel) AddCreateAuthenticatorAlternatives(graph *in
 					Step: webapp.SessionStepCreatePassword,
 				})
 			}
+		case *nodes.EdgeCreateAuthenticatorPasskey:
+			if currentStepKind != webapp.SessionStepCreatePasskey {
+				m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
+					Step: webapp.SessionStepCreatePasskey,
+				})
+			}
 		case *nodes.EdgeCreateAuthenticatorOOBSetup:
 			oobType := edge.AuthenticatorType()
 			switch oobType {

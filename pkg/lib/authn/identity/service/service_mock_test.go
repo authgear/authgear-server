@@ -804,16 +804,16 @@ func (mr *MockPasskeyIdentityProviderMockRecorder) ListByClaim(name, value inter
 }
 
 // New mocks base method.
-func (m *MockPasskeyIdentityProvider) New(userID string, creationOptions *model.WebAuthnCreationOptions, attestationResponse []byte) (*identity.Passkey, error) {
+func (m *MockPasskeyIdentityProvider) New(userID string, attestationResponse []byte) (*identity.Passkey, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "New", userID, creationOptions, attestationResponse)
+	ret := m.ctrl.Call(m, "New", userID, attestationResponse)
 	ret0, _ := ret[0].(*identity.Passkey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // New indicates an expected call of New.
-func (mr *MockPasskeyIdentityProviderMockRecorder) New(userID, creationOptions, attestationResponse interface{}) *gomock.Call {
+func (mr *MockPasskeyIdentityProviderMockRecorder) New(userID, attestationResponse interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).New), userID, creationOptions, attestationResponse)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).New), userID, attestationResponse)
 }
