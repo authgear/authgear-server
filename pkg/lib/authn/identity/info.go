@@ -66,7 +66,6 @@ func (i *Info) ToSpec() Spec {
 		return Spec{
 			Type: i.Type,
 			Passkey: &PasskeySpec{
-				CreationOptions:     i.Passkey.CreationOptions,
 				AttestationResponse: i.Passkey.AttestationResponse,
 			},
 		}

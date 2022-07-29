@@ -31,7 +31,6 @@ type PasskeyAuthenticatorProvider interface {
 	New(
 		id string,
 		userID string,
-		creationOptions *model.WebAuthnCreationOptions,
 		attestationResponse []byte,
 		isDefault bool,
 		kind string,
@@ -259,13 +258,11 @@ func (s *Service) NewWithAuthenticatorID(authenticatorID string, spec *authentic
 		return p.ToInfo(), nil
 
 	case model.AuthenticatorTypePasskey:
-		creationOptions := spec.Passkey.CreationOptions
 		attestationResponse := spec.Passkey.AttestationResponse
 
 		p, err := s.Passkey.New(
 			authenticatorID,
 			spec.UserID,
-			creationOptions,
 			attestationResponse,
 			spec.IsDefault,
 			string(spec.Kind),
