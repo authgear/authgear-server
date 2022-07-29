@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus";
 import axios from "axios";
-import { handleAxiosError } from "./error";
+import { handleAxiosError } from "./messageBar";
 import { base64DecToArr, base64EncArr } from "./base64";
 import { base64URLToBase64, trimNewline, base64ToBase64URL } from "./base64url";
 

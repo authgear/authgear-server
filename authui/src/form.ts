@@ -6,7 +6,7 @@ import {
   showProgressBar,
   progressEventHandler,
 } from "./loading";
-import { handleAxiosError } from "./error";
+import { handleAxiosError } from "./messageBar";
 import { Controller } from "@hotwired/stimulus";
 
 export class XHRSubmitFormController extends Controller {
