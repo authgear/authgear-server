@@ -75,11 +75,7 @@ type PasskeyIdentityProvider interface {
 	GetByAssertionResponse(assertionResponse []byte) (*identity.Passkey, error)
 	List(userID string) ([]*identity.Passkey, error)
 	ListByClaim(name string, value string) ([]*identity.Passkey, error)
-	New(
-		userID string,
-		creationOptions *model.WebAuthnCreationOptions,
-		attestationResponse []byte,
-	) (*identity.Passkey, error)
+	New(userID string, attestationResponse []byte) (*identity.Passkey, error)
 	Create(i *identity.Passkey) error
 	Delete(i *identity.Passkey) error
 }
@@ -471,9 +467,8 @@ func (s *Service) New(userID string, spec *identity.Spec, options identity.NewId
 		b := s.Biometric.New(userID, keyID, []byte(key), deviceInfo)
 		return b.ToInfo(), nil
 	case model.IdentityTypePasskey:
-		creationOptions := spec.Passkey.CreationOptions
 		attestationResponse := spec.Passkey.AttestationResponse
-		p, err := s.Passkey.New(userID, creationOptions, attestationResponse)
+		p, err := s.Passkey.New(userID, attestationResponse)
 		if err != nil {
 			return nil, err
 		}

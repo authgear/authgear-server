@@ -11,8 +11,8 @@ import (
 
 // nolint: golint
 type PasskeyService interface {
-	VerifyAttestationResponse(attestationResponse []byte) (credentialID string, signCount int64, err error)
-	ParseAssertionResponse(assertionResponse []byte) (credentialID string, signCount int64, err error)
+	PeekAttestationResponse(attestationResponse []byte) (creationOptions *model.WebAuthnCreationOptions, credentialID string, signCount int64, err error)
+	GetCredentialIDFromAssertionResponse(assertionResponse []byte) (credentialID string, err error)
 }
 
 type Provider struct {
@@ -46,7 +46,7 @@ func (p *Provider) Get(userID, id string) (*identity.Passkey, error) {
 }
 
 func (p *Provider) GetByAssertionResponse(assertionResponse []byte) (*identity.Passkey, error) {
-	credentialID, _, err := p.Passkey.ParseAssertionResponse(assertionResponse)
+	credentialID, err := p.Passkey.GetCredentialIDFromAssertionResponse(assertionResponse)
 	if err != nil {
 		return nil, err
 	}
@@ -59,10 +59,9 @@ func (p *Provider) GetMany(ids []string) ([]*identity.Passkey, error) {
 
 func (p *Provider) New(
 	userID string,
-	creationOptions *model.WebAuthnCreationOptions,
 	attestationResponse []byte,
 ) (*identity.Passkey, error) {
-	credentialID, _, err := p.Passkey.VerifyAttestationResponse(attestationResponse)
+	creationOptions, credentialID, _, err := p.Passkey.PeekAttestationResponse(attestationResponse)
 	if err != nil {
 		return nil, err
 	}
