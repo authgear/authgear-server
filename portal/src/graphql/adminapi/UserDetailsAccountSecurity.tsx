@@ -22,7 +22,11 @@ import styles from "./UserDetailsAccountSecurity.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 
 // authenticator type recognized by portal
-type PrimaryAuthenticatorType = "PASSWORD" | "OOB_OTP_EMAIL" | "OOB_OTP_SMS";
+type PrimaryAuthenticatorType =
+  | "PASSWORD"
+  | "OOB_OTP_EMAIL"
+  | "OOB_OTP_SMS"
+  | "PASSKEY";
 type SecondaryAuthenticatorType =
   | "PASSWORD"
   | "TOTP"

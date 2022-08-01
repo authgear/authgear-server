@@ -17,16 +17,19 @@ var identityType = graphql.NewEnum(graphql.EnumConfig{
 	Name: "IdentityType",
 	Values: graphql.EnumValueConfigMap{
 		"LOGIN_ID": &graphql.EnumValueConfig{
-			Value: "login_id",
+			Value: string(model.IdentityTypeLoginID),
 		},
 		"OAUTH": &graphql.EnumValueConfig{
-			Value: "oauth",
+			Value: string(model.IdentityTypeOAuth),
 		},
 		"ANONYMOUS": &graphql.EnumValueConfig{
-			Value: "anonymous",
+			Value: string(model.IdentityTypeAnonymous),
 		},
 		"BIOMETRIC": &graphql.EnumValueConfig{
-			Value: "biometric",
+			Value: string(model.IdentityTypeBiometric),
+		},
+		"PASSKEY": &graphql.EnumValueConfig{
+			Value: string(model.IdentityTypePasskey),
 		},
 	},
 })
