@@ -84,6 +84,7 @@ func (n *NodeAuthenticationEnd) IsFailure() (err error) {
 	case authn.AuthenticationTypeNone:
 		break
 	case authn.AuthenticationTypePassword,
+		authn.AuthenticationTypePasskey,
 		authn.AuthenticationTypeTOTP,
 		authn.AuthenticationTypeOOBOTPEmail,
 		authn.AuthenticationTypeOOBOTPSMS:

@@ -61,6 +61,8 @@ func (e *EdgeSelectIdentityEnd) Instantiate(ctx *interaction.Context, graph *int
 				if err != nil {
 					return nil, err
 				}
+			case model.IdentityTypePasskey:
+				break
 			default:
 				panic(fmt.Errorf("interaction: unknown identity type: %v", e.IdentitySpec.Type))
 			}
