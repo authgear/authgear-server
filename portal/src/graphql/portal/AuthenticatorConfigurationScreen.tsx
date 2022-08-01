@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext, useEffect, useMemo } from "react";
 import cn from "classnames";
 import {
   Checkbox,
@@ -261,6 +261,14 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
     const { featureConfig } = props;
 
     const { renderToString } = useContext(Context);
+
+    useEffect(() => {
+      setState((state) =>
+        produce(state, (state) => {
+          checkAuthenticatorReasonability(state);
+        })
+      );
+    }, [setState, state]);
 
     const authenticatorColumns: IColumn[] = [
       {
