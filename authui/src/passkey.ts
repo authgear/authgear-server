@@ -71,15 +71,24 @@ function handleError(err: unknown) {
 
 export class PasskeyCreationController extends Controller {
   static targets = ["button", "submit", "input"];
+  static values = {
+    preferred: Boolean,
+  };
 
   declare buttonTarget: HTMLButtonElement;
   declare submitTarget: HTMLButtonElement;
   declare inputTarget: HTMLInputElement;
+  declare preferredValue: boolean;
 
   connect() {
     // Disable the button if PublicKeyCredential is unavailable.
     if (!passkeyIsAvailable()) {
       this.buttonTarget.disabled = true;
+      return;
+    }
+
+    if (this.preferredValue) {
+      this._create();
     }
   }
 
