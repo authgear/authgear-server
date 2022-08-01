@@ -85,6 +85,12 @@ func (a *AlternativeStepsViewModeler) AuthenticationAlternatives(graph *interact
 					Step: webapp.SessionStepEnterPassword,
 				})
 			}
+		case *nodes.EdgeAuthenticationPasskey:
+			if currentStepKind != webapp.SessionStepUsePasskey {
+				m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
+					Step: webapp.SessionStepUsePasskey,
+				})
+			}
 		case *nodes.EdgeAuthenticationTOTP:
 			if currentStepKind != webapp.SessionStepEnterTOTP {
 				m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{

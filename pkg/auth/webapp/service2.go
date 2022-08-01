@@ -222,6 +222,11 @@ func (s *Service2) doPost(
 					SessionStepEnterPassword,
 					graph.InstanceID,
 				))
+			case *nodes.EdgeAuthenticationPasskey:
+				session.Steps = append(session.Steps, NewSessionStep(
+					SessionStepUsePasskey,
+					graph.InstanceID,
+				))
 			case *nodes.EdgeAuthenticationTOTP:
 				session.Steps = append(session.Steps, NewSessionStep(
 					SessionStepEnterTOTP,

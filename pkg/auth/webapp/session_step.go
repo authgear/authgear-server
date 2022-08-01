@@ -13,6 +13,7 @@ const (
 	SessionStepAuthenticate              SessionStepKind = "authenticate"
 	SessionStepCreateAuthenticator       SessionStepKind = "create-authenticator"
 	SessionStepEnterPassword             SessionStepKind = "enter-password"
+	SessionStepUsePasskey                SessionStepKind = "use-passkey"
 	SessionStepCreatePassword            SessionStepKind = "create-password"
 	SessionStepCreatePasskey             SessionStepKind = "create-passkey"
 	SessionStepChangePrimaryPassword     SessionStepKind = "change-primary-password"
@@ -49,6 +50,9 @@ func (k SessionStepKind) Path() string {
 	case SessionStepPromoteUser:
 		return "/promote_user"
 	case SessionStepEnterPassword:
+		return "/enter_password"
+	case SessionStepUsePasskey:
+		// TODO(passkey): support passkey without password
 		return "/enter_password"
 	case SessionStepCreatePassword:
 		return "/create_password"
