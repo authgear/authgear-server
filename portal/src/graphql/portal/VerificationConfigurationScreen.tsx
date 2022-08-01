@@ -68,7 +68,8 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
       required: config.verification?.claims?.phone_number?.required ?? true,
       enabled: config.verification?.claims?.phone_number?.enabled ?? true,
     },
-    phoneOTPMode: config.authenticator?.oob_otp?.sms?.phone_otp_mode ?? "sms",
+    phoneOTPMode:
+      config.authenticator?.oob_otp?.sms?.phone_otp_mode ?? "whatsapp_sms",
   };
 }
 
@@ -127,7 +128,7 @@ function constructConfig(
       delete v.criteria;
     }
 
-    if (a.oob_otp.sms.phone_otp_mode === "sms") {
+    if (a.oob_otp.sms.phone_otp_mode === "whatsapp_sms") {
       delete a.oob_otp.sms.phone_otp_mode;
     }
 
