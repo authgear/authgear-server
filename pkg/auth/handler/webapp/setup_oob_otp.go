@@ -55,7 +55,7 @@ type SetupOOBOTPViewModel struct {
 	AlternativeSteps     []viewmodels.AlternativeStep
 }
 
-func NewSetupOOBOTPViewModel(session *webapp.Session, graph *interaction.Graph, oobAuthenticatorType model.AuthenticatorType) (*SetupOOBOTPViewModel, error) {
+func NewSetupOOBOTPViewModel(session *webapp.Session, graph *interaction.Graph, oobAuthenticatorType model.AuthenticatorType, alternatives *viewmodels.AlternativeStepsViewModel) (*SetupOOBOTPViewModel, error) {
 	var node SetupOOBOTPNode
 	if !graph.FindLastNode(&node) {
 		panic("setup_oob_otp: expected graph has node implementing SetupOOBOTPNode")
@@ -70,6 +70,20 @@ func NewSetupOOBOTPViewModel(session *webapp.Session, graph *interaction.Graph, 
 		panic(fmt.Errorf("webapp: unexpected oob authenticator type: %s", oobAuthenticatorType))
 	}
 
+	return &SetupOOBOTPViewModel{
+		OOBAuthenticatorType: oobAuthenticatorType,
+		AlternativeSteps:     alternatives.AlternativeSteps,
+	}, nil
+}
+
+type SetupOOBOTPHandler struct {
+	ControllerFactory         ControllerFactory
+	BaseViewModel             *viewmodels.BaseViewModeler
+	AlternativeStepsViewModel *viewmodels.AlternativeStepsViewModeler
+	Renderer                  Renderer
+}
+
+func (h *SetupOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph, oobAuthenticatorType model.AuthenticatorType) (map[string]interface{}, error) {
 	var stepKind webapp.SessionStepKind
 	switch oobAuthenticatorType {
 	case model.AuthenticatorTypeOOBSMS:
@@ -78,28 +92,14 @@ func NewSetupOOBOTPViewModel(session *webapp.Session, graph *interaction.Graph, 
 		stepKind = webapp.SessionStepSetupOOBOTPEmail
 	}
 
-	alternatives := &viewmodels.AlternativeStepsViewModel{}
-	err = alternatives.AddCreateAuthenticatorAlternatives(graph, stepKind)
+	data := map[string]interface{}{}
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
+	alternatives, err := h.AlternativeStepsViewModel.CreateAuthenticatorAlternatives(graph, stepKind)
 	if err != nil {
 		return nil, err
 	}
 
-	return &SetupOOBOTPViewModel{
-		OOBAuthenticatorType: oobAuthenticatorType,
-		AlternativeSteps:     alternatives.AlternativeSteps,
-	}, nil
-}
-
-type SetupOOBOTPHandler struct {
-	ControllerFactory ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	Renderer          Renderer
-}
-
-func (h *SetupOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph, oobAuthenticatorType model.AuthenticatorType) (map[string]interface{}, error) {
-	data := map[string]interface{}{}
-	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	viewModel, err := NewSetupOOBOTPViewModel(session, graph, oobAuthenticatorType)
+	viewModel, err := NewSetupOOBOTPViewModel(session, graph, oobAuthenticatorType, alternatives)
 	if err != nil {
 		return nil, err
 	}

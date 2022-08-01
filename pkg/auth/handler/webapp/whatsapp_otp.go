@@ -37,10 +37,11 @@ type WhatsappOTPAuthnNode interface {
 }
 
 type WhatsappOTPHandler struct {
-	ControllerFactory    ControllerFactory
-	BaseViewModel        *viewmodels.BaseViewModeler
-	Renderer             Renderer
-	WhatsappCodeProvider WhatsappCodeProvider
+	ControllerFactory         ControllerFactory
+	BaseViewModel             *viewmodels.BaseViewModeler
+	AlternativeStepsViewModel *viewmodels.AlternativeStepsViewModeler
+	Renderer                  Renderer
+	WhatsappCodeProvider      WhatsappCodeProvider
 }
 
 func (h *WhatsappOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -58,7 +59,7 @@ func (h *WhatsappOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 		return nil, err
 	}
 	// alternatives
-	alternatives := viewmodels.AlternativeStepsViewModel{}
+	var alternatives *viewmodels.AlternativeStepsViewModel
 	var node1 CreateAuthenticatorBeginNode
 	var node2 AuthenticationBeginNode
 	nodesInf := []interface{}{
@@ -68,11 +69,15 @@ func (h *WhatsappOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 	node := graph.FindLastNodeFromList(nodesInf)
 	switch node.(type) {
 	case *CreateAuthenticatorBeginNode:
-		if err := alternatives.AddCreateAuthenticatorAlternatives(graph, currentStepKind); err != nil {
+		var err error
+		alternatives, err = h.AlternativeStepsViewModel.CreateAuthenticatorAlternatives(graph, currentStepKind)
+		if err != nil {
 			return nil, err
 		}
 	case *AuthenticationBeginNode:
-		if err := alternatives.AddAuthenticationAlternatives(graph, currentStepKind); err != nil {
+		var err error
+		alternatives, err = h.AlternativeStepsViewModel.AuthenticationAlternatives(graph, currentStepKind)
+		if err != nil {
 			return nil, err
 		}
 	default:
@@ -83,7 +88,7 @@ func (h *WhatsappOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, whatsappViewModel)
 	viewmodels.Embed(data, phoneOTPAlternatives)
-	viewmodels.Embed(data, alternatives)
+	viewmodels.Embed(data, *alternatives)
 	return data, nil
 }
 
