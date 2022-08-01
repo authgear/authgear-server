@@ -35,9 +35,6 @@ const CreateProjectScreen = lazy(
 const ProjectWizardScreen = lazy(
   async () => import("./graphql/portal/ProjectWizardScreen")
 );
-const ProjectWizardDoneScreen = lazy(
-  async () => import("./graphql/portal/ProjectWizardDoneScreen")
-);
 const OnboardingRedirect = lazy(async () => import("./OnboardingRedirect"));
 const OAuthRedirect = lazy(async () => import("./OAuthRedirect"));
 const AcceptAdminInvitationScreen = lazy(
@@ -117,16 +114,6 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
                   <Authenticated>
                     <Suspense fallback={<ShowLoading />}>
                       <ProjectWizardScreen />
-                    </Suspense>
-                  </Authenticated>
-                }
-              />
-              <Route
-                path="done"
-                element={
-                  <Authenticated>
-                    <Suspense fallback={<ShowLoading />}>
-                      <ProjectWizardDoneScreen />
                     </Suspense>
                   </Authenticated>
                 }

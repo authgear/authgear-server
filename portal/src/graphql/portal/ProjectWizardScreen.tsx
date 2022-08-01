@@ -386,7 +386,7 @@ export default function ProjectWizardScreen(): React.ReactElement {
   const saveAndThenNavigate = useCallback(() => {
     save().then(
       () => {
-        navigate("./done");
+        navigate("./../");
       },
       () => {}
     );
