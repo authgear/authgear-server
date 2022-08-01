@@ -253,7 +253,7 @@ const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> =
 
 const CreateOAuthClientScreen: React.FC = function CreateOAuthClientScreen() {
   const { appID } = useParams() as { appID: string };
-  const form = useAppConfigForm(appID, constructFormState, constructConfig);
+  const form = useAppConfigForm({ appID, constructFormState, constructConfig });
 
   const { isLoading, loadError, reload, updateError, isUpdating } = form;
 

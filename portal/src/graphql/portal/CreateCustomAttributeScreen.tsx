@@ -125,7 +125,11 @@ const CreateCustomAttributeScreen: React.FC =
       navigate("./..");
     }, [navigate]);
 
-    const form = useAppConfigForm(appID, constructFormState, constructConfig);
+    const form = useAppConfigForm({
+      appID,
+      constructFormState,
+      constructConfig,
+    });
 
     if (form.isLoading) {
       return <ShowLoading />;

@@ -224,7 +224,11 @@ const ApplicationsConfigurationScreen: React.FC =
     const { renderToString } = useContext(Context);
     const navigate = useNavigate();
 
-    const form = useAppConfigForm(appID, constructFormState, constructConfig);
+    const form = useAppConfigForm({
+      appID,
+      constructFormState,
+      constructConfig,
+    });
     const featureConfig = useAppFeatureConfigQuery(appID);
 
     const [messageBar, setMessageBar] = useState<React.ReactNode>(null);

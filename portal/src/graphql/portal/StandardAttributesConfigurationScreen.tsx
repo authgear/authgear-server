@@ -156,7 +156,11 @@ const StandardAttributesConfigurationScreenContent: React.FC<StandardAttributesC
 const StandardAttributesConfigurationScreen: React.FC =
   function StandardAttributesConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
-    const form = useAppConfigForm(appID, constructFormState, constructConfig);
+    const form = useAppConfigForm({
+      appID,
+      constructFormState,
+      constructConfig,
+    });
 
     if (form.isLoading) {
       return <ShowLoading />;

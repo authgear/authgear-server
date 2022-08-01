@@ -120,7 +120,7 @@ function joinByNewline(list: string[]): string {
   return list.join("\n");
 }
 
-function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
+function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
   const isLoginIDEnabled =
     config.authentication?.identities?.includes("login_id") ?? true;
   const types: LoginIDKeyTypeFormState[] = (
@@ -1013,11 +1013,11 @@ const LoginIDConfigurationScreen: React.FC =
   function LoginIDConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
 
-    const config = useAppConfigForm(
+    const config = useAppConfigForm({
       appID,
-      constructConfigFormState,
-      constructConfig
-    );
+      constructFormState,
+      constructConfig,
+    });
 
     const resources = useResourceForm(
       appID,

@@ -58,7 +58,7 @@ interface StepProps {
   saveAndThenNavigate: () => void;
 }
 
-function constructFromState(_config: PortalAPIAppConfig): FormState {
+function constructFormState(_config: PortalAPIAppConfig): FormState {
   return {
     step1Answer: "password",
     step2Answer: "if_exists",
@@ -370,7 +370,7 @@ function Step3(props: StepProps) {
 export default function ProjectWizardScreen(): React.ReactElement {
   const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
-  const form = useAppConfigForm(appID, constructFromState, constructConfig);
+  const form = useAppConfigForm({ appID, constructFormState, constructConfig });
   const {
     isLoading,
     loadError,

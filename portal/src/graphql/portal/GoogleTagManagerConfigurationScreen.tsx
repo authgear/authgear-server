@@ -153,7 +153,11 @@ const GoogleTagManagerConfigurationContent: React.FC<GoogleTagManagerConfigurati
 const GoogleTagManagerConfigurationScreen: React.FC =
   function GoogleTagManagerConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
-    const form = useAppConfigForm(appID, constructFormState, constructConfig);
+    const form = useAppConfigForm({
+      appID,
+      constructFormState,
+      constructConfig,
+    });
 
     if (form.isLoading) {
       return <ShowLoading />;

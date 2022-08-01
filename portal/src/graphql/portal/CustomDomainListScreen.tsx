@@ -729,7 +729,7 @@ const CustomDomainListScreen: React.FC = function CustomDomainListScreen() {
     refetch: refetchDomains,
   } = useDomainsQuery(appID);
 
-  const form = useAppConfigForm(appID, constructFormState, constructConfig);
+  const form = useAppConfigForm({ appID, constructFormState, constructConfig });
 
   const featureConfig = useAppFeatureConfigQuery(appID);
 

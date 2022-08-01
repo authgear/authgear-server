@@ -52,7 +52,7 @@ interface ConfigFormState {
   fallbackLanguage: string;
 }
 
-function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
+function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
   const fallbackLanguage = config.localization?.fallback_language ?? "en";
   return {
     fallbackLanguage,
@@ -659,11 +659,11 @@ const LocalizationConfigurationScreen: React.FC =
     const [selectedLanguage, setSelectedLanguage] =
       useState<LanguageTag | null>(null);
 
-    const config = useAppConfigForm(
+    const config = useAppConfigForm({
       appID,
-      constructConfigFormState,
-      constructConfig
-    );
+      constructFormState,
+      constructConfig,
+    });
 
     const initialSupportedLanguages = useMemo(() => {
       return (

@@ -720,7 +720,11 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
 const AuthenticatorConfigurationScreen: React.FC =
   function AuthenticatorConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
-    const form = useAppConfigForm(appID, constructFormState, constructConfig);
+    const form = useAppConfigForm({
+      appID,
+      constructFormState,
+      constructConfig,
+    });
 
     const featureConfig = useAppFeatureConfigQuery(appID);
 
