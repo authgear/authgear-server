@@ -48,9 +48,12 @@
 .quickStartItem:focus,
 .quickStartItem:active,
 .quickStartItem:active:hover {
-  background-color: #edebe9;
   color: #201f1e;
   text-decoration: none;
+}
+
+.quickStartItemHovered {
+  border-color: #176df3;
 }
 
 .quickStartItemIcon {
@@ -66,6 +69,11 @@
 .quickStartItemArrowIcon {
   color: #898989;
   font-size: 6px;
+}
+
+.quickStartItemHovered .quickStartItemArrowIcon,
+.quickStartItemOpenTutorial {
+  color: #176df3;
 }
 
 .frameworkImage {

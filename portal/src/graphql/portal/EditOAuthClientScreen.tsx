@@ -97,22 +97,80 @@ function constructConfig(
   });
 }
 
-interface QuickStartFrameworkItem {
+interface FrameworkItem {
   icon: React.ReactNode;
   name: string;
   docLink: string;
 }
 
+interface QuickStartFrameworkItemProps extends FrameworkItem {
+  showOpenTutorialLabelWhenHover: boolean;
+}
+
+const QuickStartFrameworkItem: React.FC<QuickStartFrameworkItemProps> =
+  function QuickStartFrameworkItem(props) {
+    const { icon, name, docLink, showOpenTutorialLabelWhenHover } = props;
+    const [isHovering, setIsHovering] = useState(false);
+
+    const onMouseOver = useCallback(() => {
+      setIsHovering(true);
+    }, [setIsHovering]);
+
+    const onMouseOut = useCallback(() => {
+      setIsHovering(false);
+    }, [setIsHovering]);
+
+    // when shouldShowArrowIcon is false, open tutorial label will be shown instead
+    const shouldShowArrowIcon = useMemo(() => {
+      // always show open tutorial label
+      if (!showOpenTutorialLabelWhenHover) {
+        return true;
+      }
+
+      // show open tutorial label when hover
+      return !isHovering;
+    }, [showOpenTutorialLabelWhenHover, isHovering]);
+
+    return (
+      <Link
+        onMouseOver={onMouseOver}
+        onMouseOut={onMouseOut}
+        className={cn(styles.quickStartItem, {
+          [styles.quickStartItemHovered]: isHovering,
+        })}
+        href={docLink}
+        target="_blank"
+      >
+        <span className={styles.quickStartItemIcon}>{icon}</span>
+        <Text variant="small" className={styles.quickStartItemText}>
+          {name}
+        </Text>
+        {shouldShowArrowIcon && (
+          <Icon
+            className={styles.quickStartItemArrowIcon}
+            iconName="ChevronRightSmall"
+          />
+        )}
+        {!shouldShowArrowIcon && (
+          <Text className={styles.quickStartItemOpenTutorial}>
+            <FormattedMessage id="EditOAuthClientScreen.quick-start.open-tutorial.label" />
+          </Text>
+        )}
+      </Link>
+    );
+  };
+
 interface QuickStartFrameworkListProps {
   applicationType?: ApplicationType;
+  showOpenTutorialLabelWhenHover: boolean;
 }
 
 const QuickStartFrameworkList: React.FC<QuickStartFrameworkListProps> =
   function QuickStartFrameworkList(props) {
-    const { applicationType } = props;
+    const { applicationType, showOpenTutorialLabelWhenHover } = props;
     const { renderToString } = useContext(Context);
 
-    const items: QuickStartFrameworkItem[] = useMemo(() => {
+    const items: FrameworkItem[] = useMemo(() => {
       switch (applicationType) {
         case "spa":
           return [
@@ -217,21 +275,11 @@ const QuickStartFrameworkList: React.FC<QuickStartFrameworkListProps> =
     return (
       <>
         {items.map((item, index) => (
-          <Link
+          <QuickStartFrameworkItem
             key={`quick-start-${index}`}
-            className={styles.quickStartItem}
-            href={item.docLink}
-            target="_blank"
-          >
-            <span className={styles.quickStartItemIcon}>{item.icon}</span>
-            <Text variant="small" className={styles.quickStartItemText}>
-              {item.name}
-            </Text>
-            <Icon
-              className={styles.quickStartItemArrowIcon}
-              iconName="ChevronRightSmall"
-            />
-          </Link>
+            showOpenTutorialLabelWhenHover={showOpenTutorialLabelWhenHover}
+            {...item}
+          />
         ))}
       </>
     );
@@ -323,6 +371,7 @@ const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> =
               </Text>
               <QuickStartFrameworkList
                 applicationType={client.x_application_type}
+                showOpenTutorialLabelWhenHover={false}
               />
             </div>
           </Widget>
@@ -376,6 +425,7 @@ const OAuthQuickStartScreenContent: React.FC<OAuthQuickStartScreenContentProps> 
           </Text>
           <QuickStartFrameworkList
             applicationType={client?.x_application_type}
+            showOpenTutorialLabelWhenHover={true}
           />
           <div className={styles.quickStartScreenButtons}>
             <PrimaryButton onClick={onNextButtonClick}>
