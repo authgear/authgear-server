@@ -24,9 +24,21 @@ var CreatePasswordSchema = validation.NewSimpleSchema(`
 		"type": "object",
 		"properties": {
 			"x_password": { "type": "string" },
-			"x_confirm_password": { "type": "string" }
+			"x_confirm_password": { "type": "string" },
+			"x_stage": { "type": "string" }
 		},
-		"required": ["x_password", "x_confirm_password"]
+		"required": ["x_password", "x_confirm_password", "x_stage"]
+	}
+`)
+
+var PasskeyAttestationSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_attestation_response": { "type": "string" },
+			"x_stage": { "type": "string" }
+		},
+		"required": ["x_attestation_response", "x_stage"]
 	}
 `)
 
@@ -143,6 +155,31 @@ func (h *CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 			input = &InputSetupPassword{
 				Stage:    stage,
 				Password: newPassword,
+			}
+			return
+		})
+		if err != nil {
+			return err
+		}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
+
+	ctrl.PostAction("passkey", func() error {
+		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+			err = PasskeyAttestationSchema.Validator().ValidateValue(FormToJSON(r.Form))
+			if err != nil {
+				return
+			}
+
+			attestationResponseStr := r.Form.Get("x_attestation_response")
+			attestationResponse := []byte(attestationResponseStr)
+			stage := r.Form.Get("x_stage")
+
+			input = &InputPasskeyAttestationResponse{
+				Stage:               stage,
+				AttestationResponse: attestationResponse,
 			}
 			return
 		})

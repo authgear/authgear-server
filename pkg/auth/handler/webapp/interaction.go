@@ -112,6 +112,22 @@ func (i *InputSetupPassword) GetAuthenticationStage() authn.AuthenticationStage 
 	return authn.AuthenticationStage(i.Stage)
 }
 
+type InputPasskeyAttestationResponse struct {
+	Stage               string
+	AttestationResponse []byte
+}
+
+var _ nodes.InputCreateAuthenticatorPasskey = &InputPasskeyAttestationResponse{}
+var _ nodes.InputAuthenticationStage = &InputPasskeyAttestationResponse{}
+
+func (i *InputPasskeyAttestationResponse) GetAttestationResponse() []byte {
+	return i.AttestationResponse
+}
+
+func (i *InputPasskeyAttestationResponse) GetAuthenticationStage() authn.AuthenticationStage {
+	return authn.AuthenticationStage(i.Stage)
+}
+
 type InputResendCode struct{}
 
 func (i *InputResendCode) DoResend() {}
