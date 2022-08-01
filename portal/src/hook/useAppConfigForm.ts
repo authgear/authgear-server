@@ -29,11 +29,14 @@ export type ConfigConstructor<State> = (
   currentState: State,
   effectiveConfig: PortalAPIAppConfig
 ) => PortalAPIAppConfig;
+export type InitialCurrentStateConstructor<State> = (state: State) => State;
 
 interface UseAppConfigFormOptions<State> {
   appID: string;
   constructFormState: StateConstructor<State>;
   constructConfig: ConfigConstructor<State>;
+  constructInitialCurrentState?: InitialCurrentStateConstructor<State>;
+  constructInitialCurrentStateAfterSave?: boolean;
   validate?: (state: State) => APIError | null;
   initialCanSave?: boolean;
 }
@@ -45,6 +48,8 @@ export function useAppConfigForm<State>(
     appID,
     constructFormState,
     constructConfig,
+    constructInitialCurrentState,
+    constructInitialCurrentStateAfterSave,
     validate,
     initialCanSave,
   } = options;
@@ -73,7 +78,11 @@ export function useAppConfigForm<State>(
     () => constructFormState(effectiveConfig),
     [effectiveConfig, constructFormState]
   );
-  const [currentState, setCurrentState] = useState<State | null>(null);
+  const [currentState, setCurrentState] = useState<State | null>(
+    constructInitialCurrentState != null
+      ? constructInitialCurrentState(initialState)
+      : null
+  );
 
   const isDirty = useMemo(() => {
     if (!rawConfig || !currentState) {
@@ -122,6 +131,13 @@ export function useAppConfigForm<State>(
     try {
       await updateConfig(newConfig, secretConfig);
       setCurrentState(null);
+      if (constructInitialCurrentStateAfterSave) {
+        setCurrentState(
+          constructInitialCurrentState != null
+            ? constructInitialCurrentState(currentState ?? initialState)
+            : null
+        );
+      }
       setIsSubmitted(true);
     } catch (e: unknown) {
       setUpdateError(e);
@@ -141,6 +157,8 @@ export function useAppConfigForm<State>(
     secretConfig,
     validate,
     canSave,
+    constructInitialCurrentState,
+    constructInitialCurrentStateAfterSave,
   ]);
 
   const state = currentState ?? initialState;

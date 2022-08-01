@@ -724,6 +724,8 @@ const AuthenticatorConfigurationScreen: React.FC =
       appID,
       constructFormState,
       constructConfig,
+      constructInitialCurrentState: makeAuthenticatorReasonable,
+      constructInitialCurrentStateAfterSave: true,
     });
 
     const featureConfig = useAppFeatureConfigQuery(appID);
