@@ -17,7 +17,7 @@
                 {{ $.CSRFField }}
                 <input type="hidden" name="x_stage" value="{{ $.AuthenticationStage }}">
                 <input type="hidden" name="x_attestation_response" data-passkey-creation-target="input">
-                <button type="submit" class="hidden" name="x_action" value="passkey" data-passkey-creation-target="submit">
+                <button type="submit" class="hidden" name="x_action" value="passkey" data-passkey-creation-target="submit"></button>
             </div>
         {{ end }}
         {{ if (and $current_step_is_password_or_passkey (eq .Step "use-passkey")) }}
@@ -35,7 +35,7 @@
                 {{ $.CSRFField }}
                 <input type="hidden" name="x_stage" value="{{ $.AuthenticationStage }}">
                 <input type="hidden" name="x_assertion_response" data-passkey-request-target="input">
-                <button type="submit" class="hidden" name="x_action" value="passkey" data-passkey-request-target="submit">
+                <button type="submit" class="hidden" name="x_action" value="passkey" data-passkey-request-target="submit"></button>
             </div>
         {{ end }}
         {{ if (or (eq .Step "setup-totp")
