@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useMemo } from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import cn from "classnames";
 import {
   Checkbox,
@@ -44,7 +44,6 @@ import FormContainer from "../../FormContainer";
 
 import styles from "./AuthenticatorConfigurationScreen.module.css";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
-import { WritableDraft } from "immer/dist/internal";
 
 interface AuthenticatorTypeFormState<T> {
   isChecked: boolean;
@@ -65,17 +64,19 @@ function isOTPAuthenticatorTypeEqual(
   return false;
 }
 
-function makeAuthenticatorReasonable(state: WritableDraft<FormState>) {
-  state.primary.forEach((primaryItem) => {
-    state.secondary.forEach((secondaryItem) => {
-      if (isOTPAuthenticatorTypeEqual(primaryItem.type, secondaryItem.type)) {
-        if (primaryItem.isChecked) {
-          secondaryItem.isChecked = false;
-          secondaryItem.isDisabled = true;
-        } else {
-          secondaryItem.isDisabled = false;
+function makeAuthenticatorReasonable(state: FormState): FormState {
+  return produce(state, (state) => {
+    state.primary.forEach((primaryItem) => {
+      state.secondary.forEach((secondaryItem) => {
+        if (isOTPAuthenticatorTypeEqual(primaryItem.type, secondaryItem.type)) {
+          if (primaryItem.isChecked) {
+            secondaryItem.isChecked = false;
+            secondaryItem.isDisabled = true;
+          } else {
+            secondaryItem.isDisabled = false;
+          }
         }
-      }
+      });
     });
   });
 }
@@ -262,14 +263,6 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
 
     const { renderToString } = useContext(Context);
 
-    useEffect(() => {
-      setState((state) =>
-        produce(state, (state) => {
-          makeAuthenticatorReasonable(state);
-        })
-      );
-    }, [setState, state]);
-
     const authenticatorColumns: IColumn[] = [
       {
         key: "activated",
@@ -427,8 +420,8 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
 
     const onAuthenticatorEnabledChange = useCallback(
       (item: AuthenticatorColumnItem, checked: boolean) =>
-        setState((state) =>
-          produce(state, (state) => {
+        setState((state) => {
+          const s = produce(state, (state) => {
             let t:
               | AuthenticatorTypeFormState<
                   PrimaryAuthenticatorType | SecondaryAuthenticatorType
@@ -445,10 +438,10 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
             if (t) {
               t.isChecked = checked;
             }
+          });
 
-            makeAuthenticatorReasonable(state);
-          })
-        ),
+          return makeAuthenticatorReasonable(s);
+        }),
       [setState]
     );
 
