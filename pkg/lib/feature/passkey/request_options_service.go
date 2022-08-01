@@ -92,7 +92,7 @@ func (s *RequestOptionsService) MakeModalRequestOptions(userID string) (*model.W
 	for _, i := range identities {
 		if i.Type == model.IdentityTypePasskey {
 			credentialID := i.Passkey.CredentialID
-			credentialIDBytes, err := base64.RawStdEncoding.DecodeString(credentialID)
+			credentialIDBytes, err := base64.RawURLEncoding.DecodeString(credentialID)
 			if err != nil {
 				return nil, err
 			}
