@@ -731,6 +731,8 @@
   "AuthenticatorType.secondary.oob-otp-phone": "OTP Code via Phone",
   "AuthenticatorType.secondary.password": "Additional Password",
 
+  "AuthenticatorHint.primary.oob-otp-phone": "Enable Phone as Login ID",
+
   "ShowUnhandledValidationErrorCause.title": "Validation error",
   "ShowUnhandledValidationErrorCause.kind": "Kind: {kind}",
   "ShowUnhandledValidationErrorCause.location": "Location: {location}",

@@ -8,6 +8,7 @@ import {
   Toggle,
   MessageBar,
   DetailsList,
+  Link,
 } from "@fluentui/react";
 import produce from "immer";
 import deepEqual from "deep-equal";
@@ -257,7 +258,7 @@ interface AuthenticationAuthenticatorSettingsContentProps {
 
 const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthenticatorSettingsContentProps> =
   function AuthenticationAuthenticatorSettingsContent(props) {
-    const { state, setState } = props.form;
+    const { state, setState, effectiveConfig } = props.form;
 
     const { featureConfig } = props;
 
@@ -331,6 +332,15 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
     const isSecondaryAuthenticatorDisabled = useMemo(
       () => state.mfaMode === "disabled",
       [state.mfaMode]
+    );
+
+    const isPhoneLoginIdDisabled = useMemo(
+      () =>
+        effectiveConfig.identity?.login_id?.keys?.find(
+          (t) => t.type === "phone"
+        )?.modify_disabled ?? true,
+
+      [effectiveConfig.identity?.login_id?.keys]
     );
 
     const renderSecondaryAuthenticatorMode = useCallback(
@@ -512,9 +522,20 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
                 break;
             }
             return (
-              <span>
-                <FormattedMessage id={nameId} />
-              </span>
+              <div className={styles.authenticatorColumnSpanRow}>
+                <span>
+                  <FormattedMessage id={nameId} />
+                </span>
+                {item.type === "oob_otp_sms" &&
+                item.isChecked &&
+                isPhoneLoginIdDisabled ? (
+                  <span>
+                    <Link href="./login-id">
+                      <FormattedMessage id="AuthenticatorHint.primary.oob-otp-phone" />
+                    </Link>
+                  </span>
+                ) : null}
+              </div>
             );
           }
 
@@ -535,10 +556,11 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
         }
       },
       [
-        onAuthenticatorEnabledChange,
         featureDisabled,
-        onPrimarySwapClicked,
+        onAuthenticatorEnabledChange,
+        isPhoneLoginIdDisabled,
         primaryItems.length,
+        onPrimarySwapClicked,
         renderPrimaryAriaLabel,
       ]
     );

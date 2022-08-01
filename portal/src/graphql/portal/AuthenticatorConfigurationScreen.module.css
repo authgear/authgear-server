@@ -8,6 +8,12 @@
   display: flex;
 }
 
+.authenticatorColumnSpanRow {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+
 .readOnly {
   pointer-events: none;
   opacity: 0.5;
