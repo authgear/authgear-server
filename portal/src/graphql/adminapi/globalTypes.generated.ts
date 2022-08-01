@@ -143,6 +143,7 @@ export enum AuthenticatorKind {
 export enum AuthenticatorType {
   OobOtpEmail = 'OOB_OTP_EMAIL',
   OobOtpSms = 'OOB_OTP_SMS',
+  Passkey = 'PASSKEY',
   Password = 'PASSWORD',
   Totp = 'TOTP'
 }
@@ -273,7 +274,8 @@ export enum IdentityType {
   Anonymous = 'ANONYMOUS',
   Biometric = 'BIOMETRIC',
   LoginId = 'LOGIN_ID',
-  Oauth = 'OAUTH'
+  Oauth = 'OAUTH',
+  Passkey = 'PASSKEY'
 }
 
 export type Mutation = {

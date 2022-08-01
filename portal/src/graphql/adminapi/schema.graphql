@@ -225,6 +225,9 @@ enum AuthenticatorType {
   OOB_OTP_SMS
 
   """"""
+  PASSKEY
+
+  """"""
   PASSWORD
 
   """"""
@@ -403,6 +406,9 @@ enum IdentityType {
 
   """"""
   OAUTH
+
+  """"""
+  PASSKEY
 }
 
 """"""
