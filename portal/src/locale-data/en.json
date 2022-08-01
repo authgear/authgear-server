@@ -370,7 +370,7 @@
   "AnonymousIdentityConflictBehaviour.error": "Show Error",
 
   "BiometricConfigurationScreen.title": "Biometric Authentication",
-  "BiometricConfigurationScreen.description": "Enable or disable biometric authentication. Enable biometric authentication allows existing user using Biometric login to login their account.",
+  "BiometricConfigurationScreen.description": "Enable or disable biometric authentication for mobile apps. Enable biometric authentication allows existing user using fingerprint or face recognition to login on iOS and Android devices.",
   "BiometricConfigurationScreen.enable.label": "Enable biometric authentication",
   "BiometricConfigurationScreen.list-enabled.label": "Show biometric logins list in setting page",
 
