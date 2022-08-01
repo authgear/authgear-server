@@ -1,6 +1,6 @@
 import cn from "classnames";
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import deepEqual from "deep-equal";
 import produce, { createDraft } from "immer";
 import {
@@ -15,6 +15,7 @@ import {
   DefaultButton,
   DialogFooter,
   ICommandBarItemProps,
+  PrimaryButton,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
@@ -309,18 +310,16 @@ const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> =
         <div className={styles.quickStartColumn}>
           <Widget>
             <div className={styles.quickStartWidget}>
-              <div>
+              <Text className={styles.quickStartWidgetTitle}>
                 <Icon
-                  className={styles.quickStartTitleIcon}
+                  className={styles.quickStartWidgetTitleIcon}
                   styles={{ root: { color: theme.palette.themePrimary } }}
                   iconName="Lightbulb"
                 />
-                <Text className={styles.quickStartTitle}>
-                  <FormattedMessage id="EditOAuthClientScreen.quick-start.title" />
-                </Text>
-              </div>
+                <FormattedMessage id="EditOAuthClientScreen.quick-start-widget.title" />
+              </Text>
               <Text>
-                <FormattedMessage id="EditOAuthClientScreen.quick-start.question" />
+                <FormattedMessage id="EditOAuthClientScreen.quick-start-widget.question" />
               </Text>
               <QuickStartFrameworkList
                 applicationType={client.x_application_type}
@@ -328,6 +327,62 @@ const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> =
             </div>
           </Widget>
         </div>
+      </ScreenContent>
+    );
+  };
+
+interface OAuthQuickStartScreenContentProps {
+  form: AppConfigFormModel<FormState>;
+  clientID: string;
+}
+
+const OAuthQuickStartScreenContent: React.FC<OAuthQuickStartScreenContentProps> =
+  function OAuthQuickStartScreenContent(props) {
+    const {
+      clientID,
+      form: { state },
+    } = props;
+    const navigate = useNavigate();
+    const theme = useTheme();
+    const client =
+      state.editedClient ?? state.clients.find((c) => c.client_id === clientID);
+
+    const onNextButtonClick = useCallback(
+      (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        navigate(".");
+      },
+      [navigate]
+    );
+
+    return (
+      <ScreenContent>
+        <EditOAuthClientNavBreadcrumb clientName={client?.name ?? ""} />
+        <Widget className={styles.widget}>
+          <Text variant="xLarge" block={true}>
+            <Icon
+              className={styles.quickStartScreenTitleIcon}
+              styles={{ root: { color: theme.palette.themePrimary } }}
+              iconName="Lightbulb"
+            />
+            <FormattedMessage id="EditOAuthClientScreen.quick-start-screen.title" />
+          </Text>
+          <Text className={styles.quickStartScreenDescription} block={true}>
+            <FormattedMessage
+              id="EditOAuthClientScreen.quick-start-screen.question"
+              values={{ applicationType: client?.name ?? "" }}
+            />
+          </Text>
+          <QuickStartFrameworkList
+            applicationType={client?.x_application_type}
+          />
+          <div className={styles.quickStartScreenButtons}>
+            <PrimaryButton onClick={onNextButtonClick}>
+              <FormattedMessage id="next" />
+            </PrimaryButton>
+          </div>
+        </Widget>
       </ScreenContent>
     );
   };
@@ -343,6 +398,11 @@ const EditOAuthClientScreen: React.FC = function EditOAuthClientScreen() {
   const navigate = useNavigate();
   const [isRemoveDialogVisible, setIsRemoveDialogVisible] = useState(false);
   const { themes } = useSystemConfig();
+  const [searchParams] = useSearchParams();
+  const isQuickScreenVisible = useMemo(() => {
+    const quickstart = searchParams.get("quickstart");
+    return quickstart === "true";
+  }, [searchParams]);
 
   const dialogContentProps: IDialogContentProps = useMemo(() => {
     return {
@@ -394,6 +454,10 @@ const EditOAuthClientScreen: React.FC = function EditOAuthClientScreen() {
 
   if (form.loadError) {
     return <ShowError error={form.loadError} onRetry={form.reload} />;
+  }
+
+  if (isQuickScreenVisible) {
+    return <OAuthQuickStartScreenContent form={form} clientID={clientID} />;
   }
 
   return (
