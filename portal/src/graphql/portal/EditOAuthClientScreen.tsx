@@ -102,15 +102,14 @@ interface QuickStartFrameworkItem {
   docLink: string;
 }
 
-interface QuickStartWidgetProps {
+interface QuickStartFrameworkListProps {
   applicationType?: ApplicationType;
 }
 
-const QuickStartWidget: React.FC<QuickStartWidgetProps> =
-  function QuickStartWidget(props) {
+const QuickStartFrameworkList: React.FC<QuickStartFrameworkListProps> =
+  function QuickStartFrameworkList(props) {
     const { applicationType } = props;
     const { renderToString } = useContext(Context);
-    const theme = useTheme();
 
     const items: QuickStartFrameworkItem[] = useMemo(() => {
       switch (applicationType) {
@@ -215,40 +214,51 @@ const QuickStartWidget: React.FC<QuickStartWidgetProps> =
     }
 
     return (
-      <Widget>
-        <div className={styles.quickStartWidget}>
-          <div>
-            <Icon
-              className={styles.quickStartTitleIcon}
-              styles={{ root: { color: theme.palette.themePrimary } }}
-              iconName="Lightbulb"
-            />
-            <Text className={styles.quickStartTitle}>
-              <FormattedMessage id="EditOAuthClientScreen.quick-start.title" />
+      <>
+        {items.map((item, index) => (
+          <Link
+            key={`quick-start-${index}`}
+            className={styles.quickStartItem}
+            href={item.docLink}
+            target="_blank"
+          >
+            <span className={styles.quickStartItemIcon}>{item.icon}</span>
+            <Text variant="small" className={styles.quickStartItemText}>
+              {item.name}
             </Text>
-          </div>
-          <Text>
-            <FormattedMessage id="EditOAuthClientScreen.quick-start.question" />
-          </Text>
-          {items.map((item, index) => (
-            <Link
-              key={`quick-start-${index}`}
-              className={styles.quickStartItem}
-              href={item.docLink}
-              target="_blank"
-            >
-              <span className={styles.quickStartItemIcon}>{item.icon}</span>
-              <Text variant="small" className={styles.quickStartItemText}>
-                {item.name}
-              </Text>
-              <Icon
-                className={styles.quickStartItemArrowIcon}
-                iconName="ChevronRightSmall"
-              />
-            </Link>
-          ))}
-        </div>
-      </Widget>
+            <Icon
+              className={styles.quickStartItemArrowIcon}
+              iconName="ChevronRightSmall"
+            />
+          </Link>
+        ))}
+      </>
+    );
+  };
+
+interface EditOAuthClientNavBreadcrumbProps {
+  clientName: string;
+}
+
+const EditOAuthClientNavBreadcrumb: React.FC<EditOAuthClientNavBreadcrumbProps> =
+  function EditOAuthClientNavBreadcrumb(props) {
+    const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+      return [
+        {
+          to: "./../..",
+          label: (
+            <FormattedMessage id="ApplicationsConfigurationScreen.title" />
+          ),
+        },
+        {
+          to: ".",
+          label: props.clientName,
+        },
+      ];
+    }, [props.clientName]);
+
+    return (
+      <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
     );
   };
 
@@ -263,24 +273,10 @@ const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> =
       clientID,
       form: { state, setState },
     } = props;
+    const theme = useTheme();
 
     const client =
       state.editedClient ?? state.clients.find((c) => c.client_id === clientID);
-
-    const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-      return [
-        {
-          to: "./../..",
-          label: (
-            <FormattedMessage id="ApplicationsConfigurationScreen.title" />
-          ),
-        },
-        {
-          to: ".",
-          label: client?.name ?? "",
-        },
-      ];
-    }, [client?.name]);
 
     const onClientConfigChange = useCallback(
       (editedClient: OAuthClientConfig) => {
@@ -302,7 +298,7 @@ const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> =
 
     return (
       <ScreenContent>
-        <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+        <EditOAuthClientNavBreadcrumb clientName={client.name ?? ""} />
         <div className={cn(styles.widget, styles.widgetColumn)}>
           <EditOAuthClientForm
             publicOrigin={state.publicOrigin}
@@ -311,7 +307,26 @@ const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> =
           />
         </div>
         <div className={styles.quickStartColumn}>
-          <QuickStartWidget applicationType={client.x_application_type} />
+          <Widget>
+            <div className={styles.quickStartWidget}>
+              <div>
+                <Icon
+                  className={styles.quickStartTitleIcon}
+                  styles={{ root: { color: theme.palette.themePrimary } }}
+                  iconName="Lightbulb"
+                />
+                <Text className={styles.quickStartTitle}>
+                  <FormattedMessage id="EditOAuthClientScreen.quick-start.title" />
+                </Text>
+              </div>
+              <Text>
+                <FormattedMessage id="EditOAuthClientScreen.quick-start.question" />
+              </Text>
+              <QuickStartFrameworkList
+                applicationType={client.x_application_type}
+              />
+            </div>
+          </Widget>
         </div>
       </ScreenContent>
     );
