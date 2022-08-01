@@ -52,6 +52,7 @@ const NavigationBlockerDialog: React.FC<NavigationBlockerDialogProps> =
         hidden={!navigationBlockerDialog.visible}
         contentTitleId="NavigationBlockerDialog.title"
         contentSubTextId="NavigationBlockerDialog.content"
+        contentConfirmId="NavigationBlockerDialog.confirm"
         onDialogConfirm={onDialogConfirm}
         onDialogDismiss={onDialogDismiss}
       />
