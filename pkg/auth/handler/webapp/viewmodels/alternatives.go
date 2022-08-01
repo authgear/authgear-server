@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
@@ -44,8 +45,13 @@ type AlternativeStepsViewModel struct {
 	CanRequestDeviceToken bool
 }
 
+type AlternativeStepsViewModeler struct {
+	AuthenticationConfig *config.AuthenticationConfig
+}
+
 // nolint: gocyclo
-func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interaction.Graph, currentStepKind webapp.SessionStepKind) error {
+func (a *AlternativeStepsViewModeler) AuthenticationAlternatives(graph *interaction.Graph, currentStepKind webapp.SessionStepKind) (*AlternativeStepsViewModel, error) {
+	m := &AlternativeStepsViewModel{}
 	m.CurrentStep = currentStepKind
 
 	var node AuthenticationBeginNode
@@ -57,7 +63,7 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interac
 
 	edges, err := node.GetAuthenticationEdges()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	phoneOTPStepAdded := false
@@ -171,10 +177,12 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interac
 			panic(fmt.Errorf("authentication_begin: unexpected edge: %T", edge))
 		}
 	}
-	return nil
+
+	return m, nil
 }
 
-func (m *AlternativeStepsViewModel) AddCreateAuthenticatorAlternatives(graph *interaction.Graph, currentStepKind webapp.SessionStepKind) error {
+func (a *AlternativeStepsViewModeler) CreateAuthenticatorAlternatives(graph *interaction.Graph, currentStepKind webapp.SessionStepKind) (*AlternativeStepsViewModel, error) {
+	m := &AlternativeStepsViewModel{}
 	m.CurrentStep = currentStepKind
 
 	var node CreateAuthenticatorBeginNode
@@ -186,7 +194,7 @@ func (m *AlternativeStepsViewModel) AddCreateAuthenticatorAlternatives(graph *in
 
 	edges, err := node.GetCreateAuthenticatorEdges()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	phoneOTPStepAdded := false
@@ -250,5 +258,5 @@ func (m *AlternativeStepsViewModel) AddCreateAuthenticatorAlternatives(graph *in
 		}
 	}
 
-	return nil
+	return m, nil
 }

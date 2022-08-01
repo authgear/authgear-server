@@ -33,22 +33,22 @@ func ConfigureSetupWhatsappOTPRoute(route httproute.Route) httproute.Route {
 }
 
 type SetupWhatsappOTPHandler struct {
-	ControllerFactory ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	Renderer          Renderer
+	ControllerFactory         ControllerFactory
+	BaseViewModel             *viewmodels.BaseViewModeler
+	AlternativeStepsViewModel *viewmodels.AlternativeStepsViewModeler
+	Renderer                  Renderer
 }
 
 func (h *SetupWhatsappOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	alternatives := &viewmodels.AlternativeStepsViewModel{}
-	err := alternatives.AddCreateAuthenticatorAlternatives(graph, webapp.SessionStepSetupWhatsappOTP)
+	alternatives, err := h.AlternativeStepsViewModel.CreateAuthenticatorAlternatives(graph, webapp.SessionStepSetupWhatsappOTP)
 	if err != nil {
 		return nil, err
 	}
 
 	viewmodels.Embed(data, baseViewModel)
-	viewmodels.Embed(data, alternatives)
+	viewmodels.Embed(data, *alternatives)
 	return data, nil
 }
 

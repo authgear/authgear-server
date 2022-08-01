@@ -58,10 +58,11 @@ type PasswordPolicy interface {
 }
 
 type CreatePasswordHandler struct {
-	ControllerFactory ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	Renderer          Renderer
-	PasswordPolicy    PasswordPolicy
+	ControllerFactory         ControllerFactory
+	BaseViewModel             *viewmodels.BaseViewModeler
+	AlternativeStepsViewModel *viewmodels.AlternativeStepsViewModeler
+	Renderer                  Renderer
+	PasswordPolicy            PasswordPolicy
 }
 
 func (h *CreatePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -90,8 +91,7 @@ func (h *CreatePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter,
 		},
 	)
 
-	alternatives := viewmodels.AlternativeStepsViewModel{}
-	err := alternatives.AddCreateAuthenticatorAlternatives(graph, webapp.SessionStepCreatePassword)
+	alternatives, err := h.AlternativeStepsViewModel.CreateAuthenticatorAlternatives(graph, webapp.SessionStepCreatePassword)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (h *CreatePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter,
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, passwordPolicyViewModel)
 	viewmodels.Embed(data, createPasswordViewModel)
-	viewmodels.Embed(data, alternatives)
+	viewmodels.Embed(data, *alternatives)
 
 	return data, nil
 }

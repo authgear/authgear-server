@@ -36,9 +36,10 @@ func ConfigureEnterRecoveryCodeRoute(route httproute.Route) httproute.Route {
 }
 
 type EnterRecoveryCodeHandler struct {
-	ControllerFactory ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	Renderer          Renderer
+	ControllerFactory         ControllerFactory
+	BaseViewModel             *viewmodels.BaseViewModeler
+	AlternativeStepsViewModel *viewmodels.AlternativeStepsViewModeler
+	Renderer                  Renderer
 }
 
 func (h *EnterRecoveryCodeHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -46,14 +47,13 @@ func (h *EnterRecoveryCodeHandler) GetData(r *http.Request, rw http.ResponseWrit
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 
-	alternatives := &viewmodels.AlternativeStepsViewModel{}
-	err := alternatives.AddAuthenticationAlternatives(graph, webapp.SessionStepEnterRecoveryCode)
+	alternatives, err := h.AlternativeStepsViewModel.AuthenticationAlternatives(graph, webapp.SessionStepEnterRecoveryCode)
 	if err != nil {
 		return nil, err
 	}
 
 	viewmodels.Embed(data, baseViewModel)
-	viewmodels.Embed(data, alternatives)
+	viewmodels.Embed(data, *alternatives)
 
 	return data, nil
 }

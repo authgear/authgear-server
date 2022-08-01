@@ -12421,10 +12421,14 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
+		AuthenticationConfig: authenticationConfig,
+	}
 	enterPasswordHandler := &webapp2.EnterPasswordHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
+		ControllerFactory:         controllerFactory,
+		BaseViewModel:             baseViewModeler,
+		AlternativeStepsViewModel: alternativeStepsViewModeler,
+		Renderer:                  responseRenderer,
 	}
 	return enterPasswordHandler
 }
@@ -13135,11 +13139,15 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
+		AuthenticationConfig: authenticationConfig,
+	}
 	createPasswordHandler := &webapp2.CreatePasswordHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
-		PasswordPolicy:    passwordChecker,
+		ControllerFactory:         controllerFactory,
+		BaseViewModel:             baseViewModeler,
+		AlternativeStepsViewModel: alternativeStepsViewModeler,
+		Renderer:                  responseRenderer,
+		PasswordPolicy:            passwordChecker,
 	}
 	return createPasswordHandler
 }
@@ -13850,12 +13858,16 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
+		AuthenticationConfig: authenticationConfig,
+	}
 	setupTOTPHandler := &webapp2.SetupTOTPHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
-		Clock:             clockClock,
-		Endpoints:         endpointsProvider,
+		ControllerFactory:         controllerFactory,
+		BaseViewModel:             baseViewModeler,
+		AlternativeStepsViewModel: alternativeStepsViewModeler,
+		Renderer:                  responseRenderer,
+		Clock:                     clockClock,
+		Endpoints:                 endpointsProvider,
 	}
 	return setupTOTPHandler
 }
@@ -14566,10 +14578,14 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
+		AuthenticationConfig: authenticationConfig,
+	}
 	enterTOTPHandler := &webapp2.EnterTOTPHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
+		ControllerFactory:         controllerFactory,
+		BaseViewModel:             baseViewModeler,
+		AlternativeStepsViewModel: alternativeStepsViewModeler,
+		Renderer:                  responseRenderer,
 	}
 	return enterTOTPHandler
 }
@@ -15280,10 +15296,14 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
+		AuthenticationConfig: authenticationConfig,
+	}
 	setupOOBOTPHandler := &webapp2.SetupOOBOTPHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
+		ControllerFactory:         controllerFactory,
+		BaseViewModel:             baseViewModeler,
+		AlternativeStepsViewModel: alternativeStepsViewModeler,
+		Renderer:                  responseRenderer,
 	}
 	return setupOOBOTPHandler
 }
@@ -15994,12 +16014,16 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
+		AuthenticationConfig: authenticationConfig,
+	}
 	enterOOBOTPHandler := &webapp2.EnterOOBOTPHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
-		RateLimiter:       limiter,
-		FlashMessage:      flashMessage,
+		ControllerFactory:         controllerFactory,
+		BaseViewModel:             baseViewModeler,
+		AlternativeStepsViewModel: alternativeStepsViewModeler,
+		Renderer:                  responseRenderer,
+		RateLimiter:               limiter,
+		FlashMessage:              flashMessage,
 	}
 	return enterOOBOTPHandler
 }
@@ -16710,10 +16734,14 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
+		AuthenticationConfig: authenticationConfig,
+	}
 	setupWhatsappOTPHandler := &webapp2.SetupWhatsappOTPHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
+		ControllerFactory:         controllerFactory,
+		BaseViewModel:             baseViewModeler,
+		AlternativeStepsViewModel: alternativeStepsViewModeler,
+		Renderer:                  responseRenderer,
 	}
 	return setupWhatsappOTPHandler
 }
@@ -17424,11 +17452,15 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
+		AuthenticationConfig: authenticationConfig,
+	}
 	whatsappOTPHandler := &webapp2.WhatsappOTPHandler{
-		ControllerFactory:    controllerFactory,
-		BaseViewModel:        baseViewModeler,
-		Renderer:             responseRenderer,
-		WhatsappCodeProvider: whatsappProvider,
+		ControllerFactory:         controllerFactory,
+		BaseViewModel:             baseViewModeler,
+		AlternativeStepsViewModel: alternativeStepsViewModeler,
+		Renderer:                  responseRenderer,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	return whatsappOTPHandler
 }
@@ -18531,10 +18563,14 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
+		AuthenticationConfig: authenticationConfig,
+	}
 	enterRecoveryCodeHandler := &webapp2.EnterRecoveryCodeHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
+		ControllerFactory:         controllerFactory,
+		BaseViewModel:             baseViewModeler,
+		AlternativeStepsViewModel: alternativeStepsViewModeler,
+		Renderer:                  responseRenderer,
 	}
 	return enterRecoveryCodeHandler
 }
