@@ -738,6 +738,7 @@
 
   "FormContainer.reset-dialog.title": "Discard unsaved changes",
   "FormContainer.reset-dialog.message": "Are you sure you want to discard unsaved changes?",
+  "FormContainer.reset-dialog.confirm": "Yes, discard",
 
   "AuthenticatorType.primary.password": "Password",
   "AuthenticatorType.primary.oob-otp-email": "Passwordless via Email",
