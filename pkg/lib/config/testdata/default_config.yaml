@@ -397,7 +397,7 @@ authenticator:
     sms:
       maximum: 99
       message: {}
-      phone_otp_mode: "sms"
+      phone_otp_mode: "whatsapp_sms"
     email:
       maximum: 99
       message:
