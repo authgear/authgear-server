@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
@@ -28,6 +29,16 @@ var LoginWithLoginIDSchema = validation.NewSimpleSchema(`
 			"x_login_id": { "type": "string" }
 		},
 		"required": ["x_login_id_input_type", "x_login_id"]
+	}
+`)
+
+var PasskeyAutofillSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_assertion_response": { "type": "string" }
+		},
+		"required": ["x_assertion_response"]
 	}
 `)
 
@@ -179,6 +190,31 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			input = &InputUseLoginID{
 				LoginID: loginID,
+			}
+			return
+		})
+		if err != nil {
+			return err
+		}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
+
+	ctrl.PostAction("passkey", func() error {
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			err = PasskeyAutofillSchema.Validator().ValidateValue(FormToJSON(r.Form))
+			if err != nil {
+				return
+			}
+
+			assertionResponseStr := r.Form.Get("x_assertion_response")
+			assertionResponse := []byte(assertionResponseStr)
+			stage := string(authn.AuthenticationStagePrimary)
+
+			input = &InputPasskeyAssertionResponse{
+				Stage:             stage,
+				AssertionResponse: assertionResponse,
 			}
 			return
 		})

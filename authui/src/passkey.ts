@@ -107,12 +107,16 @@ function serializeAssertionResponse(credential: PublicKeyCredential) {
 }
 
 function handleError(err: unknown) {
-  // Cancel
   if (err instanceof DOMException && err.name === "NotAllowedError") {
+    return;
+  }
+  // Abort
+  if (err instanceof DOMException && err.name === "AbortError") {
     return;
   }
 
   console.error(err);
+  return false;
 }
 
 export class PasskeyCreationController extends Controller {
@@ -228,6 +232,98 @@ export class PasskeyRequestController extends Controller {
       }
     } catch (e: unknown) {
       handleAxiosError(e);
+    }
+  }
+}
+
+// The lifecycle of the autofill
+//
+// setupAutofill() creates a pending promise to receive the result of the autofill.
+// The promise can be aborted with AbortController.
+// In disconnect(), we abort the promise.
+// In connect(), we call setupAutofill().
+// Since Stimulus will call connect(), we do not need to call setupAutofill if the promise is aborted.
+export class PasskeyAutofillController extends Controller {
+  static targets = ["submit", "input"];
+
+  declare submitTarget: HTMLButtonElement;
+  declare inputTarget: HTMLInputElement;
+
+  abortController: AbortController | null = null;
+
+  connect() {
+    if (!passkeyIsAvailable()) {
+      return;
+    }
+
+    this.setupAutofill();
+  }
+
+  disconnect() {
+    this.cleanupAbortController();
+  }
+
+  cleanupAbortController() {
+    if (this.abortController != null) {
+      this.abortController.abort();
+      this.abortController = null;
+    }
+  }
+
+  setupAbortController(): AbortSignal {
+    this.cleanupAbortController();
+    const abortController = new AbortController();
+    this.abortController = abortController;
+    return abortController.signal;
+  }
+
+  async setupAutofill() {
+    if (
+      // @ts-expect-error
+      typeof PublicKeyCredential.isConditionalMediationAvailable === "function"
+    ) {
+      const available =
+        // @ts-expect-error
+        await PublicKeyCredential.isConditionalMediationAvailable();
+
+      if (available) {
+        try {
+          const params = new URLSearchParams();
+          params.set("conditional", "true");
+          const resp = await axios("/passkey/request_options", {
+            method: "post",
+            data: params,
+          });
+          const options = deserializeRequestOptions(resp.data.result);
+          try {
+            const signal = this.setupAbortController();
+            const rawResponse = await window.navigator.credentials.get({
+              ...options,
+              signal,
+            });
+            if (rawResponse instanceof PublicKeyCredential) {
+              const response = serializeAssertionResponse(rawResponse);
+              const responseString = JSON.stringify(response);
+              this.inputTarget.value = responseString;
+              // It seems that we should use form.submit() to submit the form.
+              // but form.submit() does NOT trigger submit event,
+              // which is essential for XHR form submission to work.
+              // Therefore, we emulate form submission here by clicking the submit button.
+              this.submitTarget.click();
+            }
+            this.setupAutofill();
+          } catch (e: unknown) {
+            handleError(e);
+            if (e instanceof DOMException && e.name === "AbortError") {
+              // Aborted. Let connect() to be called again.
+            } else {
+              this.setupAutofill();
+            }
+          }
+        } catch (e: unknown) {
+          handleAxiosError(e);
+        }
+      }
     }
   }
 }
