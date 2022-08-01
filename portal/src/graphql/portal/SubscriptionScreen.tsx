@@ -61,6 +61,7 @@ import ButtonWithLoading from "../../ButtonWithLoading";
 import { useSetSubscriptionCancelledStatusMutation } from "./mutations/setSubscriptionCancelledStatusMutation";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import ErrorDialog from "../../error/ErrorDialog";
+import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 
 const ALL_KNOWN_PLANS = ["free", "developers", "startups", "business"];
 const PAID_PLANS = ALL_KNOWN_PLANS.slice(1);
@@ -947,14 +948,16 @@ const SubscriptionScreen: React.FC = function SubscriptionScreen() {
   ).previousMonth;
 
   return (
-    <SubscriptionScreenContent
-      appID={appID}
-      planName={planName}
-      subscription={subscription ?? undefined}
-      subscriptionPlans={subscriptionPlans}
-      thisMonthUsage={thisMonthUsage ?? undefined}
-      previousMonthUsage={previousMonthUsage ?? undefined}
-    />
+    <ScreenLayoutScrollView>
+      <SubscriptionScreenContent
+        appID={appID}
+        planName={planName}
+        subscription={subscription ?? undefined}
+        subscriptionPlans={subscriptionPlans}
+        thisMonthUsage={thisMonthUsage ?? undefined}
+        previousMonthUsage={previousMonthUsage ?? undefined}
+      />
+    </ScreenLayoutScrollView>
   );
 };
 
