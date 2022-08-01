@@ -134,21 +134,6 @@
   "AppsScreen.title": "Select Project",
   "AppsScreen.create-app": "Create Project",
 
-  "ProjectWizardDoneScreen.title": "Done",
-  "ProjectWizardDoneScreen.desc": "You can always change these configuration in the portal, or configure an even more complicated authentication system.",
-  "ProjectWizardDoneScreen.completion-message": "You just setup a full feature login, signup and setting page for your next app!",
-  "ProjectWizardDoneScreen.signup-login.title": "Sign up & Login",
-  "ProjectWizardDoneScreen.signup-login.desc": "You just setup a full feature login, signup and setting page for your next app!",
-  "ProjectWizardDoneScreen.signup-login.action": "Try it out now!",
-  "ProjectWizardDoneScreen.settings.title": "Setting Page",
-  "ProjectWizardDoneScreen.settings.desc": "After your first sign up, you will be redirected to a setting page. {br, react} {br, react} You can change where to redirect users after sign up or login, and trigger setting page from your apps.",
-  "ProjectWizardDoneScreen.sso.title": "Single-Sign On Setting",
-  "ProjectWizardDoneScreen.sso.desc": "You need to configure different social logins setting in the portal.",
-  "ProjectWizardDoneScreen.sso.action": "Setup now",
-  "ProjectWizardDoneScreen.now-you-may.title": "Now you may",
-  "ProjectWizardDoneScreen.now-you-may.portal.label": "Continue to Portal for further Customization",
-  "ProjectWizardDoneScreen.now-you-may.doc.label": "Learn how to integrate Authgear in minutes with your web / mobile apps.",
-
   "UsersScreen.title": "Users",
   "UsersScreen.add-user": "Add User",
 
