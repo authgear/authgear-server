@@ -38,6 +38,7 @@ func handleAlternativeSteps(ctrl *Controller) {
 		switch stepKind {
 		case webapp.SessionStepEnterTOTP,
 			webapp.SessionStepEnterPassword,
+			webapp.SessionStepUsePasskey,
 			webapp.SessionStepEnterRecoveryCode:
 			// Simple redirect.
 			choiceStep = webapp.SessionStepAuthenticate

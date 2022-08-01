@@ -1,6 +1,6 @@
 {{ define "__alternatives.html" }}
     {{ $rendered_separator := false }}
-    {{ $current_step_is_password_or_passkey := (or (eq $.CurrentStep "create-passkey") (eq $.CurrentStep "create-password")) }}
+    {{ $current_step_is_password_or_passkey := (or (eq $.CurrentStep "create-passkey") (eq $.CurrentStep "create-password") (eq $.CurrentStep "enter-password") (eq $.CurrentStep "use-passkey")) }}
     {{ range $.AlternativeSteps }}
         {{ if (and $current_step_is_password_or_passkey (eq .Step "create-passkey")) }}
             {{ if (and (not $.separatorDisabled) (not $rendered_separator)) }}
@@ -18,6 +18,24 @@
                 <input type="hidden" name="x_stage" value="{{ $.AuthenticationStage }}">
                 <input type="hidden" name="x_attestation_response" data-passkey-creation-target="input">
                 <button type="submit" class="hidden" name="x_action" value="passkey" data-passkey-creation-target="submit">
+            </div>
+        {{ end }}
+        {{ if (and $current_step_is_password_or_passkey (eq .Step "use-passkey")) }}
+            {{ if (and (not $.separatorDisabled) (not $rendered_separator)) }}
+                {{ $rendered_separator = true }}
+                <div class="alternative-separator flex flex-row items-center">
+                    <span class="primary-txt mx-1.5 text-sm">{{ template "or-label" }}</span>
+                </div>
+            {{ end }}
+            <div class="text-sm" data-controller="passkey-request" data-passkey-request-preferred-value="{{ $.PasskeyIsPreferred }}">
+            <button class="btn secondary-btn" type="button" data-action="click->passkey-request#use" data-passkey-request-target="button">
+                {{ template "setup-passkey-instead" .Data }}
+            </button>
+            <form method="post" novalidate>
+                {{ $.CSRFField }}
+                <input type="hidden" name="x_stage" value="{{ $.AuthenticationStage }}">
+                <input type="hidden" name="x_assertion_response" data-passkey-request-target="input">
+                <button type="submit" class="hidden" name="x_action" value="passkey" data-passkey-request-target="submit">
             </div>
         {{ end }}
         {{ if (or (eq .Step "setup-totp")

@@ -30,6 +30,20 @@ function deserializeCreationOptions(
   return creationOptions;
 }
 
+function deserializeRequestOptions(
+  requestOptions: any
+): CredentialRequestOptions {
+  const base64URLChallenge = requestOptions.publicKey.challenge;
+  const challenge = base64DecToArr(base64URLToBase64(base64URLChallenge));
+  requestOptions.publicKey.challenge = challenge;
+  if (requestOptions.publicKey.allowCredentials) {
+    for (const c of requestOptions.publicKey.allowCredentials) {
+      c.id = base64DecToArr(base64URLToBase64(c.id));
+    }
+  }
+  return requestOptions;
+}
+
 function serializeAttestationResponse(credential: PublicKeyCredential) {
   const response = credential.response as AuthenticatorAttestationResponse;
 
@@ -55,6 +69,38 @@ function serializeAttestationResponse(credential: PublicKeyCredential) {
       attestationObject,
       clientDataJSON,
       transports,
+    },
+    clientExtensionResults,
+  };
+}
+
+function serializeAssertionResponse(credential: PublicKeyCredential) {
+  const response = credential.response as AuthenticatorAssertionResponse;
+  const authenticatorData = trimNewline(
+    base64ToBase64URL(base64EncArr(new Uint8Array(response.authenticatorData)))
+  );
+  const clientDataJSON = trimNewline(
+    base64ToBase64URL(base64EncArr(new Uint8Array(response.clientDataJSON)))
+  );
+  const signature = trimNewline(
+    base64ToBase64URL(base64EncArr(new Uint8Array(response.signature)))
+  );
+  const userHandle =
+    response.userHandle == null
+      ? undefined
+      : trimNewline(
+          base64ToBase64URL(base64EncArr(new Uint8Array(response.userHandle)))
+        );
+  const clientExtensionResults = credential.getClientExtensionResults();
+  return {
+    id: credential.id,
+    rawId: credential.id,
+    type: credential.type,
+    response: {
+      authenticatorData,
+      clientDataJSON,
+      signature,
+      userHandle,
     },
     clientExtensionResults,
   };
@@ -109,6 +155,66 @@ export class PasskeyCreationController extends Controller {
         const rawResponse = await window.navigator.credentials.create(options);
         if (rawResponse instanceof PublicKeyCredential) {
           const response = serializeAttestationResponse(rawResponse);
+          const responseString = JSON.stringify(response);
+          this.inputTarget.value = responseString;
+          // It seems that we should use form.submit() to submit the form.
+          // but form.submit() does NOT trigger submit event,
+          // which is essential for XHR form submission to work.
+          // Therefore, we emulate form submission here by clicking the submit button.
+          this.submitTarget.click();
+        }
+      } catch (e: unknown) {
+        handleError(e);
+      }
+    } catch (e: unknown) {
+      handleAxiosError(e);
+    }
+  }
+}
+
+export class PasskeyRequestController extends Controller {
+  static targets = ["button", "submit", "input"];
+  static values = {
+    preferred: Boolean,
+  };
+
+  declare buttonTarget: HTMLButtonElement;
+  declare submitTarget: HTMLButtonElement;
+  declare inputTarget: HTMLInputElement;
+  declare preferredValue: boolean;
+
+  connect() {
+    // Disable the button if PublicKeyCredential is unavailable.
+    if (!passkeyIsAvailable()) {
+      this.buttonTarget.disabled = true;
+      return;
+    }
+
+    if (this.preferredValue) {
+      this._use();
+    }
+  }
+
+  use(e: MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    this._use();
+  }
+
+  async _use() {
+    try {
+      const resp = await axios("/passkey/request_options", {
+        method: "post",
+        headers: {
+          "content-type": "application/json; charset=utf-8",
+        },
+      });
+      const options = deserializeRequestOptions(resp.data.result);
+      try {
+        const rawResponse = await window.navigator.credentials.get(options);
+        if (rawResponse instanceof PublicKeyCredential) {
+          const response = serializeAssertionResponse(rawResponse);
           const responseString = JSON.stringify(response);
           this.inputTarget.value = responseString;
           // It seems that we should use form.submit() to submit the form.

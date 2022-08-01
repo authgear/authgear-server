@@ -20,9 +20,21 @@ var EnterPasswordSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_password": { "type": "string" }
+			"x_password": { "type": "string" },
+			"x_stage": { "type": "string" }
 		},
-		"required": ["x_password"]
+		"required": ["x_password", "x_stage"]
+	}
+`)
+
+var PasskeyAssertionSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_assertion_response": { "type": "string" },
+			"x_stage": { "type": "string" }
+		},
+		"required": ["x_assertion_response", "x_stage"]
 	}
 `)
 
@@ -132,6 +144,31 @@ func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 				Stage:       stage,
 				Password:    plainPassword,
 				DeviceToken: deviceToken,
+			}
+			return
+		})
+		if err != nil {
+			return err
+		}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
+
+	ctrl.PostAction("passkey", func() error {
+		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+			err = PasskeyAssertionSchema.Validator().ValidateValue(FormToJSON(r.Form))
+			if err != nil {
+				return
+			}
+
+			assertionResponseStr := r.Form.Get("x_assertion_response")
+			assertionResponse := []byte(assertionResponseStr)
+			stage := r.Form.Get("x_stage")
+
+			input = &InputPasskeyAssertionResponse{
+				Stage:             stage,
+				AssertionResponse: assertionResponse,
 			}
 			return
 		})

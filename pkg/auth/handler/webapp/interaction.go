@@ -128,6 +128,22 @@ func (i *InputPasskeyAttestationResponse) GetAuthenticationStage() authn.Authent
 	return authn.AuthenticationStage(i.Stage)
 }
 
+type InputPasskeyAssertionResponse struct {
+	Stage             string
+	AssertionResponse []byte
+}
+
+var _ nodes.InputAuthenticationPasskey = &InputPasskeyAssertionResponse{}
+var _ nodes.InputAuthenticationStage = &InputPasskeyAssertionResponse{}
+
+func (i *InputPasskeyAssertionResponse) GetAssertionResponse() []byte {
+	return i.AssertionResponse
+}
+
+func (i *InputPasskeyAssertionResponse) GetAuthenticationStage() authn.AuthenticationStage {
+	return authn.AuthenticationStage(i.Stage)
+}
+
 type InputResendCode struct{}
 
 func (i *InputResendCode) DoResend() {}
