@@ -38,6 +38,8 @@ import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import LabelWithTooltip from "../../LabelWithTooltip";
 import TextField from "../../TextField";
 
+const DEFAULT_PHONE_OTP_MODE: AuthenticatorPhoneOTPMode = "whatsapp_sms";
+
 interface FormState {
   codeExpirySeconds: number | undefined;
   criteria: VerificationCriteria;
@@ -69,7 +71,8 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
       enabled: config.verification?.claims?.phone_number?.enabled ?? true,
     },
     phoneOTPMode:
-      config.authenticator?.oob_otp?.sms?.phone_otp_mode ?? "whatsapp_sms",
+      config.authenticator?.oob_otp?.sms?.phone_otp_mode ??
+      DEFAULT_PHONE_OTP_MODE,
   };
 }
 
@@ -128,7 +131,7 @@ function constructConfig(
       delete v.criteria;
     }
 
-    if (a.oob_otp.sms.phone_otp_mode === "whatsapp_sms") {
+    if (a.oob_otp.sms.phone_otp_mode === DEFAULT_PHONE_OTP_MODE) {
       delete a.oob_otp.sms.phone_otp_mode;
     }
 
