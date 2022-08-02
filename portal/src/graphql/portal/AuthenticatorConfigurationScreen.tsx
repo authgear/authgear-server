@@ -52,14 +52,11 @@ interface AuthenticatorTypeFormState<T> {
   type: T;
 }
 
-function isOTPAuthenticatorTypeEqual(
+function isAuthenticatorTypeEqual(
   primaryType: PrimaryAuthenticatorType,
   secondaryType: SecondaryAuthenticatorType
 ): boolean {
-  if (
-    primaryType === secondaryType &&
-    (secondaryType === "oob_otp_email" || secondaryType === "oob_otp_sms")
-  ) {
+  if (primaryType === secondaryType) {
     return true;
   }
   return false;
@@ -69,7 +66,7 @@ function makeAuthenticatorReasonable(state: FormState): FormState {
   return produce(state, (state) => {
     state.primary.forEach((primaryItem) => {
       state.secondary.forEach((secondaryItem) => {
-        if (isOTPAuthenticatorTypeEqual(primaryItem.type, secondaryItem.type)) {
+        if (isAuthenticatorTypeEqual(primaryItem.type, secondaryItem.type)) {
           if (primaryItem.isChecked) {
             secondaryItem.isChecked = false;
             secondaryItem.isDisabled = true;
