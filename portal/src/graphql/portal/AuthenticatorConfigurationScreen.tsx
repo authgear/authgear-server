@@ -52,21 +52,11 @@ interface AuthenticatorTypeFormState<T> {
   type: T;
 }
 
-function isAuthenticatorTypeEqual(
-  primaryType: PrimaryAuthenticatorType,
-  secondaryType: SecondaryAuthenticatorType
-): boolean {
-  if (primaryType === secondaryType) {
-    return true;
-  }
-  return false;
-}
-
 function makeAuthenticatorReasonable(state: FormState): FormState {
   return produce(state, (state) => {
     state.primary.forEach((primaryItem) => {
       state.secondary.forEach((secondaryItem) => {
-        if (isAuthenticatorTypeEqual(primaryItem.type, secondaryItem.type)) {
+        if (primaryItem.type === secondaryItem.type) {
           if (primaryItem.isChecked) {
             secondaryItem.isChecked = false;
             secondaryItem.isDisabled = true;
@@ -115,9 +105,7 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     if (!secondary.some((t) => t.type === type)) {
       secondary.push({
         isChecked: false,
-        isDisabled:
-          primary.find((p) => isAuthenticatorTypeEqual(p.type, type))
-            ?.isChecked ?? false,
+        isDisabled: primary.find((p) => p.type === type)?.isChecked ?? false,
         type,
       });
     }
