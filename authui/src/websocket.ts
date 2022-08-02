@@ -1,5 +1,6 @@
 import { Controller } from "@hotwired/stimulus";
 import { visit } from "@hotwired/turbo";
+import { RetryEventTarget } from "./retry";
 
 function refreshPage() {
   let url = window.location.pathname;
@@ -13,9 +14,9 @@ function refreshPage() {
 }
 
 export class WebSocketController extends Controller {
-  backoffIndex: number = 0;
   ws: WebSocket | null = null;
-  reconnectSetTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
+  abortController: AbortController | null = null;
+  retryEventTarget: RetryEventTarget | null = null;
 
   dispose = () => {
     if (this.ws != null) {
@@ -23,11 +24,6 @@ export class WebSocketController extends Controller {
       this.ws.close();
     }
     this.ws = null;
-
-    if (this.reconnectSetTimeoutHandle != null) {
-      clearTimeout(this.reconnectSetTimeoutHandle);
-    }
-    this.reconnectSetTimeoutHandle = null;
   };
 
   refreshIfNeeded = () => {
@@ -43,20 +39,6 @@ export class WebSocketController extends Controller {
     }
 
     refreshPage();
-  };
-
-  reconnectWebSocket = () => {
-    this.dispose();
-
-    const index = this.backoffIndex;
-    if (this.backoffIndex < 2) {
-      this.backoffIndex += 1;
-    }
-
-    this.reconnectSetTimeoutHandle = setTimeout(() => {
-      this.reconnectSetTimeoutHandle = null;
-      this.connectWebSocket(true);
-    }, Math.pow(2, index) * 1000);
   };
 
   connectWebSocket = (isReconnect: boolean) => {
@@ -84,7 +66,7 @@ export class WebSocketController extends Controller {
 
     this.ws.onopen = (e) => {
       console.log("ws onopen", e);
-      this.backoffIndex = 0;
+      this.retryEventTarget?.markSuccess();
     };
 
     this.ws.onclose = (e) => {
@@ -93,7 +75,7 @@ export class WebSocketController extends Controller {
       if (e.code === 1000) {
         return;
       }
-      this.reconnectWebSocket();
+      this.retryEventTarget?.scheduleRetry();
     };
 
     this.ws.onerror = (e) => {
@@ -111,10 +93,26 @@ export class WebSocketController extends Controller {
   };
 
   connect() {
+    this.abortController = new AbortController();
+    this.retryEventTarget = new RetryEventTarget({
+      abortController: this.abortController,
+    });
+    this.retryEventTarget.addEventListener("retry", () => {
+      this.dispose();
+      this.connectWebSocket(true);
+    });
+
     this.connectWebSocket(false);
   }
 
   disconnect() {
     this.dispose();
+
+    if (this.abortController != null) {
+      this.abortController.abort();
+    }
+    this.abortController = null;
+
+    this.retryEventTarget = null;
   }
 }
