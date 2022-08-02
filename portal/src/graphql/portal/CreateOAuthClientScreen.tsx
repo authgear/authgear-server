@@ -32,6 +32,7 @@ import FormTextField from "../../FormTextField";
 import { useTextField } from "../../hook/useInput";
 import Widget from "../../Widget";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import { FormErrorMessageBar } from "../../FormErrorMessageBar";
 
 interface FormState {
   clients: OAuthClientConfig[];
@@ -267,6 +268,7 @@ const CreateOAuthClientScreen: React.FC = function CreateOAuthClientScreen() {
 
   return (
     <FormProvider loading={isUpdating} error={updateError} rules={errorRules}>
+      <FormErrorMessageBar />
       <CreateOAuthClientContent form={form} />
     </FormProvider>
   );
