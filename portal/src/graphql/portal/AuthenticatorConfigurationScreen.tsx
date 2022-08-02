@@ -113,7 +113,13 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
   }));
   for (const type of secondaryAuthenticatorTypes) {
     if (!secondary.some((t) => t.type === type)) {
-      secondary.push({ isChecked: false, isDisabled: false, type });
+      secondary.push({
+        isChecked: false,
+        isDisabled:
+          primary.find((p) => isAuthenticatorTypeEqual(p.type, type))
+            ?.isChecked ?? false,
+        type,
+      });
     }
   }
 
@@ -743,7 +749,6 @@ const AuthenticatorConfigurationScreen: React.FC =
       constructFormState,
       constructConfig,
       constructInitialCurrentState: makeAuthenticatorReasonable,
-      constructInitialCurrentStateAfterSave: true,
     });
 
     const featureConfig = useAppFeatureConfigQuery(appID);
