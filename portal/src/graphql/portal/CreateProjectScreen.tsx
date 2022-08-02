@@ -14,13 +14,14 @@ import { useCreateAppMutation } from "./mutations/createAppMutation";
 import { useAppListQuery } from "./query/appListQuery";
 import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 import { useSimpleForm } from "../../hook/useSimpleForm";
+import { randomProjectName } from "../../util/projectname";
 
 interface FormState {
   appID: string;
 }
 
 const DEFAULT_STATE: FormState = {
-  appID: "",
+  appID: randomProjectName(),
 };
 
 const FORM_TEXT_FIELD_STYLES = {
