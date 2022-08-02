@@ -260,6 +260,9 @@ func (s *Service) CreateSubscriptionIfNotExists(checkoutSessionID string, subscr
 		Customer:           customerID,
 		Items:              subscriptionItems,
 		BillingCycleAnchor: &billingCycleAnchorUnix,
+		AutomaticTax: &stripe.SubscriptionAutomaticTaxParams{
+			Enabled: stripe.Bool(true),
+		},
 	})
 	if err != nil {
 		return err
