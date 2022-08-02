@@ -22,6 +22,7 @@ import useTransactionalState from "../../hook/useTransactionalState";
 import DateRangeDialog from "./DateRangeDialog";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { parseDate } from "../../util/date";
+import ScreenDescription from "../../ScreenDescription";
 
 function truncateTimeAndReplaceTimezoneToUTC(date: Date): Date {
   return new Date(
@@ -305,6 +306,9 @@ const AnalyticsScreenContent: React.FC = function AnalyticsScreenContent() {
           <ScreenTitle>
             <FormattedMessage id="AnalyticsScreen.title" />
           </ScreenTitle>
+          <ScreenDescription className={styles.widget}>
+            <FormattedMessage id="AnalyticsScreen.description" />
+          </ScreenDescription>
           <AnalyticsActivityWidget
             className={styles.activityWidget}
             loading={loading}
