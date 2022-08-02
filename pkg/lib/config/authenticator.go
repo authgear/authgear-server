@@ -159,7 +159,7 @@ type AuthenticatorOOBSMSConfig struct {
 
 func (c *AuthenticatorOOBSMSConfig) SetDefaults() {
 	if c.PhoneOTPMode == "" {
-		c.PhoneOTPMode = AuthenticatorPhoneOTPModeSMSOnly
+		c.PhoneOTPMode = AuthenticatorPhoneOTPModeWhatsappSMS
 	}
 	if c.Maximum == nil {
 		c.Maximum = newInt(99)
