@@ -335,8 +335,7 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
       () =>
         effectiveConfig.identity?.login_id?.keys?.find(
           (t) => t.type === "phone"
-        )?.modify_disabled ?? true,
-
+        ) == null,
       [effectiveConfig.identity?.login_id?.keys]
     );
 
