@@ -3,6 +3,7 @@ import axios from "axios";
 import { handleAxiosError } from "./messageBar";
 import { base64DecToArr, base64EncArr } from "./base64";
 import { base64URLToBase64, trimNewline, base64ToBase64URL } from "./base64url";
+import { RetryEventTarget } from "./retry";
 
 function passkeyIsAvailable(): boolean {
   return (
@@ -250,31 +251,28 @@ export class PasskeyAutofillController extends Controller {
   declare inputTarget: HTMLInputElement;
 
   abortController: AbortController | null = null;
+  retryEventTarget: RetryEventTarget | null = null;
 
   connect() {
     if (!passkeyIsAvailable()) {
       return;
     }
 
+    this.abortController = new AbortController();
+    this.retryEventTarget = new RetryEventTarget({
+      abortController: this.abortController,
+    });
+    this.retryEventTarget.addEventListener("retry", () => {
+      this.setupAutofill();
+    });
+
     this.setupAutofill();
   }
 
   disconnect() {
-    this.cleanupAbortController();
-  }
-
-  cleanupAbortController() {
-    if (this.abortController != null) {
-      this.abortController.abort();
-      this.abortController = null;
-    }
-  }
-
-  setupAbortController(): AbortSignal {
-    this.cleanupAbortController();
-    const abortController = new AbortController();
-    this.abortController = abortController;
-    return abortController.signal;
+    this.abortController?.abort();
+    this.abortController = null;
+    this.retryEventTarget = null;
   }
 
   async setupAutofill() {
@@ -294,9 +292,10 @@ export class PasskeyAutofillController extends Controller {
             method: "post",
             data: params,
           });
+          this.retryEventTarget?.markSuccess();
           const options = deserializeRequestOptions(resp.data.result);
           try {
-            const signal = this.setupAbortController();
+            const signal = this.abortController?.signal;
             const rawResponse = await window.navigator.credentials.get({
               ...options,
               signal,
@@ -311,17 +310,18 @@ export class PasskeyAutofillController extends Controller {
               // Therefore, we emulate form submission here by clicking the submit button.
               this.submitTarget.click();
             }
-            this.setupAutofill();
+            this.retryEventTarget?.scheduleRetry();
           } catch (e: unknown) {
             handleError(e);
             if (e instanceof DOMException && e.name === "AbortError") {
               // Aborted. Let connect() to be called again.
             } else {
-              this.setupAutofill();
+              this.retryEventTarget?.scheduleRetry();
             }
           }
         } catch (e: unknown) {
           handleAxiosError(e);
+          this.retryEventTarget?.scheduleRetry();
         }
       }
     }
