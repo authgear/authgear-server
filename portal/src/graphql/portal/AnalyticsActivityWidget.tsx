@@ -194,7 +194,7 @@ const AnalyticsActivityWidget: React.FC<AnalyticsActivityWidgetProps> =
         const itemKey = item?.props.itemKey;
         if (itemKey) {
           if (itemKey !== periodical) {
-            if (itemKey in Periodical) {
+            if (Object.values(Periodical).includes(itemKey as Periodical)) {
               onPeriodicalChange(itemKey as Periodical);
             }
           }
