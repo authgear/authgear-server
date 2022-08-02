@@ -74,6 +74,7 @@
 .quickStartItemHovered .quickStartItemArrowIcon,
 .quickStartItemOpenTutorial {
   color: #176df3;
+  pointer-events: none;
 }
 
 .frameworkImage {
