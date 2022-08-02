@@ -37,6 +37,7 @@ import {
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
+import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import styles from "./EditOAuthClientScreen.module.css";
 import Widget from "../../Widget";
 import flutterIconURL from "../../images/framework_flutter.svg";
@@ -406,34 +407,36 @@ const OAuthQuickStartScreenContent: React.FC<OAuthQuickStartScreenContentProps> 
     );
 
     return (
-      <ScreenContent>
-        <EditOAuthClientNavBreadcrumb clientName={client?.name ?? ""} />
-        <Widget className={styles.widget}>
-          <Text variant="xLarge" block={true}>
-            <Icon
-              className={styles.quickStartScreenTitleIcon}
-              styles={{ root: { color: theme.palette.themePrimary } }}
-              iconName="Lightbulb"
+      <ScreenLayoutScrollView>
+        <ScreenContent>
+          <EditOAuthClientNavBreadcrumb clientName={client?.name ?? ""} />
+          <Widget className={styles.widget}>
+            <Text variant="xLarge" block={true}>
+              <Icon
+                className={styles.quickStartScreenTitleIcon}
+                styles={{ root: { color: theme.palette.themePrimary } }}
+                iconName="Lightbulb"
+              />
+              <FormattedMessage id="EditOAuthClientScreen.quick-start-screen.title" />
+            </Text>
+            <Text className={styles.quickStartScreenDescription} block={true}>
+              <FormattedMessage
+                id="EditOAuthClientScreen.quick-start-screen.question"
+                values={{ applicationType: client?.name ?? "" }}
+              />
+            </Text>
+            <QuickStartFrameworkList
+              applicationType={client?.x_application_type}
+              showOpenTutorialLabelWhenHover={true}
             />
-            <FormattedMessage id="EditOAuthClientScreen.quick-start-screen.title" />
-          </Text>
-          <Text className={styles.quickStartScreenDescription} block={true}>
-            <FormattedMessage
-              id="EditOAuthClientScreen.quick-start-screen.question"
-              values={{ applicationType: client?.name ?? "" }}
-            />
-          </Text>
-          <QuickStartFrameworkList
-            applicationType={client?.x_application_type}
-            showOpenTutorialLabelWhenHover={true}
-          />
-          <div className={styles.quickStartScreenButtons}>
-            <PrimaryButton onClick={onNextButtonClick}>
-              <FormattedMessage id="next" />
-            </PrimaryButton>
-          </div>
-        </Widget>
-      </ScreenContent>
+            <div className={styles.quickStartScreenButtons}>
+              <PrimaryButton onClick={onNextButtonClick}>
+                <FormattedMessage id="next" />
+              </PrimaryButton>
+            </div>
+          </Widget>
+        </ScreenContent>
+      </ScreenLayoutScrollView>
     );
   };
 
