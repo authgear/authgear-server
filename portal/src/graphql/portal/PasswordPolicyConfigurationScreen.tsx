@@ -432,7 +432,11 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
             onChange={onHistorySizeChange}
           />
           <div>
-            <Label>
+            <Label
+              disabled={
+                passwordPolicyFeatureConfig?.excluded_keywords?.disabled
+              }
+            >
               <FormattedMessage id="PasswordPolicyConfigurationScreen.excluded-keywords.label" />
             </Label>
             <CustomTagPicker
