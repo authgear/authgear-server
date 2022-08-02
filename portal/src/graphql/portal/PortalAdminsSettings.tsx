@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { ICommandBarItemProps, MessageBar } from "@fluentui/react";
+import { ICommandBarItemProps } from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { makeReasonErrorParseRule } from "../../error/parse";
@@ -23,6 +23,7 @@ import styles from "./PortalAdminsSettings.module.css";
 import CommandBarContainer from "../../CommandBarContainer";
 import ScreenContent from "../../ScreenContent";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
+import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 
 const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
   const { renderToString } = useContext(Context);
@@ -197,7 +198,7 @@ const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
         <div className={styles.widget}>
           <NavBreadcrumb items={navBreadcrumbItems} />
           {effectiveFeatureConfig?.collaborator.maximum != null && (
-            <MessageBar className={styles.messageBar}>
+            <FeatureDisabledMessageBar className={styles.messageBar}>
               <FormattedMessage
                 id="FeatureConfig.collaborator"
                 values={{
@@ -205,7 +206,7 @@ const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
                   maximum: effectiveFeatureConfig?.collaborator.maximum,
                 }}
               />
-            </MessageBar>
+            </FeatureDisabledMessageBar>
           )}
         </div>
         <PortalAdminList

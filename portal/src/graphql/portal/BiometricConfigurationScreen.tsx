@@ -2,7 +2,7 @@ import React, { useCallback, useContext, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { Toggle, MessageBar } from "@fluentui/react";
+import { Toggle } from "@fluentui/react";
 import { PortalAPIAppConfig, IdentityFeatureConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import ShowLoading from "../../ShowLoading";
@@ -19,6 +19,7 @@ import {
 import FormContainer from "../../FormContainer";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import styles from "./BiometricConfigurationScreen.module.css";
+import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 
 interface FormState {
   enabled: boolean;
@@ -111,14 +112,14 @@ const BiometricConfigurationContent: React.FC<BiometricConfigurationContentProps
             <FormattedMessage id="BiometricConfigurationScreen.title" />
           </WidgetTitle>
           {biometricDisabled && (
-            <MessageBar>
+            <FeatureDisabledMessageBar>
               <FormattedMessage
                 id="FeatureConfig.disabled"
                 values={{
                   planPagePath: "./../../billing",
                 }}
               />
-            </MessageBar>
+            </FeatureDisabledMessageBar>
           )}
           <Toggle
             disabled={biometricDisabled}

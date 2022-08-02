@@ -13,7 +13,6 @@ import {
 import {
   ICommandBarItemProps,
   IDropdownOption,
-  MessageBar,
   addDays,
   TooltipHost,
   ITooltipHostStyles,
@@ -44,6 +43,7 @@ import {
 import { AuditLogActivityType, SortDirection } from "./globalTypes.generated";
 import styles from "./AuditLogScreen.module.css";
 import { useAppFeatureConfigQuery } from "../portal/query/appFeatureConfigQuery";
+import FeatureDisabledMessageBar from "../portal/FeatureDisabledMessageBar";
 
 const pageSize = 10;
 
@@ -468,7 +468,7 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
           <div className={styles.widget}>
             <NavBreadcrumb items={items} />
             {logRetrievalDays !== -1 && (
-              <MessageBar className={styles.messageBar}>
+              <FeatureDisabledMessageBar className={styles.messageBar}>
                 <FormattedMessage
                   id="FeatureConfig.audit-log.retrieval-days"
                   values={{
@@ -476,7 +476,7 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
                     logRetrievalDays: logRetrievalDays,
                   }}
                 />
-              </MessageBar>
+              </FeatureDisabledMessageBar>
             )}
           </div>
           <AuditLogList

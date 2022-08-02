@@ -56,6 +56,7 @@ import Widget from "../../Widget";
 import ErrorRenderer from "../../ErrorRenderer";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import TextField from "../../TextField";
+import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 
 function getOriginFromDomain(domain: string): string {
   // assume domain has no scheme
@@ -679,14 +680,14 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
               <FormattedMessage id="CustomDomainListScreen.desc" />
             </Text>
             {customDomainDisabled && (
-              <MessageBar>
+              <FeatureDisabledMessageBar>
                 <FormattedMessage
                   id="FeatureConfig.custom-domain.disabled"
                   values={{
                     planPagePath: "./../billing",
                   }}
                 />
-              </MessageBar>
+              </FeatureDisabledMessageBar>
             )}
             <DetailsList
               columns={domainListColumns}

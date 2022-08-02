@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState, useContext } from "react";
 import cn from "classnames";
 import { useParams } from "react-router-dom";
-import { Toggle, MessageBar } from "@fluentui/react";
+import { Toggle } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { produce } from "immer";
@@ -21,6 +21,7 @@ import {
   DEFAULT_DARK_THEME,
 } from "../../ThemePresetWidget";
 import ImageFilePicker from "../../ImageFilePicker";
+import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import { PortalAPIAppConfig } from "../../types";
 import {
   ALL_LANGUAGES_TEMPLATES,
@@ -789,14 +790,14 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             <FormattedMessage id="UISettingsScreen.branding.title" />
           </WidgetTitle>
           {state.whiteLabelingDisabled && (
-            <MessageBar>
+            <FeatureDisabledMessageBar>
               <FormattedMessage
                 id="FeatureConfig.white-labeling.disabled"
                 values={{
                   planPagePath: "./../../billing",
                 }}
               />
-            </MessageBar>
+            </FeatureDisabledMessageBar>
           )}
           <Toggle
             checked={watermarkEnabled}

@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import produce from "immer";
-import { Checkbox, Toggle, MessageBar } from "@fluentui/react";
+import { Checkbox, Toggle } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import Widget from "../../Widget";
@@ -41,6 +41,7 @@ import {
 } from "../../util/resource";
 import { useResourceForm } from "../../hook/useResourceForm";
 import CustomTagPicker from "../../CustomTagPicker";
+import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
 import ALL_COUNTRIES from "../../data/country.json";
@@ -461,14 +462,14 @@ const LoginIDTypeEdit: React.FC<LoginIDTypeEditProps> =
     const widgetMessageHeader = useMemo(
       () =>
         featureDisabled && (
-          <MessageBar>
+          <FeatureDisabledMessageBar>
             <FormattedMessage
               id="FeatureConfig.disabled"
               values={{
                 planPagePath: "./../../../billing",
               }}
             />
-          </MessageBar>
+          </FeatureDisabledMessageBar>
         ),
       [featureDisabled]
     );

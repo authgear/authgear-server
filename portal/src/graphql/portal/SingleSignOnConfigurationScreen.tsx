@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
-import { MessageBar, Text } from "@fluentui/react";
+import { Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import SingleSignOnConfigurationWidget from "./SingleSignOnConfigurationWidget";
 import ShowLoading from "../../ShowLoading";
@@ -9,6 +9,7 @@ import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import ScreenDescription from "../../ScreenDescription";
+import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import { clearEmptyObject } from "../../util/misc";
 import FormContainer from "../../FormContainer";
 import {
@@ -287,7 +288,7 @@ const SingleSignOnConfigurationContent: React.FC<SingleSignOnConfigurationConten
             />
           </Text>
           {oauthClientsMaximum < 99 && (
-            <MessageBar>
+            <FeatureDisabledMessageBar>
               <FormattedMessage
                 id="FeatureConfig.sso.maximum"
                 values={{
@@ -295,7 +296,7 @@ const SingleSignOnConfigurationContent: React.FC<SingleSignOnConfigurationConten
                   maximum: oauthClientsMaximum,
                 }}
               />
-            </MessageBar>
+            </FeatureDisabledMessageBar>
           )}
         </ScreenDescription>
         {oauthSSOProviderItemKeys.map((providerItemKey) => (

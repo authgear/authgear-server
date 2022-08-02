@@ -6,7 +6,6 @@ import {
   IColumn,
   SelectionMode,
   Toggle,
-  MessageBar,
   DetailsList,
 } from "@fluentui/react";
 import produce from "immer";
@@ -41,6 +40,7 @@ import WidgetTitle from "../../WidgetTitle";
 import WidgetDescription from "../../WidgetDescription";
 import Widget from "../../Widget";
 import FormContainer from "../../FormContainer";
+import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 
 import styles from "./AuthenticatorConfigurationScreen.module.css";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
@@ -574,14 +574,14 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
             <FormattedMessage id="AuthenticatorConfigurationScreen.primary-authenticators.title" />
           </WidgetTitle>
           {hasPrimaryFeatureDisabled && (
-            <MessageBar>
+            <FeatureDisabledMessageBar>
               <FormattedMessage
                 id="FeatureConfig.disabled"
                 values={{
                   planPagePath: "./../../../billing",
                 }}
               />
-            </MessageBar>
+            </FeatureDisabledMessageBar>
           )}
           <DetailsList
             items={primaryItems}
@@ -608,14 +608,14 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
             })}
           >
             {hasSecondaryFeatureDisabled && (
-              <MessageBar>
+              <FeatureDisabledMessageBar>
                 <FormattedMessage
                   id="FeatureConfig.disabled"
                   values={{
                     planPagePath: "./../../../billing",
                   }}
                 />
-              </MessageBar>
+              </FeatureDisabledMessageBar>
             )}
             <DetailsList
               items={secondaryItems}

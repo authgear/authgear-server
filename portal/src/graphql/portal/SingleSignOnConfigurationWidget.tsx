@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import cn from "classnames";
 import produce from "immer";
-import { Checkbox, DirectionalHint, Toggle, MessageBar } from "@fluentui/react";
+import { Checkbox, DirectionalHint, Toggle } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import ExtendableWidget from "../../ExtendableWidget";
@@ -24,6 +24,7 @@ import {
 import styles from "./SingleSignOnConfigurationWidget.module.css";
 import FormTextFieldList from "../../FormTextFieldList";
 import LabelWithTooltip from "../../LabelWithTooltip";
+import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 
 interface WidgetHeaderLabelProps {
   icon: React.ReactNode;
@@ -234,14 +235,14 @@ const WidgetHeader: React.FC<WidgetHeaderProps> = function WidgetHeader(
   let messageBar;
   if (disabled) {
     messageBar = (
-      <MessageBar>
+      <FeatureDisabledMessageBar>
         <FormattedMessage
           id="FeatureConfig.disabled"
           values={{
             planPagePath: "./../../billing",
           }}
         />
-      </MessageBar>
+      </FeatureDisabledMessageBar>
     );
   }
 
