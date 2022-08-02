@@ -816,6 +816,9 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
         </div>
         <div className={styles.footer}>
           <Text block={true}>
+            <FormattedMessage id="SubscriptionScreen.footer.tax" />
+          </Text>
+          <Text block={true}>
             <FormattedMessage
               id="SubscriptionScreen.footer.enterprise-plan"
               values={{
