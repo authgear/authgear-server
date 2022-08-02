@@ -171,7 +171,7 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
       >
         <DialogFooter>
           <PrimaryButton onClick={doReset} theme={themes.destructive}>
-            <FormattedMessage id="confirm" />
+            <FormattedMessage id="FormContainer.reset-dialog.confirm" />
           </PrimaryButton>
           <DefaultButton onClick={onDismissResetDialog}>
             <FormattedMessage id="cancel" />
