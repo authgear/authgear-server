@@ -1,15 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import {
-  maskNumber,
-  deterministicProjectName,
-  randomProjectName,
-} from "./projectname";
-
-// eslint-disable-next-line no-undef
-const mGetRandomValues = jest.fn().mockReturnValueOnce(new Uint32Array(1));
-Object.defineProperty(window, "crypto", {
-  value: { getRandomValues: mGetRandomValues },
-});
+import { maskNumber, deterministicProjectName } from "./projectname";
 
 describe("maskNumber", () => {
   it("should mask the number starting from 0 bit and get 11 bits after it", () => {
@@ -53,11 +43,5 @@ describe("deterministicProjectName", () => {
     // 0b1111111111 is 1023
     // So the name is zoo-zoo-1023
     expect(deterministicProjectName(4294967295)).toEqual("zoo-zoo-1023");
-  });
-});
-
-describe("randomProjectName", () => {
-  it("should generate random project name", () => {
-    expect(randomProjectName()).toEqual("abandon-abandon-0");
   });
 });
