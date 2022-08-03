@@ -926,6 +926,7 @@
   "SubscriptionPlanCard.sms.other-regions": "USD {unitAmount} per SMS (Other regions)",
   "SubscriptionPlanCard.mau": "USD {unitAmount}/mo per {divisor} additional MAUs",
 
+  "SubscriptionScreen.footer.tax": "* Local VAT and taxes may apply.",
   "SubscriptionScreen.footer.enterprise-plan": "Get 50,000+ MAUs and customization with our {ExternalLink, react, onClick{{onClick}} children{Enterprise Plan}}",
   "SubscriptionScreen.footer.pricing-details": "Check out more details and compare plan features on our {ExternalLink, react, href{https://www.authgear.com/pricing} children{pricing page}}",
   "SubscriptionScreen.footer.usage-delay-disclaimer": "Reporting is not realtime. The MAU and SMS numbers are delayed up to 24 hours.",

@@ -119,6 +119,7 @@ export function BasePriceTag(props: BasePriceTagProps): React.ReactElement {
   return (
     <Text block={true} variant="xLarge" className={styles.basePriceTag}>
       {children}
+      <span className={styles.basePriceTagRemarks}>*</span>
     </Text>
   );
 }
