@@ -36,6 +36,7 @@ import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import ScreenDescription from "../../ScreenDescription";
 import { getApplicationTypeMessageID } from "./EditOAuthClientForm";
 import CommandBarContainer from "../../CommandBarContainer";
+import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 
 const COPY_ICON_STLYES: IButtonStyles = {
   root: { margin: "0 4px" },
@@ -195,7 +196,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
         </ScreenDescription>
         <div className={styles.widget}>
           {oauthClientsMaximum < 99 && (
-            <MessageBar>
+            <FeatureDisabledMessageBar>
               <FormattedMessage
                 id="FeatureConfig.oauth-clients.maximum"
                 values={{
@@ -203,7 +204,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
                   maximum: oauthClientsMaximum,
                 }}
               />
-            </MessageBar>
+            </FeatureDisabledMessageBar>
           )}
           <DetailsList
             onRenderRow={onRenderOAuthClientRow}

@@ -6,7 +6,6 @@ import {
   Checkbox,
   Dropdown,
   IDropdownOption,
-  MessageBar,
   DirectionalHint,
 } from "@fluentui/react";
 import {
@@ -37,6 +36,7 @@ import styles from "./VerificationConfigurationScreen.module.css";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import LabelWithTooltip from "../../LabelWithTooltip";
 import TextField from "../../TextField";
+import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 
 const DEFAULT_PHONE_OTP_MODE: AuthenticatorPhoneOTPMode = "whatsapp_sms";
 
@@ -327,14 +327,14 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
             <FormattedMessage id="VerificationConfigurationScreen.verification.claims.phoneNumber" />
           </WidgetTitle>
           {loginIDPhoneDisabled && (
-            <MessageBar>
+            <FeatureDisabledMessageBar>
               <FormattedMessage
                 id="FeatureConfig.disabled"
                 values={{
                   planPagePath: "./../../../billing",
                 }}
               />
-            </MessageBar>
+            </FeatureDisabledMessageBar>
           )}
           <Dropdown
             disabled={loginIDPhoneDisabled}

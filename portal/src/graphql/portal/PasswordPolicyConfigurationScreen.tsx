@@ -6,7 +6,6 @@ import {
   IDropdownOption,
   Label,
   Toggle,
-  MessageBar,
 } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import produce from "immer";
@@ -36,6 +35,7 @@ import Widget from "../../Widget";
 import FormContainer from "../../FormContainer";
 import CustomTagPicker from "../../CustomTagPicker";
 import TextField from "../../TextField";
+import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import { fixTagPickerStyles } from "../../bugs";
 
 import styles from "./PasswordPolicyConfigurationScreen.module.css";
@@ -378,14 +378,14 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
             <FormattedMessage id="PasswordPolicyConfigurationScreen.advanced-policies" />
           </WidgetTitle>
           {anyAdvancedPolicyDisabled && (
-            <MessageBar>
+            <FeatureDisabledMessageBar>
               <FormattedMessage
                 id="FeatureConfig.disabled"
                 values={{
                   planPagePath: "./../../billing",
                 }}
               />
-            </MessageBar>
+            </FeatureDisabledMessageBar>
           )}
           <Dropdown
             label={renderToString(

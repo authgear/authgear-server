@@ -7,7 +7,6 @@ import {
   IDropdownOption,
   ISelectableOption,
   Label,
-  MessageBar,
   PrimaryButton,
 } from "@fluentui/react";
 import produce from "immer";
@@ -40,6 +39,7 @@ import { startReauthentication } from "./Authenticated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useErrorMessage, useErrorMessageString } from "../../formbinding";
 import TextField from "../../TextField";
+import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 
 interface BlockingEventHandler {
   event: string;
@@ -404,16 +404,16 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
           </WidgetDescription>
           {blockingHandlerMax < 99 &&
             (blockingHandlerDisabled ? (
-              <MessageBar>
+              <FeatureDisabledMessageBar>
                 <FormattedMessage
                   id="FeatureConfig.webhook.blocking-events.disabled"
                   values={{
                     planPagePath: "./../../billing",
                   }}
                 />
-              </MessageBar>
+              </FeatureDisabledMessageBar>
             ) : (
-              <MessageBar>
+              <FeatureDisabledMessageBar>
                 <FormattedMessage
                   id="FeatureConfig.webhook.blocking-events.maximum"
                   values={{
@@ -421,7 +421,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
                     maximum: blockingHandlerMax,
                   }}
                 />
-              </MessageBar>
+              </FeatureDisabledMessageBar>
             ))}
           {!hideBlockingHandlerList && (
             <FieldList
@@ -451,16 +451,16 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
           </WidgetDescription>
           {nonBlockingHandlerMax < 99 &&
             (nonBlockingHandlerDisabled ? (
-              <MessageBar>
+              <FeatureDisabledMessageBar>
                 <FormattedMessage
                   id="FeatureConfig.webhook.non-blocking-events.disabled"
                   values={{
                     planPagePath: "./../../billing",
                   }}
                 />
-              </MessageBar>
+              </FeatureDisabledMessageBar>
             ) : (
-              <MessageBar>
+              <FeatureDisabledMessageBar>
                 <FormattedMessage
                   id="FeatureConfig.webhook.non-blocking-events.maximum"
                   values={{
@@ -468,7 +468,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
                     maximum: nonBlockingHandlerMax,
                   }}
                 />
-              </MessageBar>
+              </FeatureDisabledMessageBar>
             ))}
           {!hideNonBlockingHandlerList && (
             <FieldList
