@@ -100,6 +100,12 @@ function constructConfig(
   });
 }
 
+function constructInitialCurrentState(state: FormState): FormState {
+  return produce(state, (state) => {
+    state.newClient.name = "My App";
+  });
+}
+
 interface CreateOAuthClientContentProps {
   form: AppConfigFormModel<FormState>;
 }
@@ -258,7 +264,12 @@ const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> =
 
 const CreateOAuthClientScreen: React.FC = function CreateOAuthClientScreen() {
   const { appID } = useParams() as { appID: string };
-  const form = useAppConfigForm({ appID, constructFormState, constructConfig });
+  const form = useAppConfigForm({
+    appID,
+    constructFormState,
+    constructConfig,
+    constructInitialCurrentState,
+  });
 
   const { isLoading, loadError, reload, updateError, isUpdating } = form;
 
