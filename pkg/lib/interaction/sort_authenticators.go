@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/util/sortutil"
 )
 
 type SortableAuthenticator interface {
@@ -29,41 +30,43 @@ func SortAuthenticators(
 	slice interface{},
 	toSortable func(i int) SortableAuthenticator,
 ) {
-	rank := make(map[model.AuthenticatorType]int)
-	for i, typ := range preferred {
-		rank[typ] = i
-	}
-
-	sort.SliceStable(slice, func(i, j int) bool {
+	orderByDefault := func(i, j int) bool {
 		iSortable := toSortable(i)
 		jSortable := toSortable(j)
 
 		iDefault := iSortable.IsDefaultAuthenticator()
 		jDefault := jSortable.IsDefaultAuthenticator()
+
+		return iDefault && !jDefault
+	}
+
+	rank := make(map[model.AuthenticatorType]int)
+	for i, typ := range preferred {
+		rank[typ] = i
+	}
+	orderByRank := func(i, j int) bool {
+		iSortable := toSortable(i)
+		jSortable := toSortable(j)
+
+		iType := iSortable.AuthenticatorType()
+		jType := jSortable.AuthenticatorType()
+
+		iRank, iIsPreferred := rank[iType]
+		jRank, jIsPreferred := rank[jType]
+
 		switch {
-		case iDefault && !jDefault:
-			return true
-		case !iDefault && jDefault:
+		case iIsPreferred && jIsPreferred:
+			return iRank < jRank
+		case !iIsPreferred && !jIsPreferred:
 			return false
-		default:
-			iType := iSortable.AuthenticatorType()
-			jType := jSortable.AuthenticatorType()
-
-			iRank, iIsPreferred := rank[iType]
-			jRank, jIsPreferred := rank[jType]
-
-			switch {
-			case iIsPreferred && jIsPreferred:
-				return iRank < jRank
-			case !iIsPreferred && !jIsPreferred:
-				return false
-			case iIsPreferred && !jIsPreferred:
-				return true
-			case !iIsPreferred && jIsPreferred:
-				return false
-			}
+		case iIsPreferred && !jIsPreferred:
+			return true
+		case !iIsPreferred && jIsPreferred:
+			return false
 		}
-
 		panic("unreachable")
-	})
+	}
+
+	less := sortutil.LessFunc(orderByDefault).AndThen(orderByRank)
+	sort.SliceStable(slice, less)
 }
