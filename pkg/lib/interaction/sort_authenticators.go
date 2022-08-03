@@ -30,6 +30,21 @@ func SortAuthenticators(
 	slice interface{},
 	toSortable func(i int) SortableAuthenticator,
 ) {
+	// Non-passkey authenticators must come BEFORE passkey authenticators.
+	orderByPasskey := func(i, j int) bool {
+		iSortable := toSortable(i)
+		jSortable := toSortable(j)
+
+		iType := iSortable.AuthenticatorType()
+		jType := jSortable.AuthenticatorType()
+
+		iPasskey := iType == model.AuthenticatorTypePasskey
+		jPasskey := jType == model.AuthenticatorTypePasskey
+
+		return !iPasskey && jPasskey
+	}
+
+	// Default authenticators must come BEFORE non-default authenticators.
 	orderByDefault := func(i, j int) bool {
 		iSortable := toSortable(i)
 		jSortable := toSortable(j)
@@ -40,6 +55,8 @@ func SortAuthenticators(
 		return iDefault && !jDefault
 	}
 
+	// authenticators with a higher rank (lower rank value) must come BEFORE
+	// authenticators with a lower rank (higher rank value).
 	rank := make(map[model.AuthenticatorType]int)
 	for i, typ := range preferred {
 		rank[typ] = i
@@ -57,16 +74,13 @@ func SortAuthenticators(
 		switch {
 		case iIsPreferred && jIsPreferred:
 			return iRank < jRank
-		case !iIsPreferred && !jIsPreferred:
-			return false
 		case iIsPreferred && !jIsPreferred:
 			return true
-		case !iIsPreferred && jIsPreferred:
+		default:
 			return false
 		}
-		panic("unreachable")
 	}
 
-	less := sortutil.LessFunc(orderByDefault).AndThen(orderByRank)
+	less := sortutil.LessFunc(orderByPasskey).AndThen(orderByDefault).AndThen(orderByRank)
 	sort.SliceStable(slice, less)
 }
