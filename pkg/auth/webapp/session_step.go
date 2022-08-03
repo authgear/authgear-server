@@ -53,12 +53,12 @@ func (k SessionStepKind) Path() string {
 		return "/enter_password"
 	case SessionStepUsePasskey:
 		// TODO(passkey): support passkey without password
-		return "/enter_password"
+		return "/use_passkey"
 	case SessionStepCreatePassword:
 		return "/create_password"
 	case SessionStepCreatePasskey:
 		// TODO(passkey): support passkey without password
-		return "/create_password"
+		return "/create_passkey"
 	case SessionStepChangePrimaryPassword:
 		return "/change_password"
 	case SessionStepChangeSecondaryPassword:
