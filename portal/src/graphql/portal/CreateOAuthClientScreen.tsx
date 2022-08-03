@@ -32,6 +32,8 @@ import FormTextField from "../../FormTextField";
 import { useTextField } from "../../hook/useInput";
 import Widget from "../../Widget";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import { FormErrorMessageBar } from "../../FormErrorMessageBar";
+import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 
 interface FormState {
   clients: OAuthClientConfig[];
@@ -270,7 +272,10 @@ const CreateOAuthClientScreen: React.FC = function CreateOAuthClientScreen() {
 
   return (
     <FormProvider loading={isUpdating} error={updateError} rules={errorRules}>
-      <CreateOAuthClientContent form={form} />
+      <FormErrorMessageBar />
+      <ScreenLayoutScrollView>
+        <CreateOAuthClientContent form={form} />
+      </ScreenLayoutScrollView>
     </FormProvider>
   );
 };
