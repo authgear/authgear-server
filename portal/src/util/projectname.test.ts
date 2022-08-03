@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-/* global describe, it, expect */
+import { describe, it, expect } from "@jest/globals";
 import {
   determineWord,
   getRandom32BitsNumber,
