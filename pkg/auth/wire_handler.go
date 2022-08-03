@@ -199,6 +199,13 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.CreatePasskeyHandler)),
+	))
+}
+
 func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
