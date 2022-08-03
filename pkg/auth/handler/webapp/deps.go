@@ -28,6 +28,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(SSOCallbackHandler), "*"),
 	wire.Struct(new(EnterLoginIDHandler), "*"),
 	wire.Struct(new(EnterPasswordHandler), "*"),
+	wire.Struct(new(UsePasskeyHandler), "*"),
 	wire.Struct(new(CreatePasswordHandler), "*"),
 	wire.Struct(new(CreatePasskeyHandler), "*"),
 	wire.Struct(new(SetupTOTPHandler), "*"),
