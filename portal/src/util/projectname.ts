@@ -1,11 +1,11 @@
 // ref https://github.com/bitcoinjs/bip39/blob/master/src/wordlists/english.json
 import * as wordlist from "./wordlist.json";
 
-export function determineWord(index: number): string {
+function determineWord(index: number): string {
   return wordlist[index];
 }
 
-export function getRandom32BitsNumber(): number {
+function getRandom32BitsNumber(): number {
   const randomBuffer = new Uint32Array(1);
   window.crypto.getRandomValues(randomBuffer);
   return randomBuffer[0];
