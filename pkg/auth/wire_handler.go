@@ -192,6 +192,13 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.UsePasskeyHandler)),
+	))
+}
+
 func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
