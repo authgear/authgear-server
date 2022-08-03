@@ -8,6 +8,7 @@ import {
   Toggle,
   MessageBar,
   DetailsList,
+  Link,
 } from "@fluentui/react";
 import produce from "immer";
 import deepEqual from "deep-equal";
@@ -46,8 +47,26 @@ import styles from "./AuthenticatorConfigurationScreen.module.css";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 
 interface AuthenticatorTypeFormState<T> {
-  isEnabled: boolean;
+  isChecked: boolean;
+  isDisabled: boolean;
   type: T;
+}
+
+function makeAuthenticatorReasonable(state: FormState): FormState {
+  return produce(state, (state) => {
+    state.primary.forEach((primaryItem) => {
+      state.secondary.forEach((secondaryItem) => {
+        if (primaryItem.type === secondaryItem.type) {
+          if (primaryItem.isChecked) {
+            secondaryItem.isChecked = false;
+            secondaryItem.isDisabled = true;
+          } else {
+            secondaryItem.isDisabled = false;
+          }
+        }
+      });
+    });
+  });
 }
 
 interface FormState {
@@ -66,23 +85,29 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
   const primary: AuthenticatorTypeFormState<PrimaryAuthenticatorType>[] = (
     config.authentication?.primary_authenticators ?? []
   ).map((t) => ({
-    isEnabled: true,
+    isChecked: true,
+    isDisabled: false,
     type: t,
   }));
   for (const type of primaryAuthenticatorTypes) {
     if (!primary.some((t) => t.type === type)) {
-      primary.push({ isEnabled: false, type });
+      primary.push({ isChecked: false, isDisabled: false, type });
     }
   }
   const secondary: AuthenticatorTypeFormState<SecondaryAuthenticatorType>[] = (
     config.authentication?.secondary_authenticators ?? []
   ).map((t) => ({
-    isEnabled: true,
+    isChecked: true,
+    isDisabled: false,
     type: t,
   }));
   for (const type of secondaryAuthenticatorTypes) {
     if (!secondary.some((t) => t.type === type)) {
-      secondary.push({ isEnabled: false, type });
+      secondary.push({
+        isChecked: false,
+        isDisabled: primary.find((p) => p.type === type)?.isChecked ?? false,
+        type,
+      });
     }
   }
 
@@ -115,7 +140,7 @@ function constructConfig(
     function filterEnabled<T extends string>(
       s: AuthenticatorTypeFormState<T>[]
     ) {
-      return s.filter((t) => t.isEnabled).map((t) => t.type);
+      return s.filter((t) => t.isChecked).map((t) => t.type);
     }
 
     if (
@@ -191,7 +216,7 @@ const secondaryAuthenticatorNameIds = {
 type AuthenticatorColumnItem = (
   | { kind: "primary"; type: PrimaryAuthenticatorType }
   | { kind: "secondary"; type: SecondaryAuthenticatorType }
-) & { isEnabled: boolean };
+) & { isChecked: boolean; isDisabled: boolean };
 
 interface AuthenticatorCheckboxProps {
   disabled: boolean;
@@ -210,9 +235,9 @@ const AuthenticatorCheckbox: React.FC<AuthenticatorCheckboxProps> =
 
     return (
       <Checkbox
-        checked={item.isEnabled}
+        checked={item.isChecked}
         onChange={onCheckboxChange}
-        disabled={disabled && !item.isEnabled}
+        disabled={disabled && !item.isChecked}
       />
     );
   };
@@ -224,7 +249,7 @@ interface AuthenticationAuthenticatorSettingsContentProps {
 
 const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthenticatorSettingsContentProps> =
   function AuthenticationAuthenticatorSettingsContent(props) {
-    const { state, setState } = props.form;
+    const { state, setState, effectiveConfig } = props.form;
 
     const { featureConfig } = props;
 
@@ -298,6 +323,14 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
     const isSecondaryAuthenticatorDisabled = useMemo(
       () => state.mfaMode === "disabled",
       [state.mfaMode]
+    );
+
+    const isPhoneLoginIdDisabled = useMemo(
+      () =>
+        effectiveConfig.identity?.login_id?.keys?.find(
+          (t) => t.type === "phone"
+        ) == null,
+      [effectiveConfig.identity?.login_id?.keys]
     );
 
     const renderSecondaryAuthenticatorMode = useCallback(
@@ -387,8 +420,8 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
 
     const onAuthenticatorEnabledChange = useCallback(
       (item: AuthenticatorColumnItem, checked: boolean) =>
-        setState((state) =>
-          produce(state, (state) => {
+        setState((state) => {
+          const s = produce(state, (state) => {
             let t:
               | AuthenticatorTypeFormState<
                   PrimaryAuthenticatorType | SecondaryAuthenticatorType
@@ -403,10 +436,12 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
                 break;
             }
             if (t) {
-              t.isEnabled = checked;
+              t.isChecked = checked;
             }
-          })
-        ),
+          });
+
+          return makeAuthenticatorReasonable(s);
+        }),
       [setState]
     );
 
@@ -433,20 +468,22 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
 
     const primaryItems: AuthenticatorColumnItem[] = useMemo(
       () =>
-        state.primary.map(({ type, isEnabled }) => ({
+        state.primary.map(({ type, isChecked, isDisabled }) => ({
           kind: "primary",
           type,
-          isEnabled,
+          isChecked,
+          isDisabled,
         })),
       [state.primary]
     );
 
     const secondaryItems: AuthenticatorColumnItem[] = useMemo(
       () =>
-        state.secondary.map(({ type, isEnabled }) => ({
+        state.secondary.map(({ type, isChecked, isDisabled }) => ({
           kind: "secondary",
           type,
-          isEnabled,
+          isChecked,
+          isDisabled,
         })),
       [state.secondary]
     );
@@ -475,9 +512,20 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
                 break;
             }
             return (
-              <span>
-                <FormattedMessage id={nameId} />
-              </span>
+              <div className={styles.authenticatorColumnSpanRow}>
+                <span>
+                  <FormattedMessage id={nameId} />
+                </span>
+                {item.type === "oob_otp_sms" &&
+                item.isChecked &&
+                isPhoneLoginIdDisabled ? (
+                  <span>
+                    <Link href="./login-id">
+                      <FormattedMessage id="AuthenticatorHint.primary.oob-otp-phone" />
+                    </Link>
+                  </span>
+                ) : null}
+              </div>
             );
           }
 
@@ -498,17 +546,19 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
         }
       },
       [
-        onAuthenticatorEnabledChange,
         featureDisabled,
-        onPrimarySwapClicked,
+        onAuthenticatorEnabledChange,
+        isPhoneLoginIdDisabled,
         primaryItems.length,
+        onPrimarySwapClicked,
         renderPrimaryAriaLabel,
       ]
     );
 
     const onRenderSecondaryColumn = useCallback(
       (item: AuthenticatorColumnItem, index?: number, column?: IColumn) => {
-        const disabled = featureDisabled[item.kind][item.type];
+        const disabled =
+          featureDisabled[item.kind][item.type] || item.isDisabled;
         switch (column?.key) {
           case "activated":
             return (
@@ -682,7 +732,12 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
 const AuthenticatorConfigurationScreen: React.FC =
   function AuthenticatorConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
-    const form = useAppConfigForm(appID, constructFormState, constructConfig);
+    const form = useAppConfigForm({
+      appID,
+      constructFormState,
+      constructConfig,
+      constructInitialCurrentState: makeAuthenticatorReasonable,
+    });
 
     const featureConfig = useAppFeatureConfigQuery(appID);
 

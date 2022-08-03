@@ -29,14 +29,29 @@ export type ConfigConstructor<State> = (
   currentState: State,
   effectiveConfig: PortalAPIAppConfig
 ) => PortalAPIAppConfig;
+export type InitialCurrentStateConstructor<State> = (state: State) => State;
+
+interface UseAppConfigFormOptions<State> {
+  appID: string;
+  constructFormState: StateConstructor<State>;
+  constructConfig: ConfigConstructor<State>;
+  constructInitialCurrentState?: InitialCurrentStateConstructor<State>;
+  validate?: (state: State) => APIError | null;
+  initialCanSave?: boolean;
+}
 
 export function useAppConfigForm<State>(
-  appID: string,
-  constructState: StateConstructor<State>,
-  constructConfig: ConfigConstructor<State>,
-  validate?: (state: State) => APIError | null,
-  initialCanSave?: boolean
+  options: UseAppConfigFormOptions<State>
 ): AppConfigFormModel<State> {
+  const {
+    appID,
+    constructFormState,
+    constructConfig,
+    constructInitialCurrentState,
+    validate,
+    initialCanSave,
+  } = options;
+
   const {
     loading: isLoading,
     error: loadError,
@@ -58,10 +73,14 @@ export function useAppConfigForm<State>(
   );
 
   const initialState = useMemo(
-    () => constructState(effectiveConfig),
-    [effectiveConfig, constructState]
+    () => constructFormState(effectiveConfig),
+    [effectiveConfig, constructFormState]
   );
-  const [currentState, setCurrentState] = useState<State | null>(null);
+  const [currentState, setCurrentState] = useState<State | null>(
+    constructInitialCurrentState != null
+      ? constructInitialCurrentState(initialState)
+      : null
+  );
 
   const isDirty = useMemo(() => {
     if (!rawConfig || !currentState) {

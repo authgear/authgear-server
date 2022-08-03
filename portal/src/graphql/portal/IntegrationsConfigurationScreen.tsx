@@ -217,7 +217,11 @@ const IntegrationsConfigurationContent: React.FC<IntegrationsConfigurationConten
 const IntegrationsConfigurationScreen: React.FC =
   function IntegrationsConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
-    const form = useAppConfigForm(appID, constructFormState, constructConfig);
+    const form = useAppConfigForm({
+      appID,
+      constructFormState,
+      constructConfig,
+    });
 
     if (form.isLoading) {
       return <ShowLoading />;

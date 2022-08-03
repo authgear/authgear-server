@@ -145,11 +145,11 @@ const EditCustomAttributeScreen: React.FC =
 
     const index = parseInt(indexString, 10);
 
-    const form = useAppConfigForm(
+    const form = useAppConfigForm({
       appID,
-      makeConstructFormState(index),
-      makeConstructConfig(index)
-    );
+      constructFormState: makeConstructFormState(index),
+      constructConfig: makeConstructConfig(index),
+    });
 
     const afterSave = useCallback(() => {
       navigate("./../..");

@@ -93,7 +93,7 @@ const ALL_LANGUAGES_TEMPLATES_AND_RESOURCES_ON_THIS_SCREEN = [
   RESOURCE_AUTHGEAR_DARK_THEME_CSS,
 ];
 
-function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
+function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
   const fallbackLanguage = config.localization?.fallback_language ?? "en";
   return {
     fallbackLanguage,
@@ -854,11 +854,11 @@ const UISettingsScreen: React.FC = function UISettingsScreen() {
     null
   );
 
-  const config = useAppConfigForm(
+  const config = useAppConfigForm({
     appID,
-    constructConfigFormState,
-    constructConfig
-  );
+    constructFormState,
+    constructConfig,
+  });
 
   const featureConfig = useAppFeatureConfigQuery(appID);
 

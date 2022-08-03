@@ -323,7 +323,7 @@ const EditOAuthClientScreen: React.FC = function EditOAuthClientScreen() {
     clientID: string;
   };
   const { renderToString } = useContext(Context);
-  const form = useAppConfigForm(appID, constructFormState, constructConfig);
+  const form = useAppConfigForm({ appID, constructFormState, constructConfig });
   const { setState, save, isUpdating } = form;
   const navigate = useNavigate();
   const [isRemoveDialogVisible, setIsRemoveDialogVisible] = useState(false);
