@@ -15,14 +15,17 @@ export function maskNumber(num: number, startAt: number, bits: number): number {
   return (num >> startAt) & ((1 << bits) - 1);
 }
 
-export function randomProjectName(): string {
-  const random32BitsNumber = getRandom32BitsNumber();
-  const firstRandomStringIndex = maskNumber(random32BitsNumber, 0, 11);
-  const secondRandomStringIndex = maskNumber(random32BitsNumber, 11, 11);
-  const randomNumber = maskNumber(random32BitsNumber, 22, 10);
+export function deterministicProjectName(num: number): string {
+  const randomNumber = maskNumber(num, 0, 10);
+  const secondRandomStringIndex = maskNumber(num, 10, 11);
+  const firstRandomStringIndex = maskNumber(num, 21, 11);
 
   const firstRandomString = determineWord(firstRandomStringIndex);
   const secondRandomString = determineWord(secondRandomStringIndex);
 
   return `${firstRandomString}-${secondRandomString}-${randomNumber}`;
+}
+
+export function randomProjectName(): string {
+  return deterministicProjectName(getRandom32BitsNumber());
 }
