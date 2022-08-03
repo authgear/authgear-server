@@ -96,7 +96,7 @@ function makeCountryCodeListColumns(
       name: renderToString("LoginIDConfigurationScreen.phone.columns.active"),
       minWidth: 90,
       maxWidth: 90,
-      className: styles.callingCodeListColumn,
+      className: styles.callingCodeListColumnAlignLeft,
     },
     {
       key: "countryName",
@@ -107,7 +107,10 @@ function makeCountryCodeListColumns(
       minWidth: 180,
       maxWidth: 180,
       isMultiline: true,
-      className: cn(styles.countryNameCell, styles.callingCodeListColumn),
+      className: cn(
+        styles.countryNameCell,
+        styles.callingCodeListColumnAlignLeft
+      ),
     },
     {
       key: "callingCode",
@@ -115,7 +118,7 @@ function makeCountryCodeListColumns(
       name: renderToString("LoginIDConfigurationScreen.phone.columns.code"),
       minWidth: 40,
       maxWidth: 40,
-      className: styles.callingCodeListColumn,
+      className: styles.callingCodeListColumnAlignLeft,
     },
     {
       key: "order",
@@ -123,7 +126,7 @@ function makeCountryCodeListColumns(
       fieldName: "order",
       minWidth: 120,
       maxWidth: 120,
-      className: styles.callingCodeListColumn,
+      className: styles.callingCodeListColumnAlignLeft,
     },
     {
       key: "pinned",
@@ -131,7 +134,7 @@ function makeCountryCodeListColumns(
       fieldName: "pinned",
       minWidth: 140,
       maxWidth: 140,
-      className: styles.callingCodeListColumn,
+      className: styles.callingCodeListColumnAlignCenter,
     },
   ];
 }

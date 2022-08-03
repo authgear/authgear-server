@@ -12,8 +12,14 @@
   line-height: 16px;
 }
 
-.callingCodeListColumn {
+.callingCodeListColumnAlignLeft {
   justify-content: flex-start;
+  align-items: center;
+  display: flex;
+}
+
+.callingCodeListColumnAlignCenter {
+  justify-content: center;
   align-items: center;
   display: flex;
 }
