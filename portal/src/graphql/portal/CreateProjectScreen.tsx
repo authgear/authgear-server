@@ -20,9 +20,11 @@ interface FormState {
   appID: string;
 }
 
-const DEFAULT_STATE: FormState = {
-  appID: randomProjectName(),
-};
+function makeDefaultState(): FormState {
+  return {
+    appID: randomProjectName(),
+  };
+}
 
 const FORM_TEXT_FIELD_STYLES = {
   description: {
@@ -70,7 +72,7 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
   const form = useSimpleForm({
     stateMode:
       "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
-    defaultState: DEFAULT_STATE,
+    defaultState: makeDefaultState(),
     submit,
   });
 
