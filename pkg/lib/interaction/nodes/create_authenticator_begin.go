@@ -230,6 +230,19 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 		return nil, interaction.InvalidConfiguration.New("no primary authenticator can be created for identity")
 	}
 
+	interaction.SortAuthenticators(
+		types,
+		edges,
+		func(i int) interaction.SortableAuthenticator {
+			edge := edges[i]
+			a, ok := edge.(interaction.SortableAuthenticator)
+			if !ok {
+				panic(fmt.Sprintf("interaction: unknown edge: %T", edge))
+			}
+			return a
+		},
+	)
+
 	return edges, nil
 }
 
