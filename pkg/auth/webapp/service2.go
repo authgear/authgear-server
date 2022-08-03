@@ -161,7 +161,7 @@ func (s *Service2) PostWithInput(
 	})
 }
 
-// noling: gocyclo
+// nolint: gocyclo
 func (s *Service2) doPost(
 	session *Session,
 	inputFn func() (interface{}, error),
