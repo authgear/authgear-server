@@ -1,6 +1,6 @@
 import cn from "classnames";
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import deepEqual from "deep-equal";
 import produce, { createDraft } from "immer";
 import {
@@ -15,6 +15,7 @@ import {
   DefaultButton,
   DialogFooter,
   ICommandBarItemProps,
+  PrimaryButton,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
@@ -36,6 +37,7 @@ import {
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
+import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import styles from "./EditOAuthClientScreen.module.css";
 import Widget from "../../Widget";
 import flutterIconURL from "../../images/framework_flutter.svg";
@@ -96,23 +98,80 @@ function constructConfig(
   });
 }
 
-interface QuickStartFrameworkItem {
+interface FrameworkItem {
   icon: React.ReactNode;
   name: string;
   docLink: string;
 }
 
-interface QuickStartWidgetProps {
-  applicationType?: ApplicationType;
+interface QuickStartFrameworkItemProps extends FrameworkItem {
+  showOpenTutorialLabelWhenHover: boolean;
 }
 
-const QuickStartWidget: React.FC<QuickStartWidgetProps> =
-  function QuickStartWidget(props) {
-    const { applicationType } = props;
-    const { renderToString } = useContext(Context);
-    const theme = useTheme();
+const QuickStartFrameworkItem: React.FC<QuickStartFrameworkItemProps> =
+  function QuickStartFrameworkItem(props) {
+    const { icon, name, docLink, showOpenTutorialLabelWhenHover } = props;
+    const [isHovering, setIsHovering] = useState(false);
 
-    const items: QuickStartFrameworkItem[] = useMemo(() => {
+    const onMouseOver = useCallback(() => {
+      setIsHovering(true);
+    }, [setIsHovering]);
+
+    const onMouseOut = useCallback(() => {
+      setIsHovering(false);
+    }, [setIsHovering]);
+
+    // when shouldShowArrowIcon is false, open tutorial label will be shown instead
+    const shouldShowArrowIcon = useMemo(() => {
+      // always show open tutorial label
+      if (!showOpenTutorialLabelWhenHover) {
+        return true;
+      }
+
+      // show open tutorial label when hover
+      return !isHovering;
+    }, [showOpenTutorialLabelWhenHover, isHovering]);
+
+    return (
+      <Link
+        onMouseOver={onMouseOver}
+        onMouseOut={onMouseOut}
+        className={cn(styles.quickStartItem, {
+          [styles.quickStartItemHovered]: isHovering,
+        })}
+        href={docLink}
+        target="_blank"
+      >
+        <span className={styles.quickStartItemIcon}>{icon}</span>
+        <Text variant="small" className={styles.quickStartItemText}>
+          {name}
+        </Text>
+        {shouldShowArrowIcon && (
+          <Icon
+            className={styles.quickStartItemArrowIcon}
+            iconName="ChevronRightSmall"
+          />
+        )}
+        {!shouldShowArrowIcon && (
+          <Text className={styles.quickStartItemOpenTutorial}>
+            <FormattedMessage id="EditOAuthClientScreen.quick-start.open-tutorial.label" />
+          </Text>
+        )}
+      </Link>
+    );
+  };
+
+interface QuickStartFrameworkListProps {
+  applicationType?: ApplicationType;
+  showOpenTutorialLabelWhenHover: boolean;
+}
+
+const QuickStartFrameworkList: React.FC<QuickStartFrameworkListProps> =
+  function QuickStartFrameworkList(props) {
+    const { applicationType, showOpenTutorialLabelWhenHover } = props;
+    const { renderToString } = useContext(Context);
+
+    const items: FrameworkItem[] = useMemo(() => {
       switch (applicationType) {
         case "spa":
           return [
@@ -215,40 +274,41 @@ const QuickStartWidget: React.FC<QuickStartWidgetProps> =
     }
 
     return (
-      <Widget>
-        <div className={styles.quickStartWidget}>
-          <div>
-            <Icon
-              className={styles.quickStartTitleIcon}
-              styles={{ root: { color: theme.palette.themePrimary } }}
-              iconName="Lightbulb"
-            />
-            <Text className={styles.quickStartTitle}>
-              <FormattedMessage id="EditOAuthClientScreen.quick-start.title" />
-            </Text>
-          </div>
-          <Text>
-            <FormattedMessage id="EditOAuthClientScreen.quick-start.question" />
-          </Text>
-          {items.map((item, index) => (
-            <Link
-              key={`quick-start-${index}`}
-              className={styles.quickStartItem}
-              href={item.docLink}
-              target="_blank"
-            >
-              <span className={styles.quickStartItemIcon}>{item.icon}</span>
-              <Text variant="small" className={styles.quickStartItemText}>
-                {item.name}
-              </Text>
-              <Icon
-                className={styles.quickStartItemArrowIcon}
-                iconName="ChevronRightSmall"
-              />
-            </Link>
-          ))}
-        </div>
-      </Widget>
+      <>
+        {items.map((item, index) => (
+          <QuickStartFrameworkItem
+            key={`quick-start-${index}`}
+            showOpenTutorialLabelWhenHover={showOpenTutorialLabelWhenHover}
+            {...item}
+          />
+        ))}
+      </>
+    );
+  };
+
+interface EditOAuthClientNavBreadcrumbProps {
+  clientName: string;
+}
+
+const EditOAuthClientNavBreadcrumb: React.FC<EditOAuthClientNavBreadcrumbProps> =
+  function EditOAuthClientNavBreadcrumb(props) {
+    const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+      return [
+        {
+          to: "./../..",
+          label: (
+            <FormattedMessage id="ApplicationsConfigurationScreen.title" />
+          ),
+        },
+        {
+          to: ".",
+          label: props.clientName,
+        },
+      ];
+    }, [props.clientName]);
+
+    return (
+      <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
     );
   };
 
@@ -263,24 +323,10 @@ const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> =
       clientID,
       form: { state, setState },
     } = props;
+    const theme = useTheme();
 
     const client =
       state.editedClient ?? state.clients.find((c) => c.client_id === clientID);
-
-    const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-      return [
-        {
-          to: "./../..",
-          label: (
-            <FormattedMessage id="ApplicationsConfigurationScreen.title" />
-          ),
-        },
-        {
-          to: ".",
-          label: client?.name ?? "",
-        },
-      ];
-    }, [client?.name]);
 
     const onClientConfigChange = useCallback(
       (editedClient: OAuthClientConfig) => {
@@ -302,7 +348,7 @@ const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> =
 
     return (
       <ScreenContent>
-        <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+        <EditOAuthClientNavBreadcrumb clientName={client.name ?? ""} />
         <div className={cn(styles.widget, styles.widgetColumn)}>
           <EditOAuthClientForm
             publicOrigin={state.publicOrigin}
@@ -311,9 +357,86 @@ const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> =
           />
         </div>
         <div className={styles.quickStartColumn}>
-          <QuickStartWidget applicationType={client.x_application_type} />
+          <Widget>
+            <div className={styles.quickStartWidget}>
+              <Text className={styles.quickStartWidgetTitle}>
+                <Icon
+                  className={styles.quickStartWidgetTitleIcon}
+                  styles={{ root: { color: theme.palette.themePrimary } }}
+                  iconName="Lightbulb"
+                />
+                <FormattedMessage id="EditOAuthClientScreen.quick-start-widget.title" />
+              </Text>
+              <Text>
+                <FormattedMessage id="EditOAuthClientScreen.quick-start-widget.question" />
+              </Text>
+              <QuickStartFrameworkList
+                applicationType={client.x_application_type}
+                showOpenTutorialLabelWhenHover={false}
+              />
+            </div>
+          </Widget>
         </div>
       </ScreenContent>
+    );
+  };
+
+interface OAuthQuickStartScreenContentProps {
+  form: AppConfigFormModel<FormState>;
+  clientID: string;
+}
+
+const OAuthQuickStartScreenContent: React.FC<OAuthQuickStartScreenContentProps> =
+  function OAuthQuickStartScreenContent(props) {
+    const {
+      clientID,
+      form: { state },
+    } = props;
+    const navigate = useNavigate();
+    const theme = useTheme();
+    const client =
+      state.editedClient ?? state.clients.find((c) => c.client_id === clientID);
+
+    const onNextButtonClick = useCallback(
+      (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        navigate(".");
+      },
+      [navigate]
+    );
+
+    return (
+      <ScreenLayoutScrollView>
+        <ScreenContent>
+          <EditOAuthClientNavBreadcrumb clientName={client?.name ?? ""} />
+          <Widget className={styles.widget}>
+            <Text variant="xLarge" block={true}>
+              <Icon
+                className={styles.quickStartScreenTitleIcon}
+                styles={{ root: { color: theme.palette.themePrimary } }}
+                iconName="Lightbulb"
+              />
+              <FormattedMessage id="EditOAuthClientScreen.quick-start-screen.title" />
+            </Text>
+            <Text className={styles.quickStartScreenDescription} block={true}>
+              <FormattedMessage
+                id="EditOAuthClientScreen.quick-start-screen.question"
+                values={{ applicationType: client?.name ?? "" }}
+              />
+            </Text>
+            <QuickStartFrameworkList
+              applicationType={client?.x_application_type}
+              showOpenTutorialLabelWhenHover={true}
+            />
+            <div className={styles.quickStartScreenButtons}>
+              <PrimaryButton onClick={onNextButtonClick}>
+                <FormattedMessage id="next" />
+              </PrimaryButton>
+            </div>
+          </Widget>
+        </ScreenContent>
+      </ScreenLayoutScrollView>
     );
   };
 
@@ -328,6 +451,11 @@ const EditOAuthClientScreen: React.FC = function EditOAuthClientScreen() {
   const navigate = useNavigate();
   const [isRemoveDialogVisible, setIsRemoveDialogVisible] = useState(false);
   const { themes } = useSystemConfig();
+  const [searchParams] = useSearchParams();
+  const isQuickScreenVisible = useMemo(() => {
+    const quickstart = searchParams.get("quickstart");
+    return quickstart === "true";
+  }, [searchParams]);
 
   const dialogContentProps: IDialogContentProps = useMemo(() => {
     return {
@@ -379,6 +507,10 @@ const EditOAuthClientScreen: React.FC = function EditOAuthClientScreen() {
 
   if (form.loadError) {
     return <ShowError error={form.loadError} onRetry={form.reload} />;
+  }
+
+  if (isQuickScreenVisible) {
+    return <OAuthQuickStartScreenContent form={form} clientID={clientID} />;
   }
 
   return (

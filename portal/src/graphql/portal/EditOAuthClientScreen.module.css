@@ -25,11 +25,11 @@
   row-gap: 12px;
 }
 
-.quickStartTitleIcon {
+.quickStartWidgetTitleIcon {
   padding-right: 8px;
 }
 
-.quickStartTitle {
+.quickStartWidgetTitle {
   font-weight: 600;
 }
 
@@ -48,9 +48,12 @@
 .quickStartItem:focus,
 .quickStartItem:active,
 .quickStartItem:active:hover {
-  background-color: #edebe9;
   color: #201f1e;
   text-decoration: none;
+}
+
+.quickStartItemHovered {
+  border-color: #176df3;
 }
 
 .quickStartItemIcon {
@@ -68,8 +71,30 @@
   font-size: 6px;
 }
 
+.quickStartItemHovered .quickStartItemArrowIcon,
+.quickStartItemOpenTutorial {
+  color: #176df3;
+  pointer-events: none;
+}
+
 .frameworkImage {
   width: 24px;
   height: 24px;
   padding: 2px;
+}
+
+.quickStartScreenTitleIcon {
+  padding-right: 4px;
+}
+
+.quickStartScreenDescription {
+  font-weight: 600;
+  padding: 5px 0;
+}
+
+.quickStartScreenButtons {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  margin-top: 12px;
 }

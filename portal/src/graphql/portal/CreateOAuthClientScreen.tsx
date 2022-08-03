@@ -204,9 +204,12 @@ const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> =
       save()
         .then(
           () => {
-            navigate(`./../${encodeURIComponent(clientId)}/edit`, {
-              replace: true,
-            });
+            navigate(
+              `./../${encodeURIComponent(clientId)}/edit?quickstart=true`,
+              {
+                replace: true,
+              }
+            );
           },
           () => {}
         )
