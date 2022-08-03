@@ -271,17 +271,10 @@ func (a *AlternativeStepsViewModeler) CreateAuthenticatorAlternatives(graph *int
 }
 
 func (a *AlternativeStepsViewModeler) setPasskeyIsPreferred(m *AlternativeStepsViewModel) {
-	passwordIndex := -1
-	passkeyIndex := -1
-
-	for i, typ := range *a.AuthenticationConfig.PrimaryAuthenticators {
-		switch typ {
-		case model.AuthenticatorTypePassword:
-			passwordIndex = i
-		case model.AuthenticatorTypePasskey:
-			passkeyIndex = i
+	// Passkey is considered as preferred if it is present, regardless of its position in the list.
+	for _, typ := range *a.AuthenticationConfig.PrimaryAuthenticators {
+		if typ == model.AuthenticatorTypePasskey {
+			m.PasskeyIsPreferred = true
 		}
 	}
-
-	m.PasskeyIsPreferred = passkeyIndex >= 0 && (passwordIndex < 0 || passkeyIndex < passwordIndex)
 }
