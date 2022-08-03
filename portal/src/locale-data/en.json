@@ -1057,6 +1057,7 @@
   "user-profile.access-control-level.readwrite": "Editable",
 
   "AnalyticsScreen.title": "Analytics",
+  "AnalyticsScreen.description": "The analytics portal shows your project's activities. The numbers are delayed up to 24 hours.",
   "AnalyticsScreen.start-date.label": "Start Date",
   "AnalyticsScreen.end-date.label": "End Date",
   "AnalyticsScreen.clear-date-range.label": "Clear Date Range",
