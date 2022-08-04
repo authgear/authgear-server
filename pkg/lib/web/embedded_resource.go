@@ -22,6 +22,7 @@ type Manifest struct {
 	ResourceDir    string
 	ResourcePrefix string
 	Name           string
+	FilePath       string
 	content        atomic.Value
 }
 
@@ -39,6 +40,7 @@ func NewDefaultGlobalEmbeddedResourceManager() (*GlobalEmbeddedResourceManager, 
 		ResourceDir:    DefaultResourceDir,
 		ResourcePrefix: DefaultResourcePrefix,
 		Name:           DefaultManifestName,
+		FilePath:       DefaultResourceDir + DefaultResourcePrefix + DefaultManifestName,
 	})
 }
 
@@ -57,6 +59,7 @@ func NewGlobalEmbeddedResourceManager(manifest *Manifest) (*GlobalEmbeddedResour
 			ResourceDir:    manifest.ResourceDir,
 			ResourcePrefix: manifest.ResourcePrefix,
 			Name:           manifest.Name,
+			FilePath:       manifest.FilePath,
 		},
 		watcher: watcher,
 	}
@@ -72,7 +75,7 @@ func NewGlobalEmbeddedResourceManager(manifest *Manifest) (*GlobalEmbeddedResour
 }
 
 func (m *GlobalEmbeddedResourceManager) loadManifest() (map[string]string, error) {
-	jsonFile, err := os.Open(m.Manifest.ResourceDir + m.Manifest.ResourcePrefix + m.Manifest.Name)
+	jsonFile, err := os.Open(m.Manifest.FilePath)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +97,7 @@ func (m *GlobalEmbeddedResourceManager) watch() {
 				return
 			}
 
-			if event.Name != m.Manifest.ResourceDir+m.Manifest.ResourcePrefix+m.Manifest.Name {
+			if event.Name != m.Manifest.FilePath {
 				break
 			}
 
