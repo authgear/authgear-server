@@ -82,7 +82,6 @@ export class FormatDateRelativeController extends Controller {
         const abs = hasAbs
           ? luxonDatetime.toLocaleString(
               {
-                // @ts-expect-error
                 dateStyle,
                 timeStyle,
               },

@@ -71,8 +71,30 @@ type AppConfig struct {
 	GoogleTagManager *GoogleTagManagerConfig `json:"google_tag_manager,omitempty"`
 }
 
-// nolint: gocyclo
 func (c *AppConfig) Validate(ctx *validation.Context) {
+	// Validation 1: lifetime of refresh token >= lifetime of access token
+	c.validateTokenLifetime(ctx)
+
+	// Validation 2: OAuth provider cannot duplicate.
+	c.validateOAuthProvider(ctx)
+
+	// Validation 3: identity must have usable primary authenticator.
+	c.validateIdentityPrimaryAuthenticator(ctx)
+
+	// Validation 4: secondary authenticator must be available if MFA is not disabled.
+	c.validateSecondaryAuthenticator(ctx)
+
+	// Validation 5: pinned phone number country must be in allowlist.
+	c.validatePhoneInputCountry(ctx)
+
+	// Validation 6: fallback language must be in the list of supported language.
+	c.validateFallbackLanguage(ctx)
+
+	// Validation 7: validate custom attribute
+	c.validateCustomAttribute(ctx)
+}
+
+func (c *AppConfig) validateTokenLifetime(ctx *validation.Context) {
 	for i, client := range c.OAuth.Clients {
 		if client.RefreshTokenLifetime < client.AccessTokenLifetime {
 			ctx.Child("oauth", "clients", strconv.Itoa(i), "refresh_token_lifetime_seconds").EmitErrorMessage(
@@ -80,7 +102,9 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 			)
 		}
 	}
+}
 
+func (c *AppConfig) validateOAuthProvider(ctx *validation.Context) {
 	oAuthProviderIDs := map[string]struct{}{}
 	oauthProviderAliases := map[string]struct{}{}
 	for i, provider := range c.Identity.OAuth.Providers {
@@ -112,54 +136,57 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 		}
 		oauthProviderAliases[provider.Alias] = struct{}{}
 	}
+}
 
+func (c *AppConfig) validateIdentityPrimaryAuthenticator(ctx *validation.Context) {
 	authenticatorTypes := map[model.AuthenticatorType]struct{}{}
 	for _, a := range *c.Authentication.PrimaryAuthenticators {
 		authenticatorTypes[a] = struct{}{}
 	}
 
 	for i, it := range c.Authentication.Identities {
-		hasPrimaryAuth := true
-		var loginIDKeyType LoginIDKeyType
-		switch it {
-		case model.IdentityTypeLoginID:
-			_, hasPassword := authenticatorTypes[model.AuthenticatorTypePassword]
-			_, hasPasskey := authenticatorTypes[model.AuthenticatorTypePasskey]
-			_, hasOOBEmail := authenticatorTypes[model.AuthenticatorTypeOOBEmail]
-			_, hasOOBSMS := authenticatorTypes[model.AuthenticatorTypeOOBSMS]
+		if it == model.IdentityTypeLoginID {
 			for _, k := range c.Identity.LoginID.Keys {
-				switch k.Type {
-				case LoginIDKeyTypeEmail:
-					if !hasPassword && !hasPasskey && !hasOOBEmail {
-						hasPrimaryAuth = false
-						loginIDKeyType = k.Type
-					}
-				case LoginIDKeyTypePhone:
-					if !hasPassword && !hasPasskey && !hasOOBSMS {
-						hasPrimaryAuth = false
-						loginIDKeyType = k.Type
-					}
-				case LoginIDKeyTypeUsername:
-					if !hasPassword && !hasPasskey {
-						hasPrimaryAuth = false
-						loginIDKeyType = k.Type
+				hasAtLeastOnePrimaryAuthenticator := false
+				required := it.PrimaryAuthenticatorTypes(k.Type)
+				for _, typ := range required {
+					if _, ok := authenticatorTypes[typ]; ok {
+						hasAtLeastOnePrimaryAuthenticator = true
 					}
 				}
+				if len(required) > 0 && !hasAtLeastOnePrimaryAuthenticator {
+					ctx.Child("authentication", "identities", strconv.Itoa(i)).
+						EmitError(
+							"noPrimaryAuthenticator",
+							map[string]interface{}{
+								"identity_type": it,
+								"login_id_type": k.Type,
+							},
+						)
+				}
 			}
-		case model.IdentityTypeOAuth, model.IdentityTypeAnonymous:
-			// Primary authenticator is not needed for these types of identity.
-			break
-		}
-
-		if !hasPrimaryAuth {
-			ctx.Child("authentication", "identities", strconv.Itoa(i)).
-				EmitError(
-					"noPrimaryAuthenticator",
-					map[string]interface{}{"login_id_type": loginIDKeyType},
-				)
+		} else {
+			hasAtLeastOnePrimaryAuthenticator := false
+			required := it.PrimaryAuthenticatorTypes("")
+			for _, typ := range required {
+				if _, ok := authenticatorTypes[typ]; ok {
+					hasAtLeastOnePrimaryAuthenticator = true
+				}
+			}
+			if len(required) > 0 && !hasAtLeastOnePrimaryAuthenticator {
+				ctx.Child("authentication", "identities", strconv.Itoa(i)).
+					EmitError(
+						"noPrimaryAuthenticator",
+						map[string]interface{}{
+							"identity_type": it,
+						},
+					)
+			}
 		}
 	}
+}
 
+func (c *AppConfig) validateSecondaryAuthenticator(ctx *validation.Context) {
 	if !c.Authentication.SecondaryAuthenticationMode.IsDisabled() {
 		if len(*c.Authentication.SecondaryAuthenticators) <= 0 {
 			ctx.Child("authentication", "secondary_authentication_mode").
@@ -168,7 +195,9 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 					map[string]interface{}{"secondary_authentication_mode": c.Authentication.SecondaryAuthenticationMode})
 		}
 	}
+}
 
+func (c *AppConfig) validatePhoneInputCountry(ctx *validation.Context) {
 	phoneInputPinnedOK := true
 	phoneInputAllowListMap := make(map[string]bool)
 	for _, alpha2 := range c.UI.PhoneInput.AllowList {
@@ -185,7 +214,9 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 		ctx.Child("ui", "phone_input", "pinned_list").
 			EmitErrorMessage("pinned country code is unlisted")
 	}
+}
 
+func (c *AppConfig) validateFallbackLanguage(ctx *validation.Context) {
 	supportedLanguagesSet := make(map[string]struct{})
 	for _, tag := range c.Localization.SupportedLanguages {
 		supportedLanguagesSet[tag] = struct{}{}
@@ -194,7 +225,9 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 	if !fallbackLanguageOK {
 		ctx.Child("localization", "supported_languages").EmitErrorMessage("supported_languages must contain fallback_language")
 	}
+}
 
+func (c *AppConfig) validateCustomAttribute(ctx *validation.Context) {
 	customAttributeIDs := map[string]struct{}{}
 	customAttributePointers := map[string]struct{}{}
 	for i, customAttributeConfig := range c.UserProfile.CustomAttributes.Attributes {

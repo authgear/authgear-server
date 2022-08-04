@@ -48,11 +48,12 @@ type EnterOOBOTPViewModel struct {
 }
 
 type EnterOOBOTPHandler struct {
-	ControllerFactory ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	Renderer          Renderer
-	RateLimiter       RateLimiter
-	FlashMessage      FlashMessage
+	ControllerFactory         ControllerFactory
+	BaseViewModel             *viewmodels.BaseViewModeler
+	AlternativeStepsViewModel *viewmodels.AlternativeStepsViewModeler
+	Renderer                  Renderer
+	RateLimiter               RateLimiter
+	FlashMessage              FlashMessage
 }
 
 type EnterOOBOTPNode interface {
@@ -94,27 +95,35 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 	}
 
 	currentNode := graph.CurrentNode()
-	alternatives := viewmodels.AlternativeStepsViewModel{}
+	var alternatives *viewmodels.AlternativeStepsViewModel
 	switch currentNode.(type) {
 	case *nodes.NodeAuthenticationOOBTrigger:
 		switch model.AuthenticatorOOBChannel(viewModel.OOBOTPChannel) {
 		case model.AuthenticatorOOBChannelEmail:
-			if err := alternatives.AddAuthenticationAlternatives(graph, webapp.SessionStepEnterOOBOTPAuthnEmail); err != nil {
+			var err error
+			alternatives, err = h.AlternativeStepsViewModel.AuthenticationAlternatives(graph, webapp.SessionStepEnterOOBOTPAuthnEmail)
+			if err != nil {
 				return nil, err
 			}
 		case model.AuthenticatorOOBChannelSMS:
-			if err := alternatives.AddAuthenticationAlternatives(graph, webapp.SessionStepEnterOOBOTPAuthnSMS); err != nil {
+			var err error
+			alternatives, err = h.AlternativeStepsViewModel.AuthenticationAlternatives(graph, webapp.SessionStepEnterOOBOTPAuthnSMS)
+			if err != nil {
 				return nil, err
 			}
 		}
 	case *nodes.NodeCreateAuthenticatorOOBSetup:
 		switch model.AuthenticatorOOBChannel(viewModel.OOBOTPChannel) {
 		case model.AuthenticatorOOBChannelEmail:
-			if err := alternatives.AddCreateAuthenticatorAlternatives(graph, webapp.SessionStepEnterOOBOTPSetupEmail); err != nil {
+			var err error
+			alternatives, err = h.AlternativeStepsViewModel.CreateAuthenticatorAlternatives(graph, webapp.SessionStepEnterOOBOTPSetupEmail)
+			if err != nil {
 				return nil, err
 			}
 		case model.AuthenticatorOOBChannelSMS:
-			if err := alternatives.AddCreateAuthenticatorAlternatives(graph, webapp.SessionStepEnterOOBOTPSetupSMS); err != nil {
+			var err error
+			alternatives, err = h.AlternativeStepsViewModel.CreateAuthenticatorAlternatives(graph, webapp.SessionStepEnterOOBOTPSetupSMS)
+			if err != nil {
 				return nil, err
 			}
 		}

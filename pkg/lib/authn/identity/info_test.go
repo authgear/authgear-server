@@ -37,7 +37,7 @@ func TestInfoJSON(t *testing.T) {
 				UpdatedAt: time.Date(2006, 1, 2, 0, 0, 0, 0, time.UTC),
 
 				LoginIDKey:      "email",
-				LoginIDType:     config.LoginIDKeyTypeEmail,
+				LoginIDType:     model.LoginIDKeyTypeEmail,
 				LoginID:         "user@example.com",
 				OriginalLoginID: "user@example.com",
 				UniqueKey:       "user@example.com",

@@ -8,6 +8,7 @@ import (
 	"github.com/boombuler/barcode/qr"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -63,14 +64,14 @@ func (p *FormPrefiller) Prefill(form url.Values) {
 		switch form.Get("x_login_id_input_type") {
 		case "phone":
 			for _, k := range p.LoginID.Keys {
-				if k.Type == config.LoginIDKeyTypePhone {
+				if k.Type == model.LoginIDKeyTypePhone {
 					form.Set("x_login_id_key", k.Key)
 					break Switch
 				}
 			}
 		case "email":
 			for _, k := range p.LoginID.Keys {
-				if k.Type == config.LoginIDKeyTypeEmail {
+				if k.Type == model.LoginIDKeyTypeEmail {
 					form.Set("x_login_id_key", k.Key)
 					break Switch
 				}
@@ -79,7 +80,7 @@ func (p *FormPrefiller) Prefill(form url.Values) {
 			fallthrough
 		default:
 			for _, k := range p.LoginID.Keys {
-				if k.Type != config.LoginIDKeyTypePhone {
+				if k.Type != model.LoginIDKeyTypePhone {
 					form.Set("x_login_id_key", k.Key)
 					break Switch
 				}

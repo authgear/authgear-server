@@ -266,7 +266,22 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	passkeyService := &passkey2.Service{}
+	store2 := &passkey2.Store{
+		Context: ctx,
+		Redis:   appredisHandle,
+		AppID:   configAppID,
+	}
+	request := NewDummyHTTPRequest()
+	trustProxy := environmentConfig.TrustProxy
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
 	passkeyProvider := &passkey.Provider{
 		Store:   passkeyStore,
 		Clock:   clockClock,
@@ -283,7 +298,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Biometric:             biometricProvider,
 		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -316,12 +331,12 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
-	store3 := &passkey3.Store{
+	store4 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	provider2 := &passkey3.Provider{
-		Store:   store3,
+		Store:   store4,
 		Clock:   clockClock,
 		Passkey: passkeyService,
 	}
@@ -354,7 +369,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Logger:    oobLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
 		Passkey:     provider2,
 		TOTP:        totpProvider,
@@ -542,8 +557,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	request := NewDummyHTTPRequest()
-	trustProxy := environmentConfig.TrustProxy
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{

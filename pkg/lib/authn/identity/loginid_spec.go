@@ -1,11 +1,11 @@
 package identity
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
 type LoginIDSpec struct {
-	Key   string                `json:"key"`
-	Type  config.LoginIDKeyType `json:"type"`
-	Value string                `json:"value"`
+	Key   string               `json:"key"`
+	Type  model.LoginIDKeyType `json:"type"`
+	Value string               `json:"value"`
 }

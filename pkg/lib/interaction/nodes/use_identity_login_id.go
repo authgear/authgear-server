@@ -55,7 +55,7 @@ func (e *EdgeUseIdentityLoginID) Instantiate(ctx *interaction.Context, graph *in
 	// In login, loginIDKey is empty so it is impossible to derive type.
 	// In signup, loginIDKey is given explicitly, and it is required to include
 	// IdentityClaimLoginIDType in the claims.
-	var typ config.LoginIDKeyType
+	var typ model.LoginIDKeyType
 	if loginIDKey != "" {
 		for _, cfg := range e.Configs {
 			if cfg.Key == loginIDKey {

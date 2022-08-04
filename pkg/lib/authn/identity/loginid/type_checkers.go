@@ -8,6 +8,7 @@ import (
 	confusable "github.com/skygeario/go-confusable-homoglyphs"
 	"golang.org/x/text/secure/precis"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/blocklist"
 	"github.com/authgear/authgear-server/pkg/util/matchlist"
@@ -28,7 +29,7 @@ type TypeCheckerFactory struct {
 	Resources ResourceManager
 }
 
-func (f *TypeCheckerFactory) NewChecker(loginIDKeyType config.LoginIDKeyType, options CheckerOptions) TypeChecker {
+func (f *TypeCheckerFactory) NewChecker(loginIDKeyType model.LoginIDKeyType, options CheckerOptions) TypeChecker {
 	// Load matchlist for validation, (e.g. doamin blocklist, allowlist, username exclude keywords...etc.)
 	loadMatchlist := func(desc resource.Descriptor) (*matchlist.MatchList, error) {
 		var list *matchlist.MatchList
@@ -45,7 +46,7 @@ func (f *TypeCheckerFactory) NewChecker(loginIDKeyType config.LoginIDKeyType, op
 	}
 
 	switch loginIDKeyType {
-	case config.LoginIDKeyTypeEmail:
+	case model.LoginIDKeyTypeEmail:
 
 		loginIDEmailConfig := f.Config.Types.Email
 
@@ -84,7 +85,7 @@ func (f *TypeCheckerFactory) NewChecker(loginIDKeyType config.LoginIDKeyType, op
 		}
 		return checker
 
-	case config.LoginIDKeyTypeUsername:
+	case model.LoginIDKeyTypeUsername:
 		loginIDUsernameConfig := f.Config.Types.Username
 
 		checker := &UsernameChecker{
@@ -118,7 +119,7 @@ func (f *TypeCheckerFactory) NewChecker(loginIDKeyType config.LoginIDKeyType, op
 		}
 
 		return checker
-	case config.LoginIDKeyTypePhone:
+	case model.LoginIDKeyTypePhone:
 		return &PhoneChecker{}
 	}
 

@@ -66,7 +66,6 @@ func (i *Info) ToSpec() Spec {
 		return Spec{
 			Type: i.Type,
 			Passkey: &PasskeySpec{
-				CreationOptions:     i.Passkey.CreationOptions,
 				AttestationResponse: i.Passkey.AttestationResponse,
 			},
 		}
@@ -194,11 +193,11 @@ func (i *Info) StandardClaims() map[model.ClaimName]string {
 		loginIDType := i.LoginID.LoginIDType
 		loginIDValue := i.LoginID.LoginID
 		switch loginIDType {
-		case config.LoginIDKeyTypeEmail:
+		case model.LoginIDKeyTypeEmail:
 			claims[model.ClaimEmail] = loginIDValue
-		case config.LoginIDKeyTypePhone:
+		case model.LoginIDKeyTypePhone:
 			claims[model.ClaimPhoneNumber] = loginIDValue
-		case config.LoginIDKeyTypeUsername:
+		case model.LoginIDKeyTypeUsername:
 			claims[model.ClaimPreferredUsername] = loginIDValue
 		}
 	case model.IdentityTypeOAuth:
@@ -218,42 +217,11 @@ func (i *Info) StandardClaims() map[model.ClaimName]string {
 }
 
 func (i *Info) PrimaryAuthenticatorTypes() []model.AuthenticatorType {
-	switch i.Type {
-	case model.IdentityTypeLoginID:
-		switch i.LoginID.LoginIDType {
-		case config.LoginIDKeyTypeUsername:
-			return []model.AuthenticatorType{
-				model.AuthenticatorTypePassword,
-				model.AuthenticatorTypePasskey,
-			}
-		case config.LoginIDKeyTypeEmail:
-			return []model.AuthenticatorType{
-				model.AuthenticatorTypePassword,
-				model.AuthenticatorTypePasskey,
-				model.AuthenticatorTypeOOBEmail,
-			}
-		case config.LoginIDKeyTypePhone:
-			return []model.AuthenticatorType{
-				model.AuthenticatorTypePassword,
-				model.AuthenticatorTypePasskey,
-				model.AuthenticatorTypeOOBSMS,
-			}
-		default:
-			panic(fmt.Sprintf("identity: unexpected login ID type: %s", i.LoginID.LoginIDType))
-		}
-	case model.IdentityTypeOAuth:
-		return nil
-	case model.IdentityTypeAnonymous:
-		return nil
-	case model.IdentityTypeBiometric:
-		return nil
-	case model.IdentityTypePasskey:
-		return []model.AuthenticatorType{
-			model.AuthenticatorTypePasskey,
-		}
-	default:
-		panic(fmt.Sprintf("identity: unexpected identity type: %s", i.Type))
+	var loginIDKeyType model.LoginIDKeyType
+	if i.Type == model.IdentityTypeLoginID {
+		loginIDKeyType = i.LoginID.LoginIDType
 	}
+	return i.Type.PrimaryAuthenticatorTypes(loginIDKeyType)
 }
 
 func (i *Info) ModifyDisabled(c *config.IdentityConfig) bool {

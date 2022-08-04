@@ -142,8 +142,13 @@ type ResetPasswordService interface {
 	ResetPasswordByCode(code string, newPassword string) (err error)
 }
 
+type PasskeyService interface {
+	ConsumeAttestationResponse(attestationResponse []byte) (err error)
+	ConsumeAssertionResponse(assertionResponse []byte) (err error)
+}
+
 type LoginIDNormalizerFactory interface {
-	NormalizerWithLoginIDType(loginIDKeyType config.LoginIDKeyType) loginid.Normalizer
+	NormalizerWithLoginIDType(loginIDKeyType model.LoginIDKeyType) loginid.Normalizer
 }
 
 type VerificationService interface {
@@ -205,6 +210,7 @@ type Context struct {
 	MFA                      MFAService
 	ForgotPassword           ForgotPasswordService
 	ResetPassword            ResetPasswordService
+	Passkey                  PasskeyService
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
 	Verification             VerificationService
 	VerificationCodeSender   VerificationCodeSender

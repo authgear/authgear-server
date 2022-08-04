@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
@@ -38,13 +39,23 @@ type AlternativeStep struct {
 }
 
 type AlternativeStepsViewModel struct {
+	CurrentStep           webapp.SessionStepKind
 	AuthenticationStage   authn.AuthenticationStage
 	AlternativeSteps      []AlternativeStep
 	CanRequestDeviceToken bool
+	PasskeyIsPreferred    bool
+}
+
+type AlternativeStepsViewModeler struct {
+	AuthenticationConfig *config.AuthenticationConfig
 }
 
 // nolint: gocyclo
-func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interaction.Graph, currentStepKind webapp.SessionStepKind) error {
+func (a *AlternativeStepsViewModeler) AuthenticationAlternatives(graph *interaction.Graph, currentStepKind webapp.SessionStepKind) (*AlternativeStepsViewModel, error) {
+	m := &AlternativeStepsViewModel{}
+	m.CurrentStep = currentStepKind
+	a.setPasskeyIsPreferred(m)
+
 	var node AuthenticationBeginNode
 	if !graph.FindLastNode(&node) {
 		panic("authentication_begin: expected graph has node implementing AuthenticationBeginNode")
@@ -54,7 +65,7 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interac
 
 	edges, err := node.GetAuthenticationEdges()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	phoneOTPStepAdded := false
@@ -72,6 +83,12 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interac
 			if currentStepKind != webapp.SessionStepEnterPassword {
 				m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
 					Step: webapp.SessionStepEnterPassword,
+				})
+			}
+		case *nodes.EdgeAuthenticationPasskey:
+			if currentStepKind != webapp.SessionStepUsePasskey {
+				m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
+					Step: webapp.SessionStepUsePasskey,
 				})
 			}
 		case *nodes.EdgeAuthenticationTOTP:
@@ -168,10 +185,15 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interac
 			panic(fmt.Errorf("authentication_begin: unexpected edge: %T", edge))
 		}
 	}
-	return nil
+
+	return m, nil
 }
 
-func (m *AlternativeStepsViewModel) AddCreateAuthenticatorAlternatives(graph *interaction.Graph, currentStepKind webapp.SessionStepKind) error {
+func (a *AlternativeStepsViewModeler) CreateAuthenticatorAlternatives(graph *interaction.Graph, currentStepKind webapp.SessionStepKind) (*AlternativeStepsViewModel, error) {
+	m := &AlternativeStepsViewModel{}
+	m.CurrentStep = currentStepKind
+	a.setPasskeyIsPreferred(m)
+
 	var node CreateAuthenticatorBeginNode
 	if !graph.FindLastNode(&node) {
 		panic("create_authenticator_begin: expected graph has node implementing CreateAuthenticatorBeginNode")
@@ -181,23 +203,22 @@ func (m *AlternativeStepsViewModel) AddCreateAuthenticatorAlternatives(graph *in
 
 	edges, err := node.GetCreateAuthenticatorEdges()
 	if err != nil {
-		return err
-	}
-
-	// TODO(webapp): support switching of primary authenticator type to create
-	// Return first edge for now.
-	if m.AuthenticationStage == authn.AuthenticationStagePrimary {
-		edges = edges[:1]
+		return nil, err
 	}
 
 	phoneOTPStepAdded := false
-
 	for _, edge := range edges {
 		switch edge := edge.(type) {
 		case *nodes.EdgeCreateAuthenticatorPassword:
 			if currentStepKind != webapp.SessionStepCreatePassword {
 				m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
 					Step: webapp.SessionStepCreatePassword,
+				})
+			}
+		case *nodes.EdgeCreateAuthenticatorPasskey:
+			if currentStepKind != webapp.SessionStepCreatePasskey {
+				m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
+					Step: webapp.SessionStepCreatePasskey,
 				})
 			}
 		case *nodes.EdgeCreateAuthenticatorOOBSetup:
@@ -246,5 +267,21 @@ func (m *AlternativeStepsViewModel) AddCreateAuthenticatorAlternatives(graph *in
 		}
 	}
 
-	return nil
+	return m, nil
+}
+
+func (a *AlternativeStepsViewModeler) setPasskeyIsPreferred(m *AlternativeStepsViewModel) {
+	passwordIndex := -1
+	passkeyIndex := -1
+
+	for i, typ := range *a.AuthenticationConfig.PrimaryAuthenticators {
+		switch typ {
+		case model.AuthenticatorTypePassword:
+			passwordIndex = i
+		case model.AuthenticatorTypePasskey:
+			passkeyIndex = i
+		}
+	}
+
+	m.PasskeyIsPreferred = passkeyIndex >= 0 && (passwordIndex < 0 || passkeyIndex < passwordIndex)
 }

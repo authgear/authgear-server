@@ -124,6 +124,19 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 		},
 	)
 
+	passkeys := authenticator.ApplyFilters(
+		availableAuthenticators,
+		authenticator.KeepType(model.AuthenticatorTypePasskey),
+	)
+	interaction.SortAuthenticators(
+		nil,
+		passkeys,
+		func(i int) interaction.SortableAuthenticator {
+			a := interaction.SortableAuthenticatorInfo(*passkeys[i])
+			return &a
+		},
+	)
+
 	totps := authenticator.ApplyFilters(
 		availableAuthenticators,
 		authenticator.KeepType(model.AuthenticatorTypeTOTP),
@@ -167,6 +180,13 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 		edges = append(edges, &EdgeAuthenticationPassword{
 			Stage:          n.Stage,
 			Authenticators: passwords,
+		})
+	}
+
+	if len(passkeys) > 0 {
+		edges = append(edges, &EdgeAuthenticationPasskey{
+			Stage:          n.Stage,
+			Authenticators: passkeys,
 		})
 	}
 

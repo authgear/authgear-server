@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/duo-labs/webauthn/protocol"
@@ -82,6 +83,9 @@ func (s *Store) PeekSession(challenge protocol.URLEncodedBase64) (*Session, erro
 	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
 		var err error
 		bytes, err = conn.Get(s.Context, key).Bytes()
+		if errors.Is(err, goredis.Nil) {
+			return ErrSessionNotFound
+		}
 		if err != nil {
 			return err
 		}

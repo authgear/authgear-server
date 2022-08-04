@@ -43,7 +43,7 @@ interface IdentityClaim extends Record<string, unknown> {
 
 interface Identity {
   id: string;
-  type: "ANONYMOUS" | "LOGIN_ID" | "OAUTH" | "BIOMETRIC";
+  type: "ANONYMOUS" | "LOGIN_ID" | "OAUTH" | "BIOMETRIC" | "PASSKEY";
   claims: IdentityClaim;
   createdAt: string;
   updatedAt: string;

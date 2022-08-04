@@ -7,8 +7,8 @@ package stdattrs
 import (
 	reflect "reflect"
 
+	model "github.com/authgear/authgear-server/pkg/api/model"
 	loginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
-	config "github.com/authgear/authgear-server/pkg/lib/config"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -36,7 +36,7 @@ func (m *MockLoginIDNormalizerFactory) EXPECT() *MockLoginIDNormalizerFactoryMoc
 }
 
 // NormalizerWithLoginIDType mocks base method.
-func (m *MockLoginIDNormalizerFactory) NormalizerWithLoginIDType(loginIDKeyType config.LoginIDKeyType) loginid.Normalizer {
+func (m *MockLoginIDNormalizerFactory) NormalizerWithLoginIDType(loginIDKeyType model.LoginIDKeyType) loginid.Normalizer {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NormalizerWithLoginIDType", loginIDKeyType)
 	ret0, _ := ret[0].(loginid.Normalizer)

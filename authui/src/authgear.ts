@@ -27,6 +27,11 @@ import {
 import { ModalController } from "./modal";
 import { BackButtonController } from "./back";
 import { SimpleModalController } from "./simpleModal";
+import {
+  PasskeyCreationController,
+  PasskeyRequestController,
+  PasskeyAutofillController,
+} from "./passkey";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
 
@@ -76,3 +81,7 @@ Stimulus.register("modal", ModalController);
 Stimulus.register("simple-modal", SimpleModalController);
 
 Stimulus.register("back-button", BackButtonController);
+
+Stimulus.register("passkey-creation", PasskeyCreationController);
+Stimulus.register("passkey-request", PasskeyRequestController);
+Stimulus.register("passkey-autofill", PasskeyAutofillController);
