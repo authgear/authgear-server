@@ -123,13 +123,13 @@ function handleError(err: unknown) {
 export class PasskeyCreationController extends Controller {
   static targets = ["button", "submit", "input"];
   static values = {
-    preferred: Boolean,
+    preferred: String,
   };
 
   declare buttonTarget: HTMLButtonElement;
   declare submitTarget: HTMLButtonElement;
   declare inputTarget: HTMLInputElement;
-  declare preferredValue: boolean;
+  declare preferredValue: string;
 
   connect() {
     // Disable the button if PublicKeyCredential is unavailable.
@@ -138,7 +138,7 @@ export class PasskeyCreationController extends Controller {
       return;
     }
 
-    if (this.preferredValue) {
+    if (this.preferredValue === "true") {
       this._create();
     }
   }
@@ -180,13 +180,13 @@ export class PasskeyCreationController extends Controller {
 export class PasskeyRequestController extends Controller {
   static targets = ["button", "submit", "input"];
   static values = {
-    preferred: Boolean,
+    preferred: String,
   };
 
   declare buttonTarget: HTMLButtonElement;
   declare submitTarget: HTMLButtonElement;
   declare inputTarget: HTMLInputElement;
-  declare preferredValue: boolean;
+  declare preferredValue: string;
 
   connect() {
     // Disable the button if PublicKeyCredential is unavailable.
@@ -195,7 +195,7 @@ export class PasskeyRequestController extends Controller {
       return;
     }
 
-    if (this.preferredValue) {
+    if (this.preferredValue === "true") {
       this._use();
     }
   }
