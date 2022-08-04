@@ -18,6 +18,7 @@
                 <input type="hidden" name="x_stage" value="{{ $.AuthenticationStage }}">
                 <input type="hidden" name="x_attestation_response" data-passkey-creation-target="input">
                 <button type="submit" class="hidden" name="x_action" value="choose_step" data-passkey-creation-target="submit"></button>
+            </form>
             </div>
         {{ end }}
         {{ if eq .Step "use-passkey" }}
@@ -37,6 +38,7 @@
                 <input type="hidden" name="x_stage" value="{{ $.AuthenticationStage }}">
                 <input type="hidden" name="x_assertion_response" data-passkey-request-target="input">
                 <button type="submit" class="hidden" name="x_action" value="choose_step" data-passkey-request-target="submit"></button>
+            </form>
             </div>
         {{ end }}
         {{ if (or (eq .Step "setup-totp")
