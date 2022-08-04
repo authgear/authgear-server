@@ -29,7 +29,7 @@
             {{ end }}
             <div class="text-sm" data-controller="passkey-request" data-passkey-request-preferred-value="{{ $.PasskeyIsPreferred }}">
             <button class="btn secondary-btn" type="button" data-action="click->passkey-request#use" data-passkey-request-target="button">
-                {{ template "setup-passkey-instead" .Data }}
+                {{ template "use-passkey-instead" .Data }}
             </button>
             <form method="post" novalidate>
                 {{ $.CSRFField }}
