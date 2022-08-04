@@ -42,7 +42,6 @@ type AlternativeStepsViewModel struct {
 	AuthenticationStage   authn.AuthenticationStage
 	AlternativeSteps      []AlternativeStep
 	CanRequestDeviceToken bool
-	PasskeyIsPreferred    bool
 }
 
 type AlternativeStepsViewModeler struct {
@@ -52,7 +51,6 @@ type AlternativeStepsViewModeler struct {
 // nolint: gocyclo
 func (a *AlternativeStepsViewModeler) AuthenticationAlternatives(graph *interaction.Graph, currentStepKind webapp.SessionStepKind) (*AlternativeStepsViewModel, error) {
 	m := &AlternativeStepsViewModel{}
-	a.setPasskeyIsPreferred(m)
 
 	var node AuthenticationBeginNode
 	if !graph.FindLastNode(&node) {
@@ -189,7 +187,6 @@ func (a *AlternativeStepsViewModeler) AuthenticationAlternatives(graph *interact
 
 func (a *AlternativeStepsViewModeler) CreateAuthenticatorAlternatives(graph *interaction.Graph, currentStepKind webapp.SessionStepKind) (*AlternativeStepsViewModel, error) {
 	m := &AlternativeStepsViewModel{}
-	a.setPasskeyIsPreferred(m)
 
 	var node CreateAuthenticatorBeginNode
 	if !graph.FindLastNode(&node) {
@@ -265,13 +262,4 @@ func (a *AlternativeStepsViewModeler) CreateAuthenticatorAlternatives(graph *int
 	}
 
 	return m, nil
-}
-
-func (a *AlternativeStepsViewModeler) setPasskeyIsPreferred(m *AlternativeStepsViewModel) {
-	// Passkey is considered as preferred if it is present, regardless of its position in the list.
-	for _, typ := range *a.AuthenticationConfig.PrimaryAuthenticators {
-		if typ == model.AuthenticatorTypePasskey {
-			m.PasskeyIsPreferred = true
-		}
-	}
 }
