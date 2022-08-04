@@ -307,6 +307,7 @@
   "setup-passkey-instead": "Setup passkey instead",
   "enter-totp-instead": "Enter 6-digit authenticator code instead",
   "enter-password-instead": "Enter password instead",
+  "use-passkey-instead": "Use passkey instead",
   "enter-oob-otp-email-instead": "Send code to {target} instead via Email",
   "enter-oob-otp-sms-instead": "Send code to {target} instead via SMS",
   "verify-phone-otp-instead": "Verify {target} via phone instead",

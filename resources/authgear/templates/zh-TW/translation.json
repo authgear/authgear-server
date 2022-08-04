@@ -306,6 +306,7 @@
   "setup-passkey-instead": "改為設置通行密鑰",
   "enter-totp-instead": "改為輸入6位驗證器碼",
   "enter-password-instead": "改為輸入密碼",
+  "use-passkey-instead": "改為使用通行密鑰",
   "enter-oob-otp-email-instead": "以電郵發送驗證碼至 {target}",
   "enter-oob-otp-sms-instead": "以短訊發送驗證碼至 {target}",
   "verify-phone-otp-instead": "改為通過手機驗證 {target}",
