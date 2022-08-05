@@ -136,6 +136,11 @@ export class PasskeyCreationController extends Controller {
       this.buttonTarget.disabled = true;
       return;
     }
+
+    // The presence of this controller means passkey is enabled.
+    // When passkey is enabled, it is preferred.
+    // So we show the modal.
+    this._create();
   }
 
   create(e: MouseEvent) {
@@ -188,6 +193,11 @@ export class PasskeyRequestController extends Controller {
       this.buttonTarget.disabled = true;
       return;
     }
+
+    // The presence of this controller means passkey is enabled.
+    // When passkey is enabled, it is preferred.
+    // So we show the modal.
+    this._use();
   }
 
   use(e: MouseEvent) {
