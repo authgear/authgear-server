@@ -183,6 +183,10 @@
   "create-passkey-page-title": "Create Passkey",
   "create-passkey-label": "Create Passkey",
 
+  "prompt-create-passkey-page-title": "Create Passkey",
+  "prompt-create-passkey-page-description": "Create a passkey so that you can sign in faster and safer",
+  "prompt-create-passkey-skip-label": "Not now",
+
   "use-passkey-page-title": "Use Passkey",
   "use-passkey-label": "Use Passkey",
 

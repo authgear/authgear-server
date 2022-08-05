@@ -182,6 +182,10 @@
   "create-passkey-page-title": "建立通行密鑰",
   "create-passkey-label": "建立通行密鑰",
 
+  "prompt-create-passkey-page-title": "建立通行密鑰",
+  "prompt-create-passkey-page-description": "建立一個可以更快、更安全登入的通行密鑰",
+  "prompt-create-passkey-skip-label": "下次再算",
+
   "use-passkey-page-title": "使用通行密鑰",
   "use-passkey-label": "使用通行密鑰",
 

@@ -120,6 +120,21 @@ type InputPasskeyAttestationResponse struct {
 var _ nodes.InputCreateAuthenticatorPasskey = &InputPasskeyAttestationResponse{}
 var _ nodes.InputAuthenticationStage = &InputPasskeyAttestationResponse{}
 
+type InputPromptCreatePasskeyAttestationResponse struct {
+	Skipped             bool
+	AttestationResponse []byte
+}
+
+var _ nodes.InputPromptCreatePasskey = &InputPromptCreatePasskeyAttestationResponse{}
+
+func (i *InputPromptCreatePasskeyAttestationResponse) IsSkipped() bool {
+	return i.Skipped
+}
+
+func (i *InputPromptCreatePasskeyAttestationResponse) GetAttestationResponse() []byte {
+	return i.AttestationResponse
+}
+
 func (i *InputPasskeyAttestationResponse) GetAttestationResponse() []byte {
 	return i.AttestationResponse
 }
