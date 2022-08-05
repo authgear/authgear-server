@@ -20,7 +20,7 @@
 		</div>
 		{{ end }}{{ end }}
 
-		<form method="post" novalidate data-controller="passkey-autofill">
+		<form method="post" novalidate>
 			{{ $.CSRFField }}
 			<input type="hidden" name="x_assertion_response" data-passkey-autofill-target="input">
 			<button type="submit" class="hidden" name="x_action" value="passkey" data-passkey-autofill-target="submit"></button>
