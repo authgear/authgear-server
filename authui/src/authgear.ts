@@ -1,5 +1,5 @@
 import { start } from "@hotwired/turbo";
-import { Application } from "@hotwired/stimulus";
+import { Application, Controller } from "@hotwired/stimulus";
 import axios from "axios";
 import { CopyButtonController } from "./copy";
 import { PasswordVisibilityToggleController } from "./passwordVisibility";
@@ -19,7 +19,7 @@ import {
 } from "./date";
 import { TransferClickController } from "./click";
 import {
-  XHRSubmitFormController,
+  TurboformController,
   RestoreFormController,
   RetainFormFormController,
   RetainFormInputController,
@@ -40,6 +40,8 @@ axios.defaults.withCredentials = true;
 start();
 
 const Stimulus = Application.start();
+
+Stimulus.register("turboform", TurboformController);
 
 Stimulus.register(
   "password-visibility-toggle",
@@ -72,7 +74,6 @@ Stimulus.register("format-input-date", FormatInputDateController);
 
 Stimulus.register("transfer-click", TransferClickController);
 
-Stimulus.register("xhr-submit-form", XHRSubmitFormController);
 Stimulus.register("restore-form", RestoreFormController);
 Stimulus.register("retain-form-form", RetainFormFormController);
 Stimulus.register("retain-form-input", RetainFormInputController);
