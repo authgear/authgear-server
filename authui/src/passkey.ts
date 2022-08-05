@@ -237,6 +237,12 @@ export class PasskeyRequestController extends Controller {
   }
 }
 
+// TODO(passkey): autofill is buggy on iOS 16 Beta 4.
+// The call navigator.credentials.get will have a high possibility of resulting in
+// DOMException with name NotAllowedError instantly.
+// The exception WILL cause subsequent call to navigator.credentials.get to fail as well.
+// So autofill is disabled for now.
+//
 // The lifecycle of the autofill
 //
 // setupAutofill() creates a pending promise to receive the result of the autofill.
@@ -294,6 +300,7 @@ export class PasskeyAutofillController extends Controller {
           });
           this.retryEventTarget?.markSuccess();
           const options = deserializeRequestOptions(resp.data.result);
+          const t0 = new Date().getTime();
           try {
             const signal = this.abortController?.signal;
             const rawResponse = await window.navigator.credentials.get({
@@ -312,12 +319,20 @@ export class PasskeyAutofillController extends Controller {
             }
             this.retryEventTarget?.scheduleRetry();
           } catch (e: unknown) {
-            handleError(e);
+            const t1 = new Date().getTime();
+            if (
+              e instanceof DOMException &&
+              e.name === "NotAllowedError" &&
+              t1 - t0 < 500
+            ) {
+              console.warn("passkey autofill weird error detected", e);
+            }
             if (e instanceof DOMException && e.name === "AbortError") {
               // Aborted. Let connect() to be called again.
             } else {
               this.retryEventTarget?.scheduleRetry();
             }
+            handleError(e);
           }
         } catch (e: unknown) {
           handleAxiosError(e);
