@@ -139,6 +139,7 @@ To avoid doing the above every time you open a new shell, you may want to add it
    ```sh
    go run ./cmd/authgear database migrate up
    go run ./cmd/portal database migrate up
+   go run ./cmd/authgear images database migrate up
    ```
 
 To create new migration:
