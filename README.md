@@ -247,11 +247,6 @@ Make a copy of `.env.example` as `.env`, and update it if necessary.
    http:
       # Make sure this matches the host used to access main Authgear server.
       public_origin: "http://accounts.portal.localhost:3100"
-      allowed_origins:
-         # The SDK uses XHR to fetch the OAuth/OIDC configuration,
-         # So we have to allow the origin of the portal.
-         # For simplicity, allow all origin for development setup.
-         - "*"
    oauth:
       clients:
          # Create a client for the portal.
