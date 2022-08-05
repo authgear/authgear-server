@@ -11,8 +11,9 @@ Work in progress
 - [Portal setup](#portal-setup)
   - [Setup environment variable](#setup-environment-variable)
   - [Setup portal development server](#setup-portal-development-server)
+- [Initial project setup](#initial-project-setup)
 - [Known issues](#known-issues)
-  - [Portal](#portal-1)
+  - [Portal](#portal)
 - [Comment tags](#comment-tags)
 - [Credits](#credits)
 - [Create release tag before deployment](#create-release-tag-before-deployment)
@@ -277,6 +278,46 @@ Make a copy of `.env.example` as `.env`, and update it if necessary.
             response_types:
                - none
    ```
+
+## Initial project setup
+
+As the first project `accounts` is created by the script instead of by user, we need to add `owner` role to this project so as to gain access in the portal.
+
+1. Register an account in [http://accounts.portal.localhost:3100](http://accounts.portal.localhost:3100)
+
+   You will get the email otp code in the terminal which is running authgear server in the following form:
+
+   ```
+   skip sending email in development mode        app=accounts body="Email Verification\n\nThis email is sent to verify <your email> on Authgear. Use this code in the verification page.\n\n<your code>\n\nIf you didn't sign in or sign up please ignore this email.\n" logger=mail-sender recipient=<your email> reply_to= sender=no-reply@authgear.com subject="[Authgear] Email Verification Instruction"
+   ```
+
+   You can search this message with the keyword `Email Verification Instruction`.
+
+2. Configure user permission for the project
+
+   1. Connect to the database
+
+   2. Go to the `_auth_user` table
+
+   3. Copy the `id` value in the first row which is the account you registered
+
+   4. Go to the `_portal_app_collaborator` table
+
+   5. Create a new row of data
+
+      1. For the `id` column, fill in with any string
+
+      2. For the `app_id` column, fill in with `accounts`
+
+      3. For the `user_id` column, fill in with the value you copied
+
+      4. For the `created_at` column, fill in with `NOW()`
+
+      5. For the `role` column, fill in with `owner`
+
+      6. Save the data
+
+   6. Now you can navigate to your project in the portal
 
 ## Known issues
 
