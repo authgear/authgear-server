@@ -40,7 +40,6 @@ func NewDefaultGlobalEmbeddedResourceManager() (*GlobalEmbeddedResourceManager, 
 		ResourceDir:    DefaultResourceDir,
 		ResourcePrefix: DefaultResourcePrefix,
 		Name:           DefaultManifestName,
-		FilePath:       DefaultResourceDir + DefaultResourcePrefix + DefaultManifestName,
 	})
 }
 
@@ -59,7 +58,7 @@ func NewGlobalEmbeddedResourceManager(manifest *Manifest) (*GlobalEmbeddedResour
 			ResourceDir:    manifest.ResourceDir,
 			ResourcePrefix: manifest.ResourcePrefix,
 			Name:           manifest.Name,
-			FilePath:       manifest.FilePath,
+			FilePath:       manifest.ResourceDir + manifest.ResourcePrefix + manifest.Name,
 		},
 		watcher: watcher,
 	}
