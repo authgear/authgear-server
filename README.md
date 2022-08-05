@@ -226,7 +226,7 @@ Make a copy of `.env.example` as `.env`, and update it if necessary.
 1. Install dependencies
 
    ```
-   npm install
+   npm ci
    ```
 
 2. Run development server
