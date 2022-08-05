@@ -98,6 +98,12 @@
 					type="submit"
 					name="x_action"
 					value="login_id"
+					{{/* Modal mediation and conditional mediation cannot be present in the same page. */}}
+					{{/* When a page has a pending conditional mediation promise, the modal mediation promise will always be */}}
+					{{/* rejected with a NotAllowedError immediately after invocation. */}}
+					{{/* Therefore, in this page, we opt-out for Turbo form submission. */}}
+					{{/* Then the next page can use modal mediation normally. */}}
+					data-turbo="false"
 					data-authgear-event="authgear.button.sign_in"
 				>{{ template "login-label" }}</button>
 				{{ end }}
