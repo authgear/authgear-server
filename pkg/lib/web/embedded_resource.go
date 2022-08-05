@@ -101,11 +101,14 @@ func (m *GlobalEmbeddedResourceManager) watch() {
 				break
 			}
 
-			if event.Op&fsnotify.Write != fsnotify.Write && event.Op&fsnotify.Create != fsnotify.Create {
-				break
+			switch event.Op {
+			case fsnotify.Create, fsnotify.Write:
+				_ = m.watcher.Remove(m.Manifest.ResourceDir + m.Manifest.ResourcePrefix)
+				_ = m.watcher.Add(m.Manifest.FilePath)
+				_ = m.reload()
+			case fsnotify.Remove:
+				_ = m.watcher.Add(m.Manifest.ResourceDir + m.Manifest.ResourcePrefix)
 			}
-
-			_ = m.reload()
 
 		case _, ok := <-m.watcher.Errors:
 			if !ok {
