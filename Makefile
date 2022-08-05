@@ -126,8 +126,8 @@ portal:
 clean:
 	rm -rf ./resources/portal/static
 	git checkout -- ./resources/portal/static
-	rm -rf ./resources/authgear/static
-	git checkout -- ./resources/authgear/static
+	rm -rf ./resources/authgear/static/generated/*
+	git checkout -- ./resources/authgear/static/generated/*
 
 .PHONY: export-schemas
 export-schemas:
