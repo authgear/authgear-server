@@ -553,6 +553,8 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 		default:
 			panic(fmt.Errorf("webapp: unexpected authentication stage: %s", currentNode.Stage))
 		}
+	case *nodes.NodePromptCreatePasskeyBegin:
+		return SessionStepPromptCreatePasskey
 	default:
 		panic(fmt.Errorf("webapp: unexpected node: %T", graph.CurrentNode()))
 	}

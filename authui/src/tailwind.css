@@ -117,6 +117,10 @@
     @apply rounded-sm px-5 py-1.5 text-center border border-solid border-transparent;
   }
 
+  .btn.secondary-btn {
+    @apply px-5 py-1.5 text-center;
+  }
+
   .btn.action-btn {
     @apply rounded-sm px-3 py-1 text-center;
   }
