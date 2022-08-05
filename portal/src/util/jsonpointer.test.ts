@@ -1,4 +1,4 @@
-/* global describe, it, expect */
+import { describe, it, expect } from "@jest/globals";
 import {
   parseJSONPointer,
   jsonPointerToString,

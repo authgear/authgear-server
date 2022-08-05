@@ -1,8 +1,4 @@
-/**
- * @jest-environment jsdom
- */
-
-/* global describe, it, expect */
+import { describe, it, expect } from "@jest/globals";
 import { getPaginationRenderData, encodeOffsetToCursor } from "./pagination";
 
 describe("getPaginationRenderData", () => {

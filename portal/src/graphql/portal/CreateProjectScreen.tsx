@@ -14,14 +14,17 @@ import { useCreateAppMutation } from "./mutations/createAppMutation";
 import { useAppListQuery } from "./query/appListQuery";
 import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 import { useSimpleForm } from "../../hook/useSimpleForm";
+import { randomProjectName } from "../../util/projectname";
 
 interface FormState {
   appID: string;
 }
 
-const DEFAULT_STATE: FormState = {
-  appID: "",
-};
+function makeDefaultState(): FormState {
+  return {
+    appID: randomProjectName(),
+  };
+}
 
 const FORM_TEXT_FIELD_STYLES = {
   description: {
@@ -69,7 +72,7 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
   const form = useSimpleForm({
     stateMode:
       "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
-    defaultState: DEFAULT_STATE,
+    defaultState: makeDefaultState(),
     submit,
   });
 
