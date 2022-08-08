@@ -47,10 +47,6 @@ func NewGlobalEmbeddedResourceManager(manifest *Manifest) (*GlobalEmbeddedResour
 	if err != nil {
 		return nil, err
 	}
-	err = watcher.Add(manifest.ResourceDir + manifest.ResourcePrefix)
-	if err != nil {
-		return nil, err
-	}
 
 	m := &GlobalEmbeddedResourceManager{
 		Manifest: &Manifest{
@@ -59,6 +55,11 @@ func NewGlobalEmbeddedResourceManager(manifest *Manifest) (*GlobalEmbeddedResour
 			Name:           manifest.Name,
 		},
 		watcher: watcher,
+	}
+
+	err = m.setupWatch(nil)
+	if err != nil {
+		return nil, err
 	}
 
 	err = m.reload()
@@ -86,6 +87,26 @@ func (m *GlobalEmbeddedResourceManager) loadManifest() (map[string]string, error
 	return result, nil
 }
 
+func (m *GlobalEmbeddedResourceManager) setupWatch(event *fsnotify.Event) (err error) {
+	if event == nil {
+		err = m.watcher.Add(m.ManifestFilePath())
+		if err != nil {
+			err = m.watcher.Add(m.ManifestDir())
+		}
+		return
+	}
+
+	switch event.Op {
+	case fsnotify.Create, fsnotify.Write:
+		_ = m.watcher.Remove(m.ManifestDir())
+		err = m.watcher.Add(m.ManifestFilePath())
+	case fsnotify.Remove:
+		err = m.watcher.Add(m.ManifestDir())
+	}
+
+	return
+}
+
 func (m *GlobalEmbeddedResourceManager) watch() {
 	for {
 		select {
@@ -98,14 +119,8 @@ func (m *GlobalEmbeddedResourceManager) watch() {
 				break
 			}
 
-			switch event.Op {
-			case fsnotify.Create, fsnotify.Write:
-				_ = m.watcher.Remove(m.ManifestDir())
-				_ = m.watcher.Add(m.ManifestFilePath())
-				_ = m.reload()
-			case fsnotify.Remove:
-				_ = m.watcher.Add(m.ManifestDir())
-			}
+			_ = m.setupWatch(&event)
+			_ = m.reload()
 
 		case _, ok := <-m.watcher.Errors:
 			if !ok {
