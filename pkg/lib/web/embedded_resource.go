@@ -100,11 +100,11 @@ func (m *GlobalEmbeddedResourceManager) watch() {
 
 			switch event.Op {
 			case fsnotify.Create, fsnotify.Write:
-				_ = m.watcher.Remove(m.Manifest.ResourceDir + m.Manifest.ResourcePrefix)
+				_ = m.watcher.Remove(m.ManifestDir())
 				_ = m.watcher.Add(m.ManifestFilePath())
 				_ = m.reload()
 			case fsnotify.Remove:
-				_ = m.watcher.Add(m.Manifest.ResourceDir + m.Manifest.ResourcePrefix)
+				_ = m.watcher.Add(m.ManifestDir())
 			}
 
 		case _, ok := <-m.watcher.Errors:
@@ -128,8 +128,12 @@ func (m *GlobalEmbeddedResourceManager) reload() error {
 	return nil
 }
 
+func (m *GlobalEmbeddedResourceManager) ManifestDir() string {
+	return m.Manifest.ResourceDir + m.Manifest.ResourcePrefix
+}
+
 func (m *GlobalEmbeddedResourceManager) ManifestFilePath() string {
-	return m.Manifest.ResourceDir + m.Manifest.ResourcePrefix + m.Manifest.Name
+	return m.ManifestDir() + m.Manifest.Name
 }
 
 func (m *GlobalEmbeddedResourceManager) GetManifestContext() *ManifestContext {
@@ -141,7 +145,7 @@ func (m *GlobalEmbeddedResourceManager) Close() error {
 }
 
 func (m *GlobalEmbeddedResourceManager) HTTPFileSystem() http.FileSystem {
-	return http.Dir(m.Manifest.ResourceDir + m.Manifest.ResourcePrefix)
+	return http.Dir(m.ManifestDir())
 }
 
 func (m *GlobalEmbeddedResourceManager) AssetPath(key string) (prefix string, name string, err error) {
