@@ -216,6 +216,6 @@
   }
 
   .settings-security-item {
-    @apply p-3 tablet:p-3 desktop:p-4 rounded-md grid grid-cols-1 auto-rows-auto gap-y-2.5;
+    @apply p-3 tablet:p-3 desktop:p-4 rounded-md flex flex-col space-y-2.5;
   }
 }
