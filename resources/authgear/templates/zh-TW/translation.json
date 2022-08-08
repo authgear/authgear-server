@@ -289,6 +289,10 @@
   "settings-totp-title": "驗證器應用程式／裝置",
   "settings-totp-item-description": "新增時間：<span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
 
+  "settings-passkey-title": "通行密鑰",
+  "settings-passkey-item-description": "{name}<br>新增時間：<span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
+  "add-passkey-label": "新增通行密鑰",
+
   "settings-sessions-title": "已登入的裝置",
   "settings-sessions-description": "你目前在以下裝置登入",
   "settings-sessions-item-title": "{countryName} ({countryCode}) - {ip}",

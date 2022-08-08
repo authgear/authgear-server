@@ -290,6 +290,10 @@
   "settings-totp-title": "Authenticator Apps / Devices",
   "settings-totp-item-description": "Added at <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
 
+  "settings-passkey-title": "Passkey",
+  "settings-passkey-item-description": "{name}<br>Added at <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
+  "add-passkey-label": "Add passkey",
+
   "settings-sessions-title": "Signed in Sessions",
   "settings-sessions-description": "You’re currently signed in to your account on these devices",
   "settings-sessions-item-title": "{countryName} ({countryCode}) - {ip}",
