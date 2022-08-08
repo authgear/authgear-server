@@ -22,7 +22,6 @@ type Manifest struct {
 	ResourceDir    string
 	ResourcePrefix string
 	Name           string
-	FilePath       string
 	content        atomic.Value
 }
 
@@ -58,7 +57,6 @@ func NewGlobalEmbeddedResourceManager(manifest *Manifest) (*GlobalEmbeddedResour
 			ResourceDir:    manifest.ResourceDir,
 			ResourcePrefix: manifest.ResourcePrefix,
 			Name:           manifest.Name,
-			FilePath:       manifest.ResourceDir + manifest.ResourcePrefix + manifest.Name,
 		},
 		watcher: watcher,
 	}
@@ -74,7 +72,7 @@ func NewGlobalEmbeddedResourceManager(manifest *Manifest) (*GlobalEmbeddedResour
 }
 
 func (m *GlobalEmbeddedResourceManager) loadManifest() (map[string]string, error) {
-	jsonFile, err := os.Open(m.Manifest.FilePath)
+	jsonFile, err := os.Open(m.ManifestFilePath())
 	if err != nil {
 		return nil, err
 	}
@@ -96,14 +94,14 @@ func (m *GlobalEmbeddedResourceManager) watch() {
 				return
 			}
 
-			if event.Name != m.Manifest.FilePath {
+			if event.Name != m.ManifestFilePath() {
 				break
 			}
 
 			switch event.Op {
 			case fsnotify.Create, fsnotify.Write:
 				_ = m.watcher.Remove(m.Manifest.ResourceDir + m.Manifest.ResourcePrefix)
-				_ = m.watcher.Add(m.Manifest.FilePath)
+				_ = m.watcher.Add(m.ManifestFilePath())
 				_ = m.reload()
 			case fsnotify.Remove:
 				_ = m.watcher.Add(m.Manifest.ResourceDir + m.Manifest.ResourcePrefix)
@@ -128,6 +126,10 @@ func (m *GlobalEmbeddedResourceManager) reload() error {
 	}
 	m.Manifest.content.Store(manifestCtx)
 	return nil
+}
+
+func (m *GlobalEmbeddedResourceManager) ManifestFilePath() string {
+	return m.Manifest.ResourceDir + m.Manifest.ResourcePrefix + m.Manifest.Name
 }
 
 func (m *GlobalEmbeddedResourceManager) GetManifestContext() *ManifestContext {
