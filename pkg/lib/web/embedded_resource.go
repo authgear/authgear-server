@@ -74,7 +74,7 @@ func NewGlobalEmbeddedResourceManager(manifest *Manifest) (*GlobalEmbeddedResour
 
 func (m *GlobalEmbeddedResourceManager) loadManifest() (map[string]string, error) {
 	jsonFile, err := os.Open(m.ManifestFilePath())
-	if err != nil {
+	if err != nil && !os.IsNotExist(err) {
 		return nil, err
 	}
 	defer jsonFile.Close()
@@ -90,7 +90,7 @@ func (m *GlobalEmbeddedResourceManager) loadManifest() (map[string]string, error
 func (m *GlobalEmbeddedResourceManager) setupWatch(event *fsnotify.Event) (err error) {
 	if event == nil {
 		err = m.watcher.Add(m.ManifestFilePath())
-		if err != nil {
+		if os.IsNotExist(err) {
 			err = m.watcher.Add(m.ManifestDir())
 		}
 		return
