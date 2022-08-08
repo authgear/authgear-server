@@ -27,16 +27,6 @@ func TestGlobalEmbeddedResourceManager(t *testing.T) {
 			So(m.Manifest.Name, ShouldEqual, web.DefaultManifestName)
 		})
 
-		Convey("should throw error if manifest file does not exist", func() {
-			m, err := web.NewGlobalEmbeddedResourceManager(&web.Manifest{
-				ResourceDir:    "testdata/" + web.DefaultResourceDir,
-				ResourcePrefix: web.DefaultResourcePrefix,
-				Name:           "test.json",
-			})
-			So(err.Error(), ShouldContainSubstring, "no such file or directory")
-			So(m, ShouldBeNil)
-		})
-
 		Convey("should throw error if resource directory does not exist", func() {
 			m, err := web.NewGlobalEmbeddedResourceManager(&web.Manifest{
 				ResourceDir:    "testdata/123/",
