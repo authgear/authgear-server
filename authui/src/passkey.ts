@@ -120,26 +120,21 @@ function handleError(err: unknown) {
   return false;
 }
 
+// We want to prompt the modal dialog to create passkey.
+// But navigator.credentials.create is user activation-gated API.
+// There is no way to check if we have user activation currently.
 export class PasskeyCreationController extends Controller {
   static targets = ["button", "submit", "input"];
-  static values = {
-    preferred: Boolean,
-  };
 
   declare buttonTarget: HTMLButtonElement;
   declare submitTarget: HTMLButtonElement;
   declare inputTarget: HTMLInputElement;
-  declare preferredValue: boolean;
 
   connect() {
     // Disable the button if PublicKeyCredential is unavailable.
     if (!passkeyIsAvailable()) {
       this.buttonTarget.disabled = true;
       return;
-    }
-
-    if (this.preferredValue) {
-      this._create();
     }
   }
 
@@ -177,26 +172,21 @@ export class PasskeyCreationController extends Controller {
   }
 }
 
+// We want to prompt the modal dialog to let the user to choose passkey.
+// But navigator.credentials.get is user activation-gated API.
+// There is no way to check if we have user activation currently.
 export class PasskeyRequestController extends Controller {
   static targets = ["button", "submit", "input"];
-  static values = {
-    preferred: Boolean,
-  };
 
   declare buttonTarget: HTMLButtonElement;
   declare submitTarget: HTMLButtonElement;
   declare inputTarget: HTMLInputElement;
-  declare preferredValue: boolean;
 
   connect() {
     // Disable the button if PublicKeyCredential is unavailable.
     if (!passkeyIsAvailable()) {
       this.buttonTarget.disabled = true;
       return;
-    }
-
-    if (this.preferredValue) {
-      this._use();
     }
   }
 

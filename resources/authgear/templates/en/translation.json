@@ -180,6 +180,12 @@
   "create-password-page-title": "Create Password",
   "create-additional-password-page-title": "Create Additional Password",
 
+  "create-passkey-page-title": "Create Passkey",
+  "create-passkey-label": "Create Passkey",
+
+  "use-passkey-page-title": "Use Passkey",
+  "use-passkey-label": "Use Passkey",
+
   "password-policy-required-password-strength-label": "Your new password must be",
   "password-policy-title": "Your new password must follow the below rules:",
   "password-policy-minimum-length": "Minimum {length, plural, one{# character} other{# characters}}",

@@ -179,6 +179,12 @@
   "create-password-page-title": "建立密碼",
   "create-additional-password-page-title": "創建輔助密碼",
 
+  "create-passkey-page-title": "建立通行密匙",
+  "create-passkey-label": "建立通行密匙",
+
+  "use-passkey-page-title": "使用通行密匙",
+  "use-passkey-label": "使用通行密匙",
+
   "password-policy-required-password-strength-label": "你的新密碼必須為",
   "password-policy-title": "你的密碼必須符合以下條件:",
   "password-policy-minimum-length": "最少 {length, plural, other{# 位}}",

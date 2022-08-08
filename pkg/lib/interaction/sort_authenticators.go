@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/util/sortutil"
 )
 
 type SortableAuthenticator interface {
@@ -29,41 +30,57 @@ func SortAuthenticators(
 	slice interface{},
 	toSortable func(i int) SortableAuthenticator,
 ) {
-	rank := make(map[model.AuthenticatorType]int)
-	for i, typ := range preferred {
-		rank[typ] = i
+	// Non-passkey authenticators must come BEFORE passkey authenticators.
+	orderByPasskey := func(i, j int) bool {
+		iSortable := toSortable(i)
+		jSortable := toSortable(j)
+
+		iType := iSortable.AuthenticatorType()
+		jType := jSortable.AuthenticatorType()
+
+		iPasskey := iType == model.AuthenticatorTypePasskey
+		jPasskey := jType == model.AuthenticatorTypePasskey
+
+		return !iPasskey && jPasskey
 	}
 
-	sort.SliceStable(slice, func(i, j int) bool {
+	// Default authenticators must come BEFORE non-default authenticators.
+	orderByDefault := func(i, j int) bool {
 		iSortable := toSortable(i)
 		jSortable := toSortable(j)
 
 		iDefault := iSortable.IsDefaultAuthenticator()
 		jDefault := jSortable.IsDefaultAuthenticator()
+
+		return iDefault && !jDefault
+	}
+
+	// authenticators with a higher rank (lower rank value) must come BEFORE
+	// authenticators with a lower rank (higher rank value).
+	rank := make(map[model.AuthenticatorType]int)
+	for i, typ := range preferred {
+		rank[typ] = i
+	}
+	orderByRank := func(i, j int) bool {
+		iSortable := toSortable(i)
+		jSortable := toSortable(j)
+
+		iType := iSortable.AuthenticatorType()
+		jType := jSortable.AuthenticatorType()
+
+		iRank, iIsPreferred := rank[iType]
+		jRank, jIsPreferred := rank[jType]
+
 		switch {
-		case iDefault && !jDefault:
+		case iIsPreferred && jIsPreferred:
+			return iRank < jRank
+		case iIsPreferred && !jIsPreferred:
 			return true
-		case !iDefault && jDefault:
-			return false
 		default:
-			iType := iSortable.AuthenticatorType()
-			jType := jSortable.AuthenticatorType()
-
-			iRank, iIsPreferred := rank[iType]
-			jRank, jIsPreferred := rank[jType]
-
-			switch {
-			case iIsPreferred && jIsPreferred:
-				return iRank < jRank
-			case !iIsPreferred && !jIsPreferred:
-				return false
-			case iIsPreferred && !jIsPreferred:
-				return true
-			case !iIsPreferred && jIsPreferred:
-				return false
-			}
+			return false
 		}
+	}
 
-		panic("unreachable")
-	})
+	less := sortutil.LessFunc(orderByPasskey).AndThen(orderByDefault).AndThen(orderByRank)
+	sort.SliceStable(slice, less)
 }

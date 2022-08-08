@@ -39,11 +39,9 @@ type AlternativeStep struct {
 }
 
 type AlternativeStepsViewModel struct {
-	CurrentStep           webapp.SessionStepKind
 	AuthenticationStage   authn.AuthenticationStage
 	AlternativeSteps      []AlternativeStep
 	CanRequestDeviceToken bool
-	PasskeyIsPreferred    bool
 }
 
 type AlternativeStepsViewModeler struct {
@@ -53,8 +51,6 @@ type AlternativeStepsViewModeler struct {
 // nolint: gocyclo
 func (a *AlternativeStepsViewModeler) AuthenticationAlternatives(graph *interaction.Graph, currentStepKind webapp.SessionStepKind) (*AlternativeStepsViewModel, error) {
 	m := &AlternativeStepsViewModel{}
-	m.CurrentStep = currentStepKind
-	a.setPasskeyIsPreferred(m)
 
 	var node AuthenticationBeginNode
 	if !graph.FindLastNode(&node) {
@@ -191,8 +187,6 @@ func (a *AlternativeStepsViewModeler) AuthenticationAlternatives(graph *interact
 
 func (a *AlternativeStepsViewModeler) CreateAuthenticatorAlternatives(graph *interaction.Graph, currentStepKind webapp.SessionStepKind) (*AlternativeStepsViewModel, error) {
 	m := &AlternativeStepsViewModel{}
-	m.CurrentStep = currentStepKind
-	a.setPasskeyIsPreferred(m)
 
 	var node CreateAuthenticatorBeginNode
 	if !graph.FindLastNode(&node) {
@@ -268,20 +262,4 @@ func (a *AlternativeStepsViewModeler) CreateAuthenticatorAlternatives(graph *int
 	}
 
 	return m, nil
-}
-
-func (a *AlternativeStepsViewModeler) setPasskeyIsPreferred(m *AlternativeStepsViewModel) {
-	passwordIndex := -1
-	passkeyIndex := -1
-
-	for i, typ := range *a.AuthenticationConfig.PrimaryAuthenticators {
-		switch typ {
-		case model.AuthenticatorTypePassword:
-			passwordIndex = i
-		case model.AuthenticatorTypePasskey:
-			passkeyIndex = i
-		}
-	}
-
-	m.PasskeyIsPreferred = passkeyIndex >= 0 && (passwordIndex < 0 || passkeyIndex < passwordIndex)
 }

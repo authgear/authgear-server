@@ -113,4 +113,34 @@ func TestSortAuthenticators(t *testing.T) {
 			info(model.AuthenticatorTypePassword, "password2"),
 		})
 	})
+
+	Convey("SortAuthenticators by passkey", t, func() {
+		test([]*authenticator.Info{
+			infoDefault(model.AuthenticatorTypePasskey, "passkey", true),
+		}, []model.AuthenticatorType{}, []*authenticator.Info{
+			infoDefault(model.AuthenticatorTypePasskey, "passkey", true),
+		})
+
+		// non-passkey come BEFORE default
+		test([]*authenticator.Info{
+			info(model.AuthenticatorTypePasskey, "passkey"),
+			infoDefault(model.AuthenticatorTypePassword, "password", true),
+		}, []model.AuthenticatorType{}, []*authenticator.Info{
+			infoDefault(model.AuthenticatorTypePassword, "password", true),
+			info(model.AuthenticatorTypePasskey, "passkey"),
+		})
+
+		// non-passkey come BEFORE higher rank
+		test([]*authenticator.Info{
+			info(model.AuthenticatorTypePasskey, "passkey"),
+			info(model.AuthenticatorTypeOOBEmail, "oob1"),
+			infoDefault(model.AuthenticatorTypeOOBEmail, "oob2", true),
+		}, []model.AuthenticatorType{
+			model.AuthenticatorTypePasskey,
+		}, []*authenticator.Info{
+			infoDefault(model.AuthenticatorTypeOOBEmail, "oob2", true),
+			info(model.AuthenticatorTypeOOBEmail, "oob1"),
+			info(model.AuthenticatorTypePasskey, "passkey"),
+		})
+	})
 }
