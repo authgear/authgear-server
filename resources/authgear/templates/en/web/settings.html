@@ -225,6 +225,24 @@
 </div>
 
 <div class="px-5 grid grid-cols-2 tablet:grid-cols-2 desktop:grid-cols-3 auto-rows-min gap-4">
+  {{ if $.ShowPrimaryPasskey }}
+  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/passkey">
+    {{/* FIXME(passkey): dark mode aware icon */}}
+    <i class="ti ti-key text-3xl block primary-txt" aria-hidden="true"></i>
+    <p class="m-0 primary-txt text-base">
+      {{ template "settings-page-primary-passkey-title" }}
+    </p>
+    <p class="m-0 secondary-txt text-xs">
+    {{ if $.LatestPrimaryPasskey }}
+      <!-- FIXME(ui): Use user preferred timezone -->
+      {{ template "settings-page-primary-passkey-description" (dict "name" $.LatestPrimaryPasskey.Passkey.CreationOptions.PublicKey.User.DisplayName "time" $.LatestPrimaryPasskey.CreatedAt "rfc3339" (rfc3339 $.LatestPrimaryPasskey.CreatedAt)) }}
+    {{ else }}
+      {{ template "settings-page-primary-passkey-description-none" }}
+    {{ end }}
+    </p>
+  </a>
+  {{ end }}
+
   {{ range $.Authenticators }}
   <!-- Primary Password -->
   {{ if eq .Type "password" }}{{ if eq .Kind "primary" }}

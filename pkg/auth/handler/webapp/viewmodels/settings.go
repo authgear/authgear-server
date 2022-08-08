@@ -24,6 +24,9 @@ type SettingsViewModel struct {
 	ShowSecondaryOOBOTPSMS   bool
 	ShowSecondaryPassword    bool
 	ShowMFA                  bool
+
+	LatestPrimaryPasskey *authenticator.Info
+	ShowPrimaryPasskey   bool
 }
 
 type SettingsIdentityService interface {
@@ -71,6 +74,9 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 	oobotpEmailAllowed := false
 	oobotpSMSAllowed := false
 	passwordAllowed := false
+	passkeyAllowed := false
+
+	var latestPrimaryPasskey *authenticator.Info
 
 	if somePrimaryAuthenticatorCanHaveMFA {
 		for _, typ := range *m.Authentication.SecondaryAuthenticators {
@@ -87,8 +93,22 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 		}
 	}
 
+	for _, typ := range *m.Authentication.PrimaryAuthenticators {
+		switch typ {
+		case model.AuthenticatorTypePasskey:
+			passkeyAllowed = true
+		}
+	}
+
 	for _, a := range authenticators {
-		if a.Kind == authenticator.KindSecondary {
+		switch a.Kind {
+		case authenticator.KindPrimary:
+			switch a.Type {
+			case model.AuthenticatorTypePasskey:
+				aa := a
+				latestPrimaryPasskey = aa
+			}
+		case authenticator.KindSecondary:
 			switch a.Type {
 			case model.AuthenticatorTypeTOTP:
 				hasSecondaryTOTP = true
@@ -100,6 +120,7 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 				aa := a
 				secondaryPassword = aa
 			}
+
 		}
 	}
 
@@ -118,6 +139,7 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 	showSecondaryOOBOTPEmail := hasSecondaryOOBOTPEmail || oobotpEmailAllowed
 	showSecondaryOOBOTPSMS := hasSecondaryOOBOTPSMS || oobotpSMSAllowed
 	showSecondaryPassword := secondaryPassword != nil || passwordAllowed
+	showPrimaryPasskey := latestPrimaryPasskey != nil || passkeyAllowed
 	showMFA := !m.Authentication.SecondaryAuthenticationMode.IsDisabled() &&
 		(showSecondaryTOTP ||
 			showSecondaryOOBOTPEmail ||
@@ -141,6 +163,10 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 		ShowSecondaryOOBOTPSMS:   showSecondaryOOBOTPSMS,
 		ShowSecondaryPassword:    showSecondaryPassword,
 		ShowMFA:                  showMFA,
+
+		LatestPrimaryPasskey: latestPrimaryPasskey,
+		ShowPrimaryPasskey:   showPrimaryPasskey,
 	}
+
 	return viewModel, nil
 }
