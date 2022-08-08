@@ -211,24 +211,6 @@
 
 </div>
 
-<!-- Primary password, oob_otp -->
-{{ $has_primary_password := false }}
-{{ $has_primary_oob_otp_email := false }}
-{{ $has_primary_oob_otp_sms := false }}
-{{ range $.Authenticators }}
-{{ if eq .Kind "primary" }}
-  {{ if eq .Type "password" }}
-  {{ $has_primary_password = true }}
-  {{ end }}
-  {{ if eq .Type "oob_otp_email" }}
-  {{ $has_primary_oob_otp_email = true }}
-  {{ end }}
-  {{ if eq .Type "oob_otp_sms" }}
-  {{ $has_primary_oob_otp_sms = true }}
-  {{ end }}
-{{ end }}
-{{ end }}
-
 <!-- MFA -->
 <!-- Individual secondary authenticator section is shown if it is allowed in the configuration -->
 <!-- or the user somehow has authenticator of that kind -->
