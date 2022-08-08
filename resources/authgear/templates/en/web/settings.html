@@ -212,31 +212,6 @@
 </div>
 
 <!-- MFA -->
-<!-- Individual secondary authenticator section is shown if it is allowed in the configuration -->
-<!-- or the user somehow has authenticator of that kind -->
-{{ $has_secondary_totp := false }}
-{{ $has_secondary_oob_otp_email := false }}
-{{ $has_secondary_oob_otp_sms := false }}
-{{ $secondary_password := false }}
-{{ range $.Authenticators }}
-{{ if eq .Kind "secondary" }}
-  {{ if eq .Type "totp" }}
-    {{ $has_secondary_totp = true }}
-  {{ else if eq .Type "oob_otp_email" }}
-    {{ $has_secondary_oob_otp_email = true }}
-  {{ else if eq .Type "oob_otp_sms" }}
-    {{ $has_secondary_oob_otp_sms = true }}
-  {{ else if eq .Type "password" }}
-    {{ $secondary_password = . }}
-  {{ end }}
-{{ end }}
-{{ end }}
-{{ $show_secondary_totp := (or $has_secondary_totp $.SecondaryTOTPAllowed) }}
-{{ $show_secondary_oob_otp_email := (or $has_secondary_oob_otp_email $.SecondaryOOBOTPEmailAllowed) }}
-{{ $show_secondary_oob_otp_sms := (or $has_secondary_oob_otp_sms $.SecondaryOOBOTPSMSAllowed) }}
-{{ $show_secondary_password := (or $secondary_password $.SecondaryPasswordAllowed) }}
-{{ $show_mfa := (and (not $.SecondaryAuthenticationDisabled) (or $show_secondary_totp $show_secondary_oob_otp_email $show_secondary_oob_otp_sms $show_secondary_password)) }}
-
 
 <div class="pane grid grid-cols-1 auto-rows-auto gap-y-2.5 pt-4 pb-5">
 <!-- The title and the description -->
@@ -299,7 +274,7 @@
   {{ end }}
 
   <!-- MFA -->
-  {{ if $show_mfa }}
+  {{ if $.ShowMFA }}
   <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/mfa">
     <i class="ti ti-shield-lock text-3xl block  primary-txt" aria-hidden="true"></i>
     <p class="m-0 primary-txt text-base">
