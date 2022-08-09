@@ -11,7 +11,7 @@
 
 <div class="twc-container-vertical" data-controller="passkey-creation">
 
-<div class="flex flex-col space-y-4 my-5 items-center">
+<div class="flex flex-col space-y-2 my-5 items-center">
 	<button
 		class="btn primary-btn"
 		type="button"
@@ -21,7 +21,7 @@
 	>{{ template "create-passkey-label" }}</button>
 	<form method="post" novalidate>
 		{{ $.CSRFField }}
-		<button class="btn secondary-btn" type="submit" name="x_action" value="skip">
+		<button class="btn secondary-btn px-5 py-1.5 text-center" type="submit" name="x_action" value="skip">
 			{{ template "prompt-create-passkey-skip-label" }}
 		</button>
 	</form>
