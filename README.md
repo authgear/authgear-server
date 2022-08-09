@@ -2,6 +2,23 @@
 
 Work in progress
 
+- [Prerequisite](#prerequisite)
+- [Environment setup](#environment-setup)
+- [Database setup](#database-setup)
+- [HTTPS setup](#https-setup)
+- [Running everything](#running-everything)
+- [Multi-tenant mode](#multi-tenant-mode)
+- [Portal setup](#portal-setup)
+  - [Setup environment variable](#setup-environment-variable)
+  - [Setup portal development server](#setup-portal-development-server)
+- [Initial project setup](#initial-project-setup)
+- [Known issues](#known-issues)
+  - [Portal](#portal)
+- [Comment tags](#comment-tags)
+- [Credits](#credits)
+- [Create release tag before deployment](#create-release-tag-before-deployment)
+- [Keep dependencies up-to-date](#keep-dependencies-up-to-date)
+
 ## Prerequisite
 
 Note that there is a local .tool-versions in project root. For the following setup to work, we need to
@@ -16,44 +33,44 @@ Note that there is a local .tool-versions in project root. For the following set
 
 3. Install icu4c
 
-```sh
-brew install icu4c
-```
+   ```sh
+   brew install icu4c
+   ```
 
-icu4c installed by brew is not globally visible by default, so you have to ensure your shell has the following in effect
+   icu4c installed by brew is not globally visible by default, so you have to ensure your shell has the following in effect
 
-```sh
-export PKG_CONFIG_PATH="$(brew --prefix)/opt/icu4c/lib/pkgconfig"
-```
+   ```sh
+   export PKG_CONFIG_PATH="$(brew --prefix)/opt/icu4c/lib/pkgconfig"
+   ```
 
 To avoid doing the above every time you open a new shell, you may want to add it to your shell initialization script such as `~/.profile`, `~/.bash_profile`, etc.
 
 4. Install libvips
 
-```sh
-brew install vips
-```
+   ```sh
+   brew install vips
+   ```
 
-libvips on macOS requires `-Xpreprocessor` to build.
-Run the following to tell Cgo.
+   libvips on macOS requires `-Xpreprocessor` to build.
+   Run the following to tell Cgo.
 
-```sh
-export CGO_CFLAGS_ALLOW="-Xpreprocessor"
-```
+   ```sh
+   export CGO_CFLAGS_ALLOW="-Xpreprocessor"
+   ```
 
 5. Install libmagic
 
-```sh
-brew install libmagic
-```
+   ```sh
+   brew install libmagic
+   ```
 
-Run the following to tell Cgo where to find libmagic.
-Preferably you add it to your shell startup script.
+   Run the following to tell Cgo where to find libmagic.
+   Preferably you add it to your shell startup script.
 
-```sh
-export CGO_CFLAGS="-I$(brew --prefix)/include"
-export CGO_LDFLAGS="-L$(brew --prefix)/lib"
-```
+   ```sh
+   export CGO_CFLAGS="-I$(brew --prefix)/include"
+   export CGO_LDFLAGS="-L$(brew --prefix)/lib"
+   ```
 
 5. Run `make vendor`
 
@@ -86,7 +103,7 @@ export CGO_LDFLAGS="-L$(brew --prefix)/lib"
    For cookie to work properly, you need to use
 
    - `portal.localhost:8000` to access the portal.
-   - `accounts.portal.localhost:3000` to access the main server.
+   - `accounts.portal.localhost:3100` to access the main server.
 
    You can either do this by editing `/etc/hosts` or install `dnsmasq`.
 
@@ -121,7 +138,9 @@ export CGO_LDFLAGS="-L$(brew --prefix)/lib"
    make sure the db container is running
 
    ```sh
-   go run ./cmd/authgear database migrate up --database-url='postgres://postgres@127.0.0.1:5432/postgres?sslmode=disable' --database-schema=app
+   go run ./cmd/authgear database migrate up
+   go run ./cmd/portal database migrate up
+   go run ./cmd/authgear images database migrate up
    ```
 
 To create new migration:
@@ -196,9 +215,113 @@ To setup multi-tenant mode:
 4. Enable multi-tenant mode in Authgear & portal server:
    refer to `.env.example` for example environment variables to set
 
-## Portal
+## Portal setup
 
-### Known issues
+### Setup environment variable
+
+We need to set up environment variables for Authgear servers and portal server.
+
+Make a copy of `.env.example` as `.env`, and update it if necessary.
+
+### Setup portal development server
+
+1. Install dependencies
+
+   ```
+   npm ci
+   ```
+
+2. Run development server
+
+   ```
+   npm start
+   ```
+
+   This command should start a web development server on port 1234.
+
+3. Configure authgear.yaml
+
+   We need the following `authgear.yaml` to setup authgear for the portal.
+
+   ```yaml
+   id: accounts # Make sure the ID matches AUTHGEAR_APP_ID environment variable.
+   http:
+      # Make sure this matches the host used to access main Authgear server.
+      public_origin: "http://accounts.portal.localhost:3100"
+   oauth:
+      clients:
+         # Create a client for the portal.
+         # Since we assume the cookie is shared, there is no grant nor response.
+         - name: Portal
+            client_id: portal
+            # Note that the trailing slash is very important here
+            # URIs are compared byte by byte.
+            redirect_uris:
+               # This redirect URI is used by the portal development server.
+               - "http://portal.localhost:8000/oauth-redirect"
+               # This redirect URI is used by the portal production build.
+               - "http://portal.localhost:8010/oauth-redirect"
+               # This redirect URI is used by the iOS and Android demo app.
+               - "com.authgear.example://host/path"
+               # This redirect URI is used by the React Native demo app.
+               - "com.authgear.example.rn://host/path"
+               # This redirect URI is used by the Flutter demo app.
+               - com.authgear.exampleapp.flutter://host/path
+               # This redirect URI is used by the Xamarin demo app.
+               - com.authgear.exampleapp.xamarin://host/path
+            post_logout_redirect_uris:
+               # This redirect URI is used by the portal development server.
+               - "http://portal.localhost:8000/"
+               # This redirect URI is used by the portal production build.
+               - "http://portal.localhost:8010/"
+            grant_types: []
+            response_types:
+               - none
+   ```
+
+## Initial project setup
+
+As the first project `accounts` is created by the script instead of by user, we need to add `owner` role to this project so as to gain access in the portal.
+
+1. Register an account in [http://accounts.portal.localhost:3100](http://accounts.portal.localhost:3100)
+
+   You will get the email otp code in the terminal which is running authgear server in the following form:
+
+   ```
+   skip sending email in development mode        app=accounts body="Email Verification\n\nThis email is sent to verify <your email> on Authgear. Use this code in the verification page.\n\n<your code>\n\nIf you didn't sign in or sign up please ignore this email.\n" logger=mail-sender recipient=<your email> reply_to= sender=no-reply@authgear.com subject="[Authgear] Email Verification Instruction"
+   ```
+
+   You can search this message with the keyword `Email Verification Instruction`.
+
+2. Configure user permission for the project
+
+   1. Connect to the database
+
+   2. Go to the `_auth_user` table
+
+   3. Copy the `id` value in the first row which is the account you registered
+
+   4. Go to the `_portal_app_collaborator` table
+
+   5. Create a new row of data
+
+      1. For the `id` column, fill in with any string
+
+      2. For the `app_id` column, fill in with `accounts`
+
+      3. For the `user_id` column, fill in with the value you copied
+
+      4. For the `created_at` column, fill in with `NOW()`
+
+      5. For the `role` column, fill in with `owner`
+
+      6. Save the data
+
+   6. Now you can navigate to your project in the portal
+
+## Known issues
+
+### Portal
 
 As `useBlocker` is removed since react-router-domv6.0.0-beta.7 and have no promise which version will
 come back, we introduce the custom `useBlocker` hook by referencing the last commit which this hook
@@ -220,68 +343,6 @@ it installs them for us.
 But we do not want to do that.
 The workaround is to add `alias` to package.json.
 See [https://github.com/parcel-bundler/parcel/issues/7697](https://github.com/parcel-bundler/parcel/issues/7697).
-
-### Setup environment variable
-
-We need to set up environment variables for Authgear servers and portal server.
-
-Make a copy of `.env.example` as `.env`, and update it if necessary.
-
-### Setup portal development server
-
-1. Install dependencies
-
-```
-npm install
-```
-
-2. Run development server
-
-```
-npm start
-```
-
-This command should start a web development server on port 1234.
-
-3. Configure authgear.yaml
-
-We need the following `authgear.yaml` to setup authgear for the portal.
-
-```yaml
-id: accounts # Make sure the ID matches AUTHGEAR_APP_ID environment variable.
-http:
-  # Make sure this matches the host used to access main Authgear server.
-  public_origin: "http://accounts.portal.localhost:3000"
-  allowed_origins:
-    # The SDK uses XHR to fetch the OAuth/OIDC configuration,
-    # So we have to allow the origin of the portal.
-    # For simplicity, allow all origin for development setup.
-    - "*"
-oauth:
-  clients:
-    # Create a client for the portal.
-    # Since we assume the cookie is shared, there is no grant nor response.
-    - name: Portal
-      client_id: portal
-      # Note that the trailing slash is very important here
-      # URIs are compared byte by byte.
-      redirect_uris:
-        # This redirect URI is used by the portal development server.
-        - "http://portal.localhost:8000/oauth-redirect"
-        # This redirect URI is used by the portal production build.
-        - "http://portal.localhost:8010/oauth-redirect"
-        # This redirect URI is used by the iOS and Android demo app.
-        - "com.authgear.example://host/path"
-        # This redirect URI is used by the React Native demo app.
-        - "com.authgear.example.rn://host/path"
-      post_logout_redirect_uris:
-        # This redirect URI is used by the portal development server.
-        - "http://portal.localhost:8000/"
-        # This redirect URI is used by the portal production build.
-        - "http://portal.localhost:8010/"
-      grant_types: []
-      response_types: ["none"]
-```
 
 ## Comment tags
 
