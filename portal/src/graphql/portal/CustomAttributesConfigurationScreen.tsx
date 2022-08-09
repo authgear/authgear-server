@@ -22,6 +22,7 @@ import {
 } from "../../types";
 import { parseJSONPointer } from "../../util/jsonpointer";
 import styles from "./CustomAttributesConfigurationScreen.module.css";
+import { onRenderCommandBarPrimaryButton } from "../../CommandBarPrimaryButton";
 
 interface FormState {
   items: CustomAttributesAttributeConfig[];
@@ -156,6 +157,7 @@ const CustomAttributesConfigurationScreen: React.FC =
             e?.stopPropagation();
             navigate("./add");
           },
+          onRender: onRenderCommandBarPrimaryButton,
         },
       ],
       [renderToString, navigate]

@@ -24,6 +24,7 @@ import CommandBarContainer from "../../CommandBarContainer";
 import ScreenContent from "../../ScreenContent";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
+import { onRenderCommandBarPrimaryButton } from "../../CommandBarPrimaryButton";
 
 const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
   const { renderToString } = useContext(Context);
@@ -97,6 +98,7 @@ const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
         onClick: () => {
           navigate("./invite");
         },
+        onRender: onRenderCommandBarPrimaryButton,
       },
     ];
   }, [

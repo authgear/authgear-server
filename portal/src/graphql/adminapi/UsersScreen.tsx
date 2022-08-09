@@ -29,6 +29,7 @@ import ShowError from "../../ShowError";
 import useDelayedValue from "../../hook/useDelayedValue";
 
 import styles from "./UsersScreen.module.css";
+import { onRenderCommandBarPrimaryButton } from "../../CommandBarPrimaryButton";
 
 const LocalSearchBoxContext = createContext<LocalSearchBoxProps | null>(null);
 
@@ -122,6 +123,7 @@ const UsersScreen: React.FC = function UsersScreen() {
         text: renderToString("UsersScreen.add-user"),
         iconProps: { iconName: "CirclePlus" },
         onClick: () => navigate("./add-user"),
+        onRender: onRenderCommandBarPrimaryButton,
       },
     ];
   }, [navigate, renderToString]);
