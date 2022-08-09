@@ -85,6 +85,27 @@ func (h *SettingsPasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		return nil
 	})
 
+	ctrl.PostAction("remove", func() error {
+		opts := webapp.SessionOptions{
+			RedirectURI: redirectURI,
+		}
+		identityID := r.Form.Get("x_identity_id")
+		intent := intents.NewIntentRemoveIdentity(userID)
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			input = &InputRemoveIdentity{
+				Type: model.IdentityTypePasskey,
+				ID:   identityID,
+			}
+			return
+		})
+		if err != nil {
+			return err
+		}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
+
 	ctrl.PostAction("add", func() error {
 		opts := webapp.SessionOptions{
 			RedirectURI: redirectURI,

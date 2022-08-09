@@ -213,3 +213,7 @@ func (i *Info) IsDependentOf(iden *identity.Info) bool {
 
 	return false
 }
+
+func (i *Info) IsApplicableTo(iden *identity.Info) bool {
+	return KeepPrimaryAuthenticatorOfIdentity(iden).Keep(i)
+}
