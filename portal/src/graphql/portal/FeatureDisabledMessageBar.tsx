@@ -22,6 +22,7 @@ const FeatureDisabledMessageBar: React.FC<FeatureDisabledMessageBarProps> =
             a: {
               fontWeight: 600,
               whiteSpace: "nowrap",
+              color: `${theme.palette.themePrimary} !important`,
             },
           },
           icon: {
