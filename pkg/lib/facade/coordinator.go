@@ -180,6 +180,8 @@ func (c *Coordinator) IdentityUpdate(info *identity.Info) error {
 }
 
 func (c *Coordinator) IdentityDelete(is *identity.Info) error {
+	userID := is.UserID
+
 	err := c.Identities.Delete(is)
 	if err != nil {
 		return err
@@ -188,6 +190,24 @@ func (c *Coordinator) IdentityDelete(is *identity.Info) error {
 	err = c.removeOrphans(is.UserID)
 	if err != nil {
 		return err
+	}
+
+	identities, err := c.Identities.ListByUser(userID)
+	if err != nil {
+		return err
+	}
+
+	// Ensure the user has at least one identifiable identity after deletion.
+	remaining := identity.ApplyFilters(
+		identities,
+		identity.KeepIdentifiable,
+	)
+	if len(remaining) <= 0 {
+		return NewInvariantViolated(
+			"RemoveLastIdentity",
+			"cannot remove last identity",
+			nil,
+		)
 	}
 
 	err = c.StdAttrsService.PopulateIdentityAwareStandardAttributes(is.UserID)

@@ -482,61 +482,21 @@ func (s *Service) RemoveOrphans(identities []*identity.Info) error {
 	}
 
 	for _, a := range authenticators {
-		// Remove orphaned primary OOB OTP authenticators.
-		if a.Kind == authenticator.KindPrimary && (a.Type == model.AuthenticatorTypeOOBEmail || a.Type == model.AuthenticatorTypeOOBSMS) {
-			aClaims := a.StandardClaims()
+		if a.IsIndependent() {
+			continue
+		}
 
-			orphaned := true
-			for _, i := range identities {
-				// Matching identities with same claim => not orphan
-				isMatching := false
-				for _, t := range i.PrimaryAuthenticatorTypes() {
-					if t == a.Type {
-						isMatching = true
-						break
-					}
-				}
-				if !isMatching {
-					continue
-				}
-
-				for k, v := range i.StandardClaims() {
-					if aClaims[k] == v {
-						orphaned = false
-						break
-					}
-				}
-				if !orphaned {
-					break
-				}
-			}
-
-			if orphaned {
-				err = s.Delete(a)
-				if err != nil {
-					return err
-				}
+		orphaned := true
+		for _, i := range identities {
+			if a.IsDependentOf(i) {
+				orphaned = false
 			}
 		}
 
-		// Remove orphaned primary passkeys.
-		if a.Kind == authenticator.KindPrimary && a.Type == model.AuthenticatorTypePasskey {
-			authenticatorCredentialID := a.Passkey.CredentialID
-			orphaned := true
-			for _, i := range identities {
-				if i.Type == model.IdentityTypePasskey {
-					identityCredentialID := i.Passkey.CredentialID
-					if authenticatorCredentialID == identityCredentialID {
-						orphaned = false
-					}
-				}
-			}
-
-			if orphaned {
-				err = s.Delete(a)
-				if err != nil {
-					return err
-				}
+		if orphaned {
+			err = s.Delete(a)
+			if err != nil {
+				return err
 			}
 		}
 	}

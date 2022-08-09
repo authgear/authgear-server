@@ -40,26 +40,7 @@ func (n *NodeDoRemoveIdentity) Prepare(ctx *interaction.Context, graph *interact
 func (n *NodeDoRemoveIdentity) GetEffects() ([]interaction.Effect, error) {
 	return []interaction.Effect{
 		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			userID := graph.MustGetUserID()
-			remaining, err := ctx.Identities.ListByUser(userID)
-			if err != nil {
-				return err
-			}
-			remaining = identity.ApplyFilters(
-				remaining,
-				identity.KeepIdentifiable,
-				identity.OmitID(n.Identity.ID),
-			)
-
-			if len(remaining) < 1 {
-				return interaction.NewInvariantViolated(
-					"RemoveLastIdentity",
-					"cannot remove last identity",
-					nil,
-				)
-			}
-
-			err = ctx.Identities.Delete(n.Identity)
+			err := ctx.Identities.Delete(n.Identity)
 			if err != nil {
 				return err
 			}
