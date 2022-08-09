@@ -24,9 +24,18 @@ func (e *EdgePromptCreatePasskeyBegin) Instantiate(ctx *interaction.Context, gra
 	if err != nil {
 		return nil, err
 	}
-	if len(ais) > 0 {
+
+	passkeyEnabled := false
+	for _, typ := range *ctx.Config.Authentication.PrimaryAuthenticators {
+		if typ == model.AuthenticatorTypePasskey {
+			passkeyEnabled = true
+		}
+	}
+
+	if !passkeyEnabled || len(ais) > 0 {
 		return &NodePromptCreatePasskeyEnd{}, nil
 	}
+
 	return &NodePromptCreatePasskeyBegin{}, nil
 }
 
