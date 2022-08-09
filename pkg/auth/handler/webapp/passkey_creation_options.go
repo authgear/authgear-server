@@ -4,10 +4,12 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -38,23 +40,32 @@ func (h *PasskeyCreationOptionsHandler) ServeHTTP(w http.ResponseWriter, r *http
 
 	var creationOptions *model.WebAuthnCreationOptions
 	err = h.Database.ReadOnly(func() error {
-		session := webapp.GetSession(r.Context())
-		if session == nil {
-			return webapp.ErrSessionNotFound
-		}
+		webSession := webapp.GetSession(r.Context())
+		if webSession != nil {
+			err := h.Page.PeekUncommittedChanges(webSession, func(graph *interaction.Graph) error {
+				userID := graph.MustGetUserID()
+				var err error
+				creationOptions, err = h.Passkey.MakeCreationOptions(userID)
+				if err != nil {
+					return err
+				}
 
-		err := h.Page.PeekUncommittedChanges(session, func(graph *interaction.Graph) error {
-			userID := graph.MustGetUserID()
-			var err error
-			creationOptions, err = h.Passkey.MakeCreationOptions(userID)
+				return nil
+			})
 			if err != nil {
 				return err
 			}
+		} else {
+			userID := session.GetUserID(r.Context())
+			if userID == nil {
+				return apierrors.NewBadRequest("session not found")
+			}
 
-			return nil
-		})
-		if err != nil {
-			return err
+			var err error
+			creationOptions, err = h.Passkey.MakeCreationOptions(*userID)
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil
