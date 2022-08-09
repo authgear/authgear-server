@@ -117,9 +117,16 @@ func (n *NodeCreateAuthenticatorBegin) deriveEdges() ([]interaction.Edge, error)
 
 	switch n.Stage {
 	case authn.AuthenticationStagePrimary:
-		edges, err = n.derivePrimary()
-		if err != nil {
-			return nil, err
+		if n.AuthenticatorType == nil {
+			edges, err = n.derivePrimary()
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			edges, err = n.derivePrimaryWithType(*n.AuthenticatorType)
+			if err != nil {
+				return nil, err
+			}
 		}
 	case authn.AuthenticationStageSecondary:
 		edges = n.deriveSecondary()
@@ -131,6 +138,40 @@ func (n *NodeCreateAuthenticatorBegin) deriveEdges() ([]interaction.Edge, error)
 	if len(edges) == 0 {
 		edges = append(edges, &EdgeCreateAuthenticatorEnd{Stage: n.Stage, Authenticators: nil})
 	}
+
+	return edges, nil
+}
+
+func (n *NodeCreateAuthenticatorBegin) derivePrimaryWithType(typ model.AuthenticatorType) ([]interaction.Edge, error) {
+	// derivePrimary() assumes the presence of n.Identity
+	// n.Identity is absent when we are adding passkey in settings.
+	types := *n.AuthenticationConfig.PrimaryAuthenticators
+
+	var edges []interaction.Edge
+	for _, t := range types {
+		if t == typ {
+			if t == model.AuthenticatorTypePasskey {
+				edges = append(edges, &EdgeCreateAuthenticatorPasskey{
+					NewAuthenticatorID: n.NewAuthenticatorID,
+					Stage:              n.Stage,
+					IsDefault:          false,
+				})
+			}
+		}
+	}
+
+	interaction.SortAuthenticators(
+		types,
+		edges,
+		func(i int) interaction.SortableAuthenticator {
+			edge := edges[i]
+			a, ok := edge.(interaction.SortableAuthenticator)
+			if !ok {
+				panic(fmt.Sprintf("interaction: unknown edge: %T", edge))
+			}
+			return a
+		},
+	)
 
 	return edges, nil
 }

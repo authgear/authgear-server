@@ -35,10 +35,19 @@
     </form>
   {{ end }}
 
-  <div class="row-sep">
-    <button class="settings-add-btn secondary-btn" type="button">
-      {{ template "add-passkey-label" }}
-    </button>
+  <div class="row-sep" data-controller="passkey-creation" data-passkey-creation-auto-value="false">
+    <button
+      class="settings-add-btn secondary-btn"
+      type="button"
+      data-action="click->passkey-creation#create"
+      data-passkey-creation-target="button"
+      data-authgear-event="authgear.button.create_passkey"
+    >{{ template "add-passkey-label" }}</button>
+    <form class="hidden" method="post" novalidate>
+      {{ $.CSRFField }}
+      <input type="hidden" name="x_attestation_response" data-passkey-creation-target="input">
+      <button type="submit" class="hidden" name="x_action" value="add" data-passkey-creation-target="submit"></button>
+    </form>
   </div>
 
 </div>

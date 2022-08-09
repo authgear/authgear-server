@@ -5,9 +5,13 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -68,6 +72,9 @@ func (h *SettingsPasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	}
 	defer ctrl.Serve()
 
+	redirectURI := httputil.HostRelative(r.URL).String()
+	userID := ctrl.RequireUserID()
+
 	ctrl.Get(func() error {
 		data, err := h.GetData(r, w)
 		if err != nil {
@@ -75,6 +82,33 @@ func (h *SettingsPasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		}
 
 		h.Renderer.RenderHTML(w, r, TemplateWebSettingsPasskeyHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("add", func() error {
+		opts := webapp.SessionOptions{
+			RedirectURI: redirectURI,
+		}
+		intent := intents.NewIntentAddAuthenticator(
+			userID,
+			authn.AuthenticationStagePrimary,
+			model.AuthenticatorTypePasskey,
+		)
+
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			attestationResponseStr := r.Form.Get("x_attestation_response")
+			attestationResponse := []byte(attestationResponseStr)
+
+			return &InputPasskeyAttestationResponse{
+				Stage:               string(authn.AuthenticationStagePrimary),
+				AttestationResponse: attestationResponse,
+			}, nil
+		})
+		if err != nil {
+			return err
+		}
+
+		result.WriteResponse(w, r)
 		return nil
 	})
 }
