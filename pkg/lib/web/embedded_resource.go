@@ -47,10 +47,6 @@ func NewGlobalEmbeddedResourceManager(manifest *Manifest) (*GlobalEmbeddedResour
 	if err != nil {
 		return nil, err
 	}
-	err = watcher.Add(manifest.ResourceDir + manifest.ResourcePrefix)
-	if err != nil {
-		return nil, err
-	}
 
 	m := &GlobalEmbeddedResourceManager{
 		Manifest: &Manifest{
@@ -59,6 +55,11 @@ func NewGlobalEmbeddedResourceManager(manifest *Manifest) (*GlobalEmbeddedResour
 			Name:           manifest.Name,
 		},
 		watcher: watcher,
+	}
+
+	err = m.setupWatch(nil)
+	if err != nil {
+		return nil, err
 	}
 
 	err = m.reload()
@@ -72,8 +73,10 @@ func NewGlobalEmbeddedResourceManager(manifest *Manifest) (*GlobalEmbeddedResour
 }
 
 func (m *GlobalEmbeddedResourceManager) loadManifest() (map[string]string, error) {
-	jsonFile, err := os.Open(m.Manifest.ResourceDir + m.Manifest.ResourcePrefix + m.Manifest.Name)
-	if err != nil {
+	jsonFile, err := os.Open(m.ManifestFilePath())
+	if os.IsNotExist(err) {
+		return nil, nil
+	} else if err != nil {
 		return nil, err
 	}
 	defer jsonFile.Close()
@@ -86,6 +89,26 @@ func (m *GlobalEmbeddedResourceManager) loadManifest() (map[string]string, error
 	return result, nil
 }
 
+func (m *GlobalEmbeddedResourceManager) setupWatch(event *fsnotify.Event) (err error) {
+	if event == nil {
+		err = m.watcher.Add(m.ManifestFilePath())
+		if os.IsNotExist(err) {
+			err = m.watcher.Add(m.ManifestDir())
+		}
+		return
+	}
+
+	switch event.Op {
+	case fsnotify.Create, fsnotify.Write:
+		_ = m.watcher.Remove(m.ManifestDir())
+		err = m.watcher.Add(m.ManifestFilePath())
+	case fsnotify.Remove:
+		err = m.watcher.Add(m.ManifestDir())
+	}
+
+	return
+}
+
 func (m *GlobalEmbeddedResourceManager) watch() {
 	for {
 		select {
@@ -94,14 +117,11 @@ func (m *GlobalEmbeddedResourceManager) watch() {
 				return
 			}
 
-			if event.Name != m.Manifest.ResourceDir+m.Manifest.ResourcePrefix+m.Manifest.Name {
+			if event.Name != m.ManifestFilePath() {
 				break
 			}
 
-			if event.Op&fsnotify.Write != fsnotify.Write && event.Op&fsnotify.Create != fsnotify.Create {
-				break
-			}
-
+			_ = m.setupWatch(&event)
 			_ = m.reload()
 
 		case _, ok := <-m.watcher.Errors:
@@ -125,6 +145,14 @@ func (m *GlobalEmbeddedResourceManager) reload() error {
 	return nil
 }
 
+func (m *GlobalEmbeddedResourceManager) ManifestDir() string {
+	return m.Manifest.ResourceDir + m.Manifest.ResourcePrefix
+}
+
+func (m *GlobalEmbeddedResourceManager) ManifestFilePath() string {
+	return m.ManifestDir() + m.Manifest.Name
+}
+
 func (m *GlobalEmbeddedResourceManager) GetManifestContext() *ManifestContext {
 	return m.Manifest.content.Load().(*ManifestContext)
 }
@@ -134,7 +162,7 @@ func (m *GlobalEmbeddedResourceManager) Close() error {
 }
 
 func (m *GlobalEmbeddedResourceManager) HTTPFileSystem() http.FileSystem {
-	return http.Dir(m.Manifest.ResourceDir + m.Manifest.ResourcePrefix)
+	return http.Dir(m.ManifestDir())
 }
 
 func (m *GlobalEmbeddedResourceManager) AssetPath(key string) (prefix string, name string, err error) {
