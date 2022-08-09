@@ -35,14 +35,12 @@
     </form>
   {{ end }}
 
-  <div class="p-5 row-sep">
-    <form class="primary-action" method="post" novalidate>
-      {{ $.CSRFField }}
-      <button class="btn secondary-btn text-sm" type="submit" name="x_action" value="add">
-        {{ template "add-button-label" }}
-      </button>
-    </form>
-  </div>
+  <form class="row-sep" method="post" novalidate>
+    {{ $.CSRFField }}
+    <button class="settings-add-btn secondary-btn" type="submit" name="x_action" value="add">
+      {{ template "add-button-label" }}
+    </button>
+  </form>
 
 </div>
 
