@@ -74,7 +74,9 @@ func NewGlobalEmbeddedResourceManager(manifest *Manifest) (*GlobalEmbeddedResour
 
 func (m *GlobalEmbeddedResourceManager) loadManifest() (map[string]string, error) {
 	jsonFile, err := os.Open(m.ManifestFilePath())
-	if err != nil && !os.IsNotExist(err) {
+	if os.IsNotExist(err) {
+		return nil, nil
+	} else if err != nil {
 		return nil, err
 	}
 	defer jsonFile.Close()
