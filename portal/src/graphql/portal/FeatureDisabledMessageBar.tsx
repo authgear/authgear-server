@@ -1,5 +1,11 @@
 import React from "react";
-import { MessageBar, IMessageBarProps, useTheme } from "@fluentui/react";
+import {
+  MessageBar,
+  IMessageBarProps,
+  useTheme,
+  PartialTheme,
+  ThemeProvider,
+} from "@fluentui/react";
 
 export interface FeatureDisabledMessageBarProps extends IMessageBarProps {}
 
@@ -8,31 +14,38 @@ const FeatureDisabledMessageBar: React.FC<FeatureDisabledMessageBarProps> =
     const { ...rest } = props;
 
     const theme = useTheme();
+    const newTheme: PartialTheme = {
+      semanticColors: {
+        messageText: theme.palette.themePrimary,
+        messageLink: theme.semanticColors.link,
+        messageLinkHovered: theme.semanticColors.linkHovered,
+        infoIcon: theme.palette.themePrimary,
+      },
+    };
     return (
-      <MessageBar
-        {...rest}
-        styles={{
-          root: {
-            background: theme.palette.themeLighter,
-          },
-          innerText: {
-            fontSize: "14px",
-            lineHeight: "20px",
-            color: theme.palette.themePrimary,
-            a: {
-              fontWeight: 600,
-              whiteSpace: "nowrap",
-              color: `${theme.palette.themePrimary} !important`,
+      <ThemeProvider theme={newTheme}>
+        <MessageBar
+          {...rest}
+          styles={{
+            root: {
+              background: theme.palette.themeLighter,
             },
-          },
-          icon: {
-            lineHeight: "20px",
-            color: theme.palette.themePrimary,
-          },
-        }}
-      >
-        {props.children}
-      </MessageBar>
+            innerText: {
+              fontSize: "14px",
+              lineHeight: "20px",
+              a: {
+                fontWeight: 600,
+                whiteSpace: "nowrap",
+              },
+            },
+            icon: {
+              lineHeight: "20px",
+            },
+          }}
+        >
+          {props.children}
+        </MessageBar>
+      </ThemeProvider>
     );
   };
 
