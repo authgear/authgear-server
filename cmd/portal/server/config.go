@@ -53,6 +53,8 @@ type Config struct {
 
 	Stripe portalconfig.StripeConfig `envconfig:"STRIPE"`
 
+	GoogleTagManager portalconfig.GoogleTagManagerConfig `envconfig:"GTM"`
+
 	*config.EnvironmentConfig
 }
 
