@@ -17,24 +17,14 @@ import ListCellLayout from "../../ListCellLayout";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import ErrorDialog from "../../error/ErrorDialog";
 import { formatDatetime } from "../../util/formatDatetime";
+import {
+  Authenticator,
+  AuthenticatorType,
+  AuthenticatorKind,
+} from "./globalTypes.generated";
 
 import styles from "./UserDetailsAccountSecurity.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
-
-// authenticator type recognized by portal
-type PrimaryAuthenticatorType =
-  | "PASSWORD"
-  | "OOB_OTP_EMAIL"
-  | "OOB_OTP_SMS"
-  | "PASSKEY";
-type SecondaryAuthenticatorType =
-  | "PASSWORD"
-  | "TOTP"
-  | "OOB_OTP_EMAIL"
-  | "OOB_OTP_SMS";
-type AuthenticatorType = PrimaryAuthenticatorType | SecondaryAuthenticatorType;
-
-type AuthenticatorKind = "PRIMARY" | "SECONDARY";
 
 type OOBOTPVerificationMethod = "email" | "phone" | "unknown";
 
@@ -42,16 +32,6 @@ interface AuthenticatorClaims {
   "https://authgear.com/claims/totp/display_name"?: string;
   "https://authgear.com/claims/oob_otp/email"?: string;
   "https://authgear.com/claims/oob_otp/phone"?: string;
-}
-
-interface Authenticator {
-  id: string;
-  type: AuthenticatorType;
-  kind: AuthenticatorKind;
-  isDefault: boolean;
-  claims: AuthenticatorClaims;
-  createdAt: string;
-  updatedAt: string;
 }
 
 interface UserDetailsAccountSecurityProps {
@@ -207,16 +187,16 @@ const oobOtpVerificationMethodIconName: Partial<
 function getOobOtpAuthenticatorLabel(
   authenticator: Authenticator,
   verificationMethod: OOBOTPVerificationMethod
-) {
+): string {
   switch (verificationMethod) {
     case "email":
-      return (
-        authenticator.claims["https://authgear.com/claims/oob_otp/email"] ?? ""
-      );
+      return (authenticator.claims[
+        "https://authgear.com/claims/oob_otp/email"
+      ] ?? "") as string;
     case "phone":
-      return (
-        authenticator.claims["https://authgear.com/claims/oob_otp/phone"] ?? ""
-      );
+      return (authenticator.claims[
+        "https://authgear.com/claims/oob_otp/phone"
+      ] ?? "") as string;
     default:
       return "";
   }
@@ -379,7 +359,10 @@ const PasswordAuthenticatorCell: React.FC<PasswordAuthenticatorCellProps> =
     const { renderToString } = useContext(Context);
     const { themes } = useSystemConfig();
 
-    const labelId = getLocaleKeyWithAuthenticatorType("PASSWORD", kind);
+    const labelId = getLocaleKeyWithAuthenticatorType(
+      AuthenticatorType.Password,
+      kind
+    );
 
     const onResetPasswordClicked = useCallback(() => {
       navigate("./reset-password");
@@ -520,11 +503,19 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
       useState<RemoveConfirmationDialogData | null>(null);
 
     const primaryAuthenticatorLists = useMemo(() => {
-      return constructAuthenticatorLists(authenticators, "PRIMARY", locale);
+      return constructAuthenticatorLists(
+        authenticators,
+        AuthenticatorKind.Primary,
+        locale
+      );
     }, [locale, authenticators]);
 
     const secondaryAuthenticatorLists = useMemo(() => {
-      return constructAuthenticatorLists(authenticators, "SECONDARY", locale);
+      return constructAuthenticatorLists(
+        authenticators,
+        AuthenticatorKind.Secondary,
+        locale
+      );
     }, [locale, authenticators]);
 
     const showConfirmationDialog = useCallback(
