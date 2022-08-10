@@ -36,8 +36,7 @@ const productionOnlyDeps = [
 
 const filehandle = await open("./src/codesplit.ts", "w");
 for (const dep of deps) {
-  // Special case: normalize.css is referenced by index.html.
-  if (dep !== "normalize.css" && !productionOnlyDeps.includes(dep)) {
+  if (!productionOnlyDeps.includes(dep)) {
     await writeImport(dep);
   }
 }
