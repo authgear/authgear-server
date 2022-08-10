@@ -22,8 +22,3 @@
 .clientList {
   margin: 6px 0;
 }
-
-.readOnly {
-  pointer-events: none;
-  opacity: 0.5;
-}

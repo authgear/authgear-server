@@ -37,6 +37,7 @@ import ScreenDescription from "../../ScreenDescription";
 import { getApplicationTypeMessageID } from "./EditOAuthClientForm";
 import CommandBarContainer from "../../CommandBarContainer";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
+import { onRenderCommandBarPrimaryButton } from "../../CommandBarPrimaryButton";
 
 const COPY_ICON_STLYES: IButtonStyles = {
   root: { margin: "0 4px" },
@@ -258,7 +259,8 @@ const ApplicationsConfigurationScreen: React.FC =
           ),
           iconProps: { iconName: "CirclePlus" },
           onClick: () => navigate("./add"),
-          className: limitReached ? styles.readOnly : undefined,
+          disabled: limitReached,
+          onRender: onRenderCommandBarPrimaryButton,
         },
       ],
       [navigate, renderToString, limitReached]

@@ -13,6 +13,7 @@ import CommandBarContainer from "./CommandBarContainer";
 import { FormProvider } from "./form";
 import { ErrorParseRule } from "./error/parse";
 import { FormErrorMessageBar } from "./FormErrorMessageBar";
+import { onRenderCommandBarPrimaryButton } from "./CommandBarPrimaryButton";
 
 export interface FormModel {
   updateError: unknown;
@@ -106,6 +107,7 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
         onClick: () => {
           callSave();
         },
+        onRender: onRenderCommandBarPrimaryButton,
       },
     ];
     if (primaryItems != null) {
