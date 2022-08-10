@@ -27,6 +27,7 @@ import { ReactRouterLink, ReactRouterLinkProps } from "./ReactRouterLink";
 import Authenticated from "./graphql/portal/Authenticated";
 import { LoadingContextProvider } from "./hook/loading";
 import ShowLoading from "./ShowLoading";
+import GTMProvider from "./GTMProvider";
 
 const AppsScreen = lazy(async () => import("./graphql/portal/AppsScreen"));
 const CreateProjectScreen = lazy(
@@ -221,21 +222,23 @@ const ReactApp: React.FC = function ReactApp() {
   registerLocale(i18nISOCountriesEnLocale);
 
   return (
-    <LoadingContextProvider>
-      <LocaleProvider
-        locale="en"
-        messageByID={systemConfig.translations.en}
-        defaultComponents={defaultComponents}
-      >
-        <HelmetProvider>
-          <ApolloProvider client={client}>
-            <SystemConfigContext.Provider value={systemConfig}>
-              <PortalRoot />
-            </SystemConfigContext.Provider>
-          </ApolloProvider>
-        </HelmetProvider>
-      </LocaleProvider>
-    </LoadingContextProvider>
+    <GTMProvider containerID={systemConfig.gtmContainerID}>
+      <LoadingContextProvider>
+        <LocaleProvider
+          locale="en"
+          messageByID={systemConfig.translations.en}
+          defaultComponents={defaultComponents}
+        >
+          <HelmetProvider>
+            <ApolloProvider client={client}>
+              <SystemConfigContext.Provider value={systemConfig}>
+                <PortalRoot />
+              </SystemConfigContext.Provider>
+            </ApolloProvider>
+          </HelmetProvider>
+        </LocaleProvider>
+      </LoadingContextProvider>
+    </GTMProvider>
   );
 };
 
