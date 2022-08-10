@@ -84,7 +84,7 @@ interface FormState {
 
 // eslint-disable-next-line complexity
 function constructFormState(config: PortalAPIAppConfig): FormState {
-  const primary: AuthenticatorTypeFormState<PrimaryAuthenticatorType>[] = (
+  let primary: AuthenticatorTypeFormState<PrimaryAuthenticatorType>[] = (
     config.authentication?.primary_authenticators ?? []
   ).map((t) => ({
     isChecked: true,
@@ -96,6 +96,10 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
       primary.push({ isChecked: false, isDisabled: false, type });
     }
   }
+  // Passkey is controlled by the toggle.
+  // So we do not show it in the primary authenticator list.
+  primary = primary.filter((a) => a.type !== "passkey");
+
   const secondary: AuthenticatorTypeFormState<SecondaryAuthenticatorType>[] = (
     config.authentication?.secondary_authenticators ?? []
   ).map((t) => ({
