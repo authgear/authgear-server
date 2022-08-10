@@ -8,6 +8,7 @@ import {
   Toggle,
   DetailsList,
   Link,
+  Text,
 } from "@fluentui/react";
 import produce from "immer";
 import deepEqual from "deep-equal";
@@ -78,11 +79,12 @@ interface FormState {
   numRecoveryCode: number | undefined;
   allowListRecoveryCode: boolean;
   disableDeviceToken: boolean;
+  passkeyEnabled: boolean;
 }
 
 // eslint-disable-next-line complexity
 function constructFormState(config: PortalAPIAppConfig): FormState {
-  const primary: AuthenticatorTypeFormState<PrimaryAuthenticatorType>[] = (
+  let primary: AuthenticatorTypeFormState<PrimaryAuthenticatorType>[] = (
     config.authentication?.primary_authenticators ?? []
   ).map((t) => ({
     isChecked: true,
@@ -94,6 +96,10 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
       primary.push({ isChecked: false, isDisabled: false, type });
     }
   }
+  // Passkey is controlled by the toggle.
+  // So we do not show it in the primary authenticator list.
+  primary = primary.filter((a) => a.type !== "passkey");
+
   const secondary: AuthenticatorTypeFormState<SecondaryAuthenticatorType>[] = (
     config.authentication?.secondary_authenticators ?? []
   ).map((t) => ({
@@ -111,6 +117,10 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     }
   }
 
+  const passkeyIndex =
+    config.authentication?.primary_authenticators?.indexOf("passkey");
+  const passkeyEnabled = passkeyIndex != null && passkeyIndex >= 0;
+
   return {
     primary,
     secondary,
@@ -123,6 +133,7 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     allowListRecoveryCode:
       config.authentication?.recovery_code?.list_enabled ?? false,
     disableDeviceToken: config.authentication?.device_token?.disabled ?? false,
+    passkeyEnabled,
   };
 }
 
@@ -141,6 +152,26 @@ function constructConfig(
       s: AuthenticatorTypeFormState<T>[]
     ) {
       return s.filter((t) => t.isChecked).map((t) => t.type);
+    }
+
+    function setEnable<T extends string>(
+      arr: T[],
+      value: T,
+      enabled: boolean
+    ): T[] {
+      const index = arr.indexOf(value);
+
+      if (enabled) {
+        if (index >= 0) {
+          return arr;
+        }
+        return [...arr, value];
+      }
+
+      if (index < 0) {
+        return arr;
+      }
+      return [...arr.slice(0, index), ...arr.slice(index + 1)];
     }
 
     if (
@@ -163,6 +194,30 @@ function constructConfig(
     ) {
       config.authentication.secondary_authenticators = filterEnabled(
         currentState.secondary
+      );
+    }
+
+    if (currentState.passkeyEnabled) {
+      config.authentication.primary_authenticators = setEnable(
+        config.authentication.primary_authenticators ?? [],
+        "passkey",
+        true
+      );
+      config.authentication.identities = setEnable(
+        config.authentication.identities ?? [],
+        "passkey",
+        true
+      );
+    } else {
+      config.authentication.primary_authenticators = setEnable(
+        config.authentication.primary_authenticators ?? [],
+        "passkey",
+        false
+      );
+      config.authentication.identities = setEnable(
+        config.authentication.identities ?? [],
+        "passkey",
+        false
       );
     }
 
@@ -205,6 +260,7 @@ const primaryAuthenticatorNameIds = {
   oob_otp_email: "AuthenticatorType.primary.oob-otp-email",
   oob_otp_sms: "AuthenticatorType.primary.oob-otp-phone",
   password: "AuthenticatorType.primary.password",
+  passkey: "AuthenticatorType.primary.passkey",
 };
 const secondaryAuthenticatorNameIds = {
   totp: "AuthenticatorType.secondary.totp",
@@ -395,6 +451,15 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
         setState((prev) => ({
           ...prev,
           disableDeviceToken: checked,
+        }));
+      }
+    );
+
+    const { onChange: onChangePasskeyEnabled } = useCheckbox(
+      (checked: boolean) => {
+        setState((prev) => ({
+          ...prev,
+          passkeyEnabled: checked,
         }));
       }
     );
@@ -633,6 +698,24 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
               />
             </FeatureDisabledMessageBar>
           )}
+          <div>
+            <Toggle
+              label={renderToString(
+                "AuthenticatorConfigurationScreen.passkey.title"
+              )}
+              onText={renderToString(
+                "AuthenticatorConfigurationScreen.passkey.on"
+              )}
+              offText={renderToString(
+                "AuthenticatorConfigurationScreen.passkey.off"
+              )}
+              checked={state.passkeyEnabled}
+              onChange={onChangePasskeyEnabled}
+            />
+            <Text as="p" variant="medium" block={true}>
+              <FormattedMessage id="AuthenticatorConfigurationScreen.passkey.description" />
+            </Text>
+          </div>
           <DetailsList
             items={primaryItems}
             columns={authenticatorColumns}
