@@ -1,0 +1,12 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg">
+<metadata>Copyright (C) 2022 by original authors @ fontello.com</metadata>
+<defs>
+<font id="authgear-icons" horiz-adv-x="1000" >
+<font-face font-family="authgear-icons" font-weight="400" font-stretch="normal" units-per-em="1000" ascent="850" descent="-150" />
+<missing-glyph horiz-adv-x="1000" />
+<glyph glyph-name="passkey-01" unicode="&#xe800;" d="M338 199a111 111 0 0 1-112-111v-76a39 39 0 0 0-78 0v76a188 188 0 0 0 190 189h75a39 39 0 0 0 0-78z m75 530a190 190 0 1 1 189-191 189 189 0 0 1-189 191z m0-301a112 112 0 1 0 111 110 111 111 0 0 0-111-110z m520-94l-23 23a39 39 0 0 1-57 52l-26-24h0l-77-75h0l-85-82a148 148 0 0 1-71 17 139 139 0 1 1 143-139 136 136 0 0 1-18 67l56 54 25-24a39 39 0 1 1 54 56l-22 22 21 21 25-24a39 39 0 1 1 55 56z m-339-289a63 63 0 1 0 65 61 63 63 0 0 0-65-61z" horiz-adv-x="1000" />
+</font>
+</defs>
+</svg>

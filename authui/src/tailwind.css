@@ -117,10 +117,6 @@
     @apply rounded-sm px-5 py-1.5 text-center border border-solid border-transparent;
   }
 
-  .btn.secondary-btn {
-    @apply px-5 py-1.5 text-center;
-  }
-
   .btn.action-btn {
     @apply rounded-sm px-3 py-1 text-center;
   }
@@ -213,5 +209,14 @@
   .qr-overlay.whatsapp-icon {
     @apply bg-center bg-no-repeat;
     background-size: 40px;
+  }
+
+  .settings-security-item {
+    @apply p-3 tablet:p-3 desktop:p-4 rounded-md flex flex-col space-y-2.5;
+  }
+
+  .settings-add-btn {
+    @apply p-5 text-sm w-full;
+    text-align: inherit;
   }
 }

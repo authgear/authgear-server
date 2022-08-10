@@ -55,21 +55,7 @@ func (n *NodeEnsureRemoveAnonymousIdentity) GetEffects() ([]interaction.Effect, 
 			if n.AnonymousIdentity == nil {
 				return nil
 			}
-			userID := graph.MustGetUserID()
-			identities, err := ctx.Identities.ListByUser(userID)
-			if err != nil {
-				return err
-			}
-			remaining := identity.ApplyFilters(
-				identities,
-				identity.KeepIdentifiable,
-				identity.OmitID(n.AnonymousIdentity.ID),
-			)
-			if len(remaining) < 1 {
-				// This node should be run after adding a identifiable identity
-				panic("interaction: missing identifiable identities")
-			}
-			err = ctx.Identities.Delete(n.AnonymousIdentity)
+			err := ctx.Identities.Delete(n.AnonymousIdentity)
 			if err != nil {
 				return err
 			}

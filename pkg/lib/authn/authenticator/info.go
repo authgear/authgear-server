@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
 
 type Info struct {
@@ -170,4 +171,49 @@ func (i *Info) CanHaveMFA() bool {
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
 	}
+}
+
+func (i *Info) IsIndependent() bool {
+	switch i.Kind {
+	case KindPrimary:
+		switch i.Type {
+		case model.AuthenticatorTypeOOBEmail,
+			model.AuthenticatorTypeOOBSMS,
+			model.AuthenticatorTypePasskey:
+			return false
+		default:
+			return true
+		}
+	case KindSecondary:
+		return true
+	default:
+		panic(fmt.Errorf("authenticator: unknown kind: %v", i.Kind))
+	}
+}
+
+func (i *Info) IsDependentOf(iden *identity.Info) bool {
+	// Primary OOB OTP authenticator is the dependent of Login ID identity.
+	if i.Kind == KindPrimary && (i.Type == model.AuthenticatorTypeOOBEmail || i.Type == model.AuthenticatorTypeOOBSMS) {
+		identityClaims := iden.StandardClaims()
+		for k, v := range i.StandardClaims() {
+			if identityClaims[k] == v {
+				return true
+			}
+		}
+	}
+
+	// primary passkey is the dependent of passkey identity.
+	if i.Kind == KindPrimary && i.Type == model.AuthenticatorTypePasskey {
+		if iden.Type == model.IdentityTypePasskey {
+			if i.Passkey.CredentialID == iden.Passkey.CredentialID {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func (i *Info) IsApplicableTo(iden *identity.Info) bool {
+	return KeepPrimaryAuthenticatorOfIdentity(iden).Keep(i)
 }

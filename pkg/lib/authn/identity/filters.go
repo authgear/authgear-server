@@ -60,9 +60,3 @@ var KeepIdentifiable FilterFunc = func(ii *Info) bool {
 		panic(fmt.Sprintf("identity: unexpected identity type: %s", ii.Type))
 	}
 }
-
-func OmitID(id string) Filter {
-	return FilterFunc(func(ii *Info) bool {
-		return ii.ID != id
-	})
-}

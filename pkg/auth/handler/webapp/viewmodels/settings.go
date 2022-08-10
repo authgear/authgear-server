@@ -8,15 +8,25 @@ import (
 )
 
 type SettingsViewModel struct {
-	Authenticators                  []*authenticator.Info
-	SecondaryAuthenticationDisabled bool
-	SecondaryTOTPAllowed            bool
-	SecondaryOOBOTPEmailAllowed     bool
-	SecondaryOOBOTPSMSAllowed       bool
-	SecondaryPasswordAllowed        bool
-	HasDeviceTokens                 bool
-	ListRecoveryCodesAllowed        bool
-	ShowBiometric                   bool
+	Authenticators           []*authenticator.Info
+	HasDeviceTokens          bool
+	ListRecoveryCodesAllowed bool
+	ShowBiometric            bool
+
+	HasSecondaryTOTP        bool
+	HasSecondaryOOBOTPEmail bool
+	HasSecondaryOOBOTPSMS   bool
+	SecondaryPassword       *authenticator.Info
+	HasMFA                  bool
+
+	ShowSecondaryTOTP        bool
+	ShowSecondaryOOBOTPEmail bool
+	ShowSecondaryOOBOTPSMS   bool
+	ShowSecondaryPassword    bool
+	ShowMFA                  bool
+
+	LatestPrimaryPasskey *authenticator.Info
+	ShowPrimaryPasskey   bool
 }
 
 type SettingsIdentityService interface {
@@ -38,6 +48,7 @@ type SettingsViewModeler struct {
 	Biometric      *config.BiometricConfig
 }
 
+// nolint: gocyclo
 func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, error) {
 	authenticators, err := m.Authenticators.List(userID)
 	if err != nil {
@@ -54,23 +65,62 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 		return nil, err
 	}
 
-	totp := false
-	oobotpemail := false
-	oobotpsms := false
-	password := false
+	hasSecondaryTOTP := false
+	hasSecondaryOOBOTPEmail := false
+	hasSecondaryOOBOTPSMS := false
+	var secondaryPassword *authenticator.Info
+
+	totpAllowed := false
+	oobotpEmailAllowed := false
+	oobotpSMSAllowed := false
+	passwordAllowed := false
+	passkeyAllowed := false
+
+	var latestPrimaryPasskey *authenticator.Info
 
 	if somePrimaryAuthenticatorCanHaveMFA {
 		for _, typ := range *m.Authentication.SecondaryAuthenticators {
 			switch typ {
-			case model.AuthenticatorTypePassword:
-				password = true
 			case model.AuthenticatorTypeTOTP:
-				totp = true
+				totpAllowed = true
 			case model.AuthenticatorTypeOOBEmail:
-				oobotpemail = true
+				oobotpEmailAllowed = true
 			case model.AuthenticatorTypeOOBSMS:
-				oobotpsms = true
+				oobotpSMSAllowed = true
+			case model.AuthenticatorTypePassword:
+				passwordAllowed = true
 			}
+		}
+	}
+
+	for _, typ := range *m.Authentication.PrimaryAuthenticators {
+		switch typ {
+		case model.AuthenticatorTypePasskey:
+			passkeyAllowed = true
+		}
+	}
+
+	for _, a := range authenticators {
+		switch a.Kind {
+		case authenticator.KindPrimary:
+			switch a.Type {
+			case model.AuthenticatorTypePasskey:
+				aa := a
+				latestPrimaryPasskey = aa
+			}
+		case authenticator.KindSecondary:
+			switch a.Type {
+			case model.AuthenticatorTypeTOTP:
+				hasSecondaryTOTP = true
+			case model.AuthenticatorTypeOOBEmail:
+				hasSecondaryOOBOTPEmail = true
+			case model.AuthenticatorTypeOOBSMS:
+				hasSecondaryOOBOTPSMS = true
+			case model.AuthenticatorTypePassword:
+				aa := a
+				secondaryPassword = aa
+			}
+
 		}
 	}
 
@@ -81,16 +131,42 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 		}
 	}
 
+	hasMFA := (hasSecondaryTOTP ||
+		hasSecondaryOOBOTPEmail ||
+		hasSecondaryOOBOTPSMS ||
+		secondaryPassword != nil)
+	showSecondaryTOTP := hasSecondaryTOTP || totpAllowed
+	showSecondaryOOBOTPEmail := hasSecondaryOOBOTPEmail || oobotpEmailAllowed
+	showSecondaryOOBOTPSMS := hasSecondaryOOBOTPSMS || oobotpSMSAllowed
+	showSecondaryPassword := secondaryPassword != nil || passwordAllowed
+	showPrimaryPasskey := latestPrimaryPasskey != nil || passkeyAllowed
+	showMFA := !m.Authentication.SecondaryAuthenticationMode.IsDisabled() &&
+		(showSecondaryTOTP ||
+			showSecondaryOOBOTPEmail ||
+			showSecondaryOOBOTPSMS ||
+			showSecondaryPassword)
+
 	viewModel := &SettingsViewModel{
-		Authenticators:                  authenticators,
-		SecondaryAuthenticationDisabled: m.Authentication.SecondaryAuthenticationMode.IsDisabled(),
-		SecondaryTOTPAllowed:            totp,
-		SecondaryOOBOTPEmailAllowed:     oobotpemail,
-		SecondaryOOBOTPSMSAllowed:       oobotpsms,
-		SecondaryPasswordAllowed:        password,
-		HasDeviceTokens:                 hasDeviceTokens,
-		ListRecoveryCodesAllowed:        !*m.Authentication.RecoveryCode.Disabled && m.Authentication.RecoveryCode.ListEnabled,
-		ShowBiometric:                   showBiometric,
+		Authenticators:           authenticators,
+		HasDeviceTokens:          hasDeviceTokens,
+		ListRecoveryCodesAllowed: !*m.Authentication.RecoveryCode.Disabled && m.Authentication.RecoveryCode.ListEnabled,
+		ShowBiometric:            showBiometric,
+
+		HasSecondaryTOTP:        hasSecondaryTOTP,
+		HasSecondaryOOBOTPEmail: hasSecondaryOOBOTPEmail,
+		HasSecondaryOOBOTPSMS:   hasSecondaryOOBOTPSMS,
+		SecondaryPassword:       secondaryPassword,
+		HasMFA:                  hasMFA,
+
+		ShowSecondaryTOTP:        showSecondaryTOTP,
+		ShowSecondaryOOBOTPEmail: showSecondaryOOBOTPEmail,
+		ShowSecondaryOOBOTPSMS:   showSecondaryOOBOTPSMS,
+		ShowSecondaryPassword:    showSecondaryPassword,
+		ShowMFA:                  showMFA,
+
+		LatestPrimaryPasskey: latestPrimaryPasskey,
+		ShowPrimaryPasskey:   showPrimaryPasskey,
 	}
+
 	return viewModel, nil
 }

@@ -180,6 +180,8 @@ func (c *Coordinator) IdentityUpdate(info *identity.Info) error {
 }
 
 func (c *Coordinator) IdentityDelete(is *identity.Info) error {
+	userID := is.UserID
+
 	err := c.Identities.Delete(is)
 	if err != nil {
 		return err
@@ -188,6 +190,52 @@ func (c *Coordinator) IdentityDelete(is *identity.Info) error {
 	err = c.removeOrphans(is.UserID)
 	if err != nil {
 		return err
+	}
+
+	identities, err := c.Identities.ListByUser(userID)
+	if err != nil {
+		return err
+	}
+
+	authenticators, err := c.Authenticators.List(userID)
+	if err != nil {
+		return err
+	}
+
+	// Ensure the user has at least one identifiable identity after deletion.
+	remaining := identity.ApplyFilters(
+		identities,
+		identity.KeepIdentifiable,
+	)
+	if len(remaining) <= 0 {
+		return NewInvariantViolated(
+			"RemoveLastIdentity",
+			"cannot remove last identity",
+			nil,
+		)
+	}
+
+	// And for each identifiable identity, if it requires primary authenticator,
+	// there is at least one applicable primary authenticator remaining.
+	for _, i := range remaining {
+		types := i.PrimaryAuthenticatorTypes()
+		if len(types) <= 0 {
+			continue
+		}
+
+		ok := false
+		for _, a := range authenticators {
+			if a.IsApplicableTo(i) {
+				ok = true
+			}
+		}
+		if !ok {
+			return NewInvariantViolated(
+				"RemoveLastPrimaryAuthenticator",
+				"cannot remove last primary authenticator for identity",
+				map[string]interface{}{"identity_id": i.ID},
+			)
+		}
 	}
 
 	err = c.StdAttrsService.PopulateIdentityAwareStandardAttributes(is.UserID)
