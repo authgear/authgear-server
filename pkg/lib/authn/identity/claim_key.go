@@ -32,6 +32,8 @@ const (
 	// IdentityClaimPasskeyCredentialID is a claim with a string value.
 	// nolint: gosec
 	IdentityClaimPasskeyCredentialID string = "https://authgear.com/claims/passkey/credential_id"
+	// nolint: gosec
+	IdentityClaimPasskeyDisplayName string = "https://authgear.com/claims/passkey/display_name"
 
 	StandardClaimEmail             string = "email"
 	StandardClaimPhoneNumber       string = "phone_number"
