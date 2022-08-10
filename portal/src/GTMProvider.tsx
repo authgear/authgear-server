@@ -3,13 +3,41 @@ import {
   GTMProvider as ReactHookGTMProvider,
   useGTMDispatch as useReactHookGTMDispatch,
 } from "@elgorditosalsero/react-gtm-hook";
+import { useAppContext } from "./context/AppContext";
 
 export interface AuthgearGTMEvent {
+  event: AuthgearGTMEventType;
+  appID?: string;
+  value1?: string;
+}
+
+export enum AuthgearGTMEventType {
+  CreateProject = "authgear.createProject",
+}
+
+interface AuthgearGTMEventParams {
   event: AuthgearGTMEventType;
   value1?: string;
 }
 
-export enum AuthgearGTMEventType {}
+export function useAuthgearGTMEvent({
+  event,
+  value1,
+}: AuthgearGTMEventParams): AuthgearGTMEvent {
+  let appContextID: string | undefined;
+  try {
+    const appContext = useAppContext();
+    appContextID = appContext.appID;
+  } catch {}
+
+  return useMemo(() => {
+    return {
+      event: event,
+      appID: appContextID,
+      value1: value1,
+    };
+  }, [event, value1, appContextID]);
+}
 
 export function useGTMDispatch(): (event: AuthgearGTMEvent) => void {
   try {
