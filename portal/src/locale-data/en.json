@@ -322,6 +322,10 @@
   "AuthenticatorConfigurationScreen.recovery-code.enable-recovery-code": "Enable Recovery Code",
   "AuthenticatorConfigurationScreen.recovery-code.recovery-code-number": "Number of Recovery Code",
   "AuthenticatorConfigurationScreen.recovery-code.allow-retrieve-recovery-code": "Allow user to retrieve or regenerate recovery code again",
+  "AuthenticatorConfigurationScreen.passkey.title": "Login with passkey",
+  "AuthenticatorConfigurationScreen.passkey.on": "On",
+  "AuthenticatorConfigurationScreen.passkey.off": "Off",
+  "AuthenticatorConfigurationScreen.passkey.description": "Passkeys give users a simple and secure way to sign in your apps and websites across platforms without passwords. {ExternalLink, react, href{https://docs.authgear.com/} children{Learn more about passkeys}}",
 
   "VerificationConfigurationScreen.title": "User Verification",
   "VerificationConfigurationScreen.description": "Configure if the email or phone number of your users could be verified and if it is required",
@@ -729,6 +733,7 @@
   "FormContainer.reset-dialog.confirm": "Yes, discard",
 
   "AuthenticatorType.primary.password": "Password",
+  "AuthenticatorType.primary.passkey": "Passkey",
   "AuthenticatorType.primary.oob-otp-email": "Passwordless via Email",
   "AuthenticatorType.primary.oob-otp-phone": "Passwordless via Phone",
   "AuthenticatorType.secondary.totp": "OTP Code via Google Authenticator/Authy (TOTP)",
