@@ -64,44 +64,33 @@ interface OOBOTPAuthenticatorData {
 }
 
 interface PasskeyIdentityCellProps extends PasskeyIdentityData {
-  showConfirmationDialog: (
-    authenticatorID: string,
-    authenticatorName: string
-  ) => void;
+  showConfirmationDialog: (options: RemoveConfirmationDialogData) => void;
 }
 
 interface PasswordAuthenticatorCellProps extends PasswordAuthenticatorData {
-  showConfirmationDialog: (
-    authenticatorID: string,
-    authenticatorName: string
-  ) => void;
+  showConfirmationDialog: (options: RemoveConfirmationDialogData) => void;
 }
 
 interface TOTPAuthenticatorCellProps extends TOTPAuthenticatorData {
-  showConfirmationDialog: (
-    authenticatorID: string,
-    authenticatorName: string
-  ) => void;
+  showConfirmationDialog: (options: RemoveConfirmationDialogData) => void;
 }
 
 interface OOBOTPAuthenticatorCellProps extends OOBOTPAuthenticatorData {
-  showConfirmationDialog: (
-    authenticatorID: string,
-    authenticatorName: string
-  ) => void;
+  showConfirmationDialog: (options: RemoveConfirmationDialogData) => void;
 }
 
 interface RemoveConfirmationDialogData {
-  authenticatorID: string;
-  authenticatorName: string;
+  id: string;
+  displayName: string;
+  type: "identity" | "authenticator";
 }
 
 interface RemoveConfirmationDialogProps
   extends Partial<RemoveConfirmationDialogData> {
   visible: boolean;
-  deleteAuthenticator: (authenticatorID: string) => void;
-  deletingAuthenticator: boolean;
   onDismiss: () => void;
+  remove?: (id: string) => void;
+  loading?: boolean;
 }
 
 const LABEL_PLACEHOLDER = "---";
@@ -367,31 +356,31 @@ const RemoveConfirmationDialog: React.FC<RemoveConfirmationDialogProps> =
   function RemoveConfirmationDialog(props: RemoveConfirmationDialogProps) {
     const {
       visible,
-      deleteAuthenticator,
-      deletingAuthenticator,
-      authenticatorID,
-      authenticatorName,
+      remove,
+      loading,
+      id,
+      displayName,
       onDismiss: onDismissProps,
     } = props;
 
     const { renderToString } = useContext(Context);
 
     const onConfirmClicked = useCallback(() => {
-      deleteAuthenticator(authenticatorID!);
-    }, [deleteAuthenticator, authenticatorID]);
+      remove?.(id!);
+    }, [remove, id]);
 
     const onDismiss = useCallback(() => {
-      if (!deletingAuthenticator) {
+      if (!loading) {
         onDismissProps();
       }
-    }, [onDismissProps, deletingAuthenticator]);
+    }, [onDismissProps, loading]);
 
     const dialogMessage = useMemo(() => {
       return renderToString(
         "UserDetails.account-security.remove-confirm-dialog.message",
-        { authenticatorName: authenticatorName ?? "" }
+        { displayName: displayName ?? "" }
       );
-    }, [renderToString, authenticatorName]);
+    }, [renderToString, displayName]);
 
     const removeConfirmDialogContentProps = useMemo(() => {
       return {
@@ -406,18 +395,18 @@ const RemoveConfirmationDialog: React.FC<RemoveConfirmationDialogProps> =
       <Dialog
         hidden={!visible}
         dialogContentProps={removeConfirmDialogContentProps}
-        modalProps={{ isBlocking: deletingAuthenticator }}
+        modalProps={{ isBlocking: loading }}
         onDismiss={onDismiss}
       >
         <DialogFooter>
           <ButtonWithLoading
             onClick={onConfirmClicked}
             labelId="confirm"
-            loading={deletingAuthenticator}
+            loading={loading ?? false}
             disabled={!visible}
           />
           <DefaultButton
-            disabled={deletingAuthenticator || !visible}
+            disabled={(loading ?? false) || !visible}
             onClick={onDismiss}
           >
             <FormattedMessage id="cancel" />
@@ -473,7 +462,11 @@ const PasswordAuthenticatorCell: React.FC<PasswordAuthenticatorCellProps> =
     }, [navigate]);
 
     const onRemoveClicked = useCallback(() => {
-      showConfirmationDialog(id, renderToString(labelId!));
+      showConfirmationDialog({
+        id,
+        displayName: renderToString(labelId!),
+        type: "authenticator",
+      });
     }, [labelId, id, renderToString, showConfirmationDialog]);
 
     return (
@@ -518,7 +511,11 @@ const TOTPAuthenticatorCell: React.FC<TOTPAuthenticatorCellProps> =
     const { themes } = useSystemConfig();
 
     const onRemoveClicked = useCallback(() => {
-      showConfirmationDialog(id, label);
+      showConfirmationDialog({
+        id,
+        displayName: label,
+        type: "authenticator",
+      });
     }, [id, label, showConfirmationDialog]);
 
     return (
@@ -556,7 +553,11 @@ const OOBOTPAuthenticatorCell: React.FC<OOBOTPAuthenticatorCellProps> =
     const { themes } = useSystemConfig();
 
     const onRemoveClicked = useCallback(() => {
-      showConfirmationDialog(id, label);
+      showConfirmationDialog({
+        id,
+        displayName: label,
+        type: "authenticator",
+      });
     }, [id, label, showConfirmationDialog]);
 
     return (
@@ -619,11 +620,8 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
     }, [locale, authenticators]);
 
     const showConfirmationDialog = useCallback(
-      (authenticatorID: string, authenticatorName: string) => {
-        setConfirmationDialogData({
-          authenticatorID,
-          authenticatorName,
-        });
+      (options: RemoveConfirmationDialogData) => {
+        setConfirmationDialogData(options);
         setIsConfirmationDialogVisible(true);
       },
       []
@@ -708,11 +706,19 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
       <div className={styles.root}>
         <RemoveConfirmationDialog
           visible={isConfirmationDialogVisible}
-          authenticatorID={confirmationDialogData?.authenticatorID}
-          authenticatorName={confirmationDialogData?.authenticatorName}
+          id={confirmationDialogData?.id}
+          displayName={confirmationDialogData?.displayName}
+          remove={
+            confirmationDialogData?.type === "authenticator"
+              ? onConfirmDeleteAuthenticator
+              : undefined
+          }
+          loading={
+            confirmationDialogData?.type === "authenticator"
+              ? deletingAuthenticator
+              : undefined
+          }
           onDismiss={dismissConfirmationDialog}
-          deleteAuthenticator={onConfirmDeleteAuthenticator}
-          deletingAuthenticator={deletingAuthenticator}
         />
         <ErrorDialog
           rules={[]}
