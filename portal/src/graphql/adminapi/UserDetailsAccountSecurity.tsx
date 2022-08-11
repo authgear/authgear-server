@@ -13,6 +13,7 @@ import {
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
 import { useDeleteAuthenticatorMutation } from "./mutations/deleteAuthenticatorMutation";
+import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
 import ListCellLayout from "../../ListCellLayout";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import ErrorDialog from "../../error/ErrorDialog";
@@ -420,6 +421,13 @@ const PasskeyIdentityCell: React.FC<PasskeyIdentityCellProps> =
   function PasskeyIdentityCell(props: PasskeyIdentityCellProps) {
     const { id, displayName, addedOn, showConfirmationDialog } = props;
     const { themes } = useSystemConfig();
+    const onRemoveClicked = useCallback(() => {
+      showConfirmationDialog({
+        id,
+        displayName,
+        type: "identity",
+      });
+    }, [id, displayName, showConfirmationDialog]);
     return (
       <ListCellLayout className={cn(styles.cell, styles.passkeyCell)}>
         <Text className={cn(styles.cellLabel, styles.passkeyCellLabel)}>
@@ -437,6 +445,7 @@ const PasskeyIdentityCell: React.FC<PasskeyIdentityCellProps> =
             styles.removeButton,
             styles.passkeyCellRemoveButton
           )}
+          onClick={onRemoveClicked}
           theme={themes.destructive}
         >
           <FormattedMessage id="remove" />
@@ -602,6 +611,12 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
       error: deleteAuthenticatorError,
     } = useDeleteAuthenticatorMutation();
 
+    const {
+      deleteIdentity,
+      loading: deletingIdentity,
+      error: deleteIdentityError,
+    } = useDeleteIdentityMutation();
+
     const [isConfirmationDialogVisible, setIsConfirmationDialogVisible] =
       useState(false);
     const [confirmationDialogData, setConfirmationDialogData] =
@@ -702,6 +717,17 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
       [deleteAuthenticator, dismissConfirmationDialog]
     );
 
+    const onConfirmDeleteIdentity = useCallback(
+      (identityID) => {
+        deleteIdentity(identityID)
+          .catch(() => {})
+          .finally(() => {
+            dismissConfirmationDialog();
+          });
+      },
+      [deleteIdentity, dismissConfirmationDialog]
+    );
+
     return (
       <div className={styles.root}>
         <RemoveConfirmationDialog
@@ -711,18 +737,22 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
           remove={
             confirmationDialogData?.type === "authenticator"
               ? onConfirmDeleteAuthenticator
+              : confirmationDialogData?.type === "identity"
+              ? onConfirmDeleteIdentity
               : undefined
           }
           loading={
             confirmationDialogData?.type === "authenticator"
               ? deletingAuthenticator
+              : confirmationDialogData?.type === "identity"
+              ? deletingIdentity
               : undefined
           }
           onDismiss={dismissConfirmationDialog}
         />
         <ErrorDialog
           rules={[]}
-          error={deleteAuthenticatorError}
+          error={deleteAuthenticatorError || deleteIdentityError}
           fallbackErrorMessageID="UserDetails.account-security.remove-authenticator.generic-error"
         />
         {primaryAuthenticatorLists.hasVisibleList && (
