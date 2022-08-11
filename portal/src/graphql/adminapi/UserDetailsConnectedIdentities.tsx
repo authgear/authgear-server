@@ -322,21 +322,23 @@ const IdentityListCell: React.FC<IdentityListCellProps> =
       <ListCellLayout className={styles.cellContainer}>
         <div className={styles.cellIcon}>{icon}</div>
         <Text className={styles.cellName}>{identityName}</Text>
-        {verified != null && (
-          <>
-            {verified ? (
-              <Text className={styles.cellDescVerified}>
-                <FormattedMessage id="verified" />
-              </Text>
-            ) : (
-              <Text className={styles.cellDescUnverified}>
-                <FormattedMessage id="unverified" />
-              </Text>
-            )}
-            <Text className={styles.cellDescSeparator}>{" | "}</Text>
-          </>
-        )}
         <Text className={styles.cellDesc}>
+          {verified != null && (
+            <>
+              {verified ? (
+                <Text className={styles.cellDescVerified}>
+                  <FormattedMessage id="verified" />
+                </Text>
+              ) : (
+                <Text className={styles.cellDescUnverified}>
+                  <FormattedMessage id="unverified" />
+                </Text>
+              )}
+              <Text block={true} className={styles.cellDescSeparator}>
+                {" | "}
+              </Text>
+            </>
+          )}
           {identityType === "oauth" && (
             <FormattedMessage
               id="UserDetails.connected-identities.connected-on"
@@ -684,7 +686,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
             fallbackErrorMessageID="UserDetails.connected-identities.verify-identity-error.generic"
           />
           <section className={styles.headerSection}>
-            <Text as="h2" className={styles.header}>
+            <Text as="h2" variant="medium" className={styles.header}>
               <FormattedMessage id="UserDetails.connected-identities.title" />
             </Text>
             <PrimaryButton
@@ -701,89 +703,72 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
           </section>
           <section className={styles.identityLists}>
             {identityLists.oauth.length > 0 && (
-              <>
+              <div>
                 <Text as="h3" className={styles.subHeader}>
                   <FormattedMessage id="UserDetails.connected-identities.oauth" />
                 </Text>
                 <List
-                  className={styles.list}
                   items={identityLists.oauth}
                   onRenderCell={onRenderIdentityCell}
                 />
-              </>
+              </div>
             )}
             {identityLists.email.length > 0 && (
-              <>
+              <div>
                 <Text as="h3" className={styles.subHeader}>
                   <FormattedMessage id="UserDetails.connected-identities.email" />
                 </Text>
                 <List
-                  className={styles.list}
                   items={identityLists.email}
                   onRenderCell={onRenderIdentityCell}
                 />
-              </>
+              </div>
             )}
             {identityLists.phone.length > 0 && (
-              <>
+              <div>
                 <Text as="h3" className={styles.subHeader}>
                   <FormattedMessage id="UserDetails.connected-identities.phone" />
                 </Text>
                 <List
-                  className={styles.list}
                   items={identityLists.phone}
                   onRenderCell={onRenderIdentityCell}
                 />
-              </>
+              </div>
             )}
             {identityLists.username.length > 0 && (
-              <>
+              <div>
                 <Text as="h3" className={styles.subHeader}>
                   <FormattedMessage id="UserDetails.connected-identities.username" />
                 </Text>
                 <List
-                  className={styles.list}
                   items={identityLists.username}
                   onRenderCell={onRenderIdentityCell}
                 />
-              </>
+              </div>
             )}
             {identityLists.biometric.length > 0 && (
-              <>
+              <div>
                 <Text as="h3" className={styles.subHeader}>
                   <FormattedMessage id="UserDetails.connected-identities.biometric" />
                 </Text>
                 <List
-                  className={styles.list}
                   items={identityLists.biometric}
                   onRenderCell={onRenderIdentityCell}
                 />
-              </>
+              </div>
             )}
             {identityLists.anonymous.length > 0 && (
-              <>
+              <div>
                 <Text as="h3" className={styles.subHeader}>
                   <FormattedMessage id="UserDetails.connected-identities.anonymous" />
                 </Text>
                 <List
-                  className={styles.list}
                   items={identityLists.anonymous}
                   onRenderCell={onRenderIdentityCell}
                 />
-              </>
+              </div>
             )}
           </section>
-          {/* TODO: implement primary identities mutation
-        <Text as="h2" className={styles.primaryIdentitiesTitle}>
-          <FormattedMessage id="UserDetails.connected-identities.primary-identities.title" />
-        </Text>
-        <PrimaryIdentitiesSelectionForm
-          key={remountIdentifier}
-          className={styles.primaryIdentitiesForm}
-          identityLists={identityLists}
-          resetForm={resetForm}
-        />
-        */}
         </div>
       </ConnectedIdentitiesMutationLoadingContext.Provider>
     );

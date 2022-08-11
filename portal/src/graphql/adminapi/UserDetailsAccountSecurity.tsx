@@ -430,6 +430,12 @@ const PasskeyIdentityCell: React.FC<PasskeyIdentityCellProps> =
     }, [id, displayName, showConfirmationDialog]);
     return (
       <ListCellLayout className={cn(styles.cell, styles.passkeyCell)}>
+        <i
+          className={cn(
+            styles.passkeyCellIcon,
+            "authgear-portal-icons authgear-portal-icons-passkey"
+          )}
+        ></i>
         <Text className={cn(styles.cellLabel, styles.passkeyCellLabel)}>
           {displayName}
         </Text>
@@ -440,11 +446,7 @@ const PasskeyIdentityCell: React.FC<PasskeyIdentityCellProps> =
           />
         </Text>
         <DefaultButton
-          className={cn(
-            styles.button,
-            styles.removeButton,
-            styles.passkeyCellRemoveButton
-          )}
+          className={cn(styles.button, styles.passkeyCellRemoveButton)}
           onClick={onRemoveClicked}
           theme={themes.destructive}
         >
@@ -499,11 +501,7 @@ const PasswordAuthenticatorCell: React.FC<PasswordAuthenticatorCellProps> =
         )}
         {kind === "SECONDARY" && (
           <DefaultButton
-            className={cn(
-              styles.button,
-              styles.removeButton,
-              styles.removePasswordButton
-            )}
+            className={cn(styles.button, styles.removePasswordButton)}
             onClick={onRemoveClicked}
             theme={themes.destructive}
           >
@@ -540,11 +538,7 @@ const TOTPAuthenticatorCell: React.FC<TOTPAuthenticatorCellProps> =
         </Text>
         {kind === "SECONDARY" && (
           <DefaultButton
-            className={cn(
-              styles.button,
-              styles.removeButton,
-              styles.totpRemoveButton
-            )}
+            className={cn(styles.button, styles.totpRemoveButton)}
             onClick={onRemoveClicked}
             theme={themes.destructive}
           >
@@ -584,11 +578,7 @@ const OOBOTPAuthenticatorCell: React.FC<OOBOTPAuthenticatorCellProps> =
 
         {kind === "SECONDARY" && (
           <DefaultButton
-            className={cn(
-              styles.button,
-              styles.removeButton,
-              styles.oobOtpRemoveButton
-            )}
+            className={cn(styles.button, styles.oobOtpRemoveButton)}
             onClick={onRemoveClicked}
             theme={themes.destructive}
           >
@@ -759,19 +749,19 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
           <div className={styles.authenticatorContainer}>
             <Text
               as="h2"
+              variant="medium"
               className={cn(styles.header, styles.authenticatorKindHeader)}
             >
               <FormattedMessage id="UserDetails.account-security.primary" />
             </Text>
             {primaryAuthenticatorLists.password.length > 0 && (
               <List
-                className={styles.list}
                 items={primaryAuthenticatorLists.password}
                 onRenderCell={onRenderPasswordAuthenticatorDetailCell}
               />
             )}
             {primaryAuthenticatorLists.passkey.length > 0 && (
-              <>
+              <div>
                 <Text
                   as="h3"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
@@ -779,14 +769,13 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
                   <FormattedMessage id="AuthenticatorType.primary.passkey" />
                 </Text>
                 <List
-                  className={styles.list}
                   items={primaryAuthenticatorLists.passkey}
                   onRenderCell={onRenderPasskeyIdentityDetailCell}
                 />
-              </>
+              </div>
             )}
             {primaryAuthenticatorLists.oobOtpEmail.length > 0 && (
-              <>
+              <div>
                 <Text
                   as="h3"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
@@ -794,14 +783,13 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
                   <FormattedMessage id="AuthenticatorType.primary.oob-otp-email" />
                 </Text>
                 <List
-                  className={cn(styles.list, styles.oobOtpList)}
                   items={primaryAuthenticatorLists.oobOtpEmail}
                   onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
                 />
-              </>
+              </div>
             )}
             {primaryAuthenticatorLists.oobOtpSMS.length > 0 && (
-              <>
+              <div>
                 <Text
                   as="h3"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
@@ -813,7 +801,7 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
                   items={primaryAuthenticatorLists.oobOtpSMS}
                   onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
                 />
-              </>
+              </div>
             )}
           </div>
         )}
@@ -826,7 +814,7 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
               <FormattedMessage id="UserDetails.account-security.secondary" />
             </Text>
             {secondaryAuthenticatorLists.totp.length > 0 && (
-              <>
+              <div>
                 <Text
                   as="h3"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
@@ -834,14 +822,14 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
                   <FormattedMessage id="AuthenticatorType.secondary.totp" />
                 </Text>
                 <List
-                  className={cn(styles.list, styles.totpList)}
+                  className={styles.list}
                   items={secondaryAuthenticatorLists.totp}
                   onRenderCell={onRenderTotpAuthenticatorDetailCell}
                 />
-              </>
+              </div>
             )}
             {secondaryAuthenticatorLists.oobOtpEmail.length > 0 && (
-              <>
+              <div>
                 <Text
                   as="h3"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
@@ -849,14 +837,14 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
                   <FormattedMessage id="AuthenticatorType.secondary.oob-otp-email" />
                 </Text>
                 <List
-                  className={cn(styles.list, styles.oobOtpList)}
+                  className={styles.list}
                   items={secondaryAuthenticatorLists.oobOtpEmail}
                   onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
                 />
-              </>
+              </div>
             )}
             {secondaryAuthenticatorLists.oobOtpSMS.length > 0 && (
-              <>
+              <div>
                 <Text
                   as="h3"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
@@ -868,7 +856,7 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
                   items={secondaryAuthenticatorLists.oobOtpSMS}
                   onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
                 />
-              </>
+              </div>
             )}
             {secondaryAuthenticatorLists.password.length > 0 && (
               <List

@@ -1,12 +1,15 @@
 .root {
-  margin: 12px 8px 50px;
+  margin-left: 10px;
   width: 640px;
-
-  --descriptionTextColor: #888888;
+  display: flex;
+  flex-direction: column;
+  row-gap: 16px;
 }
 
 .authenticatorContainer {
-  padding: 10px 0 0;
+  display: flex;
+  flex-direction: column;
+  row-gap: 4px;
 }
 
 .header {
@@ -15,22 +18,15 @@
 }
 
 .authenticatorKindHeader {
-  font-size: 15px;
-  margin-bottom: 15px;
+  margin-top: 16px;
 }
 
 .authenticatorTypeHeader {
-  font-size: 13px;
-  margin-bottom: 10px;
-}
-
-.list {
-  margin-bottom: 15px;
+  margin: 12px 0;
 }
 
 .cell {
   padding-left: 1px;
-  margin-bottom: 15px;
   display: grid;
   grid-gap: 3px 0;
 }
@@ -47,7 +43,6 @@
 .button {
   place-self: center;
   font-weight: 600;
-  margin: 0 5px;
   border: 1px solid #d8d8d8;
 }
 
@@ -76,40 +71,32 @@
   grid-area: premove;
 }
 
-.oobOtpList {
-  padding-left: 15px;
-}
-
 .oobOtpCell {
   grid-template:
     "oicon    olabel    oremove"
-    "odesc    odesc     oremove"
+    "empty    odesc     oremove"
     / min-content auto min-content;
+  column-gap: 8px;
 }
 
 .oobOtpCellIcon {
   grid-area: oicon;
-  font-size: 14px;
-  margin-right: 2px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .oobOtpCellLabel {
   grid-area: olabel;
-  align-self: center;
+  font-weight: 600;
 }
 
 .oobOtpCellAddedOn {
   grid-area: odesc;
-  padding-left: 2px;
-  color: var(--descriptionTextColor);
 }
 
 .oobOtpRemoveButton {
   grid-area: oremove;
-}
-
-.totpList {
-  padding-left: 15px;
 }
 
 .totpCell {
@@ -121,6 +108,7 @@
 
 .totpCellLabel {
   grid-area: tlabel;
+  font-weight: 600;
 }
 
 .totpCellDesc {
@@ -133,9 +121,17 @@
 
 .passkeyCell {
   grid-template:
-    "label remove"
-    "desc remove"
-    / auto min-content;
+    "icon label remove"
+    "empty desc remove"
+    / min-content auto min-content;
+  column-gap: 8px;
+}
+
+.passkeyCellIcon {
+  grid-area: icon;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .passkeyCellLabel {
