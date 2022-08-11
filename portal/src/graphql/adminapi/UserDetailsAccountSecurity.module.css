@@ -130,3 +130,23 @@
 .totpRemoveButton {
   grid-area: tremove;
 }
+
+.passkeyCell {
+  grid-template:
+    "label remove"
+    "desc remove"
+    / auto min-content;
+}
+
+.passkeyCellLabel {
+  grid-area: label;
+  font-weight: 600;
+}
+
+.passkeyCellDesc {
+  grid-area: desc;
+}
+
+.passkeyCellRemoveButton {
+  grid-area: remove;
+}

@@ -314,7 +314,10 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
           itemKey={ACCOUNT_SECURITY_PIVOT_KEY}
           headerText={renderToString("UserDetails.account-security.header")}
         >
-          <UserDetailsAccountSecurity authenticators={authenticators} />
+          <UserDetailsAccountSecurity
+            identities={identities}
+            authenticators={authenticators}
+          />
         </PivotItem>
         <PivotItem
           itemKey={CONNECTED_IDENTITIES_PIVOT_KEY}

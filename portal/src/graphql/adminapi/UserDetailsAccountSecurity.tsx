@@ -18,9 +18,11 @@ import ButtonWithLoading from "../../ButtonWithLoading";
 import ErrorDialog from "../../error/ErrorDialog";
 import { formatDatetime } from "../../util/formatDatetime";
 import {
+  Identity,
   Authenticator,
   AuthenticatorType,
   AuthenticatorKind,
+  IdentityType,
 } from "./globalTypes.generated";
 
 import styles from "./UserDetailsAccountSecurity.module.css";
@@ -28,14 +30,15 @@ import { useSystemConfig } from "../../context/SystemConfigContext";
 
 type OOBOTPVerificationMethod = "email" | "phone" | "unknown";
 
-interface AuthenticatorClaims {
-  "https://authgear.com/claims/totp/display_name"?: string;
-  "https://authgear.com/claims/oob_otp/email"?: string;
-  "https://authgear.com/claims/oob_otp/phone"?: string;
+interface UserDetailsAccountSecurityProps {
+  identities: Identity[];
+  authenticators: Authenticator[];
 }
 
-interface UserDetailsAccountSecurityProps {
-  authenticators: Authenticator[];
+interface PasskeyIdentityData {
+  id: string;
+  displayName: string;
+  addedOn: string;
 }
 
 interface PasswordAuthenticatorData {
@@ -58,6 +61,13 @@ interface OOBOTPAuthenticatorData {
   label: string;
   addedOn: string;
   isDefault: boolean;
+}
+
+interface PasskeyIdentityCellProps extends PasskeyIdentityData {
+  showConfirmationDialog: (
+    authenticatorID: string,
+    authenticatorName: string
+  ) => void;
 }
 
 interface PasswordAuthenticatorCellProps extends PasswordAuthenticatorData {
@@ -127,6 +137,21 @@ function getLocaleKeyWithAuthenticatorType(
   }
 }
 
+function constructPasskeyIdentityData(
+  identity: Identity,
+  locale: string
+): PasskeyIdentityData {
+  const addedOn = formatDatetime(locale, identity.createdAt) ?? "";
+
+  return {
+    id: identity.id,
+    displayName: (identity.claims[
+      "https://authgear.com/claims/passkey/display_name"
+    ] ?? "") as string,
+    addedOn,
+  };
+}
+
 function constructPasswordAuthenticatorData(
   authenticator: Authenticator,
   locale: string
@@ -141,12 +166,11 @@ function constructPasswordAuthenticatorData(
 }
 
 function getTotpDisplayName(
-  totpAuthenticatorClaims: AuthenticatorClaims
+  totpAuthenticatorClaims: Authenticator["claims"]
 ): string {
-  return (
-    totpAuthenticatorClaims["https://authgear.com/claims/totp/display_name"] ??
-    LABEL_PLACEHOLDER
-  );
+  return (totpAuthenticatorClaims[
+    "https://authgear.com/claims/totp/display_name"
+  ] ?? LABEL_PLACEHOLDER) as string;
 }
 
 function constructTotpAuthenticatorData(
@@ -221,9 +245,8 @@ function constructOobOtpAuthenticatorData(
   };
 }
 
-function constructAuthenticatorLists(
+function constructSecondaryAuthenticatorList(
   authenticators: Authenticator[],
-  kind: AuthenticatorKind,
   locale: string
 ) {
   const passwordAuthenticatorList: PasswordAuthenticatorData[] = [];
@@ -231,7 +254,9 @@ function constructAuthenticatorLists(
   const oobOtpSMSAuthenticatorList: OOBOTPAuthenticatorData[] = [];
   const totpAuthenticatorList: TOTPAuthenticatorData[] = [];
 
-  const filteredAuthenticators = authenticators.filter((a) => a.kind === kind);
+  const filteredAuthenticators = authenticators.filter(
+    (a) => a.kind === AuthenticatorKind.Secondary
+  );
 
   for (const authenticator of filteredAuthenticators) {
     switch (authenticator.type) {
@@ -251,9 +276,6 @@ function constructAuthenticatorLists(
         );
         break;
       case "TOTP":
-        if (kind === "PRIMARY") {
-          break;
-        }
         totpAuthenticatorList.push(
           constructTotpAuthenticatorData(authenticator, locale)
         );
@@ -263,29 +285,82 @@ function constructAuthenticatorLists(
     }
   }
 
-  return kind === "PRIMARY"
-    ? {
-        password: passwordAuthenticatorList,
-        oobOtpEmail: oobOtpEmailAuthenticatorList,
-        oobOtpSMS: oobOtpSMSAuthenticatorList,
-        hasVisibleList: [
-          passwordAuthenticatorList,
-          oobOtpEmailAuthenticatorList,
-          oobOtpSMSAuthenticatorList,
-        ].some((list) => list.length > 0),
-      }
-    : {
-        password: passwordAuthenticatorList,
-        oobOtpEmail: oobOtpEmailAuthenticatorList,
-        oobOtpSMS: oobOtpSMSAuthenticatorList,
-        totp: totpAuthenticatorList,
-        hasVisibleList: [
-          passwordAuthenticatorList,
-          oobOtpEmailAuthenticatorList,
-          oobOtpSMSAuthenticatorList,
-          totpAuthenticatorList,
-        ].some((list) => list.length > 0),
-      };
+  return {
+    password: passwordAuthenticatorList,
+    oobOtpEmail: oobOtpEmailAuthenticatorList,
+    oobOtpSMS: oobOtpSMSAuthenticatorList,
+    totp: totpAuthenticatorList,
+    hasVisibleList: [
+      passwordAuthenticatorList,
+      oobOtpEmailAuthenticatorList,
+      oobOtpSMSAuthenticatorList,
+      totpAuthenticatorList,
+    ].some((list) => list.length > 0),
+  };
+}
+
+function constructPrimaryAuthenticatorLists(
+  identities: Identity[],
+  authenticators: Authenticator[],
+  locale: string
+) {
+  const passkeyIdentityList: PasskeyIdentityData[] = [];
+  const passwordAuthenticatorList: PasswordAuthenticatorData[] = [];
+  const oobOtpEmailAuthenticatorList: OOBOTPAuthenticatorData[] = [];
+  const oobOtpSMSAuthenticatorList: OOBOTPAuthenticatorData[] = [];
+
+  const filteredAuthenticators = authenticators.filter(
+    (a) => a.kind === AuthenticatorKind.Primary
+  );
+
+  for (const identity of identities) {
+    switch (identity.type) {
+      case IdentityType.Passkey:
+        passkeyIdentityList.push(
+          constructPasskeyIdentityData(identity, locale)
+        );
+        break;
+      default:
+        break;
+    }
+  }
+
+  for (const authenticator of filteredAuthenticators) {
+    switch (authenticator.type) {
+      case "PASSWORD":
+        passwordAuthenticatorList.push(
+          constructPasswordAuthenticatorData(authenticator, locale)
+        );
+        break;
+      case "OOB_OTP_EMAIL":
+        oobOtpEmailAuthenticatorList.push(
+          constructOobOtpAuthenticatorData(authenticator, locale)
+        );
+        break;
+      case "OOB_OTP_SMS":
+        oobOtpSMSAuthenticatorList.push(
+          constructOobOtpAuthenticatorData(authenticator, locale)
+        );
+        break;
+      case "TOTP":
+        break;
+      default:
+        break;
+    }
+  }
+
+  return {
+    passkey: passkeyIdentityList,
+    password: passwordAuthenticatorList,
+    oobOtpEmail: oobOtpEmailAuthenticatorList,
+    oobOtpSMS: oobOtpSMSAuthenticatorList,
+    hasVisibleList: [
+      passkeyIdentityList,
+      passwordAuthenticatorList,
+      oobOtpEmailAuthenticatorList,
+      oobOtpSMSAuthenticatorList,
+    ].some((list) => list.length > 0),
+  };
 }
 
 const RemoveConfirmationDialog: React.FC<RemoveConfirmationDialogProps> =
@@ -349,6 +424,35 @@ const RemoveConfirmationDialog: React.FC<RemoveConfirmationDialogProps> =
           </DefaultButton>
         </DialogFooter>
       </Dialog>
+    );
+  };
+
+const PasskeyIdentityCell: React.FC<PasskeyIdentityCellProps> =
+  function PasskeyIdentityCell(props: PasskeyIdentityCellProps) {
+    const { id, displayName, addedOn, showConfirmationDialog } = props;
+    const { themes } = useSystemConfig();
+    return (
+      <ListCellLayout className={cn(styles.cell, styles.passkeyCell)}>
+        <Text className={cn(styles.cellLabel, styles.passkeyCellLabel)}>
+          {displayName}
+        </Text>
+        <Text className={cn(styles.cellDesc, styles.passkeyCellDesc)}>
+          <FormattedMessage
+            id="UserDetails.account-security.added-on"
+            values={{ datetime: addedOn }}
+          />
+        </Text>
+        <DefaultButton
+          className={cn(
+            styles.button,
+            styles.removeButton,
+            styles.passkeyCellRemoveButton
+          )}
+          theme={themes.destructive}
+        >
+          <FormattedMessage id="remove" />
+        </DefaultButton>
+      </ListCellLayout>
     );
   };
 
@@ -488,7 +592,7 @@ const OOBOTPAuthenticatorCell: React.FC<OOBOTPAuthenticatorCellProps> =
 const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
   // eslint-disable-next-line complexity
   function UserDetailsAccountSecurity(props: UserDetailsAccountSecurityProps) {
-    const { authenticators } = props;
+    const { identities, authenticators } = props;
     const { locale } = useContext(Context);
 
     const {
@@ -503,19 +607,15 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
       useState<RemoveConfirmationDialogData | null>(null);
 
     const primaryAuthenticatorLists = useMemo(() => {
-      return constructAuthenticatorLists(
+      return constructPrimaryAuthenticatorLists(
+        identities,
         authenticators,
-        AuthenticatorKind.Primary,
         locale
       );
-    }, [locale, authenticators]);
+    }, [locale, identities, authenticators]);
 
     const secondaryAuthenticatorLists = useMemo(() => {
-      return constructAuthenticatorLists(
-        authenticators,
-        AuthenticatorKind.Secondary,
-        locale
-      );
+      return constructSecondaryAuthenticatorList(authenticators, locale);
     }, [locale, authenticators]);
 
     const showConfirmationDialog = useCallback(
@@ -532,6 +632,21 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
     const dismissConfirmationDialog = useCallback(() => {
       setIsConfirmationDialogVisible(false);
     }, []);
+
+    const onRenderPasskeyIdentityDetailCell = useCallback(
+      (item?: PasskeyIdentityData, _index?: number): React.ReactNode => {
+        if (item == null) {
+          return null;
+        }
+        return (
+          <PasskeyIdentityCell
+            {...item}
+            showConfirmationDialog={showConfirmationDialog}
+          />
+        );
+      },
+      [showConfirmationDialog]
+    );
 
     const onRenderPasswordAuthenticatorDetailCell = useCallback(
       (item?: PasswordAuthenticatorData, _index?: number): React.ReactNode => {
@@ -619,6 +734,21 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
                 onRenderCell={onRenderPasswordAuthenticatorDetailCell}
               />
             )}
+            {primaryAuthenticatorLists.passkey.length > 0 && (
+              <>
+                <Text
+                  as="h3"
+                  className={cn(styles.header, styles.authenticatorTypeHeader)}
+                >
+                  <FormattedMessage id="AuthenticatorType.primary.passkey" />
+                </Text>
+                <List
+                  className={styles.list}
+                  items={primaryAuthenticatorLists.passkey}
+                  onRenderCell={onRenderPasskeyIdentityDetailCell}
+                />
+              </>
+            )}
             {primaryAuthenticatorLists.oobOtpEmail.length > 0 && (
               <>
                 <Text
@@ -659,25 +789,21 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
             >
               <FormattedMessage id="UserDetails.account-security.secondary" />
             </Text>
-            {secondaryAuthenticatorLists.totp != null &&
-              secondaryAuthenticatorLists.totp.length > 0 && (
-                <>
-                  <Text
-                    as="h3"
-                    className={cn(
-                      styles.header,
-                      styles.authenticatorTypeHeader
-                    )}
-                  >
-                    <FormattedMessage id="AuthenticatorType.secondary.totp" />
-                  </Text>
-                  <List
-                    className={cn(styles.list, styles.totpList)}
-                    items={secondaryAuthenticatorLists.totp}
-                    onRenderCell={onRenderTotpAuthenticatorDetailCell}
-                  />
-                </>
-              )}
+            {secondaryAuthenticatorLists.totp.length > 0 && (
+              <>
+                <Text
+                  as="h3"
+                  className={cn(styles.header, styles.authenticatorTypeHeader)}
+                >
+                  <FormattedMessage id="AuthenticatorType.secondary.totp" />
+                </Text>
+                <List
+                  className={cn(styles.list, styles.totpList)}
+                  items={secondaryAuthenticatorLists.totp}
+                  onRenderCell={onRenderTotpAuthenticatorDetailCell}
+                />
+              </>
+            )}
             {secondaryAuthenticatorLists.oobOtpEmail.length > 0 && (
               <>
                 <Text
