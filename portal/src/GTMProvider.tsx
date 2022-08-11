@@ -1,11 +1,17 @@
-/* global JSX */
-import React from "react";
+import React, { useMemo } from "react";
 import {
   GTMProvider as ReactHookGTMProvider,
   useGTMDispatch as useReactHookGTMDispatch,
 } from "@elgorditosalsero/react-gtm-hook";
 
-export function useGTMDispatch(): any {
+export interface AuthgearGTMEvent {
+  event: AuthgearGTMEventType;
+  value1?: string;
+}
+
+export enum AuthgearGTMEventType {}
+
+export function useGTMDispatch(): (event: AuthgearGTMEvent) => void {
   try {
     return useReactHookGTMDispatch();
   } catch {
@@ -14,20 +20,22 @@ export function useGTMDispatch(): any {
   }
 }
 
-export interface GTMHookProviderProps {
+export interface GTMProviderProps {
   containerID?: string;
   children: React.ReactNode;
 }
 
-function GTMProvider(pros: GTMHookProviderProps): JSX.Element {
-  if (pros.containerID) {
+const GTMProvider: React.FC<GTMProviderProps> = ({ containerID, children }) => {
+  const state = useMemo(() => {
+    return { id: containerID ?? "" };
+  }, [containerID]);
+
+  if (containerID) {
     return (
-      <ReactHookGTMProvider state={{ id: pros.containerID }}>
-        {pros.children}
-      </ReactHookGTMProvider>
+      <ReactHookGTMProvider state={state}>{children}</ReactHookGTMProvider>
     );
   }
-  return <>{pros.children}</>;
-}
+  return <>{children}</>;
+};
 
 export default GTMProvider;
