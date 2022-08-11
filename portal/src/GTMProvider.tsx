@@ -13,6 +13,7 @@ export interface AuthgearGTMEvent {
 
 export enum AuthgearGTMEventType {
   CreateProject = "authgear.createProject",
+  ClickGetStarted = "authgear.clickGetStarted",
 }
 
 interface AuthgearGTMEventParams {
@@ -37,6 +38,24 @@ export function useAuthgearGTMEvent({
       value1: value1,
     };
   }, [event, value1, appContextID]);
+}
+
+export function useAuthgearGTMEventDataAttributes(
+  params: AuthgearGTMEventParams
+): Record<string, string> {
+  const event = useAuthgearGTMEvent(params);
+  return useMemo(() => {
+    const attributes: Record<string, string> = {
+      "data-authgear-event": event.event,
+    };
+    if (event.appID) {
+      attributes["data-authgear-event-app-id"] = event.appID;
+    }
+    if (event.value1) {
+      attributes["data-authgear-event-value1"] = event.value1;
+    }
+    return attributes;
+  }, [event]);
 }
 
 export function useGTMDispatch(): (event: AuthgearGTMEvent) => void {
