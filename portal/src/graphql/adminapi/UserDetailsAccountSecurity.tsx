@@ -13,49 +13,33 @@ import {
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
 import { useDeleteAuthenticatorMutation } from "./mutations/deleteAuthenticatorMutation";
+import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
 import ListCellLayout from "../../ListCellLayout";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import ErrorDialog from "../../error/ErrorDialog";
 import { formatDatetime } from "../../util/formatDatetime";
+import {
+  Identity,
+  Authenticator,
+  AuthenticatorType,
+  AuthenticatorKind,
+  IdentityType,
+} from "./globalTypes.generated";
 
 import styles from "./UserDetailsAccountSecurity.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 
-// authenticator type recognized by portal
-type PrimaryAuthenticatorType =
-  | "PASSWORD"
-  | "OOB_OTP_EMAIL"
-  | "OOB_OTP_SMS"
-  | "PASSKEY";
-type SecondaryAuthenticatorType =
-  | "PASSWORD"
-  | "TOTP"
-  | "OOB_OTP_EMAIL"
-  | "OOB_OTP_SMS";
-type AuthenticatorType = PrimaryAuthenticatorType | SecondaryAuthenticatorType;
-
-type AuthenticatorKind = "PRIMARY" | "SECONDARY";
-
 type OOBOTPVerificationMethod = "email" | "phone" | "unknown";
 
-interface AuthenticatorClaims {
-  "https://authgear.com/claims/totp/display_name"?: string;
-  "https://authgear.com/claims/oob_otp/email"?: string;
-  "https://authgear.com/claims/oob_otp/phone"?: string;
-}
-
-interface Authenticator {
-  id: string;
-  type: AuthenticatorType;
-  kind: AuthenticatorKind;
-  isDefault: boolean;
-  claims: AuthenticatorClaims;
-  createdAt: string;
-  updatedAt: string;
-}
-
 interface UserDetailsAccountSecurityProps {
+  identities: Identity[];
   authenticators: Authenticator[];
+}
+
+interface PasskeyIdentityData {
+  id: string;
+  displayName: string;
+  addedOn: string;
 }
 
 interface PasswordAuthenticatorData {
@@ -80,38 +64,34 @@ interface OOBOTPAuthenticatorData {
   isDefault: boolean;
 }
 
+interface PasskeyIdentityCellProps extends PasskeyIdentityData {
+  showConfirmationDialog: (options: RemoveConfirmationDialogData) => void;
+}
+
 interface PasswordAuthenticatorCellProps extends PasswordAuthenticatorData {
-  showConfirmationDialog: (
-    authenticatorID: string,
-    authenticatorName: string
-  ) => void;
+  showConfirmationDialog: (options: RemoveConfirmationDialogData) => void;
 }
 
 interface TOTPAuthenticatorCellProps extends TOTPAuthenticatorData {
-  showConfirmationDialog: (
-    authenticatorID: string,
-    authenticatorName: string
-  ) => void;
+  showConfirmationDialog: (options: RemoveConfirmationDialogData) => void;
 }
 
 interface OOBOTPAuthenticatorCellProps extends OOBOTPAuthenticatorData {
-  showConfirmationDialog: (
-    authenticatorID: string,
-    authenticatorName: string
-  ) => void;
+  showConfirmationDialog: (options: RemoveConfirmationDialogData) => void;
 }
 
 interface RemoveConfirmationDialogData {
-  authenticatorID: string;
-  authenticatorName: string;
+  id: string;
+  displayName: string;
+  type: "identity" | "authenticator";
 }
 
 interface RemoveConfirmationDialogProps
   extends Partial<RemoveConfirmationDialogData> {
   visible: boolean;
-  deleteAuthenticator: (authenticatorID: string) => void;
-  deletingAuthenticator: boolean;
   onDismiss: () => void;
+  remove?: (id: string) => void;
+  loading?: boolean;
 }
 
 const LABEL_PLACEHOLDER = "---";
@@ -147,6 +127,21 @@ function getLocaleKeyWithAuthenticatorType(
   }
 }
 
+function constructPasskeyIdentityData(
+  identity: Identity,
+  locale: string
+): PasskeyIdentityData {
+  const addedOn = formatDatetime(locale, identity.createdAt) ?? "";
+
+  return {
+    id: identity.id,
+    displayName: (identity.claims[
+      "https://authgear.com/claims/passkey/display_name"
+    ] ?? "") as string,
+    addedOn,
+  };
+}
+
 function constructPasswordAuthenticatorData(
   authenticator: Authenticator,
   locale: string
@@ -161,12 +156,11 @@ function constructPasswordAuthenticatorData(
 }
 
 function getTotpDisplayName(
-  totpAuthenticatorClaims: AuthenticatorClaims
+  totpAuthenticatorClaims: Authenticator["claims"]
 ): string {
-  return (
-    totpAuthenticatorClaims["https://authgear.com/claims/totp/display_name"] ??
-    LABEL_PLACEHOLDER
-  );
+  return (totpAuthenticatorClaims[
+    "https://authgear.com/claims/totp/display_name"
+  ] ?? LABEL_PLACEHOLDER) as string;
 }
 
 function constructTotpAuthenticatorData(
@@ -207,16 +201,16 @@ const oobOtpVerificationMethodIconName: Partial<
 function getOobOtpAuthenticatorLabel(
   authenticator: Authenticator,
   verificationMethod: OOBOTPVerificationMethod
-) {
+): string {
   switch (verificationMethod) {
     case "email":
-      return (
-        authenticator.claims["https://authgear.com/claims/oob_otp/email"] ?? ""
-      );
+      return (authenticator.claims[
+        "https://authgear.com/claims/oob_otp/email"
+      ] ?? "") as string;
     case "phone":
-      return (
-        authenticator.claims["https://authgear.com/claims/oob_otp/phone"] ?? ""
-      );
+      return (authenticator.claims[
+        "https://authgear.com/claims/oob_otp/phone"
+      ] ?? "") as string;
     default:
       return "";
   }
@@ -241,9 +235,8 @@ function constructOobOtpAuthenticatorData(
   };
 }
 
-function constructAuthenticatorLists(
+function constructSecondaryAuthenticatorList(
   authenticators: Authenticator[],
-  kind: AuthenticatorKind,
   locale: string
 ) {
   const passwordAuthenticatorList: PasswordAuthenticatorData[] = [];
@@ -251,7 +244,9 @@ function constructAuthenticatorLists(
   const oobOtpSMSAuthenticatorList: OOBOTPAuthenticatorData[] = [];
   const totpAuthenticatorList: TOTPAuthenticatorData[] = [];
 
-  const filteredAuthenticators = authenticators.filter((a) => a.kind === kind);
+  const filteredAuthenticators = authenticators.filter(
+    (a) => a.kind === AuthenticatorKind.Secondary
+  );
 
   for (const authenticator of filteredAuthenticators) {
     switch (authenticator.type) {
@@ -271,9 +266,6 @@ function constructAuthenticatorLists(
         );
         break;
       case "TOTP":
-        if (kind === "PRIMARY") {
-          break;
-        }
         totpAuthenticatorList.push(
           constructTotpAuthenticatorData(authenticator, locale)
         );
@@ -283,60 +275,113 @@ function constructAuthenticatorLists(
     }
   }
 
-  return kind === "PRIMARY"
-    ? {
-        password: passwordAuthenticatorList,
-        oobOtpEmail: oobOtpEmailAuthenticatorList,
-        oobOtpSMS: oobOtpSMSAuthenticatorList,
-        hasVisibleList: [
-          passwordAuthenticatorList,
-          oobOtpEmailAuthenticatorList,
-          oobOtpSMSAuthenticatorList,
-        ].some((list) => list.length > 0),
-      }
-    : {
-        password: passwordAuthenticatorList,
-        oobOtpEmail: oobOtpEmailAuthenticatorList,
-        oobOtpSMS: oobOtpSMSAuthenticatorList,
-        totp: totpAuthenticatorList,
-        hasVisibleList: [
-          passwordAuthenticatorList,
-          oobOtpEmailAuthenticatorList,
-          oobOtpSMSAuthenticatorList,
-          totpAuthenticatorList,
-        ].some((list) => list.length > 0),
-      };
+  return {
+    password: passwordAuthenticatorList,
+    oobOtpEmail: oobOtpEmailAuthenticatorList,
+    oobOtpSMS: oobOtpSMSAuthenticatorList,
+    totp: totpAuthenticatorList,
+    hasVisibleList: [
+      passwordAuthenticatorList,
+      oobOtpEmailAuthenticatorList,
+      oobOtpSMSAuthenticatorList,
+      totpAuthenticatorList,
+    ].some((list) => list.length > 0),
+  };
+}
+
+function constructPrimaryAuthenticatorLists(
+  identities: Identity[],
+  authenticators: Authenticator[],
+  locale: string
+) {
+  const passkeyIdentityList: PasskeyIdentityData[] = [];
+  const passwordAuthenticatorList: PasswordAuthenticatorData[] = [];
+  const oobOtpEmailAuthenticatorList: OOBOTPAuthenticatorData[] = [];
+  const oobOtpSMSAuthenticatorList: OOBOTPAuthenticatorData[] = [];
+
+  const filteredAuthenticators = authenticators.filter(
+    (a) => a.kind === AuthenticatorKind.Primary
+  );
+
+  for (const identity of identities) {
+    switch (identity.type) {
+      case IdentityType.Passkey:
+        passkeyIdentityList.push(
+          constructPasskeyIdentityData(identity, locale)
+        );
+        break;
+      default:
+        break;
+    }
+  }
+
+  for (const authenticator of filteredAuthenticators) {
+    switch (authenticator.type) {
+      case "PASSWORD":
+        passwordAuthenticatorList.push(
+          constructPasswordAuthenticatorData(authenticator, locale)
+        );
+        break;
+      case "OOB_OTP_EMAIL":
+        oobOtpEmailAuthenticatorList.push(
+          constructOobOtpAuthenticatorData(authenticator, locale)
+        );
+        break;
+      case "OOB_OTP_SMS":
+        oobOtpSMSAuthenticatorList.push(
+          constructOobOtpAuthenticatorData(authenticator, locale)
+        );
+        break;
+      case "TOTP":
+        break;
+      default:
+        break;
+    }
+  }
+
+  return {
+    passkey: passkeyIdentityList,
+    password: passwordAuthenticatorList,
+    oobOtpEmail: oobOtpEmailAuthenticatorList,
+    oobOtpSMS: oobOtpSMSAuthenticatorList,
+    hasVisibleList: [
+      passkeyIdentityList,
+      passwordAuthenticatorList,
+      oobOtpEmailAuthenticatorList,
+      oobOtpSMSAuthenticatorList,
+    ].some((list) => list.length > 0),
+  };
 }
 
 const RemoveConfirmationDialog: React.FC<RemoveConfirmationDialogProps> =
   function RemoveConfirmationDialog(props: RemoveConfirmationDialogProps) {
     const {
       visible,
-      deleteAuthenticator,
-      deletingAuthenticator,
-      authenticatorID,
-      authenticatorName,
+      remove,
+      loading,
+      id,
+      displayName,
       onDismiss: onDismissProps,
     } = props;
 
     const { renderToString } = useContext(Context);
 
     const onConfirmClicked = useCallback(() => {
-      deleteAuthenticator(authenticatorID!);
-    }, [deleteAuthenticator, authenticatorID]);
+      remove?.(id!);
+    }, [remove, id]);
 
     const onDismiss = useCallback(() => {
-      if (!deletingAuthenticator) {
+      if (!loading) {
         onDismissProps();
       }
-    }, [onDismissProps, deletingAuthenticator]);
+    }, [onDismissProps, loading]);
 
     const dialogMessage = useMemo(() => {
       return renderToString(
         "UserDetails.account-security.remove-confirm-dialog.message",
-        { authenticatorName: authenticatorName ?? "" }
+        { displayName: displayName ?? "" }
       );
-    }, [renderToString, authenticatorName]);
+    }, [renderToString, displayName]);
 
     const removeConfirmDialogContentProps = useMemo(() => {
       return {
@@ -351,24 +396,63 @@ const RemoveConfirmationDialog: React.FC<RemoveConfirmationDialogProps> =
       <Dialog
         hidden={!visible}
         dialogContentProps={removeConfirmDialogContentProps}
-        modalProps={{ isBlocking: deletingAuthenticator }}
+        modalProps={{ isBlocking: loading }}
         onDismiss={onDismiss}
       >
         <DialogFooter>
           <ButtonWithLoading
             onClick={onConfirmClicked}
             labelId="confirm"
-            loading={deletingAuthenticator}
+            loading={loading ?? false}
             disabled={!visible}
           />
           <DefaultButton
-            disabled={deletingAuthenticator || !visible}
+            disabled={(loading ?? false) || !visible}
             onClick={onDismiss}
           >
             <FormattedMessage id="cancel" />
           </DefaultButton>
         </DialogFooter>
       </Dialog>
+    );
+  };
+
+const PasskeyIdentityCell: React.FC<PasskeyIdentityCellProps> =
+  function PasskeyIdentityCell(props: PasskeyIdentityCellProps) {
+    const { id, displayName, addedOn, showConfirmationDialog } = props;
+    const { themes } = useSystemConfig();
+    const onRemoveClicked = useCallback(() => {
+      showConfirmationDialog({
+        id,
+        displayName,
+        type: "identity",
+      });
+    }, [id, displayName, showConfirmationDialog]);
+    return (
+      <ListCellLayout className={cn(styles.cell, styles.passkeyCell)}>
+        <i
+          className={cn(
+            styles.passkeyCellIcon,
+            "authgear-portal-icons authgear-portal-icons-passkey"
+          )}
+        ></i>
+        <Text className={cn(styles.cellLabel, styles.passkeyCellLabel)}>
+          {displayName}
+        </Text>
+        <Text className={cn(styles.cellDesc, styles.passkeyCellDesc)}>
+          <FormattedMessage
+            id="UserDetails.account-security.added-on"
+            values={{ datetime: addedOn }}
+          />
+        </Text>
+        <DefaultButton
+          className={cn(styles.button, styles.passkeyCellRemoveButton)}
+          onClick={onRemoveClicked}
+          theme={themes.destructive}
+        >
+          <FormattedMessage id="remove" />
+        </DefaultButton>
+      </ListCellLayout>
     );
   };
 
@@ -379,14 +463,21 @@ const PasswordAuthenticatorCell: React.FC<PasswordAuthenticatorCellProps> =
     const { renderToString } = useContext(Context);
     const { themes } = useSystemConfig();
 
-    const labelId = getLocaleKeyWithAuthenticatorType("PASSWORD", kind);
+    const labelId = getLocaleKeyWithAuthenticatorType(
+      AuthenticatorType.Password,
+      kind
+    );
 
     const onResetPasswordClicked = useCallback(() => {
       navigate("./reset-password");
     }, [navigate]);
 
     const onRemoveClicked = useCallback(() => {
-      showConfirmationDialog(id, renderToString(labelId!));
+      showConfirmationDialog({
+        id,
+        displayName: renderToString(labelId!),
+        type: "authenticator",
+      });
     }, [labelId, id, renderToString, showConfirmationDialog]);
 
     return (
@@ -410,11 +501,7 @@ const PasswordAuthenticatorCell: React.FC<PasswordAuthenticatorCellProps> =
         )}
         {kind === "SECONDARY" && (
           <DefaultButton
-            className={cn(
-              styles.button,
-              styles.removeButton,
-              styles.removePasswordButton
-            )}
+            className={cn(styles.button, styles.removePasswordButton)}
             onClick={onRemoveClicked}
             theme={themes.destructive}
           >
@@ -431,7 +518,11 @@ const TOTPAuthenticatorCell: React.FC<TOTPAuthenticatorCellProps> =
     const { themes } = useSystemConfig();
 
     const onRemoveClicked = useCallback(() => {
-      showConfirmationDialog(id, label);
+      showConfirmationDialog({
+        id,
+        displayName: label,
+        type: "authenticator",
+      });
     }, [id, label, showConfirmationDialog]);
 
     return (
@@ -447,11 +538,7 @@ const TOTPAuthenticatorCell: React.FC<TOTPAuthenticatorCellProps> =
         </Text>
         {kind === "SECONDARY" && (
           <DefaultButton
-            className={cn(
-              styles.button,
-              styles.removeButton,
-              styles.totpRemoveButton
-            )}
+            className={cn(styles.button, styles.totpRemoveButton)}
             onClick={onRemoveClicked}
             theme={themes.destructive}
           >
@@ -469,7 +556,11 @@ const OOBOTPAuthenticatorCell: React.FC<OOBOTPAuthenticatorCellProps> =
     const { themes } = useSystemConfig();
 
     const onRemoveClicked = useCallback(() => {
-      showConfirmationDialog(id, label);
+      showConfirmationDialog({
+        id,
+        displayName: label,
+        type: "authenticator",
+      });
     }, [id, label, showConfirmationDialog]);
 
     return (
@@ -487,11 +578,7 @@ const OOBOTPAuthenticatorCell: React.FC<OOBOTPAuthenticatorCellProps> =
 
         {kind === "SECONDARY" && (
           <DefaultButton
-            className={cn(
-              styles.button,
-              styles.removeButton,
-              styles.oobOtpRemoveButton
-            )}
+            className={cn(styles.button, styles.oobOtpRemoveButton)}
             onClick={onRemoveClicked}
             theme={themes.destructive}
           >
@@ -505,7 +592,7 @@ const OOBOTPAuthenticatorCell: React.FC<OOBOTPAuthenticatorCellProps> =
 const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
   // eslint-disable-next-line complexity
   function UserDetailsAccountSecurity(props: UserDetailsAccountSecurityProps) {
-    const { authenticators } = props;
+    const { identities, authenticators } = props;
     const { locale } = useContext(Context);
 
     const {
@@ -514,25 +601,32 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
       error: deleteAuthenticatorError,
     } = useDeleteAuthenticatorMutation();
 
+    const {
+      deleteIdentity,
+      loading: deletingIdentity,
+      error: deleteIdentityError,
+    } = useDeleteIdentityMutation();
+
     const [isConfirmationDialogVisible, setIsConfirmationDialogVisible] =
       useState(false);
     const [confirmationDialogData, setConfirmationDialogData] =
       useState<RemoveConfirmationDialogData | null>(null);
 
     const primaryAuthenticatorLists = useMemo(() => {
-      return constructAuthenticatorLists(authenticators, "PRIMARY", locale);
-    }, [locale, authenticators]);
+      return constructPrimaryAuthenticatorLists(
+        identities,
+        authenticators,
+        locale
+      );
+    }, [locale, identities, authenticators]);
 
     const secondaryAuthenticatorLists = useMemo(() => {
-      return constructAuthenticatorLists(authenticators, "SECONDARY", locale);
+      return constructSecondaryAuthenticatorList(authenticators, locale);
     }, [locale, authenticators]);
 
     const showConfirmationDialog = useCallback(
-      (authenticatorID: string, authenticatorName: string) => {
-        setConfirmationDialogData({
-          authenticatorID,
-          authenticatorName,
-        });
+      (options: RemoveConfirmationDialogData) => {
+        setConfirmationDialogData(options);
         setIsConfirmationDialogVisible(true);
       },
       []
@@ -541,6 +635,21 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
     const dismissConfirmationDialog = useCallback(() => {
       setIsConfirmationDialogVisible(false);
     }, []);
+
+    const onRenderPasskeyIdentityDetailCell = useCallback(
+      (item?: PasskeyIdentityData, _index?: number): React.ReactNode => {
+        if (item == null) {
+          return null;
+        }
+        return (
+          <PasskeyIdentityCell
+            {...item}
+            showConfirmationDialog={showConfirmationDialog}
+          />
+        );
+      },
+      [showConfirmationDialog]
+    );
 
     const onRenderPasswordAuthenticatorDetailCell = useCallback(
       (item?: PasswordAuthenticatorData, _index?: number): React.ReactNode => {
@@ -598,38 +707,75 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
       [deleteAuthenticator, dismissConfirmationDialog]
     );
 
+    const onConfirmDeleteIdentity = useCallback(
+      (identityID) => {
+        deleteIdentity(identityID)
+          .catch(() => {})
+          .finally(() => {
+            dismissConfirmationDialog();
+          });
+      },
+      [deleteIdentity, dismissConfirmationDialog]
+    );
+
     return (
       <div className={styles.root}>
         <RemoveConfirmationDialog
           visible={isConfirmationDialogVisible}
-          authenticatorID={confirmationDialogData?.authenticatorID}
-          authenticatorName={confirmationDialogData?.authenticatorName}
+          id={confirmationDialogData?.id}
+          displayName={confirmationDialogData?.displayName}
+          remove={
+            confirmationDialogData?.type === "authenticator"
+              ? onConfirmDeleteAuthenticator
+              : confirmationDialogData?.type === "identity"
+              ? onConfirmDeleteIdentity
+              : undefined
+          }
+          loading={
+            confirmationDialogData?.type === "authenticator"
+              ? deletingAuthenticator
+              : confirmationDialogData?.type === "identity"
+              ? deletingIdentity
+              : undefined
+          }
           onDismiss={dismissConfirmationDialog}
-          deleteAuthenticator={onConfirmDeleteAuthenticator}
-          deletingAuthenticator={deletingAuthenticator}
         />
         <ErrorDialog
           rules={[]}
-          error={deleteAuthenticatorError}
+          error={deleteAuthenticatorError || deleteIdentityError}
           fallbackErrorMessageID="UserDetails.account-security.remove-authenticator.generic-error"
         />
         {primaryAuthenticatorLists.hasVisibleList && (
           <div className={styles.authenticatorContainer}>
             <Text
               as="h2"
+              variant="medium"
               className={cn(styles.header, styles.authenticatorKindHeader)}
             >
               <FormattedMessage id="UserDetails.account-security.primary" />
             </Text>
             {primaryAuthenticatorLists.password.length > 0 && (
               <List
-                className={styles.list}
                 items={primaryAuthenticatorLists.password}
                 onRenderCell={onRenderPasswordAuthenticatorDetailCell}
               />
             )}
+            {primaryAuthenticatorLists.passkey.length > 0 && (
+              <div>
+                <Text
+                  as="h3"
+                  className={cn(styles.header, styles.authenticatorTypeHeader)}
+                >
+                  <FormattedMessage id="AuthenticatorType.primary.passkey" />
+                </Text>
+                <List
+                  items={primaryAuthenticatorLists.passkey}
+                  onRenderCell={onRenderPasskeyIdentityDetailCell}
+                />
+              </div>
+            )}
             {primaryAuthenticatorLists.oobOtpEmail.length > 0 && (
-              <>
+              <div>
                 <Text
                   as="h3"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
@@ -637,14 +783,13 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
                   <FormattedMessage id="AuthenticatorType.primary.oob-otp-email" />
                 </Text>
                 <List
-                  className={cn(styles.list, styles.oobOtpList)}
                   items={primaryAuthenticatorLists.oobOtpEmail}
                   onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
                 />
-              </>
+              </div>
             )}
             {primaryAuthenticatorLists.oobOtpSMS.length > 0 && (
-              <>
+              <div>
                 <Text
                   as="h3"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
@@ -656,7 +801,7 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
                   items={primaryAuthenticatorLists.oobOtpSMS}
                   onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
                 />
-              </>
+              </div>
             )}
           </div>
         )}
@@ -668,27 +813,23 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
             >
               <FormattedMessage id="UserDetails.account-security.secondary" />
             </Text>
-            {secondaryAuthenticatorLists.totp != null &&
-              secondaryAuthenticatorLists.totp.length > 0 && (
-                <>
-                  <Text
-                    as="h3"
-                    className={cn(
-                      styles.header,
-                      styles.authenticatorTypeHeader
-                    )}
-                  >
-                    <FormattedMessage id="AuthenticatorType.secondary.totp" />
-                  </Text>
-                  <List
-                    className={cn(styles.list, styles.totpList)}
-                    items={secondaryAuthenticatorLists.totp}
-                    onRenderCell={onRenderTotpAuthenticatorDetailCell}
-                  />
-                </>
-              )}
+            {secondaryAuthenticatorLists.totp.length > 0 && (
+              <div>
+                <Text
+                  as="h3"
+                  className={cn(styles.header, styles.authenticatorTypeHeader)}
+                >
+                  <FormattedMessage id="AuthenticatorType.secondary.totp" />
+                </Text>
+                <List
+                  className={styles.list}
+                  items={secondaryAuthenticatorLists.totp}
+                  onRenderCell={onRenderTotpAuthenticatorDetailCell}
+                />
+              </div>
+            )}
             {secondaryAuthenticatorLists.oobOtpEmail.length > 0 && (
-              <>
+              <div>
                 <Text
                   as="h3"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
@@ -696,14 +837,14 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
                   <FormattedMessage id="AuthenticatorType.secondary.oob-otp-email" />
                 </Text>
                 <List
-                  className={cn(styles.list, styles.oobOtpList)}
+                  className={styles.list}
                   items={secondaryAuthenticatorLists.oobOtpEmail}
                   onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
                 />
-              </>
+              </div>
             )}
             {secondaryAuthenticatorLists.oobOtpSMS.length > 0 && (
-              <>
+              <div>
                 <Text
                   as="h3"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
@@ -715,7 +856,7 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
                   items={secondaryAuthenticatorLists.oobOtpSMS}
                   onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
                 />
-              </>
+              </div>
             )}
             {secondaryAuthenticatorLists.password.length > 0 && (
               <List

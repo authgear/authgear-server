@@ -1,88 +1,79 @@
 .root {
-  margin-top: 25px;
   margin-left: 10px;
   width: 640px;
 }
 
 .headerSection {
   display: flex;
+  flex-direction: row;
+  align-items: center;
   justify-content: space-between;
 }
 
 .header {
-  font-size: 15px;
   font-weight: 600;
-  margin: 0;
 }
 
 .identityLists {
-  padding: 5px 0 0;
+  display: flex;
+  flex-direction: column;
+  row-gap: 4px;
 }
 
 .subHeader {
   display: flex;
-  margin: 10px 0 15px;
-  font-size: 13px;
+  margin: 12px 0;
   font-weight: 600;
 }
 
-.list {
-  margin-bottom: 30px;
-}
-
 .cellContainer {
-  font-weight: 300;
-  margin-bottom: 15px;
-  font-size: 13px;
   display: grid;
-  grid-gap: 3px 0;
+  column-gap: 8px;
   grid-template:
-    "icon    name     name       name     .    verify    remove"
-    "icon    desc1    descSep    desc2    .    verify    remove"
-    / 35px min-content min-content max-content auto min-content min-content;
+    "        icon        name           .      verify      remove"
+    "           .        desc           .      verify      remove"
+    / min-content auto 1fr min-content min-content;
 }
 
 .cellIcon {
-  font-size: 16px;
-  padding: 3px;
   grid-area: icon;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .cellName {
   grid-area: name;
-  max-width: 300px;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .cellDescUnverified {
   color: #e0aa1a;
-  grid-area: desc1;
   white-space: nowrap;
 }
 
 .cellDescVerified {
   color: #10b070;
-  grid-area: desc1;
 }
 
 .cellDescSeparator {
   color: #888888;
-  grid-area: descSep;
-  margin: -1px 3px 0;
+  margin: 0 8px;
 }
 
 .cellDesc {
   color: #888888;
-  grid-area: desc2;
+  grid-area: desc;
+  display: flex;
+  flex-direction: row;
 }
 
 .controlButton {
-  margin: 0 5px;
-  padding: 0 8px;
   border: 1px solid #d8d8d8;
-  width: 140px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .removeButton {
@@ -98,15 +89,4 @@
 .unverifyButton {
   grid-area: verify;
   place-self: center;
-}
-
-.primaryIdentitiesTitle {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 18px;
-}
-
-.primaryIdentitiesForm {
-  margin-bottom: 50px;
 }

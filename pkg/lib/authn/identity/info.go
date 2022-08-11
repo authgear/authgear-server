@@ -142,6 +142,7 @@ func (i *Info) ToModel() model.Identity {
 
 	case model.IdentityTypePasskey:
 		claims[IdentityClaimPasskeyCredentialID] = i.Passkey.CredentialID
+		claims[IdentityClaimPasskeyDisplayName] = i.Passkey.CreationOptions.PublicKey.User.DisplayName
 
 	default:
 		panic("identity: unknown identity type: " + i.Type)

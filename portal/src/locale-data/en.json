@@ -191,7 +191,7 @@
   "UserDetails.account-security.primary": "Primary Authenticators",
   "UserDetails.account-security.secondary": "Multi-factor Authentications",
   "UserDetails.account-security.remove-confirm-dialog.title": "Remove Authenticator",
-  "UserDetails.account-security.remove-confirm-dialog.message": "Are you sure you want to remove authenticator {authenticatorName}",
+  "UserDetails.account-security.remove-confirm-dialog.message": "Are you sure you want to remove authenticator {displayName}",
   "UserDetails.account-security.remove-authenticator.generic-error": "Failed to remove authenticator",
 
   "ResetPasswordScreen.title": "Reset Password",
