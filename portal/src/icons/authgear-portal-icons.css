@@ -1,0 +1,25 @@
+@font-face {
+  font-family: "authgear-portal-icons";
+  src: url("./authgear-portal-icons.eot");
+  src: url("./authgear-portal-icons.eot") format("embedded-opentype"),
+    url("./authgear-portal-icons.woff2") format("woff2"),
+    url("./authgear-portal-icons.woff") format("woff"),
+    url("./authgear-portal-icons.ttf") format("truetype"),
+    url("./authgear-portal-icons.svg") format("svg");
+}
+
+.authgear-portal-icons {
+  /* stylelint-disable-next-line font-family-no-missing-generic-family-keyword */
+  font-family: "authgear-portal-icons";
+  font-style: normal;
+  font-weight: 400;
+  font-variant: normal;
+  text-transform: none;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.authgear-portal-icons-passkey::before {
+  content: "\00e800";
+}
