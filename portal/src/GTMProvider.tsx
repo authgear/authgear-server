@@ -14,6 +14,7 @@ export interface AuthgearGTMEvent {
 export enum AuthgearGTMEventType {
   CreateProject = "authgear.createProject",
   ClickGetStarted = "authgear.clickGetStarted",
+  CreateApplication = "authgear.createApplication",
 }
 
 interface AuthgearGTMEventParams {

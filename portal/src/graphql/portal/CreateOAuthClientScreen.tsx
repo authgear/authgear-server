@@ -30,6 +30,11 @@ import Widget from "../../Widget";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import { FormErrorMessageBar } from "../../FormErrorMessageBar";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
+import {
+  AuthgearGTMEventType,
+  useAuthgearGTMEvent,
+  useGTMDispatch,
+} from "../../GTMProvider";
 
 interface FormState {
   clients: OAuthClientConfig[];
@@ -197,10 +202,17 @@ const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> =
       [onClientConfigChange, client]
     );
 
+    const gtmEvent = useAuthgearGTMEvent({
+      event: AuthgearGTMEventType.CreateApplication,
+      value1: client.x_application_type,
+    });
+
+    const sendDataToGTM = useGTMDispatch();
     const onClickSave = useCallback(() => {
       save()
         .then(
           () => {
+            sendDataToGTM(gtmEvent);
             navigate(
               `./../${encodeURIComponent(clientId)}/edit?quickstart=true`,
               {
@@ -211,7 +223,7 @@ const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> =
           () => {}
         )
         .catch(() => {});
-    }, [save, navigate, clientId]);
+    }, [save, navigate, clientId, sendDataToGTM, gtmEvent]);
 
     const parentJSONPointer = /\/oauth\/clients\/\d+/;
 
