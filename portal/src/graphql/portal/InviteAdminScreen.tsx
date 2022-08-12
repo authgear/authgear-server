@@ -10,6 +10,11 @@ import ScreenContent from "../../ScreenContent";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
 import styles from "./InviteAdminScreen.module.css";
+import {
+  AuthgearGTMEventType,
+  useAuthgearGTMEvent,
+  useGTMDispatch,
+} from "../../GTMProvider";
 
 interface FormState {
   email: string;
@@ -81,11 +86,16 @@ const InviteAdminScreen: React.FC = function InviteAdminScreen() {
     submit,
   });
 
+  const sendDataToGTM = useGTMDispatch();
+  const gtmEvent = useAuthgearGTMEvent({
+    event: AuthgearGTMEventType.InviteAdmin,
+  });
   useEffect(() => {
     if (form.isSubmitted) {
+      sendDataToGTM(gtmEvent);
       navigate("./..");
     }
-  }, [form.isSubmitted, navigate]);
+  }, [form.isSubmitted, navigate, sendDataToGTM, gtmEvent]);
 
   const errorRules: ErrorParseRule[] = useMemo(
     () => [
