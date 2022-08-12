@@ -175,7 +175,7 @@
             </button>
           {{ end }}
         {{ else }}
-        <button class="btn secondary-btn flex-1 flex flex-col items-end justify-center" type="submit" name="x_action" value="link_oauth" data-form-xhr="false">
+        <button class="btn secondary-btn flex-1 flex flex-col items-end justify-center" type="submit" name="x_action" value="link_oauth" data-turbo="false">
           <i class="ti ti-circle-plus"></i>
         </button>
         {{ end }}
@@ -211,50 +211,7 @@
 
 </div>
 
-<!-- Primary password, oob_otp -->
-{{ $has_primary_password := false }}
-{{ $has_primary_oob_otp_email := false }}
-{{ $has_primary_oob_otp_sms := false }}
-{{ range $.Authenticators }}
-{{ if eq .Kind "primary" }}
-  {{ if eq .Type "password" }}
-  {{ $has_primary_password = true }}
-  {{ end }}
-  {{ if eq .Type "oob_otp_email" }}
-  {{ $has_primary_oob_otp_email = true }}
-  {{ end }}
-  {{ if eq .Type "oob_otp_sms" }}
-  {{ $has_primary_oob_otp_sms = true }}
-  {{ end }}
-{{ end }}
-{{ end }}
-
 <!-- MFA -->
-<!-- Individual secondary authenticator section is shown if it is allowed in the configuration -->
-<!-- or the user somehow has authenticator of that kind -->
-{{ $has_secondary_totp := false }}
-{{ $has_secondary_oob_otp_email := false }}
-{{ $has_secondary_oob_otp_sms := false }}
-{{ $secondary_password := false }}
-{{ range $.Authenticators }}
-{{ if eq .Kind "secondary" }}
-  {{ if eq .Type "totp" }}
-    {{ $has_secondary_totp = true }}
-  {{ else if eq .Type "oob_otp_email" }}
-    {{ $has_secondary_oob_otp_email = true }}
-  {{ else if eq .Type "oob_otp_sms" }}
-    {{ $has_secondary_oob_otp_sms = true }}
-  {{ else if eq .Type "password" }}
-    {{ $secondary_password = . }}
-  {{ end }}
-{{ end }}
-{{ end }}
-{{ $show_secondary_totp := (or $has_secondary_totp $.SecondaryTOTPAllowed) }}
-{{ $show_secondary_oob_otp_email := (or $has_secondary_oob_otp_email $.SecondaryOOBOTPEmailAllowed) }}
-{{ $show_secondary_oob_otp_sms := (or $has_secondary_oob_otp_sms $.SecondaryOOBOTPSMSAllowed) }}
-{{ $show_secondary_password := (or $secondary_password $.SecondaryPasswordAllowed) }}
-{{ $show_mfa := (and (not $.SecondaryAuthenticationDisabled) (or $show_secondary_totp $show_secondary_oob_otp_email $show_secondary_oob_otp_sms $show_secondary_password)) }}
-
 
 <div class="pane grid grid-cols-1 auto-rows-auto gap-y-2.5 pt-4 pb-5">
 <!-- The title and the description -->
@@ -268,10 +225,27 @@
 </div>
 
 <div class="px-5 grid grid-cols-2 tablet:grid-cols-2 desktop:grid-cols-3 auto-rows-min gap-4">
+  {{ if $.ShowPrimaryPasskey }}
+  <a class="settings-security-item not-a" href="/settings/passkey">
+    <i class="authgear-icons authgear-icons-passkey text-3xl block primary-txt" aria-hidden="true"></i>
+    <p class="m-0 primary-txt text-base">
+      {{ template "settings-page-primary-passkey-title" }}
+    </p>
+    <p class="m-0 secondary-txt text-xs">
+    {{ if $.LatestPrimaryPasskey }}
+      <!-- FIXME(ui): Use user preferred timezone -->
+      {{ template "settings-page-primary-passkey-description" (dict "name" $.LatestPrimaryPasskey.Passkey.CreationOptions.PublicKey.User.DisplayName "time" $.LatestPrimaryPasskey.CreatedAt "rfc3339" (rfc3339 $.LatestPrimaryPasskey.CreatedAt)) }}
+    {{ else }}
+      {{ template "settings-page-primary-passkey-description-none" }}
+    {{ end }}
+    </p>
+  </a>
+  {{ end }}
+
   {{ range $.Authenticators }}
   <!-- Primary Password -->
   {{ if eq .Type "password" }}{{ if eq .Kind "primary" }}
-  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/change_password">
+  <a class="settings-security-item not-a" href="/settings/change_password">
     <i class="ti ti-key text-3xl block primary-txt" aria-hidden="true"></i>
     <p class="m-0 primary-txt text-base">
       {{ template "settings-page-primary-password-title" }}
@@ -285,13 +259,13 @@
 
   <!-- Primary OOB OTP Email -->
   {{ if eq .Type "oob_otp_email" }}{{ if eq .Kind "primary" }}
-  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/identity">
+  <a class="settings-security-item not-a" href="/settings/identity">
     <i class="ti ti-mail text-3xl block primary-txt" aria-hidden="true"></i>
     <p class="m-0 primary-txt text-base">
       {{ template "settings-page-primary-oob-otp-title--email" }}
     </p>
     <p class="m-0 secondary-txt text-xs truncate">
-      {{ index .Claims "https://authgear.com/claims/oob_otp/email" }}
+      {{ .OOBOTP.Email }}
       <br>
       <!-- FIXME(ui): Use user preferred timezone -->
       {{ template "settings-page-primary-oob-otp-description" (dict "time" .CreatedAt "rfc3339" (rfc3339 .CreatedAt)) }}
@@ -301,13 +275,13 @@
 
   <!-- Primary OOB OTP SMS -->
   {{ if eq .Type "oob_otp_sms" }}{{ if eq .Kind "primary" }}
-  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/identity">
+  <a class="settings-security-item not-a" href="/settings/identity">
     <i class="ti ti-message-dots text-3xl block primary-txt" aria-hidden="true"></i>
     <p class="m-0 primary-txt text-base">
       {{ template "settings-page-primary-oob-otp-title--phone" }}
     </p>
     <p class="m-0 secondary-txt text-xs">
-      {{ index .Claims "https://authgear.com/claims/oob_otp/phone" }}
+      {{ .OOBOTP.Phone }}
       <br>
       <!-- FIXME(ui): Use user preferred timezone -->
       {{ template "settings-page-primary-oob-otp-description" (dict "time" .CreatedAt "rfc3339" (rfc3339 .CreatedAt)) }}
@@ -317,8 +291,8 @@
   {{ end }}
 
   <!-- MFA -->
-  {{ if $show_mfa }}
-  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/mfa">
+  {{ if $.ShowMFA }}
+  <a class="settings-security-item not-a" href="/settings/mfa">
     <i class="ti ti-shield-lock text-3xl block  primary-txt" aria-hidden="true"></i>
     <p class="m-0 primary-txt text-base">
       {{ template "settings-page-mfa-section-title" }}
@@ -331,7 +305,7 @@
 
   {{ if $.ShowBiometric }}
   <!-- Biometric -->
-  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/biometric">
+  <a class="settings-security-item not-a" href="/settings/biometric">
     <i class="ti ti-fingerprint text-3xl block primary-txt" aria-hidden="true"></i>
     <p class="m-0 primary-txt text-base">
       {{ template "settings-page-biometric-section-title" }}
@@ -342,7 +316,7 @@
   </a>
   {{ end }}
 
-  <a class="settings-security-item p-3 tablet:p-3 desktop:p-4 rounded-md not-a grid grid-cols-1 auto-rows-auto gap-y-2.5" href="/settings/sessions">
+  <a class="settings-security-item not-a" href="/settings/sessions">
     <i class="ti ti-shield-check text-3xl block primary-txt" aria-hidden="true"></i>
     <p class="m-0 primary-txt text-base">
       {{ template "settings-page-session-section-title" }}

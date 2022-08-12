@@ -55,9 +55,9 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 
 		spec := &identity.Spec{
 			Type: model.IdentityTypeAnonymous,
-			Claims: map[string]interface{}{
-				identity.IdentityClaimAnonymousKeyID: "",
-				identity.IdentityClaimAnonymousKey:   "",
+			Anonymous: &identity.AnonymousSpec{
+				KeyID: "",
+				Key:   "",
 			},
 		}
 
@@ -85,9 +85,9 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 
 		spec := &identity.Spec{
 			Type: model.IdentityTypeAnonymous,
-			Claims: map[string]interface{}{
-				identity.IdentityClaimAnonymousExistingUserID:     anonIdentity.UserID,
-				identity.IdentityClaimAnonymousExistingIdentityID: anonIdentity.ID,
+			Anonymous: &identity.AnonymousSpec{
+				ExistingUserID:     anonIdentity.UserID,
+				ExistingIdentityID: anonIdentity.ID,
 			},
 		}
 
@@ -156,11 +156,11 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 
 	spec := &identity.Spec{
 		Type: model.IdentityTypeAnonymous,
-		Claims: map[string]interface{}{
-			identity.IdentityClaimAnonymousExistingUserID:     existingUserID,
-			identity.IdentityClaimAnonymousExistingIdentityID: existingIdentityID,
-			identity.IdentityClaimAnonymousKeyID:              request.KeyID,
-			identity.IdentityClaimAnonymousKey:                string(key),
+		Anonymous: &identity.AnonymousSpec{
+			ExistingUserID:     existingUserID,
+			ExistingIdentityID: existingIdentityID,
+			KeyID:              request.KeyID,
+			Key:                string(key),
 		},
 	}
 

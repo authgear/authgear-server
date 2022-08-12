@@ -40,26 +40,7 @@ func (n *NodeDoRemoveIdentity) Prepare(ctx *interaction.Context, graph *interact
 func (n *NodeDoRemoveIdentity) GetEffects() ([]interaction.Effect, error) {
 	return []interaction.Effect{
 		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			userID := graph.MustGetUserID()
-			remaining, err := ctx.Identities.ListByUser(userID)
-			if err != nil {
-				return err
-			}
-			remaining = identity.ApplyFilters(
-				remaining,
-				identity.KeepIdentifiable,
-				identity.OmitID(n.Identity.ID),
-			)
-
-			if len(remaining) < 1 {
-				return interaction.NewInvariantViolated(
-					"RemoveLastIdentity",
-					"cannot remove last identity",
-					nil,
-				)
-			}
-
-			err = ctx.Identities.Delete(n.Identity)
+			err := ctx.Identities.Delete(n.Identity)
 			if err != nil {
 				return err
 			}
@@ -76,11 +57,11 @@ func (n *NodeDoRemoveIdentity) GetEffects() ([]interaction.Effect, error) {
 			var e event.Payload
 			switch n.Identity.Type {
 			case model.IdentityTypeLoginID:
-				loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
+				loginIDType := n.Identity.LoginID.LoginIDType
 				e = nonblocking.NewIdentityLoginIDRemovedEventPayload(
 					userRef,
 					n.Identity.ToModel(),
-					loginIDType,
+					string(loginIDType),
 					n.IsAdminAPI,
 				)
 			case model.IdentityTypeOAuth:

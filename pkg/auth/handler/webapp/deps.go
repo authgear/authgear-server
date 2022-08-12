@@ -28,7 +28,10 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(SSOCallbackHandler), "*"),
 	wire.Struct(new(EnterLoginIDHandler), "*"),
 	wire.Struct(new(EnterPasswordHandler), "*"),
+	wire.Struct(new(UsePasskeyHandler), "*"),
 	wire.Struct(new(CreatePasswordHandler), "*"),
+	wire.Struct(new(CreatePasskeyHandler), "*"),
+	wire.Struct(new(PromptCreatePasskeyHandler), "*"),
 	wire.Struct(new(SetupTOTPHandler), "*"),
 	wire.Struct(new(EnterTOTPHandler), "*"),
 	wire.Struct(new(SetupOOBOTPHandler), "*"),
@@ -59,6 +62,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(SettingsChangeSecondaryPasswordHandler), "*"),
 	wire.Struct(new(SettingsDeleteAccountHandler), "*"),
 	wire.Struct(new(SettingsDeleteAccountSuccessHandler), "*"),
+	wire.Struct(new(SettingsPasskeyHandler), "*"),
 	wire.Struct(new(AccountStatusHandler), "*"),
 	wire.Struct(new(LogoutHandler), "*"),
 	wire.Struct(new(ReturnHandler), "*"),
@@ -68,6 +72,8 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(WechatCallbackHandler), "*"),
 	wire.Struct(new(WhatsappWATICallbackHandler), "*"),
 	NewWhatsappWATICallbackHandlerLogger,
+	wire.Struct(new(PasskeyCreationOptionsHandler), "*"),
+	wire.Struct(new(PasskeyRequestOptionsHandler), "*"),
 
 	wire.Struct(new(ResponseWriter), "*"),
 )

@@ -8,6 +8,7 @@ import (
 	"golang.org/x/text/secure/precis"
 	"golang.org/x/text/unicode/norm"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -20,13 +21,13 @@ type NormalizerFactory struct {
 	Config *config.LoginIDConfig
 }
 
-func (f *NormalizerFactory) NormalizerWithLoginIDType(loginIDKeyType config.LoginIDKeyType) Normalizer {
+func (f *NormalizerFactory) NormalizerWithLoginIDType(loginIDKeyType model.LoginIDKeyType) Normalizer {
 	switch loginIDKeyType {
-	case config.LoginIDKeyTypeEmail:
+	case model.LoginIDKeyTypeEmail:
 		return &EmailNormalizer{
 			Config: f.Config.Types.Email,
 		}
-	case config.LoginIDKeyTypeUsername:
+	case model.LoginIDKeyTypeUsername:
 		return &UsernameNormalizer{
 			Config: f.Config.Types.Username,
 		}

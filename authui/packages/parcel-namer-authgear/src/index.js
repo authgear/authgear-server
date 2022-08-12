@@ -7,6 +7,12 @@ const NAMING_LIST = [
   { asset: "src/tailwind.css", newName: "tailwind", type: "css" },
 
   {
+    asset: "src/icons/authgear-icons.css",
+    newName: "authgear-icons",
+    type: "css",
+  },
+
+  {
     asset: "intl-tel-input/build/js/intlTelInput.min.js",
     newName: "intlTelInput",
     type: "js",

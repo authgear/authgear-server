@@ -107,14 +107,22 @@ func (e *EdgeChangePassword) Instantiate(ctx *interaction.Context, graph *intera
 		// The password authenticator we are changing has been verified in this interaction.
 		// We avoid asking the user to provide the password again.
 	} else {
-		_, err = ctx.Authenticators.VerifySecret(oldInfo, oldPassword)
+		_, err = ctx.Authenticators.VerifyWithSpec(oldInfo, &authenticator.Spec{
+			Password: &authenticator.PasswordSpec{
+				PlainPassword: oldPassword,
+			},
+		})
 		if err != nil {
 			err = interaction.ErrInvalidCredentials
 			return
 		}
 	}
 
-	changed, newInfo, err := ctx.Authenticators.WithSecret(oldInfo, newPassword)
+	changed, newInfo, err := ctx.Authenticators.WithSpec(oldInfo, &authenticator.Spec{
+		Password: &authenticator.PasswordSpec{
+			PlainPassword: newPassword,
+		},
+	})
 	if err != nil {
 		return
 	}

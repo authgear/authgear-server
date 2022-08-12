@@ -52,25 +52,41 @@ func TestService(t *testing.T) {
 				UserID: "user-id",
 				ID:     "login-id-" + loginIDValue,
 				Type:   model.IdentityTypeLoginID,
-				Claims: map[string]interface{}{},
+				LoginID: &identity.LoginID{
+					LoginID: loginIDValue,
+					Claims:  map[string]interface{}{},
+				},
 			}
 			switch loginIDKey {
 			case "email":
-				i.Claims[identity.StandardClaimEmail] = loginIDValue
+				i.LoginID.LoginIDType = model.LoginIDKeyTypeEmail
+				i.LoginID.Claims[string(model.ClaimEmail)] = loginIDValue
 			case "phone":
-				i.Claims[identity.StandardClaimPhoneNumber] = loginIDValue
+				i.LoginID.LoginIDType = model.LoginIDKeyTypePhone
+				i.LoginID.Claims[string(model.ClaimPhoneNumber)] = loginIDValue
 			case "username":
-				i.Claims[identity.StandardClaimPreferredUsername] = loginIDValue
+				i.LoginID.LoginIDType = model.LoginIDKeyTypeUsername
+				i.LoginID.Claims[string(model.ClaimPreferredUsername)] = loginIDValue
 			}
 			return i
 		}
 
-		identityOfType := func(t model.IdentityType, claims map[string]interface{}) *identity.Info {
+		identityAnonymous := func() *identity.Info {
+			return &identity.Info{
+				UserID:    "user-id",
+				ID:        string(model.IdentityTypeAnonymous),
+				Type:      model.IdentityTypeAnonymous,
+				Anonymous: &identity.Anonymous{},
+			}
+		}
+		identityOAuth := func(claims map[string]interface{}) *identity.Info {
 			return &identity.Info{
 				UserID: "user-id",
-				ID:     string(t),
-				Type:   t,
-				Claims: claims,
+				ID:     string(model.IdentityTypeOAuth),
+				Type:   model.IdentityTypeOAuth,
+				OAuth: &identity.OAuth{
+					Claims: claims,
+				},
 			}
 		}
 
@@ -78,12 +94,6 @@ func TestService(t *testing.T) {
 			So(err, ShouldBeNil)
 			return value
 		}
-
-		Convey("IsClaimVerifiable", func() {
-			So(service.IsClaimVerifiable("email"), ShouldBeTrue)
-			So(service.IsClaimVerifiable("phone_number"), ShouldBeTrue)
-			So(service.IsClaimVerifiable("username"), ShouldBeFalse)
-		})
 
 		Convey("IsVerified", func() {
 			cases := []struct {
@@ -97,13 +107,13 @@ func TestService(t *testing.T) {
 				},
 				{
 					Identities: []*identity.Info{
-						identityOfType(model.IdentityTypeAnonymous, nil),
+						identityAnonymous(),
 					},
 					AnyResult: false, AllResult: false,
 				},
 				{
 					Identities: []*identity.Info{
-						identityOfType(model.IdentityTypeOAuth, nil),
+						identityOAuth(nil),
 					},
 					AnyResult: false, AllResult: false,
 				},
@@ -119,7 +129,7 @@ func TestService(t *testing.T) {
 				{
 					Identities: []*identity.Info{
 						identityLoginID("email", "foo@example.com"),
-						identityOfType(model.IdentityTypeOAuth, nil),
+						identityOAuth(nil),
 					},
 					Claims: []*Claim{
 						verifiedClaim("user-id", "email", "foo@example.com"),
@@ -129,7 +139,7 @@ func TestService(t *testing.T) {
 				{
 					Identities: []*identity.Info{
 						identityLoginID("email", "foo@example.com"),
-						identityOfType(model.IdentityTypeOAuth, map[string]interface{}{"email": "bar@example.com"}),
+						identityOAuth(map[string]interface{}{"email": "bar@example.com"}),
 					},
 					Claims: []*Claim{
 						verifiedClaim("user-id", "email", "foo@example.com"),
@@ -139,7 +149,7 @@ func TestService(t *testing.T) {
 				{
 					Identities: []*identity.Info{
 						identityLoginID("email", "foo@example.com"),
-						identityOfType(model.IdentityTypeOAuth, map[string]interface{}{"email": "bar@example.com"}),
+						identityOAuth(map[string]interface{}{"email": "bar@example.com"}),
 					},
 					Claims: []*Claim{
 						verifiedClaim("user-id", "email", "foo@example.com"),

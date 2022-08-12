@@ -12,4 +12,7 @@ const (
 	// AMRXBiometric exists because rfc8176 does not have a general
 	// value for any biometric authentication.
 	AMRXBiometric string = "x_biometric"
+	// AMRXPasskey exists because rfc8176 does not a general
+	// value for passkey.
+	AMRXPasskey string = "x_passkey"
 )

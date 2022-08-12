@@ -63,9 +63,9 @@ func KeepPrimaryAuthenticatorOfIdentity(ii *identity.Info) Filter {
 				switch {
 				case ii.Type == model.IdentityTypeLoginID &&
 					(ai.Type == model.AuthenticatorTypeOOBEmail || ai.Type == model.AuthenticatorTypeOOBSMS):
-					loginID := ii.Claims[identity.IdentityClaimLoginIDValue]
-					email, _ := ai.Claims[AuthenticatorClaimOOBOTPEmail].(string)
-					phone, _ := ai.Claims[AuthenticatorClaimOOBOTPPhone].(string)
+					loginID := ii.LoginID.LoginID
+					email := ai.OOBOTP.Email
+					phone := ai.OOBOTP.Phone
 					if loginID == email || loginID == phone {
 						return true
 					}
@@ -79,12 +79,6 @@ func KeepPrimaryAuthenticatorOfIdentity(ii *identity.Info) Filter {
 	})
 }
 
-// KeepSecondaryAuthenticatorOfIdentity means only Login ID identity needs MFA.
-func KeepSecondaryAuthenticatorOfIdentity(ii *identity.Info) Filter {
-	return FilterFunc(func(ai *Info) bool {
-		if ai.Kind != KindSecondary {
-			return false
-		}
-		return ii.CanHaveMFA()
-	})
-}
+var KeepPrimaryAuthenticatorCanHaveMFA = FilterFunc(func(ai *Info) bool {
+	return ai.CanHaveMFA()
+})

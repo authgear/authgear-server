@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
+	passkey3 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
@@ -26,6 +27,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	oauth3 "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
@@ -38,6 +40,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
+	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
@@ -235,12 +238,14 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clock,
+		Store:          oauthStore,
+		Clock:          clock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -258,6 +263,54 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -267,8 +320,9 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -300,6 +354,15 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -340,8 +403,9 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -482,31 +546,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -685,6 +724,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -930,12 +970,14 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -953,6 +995,54 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -962,8 +1052,9 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -995,6 +1086,15 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -1035,8 +1135,9 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -1177,31 +1278,6 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -1380,6 +1456,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -1562,12 +1639,14 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -1585,6 +1664,55 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpConfig := appConfig.HTTP
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -1594,8 +1722,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -1627,6 +1756,15 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -1667,8 +1805,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -1811,32 +1950,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpConfig := appConfig.HTTP
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -2053,6 +2166,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -2232,12 +2346,14 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -2255,6 +2371,54 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             resourceManager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          resourceManager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -2264,8 +2428,9 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -2297,6 +2462,15 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -2337,8 +2511,9 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -2581,12 +2756,14 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -2604,6 +2781,57 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	appredisHandle := appProvider.Redis
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -2613,8 +2841,9 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -2647,6 +2876,15 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -2662,7 +2900,6 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	appredisHandle := appProvider.Redis
 	storeRedis := &oob.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -2687,8 +2924,9 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -2826,12 +3064,14 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -2849,6 +3089,57 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	appredisHandle := appProvider.Redis
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -2858,8 +3149,9 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -2892,6 +3184,15 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -2907,7 +3208,6 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	appredisHandle := appProvider.Redis
 	storeRedis := &oob.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -2932,8 +3232,9 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -3118,12 +3419,14 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -3141,6 +3444,54 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             resourceManager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          resourceManager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -3150,8 +3501,9 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -3183,6 +3535,15 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -3223,8 +3584,9 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -3486,12 +3848,14 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -3509,6 +3873,55 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpConfig := appConfig.HTTP
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -3518,8 +3931,9 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -3551,6 +3965,15 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -3591,8 +4014,9 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -3735,32 +4159,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpConfig := appConfig.HTTP
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -3977,6 +4375,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -4128,12 +4527,14 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -4151,6 +4552,56 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	appredisHandle := appProvider.Redis
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpConfig := appConfig.HTTP
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -4160,8 +4611,9 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -4194,6 +4646,15 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -4209,7 +4670,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	appredisHandle := appProvider.Redis
 	storeRedis := &oob.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -4234,8 +4694,9 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -4378,32 +4839,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpConfig := appConfig.HTTP
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -4634,6 +5069,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -4790,12 +5226,14 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -4813,6 +5251,56 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	appredisHandle := appProvider.Redis
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpConfig := appConfig.HTTP
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -4822,8 +5310,9 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -4856,6 +5345,15 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -4871,7 +5369,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	appredisHandle := appProvider.Redis
 	storeRedis := &oob.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -4896,8 +5393,9 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -5040,32 +5538,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpConfig := appConfig.HTTP
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -5296,6 +5768,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -5554,12 +6027,14 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -5577,6 +6052,54 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -5586,8 +6109,9 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -5619,6 +6143,15 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -5659,8 +6192,9 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -5803,31 +6337,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -6057,6 +6566,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -6254,12 +6764,14 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -6277,6 +6789,54 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -6286,8 +6846,9 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -6319,6 +6880,15 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -6359,8 +6929,9 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -6503,31 +7074,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -6757,6 +7303,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -6953,12 +7500,14 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -6976,6 +7525,54 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -6985,8 +7582,9 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -7018,6 +7616,15 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -7058,8 +7665,9 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -7202,31 +7810,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -7456,6 +8039,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -7635,12 +8219,14 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -7658,6 +8244,54 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -7667,8 +8301,9 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -7700,6 +8335,15 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -7740,8 +8384,9 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -7884,31 +8529,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -8138,6 +8758,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -8318,12 +8939,14 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -8341,6 +8964,54 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -8350,8 +9021,9 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -8383,6 +9055,15 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -8423,8 +9104,9 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -8567,31 +9249,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -8821,6 +9478,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -8993,12 +9651,14 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -9016,6 +9676,54 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -9025,8 +9733,9 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -9058,6 +9767,15 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -9098,8 +9816,9 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -9242,31 +9961,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -9496,6 +10190,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -9671,12 +10366,14 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -9694,6 +10391,54 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -9703,8 +10448,9 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -9736,6 +10482,15 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -9776,8 +10531,9 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -9920,31 +10676,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -10174,6 +10905,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -10352,12 +11084,14 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -10375,6 +11109,54 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -10384,8 +11166,9 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -10417,6 +11200,15 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -10457,8 +11249,9 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -10601,31 +11394,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -10855,6 +11623,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -11030,12 +11799,14 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -11053,6 +11824,54 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -11062,8 +11881,9 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -11095,6 +11915,15 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -11135,8 +11964,9 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -11279,31 +12109,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -11533,6 +12338,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -11615,12 +12421,734 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
+		AuthenticationConfig: authenticationConfig,
+	}
 	enterPasswordHandler := &webapp2.EnterPasswordHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
+		ControllerFactory:         controllerFactory,
+		BaseViewModel:             baseViewModeler,
+		AlternativeStepsViewModel: alternativeStepsViewModeler,
+		Renderer:                  responseRenderer,
 	}
 	return enterPasswordHandler
+}
+
+func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	handle := appProvider.AppDatabase
+	appredisHandle := appProvider.Redis
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
+	sessionStoreRedis := &webapp.SessionStoreRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	authenticationConfig := appConfig.Authentication
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	errorCookie := &webapp.ErrorCookie{
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
+	}
+	logger := interaction.NewLogger(factory)
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
+	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
+	userAgentString := deps.ProvideUserAgentString(request)
+	eventLogger := event.NewLogger(factory)
+	localizationConfig := appConfig.Localization
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rawQueries := &user.RawQueries{
+		Store: store,
+	}
+	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
+	serviceStore := &service.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	loginIDConfig := identityConfig.LoginID
+	manager := appProvider.Resources
+	typeCheckerFactory := &loginid.TypeCheckerFactory{
+		Config:    loginIDConfig,
+		Resources: manager,
+	}
+	checker := &loginid.Checker{
+		Config:             loginIDConfig,
+		TypeCheckerFactory: typeCheckerFactory,
+	}
+	normalizerFactory := &loginid.NormalizerFactory{
+		Config: loginIDConfig,
+	}
+	provider := &loginid.Provider{
+		Store:             loginidStore,
+		Config:            loginIDConfig,
+		Checker:           checker,
+		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
+	}
+	oauthStore := &oauth3.Store{
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
+	}
+	oauthProvider := &oauth3.Provider{
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
+	}
+	anonymousStore := &anonymous.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	anonymousProvider := &anonymous.Provider{
+		Store: anonymousStore,
+		Clock: clockClock,
+	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
+	serviceService := &service.Service{
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 serviceStore,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
+	}
+	store3 := &service2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	passwordLogger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorFeatureConfig := featureConfig.Authenticator
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		Logger:          passwordLogger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	storeRedis := &oob.StoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oobLogger := oob.NewLogger(factory)
+	oobProvider := &oob.Provider{
+		Config:    authenticatorOOBConfig,
+		Store:     oobStore,
+		CodeStore: storeRedis,
+		Clock:     clockClock,
+		Logger:    oobLogger,
+	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	service3 := &service2.Service{
+		Store:       store3,
+		Password:    passwordProvider,
+		Passkey:     provider2,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
+	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
+	verificationStoreRedis := &verification.StoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storePQ := &verification.StorePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	verificationService := &verification.Service{
+		RemoteIP:          remoteIP,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
+	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         store,
+		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
+	}
+	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
+		Config:      userProfileConfig,
+		UserQueries: rawQueries,
+		UserStore:   store,
+	}
+	queries := &user.Queries{
+		RawQueries:         rawQueries,
+		Store:              store,
+		Identities:         serviceService,
+		Authenticators:     service3,
+		Verification:       verificationService,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+	}
+	resolverImpl := &event.ResolverImpl{
+		Users: queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilderApp,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	pool := rootProvider.DatabasePool
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
+	tutorialStoreImpl := &tutorial.StoreImpl{
+		SQLBuilder:  globaldbSQLBuilder,
+		SQLExecutor: globaldbSQLExecutor,
+	}
+	tutorialService := &tutorial.Service{
+		Store: tutorialStoreImpl,
+	}
+	tutorialSink := &tutorial.Sink{
+		AppID:        appID,
+		Service:      tutorialService,
+		GlobalHandle: globaldbHandle,
+	}
+	elasticsearchLogger := elasticsearch.NewLogger(factory)
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	queue := appProvider.TaskQueue
+	elasticsearchService := elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     queries,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
+	elasticsearchSink := &elasticsearch.Sink{
+		Logger:   elasticsearchLogger,
+		Service:  elasticsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+		RateLimiter:   limiter,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Translation:          translationService,
+		RateLimiter:          limiter,
+		WelcomeMessageConfig: welcomeMessageConfig,
+		TaskQueue:            queue,
+		Events:               eventService,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  store,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+	}
+	commands := &user.Commands{
+		RawCommands:        rawCommands,
+		RawQueries:         rawQueries,
+		Events:             eventService,
+		Verification:       verificationService,
+		UserProfileConfig:  userProfileConfig,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         store,
+		Events:            eventService,
+	}
+	authorizationStore := &pq.AuthorizationStore{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
+	idpsessionStoreRedis := &idpsession.StoreRedis{
+		Redis:  appredisHandle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: storeRedisLogger,
+	}
+	sessionConfig := appConfig.Session
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
+	idpsessionManager := &idpsession.Manager{
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
+	}
+	redisLogger := redis.NewLogger(factory)
+	redisStore := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	oAuthConfig := appConfig.OAuth
+	sessionManager := &oauth2.SessionManager{
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
+	}
+	accountDeletionConfig := appConfig.AccountDeletion
+	coordinator := &facade.Coordinator{
+		Events:                eventService,
+		Identities:            serviceService,
+		Authenticators:        service3,
+		Verification:          verificationService,
+		MFA:                   mfaService,
+		UserCommands:          commands,
+		UserQueries:           queries,
+		StdAttrsService:       stdattrsService,
+		PasswordHistory:       historyStore,
+		OAuth:                 authorizationStore,
+		IDPSessions:           idpsessionManager,
+		OAuthSessions:         sessionManager,
+		IdentityConfig:        identityConfig,
+		AccountDeletionConfig: accountDeletionConfig,
+		Clock:                 clockClock,
+	}
+	identityFacade := facade.IdentityFacade{
+		Coordinator: coordinator,
+	}
+	authenticatorFacade := facade.AuthenticatorFacade{
+		Coordinator: coordinator,
+	}
+	mainOriginProvider := &MainOriginProvider{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
+	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	messageSender := &otp.MessageSender{
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
+	}
+	codeSender := &oob.CodeSender{
+		OTPMessageSender: messageSender,
+	}
+	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	urlProvider := &webapp.URLProvider{
+		Endpoints: endpointsProvider,
+	}
+	wechatURLProvider := &webapp.WechatURLProvider{
+		Endpoints: endpointsProvider,
+	}
+	normalizer := &stdattrs2.Normalizer{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	oAuthProviderFactory := &sso.OAuthProviderFactory{
+		Endpoints:                    endpointsProvider,
+		IdentityConfig:               identityConfig,
+		Credentials:                  oAuthClientCredentials,
+		RedirectURL:                  urlProvider,
+		Clock:                        clockClock,
+		WechatURLProvider:            wechatURLProvider,
+		StandardAttributesNormalizer: normalizer,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	forgotpasswordStore := &forgotpassword.Store{
+		Context: contextContext,
+		AppID:   appID,
+		Redis:   appredisHandle,
+	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
+	forgotpasswordProvider := &forgotpassword.Provider{
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
+	}
+	verificationCodeSender := &verification.CodeSender{
+		OTPMessageSender: messageSender,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		Cookies:        cookieManager,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
+	challengeProvider := &challenge.Provider{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
+	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
+		Events:          eventService,
+	}
+	interactionContext := &interaction.Context{
+		Request:                   request,
+		RemoteIP:                  remoteIP,
+		Database:                  sqlExecutor,
+		Clock:                     clockClock,
+		Config:                    appConfig,
+		FeatureConfig:             featureConfig,
+		Identities:                identityFacade,
+		Authenticators:            authenticatorFacade,
+		AnonymousIdentities:       anonymousProvider,
+		BiometricIdentities:       biometricProvider,
+		OOBAuthenticators:         oobProvider,
+		OOBCodeSender:             codeSender,
+		OAuthProviderFactory:      oAuthProviderFactory,
+		MFA:                       mfaService,
+		ForgotPassword:            forgotpasswordProvider,
+		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
+		LoginIDNormalizerFactory:  normalizerFactory,
+		Verification:              verificationService,
+		VerificationCodeSender:    verificationCodeSender,
+		RateLimiter:               limiter,
+		Nonces:                    nonceService,
+		Challenges:                challengeProvider,
+		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
+		Events:                    eventService,
+		CookieManager:             cookieManager,
+		AuthenticationInfoService: authenticationinfoStoreRedis,
+		Sessions:                  idpsessionProvider,
+		SessionManager:            idpsessionManager,
+		SessionCookie:             cookieDef2,
+		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
+	}
+	interactionStoreRedis := &interaction.StoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	interactionService := &interaction.Service{
+		Logger:  logger,
+		Context: interactionContext,
+		Store:   interactionStoreRedis,
+	}
+	webappService2 := &webapp.Service2{
+		Logger:               serviceLogger,
+		Request:              request,
+		Sessions:             sessionStoreRedis,
+		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
+		MFADeviceTokenCookie: cookieDef,
+		ErrorCookie:          errorCookie,
+		Cookies:              cookieManager,
+		Graph:                interactionService,
+	}
+	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
+	flashMessage := &httputil.FlashMessage{
+		Cookies: cookieManager,
+	}
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		RedisHandle:   appredisHandle,
+		AppID:         appID,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		Publisher:     publisher,
+		Clock:         clockClock,
+		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
+	}
+	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
+		AuthenticationConfig: authenticationConfig,
+	}
+	usePasskeyHandler := &webapp2.UsePasskeyHandler{
+		ControllerFactory:         controllerFactory,
+		BaseViewModel:             baseViewModeler,
+		AlternativeStepsViewModel: alternativeStepsViewModeler,
+		Renderer:                  responseRenderer,
+	}
+	return usePasskeyHandler
 }
 
 func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
@@ -11707,12 +13235,14 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -11730,6 +13260,54 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -11739,8 +13317,9 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -11772,6 +13351,15 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -11812,8 +13400,9 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -11956,31 +13545,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -12210,6 +13774,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -12292,13 +13857,1453 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
+		AuthenticationConfig: authenticationConfig,
+	}
 	createPasswordHandler := &webapp2.CreatePasswordHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
-		PasswordPolicy:    passwordChecker,
+		ControllerFactory:         controllerFactory,
+		BaseViewModel:             baseViewModeler,
+		AlternativeStepsViewModel: alternativeStepsViewModeler,
+		Renderer:                  responseRenderer,
+		PasswordPolicy:            passwordChecker,
 	}
 	return createPasswordHandler
+}
+
+func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	handle := appProvider.AppDatabase
+	appredisHandle := appProvider.Redis
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
+	sessionStoreRedis := &webapp.SessionStoreRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	authenticationConfig := appConfig.Authentication
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	errorCookie := &webapp.ErrorCookie{
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
+	}
+	logger := interaction.NewLogger(factory)
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
+	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
+	userAgentString := deps.ProvideUserAgentString(request)
+	eventLogger := event.NewLogger(factory)
+	localizationConfig := appConfig.Localization
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rawQueries := &user.RawQueries{
+		Store: store,
+	}
+	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
+	serviceStore := &service.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	loginIDConfig := identityConfig.LoginID
+	manager := appProvider.Resources
+	typeCheckerFactory := &loginid.TypeCheckerFactory{
+		Config:    loginIDConfig,
+		Resources: manager,
+	}
+	checker := &loginid.Checker{
+		Config:             loginIDConfig,
+		TypeCheckerFactory: typeCheckerFactory,
+	}
+	normalizerFactory := &loginid.NormalizerFactory{
+		Config: loginIDConfig,
+	}
+	provider := &loginid.Provider{
+		Store:             loginidStore,
+		Config:            loginIDConfig,
+		Checker:           checker,
+		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
+	}
+	oauthStore := &oauth3.Store{
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
+	}
+	oauthProvider := &oauth3.Provider{
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
+	}
+	anonymousStore := &anonymous.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	anonymousProvider := &anonymous.Provider{
+		Store: anonymousStore,
+		Clock: clockClock,
+	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
+	serviceService := &service.Service{
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 serviceStore,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
+	}
+	store3 := &service2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	passwordLogger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorFeatureConfig := featureConfig.Authenticator
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		Logger:          passwordLogger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	storeRedis := &oob.StoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oobLogger := oob.NewLogger(factory)
+	oobProvider := &oob.Provider{
+		Config:    authenticatorOOBConfig,
+		Store:     oobStore,
+		CodeStore: storeRedis,
+		Clock:     clockClock,
+		Logger:    oobLogger,
+	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	service3 := &service2.Service{
+		Store:       store3,
+		Password:    passwordProvider,
+		Passkey:     provider2,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
+	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
+	verificationStoreRedis := &verification.StoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storePQ := &verification.StorePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	verificationService := &verification.Service{
+		RemoteIP:          remoteIP,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
+	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         store,
+		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
+	}
+	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
+		Config:      userProfileConfig,
+		UserQueries: rawQueries,
+		UserStore:   store,
+	}
+	queries := &user.Queries{
+		RawQueries:         rawQueries,
+		Store:              store,
+		Identities:         serviceService,
+		Authenticators:     service3,
+		Verification:       verificationService,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+	}
+	resolverImpl := &event.ResolverImpl{
+		Users: queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilderApp,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	pool := rootProvider.DatabasePool
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
+	tutorialStoreImpl := &tutorial.StoreImpl{
+		SQLBuilder:  globaldbSQLBuilder,
+		SQLExecutor: globaldbSQLExecutor,
+	}
+	tutorialService := &tutorial.Service{
+		Store: tutorialStoreImpl,
+	}
+	tutorialSink := &tutorial.Sink{
+		AppID:        appID,
+		Service:      tutorialService,
+		GlobalHandle: globaldbHandle,
+	}
+	elasticsearchLogger := elasticsearch.NewLogger(factory)
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	queue := appProvider.TaskQueue
+	elasticsearchService := elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     queries,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
+	elasticsearchSink := &elasticsearch.Sink{
+		Logger:   elasticsearchLogger,
+		Service:  elasticsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+		RateLimiter:   limiter,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Translation:          translationService,
+		RateLimiter:          limiter,
+		WelcomeMessageConfig: welcomeMessageConfig,
+		TaskQueue:            queue,
+		Events:               eventService,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  store,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+	}
+	commands := &user.Commands{
+		RawCommands:        rawCommands,
+		RawQueries:         rawQueries,
+		Events:             eventService,
+		Verification:       verificationService,
+		UserProfileConfig:  userProfileConfig,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         store,
+		Events:            eventService,
+	}
+	authorizationStore := &pq.AuthorizationStore{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
+	idpsessionStoreRedis := &idpsession.StoreRedis{
+		Redis:  appredisHandle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: storeRedisLogger,
+	}
+	sessionConfig := appConfig.Session
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
+	idpsessionManager := &idpsession.Manager{
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
+	}
+	redisLogger := redis.NewLogger(factory)
+	redisStore := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	oAuthConfig := appConfig.OAuth
+	sessionManager := &oauth2.SessionManager{
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
+	}
+	accountDeletionConfig := appConfig.AccountDeletion
+	coordinator := &facade.Coordinator{
+		Events:                eventService,
+		Identities:            serviceService,
+		Authenticators:        service3,
+		Verification:          verificationService,
+		MFA:                   mfaService,
+		UserCommands:          commands,
+		UserQueries:           queries,
+		StdAttrsService:       stdattrsService,
+		PasswordHistory:       historyStore,
+		OAuth:                 authorizationStore,
+		IDPSessions:           idpsessionManager,
+		OAuthSessions:         sessionManager,
+		IdentityConfig:        identityConfig,
+		AccountDeletionConfig: accountDeletionConfig,
+		Clock:                 clockClock,
+	}
+	identityFacade := facade.IdentityFacade{
+		Coordinator: coordinator,
+	}
+	authenticatorFacade := facade.AuthenticatorFacade{
+		Coordinator: coordinator,
+	}
+	mainOriginProvider := &MainOriginProvider{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
+	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	messageSender := &otp.MessageSender{
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
+	}
+	codeSender := &oob.CodeSender{
+		OTPMessageSender: messageSender,
+	}
+	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	urlProvider := &webapp.URLProvider{
+		Endpoints: endpointsProvider,
+	}
+	wechatURLProvider := &webapp.WechatURLProvider{
+		Endpoints: endpointsProvider,
+	}
+	normalizer := &stdattrs2.Normalizer{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	oAuthProviderFactory := &sso.OAuthProviderFactory{
+		Endpoints:                    endpointsProvider,
+		IdentityConfig:               identityConfig,
+		Credentials:                  oAuthClientCredentials,
+		RedirectURL:                  urlProvider,
+		Clock:                        clockClock,
+		WechatURLProvider:            wechatURLProvider,
+		StandardAttributesNormalizer: normalizer,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	forgotpasswordStore := &forgotpassword.Store{
+		Context: contextContext,
+		AppID:   appID,
+		Redis:   appredisHandle,
+	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
+	forgotpasswordProvider := &forgotpassword.Provider{
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
+	}
+	verificationCodeSender := &verification.CodeSender{
+		OTPMessageSender: messageSender,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		Cookies:        cookieManager,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
+	challengeProvider := &challenge.Provider{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
+	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
+		Events:          eventService,
+	}
+	interactionContext := &interaction.Context{
+		Request:                   request,
+		RemoteIP:                  remoteIP,
+		Database:                  sqlExecutor,
+		Clock:                     clockClock,
+		Config:                    appConfig,
+		FeatureConfig:             featureConfig,
+		Identities:                identityFacade,
+		Authenticators:            authenticatorFacade,
+		AnonymousIdentities:       anonymousProvider,
+		BiometricIdentities:       biometricProvider,
+		OOBAuthenticators:         oobProvider,
+		OOBCodeSender:             codeSender,
+		OAuthProviderFactory:      oAuthProviderFactory,
+		MFA:                       mfaService,
+		ForgotPassword:            forgotpasswordProvider,
+		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
+		LoginIDNormalizerFactory:  normalizerFactory,
+		Verification:              verificationService,
+		VerificationCodeSender:    verificationCodeSender,
+		RateLimiter:               limiter,
+		Nonces:                    nonceService,
+		Challenges:                challengeProvider,
+		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
+		Events:                    eventService,
+		CookieManager:             cookieManager,
+		AuthenticationInfoService: authenticationinfoStoreRedis,
+		Sessions:                  idpsessionProvider,
+		SessionManager:            idpsessionManager,
+		SessionCookie:             cookieDef2,
+		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
+	}
+	interactionStoreRedis := &interaction.StoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	interactionService := &interaction.Service{
+		Logger:  logger,
+		Context: interactionContext,
+		Store:   interactionStoreRedis,
+	}
+	webappService2 := &webapp.Service2{
+		Logger:               serviceLogger,
+		Request:              request,
+		Sessions:             sessionStoreRedis,
+		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
+		MFADeviceTokenCookie: cookieDef,
+		ErrorCookie:          errorCookie,
+		Cookies:              cookieManager,
+		Graph:                interactionService,
+	}
+	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
+	flashMessage := &httputil.FlashMessage{
+		Cookies: cookieManager,
+	}
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		RedisHandle:   appredisHandle,
+		AppID:         appID,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		Publisher:     publisher,
+		Clock:         clockClock,
+		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
+	}
+	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
+		AuthenticationConfig: authenticationConfig,
+	}
+	createPasskeyHandler := &webapp2.CreatePasskeyHandler{
+		ControllerFactory:         controllerFactory,
+		BaseViewModel:             baseViewModeler,
+		AlternativeStepsViewModel: alternativeStepsViewModeler,
+		Renderer:                  responseRenderer,
+	}
+	return createPasskeyHandler
+}
+
+func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	handle := appProvider.AppDatabase
+	appredisHandle := appProvider.Redis
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
+	sessionStoreRedis := &webapp.SessionStoreRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	authenticationConfig := appConfig.Authentication
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	errorCookie := &webapp.ErrorCookie{
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
+	}
+	logger := interaction.NewLogger(factory)
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
+	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
+	userAgentString := deps.ProvideUserAgentString(request)
+	eventLogger := event.NewLogger(factory)
+	localizationConfig := appConfig.Localization
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rawQueries := &user.RawQueries{
+		Store: store,
+	}
+	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
+	serviceStore := &service.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	loginIDConfig := identityConfig.LoginID
+	manager := appProvider.Resources
+	typeCheckerFactory := &loginid.TypeCheckerFactory{
+		Config:    loginIDConfig,
+		Resources: manager,
+	}
+	checker := &loginid.Checker{
+		Config:             loginIDConfig,
+		TypeCheckerFactory: typeCheckerFactory,
+	}
+	normalizerFactory := &loginid.NormalizerFactory{
+		Config: loginIDConfig,
+	}
+	provider := &loginid.Provider{
+		Store:             loginidStore,
+		Config:            loginIDConfig,
+		Checker:           checker,
+		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
+	}
+	oauthStore := &oauth3.Store{
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
+	}
+	oauthProvider := &oauth3.Provider{
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
+	}
+	anonymousStore := &anonymous.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	anonymousProvider := &anonymous.Provider{
+		Store: anonymousStore,
+		Clock: clockClock,
+	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
+	serviceService := &service.Service{
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 serviceStore,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
+	}
+	store3 := &service2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	passwordLogger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorFeatureConfig := featureConfig.Authenticator
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		Logger:          passwordLogger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	storeRedis := &oob.StoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oobLogger := oob.NewLogger(factory)
+	oobProvider := &oob.Provider{
+		Config:    authenticatorOOBConfig,
+		Store:     oobStore,
+		CodeStore: storeRedis,
+		Clock:     clockClock,
+		Logger:    oobLogger,
+	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	service3 := &service2.Service{
+		Store:       store3,
+		Password:    passwordProvider,
+		Passkey:     provider2,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
+	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
+	verificationStoreRedis := &verification.StoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storePQ := &verification.StorePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	verificationService := &verification.Service{
+		RemoteIP:          remoteIP,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
+	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         store,
+		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
+	}
+	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
+		Config:      userProfileConfig,
+		UserQueries: rawQueries,
+		UserStore:   store,
+	}
+	queries := &user.Queries{
+		RawQueries:         rawQueries,
+		Store:              store,
+		Identities:         serviceService,
+		Authenticators:     service3,
+		Verification:       verificationService,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+	}
+	resolverImpl := &event.ResolverImpl{
+		Users: queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilderApp,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	pool := rootProvider.DatabasePool
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
+	tutorialStoreImpl := &tutorial.StoreImpl{
+		SQLBuilder:  globaldbSQLBuilder,
+		SQLExecutor: globaldbSQLExecutor,
+	}
+	tutorialService := &tutorial.Service{
+		Store: tutorialStoreImpl,
+	}
+	tutorialSink := &tutorial.Sink{
+		AppID:        appID,
+		Service:      tutorialService,
+		GlobalHandle: globaldbHandle,
+	}
+	elasticsearchLogger := elasticsearch.NewLogger(factory)
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	queue := appProvider.TaskQueue
+	elasticsearchService := elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     queries,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
+	elasticsearchSink := &elasticsearch.Sink{
+		Logger:   elasticsearchLogger,
+		Service:  elasticsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+		RateLimiter:   limiter,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Translation:          translationService,
+		RateLimiter:          limiter,
+		WelcomeMessageConfig: welcomeMessageConfig,
+		TaskQueue:            queue,
+		Events:               eventService,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  store,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+	}
+	commands := &user.Commands{
+		RawCommands:        rawCommands,
+		RawQueries:         rawQueries,
+		Events:             eventService,
+		Verification:       verificationService,
+		UserProfileConfig:  userProfileConfig,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         store,
+		Events:            eventService,
+	}
+	authorizationStore := &pq.AuthorizationStore{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
+	idpsessionStoreRedis := &idpsession.StoreRedis{
+		Redis:  appredisHandle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: storeRedisLogger,
+	}
+	sessionConfig := appConfig.Session
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
+	idpsessionManager := &idpsession.Manager{
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
+	}
+	redisLogger := redis.NewLogger(factory)
+	redisStore := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	oAuthConfig := appConfig.OAuth
+	sessionManager := &oauth2.SessionManager{
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
+	}
+	accountDeletionConfig := appConfig.AccountDeletion
+	coordinator := &facade.Coordinator{
+		Events:                eventService,
+		Identities:            serviceService,
+		Authenticators:        service3,
+		Verification:          verificationService,
+		MFA:                   mfaService,
+		UserCommands:          commands,
+		UserQueries:           queries,
+		StdAttrsService:       stdattrsService,
+		PasswordHistory:       historyStore,
+		OAuth:                 authorizationStore,
+		IDPSessions:           idpsessionManager,
+		OAuthSessions:         sessionManager,
+		IdentityConfig:        identityConfig,
+		AccountDeletionConfig: accountDeletionConfig,
+		Clock:                 clockClock,
+	}
+	identityFacade := facade.IdentityFacade{
+		Coordinator: coordinator,
+	}
+	authenticatorFacade := facade.AuthenticatorFacade{
+		Coordinator: coordinator,
+	}
+	mainOriginProvider := &MainOriginProvider{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
+	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	messageSender := &otp.MessageSender{
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
+	}
+	codeSender := &oob.CodeSender{
+		OTPMessageSender: messageSender,
+	}
+	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	urlProvider := &webapp.URLProvider{
+		Endpoints: endpointsProvider,
+	}
+	wechatURLProvider := &webapp.WechatURLProvider{
+		Endpoints: endpointsProvider,
+	}
+	normalizer := &stdattrs2.Normalizer{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	oAuthProviderFactory := &sso.OAuthProviderFactory{
+		Endpoints:                    endpointsProvider,
+		IdentityConfig:               identityConfig,
+		Credentials:                  oAuthClientCredentials,
+		RedirectURL:                  urlProvider,
+		Clock:                        clockClock,
+		WechatURLProvider:            wechatURLProvider,
+		StandardAttributesNormalizer: normalizer,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	forgotpasswordStore := &forgotpassword.Store{
+		Context: contextContext,
+		AppID:   appID,
+		Redis:   appredisHandle,
+	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
+	forgotpasswordProvider := &forgotpassword.Provider{
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
+	}
+	verificationCodeSender := &verification.CodeSender{
+		OTPMessageSender: messageSender,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		Cookies:        cookieManager,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
+	challengeProvider := &challenge.Provider{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
+	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
+		Events:          eventService,
+	}
+	interactionContext := &interaction.Context{
+		Request:                   request,
+		RemoteIP:                  remoteIP,
+		Database:                  sqlExecutor,
+		Clock:                     clockClock,
+		Config:                    appConfig,
+		FeatureConfig:             featureConfig,
+		Identities:                identityFacade,
+		Authenticators:            authenticatorFacade,
+		AnonymousIdentities:       anonymousProvider,
+		BiometricIdentities:       biometricProvider,
+		OOBAuthenticators:         oobProvider,
+		OOBCodeSender:             codeSender,
+		OAuthProviderFactory:      oAuthProviderFactory,
+		MFA:                       mfaService,
+		ForgotPassword:            forgotpasswordProvider,
+		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
+		LoginIDNormalizerFactory:  normalizerFactory,
+		Verification:              verificationService,
+		VerificationCodeSender:    verificationCodeSender,
+		RateLimiter:               limiter,
+		Nonces:                    nonceService,
+		Challenges:                challengeProvider,
+		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
+		Events:                    eventService,
+		CookieManager:             cookieManager,
+		AuthenticationInfoService: authenticationinfoStoreRedis,
+		Sessions:                  idpsessionProvider,
+		SessionManager:            idpsessionManager,
+		SessionCookie:             cookieDef2,
+		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
+	}
+	interactionStoreRedis := &interaction.StoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	interactionService := &interaction.Service{
+		Logger:  logger,
+		Context: interactionContext,
+		Store:   interactionStoreRedis,
+	}
+	webappService2 := &webapp.Service2{
+		Logger:               serviceLogger,
+		Request:              request,
+		Sessions:             sessionStoreRedis,
+		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
+		MFADeviceTokenCookie: cookieDef,
+		ErrorCookie:          errorCookie,
+		Cookies:              cookieManager,
+		Graph:                interactionService,
+	}
+	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
+	flashMessage := &httputil.FlashMessage{
+		Cookies: cookieManager,
+	}
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		RedisHandle:   appredisHandle,
+		AppID:         appID,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		Publisher:     publisher,
+		Clock:         clockClock,
+		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
+	}
+	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
+		AuthenticationConfig: authenticationConfig,
+	}
+	promptCreatePasskeyHandler := &webapp2.PromptCreatePasskeyHandler{
+		ControllerFactory:         controllerFactory,
+		BaseViewModel:             baseViewModeler,
+		AlternativeStepsViewModel: alternativeStepsViewModeler,
+		Renderer:                  responseRenderer,
+	}
+	return promptCreatePasskeyHandler
 }
 
 func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
@@ -12385,12 +15390,14 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -12408,6 +15415,54 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -12417,8 +15472,9 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -12450,6 +15506,15 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -12490,8 +15555,9 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -12634,31 +15700,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -12888,6 +15929,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -12970,12 +16012,16 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
+		AuthenticationConfig: authenticationConfig,
+	}
 	setupTOTPHandler := &webapp2.SetupTOTPHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
-		Clock:             clockClock,
-		Endpoints:         endpointsProvider,
+		ControllerFactory:         controllerFactory,
+		BaseViewModel:             baseViewModeler,
+		AlternativeStepsViewModel: alternativeStepsViewModeler,
+		Renderer:                  responseRenderer,
+		Clock:                     clockClock,
+		Endpoints:                 endpointsProvider,
 	}
 	return setupTOTPHandler
 }
@@ -13064,12 +16110,14 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -13087,6 +16135,54 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -13096,8 +16192,9 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -13129,6 +16226,15 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -13169,8 +16275,9 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -13313,31 +16420,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -13567,6 +16649,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -13649,10 +16732,14 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
+		AuthenticationConfig: authenticationConfig,
+	}
 	enterTOTPHandler := &webapp2.EnterTOTPHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
+		ControllerFactory:         controllerFactory,
+		BaseViewModel:             baseViewModeler,
+		AlternativeStepsViewModel: alternativeStepsViewModeler,
+		Renderer:                  responseRenderer,
 	}
 	return enterTOTPHandler
 }
@@ -13741,12 +16828,14 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -13764,6 +16853,54 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -13773,8 +16910,9 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -13806,6 +16944,15 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -13846,8 +16993,9 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -13990,31 +17138,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -14244,6 +17367,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -14326,10 +17450,14 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
+		AuthenticationConfig: authenticationConfig,
+	}
 	setupOOBOTPHandler := &webapp2.SetupOOBOTPHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
+		ControllerFactory:         controllerFactory,
+		BaseViewModel:             baseViewModeler,
+		AlternativeStepsViewModel: alternativeStepsViewModeler,
+		Renderer:                  responseRenderer,
 	}
 	return setupOOBOTPHandler
 }
@@ -14418,12 +17546,14 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -14441,6 +17571,54 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -14450,8 +17628,9 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -14483,6 +17662,15 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -14523,8 +17711,9 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -14667,31 +17856,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -14921,6 +18085,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -15003,12 +18168,16 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
+		AuthenticationConfig: authenticationConfig,
+	}
 	enterOOBOTPHandler := &webapp2.EnterOOBOTPHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
-		RateLimiter:       limiter,
-		FlashMessage:      flashMessage,
+		ControllerFactory:         controllerFactory,
+		BaseViewModel:             baseViewModeler,
+		AlternativeStepsViewModel: alternativeStepsViewModeler,
+		Renderer:                  responseRenderer,
+		RateLimiter:               limiter,
+		FlashMessage:              flashMessage,
 	}
 	return enterOOBOTPHandler
 }
@@ -15097,12 +18266,14 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -15120,6 +18291,54 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -15129,8 +18348,9 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -15162,6 +18382,15 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -15202,8 +18431,9 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -15346,31 +18576,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -15600,6 +18805,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -15682,10 +18888,14 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
+		AuthenticationConfig: authenticationConfig,
+	}
 	setupWhatsappOTPHandler := &webapp2.SetupWhatsappOTPHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
+		ControllerFactory:         controllerFactory,
+		BaseViewModel:             baseViewModeler,
+		AlternativeStepsViewModel: alternativeStepsViewModeler,
+		Renderer:                  responseRenderer,
 	}
 	return setupWhatsappOTPHandler
 }
@@ -15774,12 +18984,14 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -15797,6 +19009,54 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -15806,8 +19066,9 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -15839,6 +19100,15 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -15879,8 +19149,9 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -16023,31 +19294,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -16277,6 +19523,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -16359,11 +19606,15 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
+		AuthenticationConfig: authenticationConfig,
+	}
 	whatsappOTPHandler := &webapp2.WhatsappOTPHandler{
-		ControllerFactory:    controllerFactory,
-		BaseViewModel:        baseViewModeler,
-		Renderer:             responseRenderer,
-		WhatsappCodeProvider: whatsappProvider,
+		ControllerFactory:         controllerFactory,
+		BaseViewModel:             baseViewModeler,
+		AlternativeStepsViewModel: alternativeStepsViewModeler,
+		Renderer:                  responseRenderer,
+		WhatsappCodeProvider:      whatsappProvider,
 	}
 	return whatsappOTPHandler
 }
@@ -16443,12 +19694,14 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -16466,6 +19719,55 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpConfig := appConfig.HTTP
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -16475,8 +19777,9 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -16508,6 +19811,15 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -16548,8 +19860,9 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -16782,12 +20095,14 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -16805,6 +20120,54 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -16814,8 +20177,9 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -16847,6 +20211,15 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -16887,8 +20260,9 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -17031,31 +20405,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -17285,6 +20634,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -17367,10 +20717,14 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
+		AuthenticationConfig: authenticationConfig,
+	}
 	enterRecoveryCodeHandler := &webapp2.EnterRecoveryCodeHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
+		ControllerFactory:         controllerFactory,
+		BaseViewModel:             baseViewModeler,
+		AlternativeStepsViewModel: alternativeStepsViewModeler,
+		Renderer:                  responseRenderer,
 	}
 	return enterRecoveryCodeHandler
 }
@@ -17459,12 +20813,14 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -17482,6 +20838,54 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -17491,8 +20895,9 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -17524,6 +20929,15 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -17564,8 +20978,9 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -17708,31 +21123,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -17962,6 +21352,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -18136,12 +21527,14 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -18159,6 +21552,54 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -18168,8 +21609,9 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -18201,6 +21643,15 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -18241,8 +21692,9 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -18385,31 +21837,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -18639,6 +22066,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -18815,12 +22243,14 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -18838,6 +22268,54 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -18847,8 +22325,9 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -18880,6 +22359,15 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -18920,8 +22408,9 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -19064,31 +22553,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -19318,6 +22782,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -19492,12 +22957,14 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -19515,6 +22982,54 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -19524,8 +23039,9 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -19557,6 +23073,15 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -19597,8 +23122,9 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -19741,31 +23267,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -19995,6 +23496,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -20174,12 +23676,14 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -20197,6 +23701,54 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -20206,8 +23758,9 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -20239,6 +23792,15 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -20279,8 +23841,9 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -20423,31 +23986,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -20677,6 +24215,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -20851,12 +24390,14 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -20874,6 +24415,54 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -20883,8 +24472,9 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -20916,6 +24506,15 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -20956,8 +24555,9 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -21100,31 +24700,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -21354,6 +24929,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -21529,12 +25105,14 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -21552,6 +25130,54 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -21561,8 +25187,9 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -21594,6 +25221,15 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -21634,8 +25270,9 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -21778,31 +25415,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -22032,6 +25644,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -22206,12 +25819,14 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -22229,6 +25844,54 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -22238,8 +25901,9 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -22271,6 +25935,15 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -22311,8 +25984,9 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -22455,31 +26129,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -22709,6 +26358,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -22794,7 +26444,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	biometricConfig := identityConfig.Biometric
 	settingsViewModeler := &viewmodels.SettingsViewModeler{
 		Authenticators: service3,
-		Identities:     serviceService,
 		MFA:            mfaService,
 		Authentication: authenticationConfig,
 		Biometric:      biometricConfig,
@@ -22910,12 +26559,14 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -22933,6 +26584,54 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -22942,8 +26641,9 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -22975,6 +26675,15 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -23015,8 +26724,9 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -23159,31 +26869,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -23413,6 +27098,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -23598,12 +27284,14 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -23621,6 +27309,54 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -23630,8 +27366,9 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -23663,6 +27400,15 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -23703,8 +27449,9 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -23847,31 +27594,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -24101,6 +27823,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -24299,12 +28022,14 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -24322,6 +28047,54 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -24331,8 +28104,9 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -24364,6 +28138,15 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -24404,8 +28187,9 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -24548,31 +28332,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -24802,6 +28561,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -24979,12 +28739,14 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -25002,6 +28764,54 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -25011,8 +28821,9 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -25044,6 +28855,15 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -25084,8 +28904,9 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -25228,31 +29049,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -25482,6 +29278,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -25657,12 +29454,14 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -25680,6 +29479,54 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -25689,8 +29536,9 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -25722,6 +29570,15 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -25762,8 +29619,9 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -25906,31 +29764,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -26160,6 +29993,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -26245,7 +30079,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	biometricConfig := identityConfig.Biometric
 	settingsViewModeler := &viewmodels.SettingsViewModeler{
 		Authenticators: service3,
-		Identities:     serviceService,
 		MFA:            mfaService,
 		Authentication: authenticationConfig,
 		Biometric:      biometricConfig,
@@ -26344,12 +30177,14 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -26367,6 +30202,54 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -26376,8 +30259,9 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -26409,6 +30293,15 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -26449,8 +30342,9 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -26593,31 +30487,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -26847,6 +30716,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -26938,7 +30808,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	return settingsTOTPHandler
 }
 
-func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
@@ -27022,12 +30892,14 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -27045,6 +30917,54 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -27054,8 +30974,9 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -27087,6 +31008,15 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -27127,8 +31057,9 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -27271,31 +31202,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -27525,6 +31431,722 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
+		LoginIDNormalizerFactory:  normalizerFactory,
+		Verification:              verificationService,
+		VerificationCodeSender:    verificationCodeSender,
+		RateLimiter:               limiter,
+		Nonces:                    nonceService,
+		Challenges:                challengeProvider,
+		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
+		Events:                    eventService,
+		CookieManager:             cookieManager,
+		AuthenticationInfoService: authenticationinfoStoreRedis,
+		Sessions:                  idpsessionProvider,
+		SessionManager:            idpsessionManager,
+		SessionCookie:             cookieDef2,
+		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
+	}
+	interactionStoreRedis := &interaction.StoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	interactionService := &interaction.Service{
+		Logger:  logger,
+		Context: interactionContext,
+		Store:   interactionStoreRedis,
+	}
+	webappService2 := &webapp.Service2{
+		Logger:               serviceLogger,
+		Request:              request,
+		Sessions:             sessionStoreRedis,
+		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
+		MFADeviceTokenCookie: cookieDef,
+		ErrorCookie:          errorCookie,
+		Cookies:              cookieManager,
+		Graph:                interactionService,
+	}
+	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
+	flashMessage := &httputil.FlashMessage{
+		Cookies: cookieManager,
+	}
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		RedisHandle:   appredisHandle,
+		AppID:         appID,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		Publisher:     publisher,
+		Clock:         clockClock,
+		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
+	}
+	settingsPasskeyHandler := &webapp2.SettingsPasskeyHandler{
+		ControllerFactory: controllerFactory,
+		BaseViewModel:     baseViewModeler,
+		Renderer:          responseRenderer,
+		Identities:        serviceService,
+	}
+	return settingsPasskeyHandler
+}
+
+func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	handle := appProvider.AppDatabase
+	appredisHandle := appProvider.Redis
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
+	sessionStoreRedis := &webapp.SessionStoreRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	authenticationConfig := appConfig.Authentication
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	errorCookie := &webapp.ErrorCookie{
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
+	}
+	logger := interaction.NewLogger(factory)
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
+	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
+	userAgentString := deps.ProvideUserAgentString(request)
+	eventLogger := event.NewLogger(factory)
+	localizationConfig := appConfig.Localization
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rawQueries := &user.RawQueries{
+		Store: store,
+	}
+	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
+	serviceStore := &service.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	loginIDConfig := identityConfig.LoginID
+	manager := appProvider.Resources
+	typeCheckerFactory := &loginid.TypeCheckerFactory{
+		Config:    loginIDConfig,
+		Resources: manager,
+	}
+	checker := &loginid.Checker{
+		Config:             loginIDConfig,
+		TypeCheckerFactory: typeCheckerFactory,
+	}
+	normalizerFactory := &loginid.NormalizerFactory{
+		Config: loginIDConfig,
+	}
+	provider := &loginid.Provider{
+		Store:             loginidStore,
+		Config:            loginIDConfig,
+		Checker:           checker,
+		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
+	}
+	oauthStore := &oauth3.Store{
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
+	}
+	oauthProvider := &oauth3.Provider{
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
+	}
+	anonymousStore := &anonymous.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	anonymousProvider := &anonymous.Provider{
+		Store: anonymousStore,
+		Clock: clockClock,
+	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
+	serviceService := &service.Service{
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 serviceStore,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
+	}
+	store3 := &service2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	passwordLogger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorFeatureConfig := featureConfig.Authenticator
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		Logger:          passwordLogger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	storeRedis := &oob.StoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oobLogger := oob.NewLogger(factory)
+	oobProvider := &oob.Provider{
+		Config:    authenticatorOOBConfig,
+		Store:     oobStore,
+		CodeStore: storeRedis,
+		Clock:     clockClock,
+		Logger:    oobLogger,
+	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	service3 := &service2.Service{
+		Store:       store3,
+		Password:    passwordProvider,
+		Passkey:     provider2,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
+	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
+	verificationStoreRedis := &verification.StoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storePQ := &verification.StorePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	verificationService := &verification.Service{
+		RemoteIP:          remoteIP,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
+	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         store,
+		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
+	}
+	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
+		Config:      userProfileConfig,
+		UserQueries: rawQueries,
+		UserStore:   store,
+	}
+	queries := &user.Queries{
+		RawQueries:         rawQueries,
+		Store:              store,
+		Identities:         serviceService,
+		Authenticators:     service3,
+		Verification:       verificationService,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+	}
+	resolverImpl := &event.ResolverImpl{
+		Users: queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilderApp,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	pool := rootProvider.DatabasePool
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
+	tutorialStoreImpl := &tutorial.StoreImpl{
+		SQLBuilder:  globaldbSQLBuilder,
+		SQLExecutor: globaldbSQLExecutor,
+	}
+	tutorialService := &tutorial.Service{
+		Store: tutorialStoreImpl,
+	}
+	tutorialSink := &tutorial.Sink{
+		AppID:        appID,
+		Service:      tutorialService,
+		GlobalHandle: globaldbHandle,
+	}
+	elasticsearchLogger := elasticsearch.NewLogger(factory)
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	queue := appProvider.TaskQueue
+	elasticsearchService := elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     queries,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
+	elasticsearchSink := &elasticsearch.Sink{
+		Logger:   elasticsearchLogger,
+		Service:  elasticsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+		RateLimiter:   limiter,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Translation:          translationService,
+		RateLimiter:          limiter,
+		WelcomeMessageConfig: welcomeMessageConfig,
+		TaskQueue:            queue,
+		Events:               eventService,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  store,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+	}
+	commands := &user.Commands{
+		RawCommands:        rawCommands,
+		RawQueries:         rawQueries,
+		Events:             eventService,
+		Verification:       verificationService,
+		UserProfileConfig:  userProfileConfig,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         store,
+		Events:            eventService,
+	}
+	authorizationStore := &pq.AuthorizationStore{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
+	idpsessionStoreRedis := &idpsession.StoreRedis{
+		Redis:  appredisHandle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: storeRedisLogger,
+	}
+	sessionConfig := appConfig.Session
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
+	idpsessionManager := &idpsession.Manager{
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
+	}
+	redisLogger := redis.NewLogger(factory)
+	redisStore := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	oAuthConfig := appConfig.OAuth
+	sessionManager := &oauth2.SessionManager{
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
+	}
+	accountDeletionConfig := appConfig.AccountDeletion
+	coordinator := &facade.Coordinator{
+		Events:                eventService,
+		Identities:            serviceService,
+		Authenticators:        service3,
+		Verification:          verificationService,
+		MFA:                   mfaService,
+		UserCommands:          commands,
+		UserQueries:           queries,
+		StdAttrsService:       stdattrsService,
+		PasswordHistory:       historyStore,
+		OAuth:                 authorizationStore,
+		IDPSessions:           idpsessionManager,
+		OAuthSessions:         sessionManager,
+		IdentityConfig:        identityConfig,
+		AccountDeletionConfig: accountDeletionConfig,
+		Clock:                 clockClock,
+	}
+	identityFacade := facade.IdentityFacade{
+		Coordinator: coordinator,
+	}
+	authenticatorFacade := facade.AuthenticatorFacade{
+		Coordinator: coordinator,
+	}
+	mainOriginProvider := &MainOriginProvider{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
+	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	messageSender := &otp.MessageSender{
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
+	}
+	codeSender := &oob.CodeSender{
+		OTPMessageSender: messageSender,
+	}
+	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	urlProvider := &webapp.URLProvider{
+		Endpoints: endpointsProvider,
+	}
+	wechatURLProvider := &webapp.WechatURLProvider{
+		Endpoints: endpointsProvider,
+	}
+	normalizer := &stdattrs2.Normalizer{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	oAuthProviderFactory := &sso.OAuthProviderFactory{
+		Endpoints:                    endpointsProvider,
+		IdentityConfig:               identityConfig,
+		Credentials:                  oAuthClientCredentials,
+		RedirectURL:                  urlProvider,
+		Clock:                        clockClock,
+		WechatURLProvider:            wechatURLProvider,
+		StandardAttributesNormalizer: normalizer,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	forgotpasswordStore := &forgotpassword.Store{
+		Context: contextContext,
+		AppID:   appID,
+		Redis:   appredisHandle,
+	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
+	forgotpasswordProvider := &forgotpassword.Provider{
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
+	}
+	verificationCodeSender := &verification.CodeSender{
+		OTPMessageSender: messageSender,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		Cookies:        cookieManager,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
+	challengeProvider := &challenge.Provider{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
+	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
+		Events:          eventService,
+	}
+	interactionContext := &interaction.Context{
+		Request:                   request,
+		RemoteIP:                  remoteIP,
+		Database:                  sqlExecutor,
+		Clock:                     clockClock,
+		Config:                    appConfig,
+		FeatureConfig:             featureConfig,
+		Identities:                identityFacade,
+		Authenticators:            authenticatorFacade,
+		AnonymousIdentities:       anonymousProvider,
+		BiometricIdentities:       biometricProvider,
+		OOBAuthenticators:         oobProvider,
+		OOBCodeSender:             codeSender,
+		OAuthProviderFactory:      oAuthProviderFactory,
+		MFA:                       mfaService,
+		ForgotPassword:            forgotpasswordProvider,
+		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -27700,12 +32322,14 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -27723,6 +32347,54 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -27732,8 +32404,9 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -27765,6 +32438,15 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -27805,8 +32487,9 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -27949,31 +32632,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -28203,6 +32861,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -28379,12 +33038,14 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -28402,6 +33063,54 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -28411,8 +33120,9 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -28444,6 +33154,15 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -28484,8 +33203,9 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -28628,31 +33348,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -28882,6 +33577,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -29062,12 +33758,14 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -29085,6 +33783,54 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -29094,8 +33840,9 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -29127,6 +33874,15 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -29167,8 +33923,9 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -29311,31 +34068,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -29565,6 +34297,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -29740,12 +34473,14 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -29763,6 +34498,54 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -29772,8 +34555,9 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -29805,6 +34589,15 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -29845,8 +34638,9 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -29989,31 +34783,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -30243,6 +35012,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -30418,12 +35188,14 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -30441,6 +35213,54 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -30450,8 +35270,9 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -30483,6 +35304,15 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -30523,8 +35353,9 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -30667,31 +35498,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -30921,6 +35727,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -31096,12 +35903,14 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -31119,6 +35928,54 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -31128,8 +35985,9 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -31161,6 +36019,15 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -31201,8 +36068,9 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -31345,31 +36213,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -31599,6 +36442,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -31774,12 +36618,14 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -31797,6 +36643,54 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -31806,8 +36700,9 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -31839,6 +36734,15 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -31879,8 +36783,9 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -32023,31 +36928,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -32277,6 +37157,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -32459,12 +37340,14 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -32482,6 +37365,54 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -32491,8 +37422,9 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -32524,6 +37456,15 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -32564,8 +37505,9 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -32708,31 +37650,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -32962,6 +37879,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -33138,12 +38056,14 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -33161,6 +38081,54 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -33170,8 +38138,9 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -33203,6 +38172,15 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -33243,8 +38221,9 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -33387,31 +38366,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -33641,6 +38595,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -33815,12 +38770,14 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -33838,6 +38795,54 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -33847,8 +38852,9 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -33880,6 +38886,15 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -33920,8 +38935,9 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -34064,31 +39080,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -34318,6 +39309,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -34514,12 +39506,14 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -34537,6 +39531,54 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -34546,8 +39588,9 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -34579,6 +39622,15 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -34619,8 +39671,9 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -34763,31 +39816,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -35017,6 +40045,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -35191,12 +40220,14 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -35214,6 +40245,54 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -35223,8 +40302,9 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -35256,6 +40336,15 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -35296,8 +40385,9 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -35440,31 +40530,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
@@ -35694,6 +40759,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		MFA:                       mfaService,
 		ForgotPassword:            forgotpasswordProvider,
 		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		VerificationCodeSender:    verificationCodeSender,
@@ -35799,6 +40865,1365 @@ func newWebAppWebsocketHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 	}
 	return websocketHandler
+}
+
+func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	handle := appProvider.Redis
+	sessionStoreRedis := &webapp.SessionStoreRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	authenticationConfig := appConfig.Authentication
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	errorCookie := &webapp.ErrorCookie{
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
+	}
+	logger := interaction.NewLogger(factory)
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	contextContext := deps.ProvideRequestContext(request)
+	appdbHandle := appProvider.AppDatabase
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, appdbHandle)
+	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
+	userAgentString := deps.ProvideUserAgentString(request)
+	eventLogger := event.NewLogger(factory)
+	localizationConfig := appConfig.Localization
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rawQueries := &user.RawQueries{
+		Store: store,
+	}
+	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
+	serviceStore := &service.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	loginIDConfig := identityConfig.LoginID
+	manager := appProvider.Resources
+	typeCheckerFactory := &loginid.TypeCheckerFactory{
+		Config:    loginIDConfig,
+		Resources: manager,
+	}
+	checker := &loginid.Checker{
+		Config:             loginIDConfig,
+		TypeCheckerFactory: typeCheckerFactory,
+	}
+	normalizerFactory := &loginid.NormalizerFactory{
+		Config: loginIDConfig,
+	}
+	provider := &loginid.Provider{
+		Store:             loginidStore,
+		Config:            loginIDConfig,
+		Checker:           checker,
+		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
+	}
+	oauthStore := &oauth3.Store{
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
+	}
+	oauthProvider := &oauth3.Provider{
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
+	}
+	anonymousStore := &anonymous.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	anonymousProvider := &anonymous.Provider{
+		Store: anonymousStore,
+		Clock: clockClock,
+	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
+	serviceService := &service.Service{
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 serviceStore,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
+	}
+	store3 := &service2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	passwordLogger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorFeatureConfig := featureConfig.Authenticator
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		Logger:          passwordLogger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	storeRedis := &oob.StoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oobLogger := oob.NewLogger(factory)
+	oobProvider := &oob.Provider{
+		Config:    authenticatorOOBConfig,
+		Store:     oobStore,
+		CodeStore: storeRedis,
+		Clock:     clockClock,
+		Logger:    oobLogger,
+	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	service3 := &service2.Service{
+		Store:       store3,
+		Password:    passwordProvider,
+		Passkey:     provider2,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
+	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
+	verificationStoreRedis := &verification.StoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storePQ := &verification.StorePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	verificationService := &verification.Service{
+		RemoteIP:          remoteIP,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
+	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         store,
+		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
+	}
+	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
+		Config:      userProfileConfig,
+		UserQueries: rawQueries,
+		UserStore:   store,
+	}
+	queries := &user.Queries{
+		RawQueries:         rawQueries,
+		Store:              store,
+		Identities:         serviceService,
+		Authenticators:     service3,
+		Verification:       verificationService,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+	}
+	resolverImpl := &event.ResolverImpl{
+		Users: queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilderApp,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	pool := rootProvider.DatabasePool
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
+	tutorialStoreImpl := &tutorial.StoreImpl{
+		SQLBuilder:  globaldbSQLBuilder,
+		SQLExecutor: globaldbSQLExecutor,
+	}
+	tutorialService := &tutorial.Service{
+		Store: tutorialStoreImpl,
+	}
+	tutorialSink := &tutorial.Sink{
+		AppID:        appID,
+		Service:      tutorialService,
+		GlobalHandle: globaldbHandle,
+	}
+	elasticsearchLogger := elasticsearch.NewLogger(factory)
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	queue := appProvider.TaskQueue
+	elasticsearchService := elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     queries,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
+	elasticsearchSink := &elasticsearch.Sink{
+		Logger:   elasticsearchLogger,
+		Service:  elasticsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+		RateLimiter:   limiter,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Translation:          translationService,
+		RateLimiter:          limiter,
+		WelcomeMessageConfig: welcomeMessageConfig,
+		TaskQueue:            queue,
+		Events:               eventService,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  store,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+	}
+	commands := &user.Commands{
+		RawCommands:        rawCommands,
+		RawQueries:         rawQueries,
+		Events:             eventService,
+		Verification:       verificationService,
+		UserProfileConfig:  userProfileConfig,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         store,
+		Events:            eventService,
+	}
+	authorizationStore := &pq.AuthorizationStore{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
+	idpsessionStoreRedis := &idpsession.StoreRedis{
+		Redis:  handle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: storeRedisLogger,
+	}
+	sessionConfig := appConfig.Session
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
+	idpsessionManager := &idpsession.Manager{
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
+	}
+	redisLogger := redis.NewLogger(factory)
+	redisStore := &redis.Store{
+		Context:     contextContext,
+		Redis:       handle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	oAuthConfig := appConfig.OAuth
+	sessionManager := &oauth2.SessionManager{
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
+	}
+	accountDeletionConfig := appConfig.AccountDeletion
+	coordinator := &facade.Coordinator{
+		Events:                eventService,
+		Identities:            serviceService,
+		Authenticators:        service3,
+		Verification:          verificationService,
+		MFA:                   mfaService,
+		UserCommands:          commands,
+		UserQueries:           queries,
+		StdAttrsService:       stdattrsService,
+		PasswordHistory:       historyStore,
+		OAuth:                 authorizationStore,
+		IDPSessions:           idpsessionManager,
+		OAuthSessions:         sessionManager,
+		IdentityConfig:        identityConfig,
+		AccountDeletionConfig: accountDeletionConfig,
+		Clock:                 clockClock,
+	}
+	identityFacade := facade.IdentityFacade{
+		Coordinator: coordinator,
+	}
+	authenticatorFacade := facade.AuthenticatorFacade{
+		Coordinator: coordinator,
+	}
+	mainOriginProvider := &MainOriginProvider{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
+	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	messageSender := &otp.MessageSender{
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
+	}
+	codeSender := &oob.CodeSender{
+		OTPMessageSender: messageSender,
+	}
+	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	urlProvider := &webapp.URLProvider{
+		Endpoints: endpointsProvider,
+	}
+	wechatURLProvider := &webapp.WechatURLProvider{
+		Endpoints: endpointsProvider,
+	}
+	normalizer := &stdattrs2.Normalizer{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	oAuthProviderFactory := &sso.OAuthProviderFactory{
+		Endpoints:                    endpointsProvider,
+		IdentityConfig:               identityConfig,
+		Credentials:                  oAuthClientCredentials,
+		RedirectURL:                  urlProvider,
+		Clock:                        clockClock,
+		WechatURLProvider:            wechatURLProvider,
+		StandardAttributesNormalizer: normalizer,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	forgotpasswordStore := &forgotpassword.Store{
+		Context: contextContext,
+		AppID:   appID,
+		Redis:   handle,
+	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
+	forgotpasswordProvider := &forgotpassword.Provider{
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
+	}
+	verificationCodeSender := &verification.CodeSender{
+		OTPMessageSender: messageSender,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		Cookies:        cookieManager,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
+	challengeProvider := &challenge.Provider{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
+	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: handle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           handle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
+		Events:          eventService,
+	}
+	interactionContext := &interaction.Context{
+		Request:                   request,
+		RemoteIP:                  remoteIP,
+		Database:                  sqlExecutor,
+		Clock:                     clockClock,
+		Config:                    appConfig,
+		FeatureConfig:             featureConfig,
+		Identities:                identityFacade,
+		Authenticators:            authenticatorFacade,
+		AnonymousIdentities:       anonymousProvider,
+		BiometricIdentities:       biometricProvider,
+		OOBAuthenticators:         oobProvider,
+		OOBCodeSender:             codeSender,
+		OAuthProviderFactory:      oAuthProviderFactory,
+		MFA:                       mfaService,
+		ForgotPassword:            forgotpasswordProvider,
+		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
+		LoginIDNormalizerFactory:  normalizerFactory,
+		Verification:              verificationService,
+		VerificationCodeSender:    verificationCodeSender,
+		RateLimiter:               limiter,
+		Nonces:                    nonceService,
+		Challenges:                challengeProvider,
+		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
+		Events:                    eventService,
+		CookieManager:             cookieManager,
+		AuthenticationInfoService: authenticationinfoStoreRedis,
+		Sessions:                  idpsessionProvider,
+		SessionManager:            idpsessionManager,
+		SessionCookie:             cookieDef2,
+		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
+	}
+	interactionStoreRedis := &interaction.StoreRedis{
+		Redis: handle,
+		AppID: appID,
+	}
+	interactionService := &interaction.Service{
+		Logger:  logger,
+		Context: interactionContext,
+		Store:   interactionStoreRedis,
+	}
+	webappService2 := &webapp.Service2{
+		Logger:               serviceLogger,
+		Request:              request,
+		Sessions:             sessionStoreRedis,
+		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
+		MFADeviceTokenCookie: cookieDef,
+		ErrorCookie:          errorCookie,
+		Cookies:              cookieManager,
+		Graph:                interactionService,
+	}
+	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
+	jsonResponseWriter := &httputil.JSONResponseWriter{
+		Logger: jsonResponseWriterLogger,
+	}
+	creationOptionsService := &passkey2.CreationOptionsService{
+		ConfigService:   configService,
+		UserService:     queries,
+		IdentityService: serviceService,
+		Store:           store2,
+	}
+	passkeyCreationOptionsHandler := &webapp2.PasskeyCreationOptionsHandler{
+		Page:     webappService2,
+		Database: appdbHandle,
+		JSON:     jsonResponseWriter,
+		Passkey:  creationOptionsService,
+	}
+	return passkeyCreationOptionsHandler
+}
+
+func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	handle := appProvider.Redis
+	sessionStoreRedis := &webapp.SessionStoreRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	authenticationConfig := appConfig.Authentication
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	errorCookie := &webapp.ErrorCookie{
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
+	}
+	logger := interaction.NewLogger(factory)
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	contextContext := deps.ProvideRequestContext(request)
+	appdbHandle := appProvider.AppDatabase
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, appdbHandle)
+	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
+	userAgentString := deps.ProvideUserAgentString(request)
+	eventLogger := event.NewLogger(factory)
+	localizationConfig := appConfig.Localization
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rawQueries := &user.RawQueries{
+		Store: store,
+	}
+	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
+	serviceStore := &service.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	loginIDConfig := identityConfig.LoginID
+	manager := appProvider.Resources
+	typeCheckerFactory := &loginid.TypeCheckerFactory{
+		Config:    loginIDConfig,
+		Resources: manager,
+	}
+	checker := &loginid.Checker{
+		Config:             loginIDConfig,
+		TypeCheckerFactory: typeCheckerFactory,
+	}
+	normalizerFactory := &loginid.NormalizerFactory{
+		Config: loginIDConfig,
+	}
+	provider := &loginid.Provider{
+		Store:             loginidStore,
+		Config:            loginIDConfig,
+		Checker:           checker,
+		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
+	}
+	oauthStore := &oauth3.Store{
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
+	}
+	oauthProvider := &oauth3.Provider{
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
+	}
+	anonymousStore := &anonymous.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	anonymousProvider := &anonymous.Provider{
+		Store: anonymousStore,
+		Clock: clockClock,
+	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
+	serviceService := &service.Service{
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 serviceStore,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
+	}
+	store3 := &service2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	passwordLogger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorFeatureConfig := featureConfig.Authenticator
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		Logger:          passwordLogger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	storeRedis := &oob.StoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oobLogger := oob.NewLogger(factory)
+	oobProvider := &oob.Provider{
+		Config:    authenticatorOOBConfig,
+		Store:     oobStore,
+		CodeStore: storeRedis,
+		Clock:     clockClock,
+		Logger:    oobLogger,
+	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	service3 := &service2.Service{
+		Store:       store3,
+		Password:    passwordProvider,
+		Passkey:     provider2,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
+	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
+	verificationStoreRedis := &verification.StoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storePQ := &verification.StorePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	verificationService := &verification.Service{
+		RemoteIP:          remoteIP,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
+	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         store,
+		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
+	}
+	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
+		Config:      userProfileConfig,
+		UserQueries: rawQueries,
+		UserStore:   store,
+	}
+	queries := &user.Queries{
+		RawQueries:         rawQueries,
+		Store:              store,
+		Identities:         serviceService,
+		Authenticators:     service3,
+		Verification:       verificationService,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+	}
+	resolverImpl := &event.ResolverImpl{
+		Users: queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilderApp,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	pool := rootProvider.DatabasePool
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
+	tutorialStoreImpl := &tutorial.StoreImpl{
+		SQLBuilder:  globaldbSQLBuilder,
+		SQLExecutor: globaldbSQLExecutor,
+	}
+	tutorialService := &tutorial.Service{
+		Store: tutorialStoreImpl,
+	}
+	tutorialSink := &tutorial.Sink{
+		AppID:        appID,
+		Service:      tutorialService,
+		GlobalHandle: globaldbHandle,
+	}
+	elasticsearchLogger := elasticsearch.NewLogger(factory)
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	queue := appProvider.TaskQueue
+	elasticsearchService := elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     queries,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
+	elasticsearchSink := &elasticsearch.Sink{
+		Logger:   elasticsearchLogger,
+		Service:  elasticsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+		RateLimiter:   limiter,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Translation:          translationService,
+		RateLimiter:          limiter,
+		WelcomeMessageConfig: welcomeMessageConfig,
+		TaskQueue:            queue,
+		Events:               eventService,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  store,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+	}
+	commands := &user.Commands{
+		RawCommands:        rawCommands,
+		RawQueries:         rawQueries,
+		Events:             eventService,
+		Verification:       verificationService,
+		UserProfileConfig:  userProfileConfig,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         store,
+		Events:            eventService,
+	}
+	authorizationStore := &pq.AuthorizationStore{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
+	idpsessionStoreRedis := &idpsession.StoreRedis{
+		Redis:  handle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: storeRedisLogger,
+	}
+	sessionConfig := appConfig.Session
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
+	idpsessionManager := &idpsession.Manager{
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
+	}
+	redisLogger := redis.NewLogger(factory)
+	redisStore := &redis.Store{
+		Context:     contextContext,
+		Redis:       handle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	oAuthConfig := appConfig.OAuth
+	sessionManager := &oauth2.SessionManager{
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
+	}
+	accountDeletionConfig := appConfig.AccountDeletion
+	coordinator := &facade.Coordinator{
+		Events:                eventService,
+		Identities:            serviceService,
+		Authenticators:        service3,
+		Verification:          verificationService,
+		MFA:                   mfaService,
+		UserCommands:          commands,
+		UserQueries:           queries,
+		StdAttrsService:       stdattrsService,
+		PasswordHistory:       historyStore,
+		OAuth:                 authorizationStore,
+		IDPSessions:           idpsessionManager,
+		OAuthSessions:         sessionManager,
+		IdentityConfig:        identityConfig,
+		AccountDeletionConfig: accountDeletionConfig,
+		Clock:                 clockClock,
+	}
+	identityFacade := facade.IdentityFacade{
+		Coordinator: coordinator,
+	}
+	authenticatorFacade := facade.AuthenticatorFacade{
+		Coordinator: coordinator,
+	}
+	mainOriginProvider := &MainOriginProvider{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
+	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	messageSender := &otp.MessageSender{
+		Translation:     translationService,
+		Endpoints:       endpointsProvider,
+		TaskQueue:       queue,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
+	}
+	codeSender := &oob.CodeSender{
+		OTPMessageSender: messageSender,
+	}
+	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	urlProvider := &webapp.URLProvider{
+		Endpoints: endpointsProvider,
+	}
+	wechatURLProvider := &webapp.WechatURLProvider{
+		Endpoints: endpointsProvider,
+	}
+	normalizer := &stdattrs2.Normalizer{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	oAuthProviderFactory := &sso.OAuthProviderFactory{
+		Endpoints:                    endpointsProvider,
+		IdentityConfig:               identityConfig,
+		Credentials:                  oAuthClientCredentials,
+		RedirectURL:                  urlProvider,
+		Clock:                        clockClock,
+		WechatURLProvider:            wechatURLProvider,
+		StandardAttributesNormalizer: normalizer,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	forgotpasswordStore := &forgotpassword.Store{
+		Context: contextContext,
+		AppID:   appID,
+		Redis:   handle,
+	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
+	forgotpasswordProvider := &forgotpassword.Provider{
+		RemoteIP:        remoteIP,
+		Translation:     translationService,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TaskQueue:       queue,
+		Logger:          providerLogger,
+		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
+		FeatureConfig:   featureConfig,
+		Events:          eventService,
+		RateLimiter:     limiter,
+		HardSMSBucketer: hardSMSBucketer,
+	}
+	verificationCodeSender := &verification.CodeSender{
+		OTPMessageSender: messageSender,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		Cookies:        cookieManager,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
+	challengeProvider := &challenge.Provider{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
+	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: handle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           handle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	whatsappStoreRedis := &whatsapp.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		Clock:   clockClock,
+	}
+	whatsappLogger := whatsapp.NewLogger(factory)
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
+	whatsappProvider := &whatsapp.Provider{
+		CodeStore:       whatsappStoreRedis,
+		Clock:           clockClock,
+		Logger:          whatsappLogger,
+		WATICredentials: watiCredentials,
+		Events:          eventService,
+	}
+	interactionContext := &interaction.Context{
+		Request:                   request,
+		RemoteIP:                  remoteIP,
+		Database:                  sqlExecutor,
+		Clock:                     clockClock,
+		Config:                    appConfig,
+		FeatureConfig:             featureConfig,
+		Identities:                identityFacade,
+		Authenticators:            authenticatorFacade,
+		AnonymousIdentities:       anonymousProvider,
+		BiometricIdentities:       biometricProvider,
+		OOBAuthenticators:         oobProvider,
+		OOBCodeSender:             codeSender,
+		OAuthProviderFactory:      oAuthProviderFactory,
+		MFA:                       mfaService,
+		ForgotPassword:            forgotpasswordProvider,
+		ResetPassword:             forgotpasswordProvider,
+		Passkey:                   passkeyService,
+		LoginIDNormalizerFactory:  normalizerFactory,
+		Verification:              verificationService,
+		VerificationCodeSender:    verificationCodeSender,
+		RateLimiter:               limiter,
+		Nonces:                    nonceService,
+		Challenges:                challengeProvider,
+		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
+		Events:                    eventService,
+		CookieManager:             cookieManager,
+		AuthenticationInfoService: authenticationinfoStoreRedis,
+		Sessions:                  idpsessionProvider,
+		SessionManager:            idpsessionManager,
+		SessionCookie:             cookieDef2,
+		MFADeviceTokenCookie:      cookieDef,
+		WhatsappCodeProvider:      whatsappProvider,
+	}
+	interactionStoreRedis := &interaction.StoreRedis{
+		Redis: handle,
+		AppID: appID,
+	}
+	interactionService := &interaction.Service{
+		Logger:  logger,
+		Context: interactionContext,
+		Store:   interactionStoreRedis,
+	}
+	webappService2 := &webapp.Service2{
+		Logger:               serviceLogger,
+		Request:              request,
+		Sessions:             sessionStoreRedis,
+		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
+		MFADeviceTokenCookie: cookieDef,
+		ErrorCookie:          errorCookie,
+		Cookies:              cookieManager,
+		Graph:                interactionService,
+	}
+	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
+	jsonResponseWriter := &httputil.JSONResponseWriter{
+		Logger: jsonResponseWriterLogger,
+	}
+	requestOptionsService := &passkey2.RequestOptionsService{
+		ConfigService:   configService,
+		IdentityService: serviceService,
+		Store:           store2,
+	}
+	passkeyRequestOptionsHandler := &webapp2.PasskeyRequestOptionsHandler{
+		Page:     webappService2,
+		Database: appdbHandle,
+		JSON:     jsonResponseWriter,
+		Passkey:  requestOptionsService,
+	}
+	return passkeyRequestOptionsHandler
 }
 
 // Injectors from wire_middleware.go:
@@ -36129,12 +42554,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -36152,6 +42579,55 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	templateResolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: templateResolver,
+	}
+	localizationConfig := appConfig.Localization
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -36161,8 +42637,9 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -36194,6 +42671,15 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -36234,8 +42720,9 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -36525,12 +43012,14 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -36548,6 +43037,56 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	appredisHandle := appProvider.Redis
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpConfig := appConfig.HTTP
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            contextContext,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+		EmbeddedResources:  globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -36557,8 +43096,9 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -36591,6 +43131,15 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -36606,7 +43155,6 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	appredisHandle := appProvider.Redis
 	storeRedis := &oob.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -36631,8 +43179,9 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -36775,32 +43324,6 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpConfig := appConfig.HTTP
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{

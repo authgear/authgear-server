@@ -1,6 +1,46 @@
 {{ define "__alternatives.html" }}
     {{ $rendered_separator := false }}
-    {{ range .AlternativeSteps }}
+    {{ range $.AlternativeSteps }}
+        {{ if eq .Step "create-passkey" }}
+            {{ if (and (not $.separatorDisabled) (not $rendered_separator)) }}
+                {{ $rendered_separator = true }}
+                <div class="alternative-separator flex flex-row items-center">
+                    <span class="primary-txt mx-1.5 text-sm">{{ template "or-label" }}</span>
+                </div>
+            {{ end }}
+            <div class="text-sm" data-controller="passkey-creation" data-passkey-creation-auto-value="true">
+            <button class="btn secondary-btn" type="button" data-action="click->passkey-creation#create" data-passkey-creation-target="button">
+                {{ template "setup-passkey-instead" .Data }}
+            </button>
+            <form method="post" novalidate>
+                {{ $.CSRFField }}
+                <input type="hidden" name="x_step_kind" value="{{ .Step }}">
+                <input type="hidden" name="x_stage" value="{{ $.AuthenticationStage }}">
+                <input type="hidden" name="x_attestation_response" data-passkey-creation-target="input">
+                <button type="submit" class="hidden" name="x_action" value="choose_step" data-passkey-creation-target="submit"></button>
+            </form>
+            </div>
+        {{ end }}
+        {{ if eq .Step "use-passkey" }}
+            {{ if (and (not $.separatorDisabled) (not $rendered_separator)) }}
+                {{ $rendered_separator = true }}
+                <div class="alternative-separator flex flex-row items-center">
+                    <span class="primary-txt mx-1.5 text-sm">{{ template "or-label" }}</span>
+                </div>
+            {{ end }}
+            <div class="text-sm" data-controller="passkey-request">
+            <button class="btn secondary-btn" type="button" data-action="click->passkey-request#use" data-passkey-request-target="button">
+                {{ template "use-passkey-instead" .Data }}
+            </button>
+            <form method="post" novalidate>
+                {{ $.CSRFField }}
+                <input type="hidden" name="x_step_kind" value="{{ .Step }}">
+                <input type="hidden" name="x_stage" value="{{ $.AuthenticationStage }}">
+                <input type="hidden" name="x_assertion_response" data-passkey-request-target="input">
+                <button type="submit" class="hidden" name="x_action" value="choose_step" data-passkey-request-target="submit"></button>
+            </form>
+            </div>
+        {{ end }}
         {{ if (or (eq .Step "setup-totp")
                   (eq .Step "setup-oob-otp-email")
                   (eq .Step "setup-oob-otp-sms")
@@ -23,9 +63,8 @@
                 {{ range $name, $value := .Input }}
                     <input type="hidden" name="{{ $name }}" value="{{ $value }}">
                 {{ end }}
-                <input type="hidden" name="x_action" value="choose_step"/>
                 <div class="text-sm">
-                <button class="btn secondary-btn" type="submit">
+                <button class="btn secondary-btn" type="submit" name="x_action" value="choose_step">
                     {{ if eq .Step "setup-totp" }}
                         {{ template "setup-totp-instead" .Data }}
                     {{ end }}

@@ -10,6 +10,7 @@ import (
 	"context"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
+	passkey3 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
@@ -17,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -28,6 +30,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/accountdeletion"
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
+	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
@@ -234,12 +237,14 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
 	}
 	oauthProvider := &oauth.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -257,6 +262,31 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Store: biometricStore,
 		Clock: clockClock,
 	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: ctx,
+		Redis:   appredisHandle,
+		AppID:   configAppID,
+	}
+	request := NewDummyHTTPRequest()
+	trustProxy := environmentConfig.TrustProxy
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -266,8 +296,9 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
 	}
-	store2 := &service2.Store{
+	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -300,6 +331,15 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
 	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -329,8 +369,9 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Logger:    oobLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store2,
+		Store:       store3,
 		Password:    passwordProvider,
+		Passkey:     provider2,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
@@ -516,8 +557,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	request := NewDummyHTTPRequest()
-	trustProxy := environmentConfig.TrustProxy
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{

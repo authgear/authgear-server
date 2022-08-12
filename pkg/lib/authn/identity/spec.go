@@ -5,6 +5,11 @@ import (
 )
 
 type Spec struct {
-	Type   model.IdentityType     `json:"type"`
-	Claims map[string]interface{} `json:"claims"`
+	Type model.IdentityType `json:"type"`
+
+	LoginID   *LoginIDSpec   `json:"login_id,omitempty"`
+	OAuth     *OAuthSpec     `json:"oauth,omitempty"`
+	Anonymous *AnonymousSpec `json:"anonymous,omitempty"`
+	Biometric *BiometricSpec `json:"biometric,omitempty"`
+	Passkey   *PasskeySpec   `json:"passkey,omitempty"`
 }

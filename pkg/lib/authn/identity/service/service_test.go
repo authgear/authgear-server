@@ -8,8 +8,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -134,7 +132,7 @@ func TestProviderListCandidates(t *testing.T) {
 				},
 			}
 
-			loginIDProvider.EXPECT().List(userID).Return([]*loginid.Identity{
+			loginIDProvider.EXPECT().List(userID).Return([]*identity.LoginID{
 				{
 					LoginIDKey:      "email",
 					LoginID:         "john.doe@example.com",
@@ -174,7 +172,7 @@ func TestProviderListCandidates(t *testing.T) {
 			}
 
 			loginIDProvider.EXPECT().List(userID).Return(nil, nil)
-			oauthProvider.EXPECT().List(userID).Return([]*oauth.Identity{
+			oauthProvider.EXPECT().List(userID).Return([]*identity.OAuth{
 				{
 					ProviderID: config.ProviderID{
 						Type: "google",

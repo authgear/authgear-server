@@ -5,6 +5,7 @@ type AuthenticationType string
 const (
 	AuthenticationTypeNone         AuthenticationType = "none"
 	AuthenticationTypePassword     AuthenticationType = "password"
+	AuthenticationTypePasskey      AuthenticationType = "passkey"
 	AuthenticationTypeTOTP         AuthenticationType = "totp"
 	AuthenticationTypeOOBOTPEmail  AuthenticationType = "oob_otp_email"
 	AuthenticationTypeOOBOTPSMS    AuthenticationType = "oob_otp_sms"

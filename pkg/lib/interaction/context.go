@@ -45,13 +45,13 @@ type IdentityService interface {
 type AuthenticatorService interface {
 	Get(id string) (*authenticator.Info, error)
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
-	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
-	NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec, secret string) (*authenticator.Info, error)
-	WithSecret(authenticatorInfo *authenticator.Info, secret string) (changed bool, info *authenticator.Info, err error)
+	New(spec *authenticator.Spec) (*authenticator.Info, error)
+	NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error)
+	WithSpec(authenticatorInfo *authenticator.Info, spec *authenticator.Spec) (changed bool, info *authenticator.Info, err error)
 	Create(authenticatorInfo *authenticator.Info) error
 	Update(authenticatorInfo *authenticator.Info) error
 	Delete(authenticatorInfo *authenticator.Info) error
-	VerifySecret(info *authenticator.Info, secret string) (requireUpdate bool, err error)
+	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec) (requireUpdate bool, err error)
 }
 
 type OOBAuthenticatorProvider interface {
@@ -74,16 +74,16 @@ type WhatsappCodeProvider interface {
 }
 
 type AnonymousIdentityProvider interface {
-	Get(userID string, id string) (*anonymous.Identity, error)
+	Get(userID string, id string) (*identity.Anonymous, error)
 	ParseRequestUnverified(requestJWT string) (*anonymous.Request, error)
-	GetByKeyID(keyID string) (*anonymous.Identity, error)
-	ParseRequest(requestJWT string, identity *anonymous.Identity) (*anonymous.Request, error)
+	GetByKeyID(keyID string) (*identity.Anonymous, error)
+	ParseRequest(requestJWT string, identity *identity.Anonymous) (*anonymous.Request, error)
 }
 
 type BiometricIdentityProvider interface {
 	ParseRequestUnverified(requestJWT string) (*biometric.Request, error)
-	GetByKeyID(keyID string) (*biometric.Identity, error)
-	ParseRequest(requestJWT string, identity *biometric.Identity) (*biometric.Request, error)
+	GetByKeyID(keyID string) (*identity.Biometric, error)
+	ParseRequest(requestJWT string, identity *identity.Biometric) (*biometric.Request, error)
 }
 
 type ChallengeProvider interface {
@@ -138,14 +138,17 @@ type ForgotPasswordService interface {
 }
 
 type ResetPasswordService interface {
-	ResetPassword(userID string, newPassword string) (oldInfo *authenticator.Info, newInfo *authenticator.Info, err error)
-	ResetPasswordByCode(code string, newPassword string) (oldInfo *authenticator.Info, newInfo *authenticator.Info, err error)
-	HashCode(code string) (codeHash string)
-	AfterResetPasswordByCode(codeHash string) error
+	ResetPassword(userID string, newPassword string) (err error)
+	ResetPasswordByCode(code string, newPassword string) (err error)
+}
+
+type PasskeyService interface {
+	ConsumeAttestationResponse(attestationResponse []byte) (err error)
+	ConsumeAssertionResponse(assertionResponse []byte) (err error)
 }
 
 type LoginIDNormalizerFactory interface {
-	NormalizerWithLoginIDType(loginIDKeyType config.LoginIDKeyType) loginid.Normalizer
+	NormalizerWithLoginIDType(loginIDKeyType model.LoginIDKeyType) loginid.Normalizer
 }
 
 type VerificationService interface {
@@ -207,6 +210,7 @@ type Context struct {
 	MFA                      MFAService
 	ForgotPassword           ForgotPasswordService
 	ResetPassword            ResetPasswordService
+	Passkey                  PasskeyService
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
 	Verification             VerificationService
 	VerificationCodeSender   VerificationCodeSender

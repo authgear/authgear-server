@@ -51,9 +51,9 @@ type NodeCreateAuthenticatorBegin struct {
 	RequestedByUser    bool                      `json:"requested_by_user"`
 
 	Identity             *identity.Info               `json:"-"`
+	PrimaryAuthenticator *authenticator.Info          `json:"-"`
 	AuthenticationConfig *config.AuthenticationConfig `json:"-"`
 	AuthenticatorConfig  *config.AuthenticatorConfig  `json:"-"`
-	Identities           []*identity.Info             `json:"-"`
 	Authenticators       []*authenticator.Info        `json:"-"`
 }
 
@@ -62,18 +62,16 @@ func (n *NodeCreateAuthenticatorBegin) Prepare(ctx *interaction.Context, graph *
 	if err != nil {
 		return err
 	}
-	iis, err := ctx.Identities.ListByUser(graph.MustGetUserID())
-	if err != nil {
-		return err
-	}
 
-	if n.Stage == authn.AuthenticationStagePrimary {
-		n.Identity = graph.MustGetUserLastIdentity()
+	if iden, ok := graph.GetUserLastIdentity(); ok {
+		n.Identity = iden
+	}
+	if prim, ok := graph.GetUserAuthenticator(authn.AuthenticationStagePrimary); ok {
+		n.PrimaryAuthenticator = prim
 	}
 	n.AuthenticationConfig = ctx.Config.Authentication
 	n.AuthenticatorConfig = ctx.Config.Authenticator
 	n.Authenticators = ais
-	n.Identities = iis
 	return nil
 }
 
@@ -119,9 +117,16 @@ func (n *NodeCreateAuthenticatorBegin) deriveEdges() ([]interaction.Edge, error)
 
 	switch n.Stage {
 	case authn.AuthenticationStagePrimary:
-		edges, err = n.derivePrimary()
-		if err != nil {
-			return nil, err
+		if n.AuthenticatorType == nil {
+			edges, err = n.derivePrimary()
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			edges, err = n.derivePrimaryWithType(*n.AuthenticatorType)
+			if err != nil {
+				return nil, err
+			}
 		}
 	case authn.AuthenticationStageSecondary:
 		edges = n.deriveSecondary()
@@ -133,6 +138,40 @@ func (n *NodeCreateAuthenticatorBegin) deriveEdges() ([]interaction.Edge, error)
 	if len(edges) == 0 {
 		edges = append(edges, &EdgeCreateAuthenticatorEnd{Stage: n.Stage, Authenticators: nil})
 	}
+
+	return edges, nil
+}
+
+func (n *NodeCreateAuthenticatorBegin) derivePrimaryWithType(typ model.AuthenticatorType) ([]interaction.Edge, error) {
+	// derivePrimary() assumes the presence of n.Identity
+	// n.Identity is absent when we are adding passkey in settings.
+	types := *n.AuthenticationConfig.PrimaryAuthenticators
+
+	var edges []interaction.Edge
+	for _, t := range types {
+		if t == typ {
+			if t == model.AuthenticatorTypePasskey {
+				edges = append(edges, &EdgeCreateAuthenticatorPasskey{
+					NewAuthenticatorID: n.NewAuthenticatorID,
+					Stage:              n.Stage,
+					IsDefault:          false,
+				})
+			}
+		}
+	}
+
+	interaction.SortAuthenticators(
+		types,
+		edges,
+		func(i int) interaction.SortableAuthenticator {
+			edge := edges[i]
+			a, ok := edge.(interaction.SortableAuthenticator)
+			if !ok {
+				panic(fmt.Sprintf("interaction: unknown edge: %T", edge))
+			}
+			return a
+		},
+	)
 
 	return edges, nil
 }
@@ -178,49 +217,49 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 				IsDefault:          isDefault,
 			})
 
-		case model.AuthenticatorTypeTOTP:
-			edges = append(edges, &EdgeCreateAuthenticatorTOTPSetup{
+		case model.AuthenticatorTypePasskey:
+			edges = append(edges, &EdgeCreateAuthenticatorPasskey{
 				NewAuthenticatorID: n.NewAuthenticatorID,
 				Stage:              n.Stage,
 				IsDefault:          isDefault,
 			})
 
 		case model.AuthenticatorTypeOOBSMS:
-			loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
-
 			// check if identity login id type match oob type
-			if loginIDType == string(config.LoginIDKeyTypePhone) {
+			if n.Identity.LoginID != nil {
+				if n.Identity.LoginID.LoginIDType == model.LoginIDKeyTypePhone {
+					if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
+						edges = append(edges, &EdgeCreateAuthenticatorWhatsappOTPSetup{
+							NewAuthenticatorID: n.NewAuthenticatorID,
+							Stage:              n.Stage,
+							IsDefault:          isDefault,
+						})
+					}
 
-				if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
-					edges = append(edges, &EdgeCreateAuthenticatorWhatsappOTPSetup{
-						NewAuthenticatorID: n.NewAuthenticatorID,
-						Stage:              n.Stage,
-						IsDefault:          isDefault,
-					})
-				}
-
-				if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsSMSEnabled() {
-					edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
-						NewAuthenticatorID:   n.NewAuthenticatorID,
-						Stage:                n.Stage,
-						IsDefault:            isDefault,
-						OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
-					})
+					if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsSMSEnabled() {
+						edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
+							NewAuthenticatorID:   n.NewAuthenticatorID,
+							Stage:                n.Stage,
+							IsDefault:            isDefault,
+							OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
+						})
+					}
 				}
 			}
 
 		case model.AuthenticatorTypeOOBEmail:
-			loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
-
 			// check if identity login id type match oob type
-			if loginIDType == string(config.LoginIDKeyTypeEmail) {
-				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
-					NewAuthenticatorID:   n.NewAuthenticatorID,
-					Stage:                n.Stage,
-					IsDefault:            isDefault,
-					OOBAuthenticatorType: model.AuthenticatorTypeOOBEmail,
-				})
+			if n.Identity.LoginID != nil {
+				if n.Identity.LoginID.LoginIDType == model.LoginIDKeyTypeEmail {
+					edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
+						NewAuthenticatorID:   n.NewAuthenticatorID,
+						Stage:                n.Stage,
+						IsDefault:            isDefault,
+						OOBAuthenticatorType: model.AuthenticatorTypeOOBEmail,
+					})
+				}
 			}
+
 		default:
 			panic(fmt.Sprintf("interaction: unknown authenticator type: %s", t))
 		}
@@ -232,6 +271,19 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 		return nil, interaction.InvalidConfiguration.New("no primary authenticator can be created for identity")
 	}
 
+	interaction.SortAuthenticators(
+		types,
+		edges,
+		func(i int) interaction.SortableAuthenticator {
+			edge := edges[i]
+			a, ok := edge.(interaction.SortableAuthenticator)
+			if !ok {
+				panic(fmt.Sprintf("interaction: unknown edge: %T", edge))
+			}
+			return a
+		},
+	)
+
 	return edges, nil
 }
 
@@ -239,48 +291,39 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Edge) {
 	// Determine whether we need to create secondary authenticator.
 
-	// 1. Skip setup if explicitly requested
-	if n.SkipMFASetup {
-		return nil
-	}
-
 	ais := authenticator.ApplyFilters(
 		n.Authenticators,
 		authenticator.KeepKind(authenticator.KindSecondary),
 	)
 
-	// 1.1. Skip setup if the all of the identities of the user cannot use MFA.
-	someIdentityCanHaveMFA := false
-	for _, ii := range n.Identities {
-		if ii.CanHaveMFA() {
-			someIdentityCanHaveMFA = true
-		}
-	}
-	noIdentityCanHaveMFA := !someIdentityCanHaveMFA
-	if noIdentityCanHaveMFA {
+	// Skip setup if explicitly requested
+	if n.SkipMFASetup {
 		return nil
 	}
 
-	// 1.2. Skip setup if MFA is disabled
+	// Skip setup if MFA is disabled
 	mode := n.AuthenticationConfig.SecondaryAuthenticationMode
 	if mode.IsDisabled() {
 		return nil
 	}
 
-	// 2. Check secondary authentication mode.
-	switch mode {
-	case config.SecondaryAuthenticationModeIfExists:
-		// No need to create authenticator if not requested by user.
-		if !n.RequestedByUser {
+	if !n.RequestedByUser {
+		// Skip setup if the primary authenticator being used cannot use MFA.
+		if n.PrimaryAuthenticator == nil || !n.PrimaryAuthenticator.CanHaveMFA() {
 			return nil
 		}
 
-	case config.SecondaryAuthenticationModeRequired:
-		// Require at least one secondary authenticator:
-		// Skip creation if any secondary authenticator exists and
-		// not explicitly requested by user
-		if len(ais) > 0 && !n.RequestedByUser {
+		// Check secondary authentication mode.
+		switch mode {
+		case config.SecondaryAuthenticationModeIfExists:
+			// secondary authentication is optional.
 			return nil
+		case config.SecondaryAuthenticationModeRequired:
+			// secondary authentication is required.
+			// Skip setup if the user has at least one secondary authenticator.
+			if len(ais) > 0 {
+				return nil
+			}
 		}
 	}
 

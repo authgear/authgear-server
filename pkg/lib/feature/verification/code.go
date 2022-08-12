@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 type CodeKey struct {
@@ -39,10 +38,10 @@ func (c *Code) CodeKey() *CodeKey {
 
 func (c *Code) SendResult() *otp.CodeSendResult {
 	var channel string
-	switch config.LoginIDKeyType(c.LoginIDType) {
-	case config.LoginIDKeyTypeEmail:
+	switch model.LoginIDKeyType(c.LoginIDType) {
+	case model.LoginIDKeyTypeEmail:
 		channel = string(model.AuthenticatorOOBChannelEmail)
-	case config.LoginIDKeyTypePhone:
+	case model.LoginIDKeyTypePhone:
 		channel = string(model.AuthenticatorOOBChannelSMS)
 	default:
 		panic("verification: unsupported login ID type: " + c.LoginIDType)

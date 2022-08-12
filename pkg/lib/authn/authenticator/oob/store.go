@@ -34,8 +34,8 @@ func (s *Store) selectQuery() db.SelectBuilder {
 		Join(s.SQLBuilder.TableName("_auth_authenticator_oob"), "ao", "a.id = ao.id")
 }
 
-func (s *Store) scan(scn db.Scanner) (*Authenticator, error) {
-	a := &Authenticator{}
+func (s *Store) scan(scn db.Scanner) (*authenticator.OOBOTP, error) {
+	a := &authenticator.OOBOTP{}
 
 	err := scn.Scan(
 		&a.ID,
@@ -57,7 +57,7 @@ func (s *Store) scan(scn db.Scanner) (*Authenticator, error) {
 	return a, nil
 }
 
-func (s *Store) Get(userID string, id string) (*Authenticator, error) {
+func (s *Store) Get(userID string, id string) (*authenticator.OOBOTP, error) {
 	q := s.selectQuery().Where("a.user_id = ? AND a.id = ?", userID, id)
 
 	row, err := s.SQLExecutor.QueryRowWith(q)
@@ -68,7 +68,7 @@ func (s *Store) Get(userID string, id string) (*Authenticator, error) {
 	return s.scan(row)
 }
 
-func (s *Store) GetMany(ids []string) ([]*Authenticator, error) {
+func (s *Store) GetMany(ids []string) ([]*authenticator.OOBOTP, error) {
 	builder := s.selectQuery().Where("a.id = ANY (?)", pq.Array(ids))
 
 	rows, err := s.SQLExecutor.QueryWith(builder)
@@ -77,7 +77,7 @@ func (s *Store) GetMany(ids []string) ([]*Authenticator, error) {
 	}
 	defer rows.Close()
 
-	var as []*Authenticator
+	var as []*authenticator.OOBOTP
 	for rows.Next() {
 		a, err := s.scan(rows)
 		if err != nil {
@@ -89,7 +89,7 @@ func (s *Store) GetMany(ids []string) ([]*Authenticator, error) {
 	return as, nil
 }
 
-func (s *Store) List(userID string) ([]*Authenticator, error) {
+func (s *Store) List(userID string) ([]*authenticator.OOBOTP, error) {
 	q := s.selectQuery().Where("a.user_id = ?", userID)
 
 	rows, err := s.SQLExecutor.QueryWith(q)
@@ -98,7 +98,7 @@ func (s *Store) List(userID string) ([]*Authenticator, error) {
 	}
 	defer rows.Close()
 
-	var authenticators []*Authenticator
+	var authenticators []*authenticator.OOBOTP
 	for rows.Next() {
 		a, err := s.scan(rows)
 		if err != nil {
@@ -130,7 +130,7 @@ func (s *Store) Delete(id string) error {
 	return nil
 }
 
-func (s *Store) Create(a *Authenticator) (err error) {
+func (s *Store) Create(a *authenticator.OOBOTP) (err error) {
 	if a.OOBAuthenticatorType != model.AuthenticatorTypeOOBEmail &&
 		a.OOBAuthenticatorType != model.AuthenticatorTypeOOBSMS {
 		return errors.New("invalid oob authenticator type")

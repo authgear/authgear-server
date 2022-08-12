@@ -3,9 +3,9 @@ package nodes
 import (
 	"errors"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -116,7 +116,7 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context, ignoreRatelimitE
 
 	// disallow sending sms verification code if phone identity is disabled
 	fc := ctx.FeatureConfig
-	if config.LoginIDKeyType(code.LoginIDType) == config.LoginIDKeyTypePhone {
+	if model.LoginIDKeyType(code.LoginIDType) == model.LoginIDKeyTypePhone {
 		if fc.Identity.LoginID.Types.Phone.Disabled {
 			return nil, feature.ErrFeatureDisabledSendingSMS
 		}
@@ -158,19 +158,19 @@ func (e *EdgeVerifyIdentityCheckCode) Instantiate(ctx *interaction.Context, grap
 		return nil, err
 	}
 
-	claimName := ""
-	switch config.LoginIDKeyType(code.LoginIDType) {
-	case config.LoginIDKeyTypeEmail:
-		claimName = identity.StandardClaimEmail
-	case config.LoginIDKeyTypePhone:
-		claimName = identity.StandardClaimPhoneNumber
-	case config.LoginIDKeyTypeUsername:
-		claimName = identity.StandardClaimPreferredUsername
+	var claimName model.ClaimName
+	switch model.LoginIDKeyType(code.LoginIDType) {
+	case model.LoginIDKeyTypeEmail:
+		claimName = model.ClaimEmail
+	case model.LoginIDKeyTypePhone:
+		claimName = model.ClaimPhoneNumber
+	case model.LoginIDKeyTypeUsername:
+		claimName = model.ClaimPreferredUsername
 	default:
 		panic("interaction: unexpected login ID key")
 	}
 
-	verifiedClaim := ctx.Verification.NewVerifiedClaim(code.UserID, claimName, code.LoginID)
+	verifiedClaim := ctx.Verification.NewVerifiedClaim(code.UserID, string(claimName), code.LoginID)
 	return &NodeEnsureVerificationEnd{
 		Identity:         e.Identity,
 		NewVerifiedClaim: verifiedClaim,

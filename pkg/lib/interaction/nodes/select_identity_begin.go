@@ -53,12 +53,17 @@ func (n *NodeSelectIdentityBegin) deriveEdges() []interaction.Edge {
 	edges = append(edges, &EdgeUseIdentityBiometric{
 		IsAuthentication: n.IsAuthentication,
 	})
+	edges = append(edges, &EdgeUseIdentityPasskey{
+		IsAuthentication: n.IsAuthentication,
+	})
 
 	for _, t := range n.IdentityTypes {
 		switch t {
 		case model.IdentityTypeAnonymous:
 			break
 		case model.IdentityTypeBiometric:
+			break
+		case model.IdentityTypePasskey:
 			break
 		case model.IdentityTypeLoginID:
 			edges = append(edges, &EdgeUseIdentityLoginID{

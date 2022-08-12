@@ -20,6 +20,12 @@
 		</div>
 		{{ end }}{{ end }}
 
+		<form method="post" novalidate>
+			{{ $.CSRFField }}
+			<input type="hidden" name="x_assertion_response" data-passkey-autofill-target="input">
+			<button type="submit" class="hidden" name="x_action" value="passkey" data-passkey-autofill-target="submit"></button>
+		</form>
+
 		<div class="twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
 			<form
 				class="twc-container-vertical"
@@ -48,7 +54,7 @@
 					autofocus
 					type="text"
 					inputmode="tel"
-					autocomplete="tel-national"
+					autocomplete="tel-national username webauthn"
 					autocapitalize="none"
 					name="x_login_id"
 					placeholder="{{ template "phone-number-placeholder" }}"
@@ -65,7 +71,7 @@
 					autofocus
 					class="text-input primary-txt"
 					type="{{ $.TextLoginIDInputType }}"
-					autocomplete="username"
+					autocomplete="username webauthn"
 					autocapitalize="none"
 					name="x_login_id"
 					placeholder="{{ template "login-id-placeholder" (dict "variant" $.LoginIDInputVariant) }}"
@@ -92,6 +98,12 @@
 					type="submit"
 					name="x_action"
 					value="login_id"
+					{{/* Modal mediation and conditional mediation cannot be present in the same page. */}}
+					{{/* When a page has a pending conditional mediation promise, the modal mediation promise will always be */}}
+					{{/* rejected with a NotAllowedError immediately after invocation. */}}
+					{{/* Therefore, in this page, we opt-out for Turbo form submission. */}}
+					{{/* Then the next page can use modal mediation normally. */}}
+					data-turbo="false"
 					data-authgear-event="authgear.button.sign_in"
 				>{{ template "login-label" }}</button>
 				{{ end }}
@@ -126,7 +138,7 @@
 					type="submit"
 					name="x_action"
 					value="oauth"
-					data-form-xhr="false"
+					data-turbo="false"
 					data-authgear-event="authgear.button.oauth"
 				>
 					<input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">

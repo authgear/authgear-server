@@ -39,26 +39,34 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 			// TOTP with the same secret.
 			{
 				&Info{
-					Type:   model.AuthenticatorTypeTOTP,
-					Kind:   KindPrimary,
-					Secret: "secret",
+					Type: model.AuthenticatorTypeTOTP,
+					Kind: KindPrimary,
+					TOTP: &TOTP{
+						Secret: "secret",
+					},
 				},
 				&Info{
-					Type:   model.AuthenticatorTypeTOTP,
-					Kind:   KindPrimary,
-					Secret: "secret",
+					Type: model.AuthenticatorTypeTOTP,
+					Kind: KindPrimary,
+					TOTP: &TOTP{
+						Secret: "secret",
+					},
 				},
 			},
 			{
 				&Info{
-					Type:   model.AuthenticatorTypeTOTP,
-					Kind:   KindSecondary,
-					Secret: "secret",
+					Type: model.AuthenticatorTypeTOTP,
+					Kind: KindSecondary,
+					TOTP: &TOTP{
+						Secret: "secret",
+					},
 				},
 				&Info{
-					Type:   model.AuthenticatorTypeTOTP,
-					Kind:   KindSecondary,
-					Secret: "secret",
+					Type: model.AuthenticatorTypeTOTP,
+					Kind: KindSecondary,
+					TOTP: &TOTP{
+						Secret: "secret",
+					},
 				},
 			},
 
@@ -67,17 +75,15 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 				&Info{
 					Type: model.AuthenticatorTypeOOBEmail,
 					Kind: KindPrimary,
-					Claims: map[string]interface{}{
-						AuthenticatorClaimOOBOTPEmail: "user@example",
-						AuthenticatorClaimOOBOTPPhone: "",
+					OOBOTP: &OOBOTP{
+						Email: "user@example",
 					},
 				},
 				&Info{
 					Type: model.AuthenticatorTypeOOBEmail,
 					Kind: KindPrimary,
-					Claims: map[string]interface{}{
-						AuthenticatorClaimOOBOTPEmail: "user@example",
-						AuthenticatorClaimOOBOTPPhone: "",
+					OOBOTP: &OOBOTP{
+						Email: "user@example",
 					},
 				},
 			},
@@ -86,17 +92,15 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 				&Info{
 					Type: model.AuthenticatorTypeOOBSMS,
 					Kind: KindPrimary,
-					Claims: map[string]interface{}{
-						AuthenticatorClaimOOBOTPEmail: "",
-						AuthenticatorClaimOOBOTPPhone: "+85299887766",
+					OOBOTP: &OOBOTP{
+						Phone: "+85299887766",
 					},
 				},
 				&Info{
 					Type: model.AuthenticatorTypeOOBSMS,
 					Kind: KindPrimary,
-					Claims: map[string]interface{}{
-						AuthenticatorClaimOOBOTPEmail: "",
-						AuthenticatorClaimOOBOTPPhone: "+85299887766",
+					OOBOTP: &OOBOTP{
+						Phone: "+85299887766",
 					},
 				},
 			},
@@ -105,17 +109,15 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 				&Info{
 					Type: model.AuthenticatorTypeOOBEmail,
 					Kind: KindSecondary,
-					Claims: map[string]interface{}{
-						AuthenticatorClaimOOBOTPEmail: "user@example",
-						AuthenticatorClaimOOBOTPPhone: "",
+					OOBOTP: &OOBOTP{
+						Email: "user@example",
 					},
 				},
 				&Info{
 					Type: model.AuthenticatorTypeOOBEmail,
 					Kind: KindSecondary,
-					Claims: map[string]interface{}{
-						AuthenticatorClaimOOBOTPEmail: "user@example",
-						AuthenticatorClaimOOBOTPPhone: "",
+					OOBOTP: &OOBOTP{
+						Email: "user@example",
 					},
 				},
 			},
@@ -124,17 +126,15 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 				&Info{
 					Type: model.AuthenticatorTypeOOBSMS,
 					Kind: KindSecondary,
-					Claims: map[string]interface{}{
-						AuthenticatorClaimOOBOTPEmail: "",
-						AuthenticatorClaimOOBOTPPhone: "+85299887766",
+					OOBOTP: &OOBOTP{
+						Phone: "+85299887766",
 					},
 				},
 				&Info{
 					Type: model.AuthenticatorTypeOOBSMS,
 					Kind: KindSecondary,
-					Claims: map[string]interface{}{
-						AuthenticatorClaimOOBOTPEmail: "",
-						AuthenticatorClaimOOBOTPPhone: "+85299887766",
+					OOBOTP: &OOBOTP{
+						Phone: "+85299887766",
 					},
 				},
 			},
@@ -177,14 +177,18 @@ func TestAuthenticatorEqualFalse(t *testing.T) {
 			// TOTP with different secret.
 			{
 				&Info{
-					Type:   model.AuthenticatorTypeTOTP,
-					Kind:   KindPrimary,
-					Secret: "secret1",
+					Type: model.AuthenticatorTypeTOTP,
+					Kind: KindPrimary,
+					TOTP: &TOTP{
+						Secret: "secret1",
+					},
 				},
 				&Info{
-					Type:   model.AuthenticatorTypeTOTP,
-					Kind:   KindPrimary,
-					Secret: "secret2",
+					Type: model.AuthenticatorTypeTOTP,
+					Kind: KindPrimary,
+					TOTP: &TOTP{
+						Secret: "secret2",
+					},
 				},
 			},
 
@@ -193,17 +197,15 @@ func TestAuthenticatorEqualFalse(t *testing.T) {
 				&Info{
 					Type: model.AuthenticatorTypeOOBEmail,
 					Kind: KindPrimary,
-					Claims: map[string]interface{}{
-						AuthenticatorClaimOOBOTPEmail: "user1@example",
-						AuthenticatorClaimOOBOTPPhone: "",
+					OOBOTP: &OOBOTP{
+						Email: "user1@example",
 					},
 				},
 				&Info{
 					Type: model.AuthenticatorTypeOOBEmail,
 					Kind: KindPrimary,
-					Claims: map[string]interface{}{
-						AuthenticatorClaimOOBOTPEmail: "user2@example",
-						AuthenticatorClaimOOBOTPPhone: "",
+					OOBOTP: &OOBOTP{
+						Email: "user2@example",
 					},
 				},
 			},

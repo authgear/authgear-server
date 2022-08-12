@@ -6,6 +6,7 @@ import (
 
 	"github.com/graphql-go/graphql"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -16,16 +17,19 @@ var authenticatorType = graphql.NewEnum(graphql.EnumConfig{
 	Name: "AuthenticatorType",
 	Values: graphql.EnumValueConfigMap{
 		"PASSWORD": &graphql.EnumValueConfig{
-			Value: "password",
+			Value: string(model.AuthenticatorTypePassword),
 		},
 		"TOTP": &graphql.EnumValueConfig{
-			Value: "totp",
+			Value: string(model.AuthenticatorTypeTOTP),
 		},
 		"OOB_OTP_EMAIL": &graphql.EnumValueConfig{
-			Value: "oob_otp_email",
+			Value: string(model.AuthenticatorTypeOOBEmail),
 		},
 		"OOB_OTP_SMS": &graphql.EnumValueConfig{
-			Value: "oob_otp_sms",
+			Value: string(model.AuthenticatorTypeOOBSMS),
+		},
+		"PASSKEY": &graphql.EnumValueConfig{
+			Value: string(model.AuthenticatorTypePasskey),
 		},
 	},
 })
@@ -89,7 +93,7 @@ var nodeAuthenticator = node(
 					names, hasNames := p.Args["names"].([]interface{})
 					info := loadAuthenticator(p.Context, p.Source)
 					claims := info.Map(func(value interface{}) (interface{}, error) {
-						claims := value.(*authenticator.Info).Claims
+						claims := value.(*authenticator.Info).ToPublicClaims()
 						if hasNames {
 							filteredClaims := make(map[string]interface{})
 							for _, name := range names {

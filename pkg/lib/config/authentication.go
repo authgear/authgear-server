@@ -30,21 +30,89 @@ var _ = Schema.Add("AuthenticationConfig", `
 		"secondary_authentication_mode": { "$ref": "#/$defs/SecondaryAuthenticationMode" },
 		"device_token": { "$ref": "#/$defs/DeviceTokenConfig" },
 		"recovery_code": { "$ref": "#/$defs/RecoveryCodeConfig" }
-	}
+	},
+	"allOf": [
+		{
+			"if": {
+				"properties": {
+					"identities": {
+						"contains": {
+							"const": "passkey"
+						}
+					}
+				},
+				"required": ["identities"]
+			},
+			"then": {
+				"properties": {
+					"primary_authenticators": {
+						"contains": {
+							"const": "passkey"
+						}
+					}
+				},
+				"required": ["primary_authenticators"]
+			}
+		},
+		{
+			"if": {
+				"properties": {
+					"primary_authenticators": {
+						"contains": {
+							"const": "passkey"
+						}
+					}
+				},
+				"required": ["primary_authenticators"]
+			},
+			"then": {
+				"properties": {
+					"identities": {
+						"contains": {
+							"const": "passkey"
+						}
+					}
+				},
+				"required": ["identities"]
+			}
+		},
+		{
+			"if": {
+				"properties": {
+					"identities": {
+						"contains": {
+							"const": "passkey"
+						}
+					}
+				},
+				"required": ["identities"]
+			},
+			"then": {
+				"properties": {
+					"identities": {
+						"contains": {
+							"const": "login_id"
+						}
+					}
+				},
+				"required": ["identities"]
+			}
+		}
+	]
 }
 `)
 
 var _ = Schema.Add("IdentityType", `
 {
 	"type": "string",
-	"enum": ["login_id", "oauth", "anonymous", "biometric"]
+	"enum": ["login_id", "oauth", "anonymous", "biometric", "passkey"]
 }
 `)
 
 var _ = Schema.Add("PrimaryAuthenticatorType", `
 {
 	"type": "string",
-	"enum": ["password", "oob_otp_email", "oob_otp_sms"]
+	"enum": ["password", "passkey", "oob_otp_email", "oob_otp_sms"]
 }
 `)
 
@@ -70,11 +138,13 @@ func (c *AuthenticationConfig) SetDefaults() {
 		c.Identities = []model.IdentityType{
 			model.IdentityTypeOAuth,
 			model.IdentityTypeLoginID,
+			model.IdentityTypePasskey,
 		}
 	}
 	if c.PrimaryAuthenticators == nil {
 		c.PrimaryAuthenticators = &[]model.AuthenticatorType{
 			model.AuthenticatorTypePassword,
+			model.AuthenticatorTypePasskey,
 		}
 	}
 	if c.SecondaryAuthenticators == nil {

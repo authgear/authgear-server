@@ -57,11 +57,12 @@ type SetupTOTPEndpointsProvider interface {
 	BaseURL() *url.URL
 }
 type SetupTOTPHandler struct {
-	ControllerFactory ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	Renderer          Renderer
-	Clock             clock.Clock
-	Endpoints         SetupTOTPEndpointsProvider
+	ControllerFactory         ControllerFactory
+	BaseViewModel             *viewmodels.BaseViewModeler
+	AlternativeStepsViewModel *viewmodels.AlternativeStepsViewModeler
+	Renderer                  Renderer
+	Clock                     clock.Clock
+	Endpoints                 SetupTOTPEndpointsProvider
 }
 
 func (h *SetupTOTPHandler) MakeViewModel(session *webapp.Session, graph *interaction.Graph) (*SetupTOTPViewModel, error) {
@@ -71,7 +72,7 @@ func (h *SetupTOTPHandler) MakeViewModel(session *webapp.Session, graph *interac
 	}
 
 	a := node.GetTOTPAuthenticator()
-	secret := a.Secret
+	secret := a.TOTP.Secret
 	totp := secretcode.NewTOTPFromSecret(secret)
 
 	issuer := h.Endpoints.BaseURL().String()
@@ -96,8 +97,7 @@ func (h *SetupTOTPHandler) MakeViewModel(session *webapp.Session, graph *interac
 		return nil, err
 	}
 
-	alternatives := &viewmodels.AlternativeStepsViewModel{}
-	err = alternatives.AddCreateAuthenticatorAlternatives(graph, webapp.SessionStepSetupTOTP)
+	alternatives, err := h.AlternativeStepsViewModel.CreateAuthenticatorAlternatives(graph, webapp.SessionStepSetupTOTP)
 	if err != nil {
 		return nil, err
 	}

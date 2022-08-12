@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	authenticatoroob "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
+	authenticatorpasskey "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
 	authenticatorpassword "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	authenticatortotp "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
@@ -15,6 +16,7 @@ import (
 	identitybiometric "github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	identityloginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	identityoauth "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
+	identitypasskey "github.com/authgear/authgear-server/pkg/lib/authn/identity/passkey"
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
@@ -26,6 +28,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
+	featurepasskey "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
@@ -127,9 +130,11 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(interaction.OOBAuthenticatorProvider), new(*authenticatoroob.Provider)),
 		wire.Bind(new(interaction.OOBCodeSender), new(*authenticatoroob.CodeSender)),
 		authenticatortotp.DependencySet,
+		authenticatorpasskey.DependencySet,
 
 		authenticatorservice.DependencySet,
 		wire.Bind(new(authenticatorservice.PasswordAuthenticatorProvider), new(*authenticatorpassword.Provider)),
+		wire.Bind(new(authenticatorservice.PasskeyAuthenticatorProvider), new(*authenticatorpasskey.Provider)),
 		wire.Bind(new(authenticatorservice.OOBOTPAuthenticatorProvider), new(*authenticatoroob.Provider)),
 		wire.Bind(new(authenticatorservice.TOTPAuthenticatorProvider), new(*authenticatortotp.Provider)),
 
@@ -162,9 +167,13 @@ var CommonDependencySet = wire.NewSet(
 		identityloginid.DependencySet,
 		wire.Bind(new(stdattrs.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
 		wire.Bind(new(interaction.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
+
 		identityoauth.DependencySet,
+
 		identityanonymous.DependencySet,
 		wire.Bind(new(interaction.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
+
+		identitypasskey.DependencySet,
 
 		identitybiometric.DependencySet,
 		wire.Bind(new(interaction.BiometricIdentityProvider), new(*identitybiometric.Provider)),
@@ -172,12 +181,14 @@ var CommonDependencySet = wire.NewSet(
 		identityservice.DependencySet,
 		wire.Bind(new(identityservice.LoginIDIdentityProvider), new(*identityloginid.Provider)),
 		wire.Bind(new(identityservice.OAuthIdentityProvider), new(*identityoauth.Provider)),
+		wire.Bind(new(identityservice.PasskeyIdentityProvider), new(*identitypasskey.Provider)),
 		wire.Bind(new(identityservice.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 		wire.Bind(new(identityservice.BiometricIdentityProvider), new(*identitybiometric.Provider)),
 
 		wire.Bind(new(facade.IdentityService), new(*identityservice.Service)),
 		wire.Bind(new(user.IdentityService), new(*identityservice.Service)),
 		wire.Bind(new(featurestdattrs.IdentityService), new(*identityservice.Service)),
+		wire.Bind(new(featurepasskey.IdentityService), new(*identityservice.Service)),
 
 		wire.Bind(new(oauthhandler.PromotionCodeStore), new(*identityanonymous.StoreRedis)),
 		wire.Bind(new(oauthhandler.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
@@ -201,6 +212,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(featurestdattrs.UserStore), new(*user.Store)),
 		wire.Bind(new(featurecustomattrs.UserStore), new(*user.Store)),
 		wire.Bind(new(featurecustomattrs.UserQueries), new(*user.RawQueries)),
+		wire.Bind(new(featurepasskey.UserService), new(*user.Queries)),
 		wire.Bind(new(facade.UserCommands), new(*user.Commands)),
 		wire.Bind(new(facade.UserQueries), new(*user.Queries)),
 		wire.Bind(new(facade.UserProvider), new(*user.Provider)),
@@ -282,6 +294,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(otp.TranslationService), new(*translation.Service)),
 		wire.Bind(new(forgotpassword.TranslationService), new(*translation.Service)),
 		wire.Bind(new(welcomemessage.TranslationService), new(*translation.Service)),
+		wire.Bind(new(featurepasskey.TranslationService), new(*translation.Service)),
 	),
 
 	wire.NewSet(
@@ -321,5 +334,12 @@ var CommonDependencySet = wire.NewSet(
 		usage.DependencySet,
 		wire.Bind(new(forgotpassword.HardSMSBucketer), new(*usage.HardSMSBucketer)),
 		wire.Bind(new(otp.HardSMSBucketer), new(*usage.HardSMSBucketer)),
+	),
+
+	wire.NewSet(
+		featurepasskey.DependencySet,
+		wire.Bind(new(identitypasskey.PasskeyService), new(*featurepasskey.Service)),
+		wire.Bind(new(authenticatorpasskey.PasskeyService), new(*featurepasskey.Service)),
+		wire.Bind(new(interaction.PasskeyService), new(*featurepasskey.Service)),
 	),
 )

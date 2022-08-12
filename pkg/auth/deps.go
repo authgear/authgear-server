@@ -24,6 +24,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
+	featurepasskey "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
@@ -148,6 +149,8 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.MeterService), new(*meter.Service)),
 	wire.Bind(new(handlerwebapp.WhatsappCodeProvider), new(*whatsapp.Provider)),
 	wire.Bind(new(handlerwebapp.ErrorCookie), new(*webapp.ErrorCookie)),
+	wire.Bind(new(handlerwebapp.PasskeyCreationOptionsService), new(*featurepasskey.CreationOptionsService)),
+	wire.Bind(new(handlerwebapp.PasskeyRequestOptionsService), new(*featurepasskey.RequestOptionsService)),
 
 	api.DependencySet,
 	wire.Bind(new(api.JSONResponseWriter), new(*httputil.JSONResponseWriter)),

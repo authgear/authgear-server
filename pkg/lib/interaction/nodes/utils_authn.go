@@ -13,15 +13,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
 
-func cloneAuthenticator(info *authenticator.Info) *authenticator.Info {
-	newInfo := *info
-	newInfo.Claims = map[string]interface{}{}
-	for k, v := range info.Claims {
-		newInfo.Claims[k] = v
-	}
-	return &newInfo
-}
-
 type SendOOBCode struct {
 	Context              *interaction.Context
 	Stage                authn.AuthenticationStage
@@ -59,10 +50,10 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 	switch p.AuthenticatorInfo.Type {
 	case model.AuthenticatorTypeOOBSMS:
 		channel = model.AuthenticatorOOBChannelSMS
-		target = p.AuthenticatorInfo.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string)
+		target = p.AuthenticatorInfo.OOBOTP.Phone
 	case model.AuthenticatorTypeOOBEmail:
 		channel = model.AuthenticatorOOBChannelEmail
-		target = p.AuthenticatorInfo.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string)
+		target = p.AuthenticatorInfo.OOBOTP.Email
 	default:
 		panic("interaction: incompatible authenticator type for sending oob code: " + p.AuthenticatorInfo.Type)
 	}

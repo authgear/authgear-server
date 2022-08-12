@@ -35,13 +35,13 @@ type IdentityService interface {
 type AuthenticatorService interface {
 	Get(id string) (*authenticator.Info, error)
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
-	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
-	NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec, secret string) (*authenticator.Info, error)
-	WithSecret(authenticatorInfo *authenticator.Info, secret string) (changed bool, info *authenticator.Info, err error)
+	New(spec *authenticator.Spec) (*authenticator.Info, error)
+	NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error)
+	WithSpec(authenticatorInfo *authenticator.Info, spec *authenticator.Spec) (changed bool, info *authenticator.Info, err error)
 	Create(authenticatorInfo *authenticator.Info) error
 	Update(authenticatorInfo *authenticator.Info) error
 	Delete(authenticatorInfo *authenticator.Info) error
-	VerifySecret(info *authenticator.Info, secret string) (requireUpdate bool, err error)
+	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec) (requireUpdate bool, err error)
 	RemoveOrphans(identities []*identity.Info) error
 }
 
@@ -180,6 +180,8 @@ func (c *Coordinator) IdentityUpdate(info *identity.Info) error {
 }
 
 func (c *Coordinator) IdentityDelete(is *identity.Info) error {
+	userID := is.UserID
+
 	err := c.Identities.Delete(is)
 	if err != nil {
 		return err
@@ -188,6 +190,52 @@ func (c *Coordinator) IdentityDelete(is *identity.Info) error {
 	err = c.removeOrphans(is.UserID)
 	if err != nil {
 		return err
+	}
+
+	identities, err := c.Identities.ListByUser(userID)
+	if err != nil {
+		return err
+	}
+
+	authenticators, err := c.Authenticators.List(userID)
+	if err != nil {
+		return err
+	}
+
+	// Ensure the user has at least one identifiable identity after deletion.
+	remaining := identity.ApplyFilters(
+		identities,
+		identity.KeepIdentifiable,
+	)
+	if len(remaining) <= 0 {
+		return NewInvariantViolated(
+			"RemoveLastIdentity",
+			"cannot remove last identity",
+			nil,
+		)
+	}
+
+	// And for each identifiable identity, if it requires primary authenticator,
+	// there is at least one applicable primary authenticator remaining.
+	for _, i := range remaining {
+		types := i.PrimaryAuthenticatorTypes()
+		if len(types) <= 0 {
+			continue
+		}
+
+		ok := false
+		for _, a := range authenticators {
+			if a.IsApplicableTo(i) {
+				ok = true
+			}
+		}
+		if !ok {
+			return NewInvariantViolated(
+				"RemoveLastPrimaryAuthenticator",
+				"cannot remove last primary authenticator for identity",
+				map[string]interface{}{"identity_id": i.ID},
+			)
+		}
 	}
 
 	err = c.StdAttrsService.PopulateIdentityAwareStandardAttributes(is.UserID)
@@ -210,16 +258,16 @@ func (c *Coordinator) AuthenticatorList(userID string, filters ...authenticator.
 	return c.Authenticators.List(userID, filters...)
 }
 
-func (c *Coordinator) AuthenticatorNew(spec *authenticator.Spec, secret string) (*authenticator.Info, error) {
-	return c.Authenticators.New(spec, secret)
+func (c *Coordinator) AuthenticatorNew(spec *authenticator.Spec) (*authenticator.Info, error) {
+	return c.Authenticators.New(spec)
 }
 
-func (c *Coordinator) AuthenticatorNewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec, secret string) (*authenticator.Info, error) {
-	return c.Authenticators.NewWithAuthenticatorID(authenticatorID, spec, secret)
+func (c *Coordinator) AuthenticatorNewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error) {
+	return c.Authenticators.NewWithAuthenticatorID(authenticatorID, spec)
 }
 
-func (c *Coordinator) AuthenticatorWithSecret(authenticatorInfo *authenticator.Info, secret string) (changed bool, info *authenticator.Info, err error) {
-	return c.Authenticators.WithSecret(authenticatorInfo, secret)
+func (c *Coordinator) AuthenticatorWithSpec(authenticatorInfo *authenticator.Info, spec *authenticator.Spec) (changed bool, info *authenticator.Info, err error) {
+	return c.Authenticators.WithSpec(authenticatorInfo, spec)
 }
 
 func (c *Coordinator) AuthenticatorCreate(authenticatorInfo *authenticator.Info) error {
@@ -255,8 +303,8 @@ func (c *Coordinator) AuthenticatorDelete(authenticatorInfo *authenticator.Info)
 	return nil
 }
 
-func (c *Coordinator) AuthenticatorVerifySecret(info *authenticator.Info, secret string) (requireUpdate bool, err error) {
-	return c.Authenticators.VerifySecret(info, secret)
+func (c *Coordinator) AuthenticatorVerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec) (requireUpdate bool, err error) {
+	return c.Authenticators.VerifyWithSpec(info, spec)
 }
 
 func (c *Coordinator) UserDelete(userID string, isScheduledDeletion bool) error {
@@ -387,9 +435,7 @@ func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
 		return nil
 	}
 
-	providerID := config.NewProviderID(
-		info.Claims[identity.IdentityClaimOAuthProviderKeys].(map[string]interface{}),
-	)
+	providerID := info.OAuth.ProviderID
 
 	var cfg *config.OAuthSSOProviderConfig
 	for _, c := range c.IdentityConfig.OAuth.Providers {
@@ -400,7 +446,9 @@ func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
 		}
 	}
 
-	email, ok := info.Claims[identity.StandardClaimEmail].(string)
+	standardClaims := info.StandardClaims()
+
+	email, ok := standardClaims[model.ClaimEmail]
 	if ok && cfg != nil && *cfg.Claims.Email.AssumeVerified {
 		// Mark as verified if OAuth email is assumed to be verified
 		err := c.markVerified(info.UserID, map[model.ClaimName]string{

@@ -77,6 +77,33 @@ func (s *Service2) DeleteSession(sessionID string) error {
 	return s.Sessions.Delete(sessionID)
 }
 
+// PeekUncommittedChanges runs fn with the effects of the graph fully applied.
+// This is useful if fn needs the effects of the graph visible to it.
+func (s *Service2) PeekUncommittedChanges(session *Session, fn func(graph *interaction.Graph) error) error {
+	graph, err := s.Graph.Get(session.CurrentStep().GraphID)
+	if err != nil {
+		return ErrInvalidSession
+	}
+
+	err = s.Graph.DryRun(session.ID, func(ctx *interaction.Context) (*interaction.Graph, error) {
+		err = graph.Apply(ctx)
+		if err != nil {
+			return nil, err
+		}
+		err = fn(graph)
+		if err != nil {
+			return nil, err
+		}
+
+		return nil, nil
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *Service2) Get(session *Session) (*interaction.Graph, error) {
 	graph, err := s.Graph.Get(session.CurrentStep().GraphID)
 	if err != nil {
@@ -134,6 +161,7 @@ func (s *Service2) PostWithInput(
 	})
 }
 
+// nolint: gocyclo
 func (s *Service2) doPost(
 	session *Session,
 	inputFn func() (interface{}, error),
@@ -194,6 +222,11 @@ func (s *Service2) doPost(
 					SessionStepEnterPassword,
 					graph.InstanceID,
 				))
+			case *nodes.EdgeAuthenticationPasskey:
+				session.Steps = append(session.Steps, NewSessionStep(
+					SessionStepUsePasskey,
+					graph.InstanceID,
+				))
 			case *nodes.EdgeAuthenticationTOTP:
 				session.Steps = append(session.Steps, NewSessionStep(
 					SessionStepEnterTOTP,
@@ -223,6 +256,11 @@ func (s *Service2) doPost(
 			case *nodes.EdgeCreateAuthenticatorPassword:
 				session.Steps = append(session.Steps, NewSessionStep(
 					SessionStepCreatePassword,
+					graph.InstanceID,
+				))
+			case *nodes.EdgeCreateAuthenticatorPasskey:
+				session.Steps = append(session.Steps, NewSessionStep(
+					SessionStepCreatePasskey,
 					graph.InstanceID,
 				))
 			case *nodes.EdgeCreateAuthenticatorOOBSetup:
@@ -515,6 +553,8 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 		default:
 			panic(fmt.Errorf("webapp: unexpected authentication stage: %s", currentNode.Stage))
 		}
+	case *nodes.NodePromptCreatePasskeyBegin:
+		return SessionStepPromptCreatePasskey
 	default:
 		panic(fmt.Errorf("webapp: unexpected node: %T", graph.CurrentNode()))
 	}

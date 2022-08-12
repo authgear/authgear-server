@@ -37,8 +37,8 @@ func (s *Store) selectQuery() db.SelectBuilder {
 		Join(s.SQLBuilder.TableName("_auth_identity_login_id"), "l", "p.id = l.id")
 }
 
-func (s *Store) scan(scn db.Scanner) (*Identity, error) {
-	i := &Identity{}
+func (s *Store) scan(scn db.Scanner) (*identity.LoginID, error) {
+	i := &identity.LoginID{}
 	var claims []byte
 
 	err := scn.Scan(
@@ -66,7 +66,7 @@ func (s *Store) scan(scn db.Scanner) (*Identity, error) {
 	return i, nil
 }
 
-func (s *Store) GetMany(ids []string) ([]*Identity, error) {
+func (s *Store) GetMany(ids []string) ([]*identity.LoginID, error) {
 	builder := s.selectQuery().Where("p.id = ANY (?)", pq.Array(ids))
 
 	rows, err := s.SQLExecutor.QueryWith(builder)
@@ -75,7 +75,7 @@ func (s *Store) GetMany(ids []string) ([]*Identity, error) {
 	}
 	defer rows.Close()
 
-	var is []*Identity
+	var is []*identity.LoginID
 	for rows.Next() {
 		i, err := s.scan(rows)
 		if err != nil {
@@ -87,7 +87,7 @@ func (s *Store) GetMany(ids []string) ([]*Identity, error) {
 	return is, nil
 }
 
-func (s *Store) List(userID string) ([]*Identity, error) {
+func (s *Store) List(userID string) ([]*identity.LoginID, error) {
 	q := s.selectQuery().Where("p.user_id = ?", userID)
 
 	rows, err := s.SQLExecutor.QueryWith(q)
@@ -96,7 +96,7 @@ func (s *Store) List(userID string) ([]*Identity, error) {
 	}
 	defer rows.Close()
 
-	var is []*Identity
+	var is []*identity.LoginID
 	for rows.Next() {
 		i, err := s.scan(rows)
 		if err != nil {
@@ -108,7 +108,7 @@ func (s *Store) List(userID string) ([]*Identity, error) {
 	return is, nil
 }
 
-func (s *Store) ListByClaim(name string, value string) ([]*Identity, error) {
+func (s *Store) ListByClaim(name string, value string) ([]*identity.LoginID, error) {
 	q := s.selectQuery().
 		Where("(l.claims #>> ?) = ?", pq.Array([]string{name}), value)
 
@@ -118,7 +118,7 @@ func (s *Store) ListByClaim(name string, value string) ([]*Identity, error) {
 	}
 	defer rows.Close()
 
-	var is []*Identity
+	var is []*identity.LoginID
 	for rows.Next() {
 		i, err := s.scan(rows)
 		if err != nil {
@@ -130,7 +130,7 @@ func (s *Store) ListByClaim(name string, value string) ([]*Identity, error) {
 	return is, nil
 }
 
-func (s *Store) Get(userID, id string) (*Identity, error) {
+func (s *Store) Get(userID, id string) (*identity.LoginID, error) {
 	q := s.selectQuery().Where("p.user_id = ? AND p.id = ?", userID, id)
 	rows, err := s.SQLExecutor.QueryRowWith(q)
 	if err != nil {
@@ -140,7 +140,7 @@ func (s *Store) Get(userID, id string) (*Identity, error) {
 	return s.scan(rows)
 }
 
-func (s *Store) GetByLoginID(loginIDKey string, loginID string) (*Identity, error) {
+func (s *Store) GetByLoginID(loginIDKey string, loginID string) (*identity.LoginID, error) {
 	q := s.selectQuery().Where(`l.login_id = ? AND l.login_id_key = ?`, loginID, loginIDKey)
 	rows, err := s.SQLExecutor.QueryRowWith(q)
 	if err != nil {
@@ -150,7 +150,7 @@ func (s *Store) GetByLoginID(loginIDKey string, loginID string) (*Identity, erro
 	return s.scan(rows)
 }
 
-func (s *Store) GetByUniqueKey(uniqueKey string) (*Identity, error) {
+func (s *Store) GetByUniqueKey(uniqueKey string) (*identity.LoginID, error) {
 	q := s.selectQuery().Where(`l.unique_key = ?`, uniqueKey)
 	rows, err := s.SQLExecutor.QueryRowWith(q)
 	if err != nil {
@@ -160,7 +160,7 @@ func (s *Store) GetByUniqueKey(uniqueKey string) (*Identity, error) {
 	return s.scan(rows)
 }
 
-func (s *Store) Create(i *Identity) (err error) {
+func (s *Store) Create(i *identity.LoginID) (err error) {
 	builder := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_identity")).
 		Columns(
@@ -217,7 +217,7 @@ func (s *Store) Create(i *Identity) (err error) {
 	return nil
 }
 
-func (s *Store) Update(i *Identity) error {
+func (s *Store) Update(i *identity.LoginID) error {
 	claims, err := json.Marshal(i.Claims)
 	if err != nil {
 		return err
@@ -260,7 +260,7 @@ func (s *Store) Update(i *Identity) error {
 	return nil
 }
 
-func (s *Store) Delete(i *Identity) error {
+func (s *Store) Delete(i *identity.LoginID) error {
 	q := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_identity_login_id")).
 		Where("id = ?", i.ID)

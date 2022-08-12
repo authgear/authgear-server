@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -53,12 +52,12 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 			return nil, interaction.ErrIncompatibleInput
 		}
 		identityInfo := graph.MustGetUserLastIdentity()
-		target = identityInfo.Claims[identity.IdentityClaimLoginIDValue].(string)
-		loginIDType := identityInfo.Claims[identity.IdentityClaimLoginIDType].(string)
-		switch config.LoginIDKeyType(loginIDType) {
-		case config.LoginIDKeyTypePhone:
+		target = identityInfo.LoginID.LoginID
+		loginIDType := identityInfo.LoginID.LoginIDType
+		switch loginIDType {
+		case model.LoginIDKeyTypePhone:
 			channel = model.AuthenticatorOOBChannelSMS
-		case config.LoginIDKeyTypeEmail:
+		case model.LoginIDKeyTypeEmail:
 			channel = model.AuthenticatorOOBChannelEmail
 		default:
 			panic(fmt.Sprintf("interaction: unexpected login id type: %s", loginIDType))
@@ -109,20 +108,20 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 			UserID:    identityInfo.UserID,
 			IsDefault: e.IsDefault,
 			Kind:      stageToAuthenticatorKind(e.Stage),
-			Claims:    map[string]interface{}{},
+			OOBOTP:    &authenticator.OOBOTPSpec{},
 		}
 
 		// Ignore given OOB target, use channel & target inferred from identity
-		loginIDKey := identityInfo.Claims[identity.IdentityClaimLoginIDKey].(string)
+		loginIDKey := identityInfo.LoginID.LoginIDKey
 		for _, t := range ctx.Config.Identity.LoginID.Keys {
 			if t.Key != loginIDKey {
 				continue
 			}
 			switch t.Type {
-			case config.LoginIDKeyTypeEmail:
+			case model.LoginIDKeyTypeEmail:
 				channel = model.AuthenticatorOOBChannelEmail
 				oobAuthenticatorType = model.AuthenticatorTypeOOBEmail
-			case config.LoginIDKeyTypePhone:
+			case model.LoginIDKeyTypePhone:
 				channel = model.AuthenticatorOOBChannelSMS
 				oobAuthenticatorType = model.AuthenticatorTypeOOBSMS
 			default:
@@ -133,7 +132,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 		if oobAuthenticatorType == "" {
 			panic("interaction: login ID not found for creating OOB authenticator")
 		}
-		target = identityInfo.Claims[identity.IdentityClaimLoginIDValue].(string)
+		target = identityInfo.LoginID.LoginID
 
 	} else {
 		userID := graph.MustGetUserID()
@@ -141,21 +140,21 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 			UserID:    userID,
 			IsDefault: e.IsDefault,
 			Kind:      stageToAuthenticatorKind(e.Stage),
-			Claims:    map[string]interface{}{},
+			OOBOTP:    &authenticator.OOBOTPSpec{},
 		}
 
 		// Normalize the target.
 		switch channel {
 		case model.AuthenticatorOOBChannelEmail:
 			var err error
-			target, err = ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypeEmail).Normalize(target)
+			target, err = ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyTypeEmail).Normalize(target)
 			if err != nil {
 				return nil, err
 			}
 			oobAuthenticatorType = model.AuthenticatorTypeOOBEmail
 		case model.AuthenticatorOOBChannelSMS:
 			var err error
-			target, err = ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypePhone).Normalize(target)
+			target, err = ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyTypePhone).Normalize(target)
 			if err != nil {
 				return nil, err
 			}
@@ -168,12 +167,12 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 	spec.Type = oobAuthenticatorType
 	switch channel {
 	case model.AuthenticatorOOBChannelSMS:
-		spec.Claims[authenticator.AuthenticatorClaimOOBOTPPhone] = target
+		spec.OOBOTP.Phone = target
 	case model.AuthenticatorOOBChannelEmail:
-		spec.Claims[authenticator.AuthenticatorClaimOOBOTPEmail] = target
+		spec.OOBOTP.Email = target
 	}
 
-	info, err := ctx.Authenticators.NewWithAuthenticatorID(e.NewAuthenticatorID, spec, "")
+	info, err := ctx.Authenticators.NewWithAuthenticatorID(e.NewAuthenticatorID, spec)
 	if err != nil {
 		return nil, err
 	}

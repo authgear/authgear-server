@@ -4,6 +4,7 @@ import (
 	"errors"
 	"sort"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -18,7 +19,7 @@ type Provider struct {
 	Clock             clock.Clock
 }
 
-func (p *Provider) List(userID string) ([]*Identity, error) {
+func (p *Provider) List(userID string) ([]*identity.LoginID, error) {
 	is, err := p.Store.List(userID)
 	if err != nil {
 		return nil, err
@@ -28,7 +29,7 @@ func (p *Provider) List(userID string) ([]*Identity, error) {
 	return is, nil
 }
 
-func (p *Provider) ListByClaim(name string, value string) ([]*Identity, error) {
+func (p *Provider) ListByClaim(name string, value string) ([]*identity.LoginID, error) {
 	is, err := p.Store.ListByClaim(name, value)
 	if err != nil {
 		return nil, err
@@ -38,15 +39,15 @@ func (p *Provider) ListByClaim(name string, value string) ([]*Identity, error) {
 	return is, nil
 }
 
-func (p *Provider) Get(userID, id string) (*Identity, error) {
+func (p *Provider) Get(userID, id string) (*identity.LoginID, error) {
 	return p.Store.Get(userID, id)
 }
 
-func (p *Provider) GetByValue(value string) ([]*Identity, error) {
-	im := map[string]*Identity{}
+func (p *Provider) GetByValue(value string) ([]*identity.LoginID, error) {
+	im := map[string]*identity.LoginID{}
 	for _, config := range p.Config.Keys {
 		// Normalize expects loginID is in correct type so we have to validate it first.
-		invalid := p.Checker.ValidateOne(Spec{
+		invalid := p.Checker.ValidateOne(identity.LoginIDSpec{
 			Key:   config.Key,
 			Type:  config.Type,
 			Value: value,
@@ -76,22 +77,22 @@ func (p *Provider) GetByValue(value string) ([]*Identity, error) {
 		im[i.ID] = i
 	}
 
-	var is []*Identity
+	var is []*identity.LoginID
 	for _, i := range im {
 		is = append(is, i)
 	}
 	return is, nil
 }
 
-func (p *Provider) GetMany(ids []string) ([]*Identity, error) {
+func (p *Provider) GetMany(ids []string) ([]*identity.LoginID, error) {
 	return p.Store.GetMany(ids)
 }
 
-func (p *Provider) IsLoginIDKeyType(loginIDKey string, loginIDKeyType config.LoginIDKeyType) bool {
+func (p *Provider) IsLoginIDKeyType(loginIDKey string, loginIDKeyType model.LoginIDKeyType) bool {
 	return p.Checker.CheckType(loginIDKey, loginIDKeyType)
 }
 
-func (p *Provider) Normalize(typ config.LoginIDKeyType, value string) (normalized string, uniqueKey string, err error) {
+func (p *Provider) Normalize(typ model.LoginIDKeyType, value string) (normalized string, uniqueKey string, err error) {
 	normalizer := p.NormalizerFactory.NormalizerWithLoginIDType(typ)
 	normalized, err = normalizer.Normalize(value)
 	if err != nil {
@@ -106,11 +107,11 @@ func (p *Provider) Normalize(typ config.LoginIDKeyType, value string) (normalize
 	return
 }
 
-func (p *Provider) ValidateOne(loginID Spec, options CheckerOptions) error {
+func (p *Provider) ValidateOne(loginID identity.LoginIDSpec, options CheckerOptions) error {
 	return p.Checker.ValidateOne(loginID, options)
 }
 
-func (p *Provider) New(userID string, spec Spec, options CheckerOptions) (*Identity, error) {
+func (p *Provider) New(userID string, spec identity.LoginIDSpec, options CheckerOptions) (*identity.LoginID, error) {
 	err := p.ValidateOne(spec, options)
 	if err != nil {
 		return nil, err
@@ -126,7 +127,7 @@ func (p *Provider) New(userID string, spec Spec, options CheckerOptions) (*Ident
 		claims[claimName] = normalized
 	}
 
-	iden := &Identity{
+	iden := &identity.LoginID{
 		ID:              uuid.New(),
 		UserID:          userID,
 		LoginIDKey:      spec.Key,
@@ -140,8 +141,8 @@ func (p *Provider) New(userID string, spec Spec, options CheckerOptions) (*Ident
 	return iden, nil
 }
 
-func (p *Provider) WithValue(iden *Identity, value string, options CheckerOptions) (*Identity, error) {
-	spec := Spec{
+func (p *Provider) WithValue(iden *identity.LoginID, value string, options CheckerOptions) (*identity.LoginID, error) {
+	spec := identity.LoginIDSpec{
 		Key:   iden.LoginIDKey,
 		Type:  iden.LoginIDType,
 		Value: value,
@@ -171,7 +172,7 @@ func (p *Provider) WithValue(iden *Identity, value string, options CheckerOption
 	return &newIden, nil
 }
 
-func (p *Provider) CheckDuplicated(uniqueKey string, standardClaims map[string]string, userID string) (*Identity, error) {
+func (p *Provider) CheckDuplicated(uniqueKey string, standardClaims map[model.ClaimName]string, userID string) (*identity.LoginID, error) {
 	// check duplication with unique key
 	info, err := p.Store.GetByUniqueKey(uniqueKey)
 	if err == nil {
@@ -182,7 +183,7 @@ func (p *Provider) CheckDuplicated(uniqueKey string, standardClaims map[string]s
 
 	// check duplication with standard claims
 	for name, value := range standardClaims {
-		ls, err := p.ListByClaim(name, value)
+		ls, err := p.ListByClaim(string(name), value)
 		if err != nil {
 			return nil, err
 		}
@@ -198,24 +199,24 @@ func (p *Provider) CheckDuplicated(uniqueKey string, standardClaims map[string]s
 	return nil, nil
 }
 
-func (p *Provider) Create(i *Identity) error {
+func (p *Provider) Create(i *identity.LoginID) error {
 	now := p.Clock.NowUTC()
 	i.CreatedAt = now
 	i.UpdatedAt = now
 	return p.Store.Create(i)
 }
 
-func (p *Provider) Update(i *Identity) error {
+func (p *Provider) Update(i *identity.LoginID) error {
 	now := p.Clock.NowUTC()
 	i.UpdatedAt = now
 	return p.Store.Update(i)
 }
 
-func (p *Provider) Delete(i *Identity) error {
+func (p *Provider) Delete(i *identity.LoginID) error {
 	return p.Store.Delete(i)
 }
 
-func sortIdentities(is []*Identity) {
+func sortIdentities(is []*identity.LoginID) {
 	sort.Slice(is, func(i, j int) bool {
 		return is[i].UniqueKey < is[j].UniqueKey
 	})

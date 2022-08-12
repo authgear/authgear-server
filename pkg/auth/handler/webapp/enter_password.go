@@ -20,9 +20,10 @@ var EnterPasswordSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_password": { "type": "string" }
+			"x_password": { "type": "string" },
+			"x_stage": { "type": "string" }
 		},
-		"required": ["x_password"]
+		"required": ["x_password", "x_stage"]
 	}
 `)
 
@@ -40,9 +41,10 @@ type EnterPasswordViewModel struct {
 }
 
 type EnterPasswordHandler struct {
-	ControllerFactory ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	Renderer          Renderer
+	ControllerFactory         ControllerFactory
+	BaseViewModel             *viewmodels.BaseViewModeler
+	AlternativeStepsViewModel *viewmodels.AlternativeStepsViewModeler
+	Renderer                  Renderer
 }
 
 func (h *EnterPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -50,8 +52,7 @@ func (h *EnterPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, 
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 
-	alternatives := viewmodels.AlternativeStepsViewModel{}
-	err := alternatives.AddAuthenticationAlternatives(graph, webapp.SessionStepEnterPassword)
+	alternatives, err := h.AlternativeStepsViewModel.AuthenticationAlternatives(graph, webapp.SessionStepEnterPassword)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +85,7 @@ func (h *EnterPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, 
 
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, enterPasswordViewModel)
-	viewmodels.Embed(data, alternatives)
+	viewmodels.Embed(data, *alternatives)
 
 	return data, nil
 }

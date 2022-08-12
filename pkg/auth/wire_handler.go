@@ -192,10 +192,31 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.UsePasskeyHandler)),
+	))
+}
+
 func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebapp.CreatePasswordHandler)),
+	))
+}
+
+func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.CreatePasskeyHandler)),
+	))
+}
+
+func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.PromptCreatePasskeyHandler)),
 	))
 }
 
@@ -353,6 +374,13 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsPasskeyHandler)),
+	))
+}
+
 func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
@@ -455,5 +483,19 @@ func newWebAppWebsocketHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebapp.WebsocketHandler)),
+	))
+}
+
+func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.PasskeyCreationOptionsHandler)),
+	))
+}
+
+func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.PasskeyRequestOptionsHandler)),
 	))
 }

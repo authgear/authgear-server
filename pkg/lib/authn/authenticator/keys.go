@@ -11,3 +11,9 @@ const (
 	// AuthenticatorClaimOOBOTPPhone is a claim with string value for OOB OTP phone channel.
 	AuthenticatorClaimOOBOTPPhone string = "https://authgear.com/claims/oob_otp/phone"
 )
+
+const (
+	// AuthenticatorClaimPasskeyCredentialID is a claim with a string value.
+	// nolint: gosec
+	AuthenticatorClaimPasskeyCredentialID string = "https://authgear.com/claims/passkey/credential_id"
+)

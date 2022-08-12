@@ -16,16 +16,16 @@ func (a AuthenticatorFacade) List(userID string, filters ...authenticator.Filter
 	return a.Coordinator.AuthenticatorList(userID, filters...)
 }
 
-func (a AuthenticatorFacade) New(spec *authenticator.Spec, secret string) (*authenticator.Info, error) {
-	return a.Coordinator.AuthenticatorNew(spec, secret)
+func (a AuthenticatorFacade) New(spec *authenticator.Spec) (*authenticator.Info, error) {
+	return a.Coordinator.AuthenticatorNew(spec)
 }
 
-func (a AuthenticatorFacade) NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec, secret string) (*authenticator.Info, error) {
-	return a.Coordinator.AuthenticatorNewWithAuthenticatorID(authenticatorID, spec, secret)
+func (a AuthenticatorFacade) NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error) {
+	return a.Coordinator.AuthenticatorNewWithAuthenticatorID(authenticatorID, spec)
 }
 
-func (a AuthenticatorFacade) WithSecret(authenticatorInfo *authenticator.Info, secret string) (changed bool, info *authenticator.Info, err error) {
-	return a.Coordinator.AuthenticatorWithSecret(authenticatorInfo, secret)
+func (a AuthenticatorFacade) WithSpec(authenticatorInfo *authenticator.Info, spec *authenticator.Spec) (changed bool, info *authenticator.Info, err error) {
+	return a.Coordinator.AuthenticatorWithSpec(authenticatorInfo, spec)
 }
 
 func (a AuthenticatorFacade) Create(authenticatorInfo *authenticator.Info) error {
@@ -40,6 +40,6 @@ func (a AuthenticatorFacade) Delete(authenticatorInfo *authenticator.Info) error
 	return a.Coordinator.AuthenticatorDelete(authenticatorInfo)
 }
 
-func (a AuthenticatorFacade) VerifySecret(info *authenticator.Info, secret string) (requireUpdate bool, err error) {
-	return a.Coordinator.AuthenticatorVerifySecret(info, secret)
+func (a AuthenticatorFacade) VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec) (requireUpdate bool, err error) {
+	return a.Coordinator.AuthenticatorVerifyWithSpec(info, spec)
 }

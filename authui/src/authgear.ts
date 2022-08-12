@@ -1,5 +1,5 @@
 import { start } from "@hotwired/turbo";
-import { Application } from "@hotwired/stimulus";
+import { Application, Controller } from "@hotwired/stimulus";
 import axios from "axios";
 import { CopyButtonController } from "./copy";
 import { PasswordVisibilityToggleController } from "./passwordVisibility";
@@ -19,7 +19,7 @@ import {
 } from "./date";
 import { TransferClickController } from "./click";
 import {
-  XHRSubmitFormController,
+  TurboformController,
   RestoreFormController,
   RetainFormFormController,
   RetainFormInputController,
@@ -27,6 +27,11 @@ import {
 import { ModalController } from "./modal";
 import { BackButtonController } from "./back";
 import { SimpleModalController } from "./simpleModal";
+import {
+  PasskeyCreationController,
+  PasskeyRequestController,
+  PasskeyAutofillController,
+} from "./passkey";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
 
@@ -35,6 +40,8 @@ axios.defaults.withCredentials = true;
 start();
 
 const Stimulus = Application.start();
+
+Stimulus.register("turboform", TurboformController);
 
 Stimulus.register(
   "password-visibility-toggle",
@@ -67,7 +74,6 @@ Stimulus.register("format-input-date", FormatInputDateController);
 
 Stimulus.register("transfer-click", TransferClickController);
 
-Stimulus.register("xhr-submit-form", XHRSubmitFormController);
 Stimulus.register("restore-form", RestoreFormController);
 Stimulus.register("retain-form-form", RetainFormFormController);
 Stimulus.register("retain-form-input", RetainFormInputController);
@@ -76,3 +82,7 @@ Stimulus.register("modal", ModalController);
 Stimulus.register("simple-modal", SimpleModalController);
 
 Stimulus.register("back-button", BackButtonController);
+
+Stimulus.register("passkey-creation", PasskeyCreationController);
+Stimulus.register("passkey-request", PasskeyRequestController);
+Stimulus.register("passkey-autofill", PasskeyAutofillController);

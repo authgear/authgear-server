@@ -211,6 +211,7 @@ export const primaryAuthenticatorTypes = [
   "password",
   "oob_otp_email",
   "oob_otp_sms",
+  "passkey",
 ] as const;
 export type PrimaryAuthenticatorType = typeof primaryAuthenticatorTypes[number];
 export function isPrimaryAuthenticatorType(
@@ -238,6 +239,7 @@ export const identityTypes = [
   "oauth",
   "anonymous",
   "biometric",
+  "passkey",
 ] as const;
 export type IdentityType = typeof identityTypes[number];
 

@@ -4,7 +4,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -48,7 +47,7 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(ctx *interaction.C
 		}
 		identityInfo := graph.MustGetUserLastIdentity()
 		userID = identityInfo.UserID
-		phone = identityInfo.Claims[identity.IdentityClaimLoginIDValue].(string)
+		phone = identityInfo.LoginID.LoginID
 	} else {
 		var input InputCreateAuthenticatorWhatsappOTPSetup
 		if !interaction.Input(rawInput, &input) {
@@ -64,7 +63,7 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(ctx *interaction.C
 		validationCtx.EmitError("format", map[string]interface{}{"format": "phone"})
 		return nil, validationCtx.Error("invalid target")
 	}
-	phone, err = ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypePhone).
+	phone, err = ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyTypePhone).
 		Normalize(phone)
 	if err != nil {
 		return nil, err
@@ -75,12 +74,12 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(ctx *interaction.C
 		IsDefault: e.IsDefault,
 		Kind:      stageToAuthenticatorKind(e.Stage),
 		Type:      e.AuthenticatorType(),
-		Claims: map[string]interface{}{
-			authenticator.AuthenticatorClaimOOBOTPPhone: phone,
+		OOBOTP: &authenticator.OOBOTPSpec{
+			Phone: phone,
 		},
 	}
 
-	info, err := ctx.Authenticators.NewWithAuthenticatorID(e.NewAuthenticatorID, spec, "")
+	info, err := ctx.Authenticators.NewWithAuthenticatorID(e.NewAuthenticatorID, spec)
 	if err != nil {
 		return nil, err
 	}

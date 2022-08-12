@@ -1,8 +1,8 @@
 package verification
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 type OTPMessageSender interface {
@@ -21,10 +21,10 @@ func (s *CodeSender) SendCode(code *Code) (err error) {
 		MessageType: otp.MessageTypeVerification,
 	}
 
-	switch config.LoginIDKeyType(code.LoginIDType) {
-	case config.LoginIDKeyTypeEmail:
+	switch model.LoginIDKeyType(code.LoginIDType) {
+	case model.LoginIDKeyTypeEmail:
 		err = s.OTPMessageSender.SendEmail(code.LoginID, opts)
-	case config.LoginIDKeyTypePhone:
+	case model.LoginIDKeyTypePhone:
 		err = s.OTPMessageSender.SendSMS(code.LoginID, opts)
 	default:
 		panic("verification: unsupported login ID type: " + code.LoginIDType)

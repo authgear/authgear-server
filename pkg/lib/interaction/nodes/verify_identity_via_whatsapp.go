@@ -32,7 +32,7 @@ func (e *EdgeVerifyIdentityViaWhatsapp) Instantiate(ctx *interaction.Context, gr
 		panic(err)
 	}
 
-	phone := e.Identity.Claims[identity.IdentityClaimLoginIDValue].(string)
+	phone := e.Identity.LoginID.LoginID
 
 	code, err := ctx.WhatsappCodeProvider.CreateCode(phone, string(ctx.Config.ID), ctx.WebSessionID)
 	if err != nil {
@@ -106,7 +106,7 @@ func (e *EdgeVerifyIdentityViaWhatsappCheckCode) Instantiate(ctx *interaction.Co
 		return nil, interaction.ErrIncompatibleInput
 	}
 
-	phone := e.Identity.Claims[identity.IdentityClaimLoginIDValue].(string)
+	phone := e.Identity.LoginID.LoginID
 	_, err := ctx.WhatsappCodeProvider.VerifyCode(phone, ctx.WebSessionID, true)
 	if err != nil {
 		return nil, err
@@ -114,7 +114,7 @@ func (e *EdgeVerifyIdentityViaWhatsappCheckCode) Instantiate(ctx *interaction.Co
 
 	verifiedClaim := ctx.Verification.NewVerifiedClaim(
 		e.Identity.UserID,
-		identity.StandardClaimPhoneNumber,
+		string(identity.StandardClaimPhoneNumber),
 		phone,
 	)
 	return &NodeEnsureVerificationEnd{
@@ -128,8 +128,8 @@ func ensurePhoneLoginIDIdentity(info *identity.Info) error {
 		return fmt.Errorf("interaction: expect login ID identity: %s", info.Type)
 	}
 
-	loginIDType := info.Claims[identity.IdentityClaimLoginIDType].(string)
-	if loginIDType != string(config.LoginIDKeyTypePhone) {
+	loginIDType := info.LoginID.LoginIDType
+	if loginIDType != model.LoginIDKeyTypePhone {
 		return fmt.Errorf("interaction: expect phone login id type: %s", info.Type)
 	}
 

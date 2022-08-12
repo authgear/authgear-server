@@ -43,13 +43,13 @@ func handleAlternativeSteps(ctrl *Controller) {
 			choiceStep = webapp.SessionStepAuthenticate
 			inputFn = nil
 
-		case webapp.SessionStepSetupOOBOTPEmail,
-			webapp.SessionStepCreatePassword:
+		case webapp.SessionStepCreatePassword:
 			// Simple redirect.
 			choiceStep = webapp.SessionStepCreateAuthenticator
 			inputFn = nil
 
-		case webapp.SessionStepSetupOOBOTPSMS:
+		case webapp.SessionStepSetupOOBOTPEmail,
+			webapp.SessionStepSetupOOBOTPSMS:
 			graph, err := ctrl.InteractionGet()
 			if err != nil {
 				return err
@@ -180,6 +180,31 @@ func handleAlternativeSteps(ctrl *Controller) {
 			inputFn = func() (interface{}, error) {
 				return &InputSelectVerifyIdentityViaWhatsapp{}, nil
 			}
+		case webapp.SessionStepCreatePasskey:
+			choiceStep = webapp.SessionStepCreateAuthenticator
+			inputFn = func() (interface{}, error) {
+				attestationResponseStr := ctrl.request.Form.Get("x_attestation_response")
+				attestationResponse := []byte(attestationResponseStr)
+				stage := ctrl.request.Form.Get("x_stage")
+
+				return &InputPasskeyAttestationResponse{
+					Stage:               stage,
+					AttestationResponse: attestationResponse,
+				}, nil
+			}
+		case webapp.SessionStepUsePasskey:
+			choiceStep = webapp.SessionStepAuthenticate
+			inputFn = func() (interface{}, error) {
+				assertionResponseStr := ctrl.request.Form.Get("x_assertion_response")
+				assertionResponse := []byte(assertionResponseStr)
+				stage := ctrl.request.Form.Get("x_stage")
+
+				return &InputPasskeyAssertionResponse{
+					Stage:             stage,
+					AssertionResponse: assertionResponse,
+				}, nil
+			}
+			break
 		}
 
 		// Rewind session back to the choosing step.

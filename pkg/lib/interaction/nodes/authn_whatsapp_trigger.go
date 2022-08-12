@@ -34,7 +34,7 @@ func (e *EdgeAuthenticationWhatsappTrigger) GetPhone(idx int) string {
 	if err != nil {
 		return ""
 	}
-	return info.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string)
+	return info.OOBOTP.Phone
 }
 
 func (e *EdgeAuthenticationWhatsappTrigger) AuthenticatorType() model.AuthenticatorType {
@@ -57,7 +57,7 @@ func (e *EdgeAuthenticationWhatsappTrigger) Instantiate(ctx *interaction.Context
 		return nil, authenticator.ErrAuthenticatorNotFound
 	}
 	targetInfo := e.Authenticators[idx]
-	phone := targetInfo.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string)
+	phone := targetInfo.OOBOTP.Phone
 	code, err := ctx.WhatsappCodeProvider.CreateCode(phone, string(ctx.Config.ID), ctx.WebSessionID)
 	if err != nil {
 		return nil, err

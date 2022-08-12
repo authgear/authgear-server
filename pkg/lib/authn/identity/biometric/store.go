@@ -33,8 +33,8 @@ func (s *Store) selectQuery() db.SelectBuilder {
 		Join(s.SQLBuilder.TableName("_auth_identity_biometric"), "b", "p.id = b.id")
 }
 
-func (s *Store) scan(scn db.Scanner) (*Identity, error) {
-	i := &Identity{}
+func (s *Store) scan(scn db.Scanner) (*identity.Biometric, error) {
+	i := &identity.Biometric{}
 	var deviceInfo []byte
 
 	err := scn.Scan(
@@ -59,7 +59,7 @@ func (s *Store) scan(scn db.Scanner) (*Identity, error) {
 	return i, nil
 }
 
-func (s *Store) GetMany(ids []string) ([]*Identity, error) {
+func (s *Store) GetMany(ids []string) ([]*identity.Biometric, error) {
 	builder := s.selectQuery().Where("p.id = ANY (?)", pq.Array(ids))
 
 	rows, err := s.SQLExecutor.QueryWith(builder)
@@ -68,7 +68,7 @@ func (s *Store) GetMany(ids []string) ([]*Identity, error) {
 	}
 	defer rows.Close()
 
-	var is []*Identity
+	var is []*identity.Biometric
 	for rows.Next() {
 		i, err := s.scan(rows)
 		if err != nil {
@@ -80,7 +80,7 @@ func (s *Store) GetMany(ids []string) ([]*Identity, error) {
 	return is, nil
 }
 
-func (s *Store) List(userID string) ([]*Identity, error) {
+func (s *Store) List(userID string) ([]*identity.Biometric, error) {
 	q := s.selectQuery().Where("p.user_id = ?", userID)
 
 	rows, err := s.SQLExecutor.QueryWith(q)
@@ -89,7 +89,7 @@ func (s *Store) List(userID string) ([]*Identity, error) {
 	}
 	defer rows.Close()
 
-	var is []*Identity
+	var is []*identity.Biometric
 	for rows.Next() {
 		i, err := s.scan(rows)
 		if err != nil {
@@ -101,7 +101,7 @@ func (s *Store) List(userID string) ([]*Identity, error) {
 	return is, nil
 }
 
-func (s *Store) ListByClaim(name string, value string) ([]*Identity, error) {
+func (s *Store) ListByClaim(name string, value string) ([]*identity.Biometric, error) {
 	if name != "kid" {
 		return nil, nil
 	}
@@ -114,7 +114,7 @@ func (s *Store) ListByClaim(name string, value string) ([]*Identity, error) {
 	}
 	defer rows.Close()
 
-	var is []*Identity
+	var is []*identity.Biometric
 	for rows.Next() {
 		i, err := s.scan(rows)
 		if err != nil {
@@ -126,7 +126,7 @@ func (s *Store) ListByClaim(name string, value string) ([]*Identity, error) {
 	return is, nil
 }
 
-func (s *Store) Get(userID, id string) (*Identity, error) {
+func (s *Store) Get(userID, id string) (*identity.Biometric, error) {
 	q := s.selectQuery().Where("p.user_id = ? AND p.id = ?", userID, id)
 	rows, err := s.SQLExecutor.QueryRowWith(q)
 	if err != nil {
@@ -136,7 +136,7 @@ func (s *Store) Get(userID, id string) (*Identity, error) {
 	return s.scan(rows)
 }
 
-func (s *Store) GetByKeyID(keyID string) (*Identity, error) {
+func (s *Store) GetByKeyID(keyID string) (*identity.Biometric, error) {
 	q := s.selectQuery().Where("b.key_id = ?", keyID)
 	rows, err := s.SQLExecutor.QueryRowWith(q)
 	if err != nil {
@@ -146,7 +146,7 @@ func (s *Store) GetByKeyID(keyID string) (*Identity, error) {
 	return s.scan(rows)
 }
 
-func (s *Store) Create(i *Identity) error {
+func (s *Store) Create(i *identity.Biometric) error {
 	deviceInfo, err := json.Marshal(i.DeviceInfo)
 	if err != nil {
 		return err
@@ -197,7 +197,7 @@ func (s *Store) Create(i *Identity) error {
 	return nil
 }
 
-func (s *Store) Delete(i *Identity) error {
+func (s *Store) Delete(i *identity.Biometric) error {
 	q := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_identity_biometric")).
 		Where("id = ?", i.ID)
