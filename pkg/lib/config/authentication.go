@@ -138,13 +138,11 @@ func (c *AuthenticationConfig) SetDefaults() {
 		c.Identities = []model.IdentityType{
 			model.IdentityTypeOAuth,
 			model.IdentityTypeLoginID,
-			model.IdentityTypePasskey,
 		}
 	}
 	if c.PrimaryAuthenticators == nil {
 		c.PrimaryAuthenticators = &[]model.AuthenticatorType{
 			model.AuthenticatorTypePassword,
-			model.AuthenticatorTypePasskey,
 		}
 	}
 	if c.SecondaryAuthenticators == nil {

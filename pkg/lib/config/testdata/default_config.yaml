@@ -271,10 +271,8 @@ authentication:
   identities:
     - oauth
     - login_id
-    - passkey
   primary_authenticators:
     - password
-    - passkey
   secondary_authenticators:
     - totp
   secondary_authentication_mode: if_exists
