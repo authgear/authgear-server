@@ -325,7 +325,7 @@
   "AuthenticatorConfigurationScreen.passkey.title": "Login with passkey",
   "AuthenticatorConfigurationScreen.passkey.on": "On",
   "AuthenticatorConfigurationScreen.passkey.off": "Off",
-  "AuthenticatorConfigurationScreen.passkey.description": "Passkeys give users a simple and secure way to sign in your apps and websites across platforms without passwords. {ExternalLink, react, href{https://docs.authgear.com/} children{Learn more about passkeys}}",
+  "AuthenticatorConfigurationScreen.passkey.description": "Passkeys give users a simple and secure way to sign in your apps and websites across platforms without passwords. {ExternalLink, react, href{https://docs.authgear.com/strategies/passkeys} children{Learn more about passkeys}}",
 
   "VerificationConfigurationScreen.title": "User Verification",
   "VerificationConfigurationScreen.description": "Configure if the email or phone number of your users could be verified and if it is required",
