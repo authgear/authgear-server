@@ -83,6 +83,7 @@ func (h *WhatsappOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 	default:
 		// identity verification
 		// alternatives are provided in PhoneOTPAlternativeStepsViewModel
+		alternatives = &viewmodels.AlternativeStepsViewModel{}
 	}
 
 	viewmodels.Embed(data, baseViewModel)
