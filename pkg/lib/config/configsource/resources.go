@@ -120,6 +120,12 @@ func (d AuthgearYAMLDescriptor) UpdateResource(ctx context.Context, _ []resource
 		return nil, err
 	}
 
+	incoming.RemoveDefaults()
+	data, err = yaml.Marshal(incoming)
+	if err != nil {
+		return nil, err
+	}
+
 	return &resource.ResourceFile{
 		Location: resrc.Location,
 		Data:     data,
