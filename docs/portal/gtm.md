@@ -15,16 +15,14 @@ This document describes how to setup portal tracking to send data to Mixpanel vi
       - Event name: `authgear.*`
       - Use regex matching: true
       - Fires on: All Custom Events
+  - Built-In Variables
+    - Select all
   - User-Defined Variables
-    - `gtm.element.dataset.authgearEvent`
+    - `gtm.element.dataset`
       - Type: Data Layer Variables
-    - `gtm.element.dataset.authgearEventValue1`
+    - `appId`
       - Type: Data Layer Variables
-    - `gtm.element.dataset.authgearEventAppId`
-      - Type: Data Layer Variables
-    - `appID`
-      - Type: Data Layer Variables
-    - `value1`
+    - `eventData`
       - Type: Data Layer Variables
   - Tags
     - `Mixpanel Initialize`
@@ -34,22 +32,36 @@ This document describes how to setup portal tracking to send data to Mixpanel vi
     - `Mixpanel Track Click`
       - Type: Custom HTML
       - HTML:
-          ```
-          <script type="text/javascript">
-            var event = {{gtm.element.dataset.authgearEvent}};
-            var value1 = {{gtm.element.dataset.authgearEventValue1}};
-            mixpanel.track(event, {value1: value1});
-          </script>
-          ```
+        ```html
+        <script type="text/javascript">
+          function lowercaseFirstLetter(string) {
+            return string.charAt(0).toLowerCase() + string.slice(1);
+          }
+          var AUTHGEAR_EVENT = "authgearEvent";
+          var AUTHGEAR_EVENT_DATA = "authgearEventData";
+          var dataset = {{gtm.element.dataset}};
+          if (AUTHGEAR_EVENT in dataset) {
+            var event = dataset.authgearEvent;
+            var eventData = {};
+            Object.keys(dataset).map(function(k) {
+              if (k.startsWith(AUTHGEAR_EVENT_DATA)) {
+                var eventDataKey = lowercaseFirstLetter(k.replace(AUTHGEAR_EVENT_DATA, ""));
+                eventData[eventDataKey] = dataset[k];
+              }
+            });
+            mixpanel.track(event, eventData);
+          }
+        </script>
+        ```
       - Trigger: `Click With data-authgear-event`
     - `Mixpanel Track Custom Event`
       - Type: Custom HTML
       - HTML:
-          ```
-          <script type="text/javascript">
-            var value1 = {{value1}};
-            var appID = {{appID}};
-            mixpanel.track(event, {appID: appID, value1: value1});
-          </script>
-          ```
+        ```html
+        <script type="text/javascript">
+          var appId = {{appId}};
+          var eventData = {{eventData}};
+          mixpanel.track({{Event}}, Object.assign({appId: appId}, eventData));
+        </script>
+        ```
       - Trigger: `Click With data-authgear-event`

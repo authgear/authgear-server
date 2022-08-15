@@ -17,6 +17,7 @@ import { useSimpleForm } from "../../hook/useSimpleForm";
 import { randomProjectName } from "../../util/projectname";
 import { extractRawID } from "../../util/graphql";
 import {
+  AuthgearGTMEvent,
   AuthgearGTMEventType,
   useAuthgearGTMEvent,
   useGTMDispatch,
@@ -118,10 +119,9 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
       const appID = form.submissionResult;
       const rawAppID = extractRawID(appID);
       // assign app id to the event after creating the app
-      const event = {
+      const event: AuthgearGTMEvent = {
         ...gtmEvent,
-        appID: rawAppID,
-        value1: rawAppID,
+        appId: rawAppID,
       };
       sendDataToGTM(event);
       navigate(`/project/${encodeURIComponent(appID)}/wizard`);

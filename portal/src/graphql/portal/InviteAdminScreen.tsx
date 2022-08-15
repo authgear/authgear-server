@@ -11,6 +11,7 @@ import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
 import styles from "./InviteAdminScreen.module.css";
 import {
+  AuthgearGTMEvent,
   AuthgearGTMEventType,
   useAuthgearGTMEvent,
   useGTMDispatch,
@@ -72,11 +73,23 @@ const InviteAdminScreen: React.FC = function InviteAdminScreen() {
   const { createCollaboratorInvitation } =
     useCreateCollaboratorInvitationMutation(appID);
 
+  const sendDataToGTM = useGTMDispatch();
+  const gtmEvent = useAuthgearGTMEvent({
+    event: AuthgearGTMEventType.InviteAdmin,
+  });
+
   const submit = useCallback(
     async (state: FormState) => {
       await createCollaboratorInvitation(state.email);
+      const event: AuthgearGTMEvent = {
+        ...gtmEvent,
+        eventData: {
+          collaboratorEmail: state.email,
+        },
+      };
+      sendDataToGTM(event);
     },
-    [createCollaboratorInvitation]
+    [createCollaboratorInvitation, sendDataToGTM, gtmEvent]
   );
 
   const form = useSimpleForm({
@@ -86,16 +99,11 @@ const InviteAdminScreen: React.FC = function InviteAdminScreen() {
     submit,
   });
 
-  const sendDataToGTM = useGTMDispatch();
-  const gtmEvent = useAuthgearGTMEvent({
-    event: AuthgearGTMEventType.InviteAdmin,
-  });
   useEffect(() => {
     if (form.isSubmitted) {
-      sendDataToGTM(gtmEvent);
       navigate("./..");
     }
-  }, [form.isSubmitted, navigate, sendDataToGTM, gtmEvent]);
+  }, [form.isSubmitted, navigate]);
 
   const errorRules: ErrorParseRule[] = useMemo(
     () => [

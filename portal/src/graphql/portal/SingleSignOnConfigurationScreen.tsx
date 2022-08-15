@@ -33,7 +33,11 @@ import {
 } from "../../types";
 import styles from "./SingleSignOnConfigurationScreen.module.css";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
-import { AuthgearGTMEventType, useAuthgearGTMEvent } from "../../GTMProvider";
+import {
+  AuthgearGTMEvent,
+  AuthgearGTMEventType,
+  useAuthgearGTMEvent,
+} from "../../GTMProvider";
 import { useGTMDispatch } from "@elgorditosalsero/react-gtm-hook";
 
 interface SSOProviderFormState {
@@ -351,9 +355,11 @@ const SingleSignOnConfigurationScreen: React.FC =
 
       await config.save();
       if (addedProviders.length > 0) {
-        const event = {
+        const event: AuthgearGTMEvent = {
           ...gtmEvent,
-          value1: addedProviders,
+          eventData: {
+            providers: addedProviders,
+          },
         };
         sendDataToGTM(event);
       }

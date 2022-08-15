@@ -226,7 +226,9 @@ function Card(props: CardProps) {
 
   const eventDataAttributes = useAuthgearGTMEventDataAttributes({
     event: AuthgearGTMEventType.ClickGetStarted,
-    value1: cardKey,
+    eventData: {
+      "get-started-type": cardKey,
+    },
   });
 
   return (

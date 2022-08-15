@@ -5,10 +5,13 @@ import {
 } from "@elgorditosalsero/react-gtm-hook";
 import { useAppContext } from "./context/AppContext";
 
+export type TrackValue = string | string[] | undefined;
+export type EventData = Record<string, TrackValue>;
+
 export interface AuthgearGTMEvent {
   event: AuthgearGTMEventType;
-  appID?: string;
-  value1?: string | string[];
+  appId?: string;
+  eventData?: EventData;
 }
 
 export enum AuthgearGTMEventType {
@@ -21,12 +24,12 @@ export enum AuthgearGTMEventType {
 
 interface AuthgearGTMEventParams {
   event: AuthgearGTMEventType;
-  value1?: string;
+  eventData?: EventData;
 }
 
 export function useAuthgearGTMEvent({
   event,
-  value1,
+  eventData,
 }: AuthgearGTMEventParams): AuthgearGTMEvent {
   let appContextID: string | undefined;
   try {
@@ -37,10 +40,10 @@ export function useAuthgearGTMEvent({
   return useMemo(() => {
     return {
       event: event,
-      appID: appContextID,
-      value1: value1,
+      appId: appContextID,
+      eventData,
     };
-  }, [event, value1, appContextID]);
+  }, [event, eventData, appContextID]);
 }
 
 export function useAuthgearGTMEventDataAttributes(
@@ -51,12 +54,20 @@ export function useAuthgearGTMEventDataAttributes(
     const attributes: Record<string, string> = {
       "data-authgear-event": event.event,
     };
-    if (event.appID) {
-      attributes["data-authgear-event-app-id"] = event.appID;
+    if (event.appId) {
+      attributes["data-authgear-event-data-app-id"] = event.appId;
     }
-    // only support string for data attributes
-    if (typeof event.value1 === "string") {
-      attributes["data-authgear-event-value1"] = event.value1;
+    if (event.eventData) {
+      for (const k in event.eventData) {
+        if (!Object.prototype.hasOwnProperty.call(event.eventData, k)) {
+          continue;
+        }
+        // only support string for data attributes
+        const v = event.eventData[k];
+        if (typeof v === "string") {
+          attributes[`data-authgear-event-data-${k}`] = v;
+        }
+      }
     }
     return attributes;
   }, [event]);
