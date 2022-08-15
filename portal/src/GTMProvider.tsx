@@ -5,7 +5,7 @@ import {
 } from "@elgorditosalsero/react-gtm-hook";
 import { useAppContext } from "./context/AppContext";
 
-export type TrackValue = string | string[] | undefined;
+export type TrackValue = string | string[] | boolean | undefined;
 export type EventData = Record<string, TrackValue>;
 
 export interface AuthgearGTMEvent {
@@ -21,6 +21,8 @@ export enum AuthgearGTMEventType {
   InviteAdmin = "authgear.inviteAdmin",
   AddSSOProviders = "authgear.addSSOProviders",
   ClickDocLink = "authgear.clickDocLink",
+  ClickNextInProjectWizard = "authgear.clickNextInProjectWizard",
+  ClickSkipInProjectWizard = "authgear.clickSkipInProjectWizard",
 }
 
 interface AuthgearGTMEventParams {

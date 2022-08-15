@@ -10,6 +10,11 @@ import {
 import { FormattedMessage } from "@oursky/react-messageformat";
 import ReactRouterLink from "./ReactRouterLink";
 import styles from "./WizardContentLayout.module.css";
+import {
+  AuthgearGTMEventType,
+  EventData,
+  useAuthgearGTMEventDataAttributes,
+} from "./GTMProvider";
 
 export function WizardDivider(): React.ReactElement {
   const theme = useTheme();
@@ -54,13 +59,22 @@ export interface WizardContentLayoutProps {
   backButtonDisabled?: boolean;
   children?: React.ReactNode;
   appID?: string;
+  trackSkipButtonClick?: boolean;
+  trackSkipButtonEventData?: EventData;
 }
 
 export default function WizardContentLayout(
   props: WizardContentLayoutProps
 ): React.ReactElement {
   const navigate = useNavigate();
-  const { children, primaryButton, backButtonDisabled, appID } = props;
+  const {
+    children,
+    primaryButton,
+    backButtonDisabled,
+    appID,
+    trackSkipButtonClick,
+    trackSkipButtonEventData,
+  } = props;
   const onClickBackButton = useCallback(
     (e) => {
       e.preventDefault();
@@ -69,6 +83,12 @@ export default function WizardContentLayout(
     },
     [navigate]
   );
+
+  const gtmEventDataAttributes = useAuthgearGTMEventDataAttributes({
+    event: AuthgearGTMEventType.ClickSkipInProjectWizard,
+    eventData: trackSkipButtonEventData,
+  });
+
   return (
     <div className={styles.root}>
       <div
@@ -90,6 +110,7 @@ export default function WizardContentLayout(
           className={styles.skip}
           to={`/project/${appID}`}
           component={FluentLink}
+          {...(trackSkipButtonClick ? gtmEventDataAttributes : {})}
         >
           <FormattedMessage id="WizardContentLayout.skip.label" />
         </ReactRouterLink>

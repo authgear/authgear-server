@@ -37,6 +37,11 @@ import { TooltipIcon, useTooltipTargetElement } from "../../Tooltip";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import styles from "./ProjectWizardScreen.module.css";
+import {
+  AuthgearGTMEventType,
+  useAuthgearGTMEvent,
+  useGTMDispatch,
+} from "../../GTMProvider";
 
 const TOOLTIP_HOST_STYLES = {
   root: {
@@ -122,13 +127,24 @@ function Step1(props: StepProps) {
   const navigate = useNavigate();
   const { renderToString } = useContext(Context);
 
+  const sendDataToGTM = useGTMDispatch();
+  const gtmEvent = useAuthgearGTMEvent({
+    event: AuthgearGTMEventType.ClickNextInProjectWizard,
+    eventData: {
+      appId: rawAppID,
+      currentStep: "1",
+      primaryAuthenticator: step1Answer,
+    },
+  });
+
   const onClickNext = useCallback(
     (e) => {
       e.preventDefault();
       e.stopPropagation();
+      sendDataToGTM(gtmEvent);
       navigate("./../2");
     },
-    [navigate]
+    [navigate, gtmEvent, sendDataToGTM]
   );
 
   const { id, setRef, targetElement } = useTooltipTargetElement();
@@ -192,6 +208,10 @@ function Step1(props: StepProps) {
     [setState]
   );
 
+  const trackSkipButtonEventData = useMemo(() => {
+    return { "app-id": rawAppID, "current-step": "1" };
+  }, [rawAppID]);
+
   return (
     <WizardContentLayout
       appID={appID}
@@ -201,6 +221,8 @@ function Step1(props: StepProps) {
           <FormattedMessage id="next" />
         </PrimaryButton>
       }
+      trackSkipButtonClick={true}
+      trackSkipButtonEventData={trackSkipButtonEventData}
     >
       <WizardTitle>
         <FormattedMessage
@@ -246,13 +268,24 @@ function Step2(props: StepProps) {
     ];
   }, [renderToString]);
 
+  const sendDataToGTM = useGTMDispatch();
+  const gtmEvent = useAuthgearGTMEvent({
+    event: AuthgearGTMEventType.ClickNextInProjectWizard,
+    eventData: {
+      appId: rawAppID,
+      currentStep: "2",
+      passkeyEnabled: step2Answer,
+    },
+  });
+
   const onClickNext = useCallback(
     (e) => {
       e.preventDefault();
       e.stopPropagation();
+      sendDataToGTM(gtmEvent);
       navigate("./../3");
     },
-    [navigate]
+    [navigate, gtmEvent, sendDataToGTM]
   );
 
   const onChange = useCallback(
@@ -267,6 +300,10 @@ function Step2(props: StepProps) {
     [setState]
   );
 
+  const trackSkipButtonEventData = useMemo(() => {
+    return { "app-id": rawAppID, "current-step": "2" };
+  }, [rawAppID]);
+
   return (
     <WizardContentLayout
       appID={appID}
@@ -275,6 +312,8 @@ function Step2(props: StepProps) {
           <FormattedMessage id="next" />
         </PrimaryButton>
       }
+      trackSkipButtonClick={true}
+      trackSkipButtonEventData={trackSkipButtonEventData}
     >
       <WizardTitle>
         <FormattedMessage
@@ -370,13 +409,26 @@ function Step3(props: StepProps) {
     return options;
   }, [step1Answer, renderToString]);
 
+  const sendDataToGTM = useGTMDispatch();
+  const gtmEvent = useAuthgearGTMEvent({
+    event: AuthgearGTMEventType.ClickNextInProjectWizard,
+    eventData: {
+      appId: rawAppID,
+      currentStep: "3",
+      useRecommendedSettings: step3Answer.useRecommenededSettings,
+      secondaryAuthenticatorType: step3Answer.secondaryAuthenticatorType,
+      secondaryAuthenticationMode: step3Answer.secondaryAuthenticationMode,
+    },
+  });
+
   const onClickNext = useCallback(
     (e) => {
       e.preventDefault();
       e.stopPropagation();
+      sendDataToGTM(gtmEvent);
       saveAndThenNavigate();
     },
-    [saveAndThenNavigate]
+    [saveAndThenNavigate, gtmEvent, sendDataToGTM]
   );
 
   const onChangeQ1 = useCallback(
@@ -424,6 +476,10 @@ function Step3(props: StepProps) {
     [setState]
   );
 
+  const trackSkipButtonEventData = useMemo(() => {
+    return { "app-id": rawAppID, "current-step": "3" };
+  }, [rawAppID]);
+
   return (
     <WizardContentLayout
       appID={appID}
@@ -432,6 +488,8 @@ function Step3(props: StepProps) {
           <FormattedMessage id="next" />
         </PrimaryButton>
       }
+      trackSkipButtonClick={true}
+      trackSkipButtonEventData={trackSkipButtonEventData}
     >
       <WizardTitle>
         <FormattedMessage
