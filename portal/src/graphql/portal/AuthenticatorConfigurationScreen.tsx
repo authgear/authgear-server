@@ -140,7 +140,8 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
 function constructConfig(
   config: PortalAPIAppConfig,
   initialState: FormState,
-  currentState: FormState
+  currentState: FormState,
+  effectiveConfig: PortalAPIAppConfig
 ): PortalAPIAppConfig {
   // eslint-disable-next-line complexity
   return produce(config, (config) => {
@@ -174,51 +175,49 @@ function constructConfig(
       return [...arr.slice(0, index), ...arr.slice(index + 1)];
     }
 
-    if (
-      !deepEqual(
-        filterEnabled(currentState.primary),
-        filterEnabled(initialState.primary),
-        { strict: true }
-      )
-    ) {
-      config.authentication.primary_authenticators = filterEnabled(
-        currentState.primary
-      );
-    }
-    if (
-      !deepEqual(
-        filterEnabled(currentState.secondary),
-        filterEnabled(initialState.secondary),
-        { strict: true }
-      )
-    ) {
-      config.authentication.secondary_authenticators = filterEnabled(
-        currentState.secondary
-      );
-    }
-
+    // Construct primary_authenticators and identities
+    // We do not offer any control to modify identities in this screen,
+    // so we read from effectiveConfig.authentication?.identities
+    // On the other hand, we always write config.authentication.primary_authenticators,
+    // so we read from it.
+    config.authentication.primary_authenticators = filterEnabled(
+      currentState.primary
+    );
     if (currentState.passkeyEnabled) {
       config.authentication.primary_authenticators = setEnable(
-        config.authentication.primary_authenticators ?? [],
+        config.authentication.primary_authenticators,
         "passkey",
         true
       );
       config.authentication.identities = setEnable(
-        config.authentication.identities ?? [],
+        effectiveConfig.authentication?.identities ?? [],
         "passkey",
         true
       );
     } else {
       config.authentication.primary_authenticators = setEnable(
-        config.authentication.primary_authenticators ?? [],
+        config.authentication.primary_authenticators,
         "passkey",
         false
       );
       config.authentication.identities = setEnable(
-        config.authentication.identities ?? [],
+        effectiveConfig.authentication?.identities ?? [],
         "passkey",
         false
       );
+    }
+    if (deepEqual(config.authentication.primary_authenticators, ["password"])) {
+      delete config.authentication.primary_authenticators;
+    }
+    if (deepEqual(config.authentication.identities, ["oauth", "login_id"])) {
+      delete config.authentication.identities;
+    }
+
+    config.authentication.secondary_authenticators = filterEnabled(
+      currentState.secondary
+    );
+    if (deepEqual(config.authentication.secondary_authenticators, ["totp"])) {
+      delete config.authentication.secondary_authenticators;
     }
 
     if (initialState.mfaMode !== currentState.mfaMode) {
