@@ -20,7 +20,7 @@ import { Location } from "history";
 function getAppRouterPath(location: Location) {
   // app router -> /app/:appID/*
   // discard first 3 segment (include leading slash)
-  return location.pathname.split("/").slice(3).join("/");
+  return "./" + location.pathname.split("/").slice(3).join("/");
 }
 
 function getPath(url: string) {
