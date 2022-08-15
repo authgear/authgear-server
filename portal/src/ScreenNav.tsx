@@ -59,7 +59,11 @@ interface NavLinkProps {
   }>;
 }
 
-const ScreenNav: React.FC = function ScreenNav() {
+interface ScreenNavProps {
+  onLinkClick?: () => void;
+}
+
+const ScreenNav: React.FC<ScreenNavProps> = function ScreenNav(props) {
   const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
   const { renderToString } = useContext(Context);
@@ -273,9 +277,10 @@ const ScreenNav: React.FC = function ScreenNav() {
       const path = getAppRouterPath(location);
       if (item?.url && !isPathSame(item.url, path)) {
         navigate(item.url);
+        props.onLinkClick?.();
       }
     },
-    [navigate, location]
+    [location, navigate, props]
   );
   const onLinkExpandClick = useCallback(
     (e?: React.MouseEvent, item?: INavLink) => {
