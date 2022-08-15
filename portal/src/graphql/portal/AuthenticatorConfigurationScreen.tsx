@@ -138,8 +138,9 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
 
 function constructConfig(
   config: PortalAPIAppConfig,
-  initialState: FormState,
-  currentState: FormState
+  _initialState: FormState,
+  currentState: FormState,
+  effectiveConfig: PortalAPIAppConfig
 ): PortalAPIAppConfig {
   // eslint-disable-next-line complexity
   return produce(config, (config) => {
@@ -180,6 +181,11 @@ function constructConfig(
       currentState.secondary
     );
 
+    // Construct primary_authenticators and identities
+    // We do not offer any control to modify identities in this screen,
+    // so we read from effectiveConfig.authentication?.identities
+    // On the other hand, we always write config.authentication.primary_authenticators,
+    // so we read from it.
     if (currentState.passkeyEnabled) {
       config.authentication.primary_authenticators = setEnable(
         config.authentication.primary_authenticators,
@@ -187,7 +193,7 @@ function constructConfig(
         true
       );
       config.authentication.identities = setEnable(
-        config.authentication.identities ?? [],
+        effectiveConfig.authentication?.identities ?? [],
         "passkey",
         true
       );
@@ -198,7 +204,7 @@ function constructConfig(
         false
       );
       config.authentication.identities = setEnable(
-        config.authentication.identities ?? [],
+        effectiveConfig.authentication?.identities ?? [],
         "passkey",
         false
       );
