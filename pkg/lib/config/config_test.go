@@ -86,6 +86,27 @@ identity:
 			So(cfg, ShouldResemble, cfg2)
 		})
 
+		Convey("remove default values", func() {
+			fixture := `id: test
+http:
+  public_origin: http://test
+`
+			cfg, err := config.Parse([]byte(fixture))
+			So(err, ShouldBeNil)
+
+			cfg.RemoveDefaults()
+			bytes, err := yaml.Marshal(cfg)
+			So(err, ShouldBeNil)
+
+			var fixtureValue interface{}
+			err = yaml.Unmarshal([]byte(fixture), &fixtureValue)
+			So(err, ShouldBeNil)
+			fixtureBytes, err := yaml.Marshal(fixtureValue)
+			So(err, ShouldBeNil)
+
+			So(string(bytes), ShouldEqual, string(fixtureBytes))
+		})
+
 		Convey("parse validation", func() {
 			f, err := os.Open("testdata/config_tests.yaml")
 			if err != nil {

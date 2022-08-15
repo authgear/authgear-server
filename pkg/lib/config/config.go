@@ -273,6 +273,18 @@ func (c *AppConfig) validateCustomAttribute(ctx *validation.Context) {
 	}
 }
 
+func (c *AppConfig) RemoveDefaults() {
+	defaults := &AppConfig{
+		ID: c.ID,
+		HTTP: &HTTPConfig{
+			PublicOrigin: c.HTTP.PublicOrigin,
+		},
+	}
+	PopulateDefaultValues(defaults)
+
+	unsetFieldDefaults(&c, &defaults)
+}
+
 func Parse(inputYAML []byte) (*AppConfig, error) {
 	const validationErrorMessage = "invalid configuration"
 
