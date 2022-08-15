@@ -20,6 +20,7 @@ export enum AuthgearGTMEventType {
   CreateApplication = "authgear.createApplication",
   InviteAdmin = "authgear.inviteAdmin",
   AddSSOProviders = "authgear.addSSOProviders",
+  ClickDocLink = "authgear.clickDocLink",
 }
 
 interface AuthgearGTMEventParams {

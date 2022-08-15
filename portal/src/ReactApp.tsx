@@ -27,7 +27,10 @@ import { ReactRouterLink, ReactRouterLinkProps } from "./ReactRouterLink";
 import Authenticated from "./graphql/portal/Authenticated";
 import { LoadingContextProvider } from "./hook/loading";
 import ShowLoading from "./ShowLoading";
-import GTMProvider from "./GTMProvider";
+import GTMProvider, {
+  AuthgearGTMEventType,
+  useAuthgearGTMEventDataAttributes,
+} from "./GTMProvider";
 
 const AppsScreen = lazy(async () => import("./graphql/portal/AppsScreen"));
 const CreateProjectScreen = lazy(
@@ -178,9 +181,28 @@ function ExternalLink(props: ILinkProps) {
   return <FluentLink target="_blank" rel="noreferrer" {...props} />;
 }
 
+const DocLink: React.FC<ILinkProps> = (props: ILinkProps) => {
+  const gtmEventDataAttributes = useAuthgearGTMEventDataAttributes({
+    event: AuthgearGTMEventType.ClickDocLink,
+    eventData: {
+      "doc-link": props.href,
+    },
+  });
+
+  return (
+    <FluentLink
+      target="_blank"
+      rel="noreferrer"
+      {...gtmEventDataAttributes}
+      {...props}
+    />
+  );
+};
+
 const defaultComponents = {
   ExternalLink,
   ReactRouterLink: PortalLink,
+  DocLink,
 };
 
 // ReactApp is responsible for fetching runtime config and initialize authgear SDK.

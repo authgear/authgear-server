@@ -90,7 +90,7 @@
   "errors.resource-too-large": "The {resourceType, select, favicon{favicon } app_logo{app logo } app_logo_dark{app logo } other{}}file size is too large. Please upload a JPG, PNG or GIF file smaller than {maxSize} KB.",
   "errors.webhook.disallowed": "Operation is disallowed by one of your webhook handler. Raw info: {code, react, children{{info}}}",
   "errors.webhook.timeout": "Operation is disallowed because the webhook delivery resulted in a timeout. Make sure your webhook handlers return a valid response in reasonable time.",
-  "errors.webhook.invalid-response": "Operation is disallowed because one of your webhook handler returned an invalid response. See {ExternalLink, react, href{https://docs.authgear.com/webhooks/webhooks} children{the documentation}} for details.",
+  "errors.webhook.invalid-response": "Operation is disallowed because one of your webhook handler returned an invalid response. See {DocLink, react, href{https://docs.authgear.com/webhooks/webhooks} children{the documentation}} for details.",
   "errors.network": "There is a problem with the network",
   "errors.request-entity-too-large": "The file size is too large. Please upload a file that is within the size limit.",
   "errors.unsupported-image-file": "Image file of {type} is unsupported",
@@ -326,7 +326,7 @@
   "AuthenticatorConfigurationScreen.passkey.title": "Login with passkey",
   "AuthenticatorConfigurationScreen.passkey.on": "On",
   "AuthenticatorConfigurationScreen.passkey.off": "Off",
-  "AuthenticatorConfigurationScreen.passkey.description": "Passkeys give users a simple and secure way to sign in your apps and websites across platforms without passwords. {ExternalLink, react, href{https://docs.authgear.com/strategies/passkeys} children{Learn more about passkeys}}",
+  "AuthenticatorConfigurationScreen.passkey.description": "Passkeys give users a simple and secure way to sign in your apps and websites across platforms without passwords. {DocLink, react, href{https://docs.authgear.com/strategies/passkeys} children{Learn more about passkeys}}",
 
   "VerificationConfigurationScreen.title": "User Verification",
   "VerificationConfigurationScreen.description": "Configure if the email or phone number of your users could be verified and if it is required",
@@ -334,7 +334,7 @@
   "VerificationConfigurationScreen.title.nav": "User Verification",
   "VerificationConfigurationScreen.code-expiry-seconds.label": "Verification code valid duration (seconds)",
   "VerificationConfigurationScreen.criteria.label": "{code, react, children{isVerified}} is true when ...",
-  "VerificationConfigurationScreen.criteria.tooltip": "More info in the {ExternalLink, react, href{https://docs.authgear.com/integrate/user-profile#userinfo-endpoint} children{UserInfo endpoint}}",
+  "VerificationConfigurationScreen.criteria.tooltip": "More info in the {DocLink, react, href{https://docs.authgear.com/integrate/user-profile#userinfo-endpoint} children{UserInfo endpoint}}",
   "VerificationConfigurationScreen.criteria.any": "At least one user's email/phone is verified",
   "VerificationConfigurationScreen.criteria.all": "All user's email/phone are verified",
   "VerificationConfigurationScreen.verification.claims.email": "Email address verification",
@@ -380,7 +380,7 @@
   "BiometricConfigurationScreen.list-enabled.label": "Show biometric logins list in setting page",
 
   "SingleSignOnConfigurationScreen.title": "Single-Sign On",
-  "SingleSignOnConfigurationScreen.description": "Configure and enable your users to login via SSO. Read the {ExternalLink, react, href{{HREF}} children{SSO integration guide}} if you need help",
+  "SingleSignOnConfigurationScreen.description": "Configure and enable your users to login via SSO. Read the {DocLink, react, href{https://docs.authgear.com/strategies/how-to-setup-sso-integrations} children{SSO integration guide}} if you need help",
   "SingleSignOnConfigurationScreen.widget.alias": "Alias",
   "SingleSignOnConfigurationScreen.widget.client-id": "Client ID",
   "SingleSignOnConfigurationScreen.widget.client-secret": "Client Secret",
@@ -589,7 +589,7 @@
   "EditTemplatesWidget.sms-body": "SMS Body",
 
   "EditTemplatesWidget.translationjson.title": "translation.json",
-  "EditTemplatesWidget.translationjson.subtitle": "You can override the translation of the text by providing the key-value pairs in the box below.{br, react}The latest list of text can be found {ExternalLink, react, href{https://github.com/authgear/authgear-server/blob/{COMMIT}/resources/authgear/templates/en/translation.json} children{here}}. See {ExternalLink, react, href{https://docs.authgear.com/customize/localization} children{the docs}} for more instructions",
+  "EditTemplatesWidget.translationjson.subtitle": "You can override the translation of the text by providing the key-value pairs in the box below.{br, react}The latest list of text can be found {ExternalLink, react, href{https://github.com/authgear/authgear-server/blob/{COMMIT}/resources/authgear/templates/en/translation.json} children{here}}. See {DocLink, react, href{https://docs.authgear.com/customize/localization} children{the docs}} for more instructions",
 
   "EditTemplatesWidget.custom-css.title": "Custom CSS",
   "EditTemplatesWidget.custom-css.subtitle": "Custom CSS to be included in every page",
@@ -699,17 +699,17 @@
   "WebhookConfigurationScreen.timeout.label": "Per-handler timeout (seconds)",
 
   "WebhookConfigurationScreen.blocking-events": "Blocking Events",
-  "WebhookConfigurationScreen.blocking-events.description": "Blocking Events allow your server to check and abort operations in different scenarios. {br, react} {ExternalLink, react, href{https://docs.authgear.com/webhooks#blocking-events} children{Learn more about blocking events}}.",
+  "WebhookConfigurationScreen.blocking-events.description": "Blocking Events allow your server to check and abort operations in different scenarios. {br, react} {DocLink, react, href{https://docs.authgear.com/webhooks#blocking-events} children{Learn more about blocking events}}.",
   "WebhookConfigurationScreen.blocking-handlers.label": "Blocking Handlers",
   "WebhookConfigurationScreen.blocking-events.label": "Handler event type",
   "WebhookConfigurationScreen.blocking-event-type.user.pre_create": "User pre-create",
   "WebhookConfigurationScreen.blocking-event-type.user.profile.pre_update": "User Profile pre-update",
   "WebhookConfigurationScreen.blocking-event-type.user.pre_schedule_deletion": "Account deletion pre-schedule",
   "WebhookConfigurationScreen.non-blocking-events": "Non Blocking Events",
-  "WebhookConfigurationScreen.non-blocking-events.description": "Non Blocking Events allow your server to receive notification asynchronously when an event happens in Authgear. {br, react} {br, react} All events will be sent to the configured endpoint, you can filter event by the type in payload. {br, react} {ExternalLink, react, href{https://docs.authgear.com/webhooks#non-blocking-events} children{Learn more about non-blocking events}}.",
+  "WebhookConfigurationScreen.non-blocking-events.description": "Non Blocking Events allow your server to receive notification asynchronously when an event happens in Authgear. {br, react} {br, react} All events will be sent to the configured endpoint, you can filter event by the type in payload. {br, react} {DocLink, react, href{https://docs.authgear.com/webhooks#non-blocking-events} children{Learn more about non-blocking events}}.",
   "WebhookConfigurationScreen.non-blocking-events-endpoints.label": "Endpoints",
   "WebhookConfigurationScreen.signature.title": "Webhook Signature",
-  "WebhookConfigurationScreen.signature.description": "Each webhook event request is signed with a secret key. You must validate the signature to ensure the request originates from Authgear. The signature is calculated as the hex encoded value of HMAC-SHA256 of the request body and is set as the HTTP header {code, react, children{x-authgear-body-signature}}. {br, react} {ExternalLink, react, href{https://docs.authgear.com/webhooks/webhooks#check-the-webhook-signatures} children{Learn more about validating the signature}}",
+  "WebhookConfigurationScreen.signature.description": "Each webhook event request is signed with a secret key. You must validate the signature to ensure the request originates from Authgear. The signature is calculated as the hex encoded value of HMAC-SHA256 of the request body and is set as the HTTP header {code, react, children{x-authgear-body-signature}}. {br, react} {DocLink, react, href{https://docs.authgear.com/webhooks/webhooks#check-the-webhook-signatures} children{Learn more about validating the signature}}",
   "WebhookConfigurationScreen.signature.secret-key": "Secret Key",
 
   "AdminAPIConfigurationScreen.title": "Admin API",
@@ -721,7 +721,7 @@
   "AdminAPIConfigurationScreen.graphiql.description": "Inspect the GraphQL schema and build queries with {ExternalLink, react, href{{graphqlEndpoint}} children{GraphiQL}}.{br, react}On your server you should always use the Admin API endpoint and the API keys.",
   "AdminAPIConfigurationScreen.graphiql.warning": "Please beware this is {strong, react, children{NOT}} a sandbox environment, changes are made to {strong, react, children{REAL DATA}}.",
   "AdminAPIConfigurationScreen.api-endpoint.title": "API Endpoint",
-  "AdminAPIConfigurationScreen.api-endpoint.description": "Accessing the Admin API GraphQL endpoint requires your server to generate a valid JWT and include it as {code, react, children{Authorization}} HTTP header. Read {ExternalLink, react, href{https://docs.authgear.com/apis/admin-apis} children{the doc}} for more details.",
+  "AdminAPIConfigurationScreen.api-endpoint.description": "Accessing the Admin API GraphQL endpoint requires your server to generate a valid JWT and include it as {code, react, children{Authorization}} HTTP header. Read {DocLink, react, href{https://docs.authgear.com/apis/admin-apis} children{the doc}} for more details.",
 
   "PasswordStrengthMeter.password-strength": "Password Strength",
 
@@ -970,8 +970,8 @@
   "SMTPConfigurationScreen.send-test-email-dialog.description": "Test your SMTP configuration by sending an email to the given address.",
   "SMTPConfigurationScreen.provider.sendgrid": "SendGrid",
   "SMTPConfigurationScreen.provider.custom": "SMTP Provider",
-  "SMTPConfigurationScreen.sendgrid.description": "Sign up for a SengGrid account and generate a SendGrid API Key. Check {ExternalLink, react, href{https://docs.authgear.com/customize/custom-email-provider} children{our instructions}} if you need help.",
-  "SMTPConfigurationScreen.custom.description": "Set your SMTP provider manually. Check {ExternalLink, react, href{https://docs.authgear.com/customize/custom-email-provider} children{our instructions}} if you need help.",
+  "SMTPConfigurationScreen.sendgrid.description": "Sign up for a SengGrid account and generate a SendGrid API Key. Check {DocLink, react, href{https://docs.authgear.com/customize/custom-email-provider} children{our instructions}} if you need help.",
+  "SMTPConfigurationScreen.custom.description": "Set your SMTP provider manually. Check {DocLink, react, href{https://docs.authgear.com/customize/custom-email-provider} children{our instructions}} if you need help.",
 
   "StandardAttributesConfigurationScreen.title": "Standard Attributes",
 
@@ -993,9 +993,9 @@
 
   "UserProfileAttributesList.header.label.attribute-name": "Attribute Name",
   "UserProfileAttributesList.header.label.end_user": "End-user Access Right",
-  "UserProfileAttributesList.header.tooltip.end_user": "Access control for the user profile attributes in the {ExternalLink, react, href{https://docs.authgear.com/integrate/auth-ui} children{End-user settings page}}",
+  "UserProfileAttributesList.header.tooltip.end_user": "Access control for the user profile attributes in the {DocLink, react, href{https://docs.authgear.com/integrate/auth-ui} children{End-user settings page}}",
   "UserProfileAttributesList.header.label.bearer": "Token Bearer Access Right",
-  "UserProfileAttributesList.header.tooltip.bearer": "Access control for the user profile attributes in the {ExternalLink, react, href{https://docs.authgear.com/integrate/user-info} children{UserInfo endpoint}}",
+  "UserProfileAttributesList.header.tooltip.bearer": "Access control for the user profile attributes in the {DocLink, react, href{https://docs.authgear.com/integrate/user-info} children{UserInfo endpoint}}",
   "UserProfileAttributesList.header.label.portal_ui": "Portal Admin Access Right",
   "UserProfileAttributesList.header.tooltip.portal_ui": "Access control for the user profile attributes in Admin Portal > User Management",
 
@@ -1107,7 +1107,7 @@
   "IntegrationsConfigurationScreen.status.connected": "Connected",
 
   "GoogleTagManagerConfigurationScreen.title": "Google Tag Manager",
-  "GoogleTagManagerConfigurationScreen.description": "Connect your container to Authgear for conversion tracking, site analytics, retargeting, and more. See {ExternalLink, react, href{https://docs.authgear.com/integrate/google-tag-manager} children{integration guide}} if you need help.",
+  "GoogleTagManagerConfigurationScreen.description": "Connect your container to Authgear for conversion tracking, site analytics, retargeting, and more. See {DocLink, react, href{https://docs.authgear.com/integrate/google-tag-manager} children{integration guide}} if you need help.",
   "GoogleTagManagerConfigurationScreen.toggle.label": "Google Tag Manager Integration",
   "GoogleTagManagerConfigurationScreen.container-id.label": "Tag Manager Container ID",
   "GoogleTagManagerConfigurationScreen.container-id.placeholder": "e.g. GTM-123456",
@@ -1162,10 +1162,10 @@
   "GetStartedScreen.card.description.customize_ui": "Change the theme and colors of the pre-built UI to fit your branding.",
   "GetStartedScreen.card.action-label.customize_ui": "Customize",
   "GetStartedScreen.card.title.create_application": "Create application",
-  "GetStartedScreen.card.description.create_application": "Start integrating Authgear with your apps. Learn more about {ExternalLink, react, href{https://docs.authgear.com/get-started/authentication-approach} children{How Authgear works}}",
+  "GetStartedScreen.card.description.create_application": "Start integrating Authgear with your apps. Learn more about {DocLink, react, href{https://docs.authgear.com/get-started/authentication-approach} children{How Authgear works}}",
   "GetStartedScreen.card.action-label.create_application": "Create application",
   "GetStartedScreen.card.title.sso": "Add a social or enterprise login provider",
-  "GetStartedScreen.card.description.sso": "Sign in to your apps with connections like Facebook, Google, Active Directory and more. {ExternalLink, react, href{https://docs.authgear.com/strategies/how-to-setup-sso-integrations} children{See setup instructions}}",
+  "GetStartedScreen.card.description.sso": "Sign in to your apps with connections like Facebook, Google, Active Directory and more. {DocLink, react, href{https://docs.authgear.com/strategies/how-to-setup-sso-integrations} children{See setup instructions}}",
   "GetStartedScreen.card.action-label.sso": "Add login provider",
   "GetStartedScreen.card.title.invite": "Invite your team members",
   "GetStartedScreen.card.description.invite": "Add your team members ad admin to help with your integration.",

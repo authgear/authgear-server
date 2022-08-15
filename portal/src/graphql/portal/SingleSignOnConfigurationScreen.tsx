@@ -291,12 +291,7 @@ const SingleSignOnConfigurationContent: React.FC<SingleSignOnConfigurationConten
         </ScreenTitle>
         <ScreenDescription className={styles.widget}>
           <Text className={styles.description} block={true}>
-            <FormattedMessage
-              id="SingleSignOnConfigurationScreen.description"
-              values={{
-                HREF: "https://docs.authgear.com/strategies/how-to-setup-sso-integrations",
-              }}
-            />
+            <FormattedMessage id="SingleSignOnConfigurationScreen.description" />
           </Text>
           {oauthClientsMaximum < 99 && (
             <FeatureDisabledMessageBar>

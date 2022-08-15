@@ -44,6 +44,10 @@ import flutterIconURL from "../../images/framework_flutter.svg";
 import xamarinIconURL from "../../images/framework_xamarin.svg";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import {
+  AuthgearGTMEventType,
+  useAuthgearGTMEventDataAttributes,
+} from "../../GTMProvider";
 
 interface FormState {
   publicOrigin: string;
@@ -132,6 +136,13 @@ const QuickStartFrameworkItem: React.FC<QuickStartFrameworkItemProps> =
       return !isHovering;
     }, [showOpenTutorialLabelWhenHover, isHovering]);
 
+    const gtmEventDataAttributes = useAuthgearGTMEventDataAttributes({
+      event: AuthgearGTMEventType.ClickDocLink,
+      eventData: {
+        "doc-link": docLink,
+      },
+    });
+
     return (
       <Link
         onMouseOver={onMouseOver}
@@ -141,6 +152,7 @@ const QuickStartFrameworkItem: React.FC<QuickStartFrameworkItemProps> =
         })}
         href={docLink}
         target="_blank"
+        {...gtmEventDataAttributes}
       >
         <span className={styles.quickStartItemIcon}>{icon}</span>
         <Text variant="small" className={styles.quickStartItemText}>
