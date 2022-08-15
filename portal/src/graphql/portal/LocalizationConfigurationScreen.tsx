@@ -1,7 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Pivot, PivotItem } from "@fluentui/react";
-import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { produce } from "immer";
 import ShowLoading from "../../ShowLoading";
@@ -64,24 +63,13 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
 
 function constructConfig(
   config: PortalAPIAppConfig,
-  initialState: ConfigFormState,
+  _initialState: ConfigFormState,
   currentState: ConfigFormState
 ): PortalAPIAppConfig {
   return produce(config, (config) => {
     config.localization = config.localization ?? {};
-
-    if (initialState.fallbackLanguage !== currentState.fallbackLanguage) {
-      config.localization.fallback_language = currentState.fallbackLanguage;
-    }
-    if (
-      !deepEqual(
-        initialState.supportedLanguages,
-        currentState.supportedLanguages,
-        { strict: true }
-      )
-    ) {
-      config.localization.supported_languages = currentState.supportedLanguages;
-    }
+    config.localization.fallback_language = currentState.fallbackLanguage;
+    config.localization.supported_languages = currentState.supportedLanguages;
     clearEmptyObject(config);
   });
 }

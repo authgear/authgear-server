@@ -1,7 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import produce from "immer";
 import { Checkbox, Toggle } from "@fluentui/react";
-import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import Widget from "../../Widget";
 import WidgetWithOrdering from "../../WidgetWithOrdering";
@@ -174,7 +173,7 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
 
 function constructConfig(
   config: PortalAPIAppConfig,
-  initialState: ConfigFormState,
+  _initialState: ConfigFormState,
   currentState: ConfigFormState,
   effectiveConfig: PortalAPIAppConfig
 ): PortalAPIAppConfig {
@@ -196,146 +195,68 @@ function constructConfig(
 
     if (currentState.types.find((t) => t.type === "email")?.isEnabled) {
       const emailConfig = config.identity.login_id.types.email;
-      if (
-        initialState.email.modify_disabled !==
-        currentState.email.modify_disabled
-      ) {
-        const keyConfig = config.identity.login_id.keys.find(
-          (a) => a.type === "email"
-        );
-        if (keyConfig != null) {
-          keyConfig.modify_disabled = currentState.email.modify_disabled;
-        }
-      }
-      if (
-        initialState.email.block_plus_sign !==
-        currentState.email.block_plus_sign
-      ) {
-        emailConfig.block_plus_sign = currentState.email.block_plus_sign;
-      }
-      if (
-        initialState.email.case_sensitive !== currentState.email.case_sensitive
-      ) {
-        emailConfig.case_sensitive = currentState.email.case_sensitive;
-      }
-      if (
-        initialState.email.ignore_dot_sign !==
-        currentState.email.ignore_dot_sign
-      ) {
-        emailConfig.ignore_dot_sign = currentState.email.ignore_dot_sign;
+
+      const keyConfig = config.identity.login_id.keys.find(
+        (a) => a.type === "email"
+      );
+      if (keyConfig != null) {
+        keyConfig.modify_disabled = currentState.email.modify_disabled;
       }
 
-      if (
-        initialState.email.domain_blocklist_enabled !==
-        currentState.email.domain_blocklist_enabled
-      ) {
-        emailConfig.domain_blocklist_enabled =
-          currentState.email.domain_blocklist_enabled;
-      }
-
-      if (
-        initialState.email.block_free_email_provider_domains !==
-        currentState.email.block_free_email_provider_domains
-      ) {
-        emailConfig.block_free_email_provider_domains =
-          currentState.email.block_free_email_provider_domains;
-      }
-
-      if (
-        initialState.email.domain_allowlist_enabled !==
-        currentState.email.domain_allowlist_enabled
-      ) {
-        emailConfig.domain_allowlist_enabled =
-          currentState.email.domain_allowlist_enabled;
-      }
+      emailConfig.block_plus_sign = currentState.email.block_plus_sign;
+      emailConfig.case_sensitive = currentState.email.case_sensitive;
+      emailConfig.ignore_dot_sign = currentState.email.ignore_dot_sign;
+      emailConfig.domain_blocklist_enabled =
+        currentState.email.domain_blocklist_enabled;
+      emailConfig.block_free_email_provider_domains =
+        currentState.email.block_free_email_provider_domains;
+      emailConfig.domain_allowlist_enabled =
+        currentState.email.domain_allowlist_enabled;
     }
 
     if (currentState.types.find((t) => t.type === "username")?.isEnabled) {
       const usernameConfig = config.identity.login_id.types.username;
-      if (
-        initialState.username.modify_disabled !==
-        currentState.username.modify_disabled
-      ) {
-        const keyConfig = config.identity.login_id.keys.find(
-          (a) => a.type === "username"
-        );
-        if (keyConfig != null) {
-          keyConfig.modify_disabled = currentState.username.modify_disabled;
-        }
-      }
-      if (
-        initialState.username.block_reserved_usernames !==
-        currentState.username.block_reserved_usernames
-      ) {
-        usernameConfig.block_reserved_usernames =
-          currentState.username.block_reserved_usernames;
-      }
-      if (
-        initialState.username.exclude_keywords_enabled !==
-        currentState.username.exclude_keywords_enabled
-      ) {
-        usernameConfig.exclude_keywords_enabled =
-          currentState.username.exclude_keywords_enabled;
+
+      const keyConfig = config.identity.login_id.keys.find(
+        (a) => a.type === "username"
+      );
+      if (keyConfig != null) {
+        keyConfig.modify_disabled = currentState.username.modify_disabled;
       }
 
-      if (
-        initialState.username.ascii_only !== currentState.username.ascii_only
-      ) {
-        usernameConfig.ascii_only = currentState.username.ascii_only;
-      }
-      if (
-        initialState.username.case_sensitive !==
-        currentState.username.case_sensitive
-      ) {
-        usernameConfig.case_sensitive = currentState.username.case_sensitive;
-      }
+      usernameConfig.block_reserved_usernames =
+        currentState.username.block_reserved_usernames;
+      usernameConfig.exclude_keywords_enabled =
+        currentState.username.exclude_keywords_enabled;
+      usernameConfig.ascii_only = currentState.username.ascii_only;
+      usernameConfig.case_sensitive = currentState.username.case_sensitive;
     }
 
     if (currentState.types.find((t) => t.type === "phone")?.isEnabled) {
-      if (
-        initialState.phone.modify_disabled !==
-        currentState.phone.modify_disabled
-      ) {
-        const keyConfig = config.identity.login_id.keys.find(
-          (a) => a.type === "phone"
-        );
-        if (keyConfig != null) {
-          keyConfig.modify_disabled = currentState.phone.modify_disabled;
-        }
+      const keyConfig = config.identity.login_id.keys.find(
+        (a) => a.type === "phone"
+      );
+      if (keyConfig != null) {
+        keyConfig.modify_disabled = currentState.phone.modify_disabled;
       }
 
       const phoneConfig = config.ui.phone_input;
-      if (currentState.phone.preselect_by_ip_disabled === false) {
-        phoneConfig.preselect_by_ip_disabled = undefined;
-      } else if (
-        initialState.phone.preselect_by_ip_disabled !==
-        currentState.phone.preselect_by_ip_disabled
-      ) {
-        phoneConfig.preselect_by_ip_disabled =
-          currentState.phone.preselect_by_ip_disabled;
-      }
+      phoneConfig.preselect_by_ip_disabled =
+        currentState.phone.preselect_by_ip_disabled;
+
       // If the allowlist is the original one, we instead reset it to undefined.
       // This avoids the config storing the default value, and also
       // enable us to add more countries.
       if (currentState.phone.allowlist.length === ALL_COUNTRIES.length) {
         phoneConfig.allowlist = undefined;
-      } else if (
-        !deepEqual(initialState.phone.allowlist, currentState.phone.allowlist, {
-          strict: true,
-        })
-      ) {
+      } else {
         phoneConfig.allowlist = currentState.phone.allowlist;
       }
+
       // If the pinned list is empty, we instead reset it to undefined.
       if (currentState.phone.pinned_list.length === 0) {
         phoneConfig.pinned_list = undefined;
-      } else if (
-        !deepEqual(
-          initialState.phone.pinned_list,
-          currentState.phone.pinned_list,
-          { strict: true }
-        )
-      ) {
+      } else {
         phoneConfig.pinned_list = currentState.phone.pinned_list;
       }
     }
@@ -343,21 +264,20 @@ function constructConfig(
     function hasLoginIDTypes(s: ConfigFormState) {
       return s.types.some((t) => t.isEnabled);
     }
-    if (hasLoginIDTypes(initialState) !== hasLoginIDTypes(currentState)) {
-      const identities = (
-        effectiveConfig.authentication?.identities ?? []
-      ).slice();
-      const index = identities.indexOf("login_id");
-      const isEnabled = hasLoginIDTypes(currentState);
 
-      if (isEnabled && index === -1) {
-        identities.push("login_id");
-      } else if (!isEnabled && index >= 0) {
-        identities.splice(index, 1);
-      }
-      config.authentication ??= {};
-      config.authentication.identities = identities;
+    const identities = (
+      effectiveConfig.authentication?.identities ?? []
+    ).slice();
+    const index = identities.indexOf("login_id");
+    const isEnabled = hasLoginIDTypes(currentState);
+
+    if (isEnabled && index === -1) {
+      identities.push("login_id");
+    } else if (!isEnabled && index >= 0) {
+      identities.splice(index, 1);
     }
+    config.authentication ??= {};
+    config.authentication.identities = identities;
 
     clearEmptyObject(config);
   });

@@ -2,7 +2,6 @@ import React, { useCallback, useMemo, useState, useContext } from "react";
 import cn from "classnames";
 import { useParams } from "react-router-dom";
 import { Toggle } from "@fluentui/react";
-import deepEqual from "deep-equal";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { produce } from "immer";
 import { parse, Root } from "postcss";
@@ -118,32 +117,17 @@ interface PropertyNames {
 
 function constructConfig(
   config: PortalAPIAppConfig,
-  initialState: ConfigFormState,
+  _initialState: ConfigFormState,
   currentState: ConfigFormState
 ): PortalAPIAppConfig {
   return produce(config, (config) => {
     config.localization = config.localization ?? {};
-
-    if (initialState.fallbackLanguage !== currentState.fallbackLanguage) {
-      config.localization.fallback_language = currentState.fallbackLanguage;
-    }
-    if (
-      !deepEqual(
-        initialState.supportedLanguages,
-        currentState.supportedLanguages,
-        { strict: true }
-      )
-    ) {
-      config.localization.supported_languages = currentState.supportedLanguages;
-    }
+    config.localization.fallback_language = currentState.fallbackLanguage;
+    config.localization.supported_languages = currentState.supportedLanguages;
 
     config.ui = config.ui ?? {};
-    if (initialState.darkThemeDisabled !== currentState.darkThemeDisabled) {
-      config.ui.dark_theme_disabled = currentState.darkThemeDisabled;
-    }
-    if (initialState.watermarkDisabled !== currentState.watermarkDisabled) {
-      config.ui.watermark_disabled = currentState.watermarkDisabled;
-    }
+    config.ui.dark_theme_disabled = currentState.darkThemeDisabled;
+    config.ui.watermark_disabled = currentState.watermarkDisabled;
 
     const propertyNames: (keyof PropertyNames)[] = [
       "default_client_uri",
@@ -152,12 +136,10 @@ function constructConfig(
     ];
 
     for (const propertyName of propertyNames) {
-      if (initialState[propertyName] !== currentState[propertyName]) {
-        config.ui[propertyName] =
-          currentState[propertyName] === ""
-            ? undefined
-            : currentState[propertyName];
-      }
+      config.ui[propertyName] =
+        currentState[propertyName] === ""
+          ? undefined
+          : currentState[propertyName];
     }
 
     clearEmptyObject(config);

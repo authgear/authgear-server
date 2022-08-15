@@ -78,7 +78,7 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
 
 function constructConfig(
   config: PortalAPIAppConfig,
-  initialState: FormState,
+  _initialState: FormState,
   currentState: FormState
 ): PortalAPIAppConfig {
   // eslint-disable-next-line complexity
@@ -93,27 +93,13 @@ function constructConfig(
     a.oob_otp ??= {};
     a.oob_otp.sms ??= {};
 
-    if (initialState.codeExpirySeconds !== currentState.codeExpirySeconds) {
-      v.code_expiry_seconds = currentState.codeExpirySeconds;
-    }
-    if (initialState.criteria !== currentState.criteria) {
-      v.criteria = currentState.criteria;
-    }
-    if (initialState.email.required !== currentState.email.required) {
-      v.claims.email.required = currentState.email.required;
-    }
-    if (initialState.email.enabled !== currentState.email.enabled) {
-      v.claims.email.enabled = currentState.email.enabled;
-    }
-    if (initialState.phone.required !== currentState.phone.required) {
-      v.claims.phone_number.required = currentState.phone.required;
-    }
-    if (initialState.phone.enabled !== currentState.phone.enabled) {
-      v.claims.phone_number.enabled = currentState.phone.enabled;
-    }
-    if (initialState.phoneOTPMode !== currentState.phoneOTPMode) {
-      a.oob_otp.sms.phone_otp_mode = currentState.phoneOTPMode;
-    }
+    v.code_expiry_seconds = currentState.codeExpirySeconds;
+    v.criteria = currentState.criteria;
+    v.claims.email.required = currentState.email.required;
+    v.claims.email.enabled = currentState.email.enabled;
+    v.claims.phone_number.required = currentState.phone.required;
+    v.claims.phone_number.enabled = currentState.phone.enabled;
+    a.oob_otp.sms.phone_otp_mode = currentState.phoneOTPMode;
 
     clearEmptyObject(config);
   });

@@ -11,7 +11,6 @@ import {
   Text,
 } from "@fluentui/react";
 import produce from "immer";
-import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import OrderButtons, { swap } from "../../OrderButtons";
 import FormTextField from "../../FormTextField";
@@ -174,32 +173,16 @@ function constructConfig(
       return [...arr.slice(0, index), ...arr.slice(index + 1)];
     }
 
-    if (
-      !deepEqual(
-        filterEnabled(currentState.primary),
-        filterEnabled(initialState.primary),
-        { strict: true }
-      )
-    ) {
-      config.authentication.primary_authenticators = filterEnabled(
-        currentState.primary
-      );
-    }
-    if (
-      !deepEqual(
-        filterEnabled(currentState.secondary),
-        filterEnabled(initialState.secondary),
-        { strict: true }
-      )
-    ) {
-      config.authentication.secondary_authenticators = filterEnabled(
-        currentState.secondary
-      );
-    }
+    config.authentication.primary_authenticators = filterEnabled(
+      currentState.primary
+    );
+    config.authentication.secondary_authenticators = filterEnabled(
+      currentState.secondary
+    );
 
     if (currentState.passkeyEnabled) {
       config.authentication.primary_authenticators = setEnable(
-        config.authentication.primary_authenticators ?? [],
+        config.authentication.primary_authenticators,
         "passkey",
         true
       );
@@ -210,7 +193,7 @@ function constructConfig(
       );
     } else {
       config.authentication.primary_authenticators = setEnable(
-        config.authentication.primary_authenticators ?? [],
+        config.authentication.primary_authenticators,
         "passkey",
         false
       );
@@ -221,29 +204,14 @@ function constructConfig(
       );
     }
 
-    if (initialState.mfaMode !== currentState.mfaMode) {
-      config.authentication.secondary_authentication_mode =
-        currentState.mfaMode;
-    }
-
-    if (initialState.recoveryCodeEnabled !== currentState.recoveryCodeEnabled) {
-      config.authentication.recovery_code.disabled =
-        !currentState.recoveryCodeEnabled;
-    }
-    if (initialState.numRecoveryCode !== currentState.numRecoveryCode) {
-      config.authentication.recovery_code.count = currentState.numRecoveryCode;
-    }
-    if (
-      initialState.allowListRecoveryCode !== currentState.allowListRecoveryCode
-    ) {
-      config.authentication.recovery_code.list_enabled =
-        currentState.allowListRecoveryCode;
-    }
-
-    if (initialState.disableDeviceToken !== currentState.disableDeviceToken) {
-      config.authentication.device_token.disabled =
-        currentState.disableDeviceToken;
-    }
+    config.authentication.secondary_authentication_mode = currentState.mfaMode;
+    config.authentication.recovery_code.disabled =
+      !currentState.recoveryCodeEnabled;
+    config.authentication.recovery_code.count = currentState.numRecoveryCode;
+    config.authentication.recovery_code.list_enabled =
+      currentState.allowListRecoveryCode;
+    config.authentication.device_token.disabled =
+      currentState.disableDeviceToken;
 
     clearEmptyObject(config);
   });

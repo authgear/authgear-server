@@ -32,15 +32,13 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
 
 function constructConfig(
   config: PortalAPIAppConfig,
-  initialState: FormState,
+  _initialState: FormState,
   currentState: FormState
 ): PortalAPIAppConfig {
   return produce(config, (config) => {
     config.forgot_password = config.forgot_password ?? {};
-    if (initialState.codeExpirySeconds !== currentState.codeExpirySeconds) {
-      config.forgot_password.reset_code_expiry_seconds =
-        currentState.codeExpirySeconds;
-    }
+    config.forgot_password.reset_code_expiry_seconds =
+      currentState.codeExpirySeconds;
     clearEmptyObject(config);
   });
 }
