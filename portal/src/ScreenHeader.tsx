@@ -8,12 +8,18 @@ import {
   Link as FluentUILink,
   CommandButton,
   IconButton,
+  Panel,
+  PanelType,
+  IRenderFunction,
+  IPanelProps,
 } from "@fluentui/react";
 import { useAppAndSecretConfigQuery } from "./graphql/portal/query/appAndSecretConfigQuery";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
+import ScreenNav from "./ScreenNav";
 
 import styles from "./ScreenHeader.module.css";
 import { useSystemConfig } from "./context/SystemConfigContext";
+import { useBoolean } from "@fluentui/react-hooks";
 
 interface ScreenHeaderAppSectionProps {
   appID: string;
@@ -75,11 +81,34 @@ const commandButtonStyles = {
   },
 };
 
+const MobileViewNavbarHeader: IRenderFunction<IPanelProps> = (props) => {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+  const onClick: () => void = props?.onDismiss!;
+  return (
+    <div className={styles.headerMobile}>
+      <IconButton
+        ariaLabel="hamburger"
+        iconProps={{ iconName: "WaffleOffice365" }}
+        className={styles.hamburger}
+        onClick={onClick}
+      />
+    </div>
+  );
+};
+
+const MobileViewNavbarBody: IRenderFunction<IPanelProps> = (props) => {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+  const onClick: () => void = props?.onDismiss!;
+  return <ScreenNav onLinkClick={onClick} />;
+};
+
 const ScreenHeader: React.FC = function ScreenHeader() {
   const { renderToString } = useContext(Context);
   const { themes, authgearEndpoint } = useSystemConfig();
   const { appID } = useParams() as { appID: string };
   const { viewer } = useViewerQuery();
+  const [isNavbarOpen, { setTrue: openNavbar, setFalse: dismissNavbar }] =
+    useBoolean(false);
 
   const redirectURI = window.location.origin + "/";
 
@@ -131,8 +160,18 @@ const ScreenHeader: React.FC = function ScreenHeader() {
           iconProps={{ iconName: "WaffleOffice365" }}
           className={styles.hamburger}
           theme={themes.inverted}
+          onClick={openNavbar}
         />
         {appID && <ScreenHeaderAppSection appID={appID} mobileView={true} />}
+        <Panel
+          isLightDismiss={true}
+          hasCloseButton={false}
+          isOpen={isNavbarOpen}
+          onDismiss={dismissNavbar}
+          type={PanelType.smallFixedNear}
+          onRenderNavigation={MobileViewNavbarHeader}
+          onRenderBody={MobileViewNavbarBody}
+        />
       </div>
       <div className="flex flex-row items-center text-white mobile:hidden">
         <Link to="/" className={styles.logoLink}>

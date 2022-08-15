@@ -7,6 +7,12 @@
   height: 48px;
 }
 
+.headerMobile {
+  display: flex;
+  align-items: center;
+  height: 48px;
+}
+
 .headerArrow {
   padding-right: 10px;
   font-size: 14px;
