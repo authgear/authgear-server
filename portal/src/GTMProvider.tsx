@@ -8,7 +8,7 @@ import { useAppContext } from "./context/AppContext";
 export interface AuthgearGTMEvent {
   event: AuthgearGTMEventType;
   appID?: string;
-  value1?: string;
+  value1?: string | string[];
 }
 
 export enum AuthgearGTMEventType {
@@ -16,6 +16,7 @@ export enum AuthgearGTMEventType {
   ClickGetStarted = "authgear.clickGetStarted",
   CreateApplication = "authgear.createApplication",
   InviteAdmin = "authgear.inviteAdmin",
+  AddSSOProviders = "authgear.addSSOProviders",
 }
 
 interface AuthgearGTMEventParams {
@@ -53,7 +54,8 @@ export function useAuthgearGTMEventDataAttributes(
     if (event.appID) {
       attributes["data-authgear-event-app-id"] = event.appID;
     }
-    if (event.value1) {
+    // only support string for data attributes
+    if (typeof event.value1 === "string") {
       attributes["data-authgear-event-value1"] = event.value1;
     }
     return attributes;

@@ -33,6 +33,8 @@ import {
 } from "../../types";
 import styles from "./SingleSignOnConfigurationScreen.module.css";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
+import { AuthgearGTMEventType, useAuthgearGTMEvent } from "../../GTMProvider";
+import { useGTMDispatch } from "@elgorditosalsero/react-gtm-hook";
 
 interface SSOProviderFormState {
   config: OAuthSSOProviderConfig;
@@ -42,6 +44,7 @@ interface SSOProviderFormState {
 interface FormState {
   providers: SSOProviderFormState[];
   isEnabled: Record<OAuthSSOProviderItemKey, boolean>;
+  initialProvidersKey: OAuthSSOProviderItemKey[];
 }
 
 function constructFormState(
@@ -78,7 +81,11 @@ function constructFormState(
       );
   }
 
-  return { providers, isEnabled };
+  const initialProvidersKey = providerList.map((x) =>
+    createOAuthSSOProviderItemKey(x.type, x.app_type)
+  );
+
+  return { providers, isEnabled, initialProvidersKey };
 }
 
 function constructConfig(
@@ -316,13 +323,46 @@ const SingleSignOnConfigurationScreen: React.FC =
   function SingleSignOnConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
 
-    const form = useAppSecretConfigForm(
+    const config = useAppSecretConfigForm(
       appID,
       constructFormState,
       constructConfig
     );
 
     const featureConfig = useAppFeatureConfigQuery(appID);
+
+    const sendDataToGTM = useGTMDispatch();
+    const gtmEvent = useAuthgearGTMEvent({
+      event: AuthgearGTMEventType.AddSSOProviders,
+    });
+
+    const save = useCallback(async () => {
+      // compare if there is any newly added providers
+      // then send the gtm event
+      const initialProvidersKey = config.state.initialProvidersKey;
+      const currentProvidersKey = config.state.providers
+        .map((p) =>
+          createOAuthSSOProviderItemKey(p.config.type, p.config.app_type)
+        )
+        .filter((key) => config.state.isEnabled[key]);
+      const addedProviders = currentProvidersKey.filter(
+        (t) => !initialProvidersKey.includes(t)
+      );
+
+      await config.save();
+      if (addedProviders.length > 0) {
+        const event = {
+          ...gtmEvent,
+          value1: addedProviders,
+        };
+        sendDataToGTM(event);
+      }
+    }, [config, gtmEvent, sendDataToGTM]);
+
+    const form: AppSecretConfigFormModel<FormState> = {
+      ...config,
+      save,
+    };
 
     if (form.isLoading || featureConfig.loading) {
       return <ShowLoading />;
