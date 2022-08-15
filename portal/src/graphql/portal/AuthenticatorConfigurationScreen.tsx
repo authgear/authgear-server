@@ -11,7 +11,6 @@ import {
   Text,
 } from "@fluentui/react";
 import produce from "immer";
-import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import OrderButtons, { swap } from "../../OrderButtons";
 import FormTextField from "../../FormTextField";
@@ -139,8 +138,9 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
 
 function constructConfig(
   config: PortalAPIAppConfig,
-  initialState: FormState,
-  currentState: FormState
+  _initialState: FormState,
+  currentState: FormState,
+  effectiveConfig: PortalAPIAppConfig
 ): PortalAPIAppConfig {
   // eslint-disable-next-line complexity
   return produce(config, (config) => {
@@ -174,79 +174,50 @@ function constructConfig(
       return [...arr.slice(0, index), ...arr.slice(index + 1)];
     }
 
-    if (
-      !deepEqual(
-        filterEnabled(currentState.primary),
-        filterEnabled(initialState.primary),
-        { strict: true }
-      )
-    ) {
-      config.authentication.primary_authenticators = filterEnabled(
-        currentState.primary
-      );
-    }
-    if (
-      !deepEqual(
-        filterEnabled(currentState.secondary),
-        filterEnabled(initialState.secondary),
-        { strict: true }
-      )
-    ) {
-      config.authentication.secondary_authenticators = filterEnabled(
-        currentState.secondary
-      );
-    }
+    config.authentication.primary_authenticators = filterEnabled(
+      currentState.primary
+    );
+    config.authentication.secondary_authenticators = filterEnabled(
+      currentState.secondary
+    );
 
+    // Construct primary_authenticators and identities
+    // We do not offer any control to modify identities in this screen,
+    // so we read from effectiveConfig.authentication?.identities
+    // On the other hand, we always write config.authentication.primary_authenticators,
+    // so we read from it.
     if (currentState.passkeyEnabled) {
       config.authentication.primary_authenticators = setEnable(
-        config.authentication.primary_authenticators ?? [],
+        config.authentication.primary_authenticators,
         "passkey",
         true
       );
       config.authentication.identities = setEnable(
-        config.authentication.identities ?? [],
+        effectiveConfig.authentication?.identities ?? [],
         "passkey",
         true
       );
     } else {
       config.authentication.primary_authenticators = setEnable(
-        config.authentication.primary_authenticators ?? [],
+        config.authentication.primary_authenticators,
         "passkey",
         false
       );
       config.authentication.identities = setEnable(
-        config.authentication.identities ?? [],
+        effectiveConfig.authentication?.identities ?? [],
         "passkey",
         false
       );
     }
 
-    if (initialState.mfaMode !== currentState.mfaMode) {
-      config.authentication.secondary_authentication_mode =
-        currentState.mfaMode;
-    }
-
-    if (initialState.recoveryCodeEnabled !== currentState.recoveryCodeEnabled) {
-      if (!currentState.recoveryCodeEnabled) {
-        config.authentication.recovery_code.disabled = true;
-      } else {
-        delete config.authentication.recovery_code.disabled;
-      }
-    }
-    if (initialState.numRecoveryCode !== currentState.numRecoveryCode) {
-      config.authentication.recovery_code.count = currentState.numRecoveryCode;
-    }
-    if (
-      initialState.allowListRecoveryCode !== currentState.allowListRecoveryCode
-    ) {
-      config.authentication.recovery_code.list_enabled =
-        currentState.allowListRecoveryCode;
-    }
-
-    if (initialState.disableDeviceToken !== currentState.disableDeviceToken) {
-      config.authentication.device_token.disabled =
-        currentState.disableDeviceToken;
-    }
+    config.authentication.secondary_authentication_mode = currentState.mfaMode;
+    config.authentication.recovery_code.disabled =
+      !currentState.recoveryCodeEnabled;
+    config.authentication.recovery_code.count = currentState.numRecoveryCode;
+    config.authentication.recovery_code.list_enabled =
+      currentState.allowListRecoveryCode;
+    config.authentication.device_token.disabled =
+      currentState.disableDeviceToken;
 
     clearEmptyObject(config);
   });

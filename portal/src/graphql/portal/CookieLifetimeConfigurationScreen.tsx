@@ -50,31 +50,15 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
 
 function constructConfig(
   config: PortalAPIAppConfig,
-  initialState: FormState,
+  _initialState: FormState,
   currentState: FormState
 ): PortalAPIAppConfig {
   return produce(config, (config) => {
     config.session = config.session ?? {};
-    if (initialState.persistentCookie !== currentState.persistentCookie) {
-      config.session.cookie_non_persistent = !currentState.persistentCookie;
-    }
-    if (
-      initialState.sessionLifetimeSeconds !==
-      currentState.sessionLifetimeSeconds
-    ) {
-      config.session.lifetime_seconds = currentState.sessionLifetimeSeconds;
-    }
-
-    if (initialState.idleTimeoutEnabled !== currentState.idleTimeoutEnabled) {
-      config.session.idle_timeout_enabled = currentState.idleTimeoutEnabled;
-    }
-
-    if (
-      currentState.idleTimeoutEnabled &&
-      initialState.idleTimeoutSeconds !== currentState.idleTimeoutSeconds
-    ) {
-      config.session.idle_timeout_seconds = currentState.idleTimeoutSeconds;
-    }
+    config.session.cookie_non_persistent = !currentState.persistentCookie;
+    config.session.lifetime_seconds = currentState.sessionLifetimeSeconds;
+    config.session.idle_timeout_enabled = currentState.idleTimeoutEnabled;
+    config.session.idle_timeout_seconds = currentState.idleTimeoutSeconds;
     clearEmptyObject(config);
   });
 }

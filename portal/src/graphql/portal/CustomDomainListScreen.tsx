@@ -96,18 +96,13 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
 
 function constructConfig(
   config: PortalAPIAppConfig,
-  initialState: FormState,
+  _initialState: FormState,
   currentState: FormState
 ): PortalAPIAppConfig {
   return produce(config, (config) => {
     config.http ??= {};
-    if (currentState.publicOrigin !== initialState.publicOrigin) {
-      config.http.public_origin = currentState.publicOrigin;
-    }
-    if (currentState.cookieDomain !== initialState.cookieDomain) {
-      config.http.cookie_domain = currentState.cookieDomain;
-    }
-
+    config.http.public_origin = currentState.publicOrigin;
+    config.http.cookie_domain = currentState.cookieDomain;
     clearEmptyObject(config);
   });
 }

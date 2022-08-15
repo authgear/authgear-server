@@ -7,7 +7,6 @@ import {
   Label,
   Toggle,
 } from "@fluentui/react";
-import deepEqual from "deep-equal";
 import produce from "immer";
 import { clearEmptyObject } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
@@ -70,7 +69,7 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
 
 function constructConfig(
   config: PortalAPIAppConfig,
-  initialState: FormState,
+  _initialState: FormState,
   currentState: FormState
 ): PortalAPIAppConfig {
   // eslint-disable-next-line complexity
@@ -79,42 +78,16 @@ function constructConfig(
     config.authenticator.password ??= {};
     config.authenticator.password.policy ??= {};
     const policy = config.authenticator.password.policy;
-    const initial = initialState.policy;
     const current = currentState.policy;
 
-    if (initialState.forceChange !== currentState.forceChange) {
-      if (currentState.forceChange) {
-        config.authenticator.password.force_change = undefined;
-      } else {
-        config.authenticator.password.force_change = false;
-      }
-    }
-
-    if (initial.min_length !== current.min_length) {
-      policy.min_length = current.min_length;
-    }
-    if (initial.uppercase_required !== current.uppercase_required) {
-      policy.uppercase_required = current.uppercase_required;
-    }
-    if (initial.lowercase_required !== current.lowercase_required) {
-      policy.lowercase_required = current.lowercase_required;
-    }
-    if (initial.digit_required !== current.digit_required) {
-      policy.digit_required = current.digit_required;
-    }
-    if (initial.symbol_required !== current.symbol_required) {
-      policy.symbol_required = current.symbol_required;
-    }
-    if (initial.minimum_guessable_level !== current.minimum_guessable_level) {
-      policy.minimum_guessable_level = current.minimum_guessable_level;
-    }
-    if (
-      !deepEqual(initial.excluded_keywords, current.excluded_keywords, {
-        strict: true,
-      })
-    ) {
-      policy.excluded_keywords = current.excluded_keywords;
-    }
+    config.authenticator.password.force_change = currentState.forceChange;
+    policy.min_length = current.min_length;
+    policy.uppercase_required = current.uppercase_required;
+    policy.lowercase_required = current.lowercase_required;
+    policy.digit_required = current.digit_required;
+    policy.symbol_required = current.symbol_required;
+    policy.minimum_guessable_level = current.minimum_guessable_level;
+    policy.excluded_keywords = current.excluded_keywords;
 
     function effectiveHistorySize(s: FormState) {
       return s.isPreventPasswordReuseEnabled ? s.policy.history_size : 0;
@@ -124,16 +97,8 @@ function constructConfig(
       return s.isPreventPasswordReuseEnabled ? s.policy.history_days : 0;
     }
 
-    if (
-      effectiveHistorySize(initialState) !== effectiveHistorySize(currentState)
-    ) {
-      policy.history_size = effectiveHistorySize(currentState);
-    }
-    if (
-      effectiveHistoryDays(initialState) !== effectiveHistoryDays(currentState)
-    ) {
-      policy.history_days = effectiveHistoryDays(currentState);
-    }
+    policy.history_size = effectiveHistorySize(currentState);
+    policy.history_days = effectiveHistoryDays(currentState);
 
     clearEmptyObject(config);
   });

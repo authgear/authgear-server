@@ -78,7 +78,7 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
 
 function constructConfig(
   config: PortalAPIAppConfig,
-  initialState: FormState,
+  _initialState: FormState,
   currentState: FormState
 ): PortalAPIAppConfig {
   // eslint-disable-next-line complexity
@@ -93,47 +93,13 @@ function constructConfig(
     a.oob_otp ??= {};
     a.oob_otp.sms ??= {};
 
-    if (initialState.codeExpirySeconds !== currentState.codeExpirySeconds) {
-      v.code_expiry_seconds = currentState.codeExpirySeconds;
-    }
-    if (initialState.criteria !== currentState.criteria) {
-      v.criteria = currentState.criteria;
-    }
-    if (initialState.email.required !== currentState.email.required) {
-      v.claims.email.required = currentState.email.required;
-    }
-    if (initialState.email.enabled !== currentState.email.enabled) {
-      v.claims.email.enabled = currentState.email.enabled;
-    }
-    if (initialState.phone.required !== currentState.phone.required) {
-      v.claims.phone_number.required = currentState.phone.required;
-    }
-    if (initialState.phone.enabled !== currentState.phone.enabled) {
-      v.claims.phone_number.enabled = currentState.phone.enabled;
-    }
-    if (initialState.phoneOTPMode !== currentState.phoneOTPMode) {
-      a.oob_otp.sms.phone_otp_mode = currentState.phoneOTPMode;
-    }
-
-    if (v.claims.email.enabled === true) {
-      delete v.claims.email.enabled;
-    }
-    if (v.claims.email.required === true) {
-      delete v.claims.email.required;
-    }
-    if (v.claims.phone_number.enabled === true) {
-      delete v.claims.phone_number.enabled;
-    }
-    if (v.claims.phone_number.required === true) {
-      delete v.claims.phone_number.required;
-    }
-    if (v.criteria === "any") {
-      delete v.criteria;
-    }
-
-    if (a.oob_otp.sms.phone_otp_mode === DEFAULT_PHONE_OTP_MODE) {
-      delete a.oob_otp.sms.phone_otp_mode;
-    }
+    v.code_expiry_seconds = currentState.codeExpirySeconds;
+    v.criteria = currentState.criteria;
+    v.claims.email.required = currentState.email.required;
+    v.claims.email.enabled = currentState.email.enabled;
+    v.claims.phone_number.required = currentState.phone.required;
+    v.claims.phone_number.enabled = currentState.phone.enabled;
+    a.oob_otp.sms.phone_otp_mode = currentState.phoneOTPMode;
 
     clearEmptyObject(config);
   });

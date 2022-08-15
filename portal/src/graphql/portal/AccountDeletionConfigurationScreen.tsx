@@ -49,11 +49,8 @@ function constructConfig(
   return produce(config, (config) => {
     config.account_deletion ??= {};
 
-    if (currentState.scheduled_by_end_user_enabled) {
-      config.account_deletion.scheduled_by_end_user_enabled = true;
-    } else {
-      delete config.account_deletion.scheduled_by_end_user_enabled;
-    }
+    config.account_deletion.scheduled_by_end_user_enabled =
+      currentState.scheduled_by_end_user_enabled;
 
     const n = parseInt(currentState.grace_period_days, 10);
     if (!isNaN(n)) {

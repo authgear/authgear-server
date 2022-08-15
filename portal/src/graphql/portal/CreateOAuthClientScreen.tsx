@@ -12,10 +12,7 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import ScreenContent from "../../ScreenContent";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
-import {
-  getReducedClientConfig,
-  updateClientConfig,
-} from "./EditOAuthClientForm";
+import { updateClientConfig } from "./EditOAuthClientForm";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import { OAuthClientConfig, PortalAPIAppConfig } from "../../types";
 import { clearEmptyObject, ensureNonEmptyString } from "../../util/misc";
@@ -26,7 +23,6 @@ import {
 } from "../../hook/useAppConfigForm";
 import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
 import styles from "./CreateOAuthClientScreen.module.css";
-import deepEqual from "deep-equal";
 import { FormProvider } from "../../form";
 import FormTextField from "../../FormTextField";
 import { useTextField } from "../../hook/useInput";
@@ -71,31 +67,24 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
 
 function constructConfig(
   config: PortalAPIAppConfig,
-  initialState: FormState,
+  _initialState: FormState,
   currentState: FormState
 ): PortalAPIAppConfig {
   return produce(config, (config) => {
     config.oauth ??= {};
     config.oauth.clients = currentState.clients.slice();
-    const isDirty = !deepEqual(
-      getReducedClientConfig(initialState.newClient),
-      getReducedClientConfig(currentState.newClient),
-      { strict: true }
-    );
-    if (isDirty) {
-      const draft = createDraft(currentState.newClient);
-      if (
-        draft.x_application_type === "spa" ||
-        draft.x_application_type === "traditional_webapp"
-      ) {
-        draft.redirect_uris = ["http://localhost/after-authentication"];
-        draft.post_logout_redirect_uris = ["http://localhost/after-logout"];
-      } else if (draft.x_application_type === "native") {
-        draft.redirect_uris = ["com.example.myapp://host/path"];
-        draft.post_logout_redirect_uris = undefined;
-      }
-      config.oauth.clients.push(draft);
+    const draft = createDraft(currentState.newClient);
+    if (
+      draft.x_application_type === "spa" ||
+      draft.x_application_type === "traditional_webapp"
+    ) {
+      draft.redirect_uris = ["http://localhost/after-authentication"];
+      draft.post_logout_redirect_uris = ["http://localhost/after-logout"];
+    } else if (draft.x_application_type === "native") {
+      draft.redirect_uris = ["com.example.myapp://host/path"];
+      draft.post_logout_redirect_uris = undefined;
     }
+    config.oauth.clients.push(draft);
     clearEmptyObject(config);
   });
 }

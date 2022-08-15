@@ -17,6 +17,7 @@ import Widget from "../../Widget";
 import WidgetDescription from "../../WidgetDescription";
 import FormTextField from "../../FormTextField";
 import styles from "./GoogleTagManagerConfigurationScreen.module.css";
+import { clearEmptyObject } from "../../util/misc";
 
 interface FormState {
   enabled: boolean;
@@ -47,6 +48,7 @@ function constructConfig(
     } else {
       delete config.google_tag_manager.container_id;
     }
+    clearEmptyObject(config);
   });
 }
 
