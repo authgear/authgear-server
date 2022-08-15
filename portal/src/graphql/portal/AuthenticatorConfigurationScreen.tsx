@@ -227,11 +227,8 @@ function constructConfig(
     }
 
     if (initialState.recoveryCodeEnabled !== currentState.recoveryCodeEnabled) {
-      if (!currentState.recoveryCodeEnabled) {
-        config.authentication.recovery_code.disabled = true;
-      } else {
-        delete config.authentication.recovery_code.disabled;
-      }
+      config.authentication.recovery_code.disabled =
+        !currentState.recoveryCodeEnabled;
     }
     if (initialState.numRecoveryCode !== currentState.numRecoveryCode) {
       config.authentication.recovery_code.count = currentState.numRecoveryCode;
