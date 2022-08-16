@@ -60,10 +60,12 @@ interface NavLinkProps {
 }
 
 interface ScreenNavProps {
+  mobileView?: boolean;
   onLinkClick?: () => void;
 }
 
 const ScreenNav: React.FC<ScreenNavProps> = function ScreenNav(props) {
+  const { mobileView = false } = props;
   const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
   const { renderToString } = useContext(Context);
@@ -89,6 +91,7 @@ const ScreenNav: React.FC<ScreenNavProps> = function ScreenNav(props) {
 
   const links: NavLinkProps[] = useMemo(() => {
     const links = [
+      ...(mobileView ? [{ textKey: "ScreenNav.all-projects", url: "/" }] : []),
       ...(skippedTutorial
         ? []
         : [{ textKey: "ScreenNav.getting-started", url: "./getting-started" }]),
@@ -212,7 +215,13 @@ const ScreenNav: React.FC<ScreenNavProps> = function ScreenNav(props) {
     ];
 
     return links;
-  }, [analyticEnabled, auditLogEnabled, showIntegrations, skippedTutorial]);
+  }, [
+    analyticEnabled,
+    auditLogEnabled,
+    mobileView,
+    showIntegrations,
+    skippedTutorial,
+  ]);
 
   const [selectedKeys, selectedKey] = useMemo(() => {
     const matchedKeys: string[] = [];
