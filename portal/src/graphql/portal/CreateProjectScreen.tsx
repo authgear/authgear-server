@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { PrimaryButton } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import WizardScreenLayout from "../../WizardScreenLayout";
-import WizardContentLayout from "../../WizardContentLayout";
+import WizardContentLayout, { WizardTitle } from "../../WizardContentLayout";
 import FormTextField from "../../FormTextField";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
@@ -114,14 +114,6 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
       <WizardScreenLayout>
         <FormErrorMessageBar />
         <WizardContentLayout
-          title={
-            <FormattedMessage
-              id="CreateProjectScreen.title"
-              values={{
-                apps: numberOfApps,
-              }}
-            />
-          }
           backButtonDisabled={true}
           primaryButton={
             <PrimaryButton onClick={onSubmitForm}>
@@ -129,6 +121,14 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
             </PrimaryButton>
           }
         >
+          <WizardTitle>
+            <FormattedMessage
+              id="CreateProjectScreen.title"
+              values={{
+                apps: numberOfApps,
+              }}
+            />
+          </WizardTitle>
           <form onSubmit={onSubmitForm}>
             <FormTextField
               styles={FORM_TEXT_FIELD_STYLES}
