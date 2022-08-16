@@ -686,9 +686,7 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
           )}
           {state.passkeyDisabled ? (
             <TooltipHost
-              content={
-                <FormattedMessage id="AuthenticatorConfigurationScreen.passkey.tooltip" />
-              }
+              content={<FormattedMessage id="errors.validation.passkey" />}
               tooltipProps={passkeyTooltipProps}
             >
               <Toggle
