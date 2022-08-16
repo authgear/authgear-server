@@ -122,6 +122,7 @@
   "oauth-branding-wechat": "使用 WeChat 帳戶登入",
 
   "sso-login-id-separator-both-present": "或",
+
   "or-label": "或",
 
   "phone-number-placeholder": "電話號碼",
@@ -315,17 +316,21 @@
   "enter-login-id-page-title--add": "輸入你的{key, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}",
   "enter-login-id-page-description--change": "你現在的{key, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}是 <b>{displayID}</b>。請輸入新的{key, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}。",
 
-  "setup-totp-instead": "改為使用驗證器應用程式／裝置",
-  "setup-oob-otp-email-instead": "改為使用電郵作雙重驗證",
-  "setup-oob-otp-sms-instead": "改為使用短訊作雙重驗證",
-  "setup-phone-otp-instead": "改為使用手機作雙重驗證",
-  "setup-password-instead": "改為設置密碼",
   "setup-passkey-instead": "改為設置通行密匙",
-  "enter-totp-instead": "改為輸入6位驗證器碼",
-  "enter-password-instead": "改為輸入密碼",
   "use-passkey-instead": "改為使用通行密匙",
-  "enter-oob-otp-email-instead": "以電郵發送驗證碼至 {target}",
-  "enter-oob-otp-sms-instead": "以短訊發送驗證碼至 {target}",
+  "setup-totp-instead": "改為使用驗證器應用程式／裝置",
+  "enter-totp-instead": "改為輸入6位驗證器碼",
+  "setup-primary-oob-otp-email-instead": "改為接收一次性密碼",
+  "setup-oob-otp-email-instead": "改為使用電郵作雙重驗證",
+  "setup-primary-oob-otp-sms-instead": "改為接收一次性密碼",
+  "setup-oob-otp-sms-instead": "改為使用短訊作雙重驗證",
+  "setup-password-instead": "改為設置密碼",
+  "setup-secondary-password-instead": "改為設置輔助密碼",
+  "enter-password-instead": "改為輸入密碼",
+  "enter-secondary-password-instead": "改為輸入輔助密碼",
+  "enter-oob-otp-email-instead": "以電郵發送一次性密碼至 {target}",
+  "enter-oob-otp-sms-instead": "以短訊發送一次性密碼至 {target}",
+  "setup-phone-otp-instead": "改為使用手機作雙重驗證",
   "verify-phone-otp-instead": "改為通過手機驗證 {target}",
 
   "phone-otp-verify-with-sms-instead":"改為通過短信接收一次性密碼",

@@ -39,7 +39,7 @@ type AlternativeStep struct {
 }
 
 type AlternativeStepsViewModel struct {
-	AuthenticationStage   authn.AuthenticationStage
+	AuthenticationStage   string
 	AlternativeSteps      []AlternativeStep
 	CanRequestDeviceToken bool
 }
@@ -57,7 +57,7 @@ func (a *AlternativeStepsViewModeler) AuthenticationAlternatives(graph *interact
 		panic("authentication_begin: expected graph has node implementing AuthenticationBeginNode")
 	}
 
-	m.AuthenticationStage = node.GetAuthenticationStage()
+	m.AuthenticationStage = string(node.GetAuthenticationStage())
 
 	edges, err := node.GetAuthenticationEdges()
 	if err != nil {
@@ -193,7 +193,7 @@ func (a *AlternativeStepsViewModeler) CreateAuthenticatorAlternatives(graph *int
 		panic("create_authenticator_begin: expected graph has node implementing CreateAuthenticatorBeginNode")
 	}
 
-	m.AuthenticationStage = node.GetCreateAuthenticatorStage()
+	m.AuthenticationStage = string(node.GetCreateAuthenticatorStage())
 
 	edges, err := node.GetCreateAuthenticatorEdges()
 	if err != nil {
