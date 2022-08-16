@@ -154,21 +154,29 @@ const QuickStartFrameworkItem: React.FC<QuickStartFrameworkItemProps> =
         target="_blank"
         {...gtmEventDataAttributes}
       >
-        <span className={styles.quickStartItemIcon}>{icon}</span>
-        <Text variant="small" className={styles.quickStartItemText}>
-          {name}
-        </Text>
-        {shouldShowArrowIcon && (
-          <Icon
-            className={styles.quickStartItemArrowIcon}
-            iconName="ChevronRightSmall"
-          />
-        )}
-        {!shouldShowArrowIcon && (
-          <Text className={styles.quickStartItemOpenTutorial}>
-            <FormattedMessage id="EditOAuthClientScreen.quick-start.open-tutorial.label" />
+        <span
+          className={styles.quickStartItemContainer}
+          // assign css styles `pointer-events: none` here
+          // to enforce the click event is triggered on the parent a element
+          // for GTM click event tracking
+          style={{ pointerEvents: "none" }}
+        >
+          <span className={styles.quickStartItemIcon}>{icon}</span>
+          <Text variant="small" className={styles.quickStartItemText}>
+            {name}
           </Text>
-        )}
+          {shouldShowArrowIcon && (
+            <Icon
+              className={styles.quickStartItemArrowIcon}
+              iconName="ChevronRightSmall"
+            />
+          )}
+          {!shouldShowArrowIcon && (
+            <Text className={styles.quickStartItemOpenTutorial}>
+              <FormattedMessage id="EditOAuthClientScreen.quick-start.open-tutorial.label" />
+            </Text>
+          )}
+        </span>
       </Link>
     );
   };

@@ -37,11 +37,8 @@
   border: 1px solid #cecece;
   color: #201f1e;
   border-radius: 2px;
-  display: flex;
-  flex-direction: row;
   padding: 10px 12px;
   cursor: pointer;
-  align-items: center;
 }
 
 .quickStartItem:hover,
@@ -54,6 +51,12 @@
 
 .quickStartItemHovered {
   border-color: #176df3;
+}
+
+.quickStartItemContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 .quickStartItemIcon {
