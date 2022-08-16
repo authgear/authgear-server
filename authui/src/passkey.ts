@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus";
 import axios from "axios";
-import { handleAxiosError } from "./messageBar";
+import { handleAxiosError, showErrorMessage } from "./messageBar";
 import { base64DecToArr, base64EncArr } from "./base64";
 import { base64URLToBase64, trimNewline, base64ToBase64URL } from "./base64url";
 import { RetryEventTarget } from "./retry";
@@ -108,11 +108,19 @@ function serializeAssertionResponse(credential: PublicKeyCredential) {
 }
 
 function handleError(err: unknown) {
+  // Cancel
   if (err instanceof DOMException && err.name === "NotAllowedError") {
     return;
   }
+
   // Abort
   if (err instanceof DOMException && err.name === "AbortError") {
+    return;
+  }
+
+  // Passkey not found error observed in Firefox.
+  if (err instanceof DOMException && err.name === "InvalidStateError") {
+    showErrorMessage("error-message-no-passkey");
     return;
   }
 
