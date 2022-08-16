@@ -85,7 +85,7 @@ export default function WizardContentLayout(
   );
 
   const gtmEventDataAttributes = useAuthgearGTMEventDataAttributes({
-    event: AuthgearGTMEventType.ClickSkipInProjectWizard,
+    event: AuthgearGTMEventType.ClickedSkipInProjectWizard,
     eventDataAttributes: trackSkipButtonEventData,
   });
 

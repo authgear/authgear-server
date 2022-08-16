@@ -75,7 +75,7 @@ const InviteAdminScreen: React.FC = function InviteAdminScreen() {
 
   const sendDataToGTM = useGTMDispatch();
   const gtmEvent = useAuthgearGTMEvent({
-    event: AuthgearGTMEventType.InviteAdmin,
+    event: AuthgearGTMEventType.InvitedAdmin,
   });
 
   const submit = useCallback(

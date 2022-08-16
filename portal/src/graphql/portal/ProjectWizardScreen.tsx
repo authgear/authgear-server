@@ -129,7 +129,7 @@ function Step1(props: StepProps) {
 
   const sendDataToGTM = useGTMDispatch();
   const gtmEvent = useAuthgearGTMEvent({
-    event: AuthgearGTMEventType.ClickNextInProjectWizard,
+    event: AuthgearGTMEventType.ClickedNextInProjectWizard,
     eventData: {
       app_id: rawAppID,
       current_step: "1",
@@ -270,7 +270,7 @@ function Step2(props: StepProps) {
 
   const sendDataToGTM = useGTMDispatch();
   const gtmEvent = useAuthgearGTMEvent({
-    event: AuthgearGTMEventType.ClickNextInProjectWizard,
+    event: AuthgearGTMEventType.ClickedNextInProjectWizard,
     eventData: {
       app_id: rawAppID,
       current_step: "2",
@@ -411,7 +411,7 @@ function Step3(props: StepProps) {
 
   const sendDataToGTM = useGTMDispatch();
   const gtmEvent = useAuthgearGTMEvent({
-    event: AuthgearGTMEventType.ClickNextInProjectWizard,
+    event: AuthgearGTMEventType.ClickedNextInProjectWizard,
     eventData: {
       app_id: rawAppID,
       current_step: "3",

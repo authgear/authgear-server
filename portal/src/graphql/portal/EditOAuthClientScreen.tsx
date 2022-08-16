@@ -137,7 +137,7 @@ const QuickStartFrameworkItem: React.FC<QuickStartFrameworkItemProps> =
     }, [showOpenTutorialLabelWhenHover, isHovering]);
 
     const gtmEventDataAttributes = useAuthgearGTMEventDataAttributes({
-      event: AuthgearGTMEventType.ClickDocLink,
+      event: AuthgearGTMEventType.ClickedDocLink,
       eventDataAttributes: {
         "doc-link": docLink,
       },

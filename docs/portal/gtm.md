@@ -10,9 +10,9 @@ This document describes how to setup portal tracking to send data to Mixpanel vi
       - Fires on: Some Clicks
       - Conditions:
         - Click Elements, matches CSS selector, `[data-authgear-event]`
-    - `Authgear Custom Event`
+    - `ag.event.*`
       - Type: Custom Event
-      - Event name: `authgear.*`
+      - Event name: `ag.event.*`
       - Use regex matching: true
       - Fires on: All Custom Events
   - Built-In Variables
@@ -64,4 +64,4 @@ This document describes how to setup portal tracking to send data to Mixpanel vi
           mixpanel.track({{Event}}, Object.assign({app_id: appID}, eventData));
         </script>
         ```
-      - Trigger: `Click With data-authgear-event`
+      - Trigger: `ag.event.*`

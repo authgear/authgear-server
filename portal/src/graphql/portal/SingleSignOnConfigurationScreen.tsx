@@ -332,7 +332,7 @@ const SingleSignOnConfigurationScreen: React.FC =
 
     const sendDataToGTM = useGTMDispatch();
     const gtmEvent = useAuthgearGTMEvent({
-      event: AuthgearGTMEventType.AddSSOProviders,
+      event: AuthgearGTMEventType.AddedSSOProviders,
     });
 
     const save = useCallback(async () => {

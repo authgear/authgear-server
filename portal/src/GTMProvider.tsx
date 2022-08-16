@@ -16,14 +16,14 @@ export interface AuthgearGTMEvent {
 }
 
 export enum AuthgearGTMEventType {
-  CreateProject = "authgear.createProject",
-  ClickGetStarted = "authgear.clickGetStarted",
-  CreateApplication = "authgear.createApplication",
-  InviteAdmin = "authgear.inviteAdmin",
-  AddSSOProviders = "authgear.addSSOProviders",
-  ClickDocLink = "authgear.clickDocLink",
-  ClickNextInProjectWizard = "authgear.clickNextInProjectWizard",
-  ClickSkipInProjectWizard = "authgear.clickSkipInProjectWizard",
+  CreatedProject = "ag.event.createdProject",
+  ClickedGetStarted = "ag.event.clickedGetStarted",
+  CreatedApplication = "ag.event.createdApplication",
+  InvitedAdmin = "ag.event.invitedAdmin",
+  AddedSSOProviders = "ag.event.addedSSOProviders",
+  ClickedDocLink = "ag.event.clickedDocLink",
+  ClickedNextInProjectWizard = "ag.event.clickedNextInProjectWizard",
+  ClickedSkipInProjectWizard = "ag.event.clickedSkipInProjectWizard",
 }
 
 interface AuthgearGTMEventParams {

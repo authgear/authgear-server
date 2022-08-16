@@ -111,7 +111,7 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
 
   const sendDataToGTM = useGTMDispatch();
   const gtmEvent = useAuthgearGTMEvent({
-    event: AuthgearGTMEventType.CreateProject,
+    event: AuthgearGTMEventType.CreatedProject,
   });
 
   useEffect(() => {
