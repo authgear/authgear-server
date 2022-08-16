@@ -175,13 +175,19 @@ const ScreenHeader: React.FC = function ScreenHeader() {
   return (
     <header className={styles.header} style={headerStyle}>
       <div className="hidden mobile:flex mobile:flex-row mobile:items-center mobile:text-white">
-        <IconButton
-          ariaLabel="hamburger"
-          iconProps={{ iconName: "WaffleOffice365" }}
-          className={styles.hamburger}
-          theme={themes.inverted}
-          onClick={openNavbar}
-        />
+        {appID ? (
+          <IconButton
+            ariaLabel="hamburger"
+            iconProps={{ iconName: "WaffleOffice365" }}
+            className={styles.hamburger}
+            theme={themes.inverted}
+            onClick={openNavbar}
+          />
+        ) : (
+          <Link to="/" className={styles.logoLink}>
+            <Logo />
+          </Link>
+        )}
         {appID && <ScreenHeaderAppSection appID={appID} mobileView={true} />}
         <Panel
           isLightDismiss={true}
