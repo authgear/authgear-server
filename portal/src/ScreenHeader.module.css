@@ -9,6 +9,7 @@
 
 .headerMobile {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   height: 48px;
 }
@@ -30,6 +31,11 @@
 .logo {
   height: 24px;
   margin: 12px 10px;
+}
+
+.logoNavHeader {
+  height: 24px;
+  margin: 12px;
 }
 
 .logoutButton {

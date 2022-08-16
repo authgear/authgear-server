@@ -3,6 +3,7 @@
   "system.name": "Authgear",
   "system.title": "Authgear Portal",
   "system.logo-uri": "/img/logo.png",
+  "system.logo-inverted-uri": "/img/logo-inverted.png",
 
   "loading": "Loading...",
 

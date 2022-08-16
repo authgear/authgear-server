@@ -21,6 +21,25 @@ import styles from "./ScreenHeader.module.css";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import { useBoolean } from "@fluentui/react-hooks";
 
+interface LogoProps {
+  mobileView?: boolean;
+}
+
+const Logo: React.FC<LogoProps> = (props) => {
+  const { mobileView = false } = props;
+  const { renderToString } = useContext(Context);
+
+  return (
+    <img
+      className={mobileView ? styles.logoNavHeader : styles.logo}
+      alt={renderToString("system.name")}
+      src={renderToString(
+        mobileView ? "system.logo-inverted-uri" : "system.logo-uri"
+      )}
+    />
+  );
+};
+
 interface ScreenHeaderAppSectionProps {
   appID: string;
   mobileView?: boolean;
@@ -92,6 +111,7 @@ const MobileViewNavbarHeader: IRenderFunction<IPanelProps> = (props) => {
         className={styles.hamburger}
         onClick={onClick}
       />
+      <Logo mobileView={true} />
     </div>
   );
 };
@@ -99,7 +119,7 @@ const MobileViewNavbarHeader: IRenderFunction<IPanelProps> = (props) => {
 const MobileViewNavbarBody: IRenderFunction<IPanelProps> = (props) => {
   // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
   const onClick: () => void = props?.onDismiss!;
-  return <ScreenNav onLinkClick={onClick} />;
+  return <ScreenNav mobileView={true} onLinkClick={onClick} />;
 };
 
 const ScreenHeader: React.FC = function ScreenHeader() {
@@ -175,11 +195,7 @@ const ScreenHeader: React.FC = function ScreenHeader() {
       </div>
       <div className="flex flex-row items-center text-white mobile:hidden">
         <Link to="/" className={styles.logoLink}>
-          <img
-            className={styles.logo}
-            alt={renderToString("system.name")}
-            src={renderToString("system.logo-uri")}
-          />
+          <Logo />
         </Link>
         {appID && <ScreenHeaderAppSection appID={appID} />}
       </div>
