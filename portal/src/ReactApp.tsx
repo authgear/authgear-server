@@ -35,9 +35,14 @@ import Authenticated from "./graphql/portal/Authenticated";
 import { LoadingContextProvider } from "./hook/loading";
 import ShowLoading from "./ShowLoading";
 import GTMProvider, {
+  AuthgearGTMEvent,
   AuthgearGTMEventType,
   useMakeAuthgearGTMEventDataAttributes,
+  useGTMDispatch,
+  useAuthgearGTMEventBase,
 } from "./GTMProvider";
+import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
+import { extractRawID } from "./util/graphql";
 
 const AppsScreen = lazy(async () => import("./graphql/portal/AppsScreen"));
 const CreateProjectScreen = lazy(
@@ -215,6 +220,42 @@ const defaultComponents = {
   DocLink,
 };
 
+export interface LoadCurrentUserProps {
+  children?: React.ReactNode;
+}
+
+const LoadCurrentUser: React.FC<LoadCurrentUserProps> =
+  function LoadCurrentUser({ children }: LoadCurrentUserProps) {
+    const { loading, viewer } = useViewerQuery();
+
+    const gtmEvent = useAuthgearGTMEventBase();
+    const sendDataToGTM = useGTMDispatch();
+    useEffect(() => {
+      if (viewer) {
+        const event: AuthgearGTMEvent = {
+          ...gtmEvent,
+          event: AuthgearGTMEventType.Identified,
+          event_data: {
+            // fixme: userid encoded twice
+            user_id: extractRawID(extractRawID(viewer.id)),
+            email: viewer.email ?? undefined,
+          },
+        };
+        sendDataToGTM(event);
+      }
+    }, [viewer, gtmEvent, sendDataToGTM]);
+
+    if (loading) {
+      return (
+        <div className={styles.root}>
+          <ShowLoading />
+        </div>
+      );
+    }
+
+    return <>{children}</>;
+  };
+
 // ReactApp is responsible for fetching runtime config and initialize authgear SDK.
 const ReactApp: React.FC = function ReactApp() {
   const [systemConfig, setSystemConfig] = useState<SystemConfig | null>(null);
@@ -264,7 +305,9 @@ const ReactApp: React.FC = function ReactApp() {
           <HelmetProvider>
             <ApolloProvider client={client}>
               <SystemConfigContext.Provider value={systemConfig}>
-                <PortalRoot />
+                <LoadCurrentUser>
+                  <PortalRoot />
+                </LoadCurrentUser>
               </SystemConfigContext.Provider>
             </ApolloProvider>
           </HelmetProvider>
