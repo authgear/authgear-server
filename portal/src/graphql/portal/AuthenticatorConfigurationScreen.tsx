@@ -9,6 +9,7 @@ import {
   DetailsList,
   Link,
   Text,
+  TooltipHost,
 } from "@fluentui/react";
 import produce from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -32,6 +33,7 @@ import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
+import { useTooltipTargetElement } from "../../Tooltip";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
@@ -78,7 +80,8 @@ interface FormState {
   numRecoveryCode: number | undefined;
   allowListRecoveryCode: boolean;
   disableDeviceToken: boolean;
-  passkeyEnabled: boolean;
+  passkeyChecked: boolean;
+  passkeyDisabled: boolean;
 }
 
 // eslint-disable-next-line complexity
@@ -118,7 +121,11 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
 
   const passkeyIndex =
     config.authentication?.primary_authenticators?.indexOf("passkey");
-  const passkeyEnabled = passkeyIndex != null && passkeyIndex >= 0;
+  const passkeyChecked = passkeyIndex != null && passkeyIndex >= 0;
+
+  const passkeyDisabled = !(
+    config.authentication?.identities?.includes("login_id") ?? true
+  );
 
   return {
     primary,
@@ -132,7 +139,8 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     allowListRecoveryCode:
       config.authentication?.recovery_code?.list_enabled ?? false,
     disableDeviceToken: config.authentication?.device_token?.disabled ?? false,
-    passkeyEnabled,
+    passkeyChecked,
+    passkeyDisabled,
   };
 }
 
@@ -186,7 +194,7 @@ function constructConfig(
     // so we read from effectiveConfig.authentication?.identities
     // On the other hand, we always write config.authentication.primary_authenticators,
     // so we read from it.
-    if (currentState.passkeyEnabled) {
+    if (currentState.passkeyChecked) {
       config.authentication.primary_authenticators = setEnable(
         config.authentication.primary_authenticators,
         "passkey",
@@ -279,6 +287,13 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
     const { state, setState, effectiveConfig } = props.form;
 
     const { featureConfig } = props;
+
+    const tooltipResult = useTooltipTargetElement();
+    const passkeyTooltipProps = useMemo(() => {
+      return {
+        targetElement: tooltipResult.targetElement,
+      };
+    }, [tooltipResult.targetElement]);
 
     const { renderToString } = useContext(Context);
 
@@ -426,11 +441,11 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
       }
     );
 
-    const { onChange: onChangePasskeyEnabled } = useCheckbox(
+    const { onChange: onChangePasskeyChecked } = useCheckbox(
       (checked: boolean) => {
         setState((prev) => ({
           ...prev,
-          passkeyEnabled: checked,
+          passkeyChecked: checked,
         }));
       }
     );
@@ -669,24 +684,52 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
               />
             </FeatureDisabledMessageBar>
           )}
-          <div>
-            <Toggle
-              label={renderToString(
-                "AuthenticatorConfigurationScreen.passkey.title"
-              )}
-              onText={renderToString(
-                "AuthenticatorConfigurationScreen.passkey.on"
-              )}
-              offText={renderToString(
-                "AuthenticatorConfigurationScreen.passkey.off"
-              )}
-              checked={state.passkeyEnabled}
-              onChange={onChangePasskeyEnabled}
-            />
-            <Text as="p" variant="medium" block={true}>
-              <FormattedMessage id="AuthenticatorConfigurationScreen.passkey.description" />
-            </Text>
-          </div>
+          {state.passkeyDisabled ? (
+            <TooltipHost
+              content={<FormattedMessage id="errors.validation.passkey" />}
+              tooltipProps={passkeyTooltipProps}
+            >
+              <Toggle
+                id={tooltipResult.id}
+                ref={tooltipResult.setRef}
+                label={renderToString(
+                  "AuthenticatorConfigurationScreen.passkey.title"
+                )}
+                onText={renderToString(
+                  "AuthenticatorConfigurationScreen.passkey.on"
+                )}
+                offText={renderToString(
+                  "AuthenticatorConfigurationScreen.passkey.off"
+                )}
+                disabled={state.passkeyDisabled}
+                checked={state.passkeyChecked}
+                onChange={onChangePasskeyChecked}
+              />
+              <Text as="p" variant="medium" block={true}>
+                <FormattedMessage id="AuthenticatorConfigurationScreen.passkey.description" />
+              </Text>
+            </TooltipHost>
+          ) : (
+            <div>
+              <Toggle
+                label={renderToString(
+                  "AuthenticatorConfigurationScreen.passkey.title"
+                )}
+                onText={renderToString(
+                  "AuthenticatorConfigurationScreen.passkey.on"
+                )}
+                offText={renderToString(
+                  "AuthenticatorConfigurationScreen.passkey.off"
+                )}
+                disabled={state.passkeyDisabled}
+                checked={state.passkeyChecked}
+                onChange={onChangePasskeyChecked}
+              />
+              <Text as="p" variant="medium" block={true}>
+                <FormattedMessage id="AuthenticatorConfigurationScreen.passkey.description" />
+              </Text>
+            </div>
+          )}
           <DetailsList
             items={primaryItems}
             columns={authenticatorColumns}

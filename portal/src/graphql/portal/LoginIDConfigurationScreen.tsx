@@ -53,6 +53,11 @@ const errorRules = [
     /^\/ui\/phone_input\/allowlist$/,
     "LoginIDConfigurationScreen.error.calling-code-min-items"
   ),
+  makeValidationErrorMatchUnknownKindParseRule(
+    "const",
+    /\/authentication\/identities/,
+    "errors.validation.passkey"
+  ),
 ];
 
 // email domain lists are not language specific
