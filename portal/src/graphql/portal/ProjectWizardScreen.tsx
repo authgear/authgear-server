@@ -18,7 +18,11 @@ import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import produce from "immer";
 import { FormProvider } from "../../form";
 import { FormErrorMessageBar } from "../../FormErrorMessageBar";
-import WizardContentLayout from "../../WizardContentLayout";
+import WizardContentLayout, {
+  WizardDescription,
+  WizardTitle,
+  WizardDivider,
+} from "../../WizardContentLayout";
 import WizardScreenLayout from "../../WizardScreenLayout";
 import {
   useAppConfigForm,
@@ -42,8 +46,12 @@ const TOOLTIP_HOST_STYLES = {
 } as const;
 
 type Step1Answer = "password" | "oob_otp_email";
-type Step2Answer = SecondaryAuthenticationMode;
-type Step3Answer = SecondaryAuthenticatorType;
+type Step2Answer = boolean;
+interface Step3Answer {
+  useRecommenededSettings: boolean;
+  secondaryAuthenticationMode: SecondaryAuthenticationMode;
+  secondaryAuthenticatorType: SecondaryAuthenticatorType;
+}
 
 interface FormState {
   step1Answer: Step1Answer;
@@ -61,8 +69,12 @@ interface StepProps {
 function constructFormState(_config: PortalAPIAppConfig): FormState {
   return {
     step1Answer: "password",
-    step2Answer: "if_exists",
-    step3Answer: "totp",
+    step2Answer: true,
+    step3Answer: {
+      useRecommenededSettings: true,
+      secondaryAuthenticationMode: "if_exists",
+      secondaryAuthenticatorType: "totp",
+    },
   };
 }
 
@@ -75,12 +87,26 @@ function constructConfig(
     config.identity ??= {};
     config.identity.login_id ??= {};
     config.identity.login_id.keys = [{ type: "email" }];
-
     config.authentication ??= {};
+    config.authentication.identities = ["oauth", "login_id"];
+
     config.authentication.primary_authenticators = [currentState.step1Answer];
-    config.authentication.secondary_authentication_mode =
-      currentState.step2Answer;
-    config.authentication.secondary_authenticators = [currentState.step3Answer];
+
+    if (currentState.step2Answer) {
+      config.authentication.identities.push("passkey");
+      config.authentication.primary_authenticators.push("passkey");
+    }
+
+    if (currentState.step3Answer.useRecommenededSettings) {
+      config.authentication.secondary_authentication_mode = "if_exists";
+      config.authentication.secondary_authenticators = ["totp"];
+    } else {
+      config.authentication.secondary_authentication_mode =
+        currentState.step3Answer.secondaryAuthenticationMode;
+      config.authentication.secondary_authenticators = [
+        currentState.step3Answer.secondaryAuthenticatorType,
+      ];
+    }
   });
 }
 
@@ -169,12 +195,6 @@ function Step1(props: StepProps) {
   return (
     <WizardContentLayout
       appID={appID}
-      title={
-        <FormattedMessage
-          id="ProjectWizardScreen.step.title"
-          values={{ appID: rawAppID, currentStep: 1, totalStep: 3 }}
-        />
-      }
       backButtonDisabled={true}
       primaryButton={
         <PrimaryButton onClick={onClickNext}>
@@ -182,6 +202,12 @@ function Step1(props: StepProps) {
         </PrimaryButton>
       }
     >
+      <WizardTitle>
+        <FormattedMessage
+          id="ProjectWizardScreen.step.title"
+          values={{ appID: rawAppID, currentStep: 1, totalStep: 3 }}
+        />
+      </WizardTitle>
       <ChoiceGroup
         label={renderToString("ProjectWizardScreen.step1.question")}
         options={options}
@@ -203,7 +229,6 @@ function Step2(props: StepProps) {
       state: { step2Answer },
       setState,
     },
-    saveAndThenNavigate,
   } = props;
   const { renderToString } = useContext(Context);
   const navigate = useNavigate();
@@ -211,16 +236,12 @@ function Step2(props: StepProps) {
   const options: IChoiceGroupOption[] = useMemo(() => {
     return [
       {
-        key: "if_exists",
-        text: renderToString("ProjectWizardScreen.step2.option.if-exists"),
+        key: "true",
+        text: renderToString("ProjectWizardScreen.step2.option.true"),
       },
       {
-        key: "required",
-        text: renderToString("ProjectWizardScreen.step2.option.required"),
-      },
-      {
-        key: "disabled",
-        text: renderToString("ProjectWizardScreen.step2.option.disabled"),
+        key: "false",
+        text: renderToString("ProjectWizardScreen.step2.option.false"),
       },
     ];
   }, [renderToString]);
@@ -229,13 +250,9 @@ function Step2(props: StepProps) {
     (e) => {
       e.preventDefault();
       e.stopPropagation();
-      if (step2Answer === "disabled") {
-        saveAndThenNavigate();
-      } else {
-        navigate("./../3");
-      }
+      navigate("./../3");
     },
-    [step2Answer, navigate, saveAndThenNavigate]
+    [navigate]
   );
 
   const onChange = useCallback(
@@ -243,7 +260,7 @@ function Step2(props: StepProps) {
       if (option != null) {
         setState((prev) => ({
           ...prev,
-          step2Answer: option.key,
+          step2Answer: option.key === "true" ? true : false,
         }));
       }
     },
@@ -253,27 +270,27 @@ function Step2(props: StepProps) {
   return (
     <WizardContentLayout
       appID={appID}
-      title={
-        <FormattedMessage
-          id="ProjectWizardScreen.step.title"
-          values={{ appID: rawAppID, currentStep: 2, totalStep: 3 }}
-        />
-      }
       primaryButton={
         <PrimaryButton onClick={onClickNext}>
           <FormattedMessage id="next" />
         </PrimaryButton>
       }
     >
+      <WizardTitle>
+        <FormattedMessage
+          id="ProjectWizardScreen.step.title"
+          values={{ appID: rawAppID, currentStep: 2, totalStep: 3 }}
+        />
+      </WizardTitle>
       <ChoiceGroup
         label={renderToString("ProjectWizardScreen.step2.question")}
         options={options}
-        selectedKey={step2Answer}
+        selectedKey={String(step2Answer)}
         onChange={onChange}
       />
-      <Text block={true}>
+      <WizardDescription>
         <FormattedMessage id="ProjectWizardScreen.step2.description" />
-      </Text>
+      </WizardDescription>
     </WizardContentLayout>
   );
 }
@@ -290,13 +307,43 @@ function Step3(props: StepProps) {
   } = props;
   const { renderToString } = useContext(Context);
 
-  const options: IChoiceGroupOption[] = useMemo(() => {
+  const q1Options: IChoiceGroupOption[] = useMemo(() => {
+    return [
+      {
+        key: "true",
+        text: renderToString("ProjectWizardScreen.step3.q1.option.true"),
+      },
+      {
+        key: "false",
+        text: renderToString("ProjectWizardScreen.step3.q1.option.false"),
+      },
+    ];
+  }, [renderToString]);
+
+  const q2Options: IChoiceGroupOption[] = useMemo(() => {
+    return [
+      {
+        key: "if_exists",
+        text: renderToString("ProjectWizardScreen.step3.q2.option.if_exists"),
+      },
+      {
+        key: "required",
+        text: renderToString("ProjectWizardScreen.step3.q2.option.required"),
+      },
+      {
+        key: "disabled",
+        text: renderToString("ProjectWizardScreen.step3.q2.option.disabled"),
+      },
+    ];
+  }, [renderToString]);
+
+  const q3Options: IChoiceGroupOption[] = useMemo(() => {
     const options = [
       {
         key: "totp",
         text: (
           <FormattedMessage
-            id="ProjectWizardScreen.step3.option.totp"
+            id="ProjectWizardScreen.step3.q3.option.totp"
             components={{
               Text,
             }}
@@ -310,12 +357,14 @@ function Step3(props: StepProps) {
     if (step1Answer === "password") {
       options.push({
         key: "oob_otp_email",
-        text: renderToString("ProjectWizardScreen.step3.option.oob-otp-email"),
+        text: renderToString(
+          "ProjectWizardScreen.step3.q3.option.oob_otp_email"
+        ),
       });
     } else {
       options.push({
         key: "password",
-        text: renderToString("ProjectWizardScreen.step3.option.password"),
+        text: renderToString("ProjectWizardScreen.step3.q3.option.password"),
       });
     }
     return options;
@@ -330,12 +379,45 @@ function Step3(props: StepProps) {
     [saveAndThenNavigate]
   );
 
-  const onChange = useCallback(
+  const onChangeQ1 = useCallback(
     (_e, option) => {
       if (option != null) {
         setState((prev) => ({
           ...prev,
-          step3Answer: option.key,
+          step3Answer: {
+            ...prev.step3Answer,
+            useRecommenededSettings: option.key === "true" ? true : false,
+          },
+        }));
+      }
+    },
+    [setState]
+  );
+
+  const onChangeQ2 = useCallback(
+    (_e, option) => {
+      if (option != null) {
+        setState((prev) => ({
+          ...prev,
+          step3Answer: {
+            ...prev.step3Answer,
+            secondaryAuthenticationMode: option.key,
+          },
+        }));
+      }
+    },
+    [setState]
+  );
+
+  const onChangeQ3 = useCallback(
+    (_e, option) => {
+      if (option != null) {
+        setState((prev) => ({
+          ...prev,
+          step3Answer: {
+            ...prev.step3Answer,
+            secondaryAuthenticatorType: option.key,
+          },
         }));
       }
     },
@@ -345,24 +427,53 @@ function Step3(props: StepProps) {
   return (
     <WizardContentLayout
       appID={appID}
-      title={
-        <FormattedMessage
-          id="ProjectWizardScreen.step.title"
-          values={{ appID: rawAppID, currentStep: 3, totalStep: 3 }}
-        />
-      }
       primaryButton={
         <PrimaryButton onClick={onClickNext}>
           <FormattedMessage id="next" />
         </PrimaryButton>
       }
     >
+      <WizardTitle>
+        <FormattedMessage
+          id="ProjectWizardScreen.step.title"
+          values={{ appID: rawAppID, currentStep: 3, totalStep: 3 }}
+        />
+      </WizardTitle>
       <ChoiceGroup
-        label={renderToString("ProjectWizardScreen.step2.question")}
-        options={options}
-        selectedKey={step3Answer}
-        onChange={onChange}
+        label={renderToString("ProjectWizardScreen.step3.q1")}
+        options={q1Options}
+        selectedKey={String(step3Answer.useRecommenededSettings)}
+        onChange={onChangeQ1}
       />
+      <WizardDivider />
+      {step3Answer.useRecommenededSettings ? (
+        <>
+          <WizardTitle>
+            <FormattedMessage id="ProjectWizardScreen.step3.recommended-settings.title" />
+          </WizardTitle>
+          <WizardDescription>
+            <FormattedMessage id="ProjectWizardScreen.step3.recommended-settings.description" />
+          </WizardDescription>
+        </>
+      ) : (
+        <>
+          <WizardTitle>
+            <FormattedMessage id="ProjectWizardScreen.step3.custom-settings.title" />
+          </WizardTitle>
+          <ChoiceGroup
+            label={renderToString("ProjectWizardScreen.step3.q2")}
+            options={q2Options}
+            selectedKey={String(step3Answer.secondaryAuthenticationMode)}
+            onChange={onChangeQ2}
+          />
+          <ChoiceGroup
+            label={renderToString("ProjectWizardScreen.step3.q3")}
+            options={q3Options}
+            selectedKey={String(step3Answer.secondaryAuthenticatorType)}
+            onChange={onChangeQ3}
+          />
+        </>
+      )}
     </WizardContentLayout>
   );
 }
@@ -370,7 +481,12 @@ function Step3(props: StepProps) {
 export default function ProjectWizardScreen(): React.ReactElement {
   const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
-  const form = useAppConfigForm({ appID, constructFormState, constructConfig });
+  const form = useAppConfigForm({
+    appID,
+    constructFormState,
+    constructConfig,
+    initialCanSave: true,
+  });
   const {
     isLoading,
     loadError,
