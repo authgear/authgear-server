@@ -184,8 +184,8 @@ function ExternalLink(props: ILinkProps) {
 const DocLink: React.FC<ILinkProps> = (props: ILinkProps) => {
   const gtmEventDataAttributes = useAuthgearGTMEventDataAttributes({
     event: AuthgearGTMEventType.ClickDocLink,
-    eventData: {
-      "doc-link": props.href,
+    eventDataAttributes: {
+      "doc-link": props.href ?? "",
     },
   });
 

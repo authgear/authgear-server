@@ -205,7 +205,7 @@ const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> =
     const gtmEvent = useAuthgearGTMEvent({
       event: AuthgearGTMEventType.CreateApplication,
       eventData: {
-        applicationType: client.x_application_type,
+        application_type: client.x_application_type,
       },
     });
 

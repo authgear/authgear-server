@@ -138,7 +138,7 @@ const QuickStartFrameworkItem: React.FC<QuickStartFrameworkItemProps> =
 
     const gtmEventDataAttributes = useAuthgearGTMEventDataAttributes({
       event: AuthgearGTMEventType.ClickDocLink,
-      eventData: {
+      eventDataAttributes: {
         "doc-link": docLink,
       },
     });

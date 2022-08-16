@@ -20,9 +20,9 @@ This document describes how to setup portal tracking to send data to Mixpanel vi
   - User-Defined Variables
     - `gtm.element.dataset`
       - Type: Data Layer Variables
-    - `appId`
+    - `app_id`
       - Type: Data Layer Variables
-    - `eventData`
+    - `event_data`
       - Type: Data Layer Variables
   - Tags
     - `Mixpanel Initialize`
@@ -34,8 +34,8 @@ This document describes how to setup portal tracking to send data to Mixpanel vi
       - HTML:
         ```html
         <script type="text/javascript">
-          function lowercaseFirstLetter(string) {
-            return string.charAt(0).toLowerCase() + string.slice(1);
+          function toUnderscore(s) {
+            return s.replace(/\.?([A-Z])/g, function (x,y){return "_" + y.toLowerCase()}).replace(/^_/, "");
           }
           var AUTHGEAR_EVENT = "authgearEvent";
           var AUTHGEAR_EVENT_DATA = "authgearEventData";
@@ -45,7 +45,7 @@ This document describes how to setup portal tracking to send data to Mixpanel vi
             var eventData = {};
             Object.keys(dataset).map(function(k) {
               if (k.startsWith(AUTHGEAR_EVENT_DATA)) {
-                var eventDataKey = lowercaseFirstLetter(k.replace(AUTHGEAR_EVENT_DATA, ""));
+                var eventDataKey = toUnderscore(k.replace(AUTHGEAR_EVENT_DATA, ""));
                 eventData[eventDataKey] = dataset[k];
               }
             });
@@ -59,9 +59,9 @@ This document describes how to setup portal tracking to send data to Mixpanel vi
       - HTML:
         ```html
         <script type="text/javascript">
-          var appId = {{appId}};
-          var eventData = {{eventData}};
-          mixpanel.track({{Event}}, Object.assign({appId: appId}, eventData));
+          var appID = {{app_id}};
+          var eventData = {{event_data}};
+          mixpanel.track({{Event}}, Object.assign({app_id: appID}, eventData));
         </script>
         ```
       - Trigger: `Click With data-authgear-event`

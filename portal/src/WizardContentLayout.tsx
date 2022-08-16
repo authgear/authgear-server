@@ -12,7 +12,7 @@ import ReactRouterLink from "./ReactRouterLink";
 import styles from "./WizardContentLayout.module.css";
 import {
   AuthgearGTMEventType,
-  EventData,
+  EventDataAttributes,
   useAuthgearGTMEventDataAttributes,
 } from "./GTMProvider";
 
@@ -60,7 +60,7 @@ export interface WizardContentLayoutProps {
   children?: React.ReactNode;
   appID?: string;
   trackSkipButtonClick?: boolean;
-  trackSkipButtonEventData?: EventData;
+  trackSkipButtonEventData?: EventDataAttributes;
 }
 
 export default function WizardContentLayout(
@@ -86,7 +86,7 @@ export default function WizardContentLayout(
 
   const gtmEventDataAttributes = useAuthgearGTMEventDataAttributes({
     event: AuthgearGTMEventType.ClickSkipInProjectWizard,
-    eventData: trackSkipButtonEventData,
+    eventDataAttributes: trackSkipButtonEventData,
   });
 
   return (

@@ -83,8 +83,8 @@ const InviteAdminScreen: React.FC = function InviteAdminScreen() {
       await createCollaboratorInvitation(state.email);
       const event: AuthgearGTMEvent = {
         ...gtmEvent,
-        eventData: {
-          collaboratorEmail: state.email,
+        event_data: {
+          collaborator_email: state.email,
         },
       };
       sendDataToGTM(event);

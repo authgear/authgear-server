@@ -352,7 +352,7 @@ const SingleSignOnConfigurationScreen: React.FC =
       if (addedProviders.length > 0) {
         const event: AuthgearGTMEvent = {
           ...gtmEvent,
-          eventData: {
+          event_data: {
             providers: addedProviders,
           },
         };

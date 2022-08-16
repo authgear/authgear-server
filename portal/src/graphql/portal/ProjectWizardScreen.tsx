@@ -131,9 +131,9 @@ function Step1(props: StepProps) {
   const gtmEvent = useAuthgearGTMEvent({
     event: AuthgearGTMEventType.ClickNextInProjectWizard,
     eventData: {
-      appId: rawAppID,
-      currentStep: "1",
-      primaryAuthenticator: step1Answer,
+      app_id: rawAppID,
+      current_step: "1",
+      primary_authenticator: step1Answer,
     },
   });
 
@@ -272,9 +272,9 @@ function Step2(props: StepProps) {
   const gtmEvent = useAuthgearGTMEvent({
     event: AuthgearGTMEventType.ClickNextInProjectWizard,
     eventData: {
-      appId: rawAppID,
-      currentStep: "2",
-      passkeyEnabled: step2Answer,
+      app_id: rawAppID,
+      current_step: "2",
+      passkey_enabled: step2Answer,
     },
   });
 
@@ -413,11 +413,11 @@ function Step3(props: StepProps) {
   const gtmEvent = useAuthgearGTMEvent({
     event: AuthgearGTMEventType.ClickNextInProjectWizard,
     eventData: {
-      appId: rawAppID,
-      currentStep: "3",
-      useRecommendedSettings: step3Answer.useRecommenededSettings,
-      secondaryAuthenticatorType: step3Answer.secondaryAuthenticatorType,
-      secondaryAuthenticationMode: step3Answer.secondaryAuthenticationMode,
+      app_id: rawAppID,
+      current_step: "3",
+      use_recommended_settings: step3Answer.useRecommenededSettings,
+      secondary_authenticator_type: step3Answer.secondaryAuthenticatorType,
+      secondary_authentication_mode: step3Answer.secondaryAuthenticationMode,
     },
   });
 

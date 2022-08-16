@@ -10,8 +10,8 @@ export type EventData = Record<string, TrackValue>;
 
 export interface AuthgearGTMEvent {
   event: AuthgearGTMEventType;
-  appId?: string;
-  eventData?: EventData;
+  app_id?: string;
+  event_data?: EventData;
   _clear: boolean;
 }
 
@@ -44,8 +44,8 @@ export function useAuthgearGTMEvent({
   return useMemo(() => {
     return {
       event: event,
-      appId: appContextID,
-      eventData,
+      app_id: appContextID,
+      event_data: eventData,
       // Prevent GTM recursive merge event data object
       // https://github.com/google/data-layer-helper#preventing-default-recursive-merge
       _clear: true,
@@ -53,31 +53,42 @@ export function useAuthgearGTMEvent({
   }, [event, eventData, appContextID]);
 }
 
-export function useAuthgearGTMEventDataAttributes(
-  params: AuthgearGTMEventParams
-): Record<string, string> {
-  const event = useAuthgearGTMEvent(params);
+interface AuthgearGTMEventDataAttributesParams {
+  event: AuthgearGTMEventType;
+  eventDataAttributes?: Record<string, string>;
+}
+
+export type EventDataAttributes = Record<string, string>;
+
+export function useAuthgearGTMEventDataAttributes({
+  event,
+  eventDataAttributes,
+}: AuthgearGTMEventDataAttributesParams): EventDataAttributes {
+  let appContextID: string | undefined;
+  try {
+    const appContext = useAppContext();
+    appContextID = appContext.appID;
+  } catch {}
+
   return useMemo(() => {
     const attributes: Record<string, string> = {
-      "data-authgear-event": event.event,
+      "data-authgear-event": event,
     };
-    if (event.appId) {
-      attributes["data-authgear-event-data-app-id"] = event.appId;
+    if (appContextID) {
+      attributes["data-authgear-event-data-app-id"] = appContextID;
     }
-    if (event.eventData) {
-      for (const k in event.eventData) {
-        if (!Object.prototype.hasOwnProperty.call(event.eventData, k)) {
+    if (eventDataAttributes) {
+      for (const k in eventDataAttributes) {
+        if (!Object.prototype.hasOwnProperty.call(eventDataAttributes, k)) {
           continue;
         }
         // only support string for data attributes
-        const v = event.eventData[k];
-        if (typeof v === "string") {
-          attributes[`data-authgear-event-data-${k}`] = v;
-        }
+        const v = eventDataAttributes[k];
+        attributes[`data-authgear-event-data-${k}`] = v;
       }
     }
     return attributes;
-  }, [event]);
+  }, [event, eventDataAttributes, appContextID]);
 }
 
 export function useGTMDispatch(): (event: AuthgearGTMEvent) => void {
