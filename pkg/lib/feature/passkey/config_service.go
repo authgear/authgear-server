@@ -32,7 +32,6 @@ func (s *ConfigService) MakeConfig() (*Config, error) {
 		return nil, err
 	}
 
-	requireResidentKey := true
 	return &Config{
 		RPDisplayName: appName,
 
@@ -48,15 +47,17 @@ func (s *ConfigService) MakeConfig() (*Config, error) {
 			// This means the authenticator can either be on-device or off-device.
 			// AuthenticatorAttachment:,
 
-			// ResidentKey is "required" means we want the credential to be client-side discoverable.
-			// This implies we do not need to identity the user first and find out allowCredentials.
-			// The outcome is that we can present a flow that the user signs in by selecting
-			// credentials, without the need of first entering their email address.
-			ResidentKey: protocol.ResidentKeyRequirementRequired,
+			// ResidentKey is "preferred" to maximize compatibility across platforms.
+			// On iOS 16, client-side discoverable credential is created if the value is set to "preferred" or "required".
+			// So the created credential can be later on used with Autofill.
+			// On Android, client-side discoverable credential is NOT supported.
+			// Therefore, specifying "required" will cause the ceremony to fail.
+			ResidentKey: protocol.ResidentKeyRequirementPreferred,
 			// RequireResidentKey is a deprecated field.
 			// https://www.w3.org/TR/webauthn-2/#dom-authenticatorselectioncriteria-requireresidentkey
 			// It MUST BE true if ResidentKey is "required".
-			RequireResidentKey: &requireResidentKey,
+			// Since we set ResidentKey to "preferred", it MUST BE left blank.
+			// ResidentKey:,
 
 			// https://www.w3.org/TR/webauthn-2/#user-verification
 			// Per the WWDC video https://developer.apple.com/videos/play/wwdc2022/10092/ at 19:12
