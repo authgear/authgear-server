@@ -69,19 +69,35 @@
                         {{ template "setup-totp-instead" .Data }}
                     {{ end }}
                     {{ if eq .Step "setup-oob-otp-email" }}
-                        {{ template "setup-oob-otp-email-instead" .Data }}
+                        {{ if eq $.AuthenticationStage "primary" }}
+                            {{ template "setup-primary-oob-otp-email-instead" .Data }}
+                        {{ else }}
+                            {{ template "setup-oob-otp-email-instead" .Data }}
+                        {{ end }}
                     {{ end }}
                     {{ if eq .Step "setup-oob-otp-sms" }}
-                        {{ template "setup-oob-otp-sms-instead" .Data }}
+                        {{ if eq $.AuthenticationStage "primary" }}
+                            {{ template "setup-primary-oob-otp-sms-instead" .Data }}
+                        {{ else }}
+                            {{ template "setup-oob-otp-sms-instead" .Data }}
+                        {{ end }}
                     {{ end }}
                     {{ if eq .Step "create-password" }}
-                        {{ template "setup-password-instead" .Data }}
+                        {{ if eq $.AuthenticationStage "primary" }}
+                            {{ template "setup-password-instead" .Data }}
+                        {{ else }}
+                            {{ template "setup-secondary-password-instead" .Data }}
+                        {{ end }}
                     {{ end }}
                     {{ if eq .Step "enter-totp" }}
                         {{ template "enter-totp-instead" .Data }}
                     {{ end }}
                     {{ if eq .Step "enter-password" }}
-                        {{ template "enter-password-instead" .Data }}
+                        {{ if eq $.AuthenticationStage "primary" }}
+                            {{ template "enter-password-instead" .Data }}
+                        {{ else }}
+                            {{ template "enter-secondary-password-instead" .Data }}
+                        {{ end }}
                     {{ end }}
                     {{ if eq .Step "enter-oob-otp-authn-email" }}
                         {{ template "enter-oob-otp-email-instead" .Data }}
