@@ -216,8 +216,7 @@ This is an example of the create options we generate
     "timeout": 300000,
     "excludeCredentials": [...],
     "authenticatorSelection": {
-        "residentKey": "required",
-        "requireResidentKey": true,
+        "residentKey": "preferred",
         "userVerification": "preferred"
     },
     "attestation": "direct",
@@ -232,8 +231,7 @@ This is an example of the create options we generate
 - `rp.name`: The name of the project.
 - `user.name` and `user.displayName`: Pre-filled by the end user identifier. Not editable.
 - `authenticatorSelection.authenticatorAttachment`: It is kept [unset](https://www.w3.org/TR/webauthn-2/#dom-authenticatorselectioncriteria-authenticatorattachment) so that the authenticator can be platform or cross-platform.
-- `authenticatorSelection.residentKey`: Set to `required` so that the created credential is discoverable.
-- `authenticatorSelection.requireResidentKey`: [Deprecated field](https://www.w3.org/TR/webauthn-2/#dom-authenticatorselectioncriteria-requireresidentkey).
+- `authenticatorSelection.residentKey`: Set to `preferred` so that the created credential is discoverable on iOS 16, and Android is supported as well.
 - `authenticatorSelection.userVerification`: Apple WWDC video suggests setting to `preferred` for good UX on device without biometric.
 - `attestation`: Set to [direct](https://www.w3.org/TR/webauthn-2/#attestation-conveyance) so that we can attest the authenticator.
 - `extensions.uvm`: Set to [true](https://www.w3.org/TR/webauthn-2/#sctn-uvm-extension) so that we can know how the user was verified.
