@@ -12,6 +12,7 @@ export interface AuthgearGTMEvent {
   event: AuthgearGTMEventType;
   appId?: string;
   eventData?: EventData;
+  _clear: boolean;
 }
 
 export enum AuthgearGTMEventType {
@@ -45,6 +46,9 @@ export function useAuthgearGTMEvent({
       event: event,
       appId: appContextID,
       eventData,
+      // Prevent GTM recursive merge event data object
+      // https://github.com/google/data-layer-helper#preventing-default-recursive-merge
+      _clear: true,
     };
   }, [event, eventData, appContextID]);
 }
