@@ -29,6 +29,7 @@ import (
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	featurepasskey "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
+	featuresiwe "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
@@ -341,5 +342,9 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(identitypasskey.PasskeyService), new(*featurepasskey.Service)),
 		wire.Bind(new(authenticatorpasskey.PasskeyService), new(*featurepasskey.Service)),
 		wire.Bind(new(interaction.PasskeyService), new(*featurepasskey.Service)),
+	),
+
+	wire.NewSet(
+		featuresiwe.DependencySet,
 	),
 )
