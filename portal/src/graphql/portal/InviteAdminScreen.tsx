@@ -53,7 +53,7 @@ const InviteAdminContent: React.FC<InviteAdminContentProps> =
 
     return (
       <ScreenContent>
-        <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+        <NavBreadcrumb items={navBreadcrumbItems} />
         <FormTextField
           parentJSONPointer=""
           fieldName="inviteeEmail"

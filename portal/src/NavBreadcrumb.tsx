@@ -3,6 +3,7 @@ import { useHref, useNavigate } from "react-router-dom";
 import { Breadcrumb, IBreadcrumbItem, IRenderFunction } from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
 import useNavIsActive from "./hook/useNavIsActive";
+import styles from "./NavBreadcrumb.module.css";
 
 export interface BreadcrumbItem {
   to: string;
@@ -10,7 +11,6 @@ export interface BreadcrumbItem {
 }
 
 export interface Props {
-  className?: string;
   items: BreadcrumbItem[];
 }
 
@@ -83,7 +83,7 @@ function onRenderItem(
 // The biggest trick here is to provide onRenderItem, which accept IBreadcrumbItem and the original renderItem function.
 // And then we render a function component, which allows us to use hooks.
 const NavBreadcrumb: React.FC<Props> = function NavBreadcrumb(props: Props) {
-  const { className, items } = props;
+  const { items } = props;
   const { renderToString } = useContext(Context);
 
   const breadcrumbItems: IBreadcrumbItem[] = [];
@@ -99,7 +99,7 @@ const NavBreadcrumb: React.FC<Props> = function NavBreadcrumb(props: Props) {
   const label = renderToString("NavBreadcrumb.label");
 
   return (
-    <div className={className}>
+    <div className={styles.container}>
       <Breadcrumb
         styles={breadcrumbStyles}
         ariaLabel={label}

@@ -116,7 +116,7 @@ const GoogleTagManagerConfigurationContent: React.FC<GoogleTagManagerConfigurati
 
     return (
       <ScreenContent>
-        <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+        <NavBreadcrumb items={navBreadcrumbItems} />
         <Widget className={styles.widget}>
           <WidgetDescription>
             <FormattedMessage id="GoogleTagManagerConfigurationScreen.description" />

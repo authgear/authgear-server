@@ -104,7 +104,7 @@ function CreateCustomAttributeContent(
 
   return (
     <ScreenContent>
-      <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+      <NavBreadcrumb items={navBreadcrumbItems} />
       <EditCustomAttributeForm
         className={styles.widget}
         mode="new"

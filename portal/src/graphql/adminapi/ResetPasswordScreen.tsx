@@ -59,7 +59,7 @@ const ResetPasswordContent: React.FC<ResetPasswordContentProps> = function (
 
   return (
     <ScreenContent>
-      <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+      <NavBreadcrumb items={navBreadcrumbItems} />
       <PasswordField
         className={styles.widget}
         label={renderToString("ResetPasswordScreen.new-password")}

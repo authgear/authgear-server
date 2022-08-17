@@ -123,7 +123,7 @@ function EditCustomAttributeContent(props: EditCustomAttributeContentProps) {
 
   return (
     <ScreenContent>
-      <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+      <NavBreadcrumb items={navBreadcrumbItems} />
       <EditCustomAttributeForm
         className={styles.widget}
         mode="edit"
