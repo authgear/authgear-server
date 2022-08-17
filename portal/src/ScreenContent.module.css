@@ -5,11 +5,6 @@
   row-gap: 20px;
 }
 
-.autoRows {
-  grid-template-columns: repeat(12, 80px);
-  grid-auto-rows: auto;
-}
-
 .list {
   grid-template-columns: repeat(12, minmax(0, 1fr));
   grid-template-rows: auto 1fr;
