@@ -284,6 +284,7 @@ When navigator.credentials.create or navigator.credentials.get is canceled by th
 |---|---|
 |Chrome|`DOMException(code=0, name="NotAllowedError", message="The operation either timed out or was not allowed. See: https://www.w3.org/TR/webauthn-2/#sctn-privacy-considerations-client.")`|
 |Safari|`DOMException(code=0, name="NotAllowedError", message="This request has been cancelled by the user.")`|
+|Firefox|`DOMException(code=20, name="AbortError", message="The operation was aborted. ")` The trailing space in the message is NOT a typo.|
 
 ### Timeout error
 
