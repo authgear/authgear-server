@@ -63,7 +63,7 @@ This document describes how to setup portal tracking to send data to Mixpanel vi
           });
         </script>
         ```
-      - Trigger: All Pages
+      - Trigger: Initialization - All Pages
     - `Mixpanel Track Click`
       - Type: Custom HTML
       - HTML:
