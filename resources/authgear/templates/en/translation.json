@@ -76,6 +76,7 @@
   "error-network": "Your device is offline. Please check your network connection first.",
   "error-server": "Server encountered an internal error.",
   "error-invalid-selected-image": "The selected image is invalid. Try another one.",
+  "error-no-passkey": "Passkey is not found on your device. {type, select, password{Sign in with password instead?} oob_otp_email{Sign in with one-time password instead?} oob_otp_sms{Sign in with one-time password instead?} other{Try another device?}}",
 
   "success-resend-code": "Resent code successfully!",
 

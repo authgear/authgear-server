@@ -181,6 +181,39 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 			Stage:          n.Stage,
 			Authenticators: passwords,
 		})
+	} else {
+		// Special case
+		//
+		// 1. It is primary authentication
+		// 2. The account does not have password
+		// 3. Password is allowed in the configuration
+		// 4. The identity being used can use password
+		//
+		// We still allow password to be shown as one of the alternative.
+		// This ensure the user can see the enter password page, and
+		// can trigger forgot password flow to "create" their password.
+		if n.Stage == authn.AuthenticationStagePrimary {
+			isPreferred := false
+			isRequired := false
+
+			for _, typ := range preferred {
+				if typ == model.AuthenticatorTypePassword {
+					isPreferred = true
+				}
+			}
+			for _, typ := range required {
+				if typ == model.AuthenticatorTypePassword {
+					isRequired = true
+				}
+			}
+
+			if isPreferred && isRequired {
+				edges = append(edges, &EdgeAuthenticationPassword{
+					Stage:          n.Stage,
+					Authenticators: passwords,
+				})
+			}
+		}
 	}
 
 	if len(passkeys) > 0 {
