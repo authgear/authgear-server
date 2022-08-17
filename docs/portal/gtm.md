@@ -94,9 +94,12 @@ This document describes how to setup portal tracking to send data to Mixpanel vi
       - HTML:
         ```html
         <script type="text/javascript">
-          var appID = {{app_id}};
-          var eventData = {{event_data}};
-          mixpanel.track({{Event}}, Object.assign({app_id: appID}, eventData));
+          var event = {{Event}};
+          if (event.startsWith("ag.event.")) {
+            var appID = {{app_id}};
+            var eventData = {{event_data}};
+            mixpanel.track({{Event}}, Object.assign({app_id: appID}, eventData));
+          }
         </script>
         ```
       - Trigger: `ag.event.*`
