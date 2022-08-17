@@ -50,6 +50,7 @@
   "dependencies": {
     "@apollo/client": "3.6.9",
     "@authgear/web": "0.22.0",
+    "@elgorditosalsero/react-gtm-hook": "^2.4.0",
     "@fluentui/react": "8.78.0",
     "@fluentui/react-hooks": "8.6.0",
     "@monaco-editor/react": "4.4.5",

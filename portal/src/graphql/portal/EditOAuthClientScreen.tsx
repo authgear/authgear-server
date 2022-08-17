@@ -44,6 +44,10 @@ import flutterIconURL from "../../images/framework_flutter.svg";
 import xamarinIconURL from "../../images/framework_xamarin.svg";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import {
+  AuthgearGTMEventType,
+  useMakeAuthgearGTMEventDataAttributes,
+} from "../../GTMProvider";
 
 interface FormState {
   publicOrigin: string;
@@ -132,6 +136,16 @@ const QuickStartFrameworkItem: React.FC<QuickStartFrameworkItemProps> =
       return !isHovering;
     }, [showOpenTutorialLabelWhenHover, isHovering]);
 
+    const makeGTMEventDataAttributes = useMakeAuthgearGTMEventDataAttributes();
+    const gtmEventDataAttributes = useMemo(() => {
+      return makeGTMEventDataAttributes({
+        event: AuthgearGTMEventType.ClickedDocLink,
+        eventDataAttributes: {
+          "doc-link": docLink,
+        },
+      });
+    }, [makeGTMEventDataAttributes, docLink]);
+
     return (
       <Link
         onMouseOver={onMouseOver}
@@ -141,22 +155,31 @@ const QuickStartFrameworkItem: React.FC<QuickStartFrameworkItemProps> =
         })}
         href={docLink}
         target="_blank"
+        {...gtmEventDataAttributes}
       >
-        <span className={styles.quickStartItemIcon}>{icon}</span>
-        <Text variant="small" className={styles.quickStartItemText}>
-          {name}
-        </Text>
-        {shouldShowArrowIcon && (
-          <Icon
-            className={styles.quickStartItemArrowIcon}
-            iconName="ChevronRightSmall"
-          />
-        )}
-        {!shouldShowArrowIcon && (
-          <Text className={styles.quickStartItemOpenTutorial}>
-            <FormattedMessage id="EditOAuthClientScreen.quick-start.open-tutorial.label" />
+        <span
+          className={styles.quickStartItemContainer}
+          // assign css styles `pointer-events: none` here
+          // to enforce the click event is triggered on the parent a element
+          // for GTM click event tracking
+          style={{ pointerEvents: "none" }}
+        >
+          <span className={styles.quickStartItemIcon}>{icon}</span>
+          <Text variant="small" className={styles.quickStartItemText}>
+            {name}
           </Text>
-        )}
+          {shouldShowArrowIcon && (
+            <Icon
+              className={styles.quickStartItemArrowIcon}
+              iconName="ChevronRightSmall"
+            />
+          )}
+          {!shouldShowArrowIcon && (
+            <Text className={styles.quickStartItemOpenTutorial}>
+              <FormattedMessage id="EditOAuthClientScreen.quick-start.open-tutorial.label" />
+            </Text>
+          )}
+        </span>
       </Link>
     );
   };

@@ -19,21 +19,22 @@ import (
 )
 
 type RootProvider struct {
-	EnvironmentConfig    *config.EnvironmentConfig
-	ConfigSourceConfig   *configsource.Config
-	AuthgearConfig       *portalconfig.AuthgearConfig
-	AdminAPIConfig       *portalconfig.AdminAPIConfig
-	AppConfig            *portalconfig.AppConfig
-	SMTPConfig           *portalconfig.SMTPConfig
-	MailConfig           *portalconfig.MailConfig
-	KubernetesConfig     *portalconfig.KubernetesConfig
-	DomainImplementation portalconfig.DomainImplementationType
-	SearchConfig         *portalconfig.SearchConfig
-	AuditLogConfig       *portalconfig.AuditLogConfig
-	AnalyticConfig       *config.AnalyticConfig
-	StripeConfig         *portalconfig.StripeConfig
-	LoggerFactory        *log.Factory
-	SentryHub            *getsentry.Hub
+	EnvironmentConfig      *config.EnvironmentConfig
+	ConfigSourceConfig     *configsource.Config
+	AuthgearConfig         *portalconfig.AuthgearConfig
+	AdminAPIConfig         *portalconfig.AdminAPIConfig
+	AppConfig              *portalconfig.AppConfig
+	SMTPConfig             *portalconfig.SMTPConfig
+	MailConfig             *portalconfig.MailConfig
+	KubernetesConfig       *portalconfig.KubernetesConfig
+	DomainImplementation   portalconfig.DomainImplementationType
+	SearchConfig           *portalconfig.SearchConfig
+	AuditLogConfig         *portalconfig.AuditLogConfig
+	AnalyticConfig         *config.AnalyticConfig
+	StripeConfig           *portalconfig.StripeConfig
+	GoogleTagManagerConfig *portalconfig.GoogleTagManagerConfig
+	LoggerFactory          *log.Factory
+	SentryHub              *getsentry.Hub
 
 	Database               *db.Pool
 	RedisPool              *redis.Pool
@@ -61,6 +62,7 @@ func NewRootProvider(
 	auditLogConfig *portalconfig.AuditLogConfig,
 	analyticConfig *config.AnalyticConfig,
 	stripeConfig *portalconfig.StripeConfig,
+	googleTagManagerConfig *portalconfig.GoogleTagManagerConfig,
 ) (*RootProvider, error) {
 	logLevel, err := log.ParseLevel(cfg.LogLevel)
 	if err != nil {
@@ -87,24 +89,25 @@ func NewRootProvider(
 	)
 
 	return &RootProvider{
-		EnvironmentConfig:    cfg,
-		ConfigSourceConfig:   configSourceConfig,
-		AuthgearConfig:       authgearConfig,
-		AdminAPIConfig:       adminAPIConfig,
-		AppConfig:            appConfig,
-		SMTPConfig:           smtpConfig,
-		MailConfig:           mailConfig,
-		KubernetesConfig:     kubernetesConfig,
-		DomainImplementation: domainImplementation,
-		SearchConfig:         searchConfig,
-		AuditLogConfig:       auditLogConfig,
-		AnalyticConfig:       analyticConfig,
-		StripeConfig:         stripeConfig,
-		LoggerFactory:        loggerFactory,
-		SentryHub:            sentryHub,
-		Database:             db.NewPool(),
-		RedisPool:            redisPool,
-		GlobalRedisHandle:    globalRedisHandle,
+		EnvironmentConfig:      cfg,
+		ConfigSourceConfig:     configSourceConfig,
+		AuthgearConfig:         authgearConfig,
+		AdminAPIConfig:         adminAPIConfig,
+		AppConfig:              appConfig,
+		SMTPConfig:             smtpConfig,
+		MailConfig:             mailConfig,
+		KubernetesConfig:       kubernetesConfig,
+		DomainImplementation:   domainImplementation,
+		SearchConfig:           searchConfig,
+		AuditLogConfig:         auditLogConfig,
+		AnalyticConfig:         analyticConfig,
+		StripeConfig:           stripeConfig,
+		GoogleTagManagerConfig: googleTagManagerConfig,
+		LoggerFactory:          loggerFactory,
+		SentryHub:              sentryHub,
+		Database:               db.NewPool(),
+		RedisPool:              redisPool,
+		GlobalRedisHandle:      globalRedisHandle,
 		Resources: resource.NewManagerWithDir(
 			portalresource.PortalRegistry,
 			builtinResourceDirectory,

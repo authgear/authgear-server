@@ -37,6 +37,12 @@ import { TooltipIcon, useTooltipTargetElement } from "../../Tooltip";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import styles from "./ProjectWizardScreen.module.css";
+import {
+  AuthgearGTMEvent,
+  AuthgearGTMEventType,
+  useAuthgearGTMEventBase,
+  useGTMDispatch,
+} from "../../GTMProvider";
 
 const TOOLTIP_HOST_STYLES = {
   root: {
@@ -122,13 +128,25 @@ function Step1(props: StepProps) {
   const navigate = useNavigate();
   const { renderToString } = useContext(Context);
 
+  const sendDataToGTM = useGTMDispatch();
+  const gtmEventBase = useAuthgearGTMEventBase();
   const onClickNext = useCallback(
     (e) => {
       e.preventDefault();
       e.stopPropagation();
+      const event: AuthgearGTMEvent = {
+        ...gtmEventBase,
+        event: AuthgearGTMEventType.ClickedNextInProjectWizard,
+        event_data: {
+          app_id: rawAppID,
+          current_step: "1",
+          primary_authenticator: step1Answer,
+        },
+      };
+      sendDataToGTM(event);
       navigate("./../2");
     },
-    [navigate]
+    [navigate, gtmEventBase, sendDataToGTM, rawAppID, step1Answer]
   );
 
   const { id, setRef, targetElement } = useTooltipTargetElement();
@@ -192,6 +210,10 @@ function Step1(props: StepProps) {
     [setState]
   );
 
+  const trackSkipButtonEventData = useMemo(() => {
+    return { "app-id": rawAppID, "current-step": "1" };
+  }, [rawAppID]);
+
   return (
     <WizardContentLayout
       appID={appID}
@@ -201,6 +223,8 @@ function Step1(props: StepProps) {
           <FormattedMessage id="next" />
         </PrimaryButton>
       }
+      trackSkipButtonClick={true}
+      trackSkipButtonEventData={trackSkipButtonEventData}
     >
       <WizardTitle>
         <FormattedMessage
@@ -246,13 +270,25 @@ function Step2(props: StepProps) {
     ];
   }, [renderToString]);
 
+  const sendDataToGTM = useGTMDispatch();
+  const gtmEventBase = useAuthgearGTMEventBase();
   const onClickNext = useCallback(
     (e) => {
       e.preventDefault();
       e.stopPropagation();
+      const event: AuthgearGTMEvent = {
+        ...gtmEventBase,
+        event: AuthgearGTMEventType.ClickedNextInProjectWizard,
+        event_data: {
+          app_id: rawAppID,
+          current_step: "2",
+          passkey_enabled: step2Answer,
+        },
+      };
+      sendDataToGTM(event);
       navigate("./../3");
     },
-    [navigate]
+    [navigate, gtmEventBase, sendDataToGTM, rawAppID, step2Answer]
   );
 
   const onChange = useCallback(
@@ -267,6 +303,10 @@ function Step2(props: StepProps) {
     [setState]
   );
 
+  const trackSkipButtonEventData = useMemo(() => {
+    return { "app-id": rawAppID, "current-step": "2" };
+  }, [rawAppID]);
+
   return (
     <WizardContentLayout
       appID={appID}
@@ -275,6 +315,8 @@ function Step2(props: StepProps) {
           <FormattedMessage id="next" />
         </PrimaryButton>
       }
+      trackSkipButtonClick={true}
+      trackSkipButtonEventData={trackSkipButtonEventData}
     >
       <WizardTitle>
         <FormattedMessage
@@ -370,13 +412,28 @@ function Step3(props: StepProps) {
     return options;
   }, [step1Answer, renderToString]);
 
+  const sendDataToGTM = useGTMDispatch();
+  const gtmEventBase = useAuthgearGTMEventBase();
   const onClickNext = useCallback(
     (e) => {
       e.preventDefault();
       e.stopPropagation();
+      const event: AuthgearGTMEvent = {
+        ...gtmEventBase,
+        event: AuthgearGTMEventType.ClickedNextInProjectWizard,
+        event_data: {
+          app_id: rawAppID,
+          current_step: "3",
+          use_recommended_settings: step3Answer.useRecommenededSettings,
+          secondary_authenticator_type: step3Answer.secondaryAuthenticatorType,
+          secondary_authentication_mode:
+            step3Answer.secondaryAuthenticationMode,
+        },
+      };
+      sendDataToGTM(event);
       saveAndThenNavigate();
     },
-    [saveAndThenNavigate]
+    [saveAndThenNavigate, gtmEventBase, sendDataToGTM, rawAppID, step3Answer]
   );
 
   const onChangeQ1 = useCallback(
@@ -424,6 +481,10 @@ function Step3(props: StepProps) {
     [setState]
   );
 
+  const trackSkipButtonEventData = useMemo(() => {
+    return { "app-id": rawAppID, "current-step": "3" };
+  }, [rawAppID]);
+
   return (
     <WizardContentLayout
       appID={appID}
@@ -432,6 +493,8 @@ function Step3(props: StepProps) {
           <FormattedMessage id="next" />
         </PrimaryButton>
       }
+      trackSkipButtonClick={true}
+      trackSkipButtonEventData={trackSkipButtonEventData}
     >
       <WizardTitle>
         <FormattedMessage

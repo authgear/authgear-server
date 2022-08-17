@@ -15,6 +15,7 @@ export interface SystemConfig {
   gitCommitHash: string;
   analyticEnabled: boolean;
   analyticEpoch: string;
+  gtmContainerID: string;
 }
 
 export interface SystemConfigThemes {
@@ -262,5 +263,6 @@ export function instantiateSystemConfig(
     gitCommitHash: config.gitCommitHash ?? "",
     analyticEnabled: config.analyticEnabled ?? false,
     analyticEpoch: config.analyticEpoch ?? "",
+    gtmContainerID: config.gtmContainerID ?? "",
   };
 }

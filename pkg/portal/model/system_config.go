@@ -17,4 +17,5 @@ type SystemConfig struct {
 	AnalyticEnabled    bool           `json:"analyticEnabled"`
 	AnalyticEpoch      *timeutil.Date `json:"analyticEpoch,omitempty"`
 	GitCommitHash      string         `json:"gitCommitHash,omitempty"`
+	GTMContainerID     string         `json:"gtmContainerID,omitempty"`
 }

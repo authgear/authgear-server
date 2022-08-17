@@ -7,6 +7,7 @@ import { useAppAndSecretConfigQuery } from "./graphql/portal/query/appAndSecretC
 import ScreenLayout from "./ScreenLayout";
 import ShowLoading from "./ShowLoading";
 import CookieLifetimeConfigurationScreen from "./graphql/portal/CookieLifetimeConfigurationScreen";
+import { AppContext } from "./context/AppContext";
 
 const UsersScreen = lazy(async () => import("./graphql/adminapi/UsersScreen"));
 const AddUserScreen = lazy(
@@ -144,6 +145,13 @@ const AppRoot: React.FC = function AppRoot() {
   // NOTE: check if appID actually exist in authorized app list
   const { effectiveAppConfig, loading, error } =
     useAppAndSecretConfigQuery(appID);
+
+  const appContextValue = useMemo(() => {
+    return {
+      appID: effectiveAppConfig?.id ?? "",
+    };
+  }, [effectiveAppConfig]);
+
   if (loading) {
     return <ShowLoading />;
   }
@@ -159,269 +167,205 @@ const AppRoot: React.FC = function AppRoot() {
 
   return (
     <ApolloProvider client={client}>
-      <ScreenLayout>
-        <Routes>
-          <Route
-            index={true}
-            element={
-              <Suspense fallback={<ShowLoading />}>
-                <ProjectRootScreen />
-              </Suspense>
-            }
-          />
-
-          <Route path="getting-started">
+      <AppContext.Provider value={appContextValue}>
+        <ScreenLayout>
+          <Routes>
             <Route
               index={true}
               element={
                 <Suspense fallback={<ShowLoading />}>
-                  <GetStartedScreen />
+                  <ProjectRootScreen />
                 </Suspense>
               }
             />
-          </Route>
 
-          <Route path="analytics">
-            <Route
-              index={true}
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <AnalyticsScreen />
-                </Suspense>
-              }
-            />
-          </Route>
-
-          <Route path="users">
-            <Route
-              index={true}
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <UsersScreen />
-                </Suspense>
-              }
-            />
-            <Route
-              path="add-user"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <AddUserScreen />
-                </Suspense>
-              }
-            />
-            <Route path=":userID">
+            <Route path="getting-started">
               <Route
                 index={true}
-                element={<Navigate to="details" replace={true} />}
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <GetStartedScreen />
+                  </Suspense>
+                }
               />
-              <Route path="details">
+            </Route>
+
+            <Route path="analytics">
+              <Route
+                index={true}
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <AnalyticsScreen />
+                  </Suspense>
+                }
+              />
+            </Route>
+
+            <Route path="users">
+              <Route
+                index={true}
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <UsersScreen />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="add-user"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <AddUserScreen />
+                  </Suspense>
+                }
+              />
+              <Route path=":userID">
                 <Route
                   index={true}
-                  element={
-                    <Suspense fallback={<ShowLoading />}>
-                      <UserDetailsScreen />
-                    </Suspense>
-                  }
+                  element={<Navigate to="details" replace={true} />}
+                />
+                <Route path="details">
+                  <Route
+                    index={true}
+                    element={
+                      <Suspense fallback={<ShowLoading />}>
+                        <UserDetailsScreen />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="add-email"
+                    element={
+                      <Suspense fallback={<ShowLoading />}>
+                        <AddEmailScreen />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="add-phone"
+                    element={
+                      <Suspense fallback={<ShowLoading />}>
+                        <AddPhoneScreen />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="add-username"
+                    element={
+                      <Suspense fallback={<ShowLoading />}>
+                        <AddUsernameScreen />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="reset-password"
+                    element={
+                      <Suspense fallback={<ShowLoading />}>
+                        <ResetPasswordScreen />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="edit-picture"
+                    element={
+                      <Suspense fallback={<ShowLoading />}>
+                        <EditPictureScreen />
+                      </Suspense>
+                    }
+                  />
+                </Route>
+              </Route>
+            </Route>
+
+            <Route path="custom-domains">
+              <Route
+                index={true}
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <CustomDomainListScreen />
+                  </Suspense>
+                }
+              />
+              <Route path=":domainID">
+                <Route
+                  index={true}
+                  element={<Navigate to="verify" replace={true} />}
                 />
                 <Route
-                  path="add-email"
+                  path="verify"
                   element={
                     <Suspense fallback={<ShowLoading />}>
-                      <AddEmailScreen />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="add-phone"
-                  element={
-                    <Suspense fallback={<ShowLoading />}>
-                      <AddPhoneScreen />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="add-username"
-                  element={
-                    <Suspense fallback={<ShowLoading />}>
-                      <AddUsernameScreen />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="reset-password"
-                  element={
-                    <Suspense fallback={<ShowLoading />}>
-                      <ResetPasswordScreen />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="edit-picture"
-                  element={
-                    <Suspense fallback={<ShowLoading />}>
-                      <EditPictureScreen />
+                      <VerifyDomainScreen />
                     </Suspense>
                   }
                 />
               </Route>
             </Route>
-          </Route>
 
-          <Route path="custom-domains">
-            <Route
-              index={true}
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <CustomDomainListScreen />
-                </Suspense>
-              }
-            />
-            <Route path=":domainID">
-              <Route
-                index={true}
-                element={<Navigate to="verify" replace={true} />}
-              />
-              <Route
-                path="verify"
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <VerifyDomainScreen />
-                  </Suspense>
-                }
-              />
-            </Route>
-          </Route>
-
-          <Route path="configuration">
-            <Route path="authentication">
-              <Route
-                path="login-id"
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <LoginIDConfigurationScreen />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="authenticators"
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <AuthenticatorConfigurationScreen />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="verification"
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <VerificationConfigurationScreen />
-                  </Suspense>
-                }
-              />
-            </Route>
-            <Route
-              path="anonymous-users"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <AnonymousUsersConfigurationScreen />
-                </Suspense>
-              }
-            />
-            <Route
-              path="biometric"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <BiometricConfigurationScreen />
-                </Suspense>
-              }
-            />
-            <Route
-              path="single-sign-on"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <SingleSignOnConfigurationScreen />
-                </Suspense>
-              }
-            />
-            <Route
-              path="password-policy"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <PasswordPolicyConfigurationScreen />
-                </Suspense>
-              }
-            />
-            <Route path="apps">
-              <Route
-                index={true}
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <ApplicationsConfigurationScreen />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="add"
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <CreateOAuthClientScreen />
-                  </Suspense>
-                }
-              />
-              <Route path=":clientID">
+            <Route path="configuration">
+              <Route path="authentication">
                 <Route
-                  index={true}
-                  element={<Navigate to="edit" replace={true} />}
-                />
-                <Route
-                  path="edit"
+                  path="login-id"
                   element={
                     <Suspense fallback={<ShowLoading />}>
-                      <EditOAuthClientScreen />
+                      <LoginIDConfigurationScreen />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="authenticators"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <AuthenticatorConfigurationScreen />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="verification"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <VerificationConfigurationScreen />
                     </Suspense>
                   }
                 />
               </Route>
-            </Route>
-            <Route
-              path="smtp"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <SMTPConfigurationScreen />
-                </Suspense>
-              }
-            />
-            <Route
-              path="ui-settings"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <UISettingsScreen />
-                </Suspense>
-              }
-            />
-            <Route
-              path="localization"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <LocalizationConfigurationScreen />
-                </Suspense>
-              }
-            />
-            <Route path="user-profile">
               <Route
-                path="standard-attributes"
+                path="anonymous-users"
                 element={
                   <Suspense fallback={<ShowLoading />}>
-                    <StandardAttributesConfigurationScreen />
+                    <AnonymousUsersConfigurationScreen />
                   </Suspense>
                 }
               />
-              <Route path="custom-attributes">
+              <Route
+                path="biometric"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <BiometricConfigurationScreen />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="single-sign-on"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <SingleSignOnConfigurationScreen />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="password-policy"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <PasswordPolicyConfigurationScreen />
+                  </Suspense>
+                }
+              />
+              <Route path="apps">
                 <Route
                   index={true}
                   element={
                     <Suspense fallback={<ShowLoading />}>
-                      <CustomAttributesConfigurationScreen />
+                      <ApplicationsConfigurationScreen />
                     </Suspense>
                   }
                 />
@@ -429,11 +373,11 @@ const AppRoot: React.FC = function AppRoot() {
                   path="add"
                   element={
                     <Suspense fallback={<ShowLoading />}>
-                      <CreateCustomAttributeScreen />
+                      <CreateOAuthClientScreen />
                     </Suspense>
                   }
                 />
-                <Route path=":index">
+                <Route path=":clientID">
                   <Route
                     index={true}
                     element={<Navigate to="edit" replace={true} />}
@@ -442,144 +386,210 @@ const AppRoot: React.FC = function AppRoot() {
                     path="edit"
                     element={
                       <Suspense fallback={<ShowLoading />}>
-                        <EditCustomAttributeScreen />
+                        <EditOAuthClientScreen />
                       </Suspense>
                     }
                   />
                 </Route>
               </Route>
-            </Route>
-          </Route>
-
-          <Route path="integrations">
-            <Route
-              index={true}
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <IntegrationsConfigurationScreen />
-                </Suspense>
-              }
-            />
-            <Route
-              path="google-tag-manager"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <GoogleTagManagerConfigurationScreen />
-                </Suspense>
-              }
-            />
-          </Route>
-
-          <Route path="billing">
-            <Route
-              index={true}
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <SubscriptionScreen />
-                </Suspense>
-              }
-            />
-          </Route>
-
-          <Route path="billing-redirect">
-            <Route
-              index={true}
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <SubscriptionRedirect />
-                </Suspense>
-              }
-            />
-          </Route>
-
-          <Route path="advanced">
-            <Route
-              path="webhooks"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <WebhookConfigurationScreen />
-                </Suspense>
-              }
-            />
-            <Route
-              path="admin-api"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <AdminAPIConfigurationScreen />
-                </Suspense>
-              }
-            />
-            <Route
-              path="account-deletion"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <AccountDeletionConfigurationScreen />
-                </Suspense>
-              }
-            />
-            <Route
-              path="password-reset-code"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <ForgotPasswordConfigurationScreen />
-                </Suspense>
-              }
-            />
-            <Route
-              path="session"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <CookieLifetimeConfigurationScreen />
-                </Suspense>
-              }
-            />
-          </Route>
-
-          <Route path="audit-log">
-            <Route
-              index={true}
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <AuditLogScreen />
-                </Suspense>
-              }
-            />
-            <Route path=":logID">
               <Route
-                index={true}
-                element={<Navigate to="details" replace={true} />}
-              />
-              <Route
-                path="details"
+                path="smtp"
                 element={
                   <Suspense fallback={<ShowLoading />}>
-                    <AuditLogEntryScreen />
+                    <SMTPConfigurationScreen />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="ui-settings"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <UISettingsScreen />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="localization"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <LocalizationConfigurationScreen />
+                  </Suspense>
+                }
+              />
+              <Route path="user-profile">
+                <Route
+                  path="standard-attributes"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <StandardAttributesConfigurationScreen />
+                    </Suspense>
+                  }
+                />
+                <Route path="custom-attributes">
+                  <Route
+                    index={true}
+                    element={
+                      <Suspense fallback={<ShowLoading />}>
+                        <CustomAttributesConfigurationScreen />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="add"
+                    element={
+                      <Suspense fallback={<ShowLoading />}>
+                        <CreateCustomAttributeScreen />
+                      </Suspense>
+                    }
+                  />
+                  <Route path=":index">
+                    <Route
+                      index={true}
+                      element={<Navigate to="edit" replace={true} />}
+                    />
+                    <Route
+                      path="edit"
+                      element={
+                        <Suspense fallback={<ShowLoading />}>
+                          <EditCustomAttributeScreen />
+                        </Suspense>
+                      }
+                    />
+                  </Route>
+                </Route>
+              </Route>
+            </Route>
+
+            <Route path="integrations">
+              <Route
+                index={true}
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <IntegrationsConfigurationScreen />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="google-tag-manager"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <GoogleTagManagerConfigurationScreen />
                   </Suspense>
                 }
               />
             </Route>
-          </Route>
 
-          <Route path="portal-admins">
-            <Route
-              index={true}
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <PortalAdminsSettings />
-                </Suspense>
-              }
-            />
-            <Route
-              path="invite"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <InviteAdminScreen />
-                </Suspense>
-              }
-            />
-          </Route>
-        </Routes>
-      </ScreenLayout>
+            <Route path="billing">
+              <Route
+                index={true}
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <SubscriptionScreen />
+                  </Suspense>
+                }
+              />
+            </Route>
+
+            <Route path="billing-redirect">
+              <Route
+                index={true}
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <SubscriptionRedirect />
+                  </Suspense>
+                }
+              />
+            </Route>
+
+            <Route path="advanced">
+              <Route
+                path="webhooks"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <WebhookConfigurationScreen />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="admin-api"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <AdminAPIConfigurationScreen />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="account-deletion"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <AccountDeletionConfigurationScreen />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="password-reset-code"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <ForgotPasswordConfigurationScreen />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="session"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <CookieLifetimeConfigurationScreen />
+                  </Suspense>
+                }
+              />
+            </Route>
+
+            <Route path="audit-log">
+              <Route
+                index={true}
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <AuditLogScreen />
+                  </Suspense>
+                }
+              />
+              <Route path=":logID">
+                <Route
+                  index={true}
+                  element={<Navigate to="details" replace={true} />}
+                />
+                <Route
+                  path="details"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <AuditLogEntryScreen />
+                    </Suspense>
+                  }
+                />
+              </Route>
+            </Route>
+
+            <Route path="portal-admins">
+              <Route
+                index={true}
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <PortalAdminsSettings />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="invite"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <InviteAdminScreen />
+                  </Suspense>
+                }
+              />
+            </Route>
+          </Routes>
+        </ScreenLayout>
+      </AppContext.Provider>
     </ApolloProvider>
   );
 };

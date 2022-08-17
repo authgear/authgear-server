@@ -25,6 +25,7 @@ type SystemConfigProvider struct {
 	SearchConfig   *config.SearchConfig
 	AuditLogConfig *config.AuditLogConfig
 	AnalyticConfig *configlib.AnalyticConfig
+	GTMConfig      *config.GoogleTagManagerConfig
 	Resources      ResourceManager
 }
 
@@ -57,6 +58,7 @@ func (p *SystemConfigProvider) SystemConfig() (*model.SystemConfig, error) {
 		AnalyticEnabled:    p.AnalyticConfig.Enabled,
 		AnalyticEpoch:      analyticEpoch,
 		GitCommitHash:      strings.TrimPrefix(version.Version, "git-"),
+		GTMContainerID:     p.GTMConfig.ContainerID,
 	}, nil
 }
 

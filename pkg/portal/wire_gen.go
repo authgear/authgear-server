@@ -323,6 +323,7 @@ func newSystemConfigHandler(p *deps.RequestProvider) http.Handler {
 	searchConfig := rootProvider.SearchConfig
 	auditLogConfig := rootProvider.AuditLogConfig
 	analyticConfig := rootProvider.AnalyticConfig
+	googleTagManagerConfig := rootProvider.GoogleTagManagerConfig
 	manager := rootProvider.Resources
 	systemConfigProvider := &service.SystemConfigProvider{
 		AuthgearConfig: authgearConfig,
@@ -330,6 +331,7 @@ func newSystemConfigHandler(p *deps.RequestProvider) http.Handler {
 		SearchConfig:   searchConfig,
 		AuditLogConfig: auditLogConfig,
 		AnalyticConfig: analyticConfig,
+		GTMConfig:      googleTagManagerConfig,
 		Resources:      manager,
 	}
 	systemConfigHandler := &transport.SystemConfigHandler{

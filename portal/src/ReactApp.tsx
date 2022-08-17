@@ -1,4 +1,11 @@
-import React, { useContext, useEffect, useState, Suspense, lazy } from "react";
+import React, {
+  useContext,
+  useEffect,
+  useState,
+  Suspense,
+  lazy,
+  useMemo,
+} from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import {
   LocaleProvider,
@@ -27,6 +34,10 @@ import { ReactRouterLink, ReactRouterLinkProps } from "./ReactRouterLink";
 import Authenticated from "./graphql/portal/Authenticated";
 import { LoadingContextProvider } from "./hook/loading";
 import ShowLoading from "./ShowLoading";
+import GTMProvider, {
+  AuthgearGTMEventType,
+  useMakeAuthgearGTMEventDataAttributes,
+} from "./GTMProvider";
 
 const AppsScreen = lazy(async () => import("./graphql/portal/AppsScreen"));
 const CreateProjectScreen = lazy(
@@ -177,9 +188,31 @@ function ExternalLink(props: ILinkProps) {
   return <FluentLink target="_blank" rel="noreferrer" {...props} />;
 }
 
+const DocLink: React.FC<ILinkProps> = (props: ILinkProps) => {
+  const makeGTMEventDataAttributes = useMakeAuthgearGTMEventDataAttributes();
+  const gtmEventDataAttributes = useMemo(() => {
+    return makeGTMEventDataAttributes({
+      event: AuthgearGTMEventType.ClickedDocLink,
+      eventDataAttributes: {
+        "doc-link": props.href ?? "",
+      },
+    });
+  }, [makeGTMEventDataAttributes, props.href]);
+
+  return (
+    <FluentLink
+      target="_blank"
+      rel="noreferrer"
+      {...gtmEventDataAttributes}
+      {...props}
+    />
+  );
+};
+
 const defaultComponents = {
   ExternalLink,
   ReactRouterLink: PortalLink,
+  DocLink,
 };
 
 // ReactApp is responsible for fetching runtime config and initialize authgear SDK.
@@ -221,21 +254,23 @@ const ReactApp: React.FC = function ReactApp() {
   registerLocale(i18nISOCountriesEnLocale);
 
   return (
-    <LoadingContextProvider>
-      <LocaleProvider
-        locale="en"
-        messageByID={systemConfig.translations.en}
-        defaultComponents={defaultComponents}
-      >
-        <HelmetProvider>
-          <ApolloProvider client={client}>
-            <SystemConfigContext.Provider value={systemConfig}>
-              <PortalRoot />
-            </SystemConfigContext.Provider>
-          </ApolloProvider>
-        </HelmetProvider>
-      </LocaleProvider>
-    </LoadingContextProvider>
+    <GTMProvider containerID={systemConfig.gtmContainerID}>
+      <LoadingContextProvider>
+        <LocaleProvider
+          locale="en"
+          messageByID={systemConfig.translations.en}
+          defaultComponents={defaultComponents}
+        >
+          <HelmetProvider>
+            <ApolloProvider client={client}>
+              <SystemConfigContext.Provider value={systemConfig}>
+                <PortalRoot />
+              </SystemConfigContext.Provider>
+            </ApolloProvider>
+          </HelmetProvider>
+        </LocaleProvider>
+      </LoadingContextProvider>
+    </GTMProvider>
   );
 };
 

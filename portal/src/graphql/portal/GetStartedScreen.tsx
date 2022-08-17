@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   Text,
   FontIcon,
@@ -41,6 +41,10 @@ import iconSSO from "../../images/getting-started-icon-sso.png";
 import iconTeam from "../../images/getting-started-icon-team.png";
 import iconTick from "../../images/getting-started-icon-tick.png";
 import styles from "./GetStartedScreen.module.css";
+import {
+  AuthgearGTMEventType,
+  useMakeAuthgearGTMEventDataAttributes,
+} from "../../GTMProvider";
 
 type Progress = keyof TutorialStatusData["progress"];
 
@@ -220,6 +224,16 @@ function Card(props: CardProps) {
     [skipProgress, cardKey]
   );
 
+  const makeGTMEventDataAttributes = useMakeAuthgearGTMEventDataAttributes();
+  const eventDataAttributes = useMemo(() => {
+    return makeGTMEventDataAttributes({
+      event: AuthgearGTMEventType.ClickedGetStarted,
+      eventDataAttributes: {
+        "get-started-type": cardKey,
+      },
+    });
+  }, [makeGTMEventDataAttributes, cardKey]);
+
   return (
     <div
       className={styles.card}
@@ -247,6 +261,7 @@ function Card(props: CardProps) {
           to={internalHref}
           component={Link}
           className={styles.cardActionButton}
+          {...eventDataAttributes}
         >
           <FormattedMessage
             id={"GetStartedScreen.card.action-label." + cardKey}
@@ -260,6 +275,7 @@ function Card(props: CardProps) {
           className={styles.cardActionButton}
           href={externalHref}
           target="_blank"
+          {...eventDataAttributes}
         >
           <FormattedMessage
             id={"GetStartedScreen.card.action-label." + cardKey}
