@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   GTMProvider as ReactHookGTMProvider,
   useGTMDispatch as useReactHookGTMDispatch,
@@ -53,35 +53,39 @@ interface AuthgearGTMEventDataAttributesParams {
 
 export type EventDataAttributes = Record<string, string>;
 
-export function useAuthgearGTMEventDataAttributes({
-  event,
-  eventDataAttributes,
-}: AuthgearGTMEventDataAttributesParams): EventDataAttributes {
+export function useMakeAuthgearGTMEventDataAttributes(): (
+  params: AuthgearGTMEventDataAttributesParams
+) => EventDataAttributes {
   let appContextID: string | undefined;
   try {
     const appContext = useAppContext();
     appContextID = appContext.appID;
   } catch {}
 
-  return useMemo(() => {
-    const attributes: Record<string, string> = {
-      "data-authgear-event": event,
-    };
-    if (appContextID) {
-      attributes["data-authgear-event-data-app-id"] = appContextID;
-    }
-    if (eventDataAttributes) {
-      for (const k in eventDataAttributes) {
-        if (!Object.prototype.hasOwnProperty.call(eventDataAttributes, k)) {
-          continue;
-        }
-        // only support string for data attributes
-        const v = eventDataAttributes[k];
-        attributes[`data-authgear-event-data-${k}`] = v;
+  const makeGTMEventDataAttributes = useCallback(
+    ({ event, eventDataAttributes }: AuthgearGTMEventDataAttributesParams) => {
+      const attributes: Record<string, string> = {
+        "data-authgear-event": event,
+      };
+      if (appContextID) {
+        attributes["data-authgear-event-data-app-id"] = appContextID;
       }
-    }
-    return attributes;
-  }, [event, eventDataAttributes, appContextID]);
+      if (eventDataAttributes) {
+        for (const k in eventDataAttributes) {
+          if (!Object.prototype.hasOwnProperty.call(eventDataAttributes, k)) {
+            continue;
+          }
+          // only support string for data attributes
+          const v = eventDataAttributes[k];
+          attributes[`data-authgear-event-data-${k}`] = v;
+        }
+      }
+      return attributes;
+    },
+    [appContextID]
+  );
+
+  return makeGTMEventDataAttributes;
 }
 
 export function useGTMDispatch(): (event: AuthgearGTMEvent) => void {

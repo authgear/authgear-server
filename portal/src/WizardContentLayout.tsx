@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   DefaultEffects,
@@ -13,7 +13,7 @@ import styles from "./WizardContentLayout.module.css";
 import {
   AuthgearGTMEventType,
   EventDataAttributes,
-  useAuthgearGTMEventDataAttributes,
+  useMakeAuthgearGTMEventDataAttributes,
 } from "./GTMProvider";
 
 export function WizardDivider(): React.ReactElement {
@@ -84,10 +84,13 @@ export default function WizardContentLayout(
     [navigate]
   );
 
-  const gtmEventDataAttributes = useAuthgearGTMEventDataAttributes({
-    event: AuthgearGTMEventType.ClickedSkipInProjectWizard,
-    eventDataAttributes: trackSkipButtonEventData,
-  });
+  const makeGTMEventDataAttributes = useMakeAuthgearGTMEventDataAttributes();
+  const gtmEventDataAttributes = useMemo(() => {
+    return makeGTMEventDataAttributes({
+      event: AuthgearGTMEventType.ClickedSkipInProjectWizard,
+      eventDataAttributes: trackSkipButtonEventData,
+    });
+  }, [makeGTMEventDataAttributes, trackSkipButtonEventData]);
 
   return (
     <div className={styles.root}>

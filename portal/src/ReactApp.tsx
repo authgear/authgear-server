@@ -1,4 +1,11 @@
-import React, { useContext, useEffect, useState, Suspense, lazy } from "react";
+import React, {
+  useContext,
+  useEffect,
+  useState,
+  Suspense,
+  lazy,
+  useMemo,
+} from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import {
   LocaleProvider,
@@ -29,7 +36,7 @@ import { LoadingContextProvider } from "./hook/loading";
 import ShowLoading from "./ShowLoading";
 import GTMProvider, {
   AuthgearGTMEventType,
-  useAuthgearGTMEventDataAttributes,
+  useMakeAuthgearGTMEventDataAttributes,
 } from "./GTMProvider";
 
 const AppsScreen = lazy(async () => import("./graphql/portal/AppsScreen"));
@@ -182,12 +189,15 @@ function ExternalLink(props: ILinkProps) {
 }
 
 const DocLink: React.FC<ILinkProps> = (props: ILinkProps) => {
-  const gtmEventDataAttributes = useAuthgearGTMEventDataAttributes({
-    event: AuthgearGTMEventType.ClickedDocLink,
-    eventDataAttributes: {
-      "doc-link": props.href ?? "",
-    },
-  });
+  const makeGTMEventDataAttributes = useMakeAuthgearGTMEventDataAttributes();
+  const gtmEventDataAttributes = useMemo(() => {
+    return makeGTMEventDataAttributes({
+      event: AuthgearGTMEventType.ClickedDocLink,
+      eventDataAttributes: {
+        "doc-link": props.href ?? "",
+      },
+    });
+  }, [makeGTMEventDataAttributes, props.href]);
 
   return (
     <FluentLink

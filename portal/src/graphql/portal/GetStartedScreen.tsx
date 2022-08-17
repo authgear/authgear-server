@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   Text,
   FontIcon,
@@ -43,7 +43,7 @@ import iconTick from "../../images/getting-started-icon-tick.png";
 import styles from "./GetStartedScreen.module.css";
 import {
   AuthgearGTMEventType,
-  useAuthgearGTMEventDataAttributes,
+  useMakeAuthgearGTMEventDataAttributes,
 } from "../../GTMProvider";
 
 type Progress = keyof TutorialStatusData["progress"];
@@ -224,12 +224,15 @@ function Card(props: CardProps) {
     [skipProgress, cardKey]
   );
 
-  const eventDataAttributes = useAuthgearGTMEventDataAttributes({
-    event: AuthgearGTMEventType.ClickedGetStarted,
-    eventDataAttributes: {
-      "get-started-type": cardKey,
-    },
-  });
+  const makeGTMEventDataAttributes = useMakeAuthgearGTMEventDataAttributes();
+  const eventDataAttributes = useMemo(() => {
+    return makeGTMEventDataAttributes({
+      event: AuthgearGTMEventType.ClickedGetStarted,
+      eventDataAttributes: {
+        "get-started-type": cardKey,
+      },
+    });
+  }, [makeGTMEventDataAttributes, cardKey]);
 
   return (
     <div

@@ -46,7 +46,7 @@ import ButtonWithLoading from "../../ButtonWithLoading";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import {
   AuthgearGTMEventType,
-  useAuthgearGTMEventDataAttributes,
+  useMakeAuthgearGTMEventDataAttributes,
 } from "../../GTMProvider";
 
 interface FormState {
@@ -136,12 +136,15 @@ const QuickStartFrameworkItem: React.FC<QuickStartFrameworkItemProps> =
       return !isHovering;
     }, [showOpenTutorialLabelWhenHover, isHovering]);
 
-    const gtmEventDataAttributes = useAuthgearGTMEventDataAttributes({
-      event: AuthgearGTMEventType.ClickedDocLink,
-      eventDataAttributes: {
-        "doc-link": docLink,
-      },
-    });
+    const makeGTMEventDataAttributes = useMakeAuthgearGTMEventDataAttributes();
+    const gtmEventDataAttributes = useMemo(() => {
+      return makeGTMEventDataAttributes({
+        event: AuthgearGTMEventType.ClickedDocLink,
+        eventDataAttributes: {
+          "doc-link": docLink,
+        },
+      });
+    }, [makeGTMEventDataAttributes, docLink]);
 
     return (
       <Link
