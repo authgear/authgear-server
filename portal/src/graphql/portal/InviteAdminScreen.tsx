@@ -13,7 +13,7 @@ import styles from "./InviteAdminScreen.module.css";
 import {
   AuthgearGTMEvent,
   AuthgearGTMEventType,
-  useAuthgearGTMEvent,
+  useAuthgearGTMEventBase,
   useGTMDispatch,
 } from "../../GTMProvider";
 
@@ -74,22 +74,20 @@ const InviteAdminScreen: React.FC = function InviteAdminScreen() {
     useCreateCollaboratorInvitationMutation(appID);
 
   const sendDataToGTM = useGTMDispatch();
-  const gtmEvent = useAuthgearGTMEvent({
-    event: AuthgearGTMEventType.InvitedAdmin,
-  });
-
+  const gtmEventBase = useAuthgearGTMEventBase();
   const submit = useCallback(
     async (state: FormState) => {
       await createCollaboratorInvitation(state.email);
       const event: AuthgearGTMEvent = {
-        ...gtmEvent,
+        ...gtmEventBase,
+        event: AuthgearGTMEventType.InvitedAdmin,
         event_data: {
           collaborator_email: state.email,
         },
       };
       sendDataToGTM(event);
     },
-    [createCollaboratorInvitation, sendDataToGTM, gtmEvent]
+    [createCollaboratorInvitation, gtmEventBase, sendDataToGTM]
   );
 
   const form = useSimpleForm({

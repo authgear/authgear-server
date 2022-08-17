@@ -19,7 +19,7 @@ import { extractRawID } from "../../util/graphql";
 import {
   AuthgearGTMEvent,
   AuthgearGTMEventType,
-  useAuthgearGTMEvent,
+  useAuthgearGTMEventBase,
   useGTMDispatch,
 } from "../../GTMProvider";
 
@@ -110,23 +110,21 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
   );
 
   const sendDataToGTM = useGTMDispatch();
-  const gtmEvent = useAuthgearGTMEvent({
-    event: AuthgearGTMEventType.CreatedProject,
-  });
-
+  const gtmEventBase = useAuthgearGTMEventBase();
   useEffect(() => {
     if (form.submissionResult) {
       const appID = form.submissionResult;
       const rawAppID = extractRawID(appID);
       // assign app id to the event after creating the app
       const event: AuthgearGTMEvent = {
-        ...gtmEvent,
+        ...gtmEventBase,
+        event: AuthgearGTMEventType.CreatedProject,
         app_id: rawAppID,
       };
       sendDataToGTM(event);
       navigate(`/project/${encodeURIComponent(appID)}/wizard`);
     }
-  }, [form, navigate, sendDataToGTM, gtmEvent]);
+  }, [form, navigate, sendDataToGTM, gtmEventBase]);
 
   return (
     <FormProvider loading={isUpdating} error={updateError}>

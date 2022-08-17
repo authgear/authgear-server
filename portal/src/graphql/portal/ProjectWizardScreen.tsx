@@ -38,8 +38,9 @@ import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import styles from "./ProjectWizardScreen.module.css";
 import {
+  AuthgearGTMEvent,
   AuthgearGTMEventType,
-  useAuthgearGTMEvent,
+  useAuthgearGTMEventBase,
   useGTMDispatch,
 } from "../../GTMProvider";
 
@@ -128,23 +129,24 @@ function Step1(props: StepProps) {
   const { renderToString } = useContext(Context);
 
   const sendDataToGTM = useGTMDispatch();
-  const gtmEvent = useAuthgearGTMEvent({
-    event: AuthgearGTMEventType.ClickedNextInProjectWizard,
-    eventData: {
-      app_id: rawAppID,
-      current_step: "1",
-      primary_authenticator: step1Answer,
-    },
-  });
-
+  const gtmEventBase = useAuthgearGTMEventBase();
   const onClickNext = useCallback(
     (e) => {
       e.preventDefault();
       e.stopPropagation();
-      sendDataToGTM(gtmEvent);
+      const event: AuthgearGTMEvent = {
+        ...gtmEventBase,
+        event: AuthgearGTMEventType.ClickedNextInProjectWizard,
+        event_data: {
+          app_id: rawAppID,
+          current_step: "1",
+          primary_authenticator: step1Answer,
+        },
+      };
+      sendDataToGTM(event);
       navigate("./../2");
     },
-    [navigate, gtmEvent, sendDataToGTM]
+    [navigate, gtmEventBase, sendDataToGTM, rawAppID, step1Answer]
   );
 
   const { id, setRef, targetElement } = useTooltipTargetElement();
@@ -269,23 +271,24 @@ function Step2(props: StepProps) {
   }, [renderToString]);
 
   const sendDataToGTM = useGTMDispatch();
-  const gtmEvent = useAuthgearGTMEvent({
-    event: AuthgearGTMEventType.ClickedNextInProjectWizard,
-    eventData: {
-      app_id: rawAppID,
-      current_step: "2",
-      passkey_enabled: step2Answer,
-    },
-  });
-
+  const gtmEventBase = useAuthgearGTMEventBase();
   const onClickNext = useCallback(
     (e) => {
       e.preventDefault();
       e.stopPropagation();
-      sendDataToGTM(gtmEvent);
+      const event: AuthgearGTMEvent = {
+        ...gtmEventBase,
+        event: AuthgearGTMEventType.ClickedNextInProjectWizard,
+        event_data: {
+          app_id: rawAppID,
+          current_step: "2",
+          passkey_enabled: step2Answer,
+        },
+      };
+      sendDataToGTM(event);
       navigate("./../3");
     },
-    [navigate, gtmEvent, sendDataToGTM]
+    [navigate, gtmEventBase, sendDataToGTM, rawAppID, step2Answer]
   );
 
   const onChange = useCallback(
@@ -410,25 +413,27 @@ function Step3(props: StepProps) {
   }, [step1Answer, renderToString]);
 
   const sendDataToGTM = useGTMDispatch();
-  const gtmEvent = useAuthgearGTMEvent({
-    event: AuthgearGTMEventType.ClickedNextInProjectWizard,
-    eventData: {
-      app_id: rawAppID,
-      current_step: "3",
-      use_recommended_settings: step3Answer.useRecommenededSettings,
-      secondary_authenticator_type: step3Answer.secondaryAuthenticatorType,
-      secondary_authentication_mode: step3Answer.secondaryAuthenticationMode,
-    },
-  });
-
+  const gtmEventBase = useAuthgearGTMEventBase();
   const onClickNext = useCallback(
     (e) => {
       e.preventDefault();
       e.stopPropagation();
-      sendDataToGTM(gtmEvent);
+      const event: AuthgearGTMEvent = {
+        ...gtmEventBase,
+        event: AuthgearGTMEventType.ClickedNextInProjectWizard,
+        event_data: {
+          app_id: rawAppID,
+          current_step: "3",
+          use_recommended_settings: step3Answer.useRecommenededSettings,
+          secondary_authenticator_type: step3Answer.secondaryAuthenticatorType,
+          secondary_authentication_mode:
+            step3Answer.secondaryAuthenticationMode,
+        },
+      };
+      sendDataToGTM(event);
       saveAndThenNavigate();
     },
-    [saveAndThenNavigate, gtmEvent, sendDataToGTM]
+    [saveAndThenNavigate, gtmEventBase, sendDataToGTM, rawAppID, step3Answer]
   );
 
   const onChangeQ1 = useCallback(

@@ -8,11 +8,14 @@ import { useAppContext } from "./context/AppContext";
 export type TrackValue = string | string[] | boolean | undefined;
 export type EventData = Record<string, TrackValue>;
 
-export interface AuthgearGTMEvent {
-  event: AuthgearGTMEventType;
+export interface AuthgearGTMEventBase {
   app_id?: string;
-  event_data?: EventData;
   _clear: boolean;
+}
+
+export interface AuthgearGTMEvent extends AuthgearGTMEventBase {
+  event: AuthgearGTMEventType;
+  event_data?: EventData;
 }
 
 export enum AuthgearGTMEventType {
@@ -26,15 +29,7 @@ export enum AuthgearGTMEventType {
   ClickedSkipInProjectWizard = "ag.event.clickedSkipInProjectWizard",
 }
 
-interface AuthgearGTMEventParams {
-  event: AuthgearGTMEventType;
-  eventData?: EventData;
-}
-
-export function useAuthgearGTMEvent({
-  event,
-  eventData,
-}: AuthgearGTMEventParams): AuthgearGTMEvent {
+export function useAuthgearGTMEventBase(): AuthgearGTMEventBase {
   let appContextID: string | undefined;
   try {
     const appContext = useAppContext();
@@ -43,14 +38,12 @@ export function useAuthgearGTMEvent({
 
   return useMemo(() => {
     return {
-      event: event,
       app_id: appContextID,
-      event_data: eventData,
       // Prevent GTM recursive merge event data object
       // https://github.com/google/data-layer-helper#preventing-default-recursive-merge
       _clear: true,
     };
-  }, [event, eventData, appContextID]);
+  }, [appContextID]);
 }
 
 interface AuthgearGTMEventDataAttributesParams {

@@ -31,8 +31,9 @@ import ButtonWithLoading from "../../ButtonWithLoading";
 import { FormErrorMessageBar } from "../../FormErrorMessageBar";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import {
+  AuthgearGTMEvent,
   AuthgearGTMEventType,
-  useAuthgearGTMEvent,
+  useAuthgearGTMEventBase,
   useGTMDispatch,
 } from "../../GTMProvider";
 
@@ -202,19 +203,20 @@ const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> =
       [onClientConfigChange, client]
     );
 
-    const gtmEvent = useAuthgearGTMEvent({
-      event: AuthgearGTMEventType.CreatedApplication,
-      eventData: {
-        application_type: client.x_application_type,
-      },
-    });
-
+    const gtmEventBase = useAuthgearGTMEventBase();
     const sendDataToGTM = useGTMDispatch();
     const onClickSave = useCallback(() => {
       save()
         .then(
           () => {
-            sendDataToGTM(gtmEvent);
+            const event: AuthgearGTMEvent = {
+              ...gtmEventBase,
+              event: AuthgearGTMEventType.CreatedApplication,
+              event_data: {
+                application_type: client.x_application_type,
+              },
+            };
+            sendDataToGTM(event);
             navigate(
               `./../${encodeURIComponent(clientId)}/edit?quickstart=true`,
               {
@@ -225,7 +227,14 @@ const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> =
           () => {}
         )
         .catch(() => {});
-    }, [save, navigate, clientId, sendDataToGTM, gtmEvent]);
+    }, [
+      save,
+      navigate,
+      clientId,
+      sendDataToGTM,
+      gtmEventBase,
+      client.x_application_type,
+    ]);
 
     const parentJSONPointer = /\/oauth\/clients\/\d+/;
 

@@ -36,7 +36,7 @@ import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import {
   AuthgearGTMEvent,
   AuthgearGTMEventType,
-  useAuthgearGTMEvent,
+  useAuthgearGTMEventBase,
 } from "../../GTMProvider";
 import { useGTMDispatch } from "@elgorditosalsero/react-gtm-hook";
 
@@ -331,10 +331,7 @@ const SingleSignOnConfigurationScreen: React.FC =
     const featureConfig = useAppFeatureConfigQuery(appID);
 
     const sendDataToGTM = useGTMDispatch();
-    const gtmEvent = useAuthgearGTMEvent({
-      event: AuthgearGTMEventType.AddedSSOProviders,
-    });
-
+    const gtmEventBase = useAuthgearGTMEventBase();
     const save = useCallback(async () => {
       // compare if there is any newly added providers
       // then send the gtm event
@@ -351,14 +348,15 @@ const SingleSignOnConfigurationScreen: React.FC =
       await config.save();
       if (addedProviders.length > 0) {
         const event: AuthgearGTMEvent = {
-          ...gtmEvent,
+          ...gtmEventBase,
+          event: AuthgearGTMEventType.AddedSSOProviders,
           event_data: {
             providers: addedProviders,
           },
         };
         sendDataToGTM(event);
       }
-    }, [config, gtmEvent, sendDataToGTM]);
+    }, [config, gtmEventBase, sendDataToGTM]);
 
     const form: AppSecretConfigFormModel<FormState> = {
       ...config,
