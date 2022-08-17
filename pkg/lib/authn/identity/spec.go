@@ -12,4 +12,5 @@ type Spec struct {
 	Anonymous *AnonymousSpec `json:"anonymous,omitempty"`
 	Biometric *BiometricSpec `json:"biometric,omitempty"`
 	Passkey   *PasskeySpec   `json:"passkey,omitempty"`
+	SIWE      *SIWESpec      `json:"siwe,omitempty"`
 }
