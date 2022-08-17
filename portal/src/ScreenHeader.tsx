@@ -7,6 +7,7 @@ import {
   Text,
   Link as FluentUILink,
   CommandButton,
+  IconButton,
 } from "@fluentui/react";
 import { useAppAndSecretConfigQuery } from "./graphql/portal/query/appAndSecretConfigQuery";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
@@ -16,11 +17,12 @@ import { useSystemConfig } from "./context/SystemConfigContext";
 
 interface ScreenHeaderAppSectionProps {
   appID: string;
+  mobileView?: boolean;
 }
 
 const ScreenHeaderAppSection: React.FC<ScreenHeaderAppSectionProps> =
   function ScreenHeaderAppSection(props: ScreenHeaderAppSectionProps) {
-    const { appID } = props;
+    const { appID, mobileView = false } = props;
     const { effectiveAppConfig, loading } = useAppAndSecretConfigQuery(appID);
     const { themes } = useSystemConfig();
 
@@ -33,19 +35,31 @@ const ScreenHeaderAppSection: React.FC<ScreenHeaderAppSectionProps> =
 
     return (
       <>
-        <Icon className={styles.headerArrow} iconName="ChevronRight" />
+        {mobileView ? null : (
+          <Icon className={styles.headerArrow} iconName="ChevronRight" />
+        )}
         {rawAppID != null && endpoint != null ? (
-          <FluentUILink
-            className={styles.headerAppID}
-            target="_blank"
-            rel="noopener"
-            href={endpoint}
-            theme={themes.inverted}
-          >
-            {`${rawAppID} - ${endpoint}`}
-          </FluentUILink>
+          <>
+            {mobileView ? (
+              <Text className={styles.headerAppID} theme={themes.inverted}>
+                {rawAppID}
+              </Text>
+            ) : (
+              <FluentUILink
+                className={styles.headerAppID}
+                target="_blank"
+                rel="noopener"
+                href={endpoint}
+                theme={themes.inverted}
+              >
+                {`${rawAppID} - ${endpoint}`}
+              </FluentUILink>
+            )}
+          </>
         ) : (
-          <Text className={styles.headerAppID}>{appID}</Text>
+          <Text className={styles.headerAppID} theme={themes.inverted}>
+            {appID}
+          </Text>
         )}
       </>
     );
@@ -111,7 +125,16 @@ const ScreenHeader: React.FC = function ScreenHeader() {
 
   return (
     <header className={styles.header} style={headerStyle}>
-      <div className={styles.headerLeft}>
+      <div className="hidden mobile:flex mobile:flex-row mobile:items-center mobile:text-white">
+        <IconButton
+          ariaLabel="hamburger"
+          iconProps={{ iconName: "WaffleOffice365" }}
+          className={styles.hamburger}
+          theme={themes.inverted}
+        />
+        {appID && <ScreenHeaderAppSection appID={appID} mobileView={true} />}
+      </div>
+      <div className="flex flex-row items-center text-white mobile:hidden">
         <Link to="/" className={styles.logoLink}>
           <img
             className={styles.logo}

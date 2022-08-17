@@ -7,12 +7,6 @@
   height: 48px;
 }
 
-.headerLeft {
-  display: flex;
-  align-items: center;
-  color: #ffffff;
-}
-
 .headerArrow {
   padding-right: 10px;
   font-size: 14px;
@@ -38,4 +32,8 @@
   margin: 6px;
   border-radius: 2px;
   background-color: orange;
+}
+
+.hamburger {
+  margin: 8px 20px 8px 16px;
 }
