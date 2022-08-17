@@ -11,7 +11,7 @@ error: |-
   invalid configuration:
   <root>: required
     map[actual:[http] expected:[http id] missing:[id]]
-config: 
+config:
   http:
     public_origin: http://test
 
@@ -21,7 +21,7 @@ error: |-
   invalid configuration:
   <root>: required
     map[actual:[id] expected:[http id] missing:[http]]
-config: 
+config:
   id: test
 
 ---
@@ -623,13 +623,13 @@ config:
     public_origin: http://test
   hook:
     blocking_handlers:
-    - event: "user.pre_create"
-      url: http://webhook
+      - event: "user.pre_create"
+        url: http://webhook
     non_blocking_handlers:
-    - events:
-      - "*"
-      - "user.created"
-      url: http://webhook
+      - events:
+          - "*"
+          - "user.created"
+        url: http://webhook
 ---
 name: invalid-non-blocking-hook
 error: |-
@@ -642,10 +642,10 @@ config:
     public_origin: http://test
   hook:
     non_blocking_handlers:
-    - events:
-      - "invalid_name"
-      - "user.created"
-      url: http://webhook
+      - events:
+          - "invalid_name"
+          - "user.created"
+        url: http://webhook
 ---
 name: invalid-standard-attributes-pointer
 error: |-
@@ -659,11 +659,11 @@ config:
   user_profile:
     standard_attributes:
       access_control:
-      - pointer: /foobar
-        access_control:
-          end_user: hidden
-          bearer: hidden
-          portal_ui: hidden
+        - pointer: /foobar
+          access_control:
+            end_user: hidden
+            bearer: hidden
+            portal_ui: hidden
 ---
 name: empty-standard-attributes-access-control
 error: |-
@@ -677,8 +677,8 @@ config:
   user_profile:
     standard_attributes:
       access_control:
-      - pointer: /name
-        access_control: {}
+        - pointer: /name
+          access_control: {}
 
 ---
 name: dupe-custom-attribute-id
@@ -692,12 +692,12 @@ config:
   user_profile:
     custom_attributes:
       attributes:
-      - id: "0000"
-        pointer: /a
-        type: string
-      - id: "0000"
-        pointer: /b
-        type: string
+        - id: "0000"
+          pointer: /a
+          type: string
+        - id: "0000"
+          pointer: /b
+          type: string
 
 ---
 name: dupe-custom-attribute-pointer
@@ -711,12 +711,12 @@ config:
   user_profile:
     custom_attributes:
       attributes:
-      - id: "0000"
-        pointer: /a
-        type: string
-      - id: "0001"
-        pointer: /a
-        type: string
+        - id: "0000"
+          pointer: /a
+          type: string
+        - id: "0001"
+          pointer: /a
+          type: string
 ---
 name: invalid-custom-attribute-number-min-max-range
 error: |-
@@ -730,11 +730,11 @@ config:
   user_profile:
     custom_attributes:
       attributes:
-      - id: "0000"
-        pointer: /number
-        type: number
-        minimum: 99.5
-        maximum: 10.5
+        - id: "0000"
+          pointer: /number
+          type: number
+          minimum: 99.5
+          maximum: 10.5
 ---
 name: invalid-custom-attribute-integer-min-max-range
 error: |-
@@ -748,11 +748,11 @@ config:
   user_profile:
     custom_attributes:
       attributes:
-      - id: "0000"
-        pointer: /integer
-        type: integer
-        minimum: 99
-        maximum: 10
+        - id: "0000"
+          pointer: /integer
+          type: integer
+          minimum: 99
+          maximum: 10
 ---
 name: valid-custom-attribute-number-min-max-range
 error: null
@@ -763,11 +763,11 @@ config:
   user_profile:
     custom_attributes:
       attributes:
-      - id: "0000"
-        pointer: /number
-        type: number
-        minimum: 10.5
-        maximum: 99.5
+        - id: "0000"
+          pointer: /number
+          type: number
+          minimum: 10.5
+          maximum: 99.5
 ---
 name: valid-custom-attribute-integer-min-max-range
 error: null
@@ -778,11 +778,11 @@ config:
   user_profile:
     custom_attributes:
       attributes:
-      - id: "0000"
-        pointer: /integer
-        type: integer
-        minimum: 10
-        maximum: 99
+        - id: "0000"
+          pointer: /integer
+          type: integer
+          minimum: 10
+          maximum: 99
 
 ---
 name: missing-passkey-primary-authenticator
@@ -836,3 +836,39 @@ config:
   authentication:
     identities: ["login_id", "passkey"]
     primary_authenticators: ["password", "passkey"]
+---
+name: valid-siwe
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication:
+    identities: ["siwe"]
+    primary_authenticators: []
+---
+name: wrong-siwe-authenticator
+error: |-
+  invalid configuration:
+  /authentication/primary_authenticators: maxItems
+    map[actual:1 expected:0]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication:
+    identities: ["siwe"]
+    primary_authenticators: ["password"]
+---
+name: siwe-extra-identity
+error: |-
+  invalid configuration:
+  /authentication/identities: maxItems
+    map[actual:2 expected:1]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication:
+    identities: ["anonymous", "siwe"]
+    primary_authenticators: []

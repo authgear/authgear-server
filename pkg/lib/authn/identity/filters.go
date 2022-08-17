@@ -56,6 +56,8 @@ var KeepIdentifiable FilterFunc = func(ii *Info) bool {
 		return false
 	case model.IdentityTypePasskey:
 		return false
+	case model.IdentityTypeSIWE:
+		return false
 	default:
 		panic(fmt.Sprintf("identity: unexpected identity type: %s", ii.Type))
 	}

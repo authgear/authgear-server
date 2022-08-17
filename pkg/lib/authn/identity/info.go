@@ -20,6 +20,7 @@ type Info struct {
 	Anonymous *Anonymous `json:"anonymous,omitempty"`
 	Biometric *Biometric `json:"biometric,omitempty"`
 	Passkey   *Passkey   `json:"passkey,omitempty"`
+	SIWE      *SIWE      `json:"siwe,omitempty"`
 }
 
 func (i *Info) ToSpec() Spec {
@@ -69,6 +70,16 @@ func (i *Info) ToSpec() Spec {
 				AttestationResponse: i.Passkey.AttestationResponse,
 			},
 		}
+	case model.IdentityTypeSIWE:
+		return Spec{
+			Type: i.Type,
+			SIWE: &SIWESpec{
+				VerificationRequest: model.SIWEVerificationRequest{
+					Message:   i.SIWE.Data.Message,
+					Signature: i.SIWE.Data.Signature,
+				},
+			},
+		}
 	default:
 		panic("identity: unknown identity type: " + i.Type)
 	}
@@ -105,6 +116,8 @@ func (i *Info) AMR() []string {
 	case model.IdentityTypeBiometric:
 		return []string{model.AMRXBiometric}
 	case model.IdentityTypePasskey:
+		return nil
+	case model.IdentityTypeSIWE:
 		return nil
 	default:
 		panic("identity: unknown identity type: " + i.Type)
@@ -144,6 +157,10 @@ func (i *Info) ToModel() model.Identity {
 		claims[IdentityClaimPasskeyCredentialID] = i.Passkey.CredentialID
 		claims[IdentityClaimPasskeyDisplayName] = i.Passkey.CreationOptions.PublicKey.User.DisplayName
 
+	case model.IdentityTypeSIWE:
+		claims[IdentityClaimSIWEAddress] = i.SIWE.Address
+		claims[IdentityClaimSIWEChainID] = i.SIWE.ChainID
+
 	default:
 		panic("identity: unknown identity type: " + i.Type)
 	}
@@ -182,6 +199,8 @@ func (i *Info) DisplayID() string {
 		return i.Biometric.KeyID
 	case model.IdentityTypePasskey:
 		return i.Passkey.CreationOptions.PublicKey.User.DisplayName
+	case model.IdentityTypeSIWE:
+		return i.SIWE.Address
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
 	}
@@ -210,6 +229,8 @@ func (i *Info) StandardClaims() map[model.ClaimName]string {
 	case model.IdentityTypeBiometric:
 		break
 	case model.IdentityTypePasskey:
+		break
+	case model.IdentityTypeSIWE:
 		break
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
@@ -262,6 +283,10 @@ func (i *Info) ModifyDisabled(c *config.IdentityConfig) bool {
 		// So we return false here.
 		return false
 	case model.IdentityTypePasskey:
+		// modify_disabled is only applicable to login_id and oauth.
+		// So we return false here.
+		return false
+	case model.IdentityTypeSIWE:
 		// modify_disabled is only applicable to login_id and oauth.
 		// So we return false here.
 		return false

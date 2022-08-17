@@ -35,6 +35,11 @@ const (
 	// nolint: gosec
 	IdentityClaimPasskeyDisplayName string = "https://authgear.com/claims/passkey/display_name"
 
+	// IdentityClaimSIWEAddress is a claim with a string value.
+	IdentityClaimSIWEAddress string = "https://authgear.com/claims/siwe/address"
+	// IdentityClaimSIWEChainID is a claim with an interger value.
+	IdentityClaimSIWEChainID string = "https://authgear.com/claims/siwe/chain_id"
+
 	StandardClaimEmail             string = "email"
 	StandardClaimPhoneNumber       string = "phone_number"
 	StandardClaimPreferredUsername string = "preferred_username"
