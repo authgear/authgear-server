@@ -108,6 +108,8 @@ function serializeAssertionResponse(credential: PublicKeyCredential) {
 }
 
 function handleError(err: unknown) {
+  console.error(err);
+
   // Cancel
   if (err instanceof DOMException && err.name === "NotAllowedError") {
     return;
@@ -124,7 +126,6 @@ function handleError(err: unknown) {
     return;
   }
 
-  console.error(err);
   return false;
 }
 
