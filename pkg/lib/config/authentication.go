@@ -97,6 +97,46 @@ var _ = Schema.Add("AuthenticationConfig", `
 				},
 				"required": ["identities"]
 			}
+		},
+		{
+			"if": {
+				"properties": {
+					"identities": {
+						"contains": {
+							"const": "siwe"
+						}
+					}
+				},
+				"required": ["identities"]
+			},
+			"then": {
+				"properties": {
+					"primary_authenticators": {
+						"maxItems": 0
+					}
+				},
+				"required": ["primary_authenticators"]
+			}
+		},
+		{
+			"if": {
+				"properties": {
+					"identities": {
+						"contains": {
+							"const": "siwe"
+						}
+					}
+				},
+				"required": ["identities"]
+			},
+			"then": {
+				"properties": {
+					"identities": {
+						"maxItems": 1
+					}
+				},
+				"required": ["identities"]
+			}
 		}
 	]
 }
@@ -105,7 +145,7 @@ var _ = Schema.Add("AuthenticationConfig", `
 var _ = Schema.Add("IdentityType", `
 {
 	"type": "string",
-	"enum": ["login_id", "oauth", "anonymous", "biometric", "passkey"]
+	"enum": ["login_id", "oauth", "anonymous", "biometric", "passkey", "siwe"]
 }
 `)
 

@@ -26,6 +26,7 @@ const (
 	IdentityTypeAnonymous IdentityType = "anonymous"
 	IdentityTypeBiometric IdentityType = "biometric"
 	IdentityTypePasskey   IdentityType = "passkey"
+	IdentityTypeSIWE      IdentityType = "siwe"
 )
 
 func (t IdentityType) PrimaryAuthenticatorTypes(loginIDKeyType LoginIDKeyType) []AuthenticatorType {
