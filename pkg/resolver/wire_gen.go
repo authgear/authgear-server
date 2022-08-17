@@ -19,10 +19,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/siwe"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
+	siwe2 "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
 	"github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
@@ -288,6 +290,26 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:   clock,
 		Passkey: passkeyService,
 	}
+	siweStore := &siwe.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	siweStoreRedis := &siwe2.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clock,
+	}
+	siweService := &siwe2.Service{
+		HTTPConfig: httpConfig,
+		Clock:      clock,
+		NonceStore: siweStoreRedis,
+	}
+	siweProvider := &siwe.Provider{
+		Store: siweStore,
+		Clock: clock,
+		SIWE:  siweService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -298,6 +320,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
 		Passkey:               passkeyProvider,
+		SIWE:                  siweProvider,
 	}
 	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -621,6 +644,26 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 		Passkey: passkeyService,
 	}
+	siweStore := &siwe.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	storeRedis := &siwe2.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
+	siweService := &siwe2.Service{
+		HTTPConfig: httpConfig,
+		Clock:      clockClock,
+		NonceStore: storeRedis,
+	}
+	siweProvider := &siwe.Provider{
+		Store: siweStore,
+		Clock: clockClock,
+		SIWE:  siweService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -631,13 +674,14 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
 		Passkey:               passkeyProvider,
+		SIWE:                  siweProvider,
 	}
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	factory := appProvider.LoggerFactory
 	logger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	storeRedis := &verification.StoreRedis{
+	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -662,7 +706,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         storeRedis,
+		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}

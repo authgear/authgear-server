@@ -46,6 +46,8 @@ func IdentitiesDisplayName(identities []*identity.Info) string {
 		return "biometric"
 	case model.IdentityTypePasskey:
 		return "passkey"
+	case model.IdentityTypeSIWE:
+		return "siwe"
 	default:
 		return ""
 	}
