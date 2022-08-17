@@ -28,7 +28,7 @@
         <li id="error-message-server" class="hidden">{{ template "error-server" }}</li>
         <li id="error-message-network" class="hidden">{{ template "error-network" }}</li>
         <li id="error-message-invalid-selected-image" class="hidden">{{ template "error-invalid-selected-image" }}</li>
-        <li id="error-message-no-passkey" class="hidden">{{ template "error-no-passkey" }}</li>
+        <li id="error-message-no-passkey" class="hidden">{{ template "error-no-passkey" (dict "type" $.FirstNonPasskeyPrimaryAuthenticatorType) }}</li>
         {{ if $display_error }}
             {{ $info := .Error.info }}
             {{ if eq .Error.reason "ValidationFailed" }}

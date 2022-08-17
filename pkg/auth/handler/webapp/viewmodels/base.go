@@ -61,6 +61,8 @@ type BaseViewModel struct {
 	IsSupportedMobilePlatform   bool
 	GoogleTagManagerContainerID string
 	TutorialMessageType         string
+
+	FirstNonPasskeyPrimaryAuthenticatorType string
 }
 
 func (m *BaseViewModel) SetError(err error) {
@@ -246,6 +248,14 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 
 	ua := apimodel.ParseUserAgent(r.UserAgent())
 	model.IsSupportedMobilePlatform = ua.OS == "iOS" || ua.OS == "Android"
+
+	for _, typ := range *m.Authentication.PrimaryAuthenticators {
+		if typ != apimodel.AuthenticatorTypePasskey {
+			t := typ
+			model.FirstNonPasskeyPrimaryAuthenticatorType = string(t)
+			break
+		}
+	}
 
 	return model
 }
