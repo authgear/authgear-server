@@ -17,7 +17,7 @@ const ScreenTitle: React.FC<ScreenTitleProps> = function ScreenTitle(
       as="h1"
       variant="xxLarge"
       block={true}
-      className={cn(styles.title, className)}
+      className={cn(styles.title, className, "mobile:col-span-full")}
     >
       {children}
     </Text>

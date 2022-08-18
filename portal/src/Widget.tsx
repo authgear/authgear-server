@@ -12,7 +12,7 @@ const Widget: React.FC<WidgetProps> = function Widget(props: WidgetProps) {
   const { className, children } = props;
   return (
     <div
-      className={cn(className, styles.root)}
+      className={cn(className, styles.root, "mobile:col-span-full")}
       style={{
         boxShadow: DefaultEffects.elevation4,
       }}
