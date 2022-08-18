@@ -1067,11 +1067,10 @@
 
   "AnalyticsScreen.title": "Analytics",
   "AnalyticsScreen.description": "The analytics portal shows your project's activities. The numbers are delayed up to 24 hours.",
-  "AnalyticsScreen.start-date.label": "Start Date",
-  "AnalyticsScreen.end-date.label": "End Date",
+  "AnalyticsScreen.start-date.label": "From",
+  "AnalyticsScreen.end-date.label": "To",
   "AnalyticsScreen.clear-date-range.label": "Clear Date Range",
   "AnalyticsScreen.date-range.dialog-title": "Date Range",
-  "AnalyticsScreen.to.label": "to",
 
   "AnalyticsActivityWidget.title": "Activity",
   "AnalyticsActivityWidget.monthly.label": "Monthly",
