@@ -208,6 +208,7 @@ const AnalyticsActivityWidget: React.FC<AnalyticsActivityWidgetProps> =
           <FormattedMessage id="AnalyticsActivityWidget.title" />
         </WidgetTitle>
         <Pivot
+          overflowBehavior="menu"
           className={styles.pivot}
           onLinkClick={onPeriodicalClick}
           selectedKey={periodical}

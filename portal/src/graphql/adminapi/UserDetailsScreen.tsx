@@ -295,7 +295,11 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
         createdAtISO={data?.createdAt ?? null}
         lastLoginAtISO={data?.lastLoginAt ?? null}
       />
-      <Pivot selectedKey={selectedKey} onLinkClick={onLinkClick}>
+      <Pivot
+        overflowBehavior="menu"
+        selectedKey={selectedKey}
+        onLinkClick={onLinkClick}
+      >
         <PivotItem
           itemKey={USER_PROFILE_KEY}
           headerText={renderToString("UserDetails.user-profile.header")}
