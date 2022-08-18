@@ -739,7 +739,7 @@
   "AuthenticatorType.primary.passkey": "Passkey",
   "AuthenticatorType.primary.oob-otp-email": "Passwordless via Email",
   "AuthenticatorType.primary.oob-otp-phone": "Passwordless via Phone",
-  "AuthenticatorType.secondary.totp": "OTP Code via Google Authenticator/Authy (TOTP)",
+  "AuthenticatorType.secondary.totp": "Google Authenticator/Authy (TOTP)",
   "AuthenticatorType.secondary.oob-otp-email": "OTP Code via Email",
   "AuthenticatorType.secondary.oob-otp-phone": "OTP Code via Phone",
   "AuthenticatorType.secondary.password": "Additional Password",

@@ -305,8 +305,8 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
           "AuthenticatorConfigurationScreen.columns.activate"
         ),
         className: styles.authenticatorColumn,
-        minWidth: 80,
-        maxWidth: 80,
+        minWidth: 64,
+        maxWidth: 64,
       },
       {
         key: "key",
@@ -315,13 +315,14 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
           "AuthenticatorConfigurationScreen.columns.authenticator"
         ),
         className: styles.authenticatorColumn,
-        minWidth: 280,
-        maxWidth: 280,
+        minWidth: 240,
+        maxWidth: 9999,
       },
       {
         key: "order",
         fieldName: "order",
         name: renderToString("DetailsListWithOrdering.order"),
+        className: styles.authenticatorOrder,
         minWidth: 100,
         maxWidth: 100,
       },

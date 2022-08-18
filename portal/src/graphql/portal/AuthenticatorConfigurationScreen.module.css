@@ -8,6 +8,10 @@
   display: flex;
 }
 
+.authenticatorOrder {
+  padding-left: 4px;
+}
+
 .authenticatorColumnSpanRow {
   display: flex;
   justify-content: center;
