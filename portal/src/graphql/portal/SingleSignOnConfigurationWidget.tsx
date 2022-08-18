@@ -408,7 +408,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
 
     return (
       <ExtendableWidget
-        className={className}
+        className={cn(className, "mobile:col-span-full")}
         extendButtonAriaLabelId={messageID}
         extendButtonDisabled={isEnabled}
         extended={extended}
