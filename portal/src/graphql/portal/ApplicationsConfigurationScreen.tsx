@@ -15,7 +15,9 @@ import {
   IDetailsRowProps,
   MessageBar,
   SelectionMode,
+  Text,
 } from "@fluentui/react";
+import cn from "classnames";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import produce from "immer";
@@ -38,6 +40,8 @@ import { getApplicationTypeMessageID } from "./EditOAuthClientForm";
 import CommandBarContainer from "../../CommandBarContainer";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import { onRenderCommandBarPrimaryButton } from "../../CommandBarPrimaryButton";
+import { useSystemConfig } from "../../context/SystemConfigContext";
+import Widget from "../../Widget";
 
 const COPY_ICON_STLYES: IButtonStyles = {
   root: { margin: "0 4px" },
@@ -113,11 +117,76 @@ const OAuthClientIdCell: React.FC<OAuthClientIdCellProps> =
     return (
       <>
         <span className={styles.cellContent}>{clientId}</span>
-        <IconButton {...copyButtonProps} styles={COPY_ICON_STLYES} />
-        <Feedback />
+        <div>
+          <IconButton {...copyButtonProps} styles={COPY_ICON_STLYES} />
+          <Feedback />
+        </div>
       </>
     );
   };
+
+interface ClientCardProps {
+  name?: string;
+  clientId: string;
+  applicationType?: string;
+}
+
+const ClientCard: React.FC<ClientCardProps> = (props) => {
+  const { name, clientId, applicationType } = props;
+  const targetPath = `./${clientId}/edit`;
+
+  const {
+    themes: {
+      main: {
+        palette: { neutralSecondary },
+      },
+    },
+  } = useSystemConfig();
+
+  return (
+    <Link to={targetPath}>
+      <Widget>
+        <Text className={styles.clientCardTitle}>{name}</Text>
+        <div
+          className={cn(styles.clientCardContent, styles.clientCardIdContainer)}
+          style={{ color: neutralSecondary }}
+        >
+          <OAuthClientIdCell clientId={clientId} />
+        </div>
+        <Text
+          className={styles.clientCardContent}
+          style={{ color: neutralSecondary }}
+        >
+          <FormattedMessage id={getApplicationTypeMessageID(applicationType)} />
+        </Text>
+      </Widget>
+    </Link>
+  );
+};
+
+interface ClientCardListProps {
+  className: string;
+  items: OAuthClientConfig[];
+}
+
+const ClientCardList: React.FC<ClientCardListProps> = (props) => {
+  const { className, items } = props;
+
+  return (
+    <div className={cn(styles.clientCardList, className)}>
+      {items.map((card) => {
+        return (
+          <ClientCard
+            key={card.client_id}
+            name={card.name}
+            clientId={card.client_id}
+            applicationType={card.x_application_type}
+          />
+        );
+      })}
+    </div>
+  );
+};
 
 interface OAuthClientConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
@@ -195,7 +264,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
         <ScreenDescription className={styles.widget}>
           <FormattedMessage id="ApplicationsConfigurationScreen.description" />
         </ScreenDescription>
-        <div className={styles.widget}>
+        <div className={cn(styles.widget, "mobile:col-span-full")}>
           {oauthClientsMaximum < 99 && (
             <FeatureDisabledMessageBar>
               <FormattedMessage
@@ -207,14 +276,22 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
               />
             </FeatureDisabledMessageBar>
           )}
-          <DetailsList
-            onRenderRow={onRenderOAuthClientRow}
-            className={styles.clientList}
-            columns={oauthClientListColumns}
-            items={state.clients}
-            selectionMode={SelectionMode.none}
-            onRenderItemColumn={onRenderOAuthClientColumns}
-          />
+          <div className="mobile:hidden">
+            <DetailsList
+              onRenderRow={onRenderOAuthClientRow}
+              className={styles.clientList}
+              columns={oauthClientListColumns}
+              items={state.clients}
+              selectionMode={SelectionMode.none}
+              onRenderItemColumn={onRenderOAuthClientColumns}
+            />
+          </div>
+          <div className="hidden mobile:display-initial">
+            <ClientCardList
+              className={styles.clientList}
+              items={state.clients}
+            />
+          </div>
         </div>
       </ScreenContent>
     );

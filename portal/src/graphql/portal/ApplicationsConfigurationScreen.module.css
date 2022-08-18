@@ -22,3 +22,28 @@
 .clientList {
   margin: 6px 0;
 }
+
+.clientCardList {
+  display: grid;
+  grid-template-columns: auto;
+  grid-auto-rows: auto;
+  row-gap: 16px;
+}
+
+.clientCardTitle {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+}
+
+.clientCardContent {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+}
+
+.clientCardIdContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
