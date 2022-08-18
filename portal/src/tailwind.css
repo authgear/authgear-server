@@ -7,3 +7,9 @@
     @apply grid-cols-[repeat(12,_80px)] auto-cols-auto mobile:grid-cols-12;
   }
 }
+
+@layer utilities {
+  .display-initial {
+    display: initial;
+  }
+}
