@@ -1,5 +1,5 @@
 .searchBox {
-  width: 300px;
+  max-width: 300px;
   margin: 0 7px 20px auto;
 }
 

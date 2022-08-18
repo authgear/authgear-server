@@ -10,5 +10,5 @@
 }
 
 .widgetInputField {
-  width: 490px;
+  max-width: 490px;
 }

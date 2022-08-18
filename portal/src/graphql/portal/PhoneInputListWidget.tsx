@@ -504,7 +504,7 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> =
         <div className={styles.listWrapper}>
           <ScrollablePane>
             <DetailsList
-              className={styles.detailsList}
+              className={cn(styles.detailsList, "mobile:overflow-auto")}
               columns={countryCodeListColumns}
               items={filteredItems}
               selectionMode={SelectionMode.none}
