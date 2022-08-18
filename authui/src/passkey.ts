@@ -134,7 +134,7 @@ function isSafariAndroidError(err: unknown) {
     err instanceof DOMException &&
     err.name === "NotAllowedError" &&
     // "Operation failed."
-    /fail/i.test(err.message)
+    /operation.*fail/i.test(err.message)
   );
 }
 
@@ -143,7 +143,7 @@ function isChromeCancelOrTimeout(err: unknown) {
     err instanceof DOMException &&
     err.name === "NotAllowedError" &&
     // "The operation either timed out or was not allowed. See: https://www.w3.org/TR/webauthn-2/#sctn-privacy-considerations-client."
-    /time/i.test(err.message)
+    /time.*out/i.test(err.message)
   );
 }
 
@@ -152,7 +152,7 @@ function isFirefoxCancel(err: unknown) {
     err instanceof DOMException &&
     err.name === "AbortError" &&
     // "The operation was aborted. "
-    /abort/i.test(err.message)
+    /operation.*abort/i.test(err.message)
   );
 }
 
@@ -165,7 +165,7 @@ function isFirefoxSecurityKeyError(err: unknown) {
     err instanceof DOMException &&
     err.name === "InvalidStateError" &&
     // "An attempt was made to use an object that is not, or is no longer, usable"
-    /usable/i.test(err.message)
+    /no.*usable/i.test(err.message)
   );
 }
 
