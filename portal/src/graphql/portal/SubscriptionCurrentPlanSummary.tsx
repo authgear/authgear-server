@@ -136,7 +136,9 @@ interface CostItemsProps {
 
 function CostItems(props: CostItemsProps) {
   const { children } = props;
-  return <div className={styles.costItems}>{children}</div>;
+  return (
+    <div className={cn(styles.costItems, "mobile:flex-col")}>{children}</div>
+  );
 }
 
 const USAGE_METER_THEME_WARN: PartialTheme = {
@@ -198,7 +200,7 @@ function UsageMeter(props: UsageMeterProps) {
         </Text>
         <ThemeProvider theme={theme}>
           <ProgressIndicator
-            className={styles.usageMeterProgressBar}
+            className={cn(styles.usageMeterProgressBar, "mobile:w-full")}
             percentComplete={percentComplete}
           />
           <Text block={true} styles={usageStyles} variant="small">
