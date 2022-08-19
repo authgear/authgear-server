@@ -16,6 +16,7 @@ type User struct {
 	CanReauthenticate  bool                   `json:"can_reauthenticate"`
 	StandardAttributes map[string]interface{} `json:"standard_attributes,omitempty"`
 	CustomAttributes   map[string]interface{} `json:"custom_attributes,omitempty"`
+	Web3               map[string]interface{} `json:"x_web3,omitempty"`
 }
 
 type UserRef struct {
