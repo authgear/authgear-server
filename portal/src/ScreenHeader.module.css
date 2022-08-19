@@ -5,6 +5,9 @@
   align-items: center;
   border-bottom: 1px solid gray;
   height: 48px;
+  position: sticky;
+  top: 0;
+  z-index: 9999;
 }
 
 .headerMobile {
