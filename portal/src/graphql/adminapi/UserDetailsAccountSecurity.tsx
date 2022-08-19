@@ -822,7 +822,6 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
                   <FormattedMessage id="AuthenticatorType.secondary.totp" />
                 </Text>
                 <List
-                  className={styles.list}
                   items={secondaryAuthenticatorLists.totp}
                   onRenderCell={onRenderTotpAuthenticatorDetailCell}
                 />
@@ -837,7 +836,6 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
                   <FormattedMessage id="AuthenticatorType.secondary.oob-otp-email" />
                 </Text>
                 <List
-                  className={styles.list}
                   items={secondaryAuthenticatorLists.oobOtpEmail}
                   onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
                 />

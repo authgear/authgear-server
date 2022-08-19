@@ -16,7 +16,7 @@ const TextLink: React.FC<TextLinkProps> = function TextLink(props) {
     <div className={className}>
       <Label>{label}</Label>
       {value != null && value !== "" ? (
-        <Link href={value} target="_blank">
+        <Link className="mobile:break-words" href={value} target="_blank">
           {value}
         </Link>
       ) : (

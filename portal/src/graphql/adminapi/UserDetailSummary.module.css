@@ -1,5 +1,5 @@
 .root {
-  width: 600px;
+  max-width: 600px;
   font-size: 13px;
   font-weight: 300;
   margin-bottom: 20px;
