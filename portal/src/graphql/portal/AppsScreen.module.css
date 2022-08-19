@@ -23,7 +23,7 @@
   display: block;
   padding: 20px;
   margin: 7px;
-  min-width: 300px;
+  width: 100%;
   max-width: 300px;
   min-height: 125px;
   border-radius: 3px;
