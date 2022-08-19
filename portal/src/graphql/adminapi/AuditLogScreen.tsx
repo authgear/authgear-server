@@ -12,13 +12,13 @@ import {
 } from "react-router-dom";
 import {
   ICommandBarItemProps,
-  IDropdownOption,
   addDays,
   TooltipHost,
   ITooltipHostStyles,
   ITooltipProps,
   CommandBarButton,
   DirectionalHint,
+  IContextualMenuItem,
 } from "@fluentui/react";
 import { useId } from "@fluentui/react-hooks";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
@@ -26,9 +26,6 @@ import { useQuery } from "@apollo/client";
 import { DateTime } from "luxon";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import AuditLogList from "./AuditLogList";
-import CommandBarDropdown, {
-  CommandBarDropdownProps,
-} from "../../CommandBarDropdown";
 import CommandBarContainer from "../../CommandBarContainer";
 import ScreenContent from "../../ScreenContent";
 import ShowError from "../../ShowError";
@@ -46,11 +43,6 @@ import { useAppFeatureConfigQuery } from "../portal/query/appFeatureConfigQuery"
 import FeatureDisabledMessageBar from "../portal/FeatureDisabledMessageBar";
 
 const pageSize = 10;
-
-function CommandBarDropdownWrapper(props: ICommandBarItemProps) {
-  const { dropdownProps } = props;
-  return <CommandBarDropdown {...dropdownProps} />;
-}
 
 function RefreshButton(props: ICommandBarItemProps) {
   const tooltipStyle: Partial<ITooltipHostStyles> = {
@@ -352,7 +344,11 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
   }, [error, refetch, featureConfig]);
 
   const onChangeSelectedKey = useCallback(
-    (_e: React.FormEvent<HTMLDivElement>, item?: IDropdownOption) => {
+    (
+      e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>,
+      item?: IContextualMenuItem
+    ) => {
+      e?.stopPropagation();
       if (item != null && typeof item.key === "string") {
         setOffset(0);
         setSelectedKey(item.key);
@@ -360,20 +356,6 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     },
     []
   );
-
-  const dropdownProps: CommandBarDropdownProps = useMemo(() => {
-    return {
-      selectedKey,
-      placeholder: "",
-      label: "",
-      options: activityTypeOptions,
-      iconProps: {
-        iconName: "PC1",
-      },
-      onChange: onChangeSelectedKey,
-      calloutProps: { directionalHintFixed: true },
-    };
-  }, [selectedKey, onChangeSelectedKey, activityTypeOptions]);
 
   const onClickAllDateRange = useCallback(
     (e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>) => {
@@ -428,16 +410,30 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
       },
       {
         key: "activityTypes",
-        commandBarButtonAs: CommandBarDropdownWrapper,
-        dropdownProps,
+        text: activityTypeOptions.find((option) => option.key === selectedKey)!
+          .text,
+        iconProps: {
+          iconName: "PC1",
+        },
+        subMenuProps: {
+          items: activityTypeOptions.map((option) => {
+            return {
+              key: option.key,
+              text: option.text,
+              onClick: onChangeSelectedKey,
+            };
+          }),
+        },
       },
     ];
   }, [
-    dropdownProps,
     renderToString,
     isCustomDateRange,
     onClickAllDateRange,
     onClickCustomDateRange,
+    selectedKey,
+    activityTypeOptions,
+    onChangeSelectedKey,
   ]);
 
   const commandBarSecondaryItems: ICommandBarItemProps[] = useMemo(() => {
