@@ -29,6 +29,10 @@ type CustomAttributesService interface {
 	ReadCustomAttributesInStorageForm(role accesscontrol.Role, userID string, storageForm map[string]interface{}) (map[string]interface{}, error)
 }
 
+type Web3Service interface {
+	GetWeb3Info(addresses []string) (map[string]interface{}, error)
+}
+
 type Queries struct {
 	*RawQueries
 	Store              store
@@ -37,6 +41,7 @@ type Queries struct {
 	Verification       VerificationService
 	StandardAttributes StandardAttributesService
 	CustomAttributes   CustomAttributesService
+	Web3               Web3Service
 }
 
 func (p *Queries) Get(id string, role accesscontrol.Role) (*model.User, error) {
@@ -70,7 +75,23 @@ func (p *Queries) Get(id string, role accesscontrol.Role) (*model.User, error) {
 		return nil, err
 	}
 
-	return newUserModel(user, identities, authenticators, isVerified, stdAttrs, customAttrs), nil
+	web3Addresses := make([]string, 0)
+	for _, i := range identities {
+		if i.Type == model.IdentityTypeSIWE && i.SIWE != nil {
+			web3Addresses = append(web3Addresses, i.SIWE.Address)
+		}
+	}
+	web3Info := map[string]interface{}{}
+	if len(web3Addresses) > 0 {
+		info, err := p.Web3.GetWeb3Info(web3Addresses)
+		if err != nil {
+			return nil, err
+		}
+
+		web3Info = info
+	}
+
+	return newUserModel(user, identities, authenticators, isVerified, stdAttrs, customAttrs, web3Info), nil
 }
 
 func (p *Queries) GetMany(ids []string) (users []*model.User, err error) {
