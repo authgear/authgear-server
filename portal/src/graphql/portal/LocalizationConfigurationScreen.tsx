@@ -45,6 +45,7 @@ import { useResourceForm } from "../../hook/useResourceForm";
 import FormContainer from "../../FormContainer";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import styles from "./LocalizationConfigurationScreen.module.css";
+import cn from "classnames";
 
 interface ConfigFormState {
   supportedLanguages: string[];
@@ -579,7 +580,12 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
 
     return (
       <ScreenContent>
-        <div className={styles.titleContainer}>
+        <div
+          className={cn(
+            styles.titleContainer,
+            "mobile:flex-col mobile:items-stretch"
+          )}
+        >
           <ScreenTitle>
             <FormattedMessage id="LocalizationConfigurationScreen.title" />
           </ScreenTitle>

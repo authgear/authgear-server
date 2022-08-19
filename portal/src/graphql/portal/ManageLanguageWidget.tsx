@@ -72,7 +72,7 @@ interface CellProps {
 
 const DIALOG_STYLES = {
   main: {
-    minWidth: "533px !important",
+    maxWidth: "533px !important",
   },
 };
 
