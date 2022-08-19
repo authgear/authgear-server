@@ -24,7 +24,7 @@
     "at-rule-no-unknown": [
       true,
       {
-        "ignoreAtRules": ["mixin", "include"]
+        "ignoreAtRules": ["mixin", "include", "tailwind", "layer"]
       }
     ]
   }
