@@ -43,6 +43,7 @@ import GTMProvider, {
 } from "./GTMProvider";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import { extractRawID } from "./util/graphql";
+import cn from "classnames";
 
 const AppsScreen = lazy(async () => import("./graphql/portal/AppsScreen"));
 const CreateProjectScreen = lazy(
@@ -176,7 +177,12 @@ const PortalRoot = function PortalRoot() {
       <Helmet>
         <title>{renderToString("system.title")} </title>
       </Helmet>
-      <div className={styles.root}>
+      <div
+        className={cn(
+          styles.root,
+          "mobile:w-auto mobile:h-auto mobile:min-h-screen mobile:min-w-screen"
+        )}
+      >
         <ReactAppRoutes />
       </div>
     </>

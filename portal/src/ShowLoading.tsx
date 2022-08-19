@@ -2,6 +2,7 @@ import React, { useContext } from "react";
 import { Spinner } from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
 import styles from "./ShowLoading.module.css";
+import cn from "classnames";
 
 interface ShowLoadingProps {
   label?: string;
@@ -15,7 +16,7 @@ const ShowLoading: React.FC<ShowLoadingProps> = function ShowLoading({
   const { renderToString } = useContext(Context);
 
   return (
-    <div className={styles.loading}>
+    <div className={cn(styles.loading, "mobile:fixed mobile:align-middle")}>
       <Spinner label={label ?? renderToString("loading")} />
     </div>
   );

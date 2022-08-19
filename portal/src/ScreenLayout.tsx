@@ -12,7 +12,7 @@ const ScreenLayout: React.FC<ScreenLayoutProps> = function ScreenLayout(
   props: ScreenLayoutProps
 ) {
   return (
-    <div className={styles.root}>
+    <div className={cn(styles.root, "mobile:h-full")}>
       <ScreenHeader />
       <div className={styles.body}>
         <div className={cn(styles.nav, "mobile:hidden")}>
