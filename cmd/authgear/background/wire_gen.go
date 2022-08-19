@@ -35,6 +35,7 @@ import (
 	siwe2 "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
 	"github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -442,6 +443,10 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		UserQueries: rawQueries,
 		UserStore:   store,
 	}
+	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
+	web3Service := &web3.Service{
+		APIEndpoint: nftIndexerAPIEndpoint,
+	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
@@ -450,6 +455,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		Web3:               web3Service,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -539,6 +545,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
