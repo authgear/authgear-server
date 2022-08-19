@@ -661,7 +661,12 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
 
     return (
       <ScreenContent>
-        <div className={styles.titleContainer}>
+        <div
+          className={cn(
+            styles.titleContainer,
+            "mobile:flex-col mobile:items-stretch"
+          )}
+        >
           <ScreenTitle>
             <FormattedMessage id="UISettingsScreen.title" />
           </ScreenTitle>
