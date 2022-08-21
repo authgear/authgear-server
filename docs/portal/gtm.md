@@ -34,37 +34,7 @@ This document describes how to setup portal tracking to send data to Mixpanel vi
   - Tags
     - `Mixpanel Initialize`
       - Type: Custom HTML
-      - HTML: Use the following HTML script tag snippet, replace the mixpanel init script based on the [doc](https://developer.mixpanel.com/docs/javascript-quickstart#installation-option-2-html) and replace the `YOUR_PROJECT_TOKEN`.
-        ```html
-        <script type="text/javascript">
-          // REPLACE WITH MIXPANEL INIT SCRIPT
-
-          window._agMixpanelIdentifyIfNeeded = function (mixpanel) {
-            if (window._agUserData == null) {
-              return;
-            }
-            try {
-              var distinctID = mixpanel.get_distinct_id();
-              if (distinctID !== window._agUserData.user_id) {
-                mixpanel.reset();
-                mixpanel.identify(window._agUserData.user_id);
-                if (window._agUserData.email) {
-                  mixpanel.people.set({ $email: window._agUserData.email });
-                }
-              }
-              mixpanel.track("Pageview", { page_path: {{Page Path}} });
-            } catch (_) {}
-          };
-
-          // REPLACE THE MIXPANEL PROJECT TOKEN
-          mixpanel.init("YOUR_PROJECT_TOKEN", {
-            debug: false,
-            loaded: function (mixpanel) {
-              window._agMixpanelIdentifyIfNeeded(mixpanel);
-            },
-          });
-        </script>
-        ```
+      - HTML: Use mixpanel installation script based on the [doc](https://developer.mixpanel.com/docs/javascript-quickstart#installation-option-2-html). DO NOT need to call `mixpanel.init` in this stage.
       - Trigger: Initialization - All Pages
     - `Mixpanel Track Click`
       - Type: Custom HTML
@@ -107,13 +77,28 @@ This document describes how to setup portal tracking to send data to Mixpanel vi
       - Trigger: `ag.event.*`
     - `Mixpanel Identify`
       - Type: Custom HTML
-      - HTML:
+      - HTML: Use the following HTML script tag snippet and replace YOUR_PROJECT_TOKEN.
         ```html
         <script type="text/javascript">
           var event = {{Event}};
           if (event === "ag.lifecycle.identified") {
-            window._agUserData = {{event_data}};
-            window._agMixpanelIdentifyIfNeeded(mixpanel);
+            var agUserData = {{event_data}};
+
+            // REPLACE THE MIXPANEL PROJECT TOKEN
+            mixpanel.init("YOUR_PROJECT_TOKEN", {
+              debug: false,
+              loaded: function (mixpanel) {
+                var distinctID = mixpanel.get_distinct_id();
+                if (distinctID !== agUserData.user_id) {
+                  mixpanel.reset();
+                  mixpanel.identify(agUserData.user_id);
+                  if (agUserData.email) {
+                    mixpanel.people.set({ $email: agUserData.email });
+                  }
+                }
+                mixpanel.track("Pageview", { page_path: {{Page Path}} });
+              },
+            });
           }
         </script>
         ```
@@ -124,7 +109,7 @@ This document describes how to setup portal tracking to send data to Mixpanel vi
         ```html
         <script type="text/javascript">
           var event = {{Event}};
-          if (event === "gtm.historyChange") {
+          if (event === "gtm.historyChange" && mixpanel.track) {
             mixpanel.track("Pageview", { page_path: {{Page Path}} });
           }
         </script>
