@@ -2,6 +2,8 @@
 
 This document describes how to setup portal tracking to send data to Mixpanel via Google Tag Manager.
 
+## Setup
+
 1. Create Mixpanel project and obtain project token from settings page
 1. Create following resources in Google Tag Manager
   - Triggers
@@ -43,14 +45,14 @@ This document describes how to setup portal tracking to send data to Mixpanel vi
             }
             try {
               var distinctID = mixpanel.get_distinct_id();
-              if (distinctID === window._agUserData.user_id) {
-                return;
+              if (distinctID !== window._agUserData.user_id) {
+                mixpanel.reset();
+                mixpanel.identify(window._agUserData.user_id);
+                if (window._agUserData.email) {
+                  mixpanel.people.set({ $email: window._agUserData.email });
+                }
               }
-              mixpanel.reset();
-              mixpanel.identify(window._agUserData.user_id);
-              if (window._agUserData.email) {
-                mixpanel.people.set({ $email: window._agUserData.email });
-              }
+              mixpanel.track("Pageview", { page_path: {{Page Path}} });
             } catch (_) {}
           };
 
@@ -116,3 +118,20 @@ This document describes how to setup portal tracking to send data to Mixpanel vi
         </script>
         ```
       - Trigger: `ag.lifecycle.identified`
+    - `Mixpanel Track Pageview`
+      - Type: Custom HTML
+      - HTML:
+        ```html
+        <script type="text/javascript">
+          var event = {{Event}};
+          if (event === "gtm.historyChange") {
+            mixpanel.track("Pageview", { page_path: {{Page Path}} });
+          }
+        </script>
+        ```
+      - Trigger: History Change
+
+## Implementation Details
+
+Initial page view is tracked after `mixpanel.identify` to ensure the events are
+associated with the correct user.
