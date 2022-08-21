@@ -236,8 +236,7 @@ const LoadCurrentUser: React.FC<LoadCurrentUserProps> =
           ...gtmEvent,
           event: AuthgearGTMEventType.Identified,
           event_data: {
-            // fixme: userid encoded twice
-            user_id: extractRawID(extractRawID(viewer.id)),
+            user_id: extractRawID(viewer.id),
             email: viewer.email ?? undefined,
           },
         };
