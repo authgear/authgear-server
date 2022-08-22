@@ -95,26 +95,36 @@ function RefreshButton(props: ICommandBarItemProps) {
 const AuditLogScreen: React.FC = function AuditLogScreen() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const fromParam = searchParams.get("from");
-  const toParam = searchParams.get("to");
-  const orderParam =
+  const queryFrom = searchParams.get("from");
+  const queryTo = searchParams.get("to");
+  const queryOrderBy =
     searchParams.get("order_by") === SortDirection.Asc
       ? SortDirection.Asc
       : SortDirection.Desc;
-  const pageParam = Number(searchParams.get("page"));
-  const offsetParam = pageParam > 1 ? (Number(pageParam) - 1) * pageSize : 0;
-  const selectedKeyParam = searchParams.get("activity_type");
-  const lastUpdatedAtParam = searchParams.get("last_updated_at");
+  const queryPage = searchParams.get("page");
+  const queryActivityType = searchParams.get("activity_type");
+  const queryLastUpdatedAt = searchParams.get("last_updated_at");
 
-  const [offset, setOffset] = useState(offsetParam);
-  const [selectedKey, setSelectedKey] = useState(selectedKeyParam ?? "ALL");
-  const [dateRangeDialogHidden, setDateRangeDialogHidden] = useState(true);
-  const [sortDirection, setSortDirection] = useState<SortDirection>(orderParam);
+  const initialOffset = useMemo(() => {
+    if (queryPage != null) {
+      const page = parseInt(queryPage, 10);
+      if (page >= 1) {
+        return (page - 1) * pageSize;
+      }
+    }
+    return 0;
+  }, [queryPage]);
+
+  const [offset, setOffset] = useState(initialOffset);
+  const [selectedKey, setSelectedKey] = useState(queryActivityType ?? "ALL");
+  const [sortDirection, setSortDirection] =
+    useState<SortDirection>(queryOrderBy);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(
-    lastUpdatedAtParam != null
-      ? new Date(Number(lastUpdatedAtParam))
+    queryLastUpdatedAt != null
+      ? new Date(Number(queryLastUpdatedAt))
       : new Date()
   );
+  const [dateRangeDialogHidden, setDateRangeDialogHidden] = useState(true);
 
   const {
     committedValue: rangeFrom,
@@ -124,7 +134,7 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     commit: commitRangeFrom,
     rollback: rollbackRangeFrom,
   } = useTransactionalState<Date | null>(
-    fromParam != null ? new Date(fromParam) : null
+    queryFrom != null && queryFrom !== "" ? new Date(queryFrom) : null
   );
 
   const {
@@ -135,7 +145,7 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     commit: commitRangeTo,
     rollback: rollbackRangeTo,
   } = useTransactionalState<Date | null>(
-    toParam != null ? new Date(toParam) : null
+    queryTo != null && queryTo !== "" ? new Date(queryTo) : null
   );
 
   const { appID } = useParams() as { appID: string };
@@ -186,29 +196,80 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
 
   const { renderToString } = useContext(Context);
 
+  // When the page is refreshed, and it is on the first page,
+  // update last_updated_at.
+  // Note that if the page is navigated from another page,
+  // this effect is NOT run.
+  // This is the intended behavior because we do not
+  // want to change last_updated_at.
+  useEffect(() => {
+    if (queryPage === "1") {
+      setLastUpdatedAt(new Date());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Sync state to searchParams.
   useEffect(() => {
     const page = offset / pageSize + 1;
+
     const params: URLSearchParamsInit = {};
-    if (rangeFrom != null) {
-      params["from"] = DateTime.fromJSDate(rangeFrom).toISODate();
+
+    const newQueryFrom =
+      rangeFrom != null ? DateTime.fromJSDate(rangeFrom).toISODate() : "";
+    const newQueryTo =
+      rangeTo != null ? DateTime.fromJSDate(rangeTo).toISODate() : "";
+    const newQueryOrderBy = sortDirection;
+    const newQueryPage = page.toString();
+    const newQueryActivityType = selectedKey;
+    const newQueryLastUpdatedAt = lastUpdatedAt.getTime().toString();
+
+    params["from"] = newQueryFrom;
+    params["to"] = newQueryTo;
+    params["order_by"] = newQueryOrderBy;
+    params["page"] = newQueryPage;
+    params["activity_type"] = newQueryActivityType;
+    params["last_updated_at"] = newQueryLastUpdatedAt;
+
+    let callSet = false;
+    if (newQueryFrom !== queryFrom) {
+      callSet = true;
     }
-    if (isCustomDateRange && rangeTo != null) {
-      params["to"] = DateTime.fromJSDate(rangeTo).toISODate();
+    if (newQueryTo !== queryTo) {
+      callSet = true;
     }
-    params["page"] = page.toString();
-    params["order_by"] = sortDirection;
-    params["activity_type"] = selectedKey;
-    params["last_updated_at"] = lastUpdatedAt.getTime().toString();
-    setSearchParams(params);
+    if (newQueryOrderBy !== queryOrderBy) {
+      callSet = true;
+    }
+    if (newQueryPage !== queryPage) {
+      callSet = true;
+    }
+    if (newQueryActivityType !== queryActivityType) {
+      callSet = true;
+    }
+    if (newQueryLastUpdatedAt !== queryLastUpdatedAt) {
+      callSet = true;
+    }
+
+    if (callSet) {
+      setSearchParams(params);
+    }
   }, [
-    offset,
-    sortDirection,
-    isCustomDateRange,
-    rangeTo,
+    queryFrom,
+    queryTo,
+    queryOrderBy,
+    queryPage,
+    queryActivityType,
+    queryLastUpdatedAt,
+
     rangeFrom,
-    lastUpdatedAt,
-    setSearchParams,
+    rangeTo,
+    sortDirection,
+    offset,
     selectedKey,
+    lastUpdatedAt,
+
+    setSearchParams,
   ]);
 
   const activityTypeOptions = useMemo(() => {
