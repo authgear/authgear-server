@@ -47,6 +47,9 @@
         "name": "@fluentui/react",
         "importNames": ["TextField"],
         "message": "Please import \"TextField\" from ./src/TextField instead."
+      }, {
+        "name": "@elgorditosalsero/react-gtm-hook",
+        "message": "Please import \"GTMProvider\" from ./src/GTMProvider instead."
       }]
     }]
   }

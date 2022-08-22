@@ -37,8 +37,8 @@ import {
   AuthgearGTMEvent,
   AuthgearGTMEventType,
   useAuthgearGTMEventBase,
+  useGTMDispatch,
 } from "../../GTMProvider";
-import { useGTMDispatch } from "@elgorditosalsero/react-gtm-hook";
 
 interface SSOProviderFormState {
   config: OAuthSSOProviderConfig;
