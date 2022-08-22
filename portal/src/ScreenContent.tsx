@@ -17,7 +17,7 @@ const ScreenContent: React.FC<ScreenContentProps> = function ScreenContent(
       className={cn(
         className,
         styles.root,
-        layout === "list" ? styles.list : "auto-rows"
+        layout === "list" ? styles.list : "ag-auto-rows"
       )}
     >
       {children}
