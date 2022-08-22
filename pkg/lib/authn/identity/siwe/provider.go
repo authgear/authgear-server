@@ -7,12 +7,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
+	"github.com/lestrrat-go/jwx/jwk"
 	siwego "github.com/spruceid/siwe-go"
 )
 
 // nolint: golint
 type SIWEService interface {
-	VerifyMessage(request model.SIWEVerificationRequest) (*siwego.Message, []byte, error)
+	VerifyMessage(request model.SIWEVerificationRequest) (*siwego.Message, jwk.Key, error)
 }
 
 type Provider struct {
@@ -76,7 +77,7 @@ func (p *Provider) New(
 		Address: message.GetAddress().Hex(),
 		ChainID: message.GetChainID(),
 
-		Data: model.SIWEVerifiedData{
+		Data: &model.SIWEVerifiedData{
 			Message:   messageRequest.Message,
 			Signature: messageRequest.Signature,
 
