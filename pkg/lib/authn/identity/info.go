@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/web3"
 )
 
 type Info struct {
@@ -178,6 +179,7 @@ func (i *Info) ToModel() model.Identity {
 // If it is a anonymous identity, the kid is returned.
 // If it is a biometric identity, the kid is returned.
 // If it is a passkey identity, the name is returned.
+// If it is a SIWE identity, EIP681 of the address and chainID is returned
 func (i *Info) DisplayID() string {
 	switch i.Type {
 	case model.IdentityTypeLoginID:
@@ -200,7 +202,11 @@ func (i *Info) DisplayID() string {
 	case model.IdentityTypePasskey:
 		return i.Passkey.CreationOptions.PublicKey.User.DisplayName
 	case model.IdentityTypeSIWE:
-		return i.SIWE.Address
+		eip681 := &web3.EIP681{
+			Address: i.SIWE.Address,
+			ChainID: i.SIWE.ChainID,
+		}
+		return eip681.URL().String()
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
 	}
