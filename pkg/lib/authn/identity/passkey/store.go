@@ -102,31 +102,6 @@ func (s *Store) List(userID string) ([]*identity.Passkey, error) {
 	return is, nil
 }
 
-func (s *Store) ListByClaim(name string, value string) ([]*identity.Passkey, error) {
-	if name != "kid" {
-		return nil, nil
-	}
-
-	q := s.selectQuery().Where("p.credential_id = ?", value)
-
-	rows, err := s.SQLExecutor.QueryWith(q)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var is []*identity.Passkey
-	for rows.Next() {
-		i, err := s.scan(rows)
-		if err != nil {
-			return nil, err
-		}
-		is = append(is, i)
-	}
-
-	return is, nil
-}
-
 func (s *Store) Get(userID, id string) (*identity.Passkey, error) {
 	q := s.selectQuery().Where("i.user_id = ? AND i.id = ?", userID, id)
 	rows, err := s.SQLExecutor.QueryRowWith(q)
