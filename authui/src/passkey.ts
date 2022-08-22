@@ -107,24 +107,95 @@ function serializeAssertionResponse(credential: PublicKeyCredential) {
   };
 }
 
+function isSafariCancel(err: unknown) {
+  return (
+    err instanceof DOMException &&
+    err.name === "NotAllowedError" &&
+    // "This request has been cancelled by the user."
+    /cancel/i.test(err.message)
+  );
+}
+
+function isSafariTimeout(err: unknown) {
+  return (
+    err instanceof DOMException &&
+    err.name === "HierarchyRequestError" &&
+    // "The operation would yield an incorrect node tree."
+    /node tree/i.test(err.message)
+  );
+}
+
+function isSafariAndroidError(err: unknown) {
+  // This happens when the user chooses to use Android phone to scan QR code.
+  // And the passkey is not found on that Android phone.
+  // If security key is used, the error message is shown in the modal dialog and the dialog will not close.
+  // Thus we cannot detect security key error.
+  return (
+    err instanceof DOMException &&
+    err.name === "NotAllowedError" &&
+    // "Operation failed."
+    /operation.*fail/i.test(err.message)
+  );
+}
+
+function isChromeCancelOrTimeout(err: unknown) {
+  return (
+    err instanceof DOMException &&
+    err.name === "NotAllowedError" &&
+    // "The operation either timed out or was not allowed. See: https://www.w3.org/TR/webauthn-2/#sctn-privacy-considerations-client."
+    /time.*out/i.test(err.message)
+  );
+}
+
+function isFirefoxCancel(err: unknown) {
+  return (
+    err instanceof DOMException &&
+    err.name === "AbortError" &&
+    // "The operation was aborted. "
+    /operation.*abort/i.test(err.message)
+  );
+}
+
+function isAbortControllerError(err: unknown) {
+  return err instanceof DOMException && err.name === "AbortError";
+}
+
+function isFirefoxSecurityKeyError(err: unknown) {
+  return (
+    err instanceof DOMException &&
+    err.name === "InvalidStateError" &&
+    // "An attempt was made to use an object that is not, or is no longer, usable"
+    /no.*usable/i.test(err.message)
+  );
+}
+
 function handleError(err: unknown) {
-  // Cancel
-  if (err instanceof DOMException && err.name === "NotAllowedError") {
-    return;
+  console.error(err);
+
+  const errorThatCanSimplyBeIgnored = [
+    isSafariCancel,
+    isSafariTimeout,
+    isChromeCancelOrTimeout,
+    isFirefoxCancel,
+    // Firefox timeout was not observed.
+    isAbortControllerError,
+  ];
+  for (const p of errorThatCanSimplyBeIgnored) {
+    if (p(err)) {
+      return;
+    }
   }
 
-  // Abort
-  if (err instanceof DOMException && err.name === "AbortError") {
-    return;
-  }
-
-  // Passkey not found error observed in Firefox.
-  if (err instanceof DOMException && err.name === "InvalidStateError") {
+  if (isSafariAndroidError(err)) {
     showErrorMessage("error-message-no-passkey");
     return;
   }
 
-  console.error(err);
+  if (isFirefoxSecurityKeyError(err)) {
+    showErrorMessage("error-message-no-passkey");
+    return;
+  }
+
   return false;
 }
 
