@@ -6,23 +6,26 @@
 }
 
 .body {
-  margin: 20px 40px 40px;
+  padding: 20px 40px 40px;
+  display: flex;
+  flex-direction: column;
+  row-gap: 30px;
 }
 
-.header {
-  margin-bottom: 30px;
+.createButton {
+  align-self: flex-start;
 }
+
 .cardsContainer {
   display: flex;
   flex-wrap: wrap;
-  margin: -7px;
-  padding-bottom: 30px;
+  row-gap: 20px;
+  column-gap: 20px;
 }
 
 .card {
   display: block;
   padding: 20px;
-  margin: 7px;
   width: 100%;
   max-width: 300px;
   min-height: 125px;
