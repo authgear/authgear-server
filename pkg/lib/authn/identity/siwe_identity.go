@@ -14,7 +14,7 @@ type SIWE struct {
 	ChainID   int       `json:"chain_id"`
 	Address   string    `json:"address"`
 
-	Data model.SIWEVerifiedData `json:"data"`
+	Data *model.SIWEVerifiedData `json:"data"`
 }
 
 func (i *SIWE) ToInfo() *Info {
