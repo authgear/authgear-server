@@ -22,73 +22,88 @@ import { useSystemConfig } from "./context/SystemConfigContext";
 import { useBoolean } from "@fluentui/react-hooks";
 
 interface LogoProps {
-  mobileView?: boolean;
+  isNavbarHeader?: boolean;
 }
 
 const Logo: React.FC<LogoProps> = (props) => {
-  const { mobileView = false } = props;
+  const { isNavbarHeader = false } = props;
   const { renderToString } = useContext(Context);
 
   return (
     <img
-      className={mobileView ? styles.logoNavHeader : styles.logo}
+      className={isNavbarHeader ? styles.logoNavHeader : styles.logo}
       alt={renderToString("system.name")}
       src={renderToString(
-        mobileView ? "system.logo-inverted-uri" : "system.logo-uri"
+        isNavbarHeader ? "system.logo-inverted-uri" : "system.logo-uri"
       )}
     />
   );
 };
 
-interface ScreenHeaderAppSectionProps {
+interface MobileViewHeaderAppSectionProps {
   appID: string;
-  mobileView?: boolean;
 }
 
-const ScreenHeaderAppSection: React.FC<ScreenHeaderAppSectionProps> =
-  function ScreenHeaderAppSection(props: ScreenHeaderAppSectionProps) {
-    const { appID, mobileView = false } = props;
-    const { effectiveAppConfig, loading } = useAppAndSecretConfigQuery(appID);
-    const { themes } = useSystemConfig();
+const MobileViewHeaderAppSection: React.FC<MobileViewHeaderAppSectionProps> = (
+  props
+) => {
+  const { appID } = props;
+  const { effectiveAppConfig, loading } = useAppAndSecretConfigQuery(appID);
+  const { themes } = useSystemConfig();
 
-    if (loading) {
-      return null;
-    }
+  if (loading) {
+    return null;
+  }
 
-    const rawAppID = effectiveAppConfig?.id;
-    const endpoint = effectiveAppConfig?.http?.public_origin;
+  const rawAppID = effectiveAppConfig?.id;
+  const endpoint = effectiveAppConfig?.http?.public_origin;
 
-    return (
-      <>
-        {mobileView ? null : (
-          <Icon className={styles.headerArrow} iconName="ChevronRight" />
-        )}
-        {rawAppID != null && endpoint != null ? (
-          <>
-            {mobileView ? (
-              <Text className={styles.headerAppID} theme={themes.inverted}>
-                {rawAppID}
-              </Text>
-            ) : (
-              <FluentUILink
-                className={styles.headerAppID}
-                target="_blank"
-                rel="noopener"
-                href={endpoint}
-                theme={themes.inverted}
-              >
-                {`${rawAppID} - ${endpoint}`}
-              </FluentUILink>
-            )}
-          </>
-        ) : (
-          <Text className={styles.headerAppID} theme={themes.inverted}>
-            {appID}
-          </Text>
-        )}
-      </>
-    );
-  };
+  return (
+    <Text className={styles.headerAppID} theme={themes.inverted}>
+      {rawAppID != null && endpoint != null ? rawAppID : appID}
+    </Text>
+  );
+};
+
+interface DesktopViewHeaderAppSectionProps {
+  appID: string;
+}
+
+const DesktopViewHeaderAppSection: React.FC<
+  DesktopViewHeaderAppSectionProps
+> = (props) => {
+  const { appID } = props;
+  const { effectiveAppConfig, loading } = useAppAndSecretConfigQuery(appID);
+  const { themes } = useSystemConfig();
+
+  if (loading) {
+    return null;
+  }
+
+  const rawAppID = effectiveAppConfig?.id;
+  const endpoint = effectiveAppConfig?.http?.public_origin;
+
+  return (
+    <>
+      <Icon className={styles.headerArrow} iconName="ChevronRight" />
+      {rawAppID != null && endpoint != null ? (
+        <FluentUILink
+          className={styles.headerAppID}
+          target="_blank"
+          rel="noopener"
+          href={endpoint}
+          theme={themes.inverted}
+        >
+          {`${rawAppID} - ${endpoint}`}
+        </FluentUILink>
+      ) : (
+        <Text className={styles.headerAppID} theme={themes.inverted}>
+          {appID}
+        </Text>
+      )}
+    </>
+  );
+};
 
 const commandButtonStyles = {
   label: {
@@ -98,6 +113,44 @@ const commandButtonStyles = {
     fontSize: "12px",
     color: "white",
   },
+};
+
+interface MobileViewHeaderIconSectionProps {
+  onClick: () => void;
+  showHamburger: boolean;
+}
+
+const MobileViewHeaderIconSection: React.FC<
+  MobileViewHeaderIconSectionProps
+> = (props) => {
+  const { onClick, showHamburger } = props;
+  const { themes } = useSystemConfig();
+
+  return (
+    <>
+      {showHamburger ? (
+        <IconButton
+          ariaLabel="hamburger"
+          iconProps={{ iconName: "WaffleOffice365" }}
+          className={styles.hamburger}
+          theme={themes.inverted}
+          onClick={onClick}
+        />
+      ) : (
+        <Link to="/" className={styles.logoLink}>
+          <Logo />
+        </Link>
+      )}
+    </>
+  );
+};
+
+const DesktopViewHeaderIconSection: React.FC = () => {
+  return (
+    <Link to="/" className={styles.logoLink}>
+      <Logo />
+    </Link>
+  );
 };
 
 const MobileViewNavbarHeader: IRenderFunction<IPanelProps> = (props) => {
@@ -111,7 +164,7 @@ const MobileViewNavbarHeader: IRenderFunction<IPanelProps> = (props) => {
         className={styles.hamburger}
         onClick={onClick}
       />
-      <Logo mobileView={true} />
+      <Logo isNavbarHeader={true} />
     </div>
   );
 };
@@ -122,7 +175,12 @@ const MobileViewNavbarBody: IRenderFunction<IPanelProps> = (props) => {
   return <ScreenNav mobileView={true} onLinkClick={onClick} />;
 };
 
-const ScreenHeader: React.FC = function ScreenHeader() {
+interface ScreenNavProps {
+  showHamburger?: boolean;
+}
+
+const ScreenHeader: React.FC<ScreenNavProps> = function ScreenHeader(props) {
+  const { showHamburger = true } = props;
   const { renderToString } = useContext(Context);
   const { themes, authgearEndpoint } = useSystemConfig();
   const { appID } = useParams() as { appID: string };
@@ -174,21 +232,12 @@ const ScreenHeader: React.FC = function ScreenHeader() {
 
   return (
     <header className={styles.header} style={headerStyle}>
-      <div className="hidden mobile:flex mobile:flex-row mobile:items-center mobile:text-white">
-        {appID ? (
-          <IconButton
-            ariaLabel="hamburger"
-            iconProps={{ iconName: "WaffleOffice365" }}
-            className={styles.hamburger}
-            theme={themes.inverted}
-            onClick={openNavbar}
-          />
-        ) : (
-          <Link to="/" className={styles.logoLink}>
-            <Logo />
-          </Link>
-        )}
-        {appID && <ScreenHeaderAppSection appID={appID} mobileView={true} />}
+      <div className="desktop:hidden mobile:flex mobile:flex-row mobile:items-center mobile:text-white">
+        <MobileViewHeaderIconSection
+          showHamburger={showHamburger}
+          onClick={openNavbar}
+        />
+        {appID && <MobileViewHeaderAppSection appID={appID} />}
         <Panel
           isLightDismiss={true}
           hasCloseButton={false}
@@ -199,11 +248,9 @@ const ScreenHeader: React.FC = function ScreenHeader() {
           onRenderBody={MobileViewNavbarBody}
         />
       </div>
-      <div className="flex flex-row items-center text-white mobile:hidden">
-        <Link to="/" className={styles.logoLink}>
-          <Logo />
-        </Link>
-        {appID && <ScreenHeaderAppSection appID={appID} />}
+      <div className="mobile:hidden desktop:flex desktop:flex-row desktop:items-center desktop:text-white">
+        <DesktopViewHeaderIconSection />
+        {appID && <DesktopViewHeaderAppSection appID={appID} />}
       </div>
       {viewer != null && (
         <CommandButton

@@ -12,7 +12,7 @@ export default function WizardScreenLayout(
   const { children } = props;
   return (
     <div className={styles.root}>
-      <ScreenHeader />
+      <ScreenHeader showHamburger={false} />
       {children}
     </div>
   );

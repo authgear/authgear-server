@@ -61,7 +61,7 @@ const AppList: React.FC<AppListProps> = function AppList(props: AppListProps) {
 
   return (
     <main className={styles.root}>
-      <ScreenHeader />
+      <ScreenHeader showHamburger={false} />
       <section className={styles.body}>
         <Text as="h1" className={styles.header} variant="xLarge" block={true}>
           <FormattedMessage id="AppsScreen.title" />
