@@ -145,15 +145,7 @@ func (c *AppConfig) validateIdentityPrimaryAuthenticator(ctx *validation.Context
 	}
 
 	for i, it := range c.Authentication.Identities {
-		if it == model.IdentityTypeSIWE {
-			// SIWE identity should not require any authenticator.
-			if len(authenticatorTypes) > 0 {
-				ctx.Child("authentication", "identities", strconv.Itoa(i)).
-					EmitError("mismatchPrimaryAuthenticator", map[string]interface{}{
-						"identity_type": it,
-					})
-			}
-		} else if it == model.IdentityTypeLoginID {
+		if it == model.IdentityTypeLoginID {
 			for _, k := range c.Identity.LoginID.Keys {
 				hasAtLeastOnePrimaryAuthenticator := false
 				required := it.PrimaryAuthenticatorTypes(k.Type)
