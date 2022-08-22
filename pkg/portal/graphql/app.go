@@ -322,6 +322,19 @@ var nodeApp = node(
 					return entry, nil
 				},
 			},
+			"currentCollaboratorRole": &graphql.Field{
+				Type: graphql.NewNonNull(collaboratorRole),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					ctx := GQLContext(p.Context)
+					app := p.Source.(*model.App)
+					role, err := ctx.AuthzService.GetCurrentViewerCollaboratorRole(app.ID)
+					if err != nil {
+						return nil, err
+					}
+
+					return role, nil
+				},
+			},
 		},
 	}),
 	&model.App{},

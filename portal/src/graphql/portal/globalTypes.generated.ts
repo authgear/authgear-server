@@ -46,6 +46,7 @@ export type App = Node & {
   __typename?: 'App';
   collaboratorInvitations: Array<CollaboratorInvitation>;
   collaborators: Array<Collaborator>;
+  currentCollaboratorRole: CollaboratorRole;
   domains: Array<Domain>;
   effectiveAppConfig: Scalars['AppConfig'];
   effectiveFeatureConfig: Scalars['FeatureConfig'];

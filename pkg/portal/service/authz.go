@@ -72,3 +72,23 @@ func (s *AuthzService) CheckAccessOfViewer(appID string) (userID string, err err
 
 	return
 }
+
+func (s *AuthzService) GetCurrentViewerCollaboratorRole(appID string) (role model.CollaboratorRole, err error) {
+	sessionInfo := session.GetValidSessionInfo(s.Context)
+	if sessionInfo == nil {
+		err = ErrForbidden
+		return
+	}
+
+	userID := sessionInfo.UserID
+	c, err := s.Collaborators.GetCollaboratorByAppAndUser(appID, userID)
+	if errors.Is(err, ErrCollaboratorNotFound) {
+		err = ErrForbidden
+		return
+	} else if err != nil {
+		return
+	}
+
+	role = c.Role
+	return
+}

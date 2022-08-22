@@ -72,6 +72,7 @@ type CollaboratorService interface {
 
 type AuthzService interface {
 	CheckAccessOfViewer(appID string) (userID string, err error)
+	GetCurrentViewerCollaboratorRole(appID string) (role model.CollaboratorRole, err error)
 }
 
 type SMTPService interface {
