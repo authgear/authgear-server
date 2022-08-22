@@ -77,6 +77,7 @@ var DependencySet = wire.NewSet(
 		"SentryDSN",
 		"GlobalDatabase",
 		"DatabaseConfig",
+		"NFTIndexerAPIEndpoint",
 	),
 	wire.FieldsOf(new(*RequestProvider),
 		"RootProvider",

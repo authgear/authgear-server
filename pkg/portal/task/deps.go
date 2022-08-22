@@ -17,10 +17,12 @@ var DependencySet = wire.NewSet(
 func NewExecutor(
 	logger InProcessExecutorLogger,
 	sendMessageTask *tasks.SendMessagesTask,
+	watchNFTCollectionTask *tasks.WatchNFTCollectionsTask,
 ) *InProcessExecutor {
 	executor := &InProcessExecutor{
 		Logger: logger,
 	}
 	tasks.ConfigureSendMessagesTask(executor, sendMessageTask)
+	tasks.ConfigureWatchNFTCollectionsTask(executor, watchNFTCollectionTask)
 	return executor
 }
