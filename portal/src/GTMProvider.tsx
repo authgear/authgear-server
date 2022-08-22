@@ -4,19 +4,24 @@ import {
   GTMProvider as ReactHookGTMProvider,
   useGTMDispatch as useReactHookGTMDispatch,
 } from "@elgorditosalsero/react-gtm-hook";
-import { useAppContext } from "./context/AppContext";
+import { AppContextValue, useAppContext } from "./context/AppContext";
 
 export type TrackValue = string | string[] | boolean | undefined;
 export type EventData = Record<string, TrackValue>;
 
-export interface AuthgearGTMEventBase {
+interface AuthgearGTMEventAppContext {
   app_id?: string;
+  current_collaborator_role?: string;
+}
+
+export interface AuthgearGTMEventBase {
+  app_context: AuthgearGTMEventAppContext;
   _clear: boolean;
 }
 
 export interface AuthgearGTMEvent extends AuthgearGTMEventBase {
   event: AuthgearGTMEventType;
-  event_data?: EventData;
+  event_data: EventData;
 }
 
 export enum AuthgearGTMEventType {
@@ -32,20 +37,28 @@ export enum AuthgearGTMEventType {
 }
 
 export function useAuthgearGTMEventBase(): AuthgearGTMEventBase {
-  let appContextID: string | undefined;
+  let appContext: AppContextValue | undefined;
   try {
-    const appContext = useAppContext();
-    appContextID = appContext.appID;
+    const ac = useAppContext();
+    appContext = ac;
   } catch {}
 
   return useMemo(() => {
+    const eventAppContext: AuthgearGTMEventAppContext = {};
+    if (appContext?.appID) {
+      eventAppContext.app_id = appContext.appID;
+    }
+    if (appContext?.currentCollaboratorRole) {
+      eventAppContext.current_collaborator_role =
+        appContext.currentCollaboratorRole;
+    }
     return {
-      app_id: appContextID,
+      app_context: eventAppContext,
       // Prevent GTM recursive merge event data object
       // https://github.com/google/data-layer-helper#preventing-default-recursive-merge
       _clear: true,
     };
-  }, [appContextID]);
+  }, [appContext]);
 }
 
 interface AuthgearGTMEventDataAttributesParams {
@@ -59,9 +72,11 @@ export function useMakeAuthgearGTMEventDataAttributes(): (
   params: AuthgearGTMEventDataAttributesParams
 ) => EventDataAttributes {
   let appContextID: string | undefined;
+  let collaboratorRole: string | undefined;
   try {
     const appContext = useAppContext();
     appContextID = appContext.appID;
+    collaboratorRole = appContext.currentCollaboratorRole;
   } catch {}
 
   const makeGTMEventDataAttributes = useCallback(
@@ -71,6 +86,10 @@ export function useMakeAuthgearGTMEventDataAttributes(): (
       };
       if (appContextID) {
         attributes["data-authgear-event-data-app-id"] = appContextID;
+      }
+      if (collaboratorRole) {
+        attributes["data-authgear-event-data-current-collaborator-role"] =
+          collaboratorRole;
       }
       if (eventDataAttributes) {
         for (const k in eventDataAttributes) {
@@ -84,7 +103,7 @@ export function useMakeAuthgearGTMEventDataAttributes(): (
       }
       return attributes;
     },
-    [appContextID]
+    [appContextID, collaboratorRole]
   );
 
   return makeGTMEventDataAttributes;
