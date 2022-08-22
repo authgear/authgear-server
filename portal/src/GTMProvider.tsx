@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from "react";
+// eslint-disable-next-line no-restricted-imports
 import {
   GTMProvider as ReactHookGTMProvider,
   useGTMDispatch as useReactHookGTMDispatch,
