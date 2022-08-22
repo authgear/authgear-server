@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/url"
 
@@ -30,32 +31,38 @@ func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {
 		q.Set("x_color_scheme", r.ColorScheme)
 	}
 
-	// Turbo now supports form submission natively.
-	// We used to control turbo action "advance" or "replace" in the server side,
-	// rather than in the client side.
-	// The contract of selecting turbo action is by specifying
-	// data-turbo-action in <button>, <a> or <form>.
-	// Because we are responding a 30x response and
-	// Turbo uses Fetch API which follows redirect transparently.
-	// We CANNOT use header to convey data-turbo-action.
-	// Instead, we write the intended turbo action as a query parameter.
-	// In the client side, we have a Stimulus controller that listen for
-	// "turbo:submit-end" event.
-	// In the event, we can inspect the final response (i.e. all redirects followed)
-	// to see if x_turbo_action is present.
-	action := r.NavigationAction
-	if action == "" {
-		action = "advance"
-	}
-	q.Set("x_turbo_action", action)
-
 	redirectURI.RawQuery = q.Encode()
 
 	for _, cookie := range r.Cookies {
 		httputil.UpdateCookie(w, cookie)
 	}
 
-	http.Redirect(w, req, redirectURI.String(), http.StatusFound)
+	if req.Header.Get("X-Authgear-XHR") == "true" {
+		type xhrResponse struct {
+			RedirectURI string `json:"redirect_uri"`
+			Action      string `json:"action"`
+		}
+
+		action := r.NavigationAction
+		if action == "" {
+			action = "advance"
+		}
+		data, err := json.Marshal(xhrResponse{
+			RedirectURI: redirectURI.String(),
+			Action:      action,
+		})
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		if _, err := w.Write(data); err != nil {
+			panic(err)
+		}
+	} else {
+		http.Redirect(w, req, redirectURI.String(), http.StatusFound)
+	}
 }
 
 func (r *Result) IsInternalError() bool {

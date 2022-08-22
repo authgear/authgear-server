@@ -3,7 +3,7 @@
 <html lang="{{ $.ResolvedLanguageTag }}" data-controller="format-date-relative" data-dark-theme-enabled="{{ $.DarkThemeEnabled }}">
 {{ template "__html_head.html" . }}
 
-<body class="page" data-controller="prevent-double-tap websocket modal simple-modal turboform" data-action="dblclick->prevent-double-tap#action turbo:submit-end@document->turboform#submitEnd">
+<body class="page" data-controller="prevent-double-tap websocket modal simple-modal xhr-submit-form" data-action="dblclick->prevent-double-tap#action">
 
 <!-- Google Tag Manager (noscript) -->
 {{ if $.GoogleTagManagerContainerID }}
