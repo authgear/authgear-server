@@ -63,6 +63,8 @@ func (t IdentityType) PrimaryAuthenticatorTypes(loginIDKeyType LoginIDKeyType) [
 		return []AuthenticatorType{
 			AuthenticatorTypePasskey,
 		}
+	case IdentityTypeSIWE:
+		return nil
 	default:
 		panic(fmt.Sprintf("identity: unexpected identity type: %s", t))
 	}

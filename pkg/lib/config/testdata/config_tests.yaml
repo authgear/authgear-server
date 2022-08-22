@@ -845,26 +845,13 @@ config:
     public_origin: http://test
   authentication:
     identities: ["siwe"]
-    primary_authenticators: []
----
-name: wrong-siwe-authenticator
-error: |-
-  invalid configuration:
-  /authentication/primary_authenticators: maxItems
-    map[actual:1 expected:0]
-config:
-  id: test
-  http:
-    public_origin: http://test
-  authentication:
-    identities: ["siwe"]
     primary_authenticators: ["password"]
 ---
 name: siwe-extra-identity
 error: |-
   invalid configuration:
-  /authentication/identities: maxItems
-    map[actual:2 expected:1]
+  /authentication/identities: const
+    map[actual:[anonymous siwe] expected:[siwe]]
 config:
   id: test
   http:
