@@ -231,7 +231,7 @@
     <p class="m-0 primary-txt text-base">
       {{ template "settings-page-primary-passkey-title" }}
     </p>
-    <p class="m-0 secondary-txt text-xs">
+    <p class="m-0 secondary-txt text-xs truncate">
     {{ if $.LatestPrimaryPasskey }}
       <!-- FIXME(ui): Use user preferred timezone -->
       {{ template "settings-page-primary-passkey-description" (dict "name" $.LatestPrimaryPasskey.Passkey.CreationOptions.PublicKey.User.DisplayName "time" $.LatestPrimaryPasskey.CreatedAt "rfc3339" (rfc3339 $.LatestPrimaryPasskey.CreatedAt)) }}
@@ -250,7 +250,7 @@
     <p class="m-0 primary-txt text-base">
       {{ template "settings-page-primary-password-title" }}
     </p>
-    <p class="m-0 secondary-txt text-xs">
+    <p class="m-0 secondary-txt text-xs truncate">
       <!-- FIXME(ui): Use user preferred timezone -->
       {{ template "settings-page-primary-password-description" (dict "time" .UpdatedAt "rfc3339" (rfc3339 .UpdatedAt)) }}
     </p>
@@ -280,7 +280,7 @@
     <p class="m-0 primary-txt text-base">
       {{ template "settings-page-primary-oob-otp-title--phone" }}
     </p>
-    <p class="m-0 secondary-txt text-xs">
+    <p class="m-0 secondary-txt text-xs truncate">
       {{ .OOBOTP.Phone }}
       <br>
       <!-- FIXME(ui): Use user preferred timezone -->
