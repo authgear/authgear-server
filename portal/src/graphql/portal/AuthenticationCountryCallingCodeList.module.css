@@ -1,11 +1,16 @@
+.root {
+  display: flex;
+  flex-direction: column;
+}
+
 .searchBox {
-  max-width: 300px;
-  margin: 0 7px 20px auto;
+  width: 300px;
+  margin: 7px 20px;
 }
 
 .listWrapper {
   position: relative;
-  height: 400px;
+  height: 300px;
 }
 
 .countryNameCell {
