@@ -30,6 +30,7 @@ var envConfigDeps = wire.NewSet(
 		"WebAppCDNHost",
 		"CORSAllowedOrigins",
 		"RedisConfig",
+		"NFTIndexerAPIEndpoint",
 	),
 )
 
