@@ -52,7 +52,6 @@ type AnonymousIdentityProvider interface {
 	GetMany(ids []string) ([]*identity.Anonymous, error)
 	GetByKeyID(keyID string) (*identity.Anonymous, error)
 	List(userID string) ([]*identity.Anonymous, error)
-	ListByClaim(name string, value string) ([]*identity.Anonymous, error)
 	New(userID string, keyID string, key []byte) *identity.Anonymous
 	Create(i *identity.Anonymous) error
 	Delete(i *identity.Anonymous) error
@@ -63,7 +62,6 @@ type BiometricIdentityProvider interface {
 	GetMany(ids []string) ([]*identity.Biometric, error)
 	GetByKeyID(keyID string) (*identity.Biometric, error)
 	List(userID string) ([]*identity.Biometric, error)
-	ListByClaim(name string, value string) ([]*identity.Biometric, error)
 	New(userID string, keyID string, key []byte, deviceInfo map[string]interface{}) *identity.Biometric
 	Create(i *identity.Biometric) error
 	Delete(i *identity.Biometric) error
@@ -74,7 +72,6 @@ type PasskeyIdentityProvider interface {
 	GetMany(ids []string) ([]*identity.Passkey, error)
 	GetByAssertionResponse(assertionResponse []byte) (*identity.Passkey, error)
 	List(userID string) ([]*identity.Passkey, error)
-	ListByClaim(name string, value string) ([]*identity.Passkey, error)
 	New(userID string, attestationResponse []byte) (*identity.Passkey, error)
 	Create(i *identity.Passkey) error
 	Delete(i *identity.Passkey) error
@@ -85,7 +82,6 @@ type SIWEIdentityProvider interface {
 	GetMany(ids []string) ([]*identity.SIWE, error)
 	GetByMessageRequest(messageRequest model.SIWEVerificationRequest) (*identity.SIWE, error)
 	List(userID string) ([]*identity.SIWE, error)
-	ListByClaim(name string, value string) ([]*identity.SIWE, error)
 	New(userID string, messageRequest model.SIWEVerificationRequest) (*identity.SIWE, error)
 	Create(i *identity.SIWE) error
 	Delete(i *identity.SIWE) error
@@ -450,41 +446,6 @@ func (s *Service) ListByClaim(name string, value string) ([]*identity.Info, erro
 		return nil, err
 	}
 	for _, i := range ois {
-		infos = append(infos, i.ToInfo())
-	}
-
-	// anonymous
-	ais, err := s.Anonymous.ListByClaim(name, value)
-	if err != nil {
-		return nil, err
-	}
-	for _, i := range ais {
-		infos = append(infos, i.ToInfo())
-	}
-
-	// biometric
-	bis, err := s.Biometric.ListByClaim(name, value)
-	if err != nil {
-		return nil, err
-	}
-	for _, i := range bis {
-		infos = append(infos, i.ToInfo())
-	}
-
-	pis, err := s.Passkey.ListByClaim(name, value)
-	if err != nil {
-		return nil, err
-	}
-	for _, i := range pis {
-		infos = append(infos, i.ToInfo())
-	}
-
-	// siwe
-	sis, err := s.SIWE.ListByClaim(name, value)
-	if err != nil {
-		return nil, err
-	}
-	for _, i := range sis {
 		infos = append(infos, i.ToInfo())
 	}
 

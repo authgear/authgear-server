@@ -101,31 +101,6 @@ func (s *Store) List(userID string) ([]*identity.Biometric, error) {
 	return is, nil
 }
 
-func (s *Store) ListByClaim(name string, value string) ([]*identity.Biometric, error) {
-	if name != "kid" {
-		return nil, nil
-	}
-
-	q := s.selectQuery().Where("b.key_id = ?", value)
-
-	rows, err := s.SQLExecutor.QueryWith(q)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var is []*identity.Biometric
-	for rows.Next() {
-		i, err := s.scan(rows)
-		if err != nil {
-			return nil, err
-		}
-		is = append(is, i)
-	}
-
-	return is, nil
-}
-
 func (s *Store) Get(userID, id string) (*identity.Biometric, error) {
 	q := s.selectQuery().Where("p.user_id = ? AND p.id = ?", userID, id)
 	rows, err := s.SQLExecutor.QueryRowWith(q)
