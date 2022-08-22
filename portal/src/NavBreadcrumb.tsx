@@ -1,5 +1,10 @@
 import React, { useContext, useCallback } from "react";
-import { useHref, useNavigate, useResolvedPath } from "react-router-dom";
+import {
+  resolvePath,
+  useHref,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { Breadcrumb, IBreadcrumbItem, IRenderFunction } from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
 import useNavIsActive from "./hook/useNavIsActive";
@@ -85,13 +90,13 @@ function onRenderItem(
 const NavBreadcrumb: React.FC<Props> = function NavBreadcrumb(props: Props) {
   const { items } = props;
   const { renderToString } = useContext(Context);
+  const location = useLocation();
 
   const breadcrumbItems: IBreadcrumbItem[] = [];
   for (const item of items) {
     breadcrumbItems.push({
       key: item.to,
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      href: useResolvedPath(item.to).pathname,
+      href: resolvePath(item.to, location.pathname).pathname,
       // @ts-expect-error text actually can be React.ReactNode. Their typedef is incorrect.
       text: item.label,
     });
