@@ -8,6 +8,7 @@ module.exports = {
   theme: {
     screens: {
       mobile: { max: "640px" },
+      desktop: "640px",
     },
   },
   plugins: [],
