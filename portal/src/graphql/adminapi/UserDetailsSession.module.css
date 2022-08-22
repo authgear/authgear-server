@@ -1,6 +1,6 @@
 .root {
   margin-top: 25px;
-  width: 680px;
+  max-width: 680px;
 }
 
 .header {

@@ -33,6 +33,11 @@ import { makeInvariantViolatedErrorParseRule } from "../../error/parse";
 import styles from "./UserDetailsConnectedIdentities.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 
+// Always disable virtualization for List component, as it wont work properly with mobile view
+const onShouldVirtualize = () => {
+  return false;
+};
+
 interface IdentityClaim extends Record<string, unknown> {
   email?: string;
   phone_number?: string;
@@ -710,6 +715,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
                 <List
                   items={identityLists.oauth}
                   onRenderCell={onRenderIdentityCell}
+                  onShouldVirtualize={onShouldVirtualize}
                 />
               </div>
             )}
@@ -721,6 +727,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
                 <List
                   items={identityLists.email}
                   onRenderCell={onRenderIdentityCell}
+                  onShouldVirtualize={onShouldVirtualize}
                 />
               </div>
             )}
@@ -732,6 +739,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
                 <List
                   items={identityLists.phone}
                   onRenderCell={onRenderIdentityCell}
+                  onShouldVirtualize={onShouldVirtualize}
                 />
               </div>
             )}
@@ -743,6 +751,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
                 <List
                   items={identityLists.username}
                   onRenderCell={onRenderIdentityCell}
+                  onShouldVirtualize={onShouldVirtualize}
                 />
               </div>
             )}
@@ -754,6 +763,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
                 <List
                   items={identityLists.biometric}
                   onRenderCell={onRenderIdentityCell}
+                  onShouldVirtualize={onShouldVirtualize}
                 />
               </div>
             )}
@@ -765,6 +775,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
                 <List
                   items={identityLists.anonymous}
                   onRenderCell={onRenderIdentityCell}
+                  onShouldVirtualize={onShouldVirtualize}
                 />
               </div>
             )}

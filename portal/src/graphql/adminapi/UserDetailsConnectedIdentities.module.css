@@ -1,6 +1,6 @@
 .root {
   margin-left: 10px;
-  width: 640px;
+  max-width: 640px;
 }
 
 .headerSection {
@@ -8,6 +8,7 @@
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+  padding-top: 12px;
 }
 
 .header {
@@ -27,12 +28,27 @@
 }
 
 .cellContainer {
-  display: grid;
-  column-gap: 8px;
-  grid-template:
+  /* Desktop */
+  /* grid-template:
     "        icon        name           .      verify      remove"
     "           .        desc           .      verify      remove"
-    / min-content auto 1fr min-content min-content;
+    / min-content auto 1fr min-content min-content; */
+
+  /* Mobile */
+  /* grid-template:
+    "        icon        name           .         .         ."
+    "           .        desc           .         .         ."
+    "           .        verify      remove       .         ."
+    / min-content auto 1fr min-content min-content; */
+
+  @apply desktop:grid-cols-[min-content_auto_1fr_min-content_min-content]
+          desktop:grid-areas-[icon_name_._verify_remove,._desc_._verify_remove]
+          mobile:grid-areas-[icon_name_.,._desc_.,._verify_remove];
+
+  display: grid;
+  column-gap: 8px;
+  row-gap: 8px;
+  margin-top: 4px;
 }
 
 .cellIcon {
@@ -79,14 +95,17 @@
 .removeButton {
   grid-area: remove;
   place-self: center;
+  @apply mobile:place-self-auto;
 }
 
 .verifyButton {
   grid-area: verify;
   place-self: center;
+  @apply mobile:place-self-auto;
 }
 
 .unverifyButton {
   grid-area: verify;
   place-self: center;
+  @apply mobile:place-self-auto;
 }

@@ -44,6 +44,7 @@
   place-self: center;
   font-weight: 600;
   border: 1px solid #d8d8d8;
+  margin-left: 12px;
 }
 
 .passwordCell {
