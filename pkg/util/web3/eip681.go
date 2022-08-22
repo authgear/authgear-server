@@ -11,14 +11,14 @@ import (
 
 // https://eips.ethereum.org/EIPS/eip-681
 type EIP681 struct {
-	ChainID         int
-	ContractAddress string
+	ChainID int
+	Address string
 }
 
 func (eip681 *EIP681) URL() *url.URL {
 	return &url.URL{
 		Scheme: "ethereum",
-		Opaque: fmt.Sprintf("%s@%d", eip681.ContractAddress, eip681.ChainID),
+		Opaque: fmt.Sprintf("%s@%d", eip681.Address, eip681.ChainID),
 	}
 }
 
@@ -33,19 +33,19 @@ func ParseEIP681(uri string) (*EIP681, error) {
 		return nil, fmt.Errorf("invalid protocol: %s", protocolURI[0])
 	}
 
-	contractURI := strings.Split(protocolURI[1], "@")
+	addressURI := strings.Split(protocolURI[1], "@")
 
-	if len(contractURI) != 2 {
+	if len(addressURI) != 2 {
 		return nil, fmt.Errorf("invalid uri: %s", uri)
 	}
 
-	contractAddress := contractURI[0]
-	_, err := hexstring.Parse(contractAddress)
+	address := addressURI[0]
+	_, err := hexstring.Parse(address)
 	if err != nil {
-		return nil, fmt.Errorf("invalid contract address: %s", contractAddress)
+		return nil, fmt.Errorf("invalid address: %s", address)
 	}
 
-	chainID, err := strconv.Atoi(contractURI[1])
+	chainID, err := strconv.Atoi(addressURI[1])
 	if err != nil {
 		return nil, err
 	}
@@ -55,8 +55,8 @@ func ParseEIP681(uri string) (*EIP681, error) {
 	}
 
 	return &EIP681{
-		ChainID:         chainID,
-		ContractAddress: contractAddress,
+		ChainID: chainID,
+		Address: address,
 	}, nil
 
 }
