@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/authgear/graphql-go-relay"
+	relay "github.com/authgear/graphql-go-relay"
 
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -42,10 +42,7 @@ func (l *UserLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
 			nodes(ids: $ids) {
 				... on User {
 					id
-					verifiedClaims {
-						name
-						value
-					}
+					standardAttributes
 				}
 			}
 		}
@@ -88,17 +85,13 @@ func (l *UserLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
 		} else {
 			userModel := &model.User{}
 			globalID := userNode["id"].(string)
-			userModel.ID = globalID
+			resolvedNodeID := relay.FromGlobalID(globalID)
+			userModel.ID = resolvedNodeID.ID
 
-			// Use the last email claim.
-			verifiedClaims := userNode["verifiedClaims"].([]interface{})
-			for _, iface := range verifiedClaims {
-				claim := iface.(map[string]interface{})
-				name := claim["name"].(string)
-				value := claim["value"].(string)
-				if name == "email" {
-					userModel.Email = value
-				}
+			standardAttributes := userNode["standardAttributes"].(map[string]interface{})
+			email, ok := standardAttributes["email"].(string)
+			if ok {
+				userModel.Email = email
 			}
 
 			userModels = append(userModels, userModel)
