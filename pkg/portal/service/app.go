@@ -18,11 +18,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
+	"github.com/authgear/authgear-server/pkg/portal/task/tasks"
 	"github.com/authgear/authgear-server/pkg/util/blocklist"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/intl"
@@ -72,11 +74,16 @@ type AppResourceManagerFactory interface {
 	NewManagerWithAppContext(appContext *config.AppContext) *appresource.Manager
 }
 
+type AppServiceTaskQueue interface {
+	Enqueue(param task.Param)
+}
+
 type AppService struct {
 	Logger      AppServiceLogger
 	SQLBuilder  *globaldb.SQLBuilder
 	SQLExecutor *globaldb.SQLExecutor
 
+	TaskQueue        AppServiceTaskQueue
 	AppConfig        *portalconfig.AppConfig
 	AppConfigs       AppConfigService
 	AppAuthz         AppAuthzService
@@ -277,6 +284,10 @@ func (s *AppService) UpdateResources(app *model.App, updates []appresource.Updat
 	}
 
 	err = s.AppConfigs.UpdateResources(app.ID, files)
+
+	s.TaskQueue.Enqueue(&tasks.WatchNFTCollectionsParam{
+		AppID: app.ID,
+	})
 	return err
 }
 

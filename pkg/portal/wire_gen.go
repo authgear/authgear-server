@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
@@ -109,6 +110,35 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
 	handle := globaldb.NewHandle(context, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, logFactory)
 	sqlExecutor := globaldb.NewSQLExecutor(context, handle)
+	inProcessExecutorLogger := task.NewInProcessExecutorLogger(logFactory)
+	mailLogger := mail.NewLogger(logFactory)
+	smtpConfig := rootProvider.SMTPConfig
+	smtpServerCredentials := deps.ProvideSMTPServerCredentials(smtpConfig)
+	dialer := mail.NewGomailDialer(smtpServerCredentials)
+	sender := &mail.Sender{
+		Logger:       mailLogger,
+		DevMode:      devMode,
+		GomailDialer: dialer,
+	}
+	sendMessagesLogger := tasks.NewSendMessagesLogger(logFactory)
+	sendMessagesTask := &tasks.SendMessagesTask{
+		EmailSender: sender,
+		Logger:      sendMessagesLogger,
+	}
+	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
+	web3Service := &web3.Service{
+		APIEndpoint: nftIndexerAPIEndpoint,
+	}
+	watchNFTCollectionsLogger := tasks.NewWatchNFTCollectionsLogger(logFactory)
+	watchNFTCollectionsTask := &tasks.WatchNFTCollectionsTask{
+		NFTService:   web3Service,
+		ConfigSource: configSource,
+		Logger:       watchNFTCollectionsLogger,
+	}
+	inProcessExecutor := task.NewExecutor(inProcessExecutorLogger, sendMessagesTask, watchNFTCollectionsTask)
+	inProcessQueue := &task.InProcessQueue{
+		Executor: inProcessExecutor,
+	}
 	appConfig := rootProvider.AppConfig
 	configServiceLogger := service.NewConfigServiceLogger(logFactory)
 	domainImplementationType := rootProvider.DomainImplementation
@@ -129,25 +159,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Kubernetes:           kubernetes,
 	}
 	mailConfig := rootProvider.MailConfig
-	inProcessExecutorLogger := task.NewInProcessExecutorLogger(logFactory)
-	mailLogger := mail.NewLogger(logFactory)
-	smtpConfig := rootProvider.SMTPConfig
-	smtpServerCredentials := deps.ProvideSMTPServerCredentials(smtpConfig)
-	dialer := mail.NewGomailDialer(smtpServerCredentials)
-	sender := &mail.Sender{
-		Logger:       mailLogger,
-		DevMode:      devMode,
-		GomailDialer: dialer,
-	}
-	sendMessagesLogger := tasks.NewSendMessagesLogger(logFactory)
-	sendMessagesTask := &tasks.SendMessagesTask{
-		EmailSender: sender,
-		Logger:      sendMessagesLogger,
-	}
-	inProcessExecutor := task.NewExecutor(inProcessExecutorLogger, sendMessagesTask)
-	inProcessQueue := &task.InProcessQueue{
-		Executor: inProcessExecutor,
-	}
 	trustProxy := environmentConfig.TrustProxy
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
@@ -218,6 +229,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           appServiceLogger,
 		SQLBuilder:       sqlBuilder,
 		SQLExecutor:      sqlExecutor,
+		TaskQueue:        inProcessQueue,
 		AppConfig:        appConfig,
 		AppConfigs:       configService,
 		AppAuthz:         authzService,
@@ -391,7 +403,17 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		EmailSender: sender,
 		Logger:      sendMessagesLogger,
 	}
-	inProcessExecutor := task.NewExecutor(inProcessExecutorLogger, sendMessagesTask)
+	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
+	web3Service := &web3.Service{
+		APIEndpoint: nftIndexerAPIEndpoint,
+	}
+	watchNFTCollectionsLogger := tasks.NewWatchNFTCollectionsLogger(logFactory)
+	watchNFTCollectionsTask := &tasks.WatchNFTCollectionsTask{
+		NFTService:   web3Service,
+		ConfigSource: configSource,
+		Logger:       watchNFTCollectionsLogger,
+	}
+	inProcessExecutor := task.NewExecutor(inProcessExecutorLogger, sendMessagesTask, watchNFTCollectionsTask)
 	inProcessQueue := &task.InProcessQueue{
 		Executor: inProcessExecutor,
 	}
