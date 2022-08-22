@@ -29,7 +29,7 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"s.data",
 		).
 		From(s.SQLBuilder.TableName("_auth_identity"), "i").
-		Join(s.SQLBuilder.TableName("_auth_identity_siwe"), "s", "i.id = p.id")
+		Join(s.SQLBuilder.TableName("_auth_identity_siwe"), "s", "i.id = s.id")
 }
 
 func (s *Store) scan(scanner db.Scanner) (*identity.SIWE, error) {
