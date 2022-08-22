@@ -4,7 +4,6 @@ import {
   Dialog,
   DialogFooter,
   IDialogContentProps,
-  PrimaryButton,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "../../context/SystemConfigContext";
@@ -12,6 +11,7 @@ import ErrorDialog from "../../error/ErrorDialog";
 import { useDeleteUserMutation } from "./mutations/deleteUserMutation";
 import { useScheduleAccountDeletionMutation } from "./mutations/scheduleAccountDeletion";
 import { extractRawID } from "../../util/graphql";
+import PrimaryButton from "../../PrimaryButton";
 
 interface DeleteUserDialogProps {
   isHidden: boolean;

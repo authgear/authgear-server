@@ -20,7 +20,6 @@ import {
   IDropdownOption,
   IListProps,
   List,
-  PrimaryButton,
   Text,
   IRenderFunction,
 } from "@fluentui/react";
@@ -31,6 +30,7 @@ import { LanguageTag } from "../../util/resource";
 import { useExactKeywordSearch } from "../../util/search";
 
 import styles from "./ManageLanguageWidget.module.css";
+import PrimaryButton from "../../PrimaryButton";
 
 interface ManageLanguageWidgetProps {
   className?: string;

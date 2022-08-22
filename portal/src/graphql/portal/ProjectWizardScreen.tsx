@@ -7,7 +7,6 @@ import {
   useNavigate,
 } from "react-router-dom";
 import {
-  PrimaryButton,
   ChoiceGroup,
   MessageBar,
   IChoiceGroupOption,
@@ -33,6 +32,7 @@ import {
   SecondaryAuthenticationMode,
   SecondaryAuthenticatorType,
 } from "../../types";
+import PrimaryButton from "../../PrimaryButton";
 import { TooltipIcon, useTooltipTargetElement } from "../../Tooltip";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";

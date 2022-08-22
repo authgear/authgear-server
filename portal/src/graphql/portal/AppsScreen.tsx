@@ -1,7 +1,8 @@
 import React, { useCallback, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FormattedMessage } from "@oursky/react-messageformat";
-import { DefaultEffects, PrimaryButton, Text } from "@fluentui/react";
+import { DefaultEffects, Text } from "@fluentui/react";
+import PrimaryButton from "../../PrimaryButton";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import ScreenHeader from "../../ScreenHeader";

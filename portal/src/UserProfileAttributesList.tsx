@@ -9,7 +9,6 @@ import {
   Dropdown,
   Dialog,
   DialogFooter,
-  PrimaryButton,
   DefaultButton,
   IconButton,
   SelectionMode,
@@ -25,6 +24,7 @@ import {
   Icon,
   Text,
 } from "@fluentui/react";
+import PrimaryButton from "./PrimaryButton";
 import LabelWithTooltip from "./LabelWithTooltip";
 import {
   UserProfileAttributesAccessControl,

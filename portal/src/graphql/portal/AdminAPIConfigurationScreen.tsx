@@ -7,7 +7,6 @@ import {
   ActionButton,
   MessageBar,
   MessageBarType,
-  PrimaryButton,
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import ScreenContent from "../../ScreenContent";
@@ -32,6 +31,7 @@ import styles from "./AdminAPIConfigurationScreen.module.css";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import TextField from "../../TextField";
+import PrimaryButton from "../../PrimaryButton";
 
 interface AdminAPIConfigurationScreenContentProps {
   appID: string;

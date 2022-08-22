@@ -15,7 +15,6 @@ import {
   Icon,
   IContextualMenuProps,
   List,
-  PrimaryButton,
   Text,
 } from "@fluentui/react";
 
@@ -23,6 +22,7 @@ import {
 import ButtonWithLoading from "../../ButtonWithLoading";
 import ListCellLayout from "../../ListCellLayout";
 import ErrorDialog from "../../error/ErrorDialog";
+import PrimaryButton from "../../PrimaryButton";
 import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
 import { useSetVerifiedStatusMutation } from "./mutations/setVerifiedStatusMutation";
 import { formatDatetime } from "../../util/formatDatetime";

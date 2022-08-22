@@ -1,6 +1,5 @@
 import React, { useCallback, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { PrimaryButton } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import WizardScreenLayout from "../../WizardScreenLayout";
 import WizardContentLayout, { WizardTitle } from "../../WizardContentLayout";
@@ -22,6 +21,7 @@ import {
   useAuthgearGTMEventBase,
   useGTMDispatch,
 } from "../../GTMProvider";
+import PrimaryButton from "../../PrimaryButton";
 
 interface FormState {
   appID: string;

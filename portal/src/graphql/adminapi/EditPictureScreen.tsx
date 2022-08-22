@@ -11,13 +11,13 @@ import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import {
   Dialog,
   DialogFooter,
-  PrimaryButton,
   DefaultButton,
   ICommandBarItemProps,
   ProgressIndicator,
 } from "@fluentui/react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import PrimaryButton from "../../PrimaryButton";
 import CommandBarContainer from "../../CommandBarContainer";
 import { FormProvider } from "../../form";
 import { FormErrorMessageBar } from "../../FormErrorMessageBar";

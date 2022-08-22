@@ -1,5 +1,6 @@
-import { ICommandBarItemProps, PrimaryButton } from "@fluentui/react";
+import { ICommandBarItemProps } from "@fluentui/react";
 import React from "react";
+import PrimaryButton from "./PrimaryButton";
 
 export function onRenderCommandBarPrimaryButton(
   item?: ICommandBarItemProps

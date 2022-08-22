@@ -7,13 +7,13 @@ import {
   DialogFooter,
   Icon,
   List,
-  PrimaryButton,
   Text,
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
 import { useDeleteAuthenticatorMutation } from "./mutations/deleteAuthenticatorMutation";
 import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
+import PrimaryButton from "../../PrimaryButton";
 import ListCellLayout from "../../ListCellLayout";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import ErrorDialog from "../../error/ErrorDialog";
