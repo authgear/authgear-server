@@ -19,7 +19,7 @@ import {
 } from "./date";
 import { TransferClickController } from "./click";
 import {
-  TurboformController,
+  XHRSubmitFormController,
   RestoreFormController,
   RetainFormFormController,
   RetainFormInputController,
@@ -41,7 +41,7 @@ start();
 
 const Stimulus = Application.start();
 
-Stimulus.register("turboform", TurboformController);
+Stimulus.register("xhr-submit-form", XHRSubmitFormController);
 
 Stimulus.register(
   "password-visibility-toggle",
