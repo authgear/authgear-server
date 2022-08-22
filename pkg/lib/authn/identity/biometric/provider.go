@@ -44,16 +44,6 @@ func (p *Provider) List(userID string) ([]*identity.Biometric, error) {
 	return is, nil
 }
 
-func (p *Provider) ListByClaim(name string, value string) ([]*identity.Biometric, error) {
-	is, err := p.Store.ListByClaim(name, value)
-	if err != nil {
-		return nil, err
-	}
-
-	sortIdentities(is)
-	return is, nil
-}
-
 func (p *Provider) Get(userID, id string) (*identity.Biometric, error) {
 	return p.Store.Get(userID, id)
 }

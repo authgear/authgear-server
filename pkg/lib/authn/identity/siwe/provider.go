@@ -32,16 +32,6 @@ func (p *Provider) List(userID string) ([]*identity.SIWE, error) {
 	return ss, nil
 }
 
-func (p *Provider) ListByClaim(name string, value string) ([]*identity.SIWE, error) {
-	ss, err := p.Store.ListByClaim(name, value)
-	if err != nil {
-		return nil, err
-	}
-
-	sortIdentities(ss)
-	return ss, nil
-}
-
 func (p *Provider) Get(userID, id string) (*identity.SIWE, error) {
 	return p.Store.Get(userID, id)
 }

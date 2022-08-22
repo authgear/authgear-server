@@ -508,21 +508,6 @@ func (mr *MockAnonymousIdentityProviderMockRecorder) List(userID interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).List), userID)
 }
 
-// ListByClaim mocks base method.
-func (m *MockAnonymousIdentityProvider) ListByClaim(name, value string) ([]*identity.Anonymous, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByClaim", name, value)
-	ret0, _ := ret[0].([]*identity.Anonymous)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListByClaim indicates an expected call of ListByClaim.
-func (mr *MockAnonymousIdentityProviderMockRecorder) ListByClaim(name, value interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaim", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).ListByClaim), name, value)
-}
-
 // New mocks base method.
 func (m *MockAnonymousIdentityProvider) New(userID, keyID string, key []byte) *identity.Anonymous {
 	m.ctrl.T.Helper()
@@ -646,21 +631,6 @@ func (m *MockBiometricIdentityProvider) List(userID string) ([]*identity.Biometr
 func (mr *MockBiometricIdentityProviderMockRecorder) List(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockBiometricIdentityProvider)(nil).List), userID)
-}
-
-// ListByClaim mocks base method.
-func (m *MockBiometricIdentityProvider) ListByClaim(name, value string) ([]*identity.Biometric, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByClaim", name, value)
-	ret0, _ := ret[0].([]*identity.Biometric)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListByClaim indicates an expected call of ListByClaim.
-func (mr *MockBiometricIdentityProviderMockRecorder) ListByClaim(name, value interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaim", reflect.TypeOf((*MockBiometricIdentityProvider)(nil).ListByClaim), name, value)
 }
 
 // New mocks base method.
@@ -788,21 +758,6 @@ func (mr *MockPasskeyIdentityProviderMockRecorder) List(userID interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).List), userID)
 }
 
-// ListByClaim mocks base method.
-func (m *MockPasskeyIdentityProvider) ListByClaim(name, value string) ([]*identity.Passkey, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByClaim", name, value)
-	ret0, _ := ret[0].([]*identity.Passkey)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListByClaim indicates an expected call of ListByClaim.
-func (mr *MockPasskeyIdentityProviderMockRecorder) ListByClaim(name, value interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaim", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).ListByClaim), name, value)
-}
-
 // New mocks base method.
 func (m *MockPasskeyIdentityProvider) New(userID string, attestationResponse []byte) (*identity.Passkey, error) {
 	m.ctrl.T.Helper()
@@ -927,21 +882,6 @@ func (m *MockSIWEIdentityProvider) List(userID string) ([]*identity.SIWE, error)
 func (mr *MockSIWEIdentityProviderMockRecorder) List(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).List), userID)
-}
-
-// ListByClaim mocks base method.
-func (m *MockSIWEIdentityProvider) ListByClaim(name, value string) ([]*identity.SIWE, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByClaim", name, value)
-	ret0, _ := ret[0].([]*identity.SIWE)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListByClaim indicates an expected call of ListByClaim.
-func (mr *MockSIWEIdentityProviderMockRecorder) ListByClaim(name, value interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaim", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).ListByClaim), name, value)
 }
 
 // New mocks base method.
