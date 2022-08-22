@@ -1,8 +1,6 @@
 package siwe
 
 import (
-	"encoding/json"
-
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -48,7 +46,7 @@ func (s *Service) CreateNewNonce() (*Nonce, error) {
 	return nonceModel, nil
 }
 
-func (s *Service) VerifyMessage(request model.SIWEVerificationRequest) (*siwego.Message, []byte, error) {
+func (s *Service) VerifyMessage(request model.SIWEVerificationRequest) (*siwego.Message, jwk.Key, error) {
 	message, err := siwego.ParseMessage(request.Message)
 	if err != nil {
 		return nil, nil, err
@@ -75,10 +73,5 @@ func (s *Service) VerifyMessage(request model.SIWEVerificationRequest) (*siwego.
 		return nil, nil, err
 	}
 
-	encodedPubKey, err := json.Marshal(jwkKey)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return message, encodedPubKey, nil
+	return message, jwkKey, nil
 }
