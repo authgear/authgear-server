@@ -11,5 +11,5 @@ module.exports = {
       desktop: "640px",
     },
   },
-  plugins: [],
+  plugins: [require("@savvywombat/tailwindcss-grid-areas")],
 };
