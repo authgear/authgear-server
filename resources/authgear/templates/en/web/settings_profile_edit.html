@@ -201,6 +201,8 @@
       data-modal-action-label="{{ template "settings-profile-edit-remove-confirmation-action-label" }}"
       data-modal-cancel-label="{{ template "settings-profile-edit-remove-confirmation-cancel-label" }}"
       data-image-picker-target="buttonRemove"
+      {{/* confirmFormSubmit requires data-turbo="false" to work */}}
+      data-turbo="false"
       data-action="click->modal#confirmFormSubmit"
     >
       {{ template "settings-profile-edit-remove-picture-label" }}

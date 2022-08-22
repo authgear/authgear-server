@@ -56,6 +56,8 @@
         data-modal-action-label="{{ template "settings-sessions-confirmation-action-label" }}"
         data-modal-cancel-label="{{ template "settings-sessions-confirmation-cancel-label" }}"
         data-authgear-event="authgear.button.revoke_session"
+        {{/* confirmFormSubmit requires data-turbo="false" to work */}}
+        data-turbo="false"
         data-action="click->modal#confirmFormSubmit"
       >
         <i class="ti ti-x"></i>
@@ -79,6 +81,8 @@
         data-modal-action-label="{{ template "settings-sessions-confirmation-action-label" }}"
         data-modal-cancel-label="{{ template "settings-sessions-confirmation-cancel-label" }}"
         data-authgear-event="authgear.button.revoke_session_group"
+        {{/* confirmFormSubmit requires data-turbo="false" to work */}}
+        data-turbo="false"
         data-action="click->modal#confirmFormSubmit"
       >
         {{ template "settings-sessions-revoke-group-label" }}
@@ -103,6 +107,8 @@
       data-modal-action-label="{{ template "settings-sessions-confirmation-action-label" }}"
       data-modal-cancel-label="{{ template "settings-sessions-confirmation-cancel-label" }}"
       data-authgear-event="authgear.button.revoke_all_sessions"
+      {{/* confirmFormSubmit requires data-turbo="false" to work */}}
+      data-turbo="false"
       data-action="click->modal#confirmFormSubmit"
     >
       {{ template "settings-sessions-revoke-all-label" }}
