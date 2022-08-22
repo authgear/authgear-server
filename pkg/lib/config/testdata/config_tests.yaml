@@ -859,3 +859,25 @@ config:
   authentication:
     identities: ["anonymous", "siwe"]
     primary_authenticators: []
+---
+name: nft-collection-format
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  nft:
+    collections:
+      - ethereum:0x0@1
+---
+name: nft-collection-invalid-format
+error: |-
+  invalid configuration:
+  /nft/collections/0: invalid contract ID
+config:
+  id: test
+  http:
+    public_origin: http://test
+  nft:
+    collections:
+      - ethereum:foo@1

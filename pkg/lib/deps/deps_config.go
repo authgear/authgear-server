@@ -26,6 +26,7 @@ var configDeps = wire.NewSet(
 		"WelcomeMessage",
 		"Verification",
 		"AccountDeletion",
+		"NFT",
 		"GoogleTagManager",
 	),
 	wire.FieldsOf(new(*config.IdentityConfig),

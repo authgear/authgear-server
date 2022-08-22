@@ -14,6 +14,8 @@ type ImagesCDNHost string
 
 type CORSAllowedOrigins string
 
+type NFTIndexerAPIEndpoint string
+
 func (c *CORSAllowedOrigins) List() []string {
 	if string(*c) == "" {
 		return []string{}
@@ -47,4 +49,6 @@ type EnvironmentConfig struct {
 	ImagesCDNHost ImagesCDNHost `envconfig:"IMAGES_CDN_HOST"`
 	// CORSAllowOrigins configures a comma-separated list of allowed origins for CORSMiddleware
 	CORSAllowedOrigins CORSAllowedOrigins `envconfig:"CORS_ALLOWED_ORIGINS"`
+
+	NFTIndexerAPIEndpoint NFTIndexerAPIEndpoint `envconfig:"NFT_INDEXER_API_ENDPOINT"`
 }
