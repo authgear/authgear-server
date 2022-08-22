@@ -111,28 +111,8 @@ var _ = Schema.Add("AuthenticationConfig", `
 			},
 			"then": {
 				"properties": {
-					"primary_authenticators": {
-						"maxItems": 0
-					}
-				},
-				"required": ["primary_authenticators"]
-			}
-		},
-		{
-			"if": {
-				"properties": {
 					"identities": {
-						"contains": {
-							"const": "siwe"
-						}
-					}
-				},
-				"required": ["identities"]
-			},
-			"then": {
-				"properties": {
-					"identities": {
-						"maxItems": 1
+						"const": ["siwe"]
 					}
 				},
 				"required": ["identities"]
