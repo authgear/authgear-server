@@ -164,10 +164,14 @@ func (s *Store) Create(i *identity.SIWE) error {
 		Columns(
 			"id",
 			"address",
+			"chain_id",
+			"data",
 		).
 		Values(
 			i.ID,
 			i.Address,
+			i.ChainID,
+			i.Data,
 		)
 
 	_, err = s.SQLExecutor.ExecWith(q)
