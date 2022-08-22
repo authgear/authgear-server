@@ -22,6 +22,9 @@ This document describes how to setup portal tracking to send data to Mixpanel vi
       - Event name: `ag.lifecycle.identified`
       - Use regex matching: true
       - Fires on: All Custom Events
+    - `History Change`
+      - Type: History Change
+      - Fries on: All History Changes
   - Built-In Variables
     - Select all
   - User-Defined Variables
