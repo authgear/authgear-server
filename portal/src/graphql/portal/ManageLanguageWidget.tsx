@@ -389,21 +389,23 @@ const ManageLanguageWidget: React.FC<ManageLanguageWidgetProps> =
           <Label className={styles.titleLabel}>
             <FormattedMessage id="ManageLanguageWidget.title" />
           </Label>
-          <Dropdown
-            id="language-widget"
-            className={styles.dropdown}
-            options={templateLocaleOptions}
-            onChange={onChangeTemplateLocale}
-            selectedKey={selectedLanguage}
-            onRenderTitle={onRenderTitle}
-            onRenderOption={onRenderOption}
-          />
-          <IconButton
-            iconProps={{
-              iconName: "Settings",
-            }}
-            onClick={presentDialog}
-          />
+          <div className={styles.control}>
+            <Dropdown
+              id="language-widget"
+              className={styles.dropdown}
+              options={templateLocaleOptions}
+              onChange={onChangeTemplateLocale}
+              selectedKey={selectedLanguage}
+              onRenderTitle={onRenderTitle}
+              onRenderOption={onRenderOption}
+            />
+            <IconButton
+              iconProps={{
+                iconName: "Settings",
+              }}
+              onClick={presentDialog}
+            />
+          </div>
         </div>
       </>
     );

@@ -583,13 +583,14 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         <div
           className={cn(
             styles.titleContainer,
-            "mobile:flex-col mobile:items-stretch"
+            "mobile:flex-col mobile:items-stretch mobile:col-span-full mobile:gap-y-5"
           )}
         >
-          <ScreenTitle>
+          <ScreenTitle className="mobile:w-full">
             <FormattedMessage id="LocalizationConfigurationScreen.title" />
           </ScreenTitle>
           <ManageLanguageWidget
+            className="mobile:w-full"
             supportedLanguages={supportedLanguages}
             selectedLanguage={state.selectedLanguage}
             onChangeSelectedLanguage={setSelectedLanguage}
