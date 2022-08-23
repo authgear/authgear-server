@@ -54,7 +54,8 @@ func (c *Commands) AfterCreate(
 			web3Addresses = append(web3Addresses, i.SIWE.Address)
 		}
 	}
-	web3Info := map[string]interface{}{}
+
+	web3Info := new(model.UserWeb3Info)
 	if len(web3Addresses) > 0 {
 		info, err := c.Web3.GetWeb3Info(web3Addresses)
 		if err != nil {

@@ -30,7 +30,7 @@ type CustomAttributesService interface {
 }
 
 type Web3Service interface {
-	GetWeb3Info(addresses []string) (map[string]interface{}, error)
+	GetWeb3Info(addresses []string) (*model.UserWeb3Info, error)
 }
 
 type Queries struct {
@@ -81,7 +81,8 @@ func (p *Queries) Get(id string, role accesscontrol.Role) (*model.User, error) {
 			web3Addresses = append(web3Addresses, i.SIWE.Address)
 		}
 	}
-	web3Info := map[string]interface{}{}
+
+	web3Info := new(model.UserWeb3Info)
 	if len(web3Addresses) > 0 {
 		info, err := p.Web3.GetWeb3Info(web3Addresses)
 		if err != nil {
