@@ -391,7 +391,12 @@ const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> =
                 <FormattedMessage id="EditOAuthClientScreen.quick-start-widget.title" />
               </Text>
               <Text>
-                <FormattedMessage id="EditOAuthClientScreen.quick-start-widget.question" />
+                <FormattedMessage
+                  id="EditOAuthClientScreen.quick-start-widget.question"
+                  values={{
+                    applicationType: client.x_application_type ?? "unspecified",
+                  }}
+                />
               </Text>
               <QuickStartFrameworkList
                 applicationType={client.x_application_type}
@@ -445,7 +450,9 @@ const OAuthQuickStartScreenContent: React.FC<OAuthQuickStartScreenContentProps> 
             <Text className={styles.quickStartScreenDescription} block={true}>
               <FormattedMessage
                 id="EditOAuthClientScreen.quick-start-screen.question"
-                values={{ applicationType: client?.name ?? "" }}
+                values={{
+                  applicationType: client?.x_application_type ?? "unspecified",
+                }}
               />
             </Text>
             <QuickStartFrameworkList
