@@ -8,7 +8,9 @@ var _ = Schema.Add("NFTConfig", `
 		"collections": {
 			"type": "array",
 			"items": { 
-				"type": "string"
+				"type": "string",
+				"format": "x_web3_contract_id",
+				"minLength": 1
 			},
 			"uniqueItems": true
 		}

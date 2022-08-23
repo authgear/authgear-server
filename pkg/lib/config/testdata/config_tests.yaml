@@ -873,7 +873,8 @@ config:
 name: nft-collection-invalid-format
 error: |-
   invalid configuration:
-  /nft/collections/0: invalid contract ID
+  /nft/collections/0: format
+    map[error:invalid contract ID: "ethereum:foo@1" format:x_web3_contract_id]
 config:
   id: test
   http:
