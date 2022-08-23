@@ -446,8 +446,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
+	nftConfig := appConfig.NFT
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
+		NFTConfig:   nftConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,

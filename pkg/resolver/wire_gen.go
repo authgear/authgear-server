@@ -456,8 +456,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
+	nftConfig := appConfig.NFT
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
+		NFTConfig:   nftConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -827,8 +829,10 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
+	nftConfig := appConfig.NFT
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
+		NFTConfig:   nftConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,

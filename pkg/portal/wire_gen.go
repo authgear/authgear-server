@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
-	"github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
@@ -126,12 +125,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Logger:      sendMessagesLogger,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Service := &web3.Service{
+	nftService := &service.NFTService{
 		APIEndpoint: nftIndexerAPIEndpoint,
 	}
 	watchNFTCollectionsLogger := tasks.NewWatchNFTCollectionsLogger(logFactory)
 	watchNFTCollectionsTask := &tasks.WatchNFTCollectionsTask{
-		NFTService:   web3Service,
+		NFTService:   nftService,
 		ConfigSource: configSource,
 		Logger:       watchNFTCollectionsLogger,
 	}
@@ -406,12 +405,12 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		Logger:      sendMessagesLogger,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Service := &web3.Service{
+	nftService := &service.NFTService{
 		APIEndpoint: nftIndexerAPIEndpoint,
 	}
 	watchNFTCollectionsLogger := tasks.NewWatchNFTCollectionsLogger(logFactory)
 	watchNFTCollectionsTask := &tasks.WatchNFTCollectionsTask{
-		NFTService:   web3Service,
+		NFTService:   nftService,
 		ConfigSource: configSource,
 		Logger:       watchNFTCollectionsLogger,
 	}
