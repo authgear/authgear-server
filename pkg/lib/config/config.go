@@ -9,7 +9,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/validation"
-	"github.com/authgear/authgear-server/pkg/util/web3"
 )
 
 type Config struct {
@@ -96,9 +95,6 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 
 	// Validation 7: validate custom attribute
 	c.validateCustomAttribute(ctx)
-
-	// Validator 8: validator nft endpoint and collection format
-	c.validateNFTCollections(ctx)
 }
 
 func (c *AppConfig) validateTokenLifetime(ctx *validation.Context) {
@@ -278,23 +274,6 @@ func (c *AppConfig) validateCustomAttribute(ctx *validation.Context) {
 			}
 		}
 	}
-}
-
-func (c *AppConfig) validateNFTCollections(ctx *validation.Context) {
-	if c.NFT == nil || c.NFT.Collections == nil {
-		return
-	}
-
-	if len(c.NFT.Collections) > 0 {
-		for i, collection := range c.NFT.Collections {
-			_, err := web3.ParseContractID(collection)
-
-			if err != nil {
-				ctx.Child("nft", "collections", strconv.Itoa(i)).EmitError("invalid contract ID", nil)
-			}
-		}
-	}
-
 }
 
 func Parse(inputYAML []byte) (*AppConfig, error) {
