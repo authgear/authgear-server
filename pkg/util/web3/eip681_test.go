@@ -8,8 +8,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestNew(t *testing.T) {
-	Convey("contract_id", t, func() {
+func TestEIP681(t *testing.T) {
+	Convey("ceip681", t, func() {
 		Convey("parse eip681", func() {
 			test := func(uri string, expected *web3.EIP681) {
 				eip681, err := web3.ParseEIP681(uri)
