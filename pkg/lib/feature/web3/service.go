@@ -1,12 +1,11 @@
 package web3
 
 import (
-	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"path"
-	"strings"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -15,70 +14,59 @@ import (
 
 type Service struct {
 	APIEndpoint config.NFTIndexerAPIEndpoint
+	NFTConfig   *config.NFTConfig
 }
 
-func (s *Service) GetWeb3Info(addresses []string) (map[string]interface{}, error) {
-	nfts, err := s.GetNFTsByAddresses(addresses)
+func (s *Service) GetWeb3Info(addresses []string) (*model.UserWeb3Info, error) {
+	if s.NFTConfig == nil {
+		return nil, fmt.Errorf("NFTConfig not defined")
+	}
+	nftCollections := s.NFTConfig.Collections
+	contractIDs := make([]web3.ContractID, 0, len(nftCollections))
+	for _, collection := range nftCollections {
+		contractID, err := web3.ParseContractID(collection)
+		if err != nil {
+			return nil, err
+		}
+		contractIDs = append(contractIDs, *contractID)
+	}
+
+	nfts, err := s.GetNFTsByAddresses(contractIDs, addresses)
 	if err != nil {
 		return nil, err
 	}
 
-	web3Info := map[string]interface{}{
-		"nfts": nfts.Items,
+	web3Info := &model.UserWeb3Info{
+		NFTs: nfts.Items,
 	}
 
 	return web3Info, nil
 }
 
-func (s *Service) WatchNFTCollection(contractID web3.ContractID) (*model.WatchColletionResponse, error) {
-
-	if s.APIEndpoint == "" {
-		return nil, nil
-	}
-
-	endpoint, err := url.Parse(string(s.APIEndpoint))
-	if err != nil {
-		return nil, err
-	}
-
-	endpoint.Path = path.Join("watch")
-
-	contractURL, err := contractID.URL()
-	if err != nil {
-		return nil, err
-	}
-
-	request := model.WatchCollectionRequest{
-		ContractID: contractURL.String(),
-	}
-
-	data, err := json.Marshal(request)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := http.Post(endpoint.String(), "application/json", bytes.NewBuffer(data))
-	if err != nil {
-		return nil, err
-	}
-
-	var response model.WatchColletionResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, err
-	}
-
-	return &response, nil
-}
-
-func (s *Service) GetNFTsByAddresses(addresses []string) (*model.GetUserNFTsResponse, error) {
+func (s *Service) GetNFTsByAddresses(contracts []web3.ContractID, ownerAddresses []string) (*model.GetUserNFTsResponse, error) {
 	endpoint, err := url.Parse(string(s.APIEndpoint))
 	if err != nil {
 		return nil, err
 	}
 
 	endpoint.Path = path.Join("nfts")
-	endpoint.Query().Set("owner_addresses", strings.Join(addresses, ","))
+
+	query := endpoint.Query()
+	if len(ownerAddresses) > 0 {
+		query["owner_address"] = ownerAddresses
+	}
+
+	if len(contracts) > 0 {
+		urls := make([]string, 0, len(contracts))
+		for _, contract := range contracts {
+			url, err := contract.URL()
+			if err != nil {
+				return nil, err
+			}
+			urls = append(urls, url.String())
+		}
+		query["contract_id"] = urls
+	}
 
 	res, err := http.Get(endpoint.String())
 	if err != nil {

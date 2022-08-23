@@ -197,7 +197,7 @@ func newUserModel(
 	isVerified bool,
 	derivedStandardAttributes map[string]interface{},
 	customAttributes map[string]interface{},
-	web3Info map[string]interface{},
+	web3Info *model.UserWeb3Info,
 ) *model.User {
 	isAnonymous := false
 	for _, i := range identities {
