@@ -59,6 +59,7 @@ export type App = Node & {
   subscription?: Maybe<Subscription>;
   subscriptionUsage?: Maybe<SubscriptionUsage>;
   tutorialStatus: TutorialStatus;
+  viewer: Collaborator;
 };
 
 

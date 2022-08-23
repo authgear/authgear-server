@@ -22,12 +22,15 @@ This document describes how to setup portal tracking to send data to Mixpanel vi
       - Event name: `ag.lifecycle.identified`
       - Use regex matching: true
       - Fires on: All Custom Events
+    - `History Change`
+      - Type: History Change
+      - Fries on: All History Changes
   - Built-In Variables
     - Select all
   - User-Defined Variables
     - `gtm.element.dataset`
       - Type: Data Layer Variables
-    - `app_id`
+    - `app_context`
       - Type: Data Layer Variables
     - `event_data`
       - Type: Data Layer Variables
@@ -68,9 +71,9 @@ This document describes how to setup portal tracking to send data to Mixpanel vi
         <script type="text/javascript">
           var event = {{Event}};
           if (event.startsWith("ag.event.")) {
-            var appID = {{app_id}};
+            var appContext = {{app_context}};
             var eventData = {{event_data}};
-            mixpanel.track({{Event}}, Object.assign({app_id: appID}, eventData));
+            mixpanel.track({{Event}}, Object.assign({}, appContext, eventData));
           }
         </script>
         ```

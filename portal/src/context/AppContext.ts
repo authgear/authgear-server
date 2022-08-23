@@ -1,7 +1,8 @@
 import { createContext, useContext } from "react";
 
-interface AppContextValue {
+export interface AppContextValue {
   appID: string;
+  currentCollaboratorRole: string;
 }
 
 export const AppContext = createContext<AppContextValue | null>(null);

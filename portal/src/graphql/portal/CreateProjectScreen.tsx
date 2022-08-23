@@ -119,7 +119,9 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
       const event: AuthgearGTMEvent = {
         ...gtmEventBase,
         event: AuthgearGTMEventType.CreatedProject,
-        app_id: rawAppID,
+        event_data: {
+          app_id: rawAppID,
+        },
       };
       sendDataToGTM(event);
       navigate(`/project/${encodeURIComponent(appID)}/wizard`);
