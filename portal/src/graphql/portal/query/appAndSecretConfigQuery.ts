@@ -7,7 +7,7 @@ import {
   AppAndSecretConfigQueryDocument,
 } from "./appAndSecretConfigQuery.generated";
 import { PortalAPIAppConfig, PortalAPISecretConfig } from "../../../types";
-import { CollaboratorRole } from "../globalTypes.generated";
+import { Collaborator } from "../globalTypes.generated";
 
 export interface AppAndSecretConfigQueryResult
   extends Pick<
@@ -20,7 +20,7 @@ export interface AppAndSecretConfigQueryResult
   rawAppConfig: PortalAPIAppConfig | null;
   effectiveAppConfig: PortalAPIAppConfig | null;
   secretConfig: PortalAPISecretConfig | null;
-  collaboratorRole: CollaboratorRole | null;
+  viewer: Collaborator | null;
 }
 export const useAppAndSecretConfigQuery = (
   appID: string
@@ -39,7 +39,7 @@ export const useAppAndSecretConfigQuery = (
       rawAppConfig: appConfigNode?.rawAppConfig ?? null,
       effectiveAppConfig: appConfigNode?.effectiveAppConfig ?? null,
       secretConfig: appConfigNode?.secretConfig ?? null,
-      collaboratorRole: appConfigNode?.currentCollaboratorRole ?? null,
+      viewer: appConfigNode?.viewer ?? null,
     };
   }, [data]);
 

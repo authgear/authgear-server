@@ -143,15 +143,15 @@ const AppRoot: React.FC = function AppRoot() {
   }, [appID]);
 
   // NOTE: check if appID actually exist in authorized app list
-  const { effectiveAppConfig, collaboratorRole, loading, error } =
+  const { effectiveAppConfig, viewer, loading, error } =
     useAppAndSecretConfigQuery(appID);
 
   const appContextValue = useMemo(() => {
     return {
       appID: effectiveAppConfig?.id ?? "",
-      currentCollaboratorRole: collaboratorRole ?? "",
+      currentCollaboratorRole: viewer?.role ?? "",
     };
-  }, [effectiveAppConfig, collaboratorRole]);
+  }, [effectiveAppConfig, viewer?.role]);
 
   if (loading) {
     return <ShowLoading />;

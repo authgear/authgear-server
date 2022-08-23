@@ -46,7 +46,6 @@ export type App = Node & {
   __typename?: 'App';
   collaboratorInvitations: Array<CollaboratorInvitation>;
   collaborators: Array<Collaborator>;
-  currentCollaboratorRole: CollaboratorRole;
   domains: Array<Domain>;
   effectiveAppConfig: Scalars['AppConfig'];
   effectiveFeatureConfig: Scalars['FeatureConfig'];
@@ -60,6 +59,7 @@ export type App = Node & {
   subscription?: Maybe<Subscription>;
   subscriptionUsage?: Maybe<SubscriptionUsage>;
   tutorialStatus: TutorialStatus;
+  viewer: Collaborator;
 };
 
 

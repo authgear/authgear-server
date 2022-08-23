@@ -34,9 +34,6 @@ type App implements Node {
   collaborators: [Collaborator!]!
 
   """"""
-  currentCollaboratorRole: CollaboratorRole!
-
-  """"""
   domains: [Domain!]!
 
   """"""
@@ -71,6 +68,9 @@ type App implements Node {
 
   """"""
   tutorialStatus: TutorialStatus!
+
+  """"""
+  viewer: Collaborator!
 }
 
 """The `AppConfig` scalar type represents an app config JSON object"""

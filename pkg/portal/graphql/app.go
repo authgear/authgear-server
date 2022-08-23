@@ -8,6 +8,7 @@ import (
 	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/service"
@@ -288,6 +289,25 @@ var nodeApp = node(
 					return ctx.Collaborators.LoadMany(ids).Value, nil
 				},
 			},
+			"viewer": &graphql.Field{
+				Type: graphql.NewNonNull(collaborator),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					ctx := GQLContext(p.Context)
+
+					sessionInfo := session.GetValidSessionInfo(p.Context)
+					if sessionInfo == nil {
+						return nil, apierrors.NewForbidden("forbidden")
+					}
+
+					app := p.Source.(*model.App)
+					collaborator, err := ctx.CollaboratorService.GetCollaboratorByAppAndUser(app.ID, sessionInfo.UserID)
+					if err != nil {
+						return nil, err
+					}
+
+					return ctx.Collaborators.Load(collaborator.ID).Value, nil
+				},
+			},
 			"collaboratorInvitations": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(collaboratorInvitation))),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -320,19 +340,6 @@ var nodeApp = node(
 					}
 
 					return entry, nil
-				},
-			},
-			"currentCollaboratorRole": &graphql.Field{
-				Type: graphql.NewNonNull(collaboratorRole),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					ctx := GQLContext(p.Context)
-					app := p.Source.(*model.App)
-					role, err := ctx.AuthzService.GetCurrentViewerCollaboratorRole(app.ID)
-					if err != nil {
-						return nil, err
-					}
-
-					return role, nil
 				},
 			},
 		},
