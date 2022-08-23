@@ -4,7 +4,6 @@ import (
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	featureweb3 "github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
@@ -28,9 +27,7 @@ var TaskDependencySet = wire.NewSet(
 	tasks.DependencySet,
 	mail.DependencySet,
 	sms.DependencySet,
-	featureweb3.DependencySet,
 	wire.Bind(new(tasks.MailSender), new(*mail.Sender)),
-	wire.Bind(new(tasks.NFTService), new(*featureweb3.Service)),
 
 	task.DependencySet,
 )
