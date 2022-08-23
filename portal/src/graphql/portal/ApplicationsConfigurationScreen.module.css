@@ -9,7 +9,7 @@
 }
 
 .mobileView {
-  @apply hidden mobile:display-initial;
+  @apply hidden mobile:block;
 }
 
 .columnHeader {
