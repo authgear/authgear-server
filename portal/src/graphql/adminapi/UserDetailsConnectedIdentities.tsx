@@ -144,19 +144,15 @@ interface ConfirmationDialogData {
 }
 
 const oauthIconMap: Record<OAuthSSOProviderType, React.ReactNode> = {
-  apple: <i className={cn("fab", "fa-apple", styles.widgetLabelIcon)} />,
-  google: <i className={cn("fab", "fa-google", styles.widgetLabelIcon)} />,
-  facebook: <i className={cn("fab", "fa-facebook", styles.widgetLabelIcon)} />,
-  github: <i className={cn("fab", "fa-github", styles.widgetLabelIcon)} />,
-  linkedin: <i className={cn("fab", "fa-linkedin", styles.widgetLabelIcon)} />,
-  azureadv2: (
-    <i className={cn("fab", "fa-microsoft", styles.widgetLabelIcon)} />
-  ),
-  azureadb2c: (
-    <i className={cn("fab", "fa-microsoft", styles.widgetLabelIcon)} />
-  ),
-  adfs: <i className={cn("fab", "fa-microsoft", styles.widgetLabelIcon)} />,
-  wechat: <i className={cn("fab", "fa-weixin", styles.widgetLabelIcon)} />,
+  apple: <i className={cn("fab", "fa-apple")} />,
+  google: <i className={cn("fab", "fa-google")} />,
+  facebook: <i className={cn("fab", "fa-facebook")} />,
+  github: <i className={cn("fab", "fa-github")} />,
+  linkedin: <i className={cn("fab", "fa-linkedin")} />,
+  azureadv2: <i className={cn("fab", "fa-microsoft")} />,
+  azureadb2c: <i className={cn("fab", "fa-microsoft")} />,
+  adfs: <i className={cn("fab", "fa-microsoft")} />,
+  wechat: <i className={cn("fab", "fa-weixin")} />,
 };
 
 const loginIdIconMap: Record<LoginIDIdentityType, React.ReactNode> = {
@@ -287,6 +283,7 @@ const VerifyButton: React.FC<VerifyButtonProps> = function VerifyButton(
 };
 
 const IdentityListCell: React.FC<IdentityListCellProps> =
+  // eslint-disable-next-line complexity
   function IdentityListCell(props: IdentityListCellProps) {
     const {
       identityID,
@@ -322,6 +319,9 @@ const IdentityListCell: React.FC<IdentityListCellProps> =
       },
       [setVerifiedStatus, claimName, claimValue]
     );
+
+    const shouldShowVerifyButton =
+      verified != null && setVerifiedStatus != null;
 
     return (
       <ListCellLayout className={styles.cellContainer}>
@@ -369,23 +369,29 @@ const IdentityListCell: React.FC<IdentityListCellProps> =
             />
           )}
         </Text>
-        {verified != null && setVerifiedStatus != null && (
-          <VerifyButton
-            verified={verified}
-            verifying={verifying}
-            toggleVerified={onVerifyClicked}
-          />
-        )}
-        {removeButtonTextId[identityType] !== "" && (
-          <DefaultButton
-            className={cn(styles.controlButton, styles.removeButton)}
-            disabled={settingVerifiedStatus}
-            theme={themes.destructive}
-            onClick={onRemoveClicked}
-          >
-            <FormattedMessage id={removeButtonTextId[identityType]} />
-          </DefaultButton>
-        )}
+        <div className={styles.buttonGroup}>
+          {shouldShowVerifyButton && (
+            <VerifyButton
+              verified={verified}
+              verifying={verifying}
+              toggleVerified={onVerifyClicked}
+            />
+          )}
+          {removeButtonTextId[identityType] !== "" && (
+            <DefaultButton
+              className={cn(
+                styles.controlButton,
+                styles.removeButton,
+                shouldShowVerifyButton ? "" : styles.removeButtonFull
+              )}
+              disabled={settingVerifiedStatus}
+              theme={themes.destructive}
+              onClick={onRemoveClicked}
+            >
+              <FormattedMessage id={removeButtonTextId[identityType]} />
+            </DefaultButton>
+          )}
+        </div>
       </ListCellLayout>
     );
   };
