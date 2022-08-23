@@ -17,6 +17,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 	"github.com/authgear/authgear-server/pkg/util/territoryutil"
+
+	web3util "github.com/authgear/authgear-server/pkg/util/web3"
 )
 
 func init() {
@@ -37,6 +39,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["x_custom_attribute_pointer"] = FormatCustomAttributePointer{}
 	jsonschemaformat.DefaultChecker["x_picture"] = FormatPicture{}
 	jsonschemaformat.DefaultChecker["google_tag_manager_container_id"] = FormatGoogleTagManagerContainerID{}
+	jsonschemaformat.DefaultChecker["x_web3_contract_id"] = FormatContractID{}
 }
 
 // FormatPhone checks if input is a phone number in E.164 format.
@@ -382,6 +385,21 @@ func (FormatGoogleTagManagerContainerID) CheckFormat(value interface{}) error {
 	}
 	if !strings.HasPrefix(str, "GTM-") {
 		return errors.New("expect google tag manager container ID to start with GTM-")
+	}
+
+	return nil
+}
+
+type FormatContractID struct{}
+
+func (FormatContractID) CheckFormat(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	if _, err := web3util.ParseContractID(str); err != nil {
+		return fmt.Errorf("invalid contract ID: %#v", str)
 	}
 
 	return nil
