@@ -13,7 +13,7 @@ const ScreenDescription: React.FC<ScreenDescriptionProps> =
     const { className, children } = props;
     return (
       <div
-        className={cn(className, styles.description, "mobile:col-span-full")}
+        className={cn(className, styles.description)}
         style={{ boxShadow: DefaultEffects.elevation4 }}
       >
         <Text>{children}</Text>

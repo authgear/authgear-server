@@ -10,6 +10,14 @@
   z-index: 9999;
 }
 
+.mobileView {
+  @apply desktop:hidden mobile:flex mobile:flex-row mobile:items-center mobile:text-white;
+}
+
+.desktopView {
+  @apply mobile:hidden desktop:flex desktop:flex-row desktop:items-center desktop:text-white;
+}
+
 .headerMobile {
   display: flex;
   justify-content: space-between;

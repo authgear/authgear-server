@@ -264,7 +264,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
         <ScreenDescription className={styles.widget}>
           <FormattedMessage id="ApplicationsConfigurationScreen.description" />
         </ScreenDescription>
-        <div className={cn(styles.widget, "mobile:col-span-full")}>
+        <div className={styles.widget}>
           {oauthClientsMaximum < 99 && (
             <FeatureDisabledMessageBar>
               <FormattedMessage
@@ -276,7 +276,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
               />
             </FeatureDisabledMessageBar>
           )}
-          <div className="mobile:hidden">
+          <div className={styles.desktopView}>
             <DetailsList
               onRenderRow={onRenderOAuthClientRow}
               className={styles.clientList}
@@ -286,7 +286,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
               onRenderItemColumn={onRenderOAuthClientColumns}
             />
           </div>
-          <div className="hidden mobile:display-initial">
+          <div className={styles.mobileView}>
             <ClientCardList
               className={styles.clientList}
               items={state.clients}

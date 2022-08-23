@@ -7,6 +7,8 @@
   display: flex;
   flex-direction: row;
   column-gap: 20px;
+
+  @apply mobile:flex-col;
 }
 
 .costItemTitle {
@@ -36,6 +38,8 @@
 
 .usageMeterProgressBar {
   width: 355px;
+
+  @apply mobile:w-full;
 }
 
 .subscriptionManagement {

@@ -232,7 +232,7 @@ const ScreenHeader: React.FC<ScreenNavProps> = function ScreenHeader(props) {
 
   return (
     <header className={styles.header} style={headerStyle}>
-      <div className="desktop:hidden mobile:flex mobile:flex-row mobile:items-center mobile:text-white">
+      <div className={styles.mobileView}>
         <MobileViewHeaderIconSection
           showHamburger={showHamburger}
           onClick={openNavbar}
@@ -248,7 +248,7 @@ const ScreenHeader: React.FC<ScreenNavProps> = function ScreenHeader(props) {
           onRenderBody={MobileViewNavbarBody}
         />
       </div>
-      <div className="mobile:hidden desktop:flex desktop:flex-row desktop:items-center desktop:text-white">
+      <div className={styles.desktopView}>
         <DesktopViewHeaderIconSection />
         {appID && <DesktopViewHeaderAppSection appID={appID} />}
       </div>

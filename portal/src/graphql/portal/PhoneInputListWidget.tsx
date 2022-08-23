@@ -494,10 +494,7 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> =
     return (
       <div className={cn(styles.root, className)}>
         <SearchBox
-          className={cn(
-            styles.searchBox,
-            "desktop:self-end mobile:self-auto mobile:w-auto"
-          )}
+          className={styles.searchBox}
           placeholder={renderToString("search")}
           value={searchString}
           onChange={onSearchBoxChange}
@@ -507,7 +504,7 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> =
         <div className={styles.listWrapper}>
           <ScrollablePane>
             <DetailsList
-              className={cn(styles.detailsList, "mobile:overflow-auto")}
+              className={styles.detailsList}
               columns={countryCodeListColumns}
               items={filteredItems}
               selectionMode={SelectionMode.none}

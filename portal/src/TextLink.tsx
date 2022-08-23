@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { Context } from "@oursky/react-messageformat";
 import { Label, Text, Link } from "@fluentui/react";
+import styles from "./TextLink.module.css";
 
 export interface TextLinkProps {
   className?: string;
@@ -16,7 +17,7 @@ const TextLink: React.FC<TextLinkProps> = function TextLink(props) {
     <div className={className}>
       <Label>{label}</Label>
       {value != null && value !== "" ? (
-        <Link className="mobile:break-words" href={value} target="_blank">
+        <Link className={styles.link} href={value} target="_blank">
           {value}
         </Link>
       ) : (

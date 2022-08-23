@@ -370,25 +370,14 @@ const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> =
     return (
       <ScreenContent>
         <EditOAuthClientNavBreadcrumb clientName={client.name ?? ""} />
-        <div
-          className={cn(
-            styles.widget,
-            styles.widgetColumn,
-            "mobile:col-span-full"
-          )}
-        >
+        <div className={cn(styles.widget, styles.widgetColumn)}>
           <EditOAuthClientForm
             publicOrigin={state.publicOrigin}
             clientConfig={client}
             onClientConfigChange={onClientConfigChange}
           />
         </div>
-        <div
-          className={cn(
-            styles.quickStartColumn,
-            "mobile:static mobile:col-span-full mobile:row-start-2 mobile:h-auto mobile:top-auto"
-          )}
-        >
+        <div className={styles.quickStartColumn}>
           <Widget>
             <div className={styles.quickStartWidget}>
               <Text className={styles.quickStartWidgetTitle}>

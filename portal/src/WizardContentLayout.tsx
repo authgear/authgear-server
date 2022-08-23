@@ -53,7 +53,6 @@ export function WizardDescription(
 ): React.ReactElement {
   return <Text block={true}>{props.children}</Text>;
 }
-import cn from "classnames";
 
 export interface WizardContentLayoutProps {
   primaryButton?: React.ReactNode;
@@ -94,12 +93,7 @@ export default function WizardContentLayout(
   }, [makeGTMEventDataAttributes, trackSkipButtonEventData]);
 
   return (
-    <div
-      className={cn(
-        styles.root,
-        "desktop:grid-cols-[repeat(6,_80px)] mobile:grid-cols-6"
-      )}
-    >
+    <div className={styles.root}>
       <div
         className={styles.content}
         style={{ boxShadow: DefaultEffects.elevation4 }}

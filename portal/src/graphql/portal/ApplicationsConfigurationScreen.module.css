@@ -1,5 +1,15 @@
 .widget {
   grid-column: 1 / span 9;
+
+  @apply mobile:col-span-full;
+}
+
+.desktopView {
+  @apply mobile:hidden;
+}
+
+.mobileView {
+  @apply hidden mobile:display-initial;
 }
 
 .columnHeader {

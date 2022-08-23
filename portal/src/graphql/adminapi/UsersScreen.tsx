@@ -27,7 +27,6 @@ import {
 import { UserSortBy, SortDirection } from "./globalTypes.generated";
 import ShowError from "../../ShowError";
 import useDelayedValue from "../../hook/useDelayedValue";
-import cn from "classnames";
 
 import styles from "./UsersScreen.module.css";
 import { onRenderCommandBarPrimaryButton } from "../../CommandBarPrimaryButton";
@@ -87,7 +86,7 @@ const UsersScreen: React.FC = function UsersScreen() {
 
   const localSearchBoxProps: LocalSearchBoxProps = useMemo(() => {
     return {
-      className: cn(styles.searchBox, "mobile:w-auto"),
+      className: styles.searchBox,
       placeholder: renderToString("search"),
       value: searchKeyword,
       onChange: onChangeSearchKeyword,

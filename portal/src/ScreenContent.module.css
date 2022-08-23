@@ -9,3 +9,7 @@
   grid-template-columns: repeat(12, minmax(0, 1fr));
   grid-template-rows: auto 1fr;
 }
+
+.autoRows {
+  @apply grid-cols-[repeat(12,_80px)] auto-cols-auto mobile:grid-cols-12 !important;
+}

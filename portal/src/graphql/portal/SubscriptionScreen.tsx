@@ -794,7 +794,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
           <Text block={true} variant="xLarge">
             <FormattedMessage id="SubscriptionScreen.cards.title" />
           </Text>
-          <div className={cn(styles.cards, "mobile:grid-flow-row")}>
+          <div className={styles.cards}>
             {PAID_PLANS.map((paidPlanName) => {
               const plan = subscriptionPlans.find(
                 (plan) => plan.name === paidPlanName

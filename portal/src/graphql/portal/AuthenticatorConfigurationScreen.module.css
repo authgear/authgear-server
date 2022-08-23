@@ -1,5 +1,7 @@
 .widget {
   grid-column: 1 / span 6;
+
+  @apply mobile:col-span-full;
 }
 
 .authenticatorColumn {

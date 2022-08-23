@@ -1,5 +1,7 @@
 .widget {
   grid-column: 1 / span 10;
+
+  @apply mobile:col-span-full;
 }
 
 .control {

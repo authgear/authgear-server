@@ -661,17 +661,11 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
 
     return (
       <ScreenContent>
-        <div
-          className={cn(
-            styles.titleContainer,
-            "mobile:flex-col mobile:items-stretch mobile:col-span-full mobile:gap-y-5"
-          )}
-        >
-          <ScreenTitle className="mobile:w-full">
+        <div className={styles.titleContainer}>
+          <ScreenTitle>
             <FormattedMessage id="UISettingsScreen.title" />
           </ScreenTitle>
           <ManageLanguageWidget
-            className="mobile:w-full"
             supportedLanguages={supportedLanguages}
             selectedLanguage={state.selectedLanguage}
             fallbackLanguage={state.fallbackLanguage}

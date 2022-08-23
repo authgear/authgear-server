@@ -23,6 +23,8 @@
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
   grid-template-rows: auto;
+
+  @apply mobile:grid-flow-row;
 }
 
 .footer {

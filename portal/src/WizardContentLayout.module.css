@@ -5,10 +5,11 @@
   row-gap: 20px;
   grid-auto-rows: auto;
   align-self: center;
+
+  @apply desktop:grid-cols-[repeat(6,_80px)] mobile:grid-cols-6;
 }
 
 .content {
-  grid-column: 1 / span 6;
   margin-top: 24px;
   padding: 16px;
   display: grid;
@@ -16,6 +17,9 @@
   grid-template-columns: auto;
   grid-auto-rows: auto;
   background-color: white;
+
+  grid-column: 1 / span 6;
+  @apply mobile:col-span-full;
 }
 
 .title {
@@ -30,6 +34,8 @@
 }
 
 .skip {
-  grid-column: 1 / span 6;
   font-size: smaller;
+
+  grid-column: 1 / span 6;
+  @apply mobile:col-span-full;
 }
