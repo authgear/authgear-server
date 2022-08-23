@@ -15,7 +15,6 @@ import {
   DefaultButton,
   DialogFooter,
   ICommandBarItemProps,
-  PrimaryButton,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
@@ -48,6 +47,7 @@ import {
   AuthgearGTMEventType,
   useMakeAuthgearGTMEventDataAttributes,
 } from "../../GTMProvider";
+import PrimaryButton from "../../PrimaryButton";
 
 interface FormState {
   publicOrigin: string;

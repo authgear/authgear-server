@@ -4,11 +4,11 @@ import {
   Dialog,
   DialogType,
   DialogFooter,
-  PrimaryButton,
   DefaultButton,
   IDialogProps,
   IButtonProps,
 } from "@fluentui/react";
+import PrimaryButton from "./PrimaryButton";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "./context/SystemConfigContext";
 

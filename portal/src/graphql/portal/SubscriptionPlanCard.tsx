@@ -2,7 +2,6 @@ import React, { useState, useCallback, useMemo, useContext } from "react";
 import {
   useTheme,
   Text,
-  PrimaryButton,
   DefaultButton,
   ThemeProvider,
   PartialTheme,
@@ -21,6 +20,7 @@ import { useLoading, useIsLoading } from "../../hook/loading";
 import { usePreviewUpdateSubscriptionMutation } from "./mutations/previewUpdateSubscriptionMutation";
 import ErrorDialog from "../../error/ErrorDialog";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import PrimaryButton from "../../PrimaryButton";
 
 interface CardProps {
   isActive: boolean;

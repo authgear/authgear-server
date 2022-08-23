@@ -50,6 +50,10 @@
       }, {
         "name": "@elgorditosalsero/react-gtm-hook",
         "message": "Please import \"GTMProvider\" from ./src/GTMProvider instead."
+      }, {
+        "name": "@fluentui/react",
+        "importNames": ["PrimaryButton"],
+        "message": "Please import \"PrimaryButton\" from ./src/PrimaryButton instead."
       }]
     }]
   }

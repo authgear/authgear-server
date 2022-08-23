@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import produce from "immer";
 import cn from "classnames";
-import { Text, PrimaryButton } from "@fluentui/react";
+import { Text } from "@fluentui/react";
 import FormContainer from "../../FormContainer";
 import {
   AppConfigFormModel,
@@ -23,6 +23,7 @@ import {
 import { parseJSONPointer } from "../../util/jsonpointer";
 import styles from "./CustomAttributesConfigurationScreen.module.css";
 import { onRenderCommandBarPrimaryButton } from "../../CommandBarPrimaryButton";
+import PrimaryButton from "../../PrimaryButton";
 
 interface FormState {
   items: CustomAttributesAttributeConfig[];

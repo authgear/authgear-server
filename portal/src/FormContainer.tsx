@@ -4,7 +4,6 @@ import {
   Dialog,
   DialogFooter,
   ICommandBarItemProps,
-  PrimaryButton,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "./context/SystemConfigContext";
@@ -14,6 +13,7 @@ import { FormProvider } from "./form";
 import { ErrorParseRule } from "./error/parse";
 import { FormErrorMessageBar } from "./FormErrorMessageBar";
 import { onRenderCommandBarPrimaryButton } from "./CommandBarPrimaryButton";
+import PrimaryButton from "./PrimaryButton";
 
 export interface FormModel {
   updateError: unknown;

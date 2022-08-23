@@ -3,12 +3,12 @@ import {
   DefaultButton,
   Dialog,
   DialogFooter,
-  PrimaryButton,
 } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import React, { useMemo } from "react";
 import styles from "./DateRangeDialog.module.css";
 import TextField from "../../TextField";
+import PrimaryButton from "../../PrimaryButton";
 
 interface DateRangeDialogProps {
   hidden: boolean;

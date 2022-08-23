@@ -6,7 +6,6 @@ import {
   Label,
   IconButton,
   Icon,
-  PrimaryButton,
   SelectionMode,
   Text,
   IDropdownOption,
@@ -17,6 +16,7 @@ import {
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import Widget from "./Widget";
 import FormTextField from "./FormTextField";
+import PrimaryButton from "./PrimaryButton";
 import { parseJSONPointer, jsonPointerToString } from "./util/jsonpointer";
 import { checkNumberInput, checkIntegerInput } from "./util/input";
 import {

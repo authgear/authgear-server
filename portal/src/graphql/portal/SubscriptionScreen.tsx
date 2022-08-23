@@ -11,7 +11,6 @@ import { DateTime } from "luxon";
 import {
   Text,
   DefaultEffects,
-  PrimaryButton,
   Dialog,
   DialogType,
   DialogFooter,
@@ -62,6 +61,7 @@ import { useSetSubscriptionCancelledStatusMutation } from "./mutations/setSubscr
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import ErrorDialog from "../../error/ErrorDialog";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
+import PrimaryButton from "../../PrimaryButton";
 
 const ALL_KNOWN_PLANS = ["free", "developers", "startups", "business"];
 const PAID_PLANS = ALL_KNOWN_PLANS.slice(1);

@@ -8,11 +8,11 @@ import {
   MessageBar,
   MessageBarButton,
   MessageBarType,
-  PrimaryButton,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import styles from "./ModifiedIndicator.module.css";
+import PrimaryButton from "./PrimaryButton";
 
 export interface ModifiedIndicatorProps {
   className?: string;

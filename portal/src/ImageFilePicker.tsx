@@ -1,12 +1,13 @@
 import React, { useMemo, useRef, useCallback } from "react";
 import cn from "classnames";
-import { Image, DefaultButton, PrimaryButton, ImageFit } from "@fluentui/react";
+import { Image, DefaultButton, ImageFit } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import {
   base64EncodedDataToDataURI,
   dataURIToBase64EncodedData,
 } from "./util/uri";
+import PrimaryButton from "./PrimaryButton";
 
 import styles from "./ImageFilePicker.module.css";
 

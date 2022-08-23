@@ -8,7 +8,6 @@ import {
   Image,
   Label,
   Toggle,
-  PrimaryButton,
   DefaultButton,
   DefaultEffects,
   Dialog,
@@ -41,6 +40,7 @@ import {
 } from "./mutations/sendTestEmail";
 import logoSendgrid from "../../images/sendgrid_logo.png";
 import styles from "./SMTPConfigurationScreen.module.css";
+import PrimaryButton from "../../PrimaryButton";
 
 type ProviderType = "sendgrid" | "custom";
 

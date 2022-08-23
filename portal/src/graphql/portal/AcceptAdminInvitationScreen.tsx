@@ -1,11 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import authgear from "@authgear/web";
-import {
-  DefaultButton,
-  PrimaryButton,
-  Text,
-  DefaultEffects,
-} from "@fluentui/react";
+import { DefaultButton, Text, DefaultEffects } from "@fluentui/react";
 import {
   Context,
   FormattedMessage,
@@ -26,6 +21,7 @@ import {
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import { useAuthenticatedForInvitationQuery } from "./query/authenticatedForInvitationQuery";
+import PrimaryButton from "../../PrimaryButton";
 
 function encodeOAuthState(state: Record<string, unknown>): string {
   return btoa(JSON.stringify(state));

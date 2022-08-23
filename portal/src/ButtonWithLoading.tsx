@@ -2,10 +2,10 @@ import React, { useContext, useMemo } from "react";
 import {
   IButtonProps,
   ISpinnerProps,
-  PrimaryButton,
   Spinner,
   SpinnerSize,
 } from "@fluentui/react";
+import PrimaryButton from "./PrimaryButton";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "./context/SystemConfigContext";
 

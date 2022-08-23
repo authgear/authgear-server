@@ -7,7 +7,6 @@ import {
   IDropdownOption,
   ISelectableOption,
   Label,
-  PrimaryButton,
 } from "@fluentui/react";
 import produce from "immer";
 import ShowError from "../../ShowError";
@@ -40,6 +39,7 @@ import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useErrorMessage, useErrorMessageString } from "../../formbinding";
 import TextField from "../../TextField";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
+import PrimaryButton from "../../PrimaryButton";
 
 interface BlockingEventHandler {
   event: string;

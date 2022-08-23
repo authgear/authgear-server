@@ -1,7 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import {
   DefaultButton,
-  PrimaryButton,
   Dialog,
   DialogFooter,
   IDialogContentProps,
@@ -12,6 +11,7 @@ import { useSetDisabledStatusMutation } from "./mutations/setDisabledStatusMutat
 import { useUnscheduleAccountDeletionMutation } from "./mutations/unscheduleAccountDeletion";
 import ErrorDialog from "../../error/ErrorDialog";
 import { extractRawID } from "../../util/graphql";
+import PrimaryButton from "../../PrimaryButton";
 
 interface SetUserDisabledDialogProps {
   isHidden: boolean;
