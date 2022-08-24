@@ -26,3 +26,8 @@ var UserCustomAttributes = graphqlutil.NewJSONObjectScalar(
 	"UserCustomAttributes",
 	"The `UserCustomAttributes` scalar type represents the custom attributes of the user",
 )
+
+var Web3Claims = graphqlutil.NewJSONObjectScalar(
+	"Web3Claims",
+	"The `Web3Claims` scalar type represents the scalar type of the user",
+)

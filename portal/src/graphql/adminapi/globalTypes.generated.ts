@@ -22,6 +22,8 @@ export type Scalars = {
   UserCustomAttributes: GQL_UserCustomAttributes;
   /** The `UserStandardAttributes` scalar type represents the standard attributes of the user */
   UserStandardAttributes: GQL_UserStandardAttributes;
+  /** The `Web3Claims` scalar type represents the scalar type of the user */
+  Web3Claims: any;
 };
 
 /** Audit log */
@@ -605,6 +607,7 @@ export type User = Entity & Node & {
   /** The update time of entity */
   updatedAt: Scalars['DateTime'];
   verifiedClaims: Array<Claim>;
+  web3: Scalars['Web3Claims'];
 };
 
 
