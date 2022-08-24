@@ -66,6 +66,10 @@
         "name": "@fluentui/react",
         "importNames": ["ActionButton"],
         "message": "Please import \"ActionButton\" from ./src/ActionButton instead."
+      }, {
+        "name": "@fluentui/react",
+        "importNames": ["CommandBarButton"],
+        "message": "Please import \"CommandBarButton\" from ./src/CommandBarButton instead."
       }]
     }]
   }

@@ -16,7 +16,6 @@ import {
   TooltipHost,
   ITooltipHostStyles,
   ITooltipProps,
-  CommandBarButton,
   DirectionalHint,
   IContextualMenuItem,
 } from "@fluentui/react";
@@ -41,6 +40,7 @@ import { AuditLogActivityType, SortDirection } from "./globalTypes.generated";
 import styles from "./AuditLogScreen.module.css";
 import { useAppFeatureConfigQuery } from "../portal/query/appFeatureConfigQuery";
 import FeatureDisabledMessageBar from "../portal/FeatureDisabledMessageBar";
+import CommandBarButton from "../../CommandBarButton";
 
 const pageSize = 10;
 

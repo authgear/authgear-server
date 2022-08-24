@@ -1,11 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useConst } from "@fluentui/react-hooks";
-import {
-  CommandBarButton,
-  ICommandBarItemProps,
-  Text,
-  useTheme,
-} from "@fluentui/react";
+import { ICommandBarItemProps, Text, useTheme } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useAnalyticChartsQuery } from "./query/analyticChartsQuery";
@@ -23,6 +18,7 @@ import DateRangeDialog from "./DateRangeDialog";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { parseDate } from "../../util/date";
 import ScreenDescription from "../../ScreenDescription";
+import CommandBarButton from "../../CommandBarButton";
 
 function truncateTimeAndReplaceTimezoneToUTC(date: Date): Date {
   return new Date(
@@ -32,22 +28,24 @@ function truncateTimeAndReplaceTimezoneToUTC(date: Date): Date {
 
 const CommandBarLabelValue = (label: string, value: string) => {
   return (props: ICommandBarItemProps) => {
-    const { commandBarButtonProps } = props;
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const theme = useTheme();
     return (
       <CommandBarButton
+        {...props.commandBarButtonProps}
         className={styles.commandBarButtonLabelValue}
-        {...commandBarButtonProps}
-      >
-        <span className={styles.label}>{label}</span>
-        <span
-          className={styles.value}
-          style={{ color: theme.palette.neutralTertiary }}
-        >
-          {value}
-        </span>
-      </CommandBarButton>
+        text={
+          <>
+            <span className={styles.label}>{label}</span>
+            <span
+              className={styles.value}
+              style={{ color: theme.palette.neutralTertiary }}
+            >
+              {value}
+            </span>
+          </>
+        }
+      />
     );
   };
 };
