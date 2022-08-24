@@ -741,6 +741,9 @@ type User implements Entity & Node {
 
   """"""
   verifiedClaims: [Claim!]!
+
+  """"""
+  web3: Web3Claims!
 }
 
 """A connection to a list of items."""
@@ -782,3 +785,6 @@ enum UserSortBy {
 The `UserStandardAttributes` scalar type represents the standard attributes of the user
 """
 scalar UserStandardAttributes
+
+"""The `Web3Claims` scalar type represents the scalar type of the user"""
+scalar Web3Claims
