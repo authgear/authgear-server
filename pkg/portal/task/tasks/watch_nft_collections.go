@@ -53,17 +53,17 @@ func (t *WatchNFTCollectionsTask) Run(ctx context.Context, param task.Param) (er
 		return err
 	}
 
-	nftConfig := appCtx.Config.AppConfig.NFT
-	if nftConfig == nil {
+	web3Config := appCtx.Config.AppConfig.Web3
+	if web3Config == nil || web3Config.NFT == nil {
 		t.Logger.Info("no NFTConfig found, skipping task")
 		return
 	}
 
-	if len(nftConfig.Collections) == 0 {
+	if len(web3Config.NFT.Collections) == 0 {
 		t.Logger.Info("no collections found in config, skipping task")
 		return
 	}
-	for _, collection := range nftConfig.Collections {
+	for _, collection := range web3Config.NFT.Collections {
 		contractID, err := web3util.ParseContractID(collection)
 		if err != nil {
 			t.Logger.WithError(err).WithFields(logrus.Fields{

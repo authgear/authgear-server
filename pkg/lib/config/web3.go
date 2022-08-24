@@ -21,3 +21,17 @@ var _ = Schema.Add("NFTConfig", `
 type NFTConfig struct {
 	Collections []string `json:"collections,omitempty"`
 }
+
+var _ = Schema.Add("Web3Config", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"nft": { "$ref": "#/$defs/NFTConfig" }
+	}
+}
+`)
+
+type Web3Config struct {
+	NFT *NFTConfig `json:"nft,omitempty"`
+}

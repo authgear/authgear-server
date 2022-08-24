@@ -516,6 +516,7 @@ verification:
   email:
     message:
       subject: Email Verification Instruction
-nft:
-  collections:
+web3:
+  nft:
+    collections:
 google_tag_manager: {}
