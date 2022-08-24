@@ -460,9 +460,10 @@ const OAuthQuickStartScreenContent: React.VFC<OAuthQuickStartScreenContentProps>
               showOpenTutorialLabelWhenHover={true}
             />
             <div className={styles.quickStartScreenButtons}>
-              <PrimaryButton onClick={onNextButtonClick}>
-                <FormattedMessage id="next" />
-              </PrimaryButton>
+              <PrimaryButton
+                onClick={onNextButtonClick}
+                text={<FormattedMessage id="next" />}
+              />
             </div>
           </Widget>
         </ScreenContent>

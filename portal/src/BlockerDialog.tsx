@@ -53,9 +53,11 @@ const BlockerDialog: React.VFC<BlockerDialogProps> = function BlockerDialog(
       {...rest}
     >
       <DialogFooter>
-        <PrimaryButton onClick={onDialogConfirm} theme={themes.destructive}>
-          <FormattedMessage id={contentConfirmId ?? "confirm"} />
-        </PrimaryButton>
+        <PrimaryButton
+          onClick={onDialogConfirm}
+          theme={themes.destructive}
+          text={<FormattedMessage id={contentConfirmId ?? "confirm"} />}
+        />
         <DefaultButton onClick={onDialogDismiss}>
           <FormattedMessage id={contentCancelId ?? "cancel"} />
         </DefaultButton>

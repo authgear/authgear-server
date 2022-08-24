@@ -708,9 +708,10 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
                 menuIcon: { paddingLeft: "3px" },
                 icon: { paddingRight: "3px" },
               }}
-            >
-              <FormattedMessage id="UserDetails.connected-identities.add-identity" />
-            </PrimaryButton>
+              text={
+                <FormattedMessage id="UserDetails.connected-identities.add-identity" />
+              }
+            />
           </section>
           <section className={styles.identityLists}>
             {identityLists.oauth.length > 0 ? (

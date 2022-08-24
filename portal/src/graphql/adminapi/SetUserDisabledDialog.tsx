@@ -137,9 +137,12 @@ const SetUserDisabledDialog: React.VFC<SetUserDisabledDialogProps> = React.memo(
           styles={dialogStyles}
         >
           <DialogFooter>
-            <PrimaryButton theme={theme} disabled={loading} onClick={onConfirm}>
-              {children}
-            </PrimaryButton>
+            <PrimaryButton
+              theme={theme}
+              disabled={loading}
+              onClick={onConfirm}
+              text={children}
+            />
             <DefaultButton onClick={onDialogDismiss} disabled={loading}>
               <FormattedMessage id="cancel" />
             </DefaultButton>

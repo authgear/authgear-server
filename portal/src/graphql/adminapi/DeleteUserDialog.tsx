@@ -95,17 +95,19 @@ const DeleteUserDialog: React.VFC<DeleteUserDialogProps> = React.memo(
               <PrimaryButton
                 onClick={onClickScheduleDeletion}
                 disabled={loading}
-              >
-                <FormattedMessage id="DeleteUserDialog.label.schedule-removal" />
-              </PrimaryButton>
+                text={
+                  <FormattedMessage id="DeleteUserDialog.label.schedule-removal" />
+                }
+              />
             ) : null}
             <PrimaryButton
               theme={themes.destructive}
               onClick={onClickRemove}
               disabled={loading}
-            >
-              <FormattedMessage id="DeleteUserDialog.label.remove-immediately" />
-            </PrimaryButton>
+              text={
+                <FormattedMessage id="DeleteUserDialog.label.remove-immediately" />
+              }
+            />
             <DefaultButton onClick={onDialogDismiss} disabled={loading}>
               <FormattedMessage id="cancel" />
             </DefaultButton>

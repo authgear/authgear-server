@@ -219,9 +219,10 @@ function Step1(props: StepProps) {
       appID={appID}
       backButtonDisabled={true}
       primaryButton={
-        <PrimaryButton onClick={onClickNext}>
-          <FormattedMessage id="next" />
-        </PrimaryButton>
+        <PrimaryButton
+          onClick={onClickNext}
+          text={<FormattedMessage id="next" />}
+        />
       }
       trackSkipButtonClick={true}
       trackSkipButtonEventData={trackSkipButtonEventData}
@@ -311,9 +312,10 @@ function Step2(props: StepProps) {
     <WizardContentLayout
       appID={appID}
       primaryButton={
-        <PrimaryButton onClick={onClickNext}>
-          <FormattedMessage id="next" />
-        </PrimaryButton>
+        <PrimaryButton
+          onClick={onClickNext}
+          text={<FormattedMessage id="next" />}
+        />
       }
       trackSkipButtonClick={true}
       trackSkipButtonEventData={trackSkipButtonEventData}
@@ -489,9 +491,10 @@ function Step3(props: StepProps) {
     <WizardContentLayout
       appID={appID}
       primaryButton={
-        <PrimaryButton onClick={onClickNext}>
-          <FormattedMessage id="next" />
-        </PrimaryButton>
+        <PrimaryButton
+          onClick={onClickNext}
+          text={<FormattedMessage id="next" />}
+        />
       }
       trackSkipButtonClick={true}
       trackSkipButtonEventData={trackSkipButtonEventData}

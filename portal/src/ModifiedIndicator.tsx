@@ -80,9 +80,10 @@ export const ModifiedIndicator: React.VFC<ModifiedIndicatorProps> =
           onDismiss={dismissConfirmDialog}
         >
           <DialogFooter>
-            <PrimaryButton onClick={onConfirmClicked}>
-              <FormattedMessage id="confirm" />
-            </PrimaryButton>
+            <PrimaryButton
+              onClick={onConfirmClicked}
+              text={<FormattedMessage id="confirm" />}
+            />
             <DefaultButton onClick={dismissConfirmDialog}>
               <FormattedMessage id="cancel" />
             </DefaultButton>

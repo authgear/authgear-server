@@ -68,9 +68,13 @@ function EmptyState() {
       <Text className={styles.emptyStateMessage} block={true}>
         <FormattedMessage id="CustomAttributesConfigurationScreen.empty-message" />
       </Text>
-      <PrimaryButton className={styles.addNewAttributeButton} onClick={onClick}>
-        <FormattedMessage id="CustomAttributesConfigurationScreen.label.add-new-attribute" />
-      </PrimaryButton>
+      <PrimaryButton
+        className={styles.addNewAttributeButton}
+        onClick={onClick}
+        text={
+          <FormattedMessage id="CustomAttributesConfigurationScreen.label.add-new-attribute" />
+        }
+      />
     </div>
   );
 }

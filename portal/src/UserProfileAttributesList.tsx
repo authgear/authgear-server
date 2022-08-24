@@ -635,9 +635,10 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
         dialogContentProps={pendingUpdateDialogContentProps}
       >
         <DialogFooter>
-          <PrimaryButton onClick={onClickConfirmPendingUpdate}>
-            <FormattedMessage id="confirm" />
-          </PrimaryButton>
+          <PrimaryButton
+            onClick={onClickConfirmPendingUpdate}
+            text={<FormattedMessage id="confirm" />}
+          />
           <DefaultButton onClick={onDismissPendingUpdateDialog}>
             <FormattedMessage id="cancel" />
           </DefaultButton>

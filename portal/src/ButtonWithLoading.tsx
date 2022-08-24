@@ -38,19 +38,23 @@ const ButtonWithLoading: React.VFC<ButtonWithLoadingProps> =
     }, [disabled, props.theme, themes.main]);
 
     return (
-      <PrimaryButton disabled={disabled} {...rest}>
-        {loading ? (
-          <Spinner
-            label={renderToString(loadingLabelId ?? labelId)}
-            size={SpinnerSize.xSmall}
-            styles={spinnerStyles ?? { label: { color: textColor } }}
-            ariaLive="assertive"
-            labelPosition="left"
-          />
-        ) : (
-          <FormattedMessage id={labelId} />
-        )}
-      </PrimaryButton>
+      <PrimaryButton
+        {...rest}
+        disabled={disabled}
+        text={
+          loading ? (
+            <Spinner
+              label={renderToString(loadingLabelId ?? labelId)}
+              size={SpinnerSize.xSmall}
+              styles={spinnerStyles ?? { label: { color: textColor } }}
+              ariaLive="assertive"
+              labelPosition="left"
+            />
+          ) : (
+            <FormattedMessage id={labelId} />
+          )
+        }
+      />
     );
   };
 

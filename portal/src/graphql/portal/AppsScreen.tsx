@@ -71,9 +71,11 @@ const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
             return <AppCard key={appCardData.appID} {...appCardData} />;
           })}
         </section>
-        <PrimaryButton className={styles.createButton} onClick={onCreateClick}>
-          <FormattedMessage id="AppsScreen.create-app" />
-        </PrimaryButton>
+        <PrimaryButton
+          className={styles.createButton}
+          onClick={onCreateClick}
+          text={<FormattedMessage id="AppsScreen.create-app" />}
+        />
       </section>
     </main>
   );

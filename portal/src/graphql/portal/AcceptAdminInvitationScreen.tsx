@@ -204,11 +204,13 @@ const AcceptAdminInvitationScreen: React.VFC =
             { id: "AcceptAdminInvitationScreen.invalid-code.description" },
           ]}
         >
-          <PrimaryButton className={styles.loginButton} onClick={goToHome}>
-            {renderToString(
+          <PrimaryButton
+            className={styles.loginButton}
+            onClick={goToHome}
+            text={renderToString(
               "AcceptAdminInvitationScreen.continue-to-authgear.label"
             )}
-          </PrimaryButton>
+          />
         </AcceptAdminInvitationContent>
       );
     }
@@ -227,9 +229,8 @@ const AcceptAdminInvitationScreen: React.VFC =
           <PrimaryButton
             className={styles.loginButton}
             onClick={() => goToAuth("login")}
-          >
-            {renderToString("AcceptAdminInvitationScreen.login.label")}
-          </PrimaryButton>
+            text={renderToString("AcceptAdminInvitationScreen.login.label")}
+          />
           <DefaultButton
             className={styles.createAccountButton}
             onClick={() => goToAuth("signup")}
@@ -253,11 +254,10 @@ const AcceptAdminInvitationScreen: React.VFC =
           <PrimaryButton
             className={styles.loginButton}
             onClick={() => goToAuth("login")}
-          >
-            {renderToString(
+            text={renderToString(
               "AcceptAdminInvitationScreen.login-with-another-user.label"
             )}
-          </PrimaryButton>
+          />
         </AcceptAdminInvitationContent>
       );
     }

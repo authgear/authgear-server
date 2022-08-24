@@ -130,9 +130,8 @@ const ImageFilePicker: React.VFC<ImageFilePickerProps> =
             onClick={onClickRemoveImage}
             theme={themes.destructive}
             disabled={disabled}
-          >
-            <FormattedMessage id={"ImageFilePicker.remove"} />
-          </PrimaryButton>
+            text={<FormattedMessage id={"ImageFilePicker.remove"} />}
+          />
         ) : (
           <DefaultButton
             className={styles.button}

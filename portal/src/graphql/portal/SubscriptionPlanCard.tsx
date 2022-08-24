@@ -377,9 +377,8 @@ export function CTA(props: CTAProps): React.ReactElement {
           className={styles.cta}
           onClick={onClickSubscribe}
           disabled={disabled}
-        >
-          <FormattedMessage id="SubscriptionPlanCard.label.subscribe" />
-        </PrimaryButton>
+          text={<FormattedMessage id="SubscriptionPlanCard.label.subscribe" />}
+        />
       );
     case "upgrade":
       return (
@@ -393,9 +392,10 @@ export function CTA(props: CTAProps): React.ReactElement {
               <PrimaryButton
                 onClick={onClickConfirmUpgrade}
                 disabled={isLoading}
-              >
-                <FormattedMessage id="SubscriptionPlanCard.label.upgrade" />
-              </PrimaryButton>
+                text={
+                  <FormattedMessage id="SubscriptionPlanCard.label.upgrade" />
+                }
+              />
               <DefaultButton onClick={onDismiss}>
                 <FormattedMessage id="cancel" />
               </DefaultButton>
@@ -405,9 +405,8 @@ export function CTA(props: CTAProps): React.ReactElement {
             className={styles.cta}
             onClick={onClickUpgrade}
             disabled={disabled}
-          >
-            <FormattedMessage id="SubscriptionPlanCard.label.upgrade" />
-          </PrimaryButton>
+            text={<FormattedMessage id="SubscriptionPlanCard.label.upgrade" />}
+          />
         </>
       );
     case "downgrade":
@@ -423,9 +422,10 @@ export function CTA(props: CTAProps): React.ReactElement {
                 onClick={onClickConfirmDowngrade}
                 theme={destructive}
                 disabled={isLoading}
-              >
-                <FormattedMessage id="SubscriptionPlanCard.label.downgrade" />
-              </PrimaryButton>
+                text={
+                  <FormattedMessage id="SubscriptionPlanCard.label.downgrade" />
+                }
+              />
               <DefaultButton onClick={onDismiss}>
                 <FormattedMessage id="cancel" />
               </DefaultButton>
@@ -490,9 +490,10 @@ export function CTA(props: CTAProps): React.ReactElement {
             className={styles.cta}
             onClick={onClickReactivate}
             disabled={disabled}
-          >
-            <FormattedMessage id="SubscriptionPlanCard.label.reactivate" />
-          </PrimaryButton>
+            text={
+              <FormattedMessage id="SubscriptionPlanCard.label.reactivate" />
+            }
+          />
         </>
       );
   }

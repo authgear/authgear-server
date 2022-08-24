@@ -495,9 +495,10 @@ const PasswordAuthenticatorCell: React.VFC<PasswordAuthenticatorCellProps> =
           <PrimaryButton
             className={cn(styles.button, styles.resetPasswordButton)}
             onClick={onResetPasswordClicked}
-          >
-            <FormattedMessage id="UserDetails.account-security.reset-password" />
-          </PrimaryButton>
+            text={
+              <FormattedMessage id="UserDetails.account-security.reset-password" />
+            }
+          />
         ) : null}
         {kind === "SECONDARY" ? (
           <DefaultButton

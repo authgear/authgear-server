@@ -279,9 +279,10 @@ const ManageLanguageWidgetDialog: React.VFC<ManageLanguageWidgetDialogProps> =
           <DefaultButton onClick={onCancel}>
             <FormattedMessage id="cancel" />
           </DefaultButton>
-          <PrimaryButton onClick={onApplyClick}>
-            <FormattedMessage id="apply" />
-          </PrimaryButton>
+          <PrimaryButton
+            onClick={onApplyClick}
+            text={<FormattedMessage id="apply" />}
+          />
         </DialogFooter>
       </Dialog>
     );

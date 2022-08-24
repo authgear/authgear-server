@@ -565,9 +565,8 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                 <PrimaryButton
                   className={styles.columnSmall}
                   onClick={onClickEdit}
-                >
-                  <FormattedMessage id="edit" />
-                </PrimaryButton>
+                  text={<FormattedMessage id="edit" />}
+                />
               ) : (
                 <DefaultButton
                   className={styles.columnSmall}
@@ -593,9 +592,8 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                   <PrimaryButton
                     onClick={onClickSend}
                     disabled={!sendTestEmailButtonEnabled || loading}
-                  >
-                    <FormattedMessage id="send" />
-                  </PrimaryButton>
+                    text={<FormattedMessage id="send" />}
+                  />
                   <DefaultButton onClick={onDismissDialog} disabled={loading}>
                     <FormattedMessage id="cancel" />
                   </DefaultButton>

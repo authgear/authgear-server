@@ -80,9 +80,10 @@ const DateRangeDialog: React.VFC<DateRangeDialogProps> =
           onSelectDate={onSelectRangeTo}
         />
         <DialogFooter>
-          <PrimaryButton onClick={onCommitDateRange}>
-            <FormattedMessage id="done" />
-          </PrimaryButton>
+          <PrimaryButton
+            onClick={onCommitDateRange}
+            text={<FormattedMessage id="done" />}
+          />
           <DefaultButton onClick={onDismiss}>
             <FormattedMessage id="cancel" />
           </DefaultButton>

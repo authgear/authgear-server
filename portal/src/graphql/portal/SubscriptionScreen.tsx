@@ -703,9 +703,10 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
         dialogContentProps={enterpriseDialogContentProps}
       >
         <DialogFooter>
-          <PrimaryButton onClick={onDismiss}>
-            <FormattedMessage id="SubscriptionScreen.enterprise.cta" />
-          </PrimaryButton>
+          <PrimaryButton
+            onClick={onDismiss}
+            text={<FormattedMessage id="SubscriptionScreen.enterprise.cta" />}
+          />
         </DialogFooter>
       </Dialog>
 

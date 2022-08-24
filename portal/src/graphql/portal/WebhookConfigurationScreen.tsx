@@ -534,13 +534,14 @@ const WebhookConfigurationScreenContent: React.VFC<WebhookConfigurationScreenCon
             id={copyButtonProps.id}
             onClick={revealed ? copyButtonProps.onClick : onClickReveal}
             onMouseLeave={revealed ? copyButtonProps.onMouseLeave : undefined}
-          >
-            {revealed ? (
-              <FormattedMessage id="copy" />
-            ) : (
-              <FormattedMessage id="reveal" />
-            )}
-          </PrimaryButton>
+            text={
+              revealed ? (
+                <FormattedMessage id="copy" />
+              ) : (
+                <FormattedMessage id="reveal" />
+              )
+            }
+          />
           <Feedback />
         </Widget>
       </ScreenContent>

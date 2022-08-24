@@ -41,9 +41,10 @@ const TodoButtonWrapper: React.VFC<TodoButtonWrapperProps> =
           onDismiss={onTodoDialogDismissed}
         >
           <DialogFooter>
-            <PrimaryButton onClick={onTodoDialogDismissed}>
-              <FormattedMessage id="confirm" />
-            </PrimaryButton>
+            <PrimaryButton
+              onClick={onTodoDialogDismissed}
+              text={<FormattedMessage id="confirm" />}
+            />
           </DialogFooter>
         </Dialog>
         <div style={{ pointerEvents: "none" }}>{children}</div>

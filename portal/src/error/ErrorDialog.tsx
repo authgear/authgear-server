@@ -49,9 +49,10 @@ const ErrorDialog: React.VFC<ErrorDialogProps> = function ErrorDialog(
       onDismiss={onDismiss}
     >
       <DialogFooter>
-        <PrimaryButton onClick={onDismiss}>
-          <FormattedMessage id="ok" />
-        </PrimaryButton>
+        <PrimaryButton
+          onClick={onDismiss}
+          text={<FormattedMessage id="ok" />}
+        />
       </DialogFooter>
     </Dialog>
   );

@@ -84,9 +84,11 @@ function RemoveDialog(props: RemoveDialogProps) {
       onDismiss={onDismiss}
     >
       <DialogFooter>
-        <PrimaryButton onClick={onConfirm} theme={themes.destructive}>
-          <FormattedMessage id="remove" />
-        </PrimaryButton>
+        <PrimaryButton
+          onClick={onConfirm}
+          theme={themes.destructive}
+          text={<FormattedMessage id="remove" />}
+        />
         <DefaultButton onClick={onDismiss}>
           <FormattedMessage id="cancel" />
         </DefaultButton>
