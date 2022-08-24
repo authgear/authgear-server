@@ -8,7 +8,7 @@ export interface WidgetProps {
   children?: React.ReactNode;
 }
 
-const Widget: React.FC<WidgetProps> = function Widget(props: WidgetProps) {
+const Widget: React.VFC<WidgetProps> = function Widget(props: WidgetProps) {
   const { className, children } = props;
   return (
     <div

@@ -224,7 +224,7 @@ function Custom(props: CustomProps) {
   );
 }
 
-const ThemePresetWidget: React.FC<ThemePresetWidgetProps> =
+const ThemePresetWidget: React.VFC<ThemePresetWidgetProps> =
   function ThemePresetWidget(props: ThemePresetWidgetProps) {
     const {
       disabled,

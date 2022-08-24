@@ -122,7 +122,7 @@ interface AnonymousUserLifeTimeDescriptionProps {
   form: AppConfigFormModel<FormState>;
 }
 
-const AnonymousUserLifeTimeDescription: React.FC<AnonymousUserLifeTimeDescriptionProps> =
+const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescriptionProps> =
   function AnonymousUserLifeTimeDescription(props) {
     const { renderToString } = useContext(Context);
     const {
@@ -264,7 +264,7 @@ const AnonymousUserLifeTimeDescription: React.FC<AnonymousUserLifeTimeDescriptio
             <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.title" />
           </Text>
           <div className={styles.sessionInfo}>
-            {sessionIdleTimeoutEnabled && (
+            {sessionIdleTimeoutEnabled ? (
               <>
                 <div className={styles.tooltipLabel}>
                   <Text variant="medium">
@@ -281,7 +281,7 @@ const AnonymousUserLifeTimeDescription: React.FC<AnonymousUserLifeTimeDescriptio
                   />
                 </Text>
               </>
-            )}
+            ) : null}
             <div className={styles.tooltipLabel}>
               <Text variant="medium">
                 <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.label.session-lifetime" />
@@ -337,7 +337,7 @@ interface AnonymousUserConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
 }
 
-const AnonymousUserConfigurationContent: React.FC<AnonymousUserConfigurationContentProps> =
+const AnonymousUserConfigurationContent: React.VFC<AnonymousUserConfigurationContentProps> =
   function AnonymousUserConfigurationContent(props) {
     const { state, setState } = props.form;
 
@@ -414,7 +414,7 @@ const AnonymousUserConfigurationContent: React.FC<AnonymousUserConfigurationCont
     );
   };
 
-const AnonymousUserConfigurationScreen: React.FC =
+const AnonymousUserConfigurationScreen: React.VFC =
   function AnonymousUserConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
     const form = useAppConfigForm({

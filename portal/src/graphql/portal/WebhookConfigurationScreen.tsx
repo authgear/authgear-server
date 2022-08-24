@@ -108,7 +108,7 @@ interface BlockingHandlerItemEditProps {
   value: BlockingEventHandler;
   onChange: (newValue: BlockingEventHandler) => void;
 }
-const BlockingHandlerItemEdit: React.FC<BlockingHandlerItemEditProps> =
+const BlockingHandlerItemEdit: React.VFC<BlockingHandlerItemEditProps> =
   function BlockingHandlerItemEdit(props) {
     const { index, value, onChange } = props;
 
@@ -195,7 +195,7 @@ interface NonBlockingHandlerItemEditProps {
   value: NonBlockingEventHandler;
   onChange: (newValue: NonBlockingEventHandler) => void;
 }
-const NonBlockingHandlerItemEdit: React.FC<NonBlockingHandlerItemEditProps> =
+const NonBlockingHandlerItemEdit: React.VFC<NonBlockingHandlerItemEditProps> =
   function NonBlockingHandlerItemEdit(props) {
     const { index, value, onChange } = props;
 
@@ -229,7 +229,7 @@ interface LocationState {
   isOAuthRedirect: boolean;
 }
 
-const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenContentProps> =
+const WebhookConfigurationScreenContent: React.VFC<WebhookConfigurationScreenContentProps> =
   // eslint-disable-next-line complexity
   function WebhookConfigurationScreenContent(props) {
     const { renderToString } = useContext(Context);
@@ -402,8 +402,8 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
           <WidgetDescription>
             <FormattedMessage id="WebhookConfigurationScreen.blocking-events.description" />
           </WidgetDescription>
-          {blockingHandlerMax < 99 &&
-            (blockingHandlerDisabled ? (
+          {blockingHandlerMax < 99 ? (
+            blockingHandlerDisabled ? (
               <FeatureDisabledMessageBar>
                 <FormattedMessage
                   id="FeatureConfig.webhook.blocking-events.disabled"
@@ -422,8 +422,9 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
                   }}
                 />
               </FeatureDisabledMessageBar>
-            ))}
-          {!hideBlockingHandlerList && (
+            )
+          ) : null}
+          {!hideBlockingHandlerList ? (
             <FieldList
               label={
                 <Label>
@@ -439,7 +440,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
               addButtonLabelMessageID="add"
               addDisabled={blockingHandlerLimitReached}
             />
-          )}
+          ) : null}
         </Widget>
 
         <Widget className={styles.widget}>
@@ -449,8 +450,8 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
           <WidgetDescription>
             <FormattedMessage id="WebhookConfigurationScreen.non-blocking-events.description" />
           </WidgetDescription>
-          {nonBlockingHandlerMax < 99 &&
-            (nonBlockingHandlerDisabled ? (
+          {nonBlockingHandlerMax < 99 ? (
+            nonBlockingHandlerDisabled ? (
               <FeatureDisabledMessageBar>
                 <FormattedMessage
                   id="FeatureConfig.webhook.non-blocking-events.disabled"
@@ -469,8 +470,9 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
                   }}
                 />
               </FeatureDisabledMessageBar>
-            ))}
-          {!hideNonBlockingHandlerList && (
+            )
+          ) : null}
+          {!hideNonBlockingHandlerList ? (
             <FieldList
               label={
                 <Label>
@@ -486,7 +488,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
               addButtonLabelMessageID="add"
               addDisabled={nonBlockingHandlerLimitReached}
             />
-          )}
+          ) : null}
         </Widget>
 
         <Widget className={styles.widget}>
@@ -545,7 +547,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
     );
   };
 
-const WebhookConfigurationScreen: React.FC =
+const WebhookConfigurationScreen: React.VFC =
   function WebhookConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
     const form = useAppSecretConfigForm(

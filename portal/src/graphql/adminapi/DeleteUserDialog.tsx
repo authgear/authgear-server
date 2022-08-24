@@ -21,7 +21,7 @@ interface DeleteUserDialogProps {
   endUserAccountIdentifier: string | undefined;
 }
 
-const DeleteUserDialog: React.FC<DeleteUserDialogProps> = React.memo(
+const DeleteUserDialog: React.VFC<DeleteUserDialogProps> = React.memo(
   function DeleteUserDialog(props: DeleteUserDialogProps) {
     const {
       isHidden,
@@ -91,14 +91,14 @@ const DeleteUserDialog: React.FC<DeleteUserDialogProps> = React.memo(
           minWidth={500}
         >
           <DialogFooter>
-            {userDeleteAt == null && (
+            {userDeleteAt == null ? (
               <PrimaryButton
                 onClick={onClickScheduleDeletion}
                 disabled={loading}
               >
                 <FormattedMessage id="DeleteUserDialog.label.schedule-removal" />
               </PrimaryButton>
-            )}
+            ) : null}
             <PrimaryButton
               theme={themes.destructive}
               onClick={onClickRemove}

@@ -12,7 +12,7 @@ interface PasswordStrengthMeterProps {
   guessableLevelNames: GuessableLevelNames;
 }
 
-const PasswordStrengthMeter: React.FC<PasswordStrengthMeterProps> =
+const PasswordStrengthMeter: React.VFC<PasswordStrengthMeterProps> =
   function PasswordStrengthMeter(props: PasswordStrengthMeterProps) {
     const { className, level, guessableLevelNames } = props;
     const descriptionClassName = useMemo(

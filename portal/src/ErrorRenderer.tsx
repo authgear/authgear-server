@@ -7,7 +7,7 @@ export interface ErrorRendererProps {
   errors?: readonly ParsedAPIError[];
 }
 
-const ErrorRenderer: React.FC<ErrorRendererProps> = function ErrorRenderer(
+const ErrorRenderer: React.VFC<ErrorRendererProps> = function ErrorRenderer(
   props: ErrorRendererProps
 ) {
   const { error, errors } = props;

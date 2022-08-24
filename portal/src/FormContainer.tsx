@@ -42,7 +42,7 @@ export interface FormContainerProps {
   afterSave?: () => void;
 }
 
-const FormContainer: React.FC<FormContainerProps> = function FormContainer(
+const FormContainer: React.VFC<FormContainerProps> = function FormContainer(
   props
 ) {
   const {

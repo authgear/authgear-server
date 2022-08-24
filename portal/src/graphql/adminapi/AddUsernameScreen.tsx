@@ -28,7 +28,7 @@ interface UsernameFieldProps {
   onChange: (value: string) => void;
 }
 
-const UsernameField: React.FC<UsernameFieldProps> = function UsernameField(
+const UsernameField: React.VFC<UsernameFieldProps> = function UsernameField(
   props
 ) {
   const { value, onChange } = props;
@@ -50,7 +50,7 @@ const UsernameField: React.FC<UsernameFieldProps> = function UsernameField(
   );
 };
 
-const AddUsernameScreen: React.FC = function AddUsernameScreen() {
+const AddUsernameScreen: React.VFC = function AddUsernameScreen() {
   const { appID, userID } = useParams() as { appID: string; userID: string };
   const {
     user,

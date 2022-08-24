@@ -8,7 +8,7 @@ interface ShowErrorProps {
   onRetry?: (() => void) | null;
 }
 
-const ShowError: React.FC<ShowErrorProps> = function ShowError(
+const ShowError: React.VFC<ShowErrorProps> = function ShowError(
   props: ShowErrorProps
 ) {
   const { error, onRetry } = props;

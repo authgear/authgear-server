@@ -8,7 +8,7 @@ import {
 
 export interface PrimaryButtonProps extends IButtonProps {}
 
-const PrimaryButton: React.FC<PrimaryButtonProps> = function PrimaryButton(
+const PrimaryButton: React.VFC<PrimaryButtonProps> = function PrimaryButton(
   props: PrimaryButtonProps
 ) {
   const theme = useTheme();

@@ -38,7 +38,7 @@ const breadcrumbStyles = {
   },
 };
 
-const FuncLink: React.FC<FuncLinkProps> = function FuncLink(
+const FuncLink: React.VFC<FuncLinkProps> = function FuncLink(
   props: FuncLinkProps
 ) {
   const { item, renderFunc } = props;
@@ -87,7 +87,7 @@ function onRenderItem(
 // NavBreadcrumb is an integration between Breadcrumb and react-router-dom.
 // The biggest trick here is to provide onRenderItem, which accept IBreadcrumbItem and the original renderItem function.
 // And then we render a function component, which allows us to use hooks.
-const NavBreadcrumb: React.FC<Props> = function NavBreadcrumb(props: Props) {
+const NavBreadcrumb: React.VFC<Props> = function NavBreadcrumb(props: Props) {
   const { className, items } = props;
   const { renderToString } = useContext(Context);
   const location = useLocation();

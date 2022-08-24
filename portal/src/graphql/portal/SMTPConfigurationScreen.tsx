@@ -158,10 +158,10 @@ function ProviderCard(props: ProviderCardProps) {
       className={cn(className, styles.providerCard)}
       onClick={disabled ? undefined : onClick}
     >
-      {iconProps != null && (
+      {iconProps != null ? (
         <FontIcon {...iconProps} style={PROVIDER_CARD_ICON_STYLE} />
-      )}
-      {logoSrc != null && <Image src={logoSrc} width={32} height={32} />}
+      ) : null}
+      {logoSrc != null ? <Image src={logoSrc} width={32} height={32} /> : null}
       <Label>{children}</Label>
     </div>
   );
@@ -200,7 +200,7 @@ interface SMTPConfigurationScreenContentProps {
   form: AppSecretConfigFormModel<FormState>;
 }
 
-const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentProps> =
+const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentProps> =
   function SMTPConfigurationScreenContent(props) {
     const { form, sendTestEmailHandle } = props;
     const { state, setState } = form;
@@ -455,7 +455,7 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
             inlineLabel={true}
             disabled={state.isPasswordMasked}
           />
-          {state.enabled && (
+          {state.enabled ? (
             <>
               <ProviderCard
                 className={styles.columnLeft}
@@ -475,7 +475,7 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
               >
                 <FormattedMessage id="SMTPConfigurationScreen.provider.custom" />
               </ProviderCard>
-              {providerType === "custom" && (
+              {providerType === "custom" ? (
                 <>
                   <ProviderDescription>
                     <FormattedMessage id="SMTPConfigurationScreen.custom.description" />
@@ -535,8 +535,8 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
                     fieldName="password"
                   />
                 </>
-              )}
-              {providerType === "sendgrid" && (
+              ) : null}
+              {providerType === "sendgrid" ? (
                 <>
                   <ProviderDescription>
                     <FormattedMessage id="SMTPConfigurationScreen.sendgrid.description" />
@@ -560,7 +560,7 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
                     {...sendgridAPIKeyProps}
                   />
                 </>
-              )}
+              ) : null}
               {state.isPasswordMasked ? (
                 <PrimaryButton
                   className={styles.columnSmall}
@@ -602,13 +602,13 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
                 </DialogFooter>
               </Dialog>
             </>
-          )}
+          ) : null}
         </Widget>
       </ScreenContent>
     );
   };
 
-const SMTPConfigurationScreen: React.FC = function SMTPConfigurationScreen() {
+const SMTPConfigurationScreen: React.VFC = function SMTPConfigurationScreen() {
   const { appID } = useParams() as { appID: string };
   const form = useAppSecretConfigForm(
     appID,

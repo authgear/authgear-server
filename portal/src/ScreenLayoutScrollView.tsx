@@ -5,7 +5,7 @@ interface ScreenLayoutScrollViewProps {
   children: React.ReactNode;
 }
 
-const ScreenLayoutScrollView: React.FC<ScreenLayoutScrollViewProps> = (
+const ScreenLayoutScrollView: React.VFC<ScreenLayoutScrollViewProps> = (
   props: ScreenLayoutScrollViewProps
 ) => {
   const { children } = props;

@@ -27,7 +27,7 @@ interface DateRangeDialogProps {
   onDismiss?: (e?: React.MouseEvent<unknown>) => void;
 }
 
-const DateRangeDialog: React.FC<DateRangeDialogProps> =
+const DateRangeDialog: React.VFC<DateRangeDialogProps> =
   function DateRangeDialog(props) {
     const {
       hidden,

@@ -12,12 +12,12 @@ interface ModifiedIndicatorWrapperProps {
 
 const MODIFIED_INDICATOR_CONTAINER_ID = "__modified-indicator-container";
 
-export const ModifiedIndicatorContainer: React.FC =
+export const ModifiedIndicatorContainer: React.VFC =
   function ModifiedIndicatorContainer() {
     return <div id={MODIFIED_INDICATOR_CONTAINER_ID} />;
   };
 
-export const ModifiedIndicatorWrapper: React.FC<ModifiedIndicatorWrapperProps> =
+export const ModifiedIndicatorWrapper: React.VFC<ModifiedIndicatorWrapperProps> =
   function ModifiedIndicatorWrapper(props) {
     const { className } = props;
 
@@ -33,7 +33,7 @@ export const ModifiedIndicatorWrapper: React.FC<ModifiedIndicatorWrapperProps> =
     );
   };
 
-export const ModifiedIndicatorPortal: React.FC<ModifiedIndicatorProps> =
+export const ModifiedIndicatorPortal: React.VFC<ModifiedIndicatorProps> =
   function ModifiedIndicatorPortal(props: ModifiedIndicatorProps) {
     const container = document.getElementById(MODIFIED_INDICATOR_CONTAINER_ID);
 

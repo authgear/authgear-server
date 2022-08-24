@@ -38,7 +38,7 @@ interface AnalyticsSignupMethodsChartProps {
   dataset: DataPoint[];
 }
 
-const AnalyticsSignupMethodsChart: React.FC<AnalyticsSignupMethodsChartProps> =
+const AnalyticsSignupMethodsChart: React.VFC<AnalyticsSignupMethodsChartProps> =
   function AnalyticsSignupMethodsChart(props) {
     const { renderToString } = useContext(Context);
     const { dataset } = props;
@@ -97,7 +97,7 @@ const AnalyticsSignupMethodsChart: React.FC<AnalyticsSignupMethodsChartProps> =
     return (
       <div className={styles.chartContainer}>
         <Pie data={data} options={options} />
-        {noDataAvailable && (
+        {noDataAvailable ? (
           <div className={styles.noDataAvailableLabel}>
             <Text variant="medium">
               <FormattedMessage
@@ -105,12 +105,12 @@ const AnalyticsSignupMethodsChart: React.FC<AnalyticsSignupMethodsChartProps> =
               />
             </Text>
           </div>
-        )}
+        ) : null}
       </div>
     );
   };
 
-const AnalyticsSignupMethodsWidgetContent: React.FC<AnalyticsSignupMethodsWidgetProps> =
+const AnalyticsSignupMethodsWidgetContent: React.VFC<AnalyticsSignupMethodsWidgetProps> =
   function AnalyticsSignupMethodsWidgetContent(props) {
     const { loading, signupByMethodsChart } = props;
     const { renderToString } = useContext(Context);
@@ -171,7 +171,7 @@ interface AnalyticsSignupMethodsWidgetProps {
   signupByMethodsChart: AnalyticChartsQueryQuery["signupByMethodsChart"] | null;
 }
 
-const AnalyticsSignupMethodsWidget: React.FC<AnalyticsSignupMethodsWidgetProps> =
+const AnalyticsSignupMethodsWidget: React.VFC<AnalyticsSignupMethodsWidgetProps> =
   function AnalyticsSignupMethodsWidget(props) {
     return (
       <Widget className={props.className}>

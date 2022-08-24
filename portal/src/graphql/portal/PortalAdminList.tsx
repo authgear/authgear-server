@@ -60,7 +60,7 @@ function isPortalAdminListCollaboratorInvitationItem(
   return item.type === "collaboratorInvitation";
 }
 
-const PortalAdminList: React.FC<PortalAdminListProps> =
+const PortalAdminList: React.VFC<PortalAdminListProps> =
   function PortalAdminList(props) {
     const {
       className,

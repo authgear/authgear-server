@@ -28,7 +28,7 @@ export interface CommandBarContainerProps {
   secondaryItems?: ICommandBarItemProps[];
 }
 
-const CommandBarContainer: React.FC<CommandBarContainerProps> =
+const CommandBarContainer: React.VFC<CommandBarContainerProps> =
   function CommandBarContainer(props) {
     const { className, isLoading, primaryItems, secondaryItems, messageBar } =
       props;

@@ -13,7 +13,7 @@ export interface ScaleContainerProps {
 // The aspect ratio is controlled by the children.
 // The parent height is then derived from the parent width (fixed) and the aspect ratio.
 // Finally the children is scaled to match the parent.
-const ScaleContainer: React.FC<ScaleContainerProps> = function ScaleContainer(
+const ScaleContainer: React.VFC<ScaleContainerProps> = function ScaleContainer(
   props: ScaleContainerProps
 ) {
   const containerRef = useRef<HTMLElement | null>(null);

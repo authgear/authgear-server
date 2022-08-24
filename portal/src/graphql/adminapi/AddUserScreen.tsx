@@ -129,7 +129,7 @@ interface AddUserContentProps {
   form: SimpleFormModel<FormState>;
 }
 
-const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
+const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
   props: AddUserContentProps
 ) {
   const {
@@ -287,7 +287,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
   );
 };
 
-const AddUserScreen: React.FC = function AddUserScreen() {
+const AddUserScreen: React.VFC = function AddUserScreen() {
   const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
 

@@ -158,7 +158,7 @@ interface OAuthClientItemProps {
   limitReached: boolean;
 }
 
-const OAuthClientItem: React.FC<OAuthClientItemProps> =
+const OAuthClientItem: React.VFC<OAuthClientItemProps> =
   function OAuthClientItem(props) {
     const { providerItemKey, form, oauthSSOFeatureConfig, limitReached } =
       props;
@@ -270,7 +270,7 @@ interface SingleSignOnConfigurationContentProps {
   oauthSSOFeatureConfig?: OAuthSSOFeatureConfig;
 }
 
-const SingleSignOnConfigurationContent: React.FC<SingleSignOnConfigurationContentProps> =
+const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationContentProps> =
   function SingleSignOnConfigurationContent(props) {
     const { oauthSSOFeatureConfig } = props;
     const { state } = props.form;
@@ -293,7 +293,7 @@ const SingleSignOnConfigurationContent: React.FC<SingleSignOnConfigurationConten
           <Text className={styles.description} block={true}>
             <FormattedMessage id="SingleSignOnConfigurationScreen.description" />
           </Text>
-          {oauthClientsMaximum < 99 && (
+          {oauthClientsMaximum < 99 ? (
             <FeatureDisabledMessageBar>
               <FormattedMessage
                 id="FeatureConfig.sso.maximum"
@@ -303,7 +303,7 @@ const SingleSignOnConfigurationContent: React.FC<SingleSignOnConfigurationConten
                 }}
               />
             </FeatureDisabledMessageBar>
-          )}
+          ) : null}
         </ScreenDescription>
         {oauthSSOProviderItemKeys.map((providerItemKey) => (
           <OAuthClientItem
@@ -318,7 +318,7 @@ const SingleSignOnConfigurationContent: React.FC<SingleSignOnConfigurationConten
     );
   };
 
-const SingleSignOnConfigurationScreen: React.FC =
+const SingleSignOnConfigurationScreen: React.VFC =
   function SingleSignOnConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
 

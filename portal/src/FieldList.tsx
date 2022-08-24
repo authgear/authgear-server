@@ -108,11 +108,11 @@ const FieldList = function FieldList<T>(
       >
         <FormattedMessage id={addButtonLabelMessageID ?? "add"} />
       </ActionButton>
-      {description && (
+      {description ? (
         <Text block={true} className={styles.description}>
           {description}
         </Text>
-      )}
+      ) : null}
     </section>
   );
 };

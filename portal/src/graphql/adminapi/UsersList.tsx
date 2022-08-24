@@ -114,7 +114,7 @@ function UserInfo(props: UserInfoProps) {
   );
 }
 
-const UsersList: React.FC<UsersListProps> = function UsersList(props) {
+const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
   const {
     className,
     loading: rawLoading,
@@ -340,7 +340,7 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
           onChangeOffset={onChangeOffset}
         />
       </div>
-      {disableUserDialogData != null && (
+      {disableUserDialogData != null ? (
         <SetUserDisabledDialog
           isHidden={isDisableUserDialogHidden}
           onDismiss={dismissDisableUserDialog}
@@ -351,7 +351,7 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
             disableUserDialogData.endUserAccountIdentitifer ?? undefined
           }
         />
-      )}
+      ) : null}
     </>
   );
 };

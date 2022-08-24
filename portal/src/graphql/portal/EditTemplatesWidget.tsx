@@ -14,7 +14,7 @@ export interface TextFieldWidgetIteProps {
 // TextFieldWidgetItem is a wrapper of TextField
 // The positional arguments order of onChange functions are different between
 // TextField and CodeEditor, so we need to wrap the TextField
-const TextFieldWidgetItem: React.FC<TextFieldWidgetIteProps> =
+const TextFieldWidgetItem: React.VFC<TextFieldWidgetIteProps> =
   function TextFieldWidgetItem(props) {
     const { className, value, onChange: onChangeProps } = props;
 
@@ -51,7 +51,7 @@ export interface EditTemplatesWidgetProps {
   sections: EditTemplatesWidgetSection[];
 }
 
-const EditTemplatesWidget: React.FC<EditTemplatesWidgetProps> =
+const EditTemplatesWidget: React.VFC<EditTemplatesWidgetProps> =
   function EditTemplatesWidget(props: EditTemplatesWidgetProps) {
     const { className, sections } = props;
 

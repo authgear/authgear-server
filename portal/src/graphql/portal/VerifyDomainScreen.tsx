@@ -91,7 +91,7 @@ function makeDNSRecordListItems(
   ];
 }
 
-const DNSRecordListValueCell: React.FC<DNSRecordListValueCellProps> =
+const DNSRecordListValueCell: React.VFC<DNSRecordListValueCellProps> =
   function DNSRecordListValueCell(props: DNSRecordListValueCellProps) {
     const { value } = props;
 
@@ -110,7 +110,7 @@ const DNSRecordListValueCell: React.FC<DNSRecordListValueCellProps> =
     );
   };
 
-const VerifyDomain: React.FC<VerifyDomainProps> = function VerifyDomain(
+const VerifyDomain: React.VFC<VerifyDomainProps> = function VerifyDomain(
   props: VerifyDomainProps
 ) {
   const { domain, nonCustomVerifiedDomain } = props;
@@ -152,7 +152,7 @@ const VerifyDomain: React.FC<VerifyDomainProps> = function VerifyDomain(
       default:
         return (
           <span>
-            {item && item[column?.fieldName as keyof DNSRecordListItem]}
+            {item ? item[column?.fieldName as keyof DNSRecordListItem] : null}
           </span>
         );
     }
@@ -223,7 +223,7 @@ const VerifyDomain: React.FC<VerifyDomainProps> = function VerifyDomain(
   );
 };
 
-const VerifyDomainScreen: React.FC = function VerifyDomainScreen() {
+const VerifyDomainScreen: React.VFC = function VerifyDomainScreen() {
   const { appID, domainID } = useParams() as {
     appID: string;
     domainID: string;

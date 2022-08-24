@@ -170,7 +170,7 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
   );
 }
 
-const CreateProjectScreen: React.FC = function CreateProjectScreen() {
+const CreateProjectScreen: React.VFC = function CreateProjectScreen() {
   const { loading, error, apps, refetch } = useAppListQuery();
 
   if (loading) {

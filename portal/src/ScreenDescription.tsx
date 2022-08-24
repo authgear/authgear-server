@@ -8,7 +8,7 @@ export interface ScreenDescriptionProps {
   children?: React.ReactNode;
 }
 
-const ScreenDescription: React.FC<ScreenDescriptionProps> =
+const ScreenDescription: React.VFC<ScreenDescriptionProps> =
   function ScreenDescription(props: ScreenDescriptionProps) {
     const { className, children } = props;
     return (

@@ -105,7 +105,7 @@ interface CreateOAuthClientContentProps {
   form: AppConfigFormModel<FormState>;
 }
 
-const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> =
+const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
   function CreateOAuthClientContent(props) {
     const { state, setState, save, isDirty, isUpdating } = props.form;
     const navigate = useNavigate();
@@ -274,7 +274,7 @@ const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> =
     );
   };
 
-const CreateOAuthClientScreen: React.FC = function CreateOAuthClientScreen() {
+const CreateOAuthClientScreen: React.VFC = function CreateOAuthClientScreen() {
   const { appID } = useParams() as { appID: string };
   const form = useAppConfigForm({
     appID,

@@ -9,7 +9,7 @@ interface NavigationBlockerDialogProps {
   onConfirmNavigation?: () => void;
 }
 
-const NavigationBlockerDialog: React.FC<NavigationBlockerDialogProps> =
+const NavigationBlockerDialog: React.VFC<NavigationBlockerDialogProps> =
   function NavigationBlockerDialog(props: NavigationBlockerDialogProps) {
     const { blockNavigation, onConfirmNavigation } = props;
 

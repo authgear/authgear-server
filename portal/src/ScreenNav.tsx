@@ -64,7 +64,7 @@ interface ScreenNavProps {
   onLinkClick?: () => void;
 }
 
-const ScreenNav: React.FC<ScreenNavProps> = function ScreenNav(props) {
+const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
   const { mobileView = false } = props;
   const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();

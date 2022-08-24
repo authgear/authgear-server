@@ -88,7 +88,7 @@ function ItemComponent(
   );
 }
 
-const CustomAttributesConfigurationScreenContent: React.FC<CustomAttributesConfigurationScreenContentProps> =
+const CustomAttributesConfigurationScreenContent: React.VFC<CustomAttributesConfigurationScreenContentProps> =
   function CustomAttributesConfigurationScreenContent(props) {
     const navigate = useNavigate();
     const { state, setState } = props.form;
@@ -134,7 +134,7 @@ const CustomAttributesConfigurationScreenContent: React.FC<CustomAttributesConfi
     );
   };
 
-const CustomAttributesConfigurationScreen: React.FC =
+const CustomAttributesConfigurationScreen: React.VFC =
   function CustomAttributesConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
     const form = useAppConfigForm({

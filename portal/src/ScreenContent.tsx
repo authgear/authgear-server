@@ -8,7 +8,7 @@ export interface ScreenContentProps {
   children?: React.ReactNode;
 }
 
-const ScreenContent: React.FC<ScreenContentProps> = function ScreenContent(
+const ScreenContent: React.VFC<ScreenContentProps> = function ScreenContent(
   props: ScreenContentProps
 ) {
   const { className, children, layout = "auto-rows" } = props;

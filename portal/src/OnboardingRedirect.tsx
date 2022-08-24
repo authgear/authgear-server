@@ -4,7 +4,7 @@ import ShowLoading from "./ShowLoading";
 import ShowError from "./ShowError";
 import { useAppListQuery } from "./graphql/portal/query/appListQuery";
 
-const OnboardingRedirect: React.FC = function OnboardingRedirect() {
+const OnboardingRedirect: React.VFC = function OnboardingRedirect() {
   const { loading, error, apps, refetch } = useAppListQuery();
 
   const navigate = useNavigate();

@@ -5,7 +5,7 @@ export interface CodeEditorProps extends EditorProps {
   className?: string;
 }
 
-const CodeEditor: React.FC<CodeEditorProps> = function CodeEditor(props) {
+const CodeEditor: React.VFC<CodeEditorProps> = function CodeEditor(props) {
   const { className, ...rest } = props;
 
   return (

@@ -26,7 +26,7 @@ import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import { onRenderCommandBarPrimaryButton } from "../../CommandBarPrimaryButton";
 
-const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
+const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
   const { renderToString } = useContext(Context);
   const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
@@ -199,7 +199,7 @@ const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
       <ScreenContent>
         <div className={styles.widget}>
           <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-          {effectiveFeatureConfig?.collaborator.maximum != null && (
+          {effectiveFeatureConfig?.collaborator.maximum != null ? (
             <FeatureDisabledMessageBar className={styles.messageBar}>
               <FormattedMessage
                 id="FeatureConfig.collaborator"
@@ -209,7 +209,7 @@ const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
                 }}
               />
             </FeatureDisabledMessageBar>
-          )}
+          ) : null}
         </div>
         <PortalAdminList
           className={styles.widget}

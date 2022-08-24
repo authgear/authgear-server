@@ -195,7 +195,7 @@ interface ResourcesConfigurationContentProps {
   supportedLanguages: LanguageTag[];
 }
 
-const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps> =
+const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProps> =
   function ResourcesConfigurationContent(props) {
     const { state, setState } = props.form;
     const { supportedLanguages } = props;
@@ -771,7 +771,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           <WidgetTitle>
             <FormattedMessage id="UISettingsScreen.branding.title" />
           </WidgetTitle>
-          {state.whiteLabelingDisabled && (
+          {state.whiteLabelingDisabled ? (
             <FeatureDisabledMessageBar>
               <FormattedMessage
                 id="FeatureConfig.white-labeling.disabled"
@@ -780,7 +780,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
                 }}
               />
             </FeatureDisabledMessageBar>
-          )}
+          ) : null}
           <Toggle
             checked={watermarkEnabled}
             onChange={onChangeWatermarkEnabled}
@@ -831,7 +831,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     );
   };
 
-const UISettingsScreen: React.FC = function UISettingsScreen() {
+const UISettingsScreen: React.VFC = function UISettingsScreen() {
   const { appID } = useParams() as { appID: string };
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageTag | null>(
     null

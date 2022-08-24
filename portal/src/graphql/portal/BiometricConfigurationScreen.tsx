@@ -69,7 +69,7 @@ interface BiometricConfigurationContentProps {
   identityFeatureConfig?: IdentityFeatureConfig;
 }
 
-const BiometricConfigurationContent: React.FC<BiometricConfigurationContentProps> =
+const BiometricConfigurationContent: React.VFC<BiometricConfigurationContentProps> =
   function BiometricConfigurationContent(props) {
     const { state, setState } = props.form;
 
@@ -111,7 +111,7 @@ const BiometricConfigurationContent: React.FC<BiometricConfigurationContentProps
           <WidgetTitle>
             <FormattedMessage id="BiometricConfigurationScreen.title" />
           </WidgetTitle>
-          {biometricDisabled && (
+          {biometricDisabled ? (
             <FeatureDisabledMessageBar>
               <FormattedMessage
                 id="FeatureConfig.disabled"
@@ -120,7 +120,7 @@ const BiometricConfigurationContent: React.FC<BiometricConfigurationContentProps
                 }}
               />
             </FeatureDisabledMessageBar>
-          )}
+          ) : null}
           <Toggle
             disabled={biometricDisabled}
             checked={state.enabled}
@@ -142,7 +142,7 @@ const BiometricConfigurationContent: React.FC<BiometricConfigurationContentProps
     );
   };
 
-const BiometricConfigurationScreen: React.FC =
+const BiometricConfigurationScreen: React.VFC =
   function BiometricConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
     const form = useAppConfigForm({

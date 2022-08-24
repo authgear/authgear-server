@@ -31,7 +31,7 @@ interface RevokeConfirmationDialogProps {
   onDismiss: () => void;
 }
 
-const RevokeConfirmationDialog: React.FC<RevokeConfirmationDialogProps> =
+const RevokeConfirmationDialog: React.VFC<RevokeConfirmationDialogProps> =
   function RevokeConfirmationDialog(props) {
     const { isHidden, isLoading, titleKey, messageKey, onConfirm, onDismiss } =
       props;
@@ -100,7 +100,9 @@ interface Props {
   sessions: Session[];
 }
 
-const UserDetailsSession: React.FC<Props> = function UserDetailsSession(props) {
+const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
+  props
+) {
   const { locale, renderToString } = useContext(Context);
   const { themes } = useSystemConfig();
   const { userID } = useParams() as { userID: string };
@@ -245,14 +247,14 @@ const UserDetailsSession: React.FC<Props> = function UserDetailsSession(props) {
       >
         <FormattedMessage id="UserDetails.session.revoke-all" />
       </DefaultButton>
-      {confirmDialogProps && (
+      {confirmDialogProps ? (
         <RevokeConfirmationDialog
           {...confirmDialogProps}
           isHidden={isConfirmDialogHidden}
           isLoading={isLoading}
           onDismiss={onConfirmDialogDismiss}
         />
-      )}
+      ) : null}
       <ErrorDialog
         error={error}
         rules={[]}

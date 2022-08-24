@@ -51,7 +51,7 @@ function LocalSearchBox() {
   return <SearchBox {...value} />;
 }
 
-const UsersScreen: React.FC = function UsersScreen() {
+const UsersScreen: React.VFC = function UsersScreen() {
   const { searchEnabled } = useSystemConfig();
 
   const [searchKeyword, setSearchKeyword] = useState("");

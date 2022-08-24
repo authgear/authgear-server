@@ -19,7 +19,7 @@ interface UserDetailSummaryProps {
   lastLoginAtISO: string | null;
 }
 
-const UserDetailSummary: React.FC<UserDetailSummaryProps> =
+const UserDetailSummary: React.VFC<UserDetailSummaryProps> =
   function UserDetailSummary(props: UserDetailSummaryProps) {
     const {
       isAnonymous,
@@ -47,18 +47,18 @@ const UserDetailSummary: React.FC<UserDetailSummaryProps> =
             size={PersonaSize.size72}
             hidePersonaDetails={true}
           />
-          {profileImageEditable && (
+          {profileImageEditable ? (
             <Link className={styles.cameraLink} to="./edit-picture">
               <FontIcon className={styles.cameraIcon} iconName="Camera" />
             </Link>
-          )}
+          ) : null}
         </div>
         <div className={styles.lines}>
-          {isAnonymous && (
+          {isAnonymous ? (
             <Text className={styles.anonymousUserLabel} variant="medium">
               <FormattedMessage id="UsersList.anonymous-user" />
             </Text>
-          )}
+          ) : null}
           <Text className={styles.accountID} variant="medium">
             {endUserAccountIdentifier ?? ""}
           </Text>

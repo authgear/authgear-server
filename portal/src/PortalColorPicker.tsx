@@ -23,7 +23,7 @@ export interface PortalColorPickerProps {
   alphaType?: IColorPickerProps["alphaType"];
 }
 
-const PortalColorPicker: React.FC<PortalColorPickerProps> =
+const PortalColorPicker: React.VFC<PortalColorPickerProps> =
   function PortalColorPicker(props: PortalColorPickerProps) {
     const {
       className,
@@ -103,7 +103,7 @@ const PortalColorPicker: React.FC<PortalColorPickerProps> =
           value={colorStr != null ? colorStr : color}
           onChange={onTextFieldChange}
         />
-        {isColorPickerVisible && (
+        {isColorPickerVisible ? (
           <Callout
             gapSpace={10}
             target={colorboxRef.current}
@@ -115,7 +115,7 @@ const PortalColorPicker: React.FC<PortalColorPickerProps> =
               alphaType={alphaType}
             />
           </Callout>
-        )}
+        ) : null}
       </div>
     );
   };

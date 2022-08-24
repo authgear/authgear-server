@@ -32,7 +32,7 @@ interface AcceptAdminInvitationWidgetProps {
   descriptions: Array<FormattedMessageProps>;
 }
 
-const AcceptAdminInvitationContent: React.FC<AcceptAdminInvitationWidgetProps> =
+const AcceptAdminInvitationContent: React.VFC<AcceptAdminInvitationWidgetProps> =
   function AcceptAdminInvitationContent({ title, descriptions, children }) {
     return (
       <main className={styles.root}>
@@ -63,7 +63,7 @@ interface AcceptAdminInvitationIsInviteeProps {
   appID: string;
 }
 
-const AcceptAdminInvitationIsInvitee: React.FC<AcceptAdminInvitationIsInviteeProps> =
+const AcceptAdminInvitationIsInvitee: React.VFC<AcceptAdminInvitationIsInviteeProps> =
   function AcceptAdminInvitationIsInvitee({ appID }) {
     const location = useLocation();
     const navigate = useNavigate();
@@ -142,7 +142,7 @@ const AcceptAdminInvitationIsInvitee: React.FC<AcceptAdminInvitationIsInviteePro
     );
   };
 
-const AcceptAdminInvitationScreen: React.FC =
+const AcceptAdminInvitationScreen: React.VFC =
   function AcceptAdminInvitationScreen() {
     const { renderToString } = useContext(Context);
     const navigate = useNavigate();

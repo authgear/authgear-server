@@ -119,7 +119,7 @@ export function extractGuessableLevel(
   ) as GuessableLevel;
 }
 
-const PasswordField: React.FC<PasswordFieldProps> = function PasswordField(
+const PasswordField: React.VFC<PasswordFieldProps> = function PasswordField(
   props: PasswordFieldProps
 ) {
   const {

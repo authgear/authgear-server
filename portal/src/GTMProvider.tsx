@@ -123,7 +123,10 @@ export interface GTMProviderProps {
   children: React.ReactNode;
 }
 
-const GTMProvider: React.FC<GTMProviderProps> = ({ containerID, children }) => {
+const GTMProvider: React.VFC<GTMProviderProps> = ({
+  containerID,
+  children,
+}) => {
   const state = useMemo(() => {
     return { id: containerID ?? "" };
   }, [containerID]);

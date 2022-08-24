@@ -116,7 +116,7 @@ function CreateCustomAttributeContent(
   );
 }
 
-const CreateCustomAttributeScreen: React.FC =
+const CreateCustomAttributeScreen: React.VFC =
   function CreateCustomAttributeScreen() {
     const { appID } = useParams() as { appID: string };
     const navigate = useNavigate();

@@ -11,7 +11,7 @@ interface TodoButtonWrapperProps {
   className?: string;
 }
 
-const TodoButtonWrapper: React.FC<TodoButtonWrapperProps> =
+const TodoButtonWrapper: React.VFC<TodoButtonWrapperProps> =
   function TodoButtonWrapper(props: TodoButtonWrapperProps) {
     const { children, className } = props;
     const { renderToString } = useContext(Context);

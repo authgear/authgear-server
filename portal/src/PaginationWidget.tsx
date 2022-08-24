@@ -56,7 +56,7 @@ const pageButtonStyles: IButtonStyles = {
   },
 };
 
-const PaginationWidget: React.FC<Props> = function PaginationWidget(
+const PaginationWidget: React.VFC<Props> = function PaginationWidget(
   props: Props
 ) {
   const { className, offset, pageSize, totalCount, onChangeOffset } = props;

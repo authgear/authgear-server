@@ -64,7 +64,7 @@ export function updateClientConfig<K extends keyof OAuthClientConfig>(
   });
 }
 
-const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> =
+const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
   // eslint-disable-next-line complexity
   function EditOAuthClientForm(props: EditOAuthClientFormProps) {
     const { className, clientConfig, publicOrigin, onClientConfigChange } =
@@ -307,7 +307,7 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> =
             }
             description={redirectURIsDescription}
           />
-          {showPostLogoutRedirectURIsSettings && (
+          {showPostLogoutRedirectURIsSettings ? (
             <FormTextFieldList
               parentJSONPointer={parentJSONPointer}
               fieldName="post_logout_redirect_uris"
@@ -323,9 +323,9 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> =
                 "EditOAuthClientForm.post-logout-redirect-uris.description"
               )}
             />
-          )}
+          ) : null}
         </Widget>
-        {showTokenSettings && (
+        {showTokenSettings ? (
           <Widget className={className}>
             <WidgetTitle>
               <FormattedMessage id="EditOAuthClientForm.refresh-token.title" />
@@ -383,8 +383,8 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> =
               {refreshTokenHelpText}
             </Text>
           </Widget>
-        )}
-        {showTokenSettings && (
+        ) : null}
+        {showTokenSettings ? (
           <Widget className={className}>
             <WidgetTitle>
               <FormattedMessage id="EditOAuthClientForm.access-token.title" />
@@ -409,8 +409,8 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> =
               )}
             />
           </Widget>
-        )}
-        {showCookieSettings && (
+        ) : null}
+        {showCookieSettings ? (
           <Widget className={className}>
             <WidgetTitle>
               <FormattedMessage id="EditOAuthClientForm.cookie-settings.title" />
@@ -425,7 +425,7 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> =
               />
             </WidgetDescription>
           </Widget>
-        )}
+        ) : null}
       </>
     );
   };

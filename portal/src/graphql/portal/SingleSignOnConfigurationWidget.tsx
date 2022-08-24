@@ -213,7 +213,7 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
   },
 };
 
-const WidgetHeader: React.FC<WidgetHeaderProps> = function WidgetHeader(
+const WidgetHeader: React.VFC<WidgetHeaderProps> = function WidgetHeader(
   props: WidgetHeaderProps
 ) {
   const {
@@ -258,14 +258,14 @@ const WidgetHeader: React.FC<WidgetHeaderProps> = function WidgetHeader(
             <FormattedMessage id={messageID} />
           </>
         }
-        disabled={!isEnabled && (disabled || disabledByLimitReached)}
+        disabled={Boolean(!isEnabled && (disabled || disabledByLimitReached))}
       ></Toggle>
       {messageBar}
     </div>
   );
 };
 
-const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetProps> =
+const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidgetProps> =
   // eslint-disable-next-line complexity
   function SingleSignOnConfigurationWidget(
     props: SingleSignOnConfigurationWidgetProps
@@ -425,7 +425,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
           />
         }
       >
-        {visibleFields.has("alias") && (
+        {visibleFields.has("alias") ? (
           <FormTextField
             parentJSONPointer={jsonPointer}
             fieldName="alias"
@@ -437,8 +437,8 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
             value={config.alias}
             onChange={onAliasChange}
           />
-        )}
-        {visibleFields.has("client_id") && (
+        ) : null}
+        {visibleFields.has("client_id") ? (
           <FormTextField
             parentJSONPointer={jsonPointer}
             fieldName="client_id"
@@ -450,8 +450,8 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
             value={config.client_id ?? ""}
             onChange={onClientIDChange}
           />
-        )}
-        {visibleFields.has("client_secret") && (
+        ) : null}
+        {visibleFields.has("client_secret") ? (
           <FormTextField
             parentJSONPointer={clientSecretParentJsonPointer}
             fieldName="client_secret"
@@ -468,8 +468,8 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
             value={secret.clientSecret}
             onChange={onClientSecretChange}
           />
-        )}
-        {visibleFields.has("tenant") && (
+        ) : null}
+        {visibleFields.has("tenant") ? (
           <FormTextField
             parentJSONPointer={jsonPointer}
             fieldName="tenant"
@@ -481,8 +481,8 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
             value={config.tenant ?? ""}
             onChange={onTenantChange}
           />
-        )}
-        {visibleFields.has("policy") && (
+        ) : null}
+        {visibleFields.has("policy") ? (
           <FormTextField
             parentJSONPointer={jsonPointer}
             fieldName="policy"
@@ -497,8 +497,8 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
             )}
             onChange={onPolicyChange}
           />
-        )}
-        {visibleFields.has("discovery_document_endpoint") && (
+        ) : null}
+        {visibleFields.has("discovery_document_endpoint") ? (
           <FormTextField
             parentJSONPointer={jsonPointer}
             fieldName="discovery_document_endpoint"
@@ -511,8 +511,8 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
             onChange={onDiscoveryDocumentEndpointChange}
             placeholder="http://example.com/.well-known/openid-configuration"
           />
-        )}
-        {visibleFields.has("key_id") && (
+        ) : null}
+        {visibleFields.has("key_id") ? (
           <FormTextField
             parentJSONPointer={jsonPointer}
             fieldName="key_id"
@@ -524,8 +524,8 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
             value={config.key_id ?? ""}
             onChange={onKeyIDChange}
           />
-        )}
-        {visibleFields.has("team_id") && (
+        ) : null}
+        {visibleFields.has("team_id") ? (
           <FormTextField
             parentJSONPointer={jsonPointer}
             fieldName="team_id"
@@ -537,8 +537,8 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
             value={config.team_id ?? ""}
             onChange={onTeamIDChange}
           />
-        )}
-        {visibleFields.has("account_id") && (
+        ) : null}
+        {visibleFields.has("account_id") ? (
           <FormTextField
             parentJSONPointer={jsonPointer}
             fieldName="account_id"
@@ -550,8 +550,8 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
             value={config.account_id ?? ""}
             onChange={onAccountIDChange}
           />
-        )}
-        {visibleFields.has("is_sandbox_account") && (
+        ) : null}
+        {visibleFields.has("is_sandbox_account") ? (
           <Checkbox
             label={renderToString(
               "SingleSignOnConfigurationScreen.widget.is-sandbox-account"
@@ -560,8 +560,8 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
             checked={config.is_sandbox_account ?? false}
             onChange={onIsSandBoxAccountChange}
           />
-        )}
-        {visibleFields.has("wechat_redirect_uris") && (
+        ) : null}
+        {visibleFields.has("wechat_redirect_uris") ? (
           <FormTextFieldList
             parentJSONPointer={jsonPointer}
             fieldName="wechat_redirect_uris"
@@ -578,8 +578,8 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
               />
             }
           />
-        )}
-        {visibleFields.has("email_required") && (
+        ) : null}
+        {visibleFields.has("email_required") ? (
           <Checkbox
             label={renderToString(
               "SingleSignOnConfigurationScreen.widget.email-required"
@@ -588,8 +588,8 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
             checked={config.claims?.email?.required ?? true}
             onChange={onEmailRequiredChange}
           />
-        )}
-        {visibleFields.has("modify_disabled") && (
+        ) : null}
+        {visibleFields.has("modify_disabled") ? (
           <Checkbox
             label={renderToString(
               "SingleSignOnConfigurationScreen.widget.modify-disabled"
@@ -598,7 +598,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
             checked={config.modify_disabled ?? false}
             onChange={onModifyDisabledChange}
           />
-        )}
+        ) : null}
       </ExtendableWidget>
     );
   };

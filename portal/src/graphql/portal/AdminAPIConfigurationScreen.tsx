@@ -78,7 +78,7 @@ query {
 }
 `;
 
-const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenContentProps> =
+const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenContentProps> =
   function AdminAPIConfigurationScreenContent(props) {
     const { appID, queryResult } = props;
     const { locale, renderToString } = useContext(Context);
@@ -248,7 +248,7 @@ const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenCo
     );
   };
 
-const AdminAPIConfigurationScreen: React.FC =
+const AdminAPIConfigurationScreen: React.VFC =
   function AdminAPIConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
     const queryResult = useAppAndSecretConfigQuery(appID);

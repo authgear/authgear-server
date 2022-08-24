@@ -9,7 +9,7 @@ interface ShowLoadingProps {
 
 // ShowLoading show a 100% width and 100% height spinner.
 // For better UX, please use Shimmer instead.
-const ShowLoading: React.FC<ShowLoadingProps> = function ShowLoading({
+const ShowLoading: React.VFC<ShowLoadingProps> = function ShowLoading({
   label,
 }) {
   const { renderToString } = useContext(Context);

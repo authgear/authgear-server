@@ -16,7 +16,7 @@ interface ButtonWithLoadingProps extends IButtonProps {
   spinnerStyles?: ISpinnerProps["styles"];
 }
 
-const ButtonWithLoading: React.FC<ButtonWithLoadingProps> =
+const ButtonWithLoading: React.VFC<ButtonWithLoadingProps> =
   function ButtonWithLoading(props: ButtonWithLoadingProps) {
     const {
       loading,

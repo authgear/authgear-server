@@ -31,7 +31,7 @@ export interface UseCopyFeedbackInput {
 
 export interface UseCopyFeedbackOutput {
   copyButtonProps: CopyButtonProps;
-  Feedback: React.FC;
+  Feedback: React.VFC;
 }
 
 const iconProps = {

@@ -24,7 +24,7 @@ const MESSAGE_BAR_STYLES = {
   actions: { margin: "4px 12px" },
 };
 
-export const ModifiedIndicator: React.FC<ModifiedIndicatorProps> =
+export const ModifiedIndicator: React.VFC<ModifiedIndicatorProps> =
   function ModifiedIndicator(props: ModifiedIndicatorProps) {
     const { isModified, resetForm, className } = props;
     const { renderToString } = useContext(Context);
@@ -89,7 +89,7 @@ export const ModifiedIndicator: React.FC<ModifiedIndicatorProps> =
           </DialogFooter>
         </Dialog>
 
-        {isModified && (
+        {isModified ? (
           <MessageBar
             className={cn(styles.messageBar, className)}
             styles={MESSAGE_BAR_STYLES}
@@ -98,7 +98,7 @@ export const ModifiedIndicator: React.FC<ModifiedIndicatorProps> =
           >
             <FormattedMessage id="ModifiedIndicator.message" />
           </MessageBar>
-        )}
+        ) : null}
       </>
     );
   };

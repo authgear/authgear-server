@@ -11,7 +11,7 @@ interface CustomTagPickerProps extends ITagPickerProps {
 // CustomTagPicker is workaround of fluentui TagPicker problem that item doesn't
 // add when on blur
 // CustomTagPicker will call onAdd when user off focus the input
-const CustomTagPicker: React.FC<CustomTagPickerProps> =
+const CustomTagPicker: React.VFC<CustomTagPickerProps> =
   function CustomTagPicker(props: CustomTagPickerProps) {
     const { onAdd, ...rest } = props;
 

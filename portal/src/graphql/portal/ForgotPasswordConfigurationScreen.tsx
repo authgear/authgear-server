@@ -47,7 +47,7 @@ interface ForgotPasswordConfigurationScreenContentProps {
   form: AppConfigFormModel<FormState>;
 }
 
-const ForgotPasswordConfigurationScreenContent: React.FC<ForgotPasswordConfigurationScreenContentProps> =
+const ForgotPasswordConfigurationScreenContent: React.VFC<ForgotPasswordConfigurationScreenContentProps> =
   function ForgotPasswordConfigurationScreenContent(props) {
     const { state, setState } = props.form;
 
@@ -88,7 +88,7 @@ const ForgotPasswordConfigurationScreenContent: React.FC<ForgotPasswordConfigura
     );
   };
 
-const ForgotPasswordConfigurationScreenScreen: React.FC =
+const ForgotPasswordConfigurationScreenScreen: React.VFC =
   function ForgotPasswordConfigurationScreenScreen() {
     const { appID } = useParams() as { appID: string };
     const form = useAppConfigForm({

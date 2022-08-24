@@ -9,7 +9,7 @@ import {
 
 export interface FeatureDisabledMessageBarProps extends IMessageBarProps {}
 
-const FeatureDisabledMessageBar: React.FC<FeatureDisabledMessageBarProps> =
+const FeatureDisabledMessageBar: React.VFC<FeatureDisabledMessageBarProps> =
   function FeatureDisabledMessageBar(props: FeatureDisabledMessageBarProps) {
     const { ...rest } = props;
 

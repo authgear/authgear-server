@@ -36,7 +36,7 @@ function mediaTypeToExtension(mime: string): ImageFileExtension {
   }
 }
 
-const ImageFilePicker: React.FC<ImageFilePickerProps> =
+const ImageFilePicker: React.VFC<ImageFilePickerProps> =
   function ImageFilePicker(props: ImageFilePickerProps) {
     const { disabled, className, base64EncodedData, onChange } = props;
 

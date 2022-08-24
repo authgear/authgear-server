@@ -109,7 +109,7 @@ interface PasswordPolicyConfigurationScreenContentProps {
   passwordPolicyFeatureConfig?: PasswordPolicyFeatureConfig;
 }
 
-const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigurationScreenContentProps> =
+const PasswordPolicyConfigurationScreenContent: React.VFC<PasswordPolicyConfigurationScreenContentProps> =
   // eslint-disable-next-line complexity
   function PasswordPolicyConfigurationScreenContent(props) {
     const { passwordPolicyFeatureConfig } = props;
@@ -342,7 +342,7 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
           <WidgetTitle>
             <FormattedMessage id="PasswordPolicyConfigurationScreen.advanced-policies" />
           </WidgetTitle>
-          {anyAdvancedPolicyDisabled && (
+          {anyAdvancedPolicyDisabled ? (
             <FeatureDisabledMessageBar>
               <FormattedMessage
                 id="FeatureConfig.disabled"
@@ -351,7 +351,7 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
                 }}
               />
             </FeatureDisabledMessageBar>
-          )}
+          ) : null}
           <Dropdown
             label={renderToString(
               "PasswordPolicyConfigurationScreen.min-guessable-level.label"
@@ -425,7 +425,7 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
     );
   };
 
-const PasswordPolicyConfigurationScreen: React.FC =
+const PasswordPolicyConfigurationScreen: React.VFC =
   function PasswordPolicyConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
     const form = useAppConfigForm({

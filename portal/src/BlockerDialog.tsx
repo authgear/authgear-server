@@ -21,7 +21,7 @@ export interface BlockerDialogProps extends IDialogProps {
   onDialogDismiss?: () => void;
 }
 
-const BlockerDialog: React.FC<BlockerDialogProps> = function BlockerDialog(
+const BlockerDialog: React.VFC<BlockerDialogProps> = function BlockerDialog(
   props
 ) {
   const {

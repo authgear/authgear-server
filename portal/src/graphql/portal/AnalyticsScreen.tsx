@@ -52,7 +52,7 @@ const CommandBarLabelValue = (label: string, value: string) => {
   };
 };
 
-const AnalyticsScreenContent: React.FC = function AnalyticsScreenContent() {
+const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
   const [dateRangeDialogHidden, setDateRangeDialogHidden] = useState(true);
 
   const { analyticEpoch: analyticEpochStr } = useSystemConfig();
@@ -333,7 +333,7 @@ const AnalyticsScreenContent: React.FC = function AnalyticsScreenContent() {
   );
 };
 
-const AnalyticsScreen: React.FC = function AnalyticsScreen() {
+const AnalyticsScreen: React.VFC = function AnalyticsScreen() {
   const { analyticEnabled } = useSystemConfig();
 
   if (!analyticEnabled) {

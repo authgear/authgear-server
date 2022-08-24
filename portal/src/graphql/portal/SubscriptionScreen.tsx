@@ -862,7 +862,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   );
 }
 
-const SubscriptionScreen: React.FC = function SubscriptionScreen() {
+const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
   const { renderToString } = useContext(Context);
   const now = useConst(new Date());
   const thisMonth = useMemo(() => {

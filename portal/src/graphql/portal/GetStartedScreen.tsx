@@ -256,7 +256,7 @@ function Card(props: CardProps) {
       <Text className={styles.cardDescription}>
         <FormattedMessage id={"GetStartedScreen.card.description." + cardKey} />
       </Text>
-      {internalHref != null && (
+      {internalHref != null ? (
         <ReactRouterLink
           id={id}
           to={internalHref}
@@ -269,8 +269,8 @@ function Card(props: CardProps) {
           />
           {" >"}
         </ReactRouterLink>
-      )}
-      {externalHref != null && (
+      ) : null}
+      {externalHref != null ? (
         <Link
           id={id}
           className={styles.cardActionButton}
@@ -283,8 +283,8 @@ function Card(props: CardProps) {
           />
           {" >"}
         </Link>
-      )}
-      {skipProgress != null && !isDone && (
+      ) : null}
+      {skipProgress != null && !isDone ? (
         <Link
           className={styles.cardSkipButton}
           as="button"
@@ -294,7 +294,7 @@ function Card(props: CardProps) {
           <FormattedMessage id="GetStartedScreen.card.skip-button.label" />
           {" >"}
         </Link>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -52,7 +52,7 @@ function SummaryText(props: { children: React.ReactNode; light?: boolean }) {
 }
 
 // eslint-disable-next-line complexity
-const AuditLogEntryScreen: React.FC = function AuditLogEntryScreen() {
+const AuditLogEntryScreen: React.VFC = function AuditLogEntryScreen() {
   const { logID } = useParams() as { logID: string };
   const location = useLocation();
   const state = location.state as { searchParams?: string };
@@ -112,7 +112,7 @@ const AuditLogEntryScreen: React.FC = function AuditLogEntryScreen() {
       <ScreenContent>
         <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
         <Widget className={styles.widget}>
-          {activityType && (
+          {activityType ? (
             <SummaryText>
               <FormattedMessage
                 id="AuditLogEntryScreen.activity-type"
@@ -121,8 +121,8 @@ const AuditLogEntryScreen: React.FC = function AuditLogEntryScreen() {
                 }}
               />
             </SummaryText>
-          )}
-          {loggedAt && (
+          ) : null}
+          {loggedAt ? (
             <SummaryText light={true}>
               <FormattedMessage
                 id="AuditLogEntryScreen.logged-at"
@@ -131,8 +131,8 @@ const AuditLogEntryScreen: React.FC = function AuditLogEntryScreen() {
                 }}
               />
             </SummaryText>
-          )}
-          {rawUserID && (
+          ) : null}
+          {rawUserID ? (
             <SummaryText light={true}>
               <FormattedMessage
                 id="AuditLogEntryScreen.user-id"
@@ -142,8 +142,8 @@ const AuditLogEntryScreen: React.FC = function AuditLogEntryScreen() {
                 }}
               />
             </SummaryText>
-          )}
-          {ipAddress && (
+          ) : null}
+          {ipAddress ? (
             <SummaryText light={true}>
               <FormattedMessage
                 id="AuditLogEntryScreen.ip-address"
@@ -152,8 +152,8 @@ const AuditLogEntryScreen: React.FC = function AuditLogEntryScreen() {
                 }}
               />
             </SummaryText>
-          )}
-          {userAgent && (
+          ) : null}
+          {userAgent ? (
             <SummaryText light={true}>
               <FormattedMessage
                 id="AuditLogEntryScreen.user-agent"
@@ -162,8 +162,8 @@ const AuditLogEntryScreen: React.FC = function AuditLogEntryScreen() {
                 }}
               />
             </SummaryText>
-          )}
-          {clientID && (
+          ) : null}
+          {clientID ? (
             <SummaryText light={true}>
               <FormattedMessage
                 id="AuditLogEntryScreen.client-id"
@@ -172,13 +172,13 @@ const AuditLogEntryScreen: React.FC = function AuditLogEntryScreen() {
                 }}
               />
             </SummaryText>
-          )}
+          ) : null}
         </Widget>
         <Widget className={styles.widget}>
           <Label>
             <FormattedMessage id="AuditLogEntryScreen.raw-event-log" />
           </Label>
-          {code != null && (
+          {code != null ? (
             <div className={styles.codeBlock}>
               <CopyBlock
                 text={code}
@@ -187,7 +187,7 @@ const AuditLogEntryScreen: React.FC = function AuditLogEntryScreen() {
                 theme={dracula}
               />
             </div>
-          )}
+          ) : null}
         </Widget>
       </ScreenContent>
     </CommandBarContainer>

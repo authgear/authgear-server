@@ -21,7 +21,7 @@ function stylesFunc(_props: ITextProps, theme: ITheme) {
 // It is useful when the control being used does not support errorMessage prop out of the box.
 // For TextField, use FormTextField instead.
 // If you want to use a standard control with form error, create the FormXXX component yourself.
-const FormErrorMessageText: React.FC<FormErrorMessageTextProps> =
+const FormErrorMessageText: React.VFC<FormErrorMessageTextProps> =
   function FormErrorMessageText(props: FormErrorMessageTextProps) {
     const { parentJSONPointer, fieldName, errorRules, ...rest } = props;
     const field = useMemo(

@@ -158,7 +158,7 @@ function edit(values: string[], target: string, checked: boolean): string[] {
   });
 }
 
-const CountryCallingCodeListItemCheckbox: React.FC<CountryCallingCodeListItemCheckboxProps> =
+const CountryCallingCodeListItemCheckbox: React.VFC<CountryCallingCodeListItemCheckboxProps> =
   function CountryCallingCodeListItemCheckbox(
     props: CountryCallingCodeListItemCheckboxProps
   ) {
@@ -177,7 +177,7 @@ const CountryCallingCodeListItemCheckbox: React.FC<CountryCallingCodeListItemChe
     return <Checkbox {...rest} onChange={onChange} />;
   };
 
-const CountryCallingCodeListPinButton: React.FC<CountryCallingCodeListPinButtonProps> =
+const CountryCallingCodeListPinButton: React.VFC<CountryCallingCodeListPinButtonProps> =
   function CountryCallingCodeListPinButton(
     props: CountryCallingCodeListPinButtonProps
   ) {
@@ -205,7 +205,7 @@ const CountryCallingCodeListPinButton: React.FC<CountryCallingCodeListPinButtonP
     );
   };
 
-const CountryCallingCodeListSelectAll: React.FC<CountryCallingCodeListSelectAllProps> =
+const CountryCallingCodeListSelectAll: React.VFC<CountryCallingCodeListSelectAllProps> =
   function CountryCallingCodeListSelectAll(
     props: CountryCallingCodeListSelectAllProps
   ) {
@@ -241,7 +241,7 @@ const CountryCallingCodeListSelectAll: React.FC<CountryCallingCodeListSelectAllP
     );
   };
 
-const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> =
+const CountryCallingCodeList: React.VFC<CountryCallingCodeListProps> =
   function CountryCallingCodeList(props: CountryCallingCodeListProps) {
     const { disabled, className, pinnedAlpha2, allowedAlpha2, onChange } =
       props;

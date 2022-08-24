@@ -61,7 +61,7 @@ export function TooltipIcon(props: TooltipIconProps): React.ReactElement {
   );
 }
 
-const Tooltip: React.FC<TooltipProps> = function Tooltip(props: TooltipProps) {
+const Tooltip: React.VFC<TooltipProps> = function Tooltip(props: TooltipProps) {
   const { className, tooltipMessageId, children } = props;
   const tooltipProps: ITooltipProps = React.useMemo(() => {
     return {

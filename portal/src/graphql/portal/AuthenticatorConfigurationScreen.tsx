@@ -259,7 +259,7 @@ interface AuthenticatorCheckboxProps {
   onChange: (item: AuthenticatorColumnItem, checked: boolean) => void;
 }
 
-const AuthenticatorCheckbox: React.FC<AuthenticatorCheckboxProps> =
+const AuthenticatorCheckbox: React.VFC<AuthenticatorCheckboxProps> =
   function AuthenticatorCheckbox(props) {
     const { disabled, item, onChange } = props;
 
@@ -272,7 +272,7 @@ const AuthenticatorCheckbox: React.FC<AuthenticatorCheckboxProps> =
       <Checkbox
         checked={item.isChecked}
         onChange={onCheckboxChange}
-        disabled={disabled && !item.isChecked}
+        disabled={Boolean(disabled && !item.isChecked)}
       />
     );
   };
@@ -282,7 +282,7 @@ interface AuthenticationAuthenticatorSettingsContentProps {
   featureConfig?: PortalAPIFeatureConfig;
 }
 
-const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthenticatorSettingsContentProps> =
+const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthenticatorSettingsContentProps> =
   function AuthenticationAuthenticatorSettingsContent(props) {
     const { state, setState, effectiveConfig } = props.form;
 
@@ -675,7 +675,7 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
           <WidgetTitle>
             <FormattedMessage id="AuthenticatorConfigurationScreen.primary-authenticators.title" />
           </WidgetTitle>
-          {hasPrimaryFeatureDisabled && (
+          {hasPrimaryFeatureDisabled ? (
             <FeatureDisabledMessageBar>
               <FormattedMessage
                 id="FeatureConfig.disabled"
@@ -684,7 +684,7 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
                 }}
               />
             </FeatureDisabledMessageBar>
-          )}
+          ) : null}
           {state.passkeyDisabled ? (
             <TooltipHost
               content={<FormattedMessage id="errors.validation.passkey" />}
@@ -755,7 +755,7 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
               [styles.readOnly]: isSecondaryAuthenticatorDisabled,
             })}
           >
-            {hasSecondaryFeatureDisabled && (
+            {hasSecondaryFeatureDisabled ? (
               <FeatureDisabledMessageBar>
                 <FormattedMessage
                   id="FeatureConfig.disabled"
@@ -764,7 +764,7 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
                   }}
                 />
               </FeatureDisabledMessageBar>
-            )}
+            ) : null}
             <DetailsList
               items={secondaryItems}
               columns={authenticatorColumns}
@@ -827,7 +827,7 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
     );
   };
 
-const AuthenticatorConfigurationScreen: React.FC =
+const AuthenticatorConfigurationScreen: React.VFC =
   function AuthenticatorConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
     const form = useAppConfigForm({

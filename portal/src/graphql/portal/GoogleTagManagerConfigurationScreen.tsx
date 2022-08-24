@@ -56,7 +56,7 @@ interface GoogleTagManagerConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
 }
 
-const GoogleTagManagerConfigurationContent: React.FC<GoogleTagManagerConfigurationContentProps> =
+const GoogleTagManagerConfigurationContent: React.VFC<GoogleTagManagerConfigurationContentProps> =
   function GoogleTagManagerConfigurationContent(props) {
     const { renderToString } = useContext(Context);
     const {
@@ -152,7 +152,7 @@ const GoogleTagManagerConfigurationContent: React.FC<GoogleTagManagerConfigurati
     );
   };
 
-const GoogleTagManagerConfigurationScreen: React.FC =
+const GoogleTagManagerConfigurationScreen: React.VFC =
   function GoogleTagManagerConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
     const form = useAppConfigForm({

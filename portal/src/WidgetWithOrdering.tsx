@@ -15,7 +15,7 @@ interface WidgetWithOrderingProps {
   className?: string;
 }
 
-const WidgetWithOrdering: React.FC<WidgetWithOrderingProps> =
+const WidgetWithOrdering: React.VFC<WidgetWithOrderingProps> =
   function WidgetWithOrdering(props: WidgetWithOrderingProps) {
     const {
       disabled,
@@ -31,7 +31,7 @@ const WidgetWithOrdering: React.FC<WidgetWithOrderingProps> =
 
     return (
       <Widget className={className}>
-        {HeaderMessageComponent && <div>{HeaderMessageComponent}</div>}
+        {HeaderMessageComponent ? <div>{HeaderMessageComponent}</div> : null}
         <div className={styles.header}>
           {HeaderComponent}
           <OrderButtons

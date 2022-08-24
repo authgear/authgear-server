@@ -112,7 +112,7 @@ interface QuickStartFrameworkItemProps extends FrameworkItem {
   showOpenTutorialLabelWhenHover: boolean;
 }
 
-const QuickStartFrameworkItem: React.FC<QuickStartFrameworkItemProps> =
+const QuickStartFrameworkItem: React.VFC<QuickStartFrameworkItemProps> =
   function QuickStartFrameworkItem(props) {
     const { icon, name, docLink, showOpenTutorialLabelWhenHover } = props;
     const [isHovering, setIsHovering] = useState(false);
@@ -168,17 +168,17 @@ const QuickStartFrameworkItem: React.FC<QuickStartFrameworkItemProps> =
           <Text variant="small" className={styles.quickStartItemText}>
             {name}
           </Text>
-          {shouldShowArrowIcon && (
+          {shouldShowArrowIcon ? (
             <Icon
               className={styles.quickStartItemArrowIcon}
               iconName="ChevronRightSmall"
             />
-          )}
-          {!shouldShowArrowIcon && (
+          ) : null}
+          {!shouldShowArrowIcon ? (
             <Text className={styles.quickStartItemOpenTutorial}>
               <FormattedMessage id="EditOAuthClientScreen.quick-start.open-tutorial.label" />
             </Text>
-          )}
+          ) : null}
         </span>
       </Link>
     );
@@ -189,7 +189,7 @@ interface QuickStartFrameworkListProps {
   showOpenTutorialLabelWhenHover: boolean;
 }
 
-const QuickStartFrameworkList: React.FC<QuickStartFrameworkListProps> =
+const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
   function QuickStartFrameworkList(props) {
     const { applicationType, showOpenTutorialLabelWhenHover } = props;
     const { renderToString } = useContext(Context);
@@ -313,7 +313,7 @@ interface EditOAuthClientNavBreadcrumbProps {
   clientName: string;
 }
 
-const EditOAuthClientNavBreadcrumb: React.FC<EditOAuthClientNavBreadcrumbProps> =
+const EditOAuthClientNavBreadcrumb: React.VFC<EditOAuthClientNavBreadcrumbProps> =
   function EditOAuthClientNavBreadcrumb(props) {
     const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
       return [
@@ -340,7 +340,7 @@ interface EditOAuthClientContentProps {
   clientID: string;
 }
 
-const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> =
+const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
   function EditOAuthClientContent(props) {
     const {
       clientID,
@@ -414,7 +414,7 @@ interface OAuthQuickStartScreenContentProps {
   clientID: string;
 }
 
-const OAuthQuickStartScreenContent: React.FC<OAuthQuickStartScreenContentProps> =
+const OAuthQuickStartScreenContent: React.VFC<OAuthQuickStartScreenContentProps> =
   function OAuthQuickStartScreenContent(props) {
     const {
       clientID,
@@ -470,7 +470,7 @@ const OAuthQuickStartScreenContent: React.FC<OAuthQuickStartScreenContentProps> 
     );
   };
 
-const EditOAuthClientScreen: React.FC = function EditOAuthClientScreen() {
+const EditOAuthClientScreen: React.VFC = function EditOAuthClientScreen() {
   const { appID, clientID } = useParams() as {
     appID: string;
     clientID: string;

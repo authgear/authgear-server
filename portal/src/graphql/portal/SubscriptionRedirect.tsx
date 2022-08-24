@@ -4,7 +4,7 @@ import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import { useReconcileCheckoutSessionMutation } from "./mutations/reconcileCheckoutSessionMutation";
 
-const SubscriptionRedirect: React.FC = function SubscriptionRedirect() {
+const SubscriptionRedirect: React.VFC = function SubscriptionRedirect() {
   const navigate = useNavigate();
   const { appID } = useParams() as { appID: string };
   const [searchParams] = useSearchParams();

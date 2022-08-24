@@ -37,7 +37,7 @@ interface ErrorContext {
   fallbackErrorMessageID?: string;
 }
 
-export const FormProvider: React.FC<FormProviderProps> = (props) => {
+export const FormProvider: React.VFC<FormProviderProps> = (props) => {
   const {
     loading,
     error,

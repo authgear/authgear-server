@@ -27,7 +27,7 @@ interface EmailFieldProps {
   onChange: (value: string) => void;
 }
 
-const EmailField: React.FC<EmailFieldProps> = function EmailField(props) {
+const EmailField: React.VFC<EmailFieldProps> = function EmailField(props) {
   const { value, onChange } = props;
   const { renderToString } = useContext(Context);
   const onEmailChange = useCallback(
@@ -47,7 +47,7 @@ const EmailField: React.FC<EmailFieldProps> = function EmailField(props) {
   );
 };
 
-const AddEmailScreen: React.FC = function AddEmailScreen() {
+const AddEmailScreen: React.VFC = function AddEmailScreen() {
   const { appID, userID } = useParams() as { appID: string; userID: string };
   const {
     user,

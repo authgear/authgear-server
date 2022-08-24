@@ -80,7 +80,7 @@ function getLanguageLocaleKey(locale: LanguageTag) {
   return `Locales.${locale}`;
 }
 
-const Cell: React.FC<CellProps> = function Cell(props: CellProps) {
+const Cell: React.VFC<CellProps> = function Cell(props: CellProps) {
   const {
     language,
     checked,
@@ -117,16 +117,16 @@ const Cell: React.FC<CellProps> = function Cell(props: CellProps) {
           }}
         />
       </Text>
-      {checked && !disabled && (
+      {checked && !disabled ? (
         <Link onClick={onClickSetAsFallback}>
           <FormattedMessage id="ManageLanguageWidget.set-as-default" />
         </Link>
-      )}
+      ) : null}
     </div>
   );
 };
 
-const ManageLanguageWidgetDialog: React.FC<ManageLanguageWidgetDialogProps> =
+const ManageLanguageWidgetDialog: React.VFC<ManageLanguageWidgetDialogProps> =
   function ManageLanguageWidgetDialog(props: ManageLanguageWidgetDialogProps) {
     const {
       presented,
@@ -287,7 +287,7 @@ const ManageLanguageWidgetDialog: React.FC<ManageLanguageWidgetDialogProps> =
     );
   };
 
-const ManageLanguageWidget: React.FC<ManageLanguageWidgetProps> =
+const ManageLanguageWidget: React.VFC<ManageLanguageWidgetProps> =
   function ManageLanguageWidget(props: ManageLanguageWidgetProps) {
     const {
       className,

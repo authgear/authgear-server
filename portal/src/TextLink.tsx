@@ -10,7 +10,7 @@ export interface TextLinkProps {
 }
 
 // TextLink looks like TextField.
-const TextLink: React.FC<TextLinkProps> = function TextLink(props) {
+const TextLink: React.VFC<TextLinkProps> = function TextLink(props) {
   const { className, label, value } = props;
   const { renderToString } = useContext(Context);
   return (

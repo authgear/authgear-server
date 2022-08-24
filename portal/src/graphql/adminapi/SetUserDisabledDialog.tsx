@@ -24,7 +24,7 @@ interface SetUserDisabledDialogProps {
 
 const dialogStyles = { main: { minHeight: 0 } };
 
-const SetUserDisabledDialog: React.FC<SetUserDisabledDialogProps> = React.memo(
+const SetUserDisabledDialog: React.VFC<SetUserDisabledDialogProps> = React.memo(
   function SetUserDisabledDialog(props: SetUserDisabledDialogProps) {
     const {
       isHidden,

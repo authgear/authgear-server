@@ -8,7 +8,7 @@ import {
 
 export interface TextFieldProps extends ITextFieldProps {}
 
-const TextField: React.FC<TextFieldProps> = function TextField(
+const TextField: React.VFC<TextFieldProps> = function TextField(
   props: TextFieldProps
 ) {
   const { ...rest } = props;

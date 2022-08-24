@@ -413,7 +413,7 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
   );
 }
 
-const EditPictureScreen: React.FC = function EditPictureScreen() {
+const EditPictureScreen: React.VFC = function EditPictureScreen() {
   const navigate = useNavigate();
   const { appID, userID } = useParams() as { appID: string; userID: string };
   const {

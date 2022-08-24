@@ -23,7 +23,7 @@ export interface RemovePortalAdminInvitationConfirmationDialogProps {
   onDismiss: () => void;
 }
 
-const RemovePortalAdminInvitationConfirmationDialog: React.FC<RemovePortalAdminInvitationConfirmationDialogProps> =
+const RemovePortalAdminInvitationConfirmationDialog: React.VFC<RemovePortalAdminInvitationConfirmationDialogProps> =
   function RemovePortalAdminInvitationConfirmationDialog(props) {
     const {
       visible,

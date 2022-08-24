@@ -135,7 +135,7 @@ function EditCustomAttributeContent(props: EditCustomAttributeContentProps) {
   );
 }
 
-const EditCustomAttributeScreen: React.FC =
+const EditCustomAttributeScreen: React.VFC =
   function EditCustomAttributeScreen() {
     const { appID, index: indexString } = useParams() as {
       appID: string;

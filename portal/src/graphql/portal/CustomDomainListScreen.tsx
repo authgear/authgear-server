@@ -130,7 +130,7 @@ function makeDomainListColumn(renderToString: (messageID: string) => string) {
   ];
 }
 
-const AddDomainSection: React.FC = function AddDomainSection() {
+const AddDomainSection: React.VFC = function AddDomainSection() {
   const { renderToString } = useContext(Context);
   const { appID } = useParams() as { appID: string };
 
@@ -226,7 +226,7 @@ interface DomainListActionButtonsProps {
   onDomainActivate: (urlOrigin: string, cookieDomain: string) => void;
 }
 
-const DomainListActionButtons: React.FC<DomainListActionButtonsProps> =
+const DomainListActionButtons: React.VFC<DomainListActionButtonsProps> =
   // eslint-disable-next-line complexity
   function DomainListActionButtons(props) {
     const {
@@ -336,7 +336,7 @@ interface DeleteDomainDialogProps {
   dismissDialog: () => void;
 }
 
-const DeleteDomainDialog: React.FC<DeleteDomainDialogProps> =
+const DeleteDomainDialog: React.VFC<DeleteDomainDialogProps> =
   function DeleteDomainDialog(props: DeleteDomainDialogProps) {
     const { domain, domainID, visible, dismissDialog } = props;
     const { appID } = useParams() as { appID: string };
@@ -419,7 +419,7 @@ interface UpdatePublicOriginDialogProps {
   dismissDialog: () => void;
 }
 
-const UpdatePublicOriginDialog: React.FC<UpdatePublicOriginDialogProps> =
+const UpdatePublicOriginDialog: React.VFC<UpdatePublicOriginDialogProps> =
   function UpdatePublicOriginDialog(props: UpdatePublicOriginDialogProps) {
     const {
       urlOrigin,
@@ -484,7 +484,7 @@ interface CustomDomainListContentProps {
   featureConfig?: CustomDomainFeatureConfig;
 }
 
-const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
+const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
   function CustomDomainListContent(props) {
     const {
       domains,
@@ -659,7 +659,7 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
         return (
           <>
             {defaultHeaderNode}
-            {!customDomainDisabled && <AddDomainSection />}
+            {!customDomainDisabled ? <AddDomainSection /> : null}
           </>
         );
       },
@@ -674,7 +674,7 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
             <Text block={true}>
               <FormattedMessage id="CustomDomainListScreen.desc" />
             </Text>
-            {customDomainDisabled && (
+            {customDomainDisabled ? (
               <FeatureDisabledMessageBar>
                 <FormattedMessage
                   id="FeatureConfig.custom-domain.disabled"
@@ -683,7 +683,7 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
                   }}
                 />
               </FeatureDisabledMessageBar>
-            )}
+            ) : null}
             <DetailsList
               columns={domainListColumns}
               items={domainListItems}
@@ -713,7 +713,7 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
     );
   };
 
-const CustomDomainListScreen: React.FC = function CustomDomainListScreen() {
+const CustomDomainListScreen: React.VFC = function CustomDomainListScreen() {
   const { appID } = useParams() as { appID: string };
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -763,14 +763,14 @@ const CustomDomainListScreen: React.FC = function CustomDomainListScreen() {
 
   return (
     <>
-      {isVerifySuccessMessageVisible && (
+      {isVerifySuccessMessageVisible ? (
         <MessageBar
           messageBarType={MessageBarType.success}
           onDismiss={dismissVerifySuccessMessageBar}
         >
           <FormattedMessage id="CustomDomainListScreen.verify-success-message" />
         </MessageBar>
-      )}
+      ) : null}
       <CustomDomainListContent
         domains={domains ?? []}
         appConfigForm={form}

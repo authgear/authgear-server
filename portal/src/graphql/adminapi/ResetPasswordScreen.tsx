@@ -33,7 +33,7 @@ interface ResetPasswordContentProps {
   form: SimpleFormModel<FormState>;
 }
 
-const ResetPasswordContent: React.FC<ResetPasswordContentProps> = function (
+const ResetPasswordContent: React.VFC<ResetPasswordContentProps> = function (
   props
 ) {
   const {
@@ -82,7 +82,7 @@ const ResetPasswordContent: React.FC<ResetPasswordContentProps> = function (
   );
 };
 
-const ResetPasswordScreen: React.FC = function ResetPasswordScreen() {
+const ResetPasswordScreen: React.VFC = function ResetPasswordScreen() {
   const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
 

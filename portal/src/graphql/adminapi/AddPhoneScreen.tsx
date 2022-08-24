@@ -66,7 +66,7 @@ function LoginIDField(props: LoginIDFieldProps) {
   );
 }
 
-const AddPhoneScreen: React.FC = function AddPhoneScreen() {
+const AddPhoneScreen: React.VFC = function AddPhoneScreen() {
   const { appID, userID } = useParams() as { appID: string; userID: string };
   const {
     user,

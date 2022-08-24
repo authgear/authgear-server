@@ -101,14 +101,14 @@ export default function WizardContentLayout(
         {children}
         <div className={styles.buttons}>
           {primaryButton}
-          {backButtonDisabled !== true && (
+          {backButtonDisabled !== true ? (
             <DefaultButton onClick={onClickBackButton}>
               <FormattedMessage id="back" />
             </DefaultButton>
-          )}
+          ) : null}
         </div>
       </div>
-      {appID != null && (
+      {appID != null ? (
         <ReactRouterLink
           className={styles.skip}
           to={`/project/${appID}`}
@@ -117,7 +117,7 @@ export default function WizardContentLayout(
         >
           <FormattedMessage id="WizardContentLayout.skip.label" />
         </ReactRouterLink>
-      )}
+      ) : null}
     </div>
   );
 }

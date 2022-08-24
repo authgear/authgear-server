@@ -9,7 +9,7 @@ export interface FormDropdownProps extends IDropdownProps {
   errorRules?: ErrorParseRule[];
 }
 
-const FormDropdown: React.FC<FormDropdownProps> = function FormDropdown(
+const FormDropdown: React.VFC<FormDropdownProps> = function FormDropdown(
   props: FormDropdownProps
 ) {
   const {

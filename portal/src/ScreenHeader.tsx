@@ -25,7 +25,7 @@ interface LogoProps {
   isNavbarHeader?: boolean;
 }
 
-const Logo: React.FC<LogoProps> = (props) => {
+const Logo: React.VFC<LogoProps> = (props) => {
   const { isNavbarHeader = false } = props;
   const { renderToString } = useContext(Context);
 
@@ -44,7 +44,7 @@ interface MobileViewHeaderAppSectionProps {
   appID: string;
 }
 
-const MobileViewHeaderAppSection: React.FC<MobileViewHeaderAppSectionProps> = (
+const MobileViewHeaderAppSection: React.VFC<MobileViewHeaderAppSectionProps> = (
   props
 ) => {
   const { appID } = props;
@@ -69,7 +69,7 @@ interface DesktopViewHeaderAppSectionProps {
   appID: string;
 }
 
-const DesktopViewHeaderAppSection: React.FC<
+const DesktopViewHeaderAppSection: React.VFC<
   DesktopViewHeaderAppSectionProps
 > = (props) => {
   const { appID } = props;
@@ -120,7 +120,7 @@ interface MobileViewHeaderIconSectionProps {
   showHamburger: boolean;
 }
 
-const MobileViewHeaderIconSection: React.FC<
+const MobileViewHeaderIconSection: React.VFC<
   MobileViewHeaderIconSectionProps
 > = (props) => {
   const { onClick, showHamburger } = props;
@@ -145,7 +145,7 @@ const MobileViewHeaderIconSection: React.FC<
   );
 };
 
-const DesktopViewHeaderIconSection: React.FC = () => {
+const DesktopViewHeaderIconSection: React.VFC = () => {
   return (
     <Link to="/" className={styles.logoLink}>
       <Logo />
@@ -179,7 +179,7 @@ interface ScreenNavProps {
   showHamburger?: boolean;
 }
 
-const ScreenHeader: React.FC<ScreenNavProps> = function ScreenHeader(props) {
+const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
   const { showHamburger = true } = props;
   const { renderToString } = useContext(Context);
   const { themes, authgearEndpoint } = useSystemConfig();
@@ -237,7 +237,7 @@ const ScreenHeader: React.FC<ScreenNavProps> = function ScreenHeader(props) {
           showHamburger={showHamburger}
           onClick={openNavbar}
         />
-        {appID && <MobileViewHeaderAppSection appID={appID} />}
+        {appID ? <MobileViewHeaderAppSection appID={appID} /> : null}
         <Panel
           isLightDismiss={true}
           hasCloseButton={false}
@@ -250,9 +250,9 @@ const ScreenHeader: React.FC<ScreenNavProps> = function ScreenHeader(props) {
       </div>
       <div className={styles.desktopView}>
         <DesktopViewHeaderIconSection />
-        {appID && <DesktopViewHeaderAppSection appID={appID} />}
+        {appID ? <DesktopViewHeaderAppSection appID={appID} /> : null}
       </div>
-      {viewer != null && (
+      {viewer != null ? (
         <CommandButton
           menuProps={menuProps}
           theme={themes.inverted}
@@ -260,7 +260,7 @@ const ScreenHeader: React.FC<ScreenNavProps> = function ScreenHeader(props) {
         >
           {viewer.email}
         </CommandButton>
-      )}
+      ) : null}
     </header>
   );
 };

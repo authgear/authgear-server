@@ -10,7 +10,7 @@ export interface FormTextFieldProps extends ITextFieldProps {
   errorRules?: ErrorParseRule[];
 }
 
-const FormTextField: React.FC<FormTextFieldProps> = function FormTextField(
+const FormTextField: React.VFC<FormTextFieldProps> = function FormTextField(
   props: FormTextFieldProps
 ) {
   const {
