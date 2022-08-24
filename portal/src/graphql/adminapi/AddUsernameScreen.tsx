@@ -72,7 +72,9 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
       { to: ".", label: <FormattedMessage id="AddUsernameScreen.title" /> },
     ];
   }, []);
-  const title = <NavBreadcrumb items={navBreadcrumbItems} />;
+  const title = (
+    <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+  );
 
   if (loadingUser || loadingAppConfig) {
     return <ShowLoading />;

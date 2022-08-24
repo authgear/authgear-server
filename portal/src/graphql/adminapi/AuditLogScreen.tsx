@@ -523,7 +523,7 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
       >
         <ScreenContent className={styles.content} layout="list">
           <div className={styles.widget}>
-            <NavBreadcrumb items={items} />
+            <NavBreadcrumb className="" items={items} />
             {logRetrievalDays !== -1 && (
               <FeatureDisabledMessageBar className={styles.messageBar}>
                 <FormattedMessage

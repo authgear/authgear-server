@@ -69,7 +69,9 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
       { to: ".", label: <FormattedMessage id="AddEmailScreen.title" /> },
     ];
   }, []);
-  const title = <NavBreadcrumb items={navBreadcrumbItems} />;
+  const title = (
+    <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+  );
 
   if (loadingUser || loadingAppConfig) {
     return <ShowLoading />;

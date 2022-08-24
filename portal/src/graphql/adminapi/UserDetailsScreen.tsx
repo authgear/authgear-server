@@ -529,7 +529,7 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
         messageBar={<WarnScheduledDeletion user={user} />}
       >
         <ScreenContent>
-          <NavBreadcrumb items={navBreadcrumbItems} />
+          <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
           <UserDetails form={form} data={user} appConfig={effectiveAppConfig} />
         </ScreenContent>
         <DeleteUserDialog

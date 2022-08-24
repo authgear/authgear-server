@@ -330,7 +330,9 @@ const EditOAuthClientNavBreadcrumb: React.FC<EditOAuthClientNavBreadcrumbProps> 
       ];
     }, [props.clientName]);
 
-    return <NavBreadcrumb items={navBreadcrumbItems} />;
+    return (
+      <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+    );
   };
 
 interface EditOAuthClientContentProps {

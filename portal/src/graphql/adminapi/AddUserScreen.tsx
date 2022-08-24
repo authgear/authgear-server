@@ -264,7 +264,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
 
   return (
     <ScreenContent>
-      <NavBreadcrumb items={navBreadcrumbItems} />
+      <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
       <ChoiceGroup
         className={styles.widget}
         styles={{ label: { marginBottom: "15px", fontSize: "14px" } }}

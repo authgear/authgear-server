@@ -240,7 +240,7 @@ const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> =
 
     return (
       <ScreenContent>
-        <NavBreadcrumb items={navBreadcrumbItems} />
+        <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
         <Widget className={styles.widget}>
           <FormTextField
             parentJSONPointer={parentJSONPointer}

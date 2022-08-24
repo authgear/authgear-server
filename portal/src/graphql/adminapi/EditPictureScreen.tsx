@@ -375,7 +375,10 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
       >
         <form>
           <ScreenContent>
-            <NavBreadcrumb items={navBreadcrumbItems} />
+            <NavBreadcrumb
+              className={styles.widget}
+              items={navBreadcrumbItems}
+            />
             <ReactCropperjs
               ref={cropperjsRef}
               className={styles.widget}

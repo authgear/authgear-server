@@ -102,7 +102,9 @@ const AddPhoneScreen: React.FC = function AddPhoneScreen() {
     };
   }, [resetToken, effectiveAppConfig]);
 
-  const title = <NavBreadcrumb items={navBreadcrumbItems} />;
+  const title = (
+    <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+  );
 
   if (loadingUser || loadingAppConfig) {
     return <ShowLoading />;
