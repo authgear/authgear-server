@@ -136,6 +136,7 @@ type createUserInput struct {
 
 var _ nodes.InputCreateAuthenticatorPassword = &createUserInput{}
 var _ nodes.InputAuthenticationStage = &createUserInput{}
+var _ nodes.InputPromptCreatePasskey = &createUserInput{}
 
 func (i *createUserInput) GetPassword() string {
 	return i.password
@@ -145,4 +146,14 @@ func (i *createUserInput) Input() interface{} {
 }
 func (i *createUserInput) GetAuthenticationStage() authn.AuthenticationStage {
 	return authn.AuthenticationStagePrimary
+}
+
+// IsSkipped implements InputPromptCreatePasskey
+func (i *createUserInput) IsSkipped() bool {
+	return true
+}
+
+// GetAttestationResponse implements InputPromptCreatePasskey
+func (i *createUserInput) GetAttestationResponse() []byte {
+	return nil
 }
