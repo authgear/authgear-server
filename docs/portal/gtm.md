@@ -90,6 +90,7 @@ This document describes how to setup portal tracking to send data to Mixpanel vi
             // REPLACE THE MIXPANEL PROJECT TOKEN
             mixpanel.init("YOUR_PROJECT_TOKEN", {
               debug: false,
+              cookie_domain: window.location.hostname,
               loaded: function (mixpanel) {
                 var distinctID = mixpanel.get_distinct_id();
                 if (distinctID !== agUserData.user_id) {
