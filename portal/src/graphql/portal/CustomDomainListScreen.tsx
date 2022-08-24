@@ -11,7 +11,6 @@ import produce from "immer";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import {
-  ActionButton,
   DetailsList,
   Dialog,
   DialogFooter,
@@ -32,6 +31,7 @@ import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import DefaultButton from "../../DefaultButton";
+import ActionButton from "../../ActionButton";
 import { useTextField } from "../../hook/useInput";
 import {
   ErrorParseRule,
@@ -279,9 +279,8 @@ const DomainListActionButtons: React.VFC<DomainListActionButtonsProps> =
           className={styles.actionButton}
           theme={themes.actionButton}
           onClick={onActivateClick}
-        >
-          <FormattedMessage id="activate" />
-        </ActionButton>
+          text={<FormattedMessage id="activate" />}
+        />
       );
     }
 
@@ -292,9 +291,8 @@ const DomainListActionButtons: React.VFC<DomainListActionButtonsProps> =
           className={styles.actionButton}
           theme={themes.actionButton}
           onClick={onVerifyClicked}
-        >
-          <FormattedMessage id="verify" />
-        </ActionButton>
+          text={<FormattedMessage id="verify" />}
+        />
       );
     }
 
@@ -305,9 +303,8 @@ const DomainListActionButtons: React.VFC<DomainListActionButtonsProps> =
           className={styles.actionButton}
           theme={themes.destructive}
           onClick={onDeleteClick}
-        >
-          <FormattedMessage id="delete" />
-        </ActionButton>
+          text={<FormattedMessage id="delete" />}
+        />
       );
     }
 

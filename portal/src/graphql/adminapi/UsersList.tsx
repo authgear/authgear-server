@@ -7,7 +7,6 @@ import {
   IColumn,
   IDetailsRowProps,
   DetailsRow,
-  ActionButton,
   ColumnActionsMode,
   Persona,
   PersonaSize,
@@ -27,6 +26,7 @@ import { formatDatetime } from "../../util/formatDatetime";
 import styles from "./UsersList.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import useDelayedValue from "../../hook/useDelayedValue";
+import ActionButton from "../../ActionButton";
 
 interface UsersListProps {
   className?: string;
@@ -281,9 +281,8 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
                 className={styles.actionButton}
                 theme={theme}
                 onClick={(event) => onUserActionClick(event, item)}
-              >
-                {children}
-              </ActionButton>
+                text={children}
+              />
             </div>
           );
         }

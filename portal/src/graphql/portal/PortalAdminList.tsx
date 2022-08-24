@@ -1,7 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import {
-  ActionButton,
   DetailsListLayoutMode,
   IColumn,
   SelectionMode,
@@ -12,6 +11,7 @@ import cn from "classnames";
 import { Collaborator, CollaboratorInvitation } from "./globalTypes.generated";
 import styles from "./PortalAdminList.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import ActionButton from "../../ActionButton";
 
 interface PortalAdminListProps {
   className?: string;
@@ -155,9 +155,8 @@ const PortalAdminList: React.VFC<PortalAdminListProps> =
                     onRemoveCollaboratorInvitationClicked(event, item.id);
                   }
                 }}
-              >
-                <FormattedMessage id="PortalAdminList.remove" />
-              </ActionButton>
+                text={<FormattedMessage id="PortalAdminList.remove" />}
+              />
             );
           default:
             return null;

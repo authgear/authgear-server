@@ -1,6 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import {
-  ActionButton,
   DetailsList,
   Dialog,
   DialogFooter,
@@ -21,6 +20,7 @@ import { useParams } from "react-router-dom";
 import ErrorDialog from "../../error/ErrorDialog";
 import { Session, SessionType } from "../../types";
 import DefaultButton from "../../DefaultButton";
+import ActionButton from "../../ActionButton";
 
 interface RevokeConfirmationDialogProps {
   isHidden: boolean;
@@ -181,9 +181,8 @@ const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
             className={styles.actionButton}
             theme={themes.destructive}
             onClick={item.revoke}
-          >
-            <FormattedMessage id="UserDetails.session.action.revoke" />
-          </ActionButton>
+            text={<FormattedMessage id="UserDetails.session.action.revoke" />}
+          />
         ),
       },
     ],

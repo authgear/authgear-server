@@ -4,7 +4,6 @@ import {
   DetailsList,
   IColumn,
   SelectionMode,
-  ActionButton,
   MessageBar,
   MessageBarType,
 } from "@fluentui/react";
@@ -32,6 +31,7 @@ import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import TextField from "../../TextField";
 import PrimaryButton from "../../PrimaryButton";
+import ActionButton from "../../ActionButton";
 
 interface AdminAPIConfigurationScreenContentProps {
   appID: string;
@@ -158,9 +158,8 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
                 downloadItem(item.keyID);
               }
             }}
-          >
-            <FormattedMessage id="download" />
-          </ActionButton>
+            text={<FormattedMessage id="download" />}
+          />
         );
       },
       [downloadItem, themes.actionButton]

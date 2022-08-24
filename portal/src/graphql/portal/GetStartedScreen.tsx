@@ -2,7 +2,6 @@ import React, { useCallback, useMemo } from "react";
 import {
   Text,
   FontIcon,
-  ActionButton,
   IButtonProps,
   Image,
   ImageFit,
@@ -46,6 +45,7 @@ import {
   useMakeAuthgearGTMEventDataAttributes,
 } from "../../GTMProvider";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
+import ActionButton from "../../ActionButton";
 
 type Progress = keyof TutorialStatusData["progress"];
 
@@ -356,9 +356,8 @@ function DismissButton(props: DismissButtonProps) {
         },
       }}
       onClick={onClick}
-    >
-      <FormattedMessage id="GetStartedScreen.dismiss-button.label" />
-    </ActionButton>
+      text={<FormattedMessage id="GetStartedScreen.dismiss-button.label" />}
+    />
   );
 }
 
