@@ -445,10 +445,10 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,

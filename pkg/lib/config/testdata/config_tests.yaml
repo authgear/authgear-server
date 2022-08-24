@@ -866,19 +866,21 @@ config:
   id: test
   http:
     public_origin: http://test
-  nft:
-    collections:
-      - ethereum:0x0@1
+  web3:
+    nft:
+      collections:
+        - ethereum:0x0@1
 ---
 name: nft-collection-invalid-format
 error: |-
   invalid configuration:
-  /nft/collections/0: format
+  /web3/nft/collections/0: format
     map[error:invalid contract ID: "ethereum:foo@1" format:x_web3_contract_id]
 config:
   id: test
   http:
     public_origin: http://test
-  nft:
-    collections:
-      - ethereum:foo@1
+  web3:
+    nft:
+      collections:
+        - ethereum:foo@1
