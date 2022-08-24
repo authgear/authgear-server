@@ -5,7 +5,6 @@ import {
   DialogFooter,
   IDialogProps,
   MessageBar,
-  MessageBarButton,
   MessageBarType,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -13,6 +12,7 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import styles from "./ModifiedIndicator.module.css";
 import PrimaryButton from "./PrimaryButton";
 import DefaultButton from "./DefaultButton";
+import MessageBarButton from "./MessageBarButton";
 
 export interface ModifiedIndicatorProps {
   className?: string;
@@ -66,9 +66,8 @@ export const ModifiedIndicator: React.VFC<ModifiedIndicatorProps> =
             iconName: "Refresh",
             className: styles.messageBarButtonIcon,
           }}
-        >
-          <FormattedMessage id="reset" />
-        </MessageBarButton>
+          text={<FormattedMessage id="reset" />}
+        />
       );
     }, [onResetClicked]);
 

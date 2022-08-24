@@ -1,7 +1,8 @@
 /* global process */
 import React, { useCallback } from "react";
-import { MessageBar, MessageBarType, MessageBarButton } from "@fluentui/react";
+import { MessageBar, MessageBarType } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
+import MessageBarButton from "./MessageBarButton";
 
 interface ShowErrorProps {
   error: unknown;
@@ -42,9 +43,10 @@ const ShowError: React.VFC<ShowErrorProps> = function ShowError(
   let actions;
   if (onRetry != null) {
     actions = (
-      <MessageBarButton onClick={onClickRetry}>
-        <FormattedMessage id="show-error.retry" />
-      </MessageBarButton>
+      <MessageBarButton
+        onClick={onClickRetry}
+        text={<FormattedMessage id="show-error.retry" />}
+      />
     );
   }
 
