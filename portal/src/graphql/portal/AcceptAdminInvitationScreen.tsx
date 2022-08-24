@@ -30,6 +30,7 @@ function encodeOAuthState(state: Record<string, unknown>): string {
 interface AcceptAdminInvitationWidgetProps {
   title: FormattedMessageProps;
   descriptions: Array<FormattedMessageProps>;
+  children?: React.ReactNode;
 }
 
 const AcceptAdminInvitationContent: React.VFC<AcceptAdminInvitationWidgetProps> =

@@ -26,6 +26,7 @@ export interface CommandBarContainerProps {
   messageBar?: React.ReactNode;
   primaryItems?: ICommandBarItemProps[];
   secondaryItems?: ICommandBarItemProps[];
+  children?: React.ReactNode;
 }
 
 const CommandBarContainer: React.VFC<CommandBarContainerProps> =

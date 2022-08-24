@@ -40,6 +40,7 @@ export interface FormContainerProps {
   primaryItems?: ICommandBarItemProps[];
   secondaryItems?: ICommandBarItemProps[];
   afterSave?: () => void;
+  children?: React.ReactNode;
 }
 
 const FormContainer: React.VFC<FormContainerProps> = function FormContainer(

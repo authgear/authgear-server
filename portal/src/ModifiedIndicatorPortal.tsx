@@ -8,6 +8,7 @@ import styles from "./ModifiedIndicator.module.css";
 
 interface ModifiedIndicatorWrapperProps {
   className?: string;
+  children?: React.ReactNode;
 }
 
 const MODIFIED_INDICATOR_CONTAINER_ID = "__modified-indicator-container";

@@ -339,6 +339,7 @@ interface LoginIDTypeEditProps {
   swapPosition: (index1: number, index2: number) => void;
   featureDisabled: boolean;
   isEnabled: boolean;
+  children?: React.ReactNode;
 }
 
 const LoginIDTypeEdit: React.VFC<LoginIDTypeEditProps> =

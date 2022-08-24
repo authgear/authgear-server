@@ -29,6 +29,7 @@ export interface FormProviderProps {
   error?: unknown;
   fallbackErrorMessageID?: string;
   rules?: ErrorParseRule[];
+  children?: React.ReactNode;
 }
 
 interface ErrorContext {
