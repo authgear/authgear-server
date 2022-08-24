@@ -6,6 +6,7 @@ import (
 	"net/mail"
 	"net/url"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -40,6 +41,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["x_picture"] = FormatPicture{}
 	jsonschemaformat.DefaultChecker["google_tag_manager_container_id"] = FormatGoogleTagManagerContainerID{}
 	jsonschemaformat.DefaultChecker["x_web3_contract_id"] = FormatContractID{}
+	jsonschemaformat.DefaultChecker["x_web3_ethereum_chain_id"] = FormatChainID{}
 }
 
 // FormatPhone checks if input is a phone number in E.164 format.
@@ -400,6 +402,26 @@ func (FormatContractID) CheckFormat(value interface{}) error {
 
 	if _, err := web3util.ParseContractID(str); err != nil {
 		return fmt.Errorf("invalid contract ID: %#v", str)
+	}
+
+	return nil
+}
+
+type FormatChainID struct{}
+
+func (FormatChainID) CheckFormat(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	chainID, err := strconv.Atoi(str)
+	if err != nil {
+		return fmt.Errorf("invalid chain ID: %#v", str)
+	}
+
+	if chainID <= 0 {
+		return errors.New("Ethereum Chain ID must be an positive integer")
 	}
 
 	return nil

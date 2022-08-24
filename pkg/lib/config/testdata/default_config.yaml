@@ -517,6 +517,9 @@ verification:
     message:
       subject: Email Verification Instruction
 web3:
+  blockchain:
+    blockchain: ethereum
+    network: "1"
   nft:
     collections:
 google_tag_manager: {}
