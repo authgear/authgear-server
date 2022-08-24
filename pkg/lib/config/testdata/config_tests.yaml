@@ -884,3 +884,28 @@ config:
     nft:
       collections:
         - ethereum:foo@1
+---
+name: web3-ethereum-chain-id
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  web3:
+    blockchain:
+      blockchain: ethereum
+      network: "1"
+---
+name: web3-ethereum-chain-id-invalid-format
+error: |-
+  invalid configuration:
+  /web3/blockchain/network: format
+    map[error:invalid chain ID: "foo" format:x_web3_ethereum_chain_id]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  web3:
+    blockchain:
+      blockchain: ethereum
+      network: foo
