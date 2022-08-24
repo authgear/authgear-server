@@ -1,10 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import {
-  DefaultButton,
-  Dialog,
-  DialogFooter,
-  ICommandBarItemProps,
-} from "@fluentui/react";
+import { Dialog, DialogFooter, ICommandBarItemProps } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import NavigationBlockerDialog from "./NavigationBlockerDialog";
@@ -14,6 +9,7 @@ import { ErrorParseRule } from "./error/parse";
 import { FormErrorMessageBar } from "./FormErrorMessageBar";
 import { onRenderCommandBarPrimaryButton } from "./CommandBarPrimaryButton";
 import PrimaryButton from "./PrimaryButton";
+import DefaultButton from "./DefaultButton";
 
 export interface FormModel {
   updateError: unknown;
@@ -40,9 +36,10 @@ export interface FormContainerProps {
   primaryItems?: ICommandBarItemProps[];
   secondaryItems?: ICommandBarItemProps[];
   afterSave?: () => void;
+  children?: React.ReactNode;
 }
 
-const FormContainer: React.FC<FormContainerProps> = function FormContainer(
+const FormContainer: React.VFC<FormContainerProps> = function FormContainer(
   props
 ) {
   const {
@@ -172,12 +169,15 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
         onDismiss={onDismissResetDialog}
       >
         <DialogFooter>
-          <PrimaryButton onClick={doReset} theme={themes.destructive}>
-            <FormattedMessage id="FormContainer.reset-dialog.confirm" />
-          </PrimaryButton>
-          <DefaultButton onClick={onDismissResetDialog}>
-            <FormattedMessage id="cancel" />
-          </DefaultButton>
+          <PrimaryButton
+            onClick={doReset}
+            theme={themes.destructive}
+            text={<FormattedMessage id="FormContainer.reset-dialog.confirm" />}
+          />
+          <DefaultButton
+            onClick={onDismissResetDialog}
+            text={<FormattedMessage id="cancel" />}
+          />
         </DialogFooter>
       </Dialog>
       <NavigationBlockerDialog

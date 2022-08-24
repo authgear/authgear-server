@@ -16,7 +16,6 @@ import {
   TooltipHost,
   ITooltipHostStyles,
   ITooltipProps,
-  CommandBarButton,
   DirectionalHint,
   IContextualMenuItem,
 } from "@fluentui/react";
@@ -41,6 +40,7 @@ import { AuditLogActivityType, SortDirection } from "./globalTypes.generated";
 import styles from "./AuditLogScreen.module.css";
 import { useAppFeatureConfigQuery } from "../portal/query/appFeatureConfigQuery";
 import FeatureDisabledMessageBar from "../portal/FeatureDisabledMessageBar";
+import CommandBarButton from "../../CommandBarButton";
 
 const pageSize = 10;
 
@@ -84,7 +84,7 @@ function RefreshButton(props: ICommandBarItemProps) {
 }
 
 // eslint-disable-next-line complexity
-const AuditLogScreen: React.FC = function AuditLogScreen() {
+const AuditLogScreen: React.VFC = function AuditLogScreen() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const queryFrom = searchParams.get("from");
@@ -524,7 +524,7 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
         <ScreenContent className={styles.content} layout="list">
           <div className={styles.widget}>
             <NavBreadcrumb className="" items={items} />
-            {logRetrievalDays !== -1 && (
+            {logRetrievalDays !== -1 ? (
               <FeatureDisabledMessageBar className={styles.messageBar}>
                 <FormattedMessage
                   id="FeatureConfig.audit-log.retrieval-days"
@@ -534,7 +534,7 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
                   }}
                 />
               </FeatureDisabledMessageBar>
-            )}
+            ) : null}
           </div>
           <AuditLogList
             className={styles.widget}

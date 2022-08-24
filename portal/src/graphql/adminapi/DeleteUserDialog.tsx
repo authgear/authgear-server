@@ -1,10 +1,5 @@
 import React, { useCallback, useContext, useMemo } from "react";
-import {
-  DefaultButton,
-  Dialog,
-  DialogFooter,
-  IDialogContentProps,
-} from "@fluentui/react";
+import { Dialog, DialogFooter, IDialogContentProps } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import ErrorDialog from "../../error/ErrorDialog";
@@ -12,6 +7,7 @@ import { useDeleteUserMutation } from "./mutations/deleteUserMutation";
 import { useScheduleAccountDeletionMutation } from "./mutations/scheduleAccountDeletion";
 import { extractRawID } from "../../util/graphql";
 import PrimaryButton from "../../PrimaryButton";
+import DefaultButton from "../../DefaultButton";
 
 interface DeleteUserDialogProps {
   isHidden: boolean;
@@ -21,7 +17,7 @@ interface DeleteUserDialogProps {
   endUserAccountIdentifier: string | undefined;
 }
 
-const DeleteUserDialog: React.FC<DeleteUserDialogProps> = React.memo(
+const DeleteUserDialog: React.VFC<DeleteUserDialogProps> = React.memo(
   function DeleteUserDialog(props: DeleteUserDialogProps) {
     const {
       isHidden,
@@ -91,24 +87,28 @@ const DeleteUserDialog: React.FC<DeleteUserDialogProps> = React.memo(
           minWidth={500}
         >
           <DialogFooter>
-            {userDeleteAt == null && (
+            {userDeleteAt == null ? (
               <PrimaryButton
                 onClick={onClickScheduleDeletion}
                 disabled={loading}
-              >
-                <FormattedMessage id="DeleteUserDialog.label.schedule-removal" />
-              </PrimaryButton>
-            )}
+                text={
+                  <FormattedMessage id="DeleteUserDialog.label.schedule-removal" />
+                }
+              />
+            ) : null}
             <PrimaryButton
               theme={themes.destructive}
               onClick={onClickRemove}
               disabled={loading}
-            >
-              <FormattedMessage id="DeleteUserDialog.label.remove-immediately" />
-            </PrimaryButton>
-            <DefaultButton onClick={onDialogDismiss} disabled={loading}>
-              <FormattedMessage id="cancel" />
-            </DefaultButton>
+              text={
+                <FormattedMessage id="DeleteUserDialog.label.remove-immediately" />
+              }
+            />
+            <DefaultButton
+              onClick={onDialogDismiss}
+              disabled={loading}
+              text={<FormattedMessage id="cancel" />}
+            />
           </DialogFooter>
         </Dialog>
         <ErrorDialog error={error} />

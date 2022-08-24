@@ -136,7 +136,7 @@ const SubscriptionRedirect = lazy(
   async () => import("./graphql/portal/SubscriptionRedirect")
 );
 
-const AppRoot: React.FC = function AppRoot() {
+const AppRoot: React.VFC = function AppRoot() {
   const { appID } = useParams() as { appID: string };
   const client = useMemo(() => {
     return makeClient(appID);

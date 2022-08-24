@@ -66,7 +66,9 @@ function getRawUserIDFromAuditLog(
   return null;
 }
 
-const AuditLogList: React.FC<AuditLogListProps> = function AuditLogList(props) {
+const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
+  props
+) {
   const {
     className,
     loading: rawLoading,

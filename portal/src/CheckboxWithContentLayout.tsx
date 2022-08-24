@@ -8,7 +8,7 @@ interface CheckboxWithContentLayoutProps {
   children: React.ReactNode;
 }
 
-const CheckboxWithContentLayout: React.FC<CheckboxWithContentLayoutProps> =
+const CheckboxWithContentLayout: React.VFC<CheckboxWithContentLayoutProps> =
   function CheckboxWithContentLayout(props: CheckboxWithContentLayoutProps) {
     const { className, children } = props;
     return (

@@ -1,14 +1,10 @@
 import React, { useMemo, useCallback, useContext } from "react";
 import cn from "classnames";
-import {
-  DefaultButton,
-  IconButton,
-  IIconProps,
-  IButtonStyles,
-} from "@fluentui/react";
+import { IconButton, IIconProps, IButtonStyles } from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
 import { getPaginationRenderData } from "./util/pagination";
 import styles from "./PaginationWidget.module.css";
+import DefaultButton from "./DefaultButton";
 
 export interface Props {
   className?: string;
@@ -56,7 +52,7 @@ const pageButtonStyles: IButtonStyles = {
   },
 };
 
-const PaginationWidget: React.FC<Props> = function PaginationWidget(
+const PaginationWidget: React.VFC<Props> = function PaginationWidget(
   props: Props
 ) {
   const { className, offset, pageSize, totalCount, onChangeOffset } = props;
@@ -158,9 +154,8 @@ const PaginationWidget: React.FC<Props> = function PaginationWidget(
                 e.stopPropagation();
                 onChangeOffset?.(offset);
               }}
-            >
-              {page}
-            </DefaultButton>
+              text={String(page)}
+            />
           );
         })}
       </div>

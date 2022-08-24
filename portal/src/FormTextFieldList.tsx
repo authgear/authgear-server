@@ -15,7 +15,7 @@ interface TextFieldListItemProps {
   onChange: (value: string) => void;
 }
 
-const TextFieldListItem: React.FC<TextFieldListItemProps> =
+const TextFieldListItem: React.VFC<TextFieldListItemProps> =
   function TextFieldListItem(props: TextFieldListItemProps) {
     const { index, parentJSONPointer, textFieldProps, value, onChange } = props;
     const {
@@ -68,7 +68,7 @@ export interface FormTextFieldListProps {
   addButtonLabelMessageID?: string;
 }
 
-const FormTextFieldList: React.FC<FormTextFieldListProps> =
+const FormTextFieldList: React.VFC<FormTextFieldListProps> =
   function FormTextFieldList(props) {
     const {
       className,

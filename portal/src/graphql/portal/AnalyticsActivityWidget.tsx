@@ -16,7 +16,7 @@ interface AnalyticsActivityWidgetActiveUserChartProps {
   periodical: Periodical;
 }
 
-const AnalyticsActivityWidgetActiveUserChart: React.FC<AnalyticsActivityWidgetActiveUserChartProps> =
+const AnalyticsActivityWidgetActiveUserChart: React.VFC<AnalyticsActivityWidgetActiveUserChartProps> =
   function AnalyticsActivityWidgetActiveUserChart(props) {
     const { renderToString } = useContext(Context);
     const { chartData, periodical } = props;
@@ -91,7 +91,7 @@ interface AnalyticsActivityWidgetTotalUserChartProps {
   chartData: AnalyticChartsQueryQuery["totalUserCountChart"] | null;
 }
 
-const AnalyticsActivityWidgetTotalUserChart: React.FC<AnalyticsActivityWidgetTotalUserChartProps> =
+const AnalyticsActivityWidgetTotalUserChart: React.VFC<AnalyticsActivityWidgetTotalUserChartProps> =
   function AnalyticsActivityWidgetTotalUserChart(props) {
     const { renderToString } = useContext(Context);
     const { chartData } = props;
@@ -135,7 +135,7 @@ const AnalyticsActivityWidgetTotalUserChart: React.FC<AnalyticsActivityWidgetTot
     );
   };
 
-const AnalyticsActivityCharts: React.FC<AnalyticsActivityWidgetProps> =
+const AnalyticsActivityCharts: React.VFC<AnalyticsActivityWidgetProps> =
   function AnalyticsActivityCharts(props) {
     const totalNumberOfUser = useMemo(() => {
       const dataset = props.totalUserCountChartData?.dataset;
@@ -185,7 +185,7 @@ interface AnalyticsActivityWidgetProps {
     | null;
 }
 
-const AnalyticsActivityWidget: React.FC<AnalyticsActivityWidgetProps> =
+const AnalyticsActivityWidget: React.VFC<AnalyticsActivityWidgetProps> =
   function AnalyticsActivityWidget(props) {
     const { renderToString } = useContext(Context);
     const { periodical, onPeriodicalChange } = props;

@@ -1,7 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import {
-  ActionButton,
-  DefaultButton,
   DetailsList,
   Dialog,
   DialogFooter,
@@ -21,6 +19,8 @@ import { useRevokeAllSessionsMutation } from "./mutations/revokeAllSessionsMutat
 import { useParams } from "react-router-dom";
 import ErrorDialog from "../../error/ErrorDialog";
 import { Session, SessionType } from "../../types";
+import DefaultButton from "../../DefaultButton";
+import ActionButton from "../../ActionButton";
 
 interface RevokeConfirmationDialogProps {
   isHidden: boolean;
@@ -31,7 +31,7 @@ interface RevokeConfirmationDialogProps {
   onDismiss: () => void;
 }
 
-const RevokeConfirmationDialog: React.FC<RevokeConfirmationDialogProps> =
+const RevokeConfirmationDialog: React.VFC<RevokeConfirmationDialogProps> =
   function RevokeConfirmationDialog(props) {
     const { isHidden, isLoading, titleKey, messageKey, onConfirm, onDismiss } =
       props;
@@ -70,9 +70,11 @@ const RevokeConfirmationDialog: React.FC<RevokeConfirmationDialogProps> =
             labelId="confirm"
             loading={isLoading}
           />
-          <DefaultButton disabled={isLoading} onClick={onDialogDismiss}>
-            <FormattedMessage id="cancel" />
-          </DefaultButton>
+          <DefaultButton
+            disabled={isLoading}
+            onClick={onDialogDismiss}
+            text={<FormattedMessage id="cancel" />}
+          />
         </DialogFooter>
       </Dialog>
     );
@@ -100,7 +102,9 @@ interface Props {
   sessions: Session[];
 }
 
-const UserDetailsSession: React.FC<Props> = function UserDetailsSession(props) {
+const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
+  props
+) {
   const { locale, renderToString } = useContext(Context);
   const { themes } = useSystemConfig();
   const { userID } = useParams() as { userID: string };
@@ -177,9 +181,8 @@ const UserDetailsSession: React.FC<Props> = function UserDetailsSession(props) {
             className={styles.actionButton}
             theme={themes.destructive}
             onClick={item.revoke}
-          >
-            <FormattedMessage id="UserDetails.session.action.revoke" />
-          </ActionButton>
+            text={<FormattedMessage id="UserDetails.session.action.revoke" />}
+          />
         ),
       },
     ],
@@ -242,17 +245,16 @@ const UserDetailsSession: React.FC<Props> = function UserDetailsSession(props) {
         }}
         disabled={sessions.length === 0}
         onClick={onRevokeAllClick}
-      >
-        <FormattedMessage id="UserDetails.session.revoke-all" />
-      </DefaultButton>
-      {confirmDialogProps && (
+        text={<FormattedMessage id="UserDetails.session.revoke-all" />}
+      />
+      {confirmDialogProps ? (
         <RevokeConfirmationDialog
           {...confirmDialogProps}
           isHidden={isConfirmDialogHidden}
           isLoading={isLoading}
           onDismiss={onConfirmDialogDismiss}
         />
-      )}
+      ) : null}
       <ErrorDialog
         error={error}
         rules={[]}

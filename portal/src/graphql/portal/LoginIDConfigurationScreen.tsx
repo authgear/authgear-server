@@ -339,9 +339,10 @@ interface LoginIDTypeEditProps {
   swapPosition: (index1: number, index2: number) => void;
   featureDisabled: boolean;
   isEnabled: boolean;
+  children?: React.ReactNode;
 }
 
-const LoginIDTypeEdit: React.FC<LoginIDTypeEditProps> =
+const LoginIDTypeEdit: React.VFC<LoginIDTypeEditProps> =
   function LoginIDTypeEdit(props) {
     const {
       index,
@@ -419,7 +420,7 @@ interface AuthenticationLoginIDSettingsContentProps {
   form: FormModel;
 }
 
-const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettingsContentProps> =
+const AuthenticationLoginIDSettingsContent: React.VFC<AuthenticationLoginIDSettingsContentProps> =
   // eslint-disable-next-line complexity
   function AuthenticationLoginIDSettingsContent(props) {
     const { state, setState } = props.form;
@@ -926,7 +927,9 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
             toggleLoginIDType={toggleLoginIDType}
             swapPosition={swapPosition}
             isEnabled={isEnabled}
-            featureDisabled={type === "phone" && state.loginIDPhoneDisabled}
+            featureDisabled={Boolean(
+              type === "phone" && state.loginIDPhoneDisabled
+            )}
           >
             {sections[type]}
           </LoginIDTypeEdit>
@@ -935,7 +938,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
     );
   };
 
-const LoginIDConfigurationScreen: React.FC =
+const LoginIDConfigurationScreen: React.VFC =
   function LoginIDConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
 

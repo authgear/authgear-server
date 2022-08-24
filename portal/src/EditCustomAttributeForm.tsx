@@ -325,7 +325,7 @@ function CustomAttributeTypeEnumOption(
   );
 }
 
-const EditCustomAttributeForm: React.FC<EditCustomAttributeFormProps> =
+const EditCustomAttributeForm: React.VFC<EditCustomAttributeFormProps> =
   function EditCustomAttributeForm(props: EditCustomAttributeFormProps) {
     const { className, draft, index, onChangeDraft, mode } = props;
     const { renderToString } = useContext(Context);
@@ -412,29 +412,29 @@ const EditCustomAttributeForm: React.FC<EditCustomAttributeFormProps> =
           onChange={onChangeType}
           disabled={mode === "edit"}
         />
-        {draft.type === "number" && (
+        {draft.type === "number" ? (
           <CustomAttributeTypeNumberOption
             parentJSONPointer={parentJSONPointer}
             draft={draft}
             onChangeDraft={onChangeDraft}
             checkFunction={checkNumberInput}
           />
-        )}
-        {draft.type === "integer" && (
+        ) : null}
+        {draft.type === "integer" ? (
           <CustomAttributeTypeNumberOption
             parentJSONPointer={parentJSONPointer}
             draft={draft}
             onChangeDraft={onChangeDraft}
             checkFunction={checkIntegerInput}
           />
-        )}
-        {draft.type === "enum" && (
+        ) : null}
+        {draft.type === "enum" ? (
           <CustomAttributeTypeEnumOption
             parentJSONPointer={parentJSONPointer}
             draft={draft}
             onChangeDraft={onChangeDraft}
           />
-        )}
+        ) : null}
       </Widget>
     );
   };

@@ -4,7 +4,6 @@ import {
   DetailsList,
   IColumn,
   SelectionMode,
-  ActionButton,
   MessageBar,
   MessageBarType,
 } from "@fluentui/react";
@@ -32,6 +31,7 @@ import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import TextField from "../../TextField";
 import PrimaryButton from "../../PrimaryButton";
+import ActionButton from "../../ActionButton";
 
 interface AdminAPIConfigurationScreenContentProps {
   appID: string;
@@ -78,7 +78,7 @@ query {
 }
 `;
 
-const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenContentProps> =
+const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenContentProps> =
   function AdminAPIConfigurationScreenContent(props) {
     const { appID, queryResult } = props;
     const { locale, renderToString } = useContext(Context);
@@ -158,9 +158,8 @@ const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenCo
                 downloadItem(item.keyID);
               }
             }}
-          >
-            <FormattedMessage id="download" />
-          </ActionButton>
+            text={<FormattedMessage id="download" />}
+          />
         );
       },
       [downloadItem, themes.actionButton]
@@ -248,7 +247,7 @@ const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenCo
     );
   };
 
-const AdminAPIConfigurationScreen: React.FC =
+const AdminAPIConfigurationScreen: React.VFC =
   function AdminAPIConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
     const queryResult = useAppAndSecretConfigQuery(appID);

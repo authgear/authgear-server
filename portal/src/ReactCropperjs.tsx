@@ -87,8 +87,8 @@ class ReactCropperjs extends React.Component<ReactCropperjsProps> {
           onError={onError}
           onLoad={onLoad}
         />
-        {editSrc == null &&
-          (displaySrc == null ? (
+        {editSrc == null ? (
+          displaySrc == null ? (
             <FontIcon
               role="button"
               className={styles.placeholder}
@@ -101,7 +101,8 @@ class ReactCropperjs extends React.Component<ReactCropperjsProps> {
               src={displaySrc}
               imageFit={ImageFit.contain}
             />
-          ))}
+          )
+        ) : null}
       </div>
     );
   }

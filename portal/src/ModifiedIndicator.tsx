@@ -1,18 +1,18 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import {
-  DefaultButton,
   Dialog,
   DialogFooter,
   IDialogProps,
   MessageBar,
-  MessageBarButton,
   MessageBarType,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import styles from "./ModifiedIndicator.module.css";
 import PrimaryButton from "./PrimaryButton";
+import DefaultButton from "./DefaultButton";
+import MessageBarButton from "./MessageBarButton";
 
 export interface ModifiedIndicatorProps {
   className?: string;
@@ -24,7 +24,7 @@ const MESSAGE_BAR_STYLES = {
   actions: { margin: "4px 12px" },
 };
 
-export const ModifiedIndicator: React.FC<ModifiedIndicatorProps> =
+export const ModifiedIndicator: React.VFC<ModifiedIndicatorProps> =
   function ModifiedIndicator(props: ModifiedIndicatorProps) {
     const { isModified, resetForm, className } = props;
     const { renderToString } = useContext(Context);
@@ -66,9 +66,8 @@ export const ModifiedIndicator: React.FC<ModifiedIndicatorProps> =
             iconName: "Refresh",
             className: styles.messageBarButtonIcon,
           }}
-        >
-          <FormattedMessage id="reset" />
-        </MessageBarButton>
+          text={<FormattedMessage id="reset" />}
+        />
       );
     }, [onResetClicked]);
 
@@ -80,16 +79,18 @@ export const ModifiedIndicator: React.FC<ModifiedIndicatorProps> =
           onDismiss={dismissConfirmDialog}
         >
           <DialogFooter>
-            <PrimaryButton onClick={onConfirmClicked}>
-              <FormattedMessage id="confirm" />
-            </PrimaryButton>
-            <DefaultButton onClick={dismissConfirmDialog}>
-              <FormattedMessage id="cancel" />
-            </DefaultButton>
+            <PrimaryButton
+              onClick={onConfirmClicked}
+              text={<FormattedMessage id="confirm" />}
+            />
+            <DefaultButton
+              onClick={dismissConfirmDialog}
+              text={<FormattedMessage id="cancel" />}
+            />
           </DialogFooter>
         </Dialog>
 
-        {isModified && (
+        {isModified ? (
           <MessageBar
             className={cn(styles.messageBar, className)}
             styles={MESSAGE_BAR_STYLES}
@@ -98,7 +99,7 @@ export const ModifiedIndicator: React.FC<ModifiedIndicatorProps> =
           >
             <FormattedMessage id="ModifiedIndicator.message" />
           </MessageBar>
-        )}
+        ) : null}
       </>
     );
   };

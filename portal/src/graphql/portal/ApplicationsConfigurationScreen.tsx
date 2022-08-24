@@ -107,7 +107,7 @@ interface OAuthClientIdCellProps {
   clientId: string;
 }
 
-const OAuthClientIdCell: React.FC<OAuthClientIdCellProps> =
+const OAuthClientIdCell: React.VFC<OAuthClientIdCellProps> =
   function OAuthClientIdCell(props) {
     const { clientId } = props;
     const { copyButtonProps, Feedback } = useCopyFeedback({
@@ -131,7 +131,7 @@ interface ClientCardProps {
   applicationType?: string;
 }
 
-const ClientCard: React.FC<ClientCardProps> = (props) => {
+const ClientCard: React.VFC<ClientCardProps> = (props) => {
   const { name, clientId, applicationType } = props;
   const targetPath = `./${clientId}/edit`;
 
@@ -169,7 +169,7 @@ interface ClientCardListProps {
   items: OAuthClientConfig[];
 }
 
-const ClientCardList: React.FC<ClientCardListProps> = (props) => {
+const ClientCardList: React.VFC<ClientCardListProps> = (props) => {
   const { className, items } = props;
 
   return (
@@ -194,7 +194,7 @@ interface OAuthClientConfigurationContentProps {
   showNotification: (msg: string) => void;
 }
 
-const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentProps> =
+const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContentProps> =
   function OAuthClientConfigurationContent(props) {
     const {
       form: { state },
@@ -265,7 +265,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
           <FormattedMessage id="ApplicationsConfigurationScreen.description" />
         </ScreenDescription>
         <div className={styles.widget}>
-          {oauthClientsMaximum < 99 && (
+          {oauthClientsMaximum < 99 ? (
             <FeatureDisabledMessageBar>
               <FormattedMessage
                 id="FeatureConfig.oauth-clients.maximum"
@@ -275,7 +275,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
                 }}
               />
             </FeatureDisabledMessageBar>
-          )}
+          ) : null}
           <div className={styles.desktopView}>
             <DetailsList
               onRenderRow={onRenderOAuthClientRow}
@@ -297,7 +297,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
     );
   };
 
-const ApplicationsConfigurationScreen: React.FC =
+const ApplicationsConfigurationScreen: React.VFC =
   function ApplicationsConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
     const { renderToString } = useContext(Context);

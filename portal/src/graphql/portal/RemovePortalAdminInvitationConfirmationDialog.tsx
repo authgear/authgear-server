@@ -1,13 +1,9 @@
 import React, { useMemo, useContext, useCallback } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import {
-  DefaultButton,
-  Dialog,
-  DialogFooter,
-  IDialogContentProps,
-} from "@fluentui/react";
+import { Dialog, DialogFooter, IDialogContentProps } from "@fluentui/react";
 
 import ButtonWithLoading from "../../ButtonWithLoading";
+import DefaultButton from "../../DefaultButton";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 
 export interface RemovePortalAdminInvitationConfirmationDialogData {
@@ -23,7 +19,7 @@ export interface RemovePortalAdminInvitationConfirmationDialogProps {
   onDismiss: () => void;
 }
 
-const RemovePortalAdminInvitationConfirmationDialog: React.FC<RemovePortalAdminInvitationConfirmationDialogProps> =
+const RemovePortalAdminInvitationConfirmationDialog: React.VFC<RemovePortalAdminInvitationConfirmationDialogProps> =
   function RemovePortalAdminInvitationConfirmationDialog(props) {
     const {
       visible,
@@ -76,9 +72,8 @@ const RemovePortalAdminInvitationConfirmationDialog: React.FC<RemovePortalAdminI
           <DefaultButton
             disabled={deletingCollaboratorInvitation || !visible}
             onClick={onDismiss}
-          >
-            <FormattedMessage id="cancel" />
-          </DefaultButton>
+            text={<FormattedMessage id="cancel" />}
+          />
         </DialogFooter>
       </Dialog>
     );

@@ -7,7 +7,7 @@ interface ScreenLayoutProps {
   children: React.ReactElement;
 }
 
-const ScreenLayout: React.FC<ScreenLayoutProps> = function ScreenLayout(
+const ScreenLayout: React.VFC<ScreenLayoutProps> = function ScreenLayout(
   props: ScreenLayoutProps
 ) {
   return (

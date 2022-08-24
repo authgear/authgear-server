@@ -61,7 +61,7 @@ export interface ThemeConfigurationWidgetProps {
 
 type DropdownKey = "fixed-height" | "fixed-width";
 
-const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> =
+const ThemeConfigurationWidget: React.VFC<ThemeConfigurationWidgetProps> =
   // eslint-disable-next-line complexity
   function ThemeConfigurationWidget(props: ThemeConfigurationWidgetProps) {
     const { renderToString } = useContext(Context);
@@ -347,13 +347,13 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> =
     return (
       <Widget className={cn(styles.root, className)}>
         <div className={styles.titleSection}>
-          {isDarkMode && (
+          {isDarkMode ? (
             <Toggle
               className={styles.toggle}
               checked={darkModeEnabled}
               onChange={onChangeChecked}
             />
-          )}
+          ) : null}
           <WidgetTitle>
             <FormattedMessage
               id={

@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import authgear from "@authgear/web";
-import { DefaultButton, Text, DefaultEffects } from "@fluentui/react";
+import { Text, DefaultEffects } from "@fluentui/react";
 import {
   Context,
   FormattedMessage,
@@ -22,6 +22,7 @@ import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import { useAuthenticatedForInvitationQuery } from "./query/authenticatedForInvitationQuery";
 import PrimaryButton from "../../PrimaryButton";
+import DefaultButton from "../../DefaultButton";
 
 function encodeOAuthState(state: Record<string, unknown>): string {
   return btoa(JSON.stringify(state));
@@ -30,9 +31,10 @@ function encodeOAuthState(state: Record<string, unknown>): string {
 interface AcceptAdminInvitationWidgetProps {
   title: FormattedMessageProps;
   descriptions: Array<FormattedMessageProps>;
+  children?: React.ReactNode;
 }
 
-const AcceptAdminInvitationContent: React.FC<AcceptAdminInvitationWidgetProps> =
+const AcceptAdminInvitationContent: React.VFC<AcceptAdminInvitationWidgetProps> =
   function AcceptAdminInvitationContent({ title, descriptions, children }) {
     return (
       <main className={styles.root}>
@@ -63,7 +65,7 @@ interface AcceptAdminInvitationIsInviteeProps {
   appID: string;
 }
 
-const AcceptAdminInvitationIsInvitee: React.FC<AcceptAdminInvitationIsInviteeProps> =
+const AcceptAdminInvitationIsInvitee: React.VFC<AcceptAdminInvitationIsInviteeProps> =
   function AcceptAdminInvitationIsInvitee({ appID }) {
     const location = useLocation();
     const navigate = useNavigate();
@@ -142,7 +144,7 @@ const AcceptAdminInvitationIsInvitee: React.FC<AcceptAdminInvitationIsInviteePro
     );
   };
 
-const AcceptAdminInvitationScreen: React.FC =
+const AcceptAdminInvitationScreen: React.VFC =
   function AcceptAdminInvitationScreen() {
     const { renderToString } = useContext(Context);
     const navigate = useNavigate();
@@ -203,11 +205,13 @@ const AcceptAdminInvitationScreen: React.FC =
             { id: "AcceptAdminInvitationScreen.invalid-code.description" },
           ]}
         >
-          <PrimaryButton className={styles.loginButton} onClick={goToHome}>
-            {renderToString(
+          <PrimaryButton
+            className={styles.loginButton}
+            onClick={goToHome}
+            text={renderToString(
               "AcceptAdminInvitationScreen.continue-to-authgear.label"
             )}
-          </PrimaryButton>
+          />
         </AcceptAdminInvitationContent>
       );
     }
@@ -226,17 +230,15 @@ const AcceptAdminInvitationScreen: React.FC =
           <PrimaryButton
             className={styles.loginButton}
             onClick={() => goToAuth("login")}
-          >
-            {renderToString("AcceptAdminInvitationScreen.login.label")}
-          </PrimaryButton>
+            text={renderToString("AcceptAdminInvitationScreen.login.label")}
+          />
           <DefaultButton
             className={styles.createAccountButton}
             onClick={() => goToAuth("signup")}
-          >
-            {renderToString(
+            text={renderToString(
               "AcceptAdminInvitationScreen.create-new-account.label"
             )}
-          </DefaultButton>
+          />
         </AcceptAdminInvitationContent>
       );
     }
@@ -252,11 +254,10 @@ const AcceptAdminInvitationScreen: React.FC =
           <PrimaryButton
             className={styles.loginButton}
             onClick={() => goToAuth("login")}
-          >
-            {renderToString(
+            text={renderToString(
               "AcceptAdminInvitationScreen.login-with-another-user.label"
             )}
-          </PrimaryButton>
+          />
         </AcceptAdminInvitationContent>
       );
     }

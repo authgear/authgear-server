@@ -121,7 +121,7 @@ function ItemComponent(
   );
 }
 
-const StandardAttributesConfigurationScreenContent: React.FC<StandardAttributesConfigurationScreenContentProps> =
+const StandardAttributesConfigurationScreenContent: React.VFC<StandardAttributesConfigurationScreenContentProps> =
   function StandardAttributesConfigurationScreenContent(props) {
     const { state, setState } = props.form;
     const onChangeItems = useCallback(
@@ -153,7 +153,7 @@ const StandardAttributesConfigurationScreenContent: React.FC<StandardAttributesC
     );
   };
 
-const StandardAttributesConfigurationScreen: React.FC =
+const StandardAttributesConfigurationScreen: React.VFC =
   function StandardAttributesConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
     const form = useAppConfigForm({

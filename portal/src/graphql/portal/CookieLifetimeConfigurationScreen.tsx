@@ -67,7 +67,7 @@ interface SessionConfigurationWidgetProps {
   form: AppConfigFormModel<FormState>;
 }
 
-const SessionConfigurationWidget: React.FC<SessionConfigurationWidgetProps> =
+const SessionConfigurationWidget: React.VFC<SessionConfigurationWidgetProps> =
   function SessionConfigurationWidget(props: SessionConfigurationWidgetProps) {
     const { state, setState } = props.form;
 
@@ -172,7 +172,7 @@ interface CookieLifetimeConfigurationScreenContentProps {
   form: AppConfigFormModel<FormState>;
 }
 
-const CookieLifetimeConfigurationScreenContent: React.FC<CookieLifetimeConfigurationScreenContentProps> =
+const CookieLifetimeConfigurationScreenContent: React.VFC<CookieLifetimeConfigurationScreenContentProps> =
   function CookieLifetimeConfigurationScreenContent(props) {
     const { form } = props;
     return (
@@ -195,7 +195,7 @@ const CookieLifetimeConfigurationScreenContent: React.FC<CookieLifetimeConfigura
     );
   };
 
-const CookieLifetimeConfigurationScreen: React.FC =
+const CookieLifetimeConfigurationScreen: React.VFC =
   function CookieLifetimeConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
 

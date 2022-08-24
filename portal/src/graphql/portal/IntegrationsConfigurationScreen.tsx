@@ -93,7 +93,7 @@ function Addon(props: AddonProps) {
   );
 }
 
-const IntegrationsConfigurationContent: React.FC<IntegrationsConfigurationContentProps> =
+const IntegrationsConfigurationContent: React.VFC<IntegrationsConfigurationContentProps> =
   function IntegrationsConfigurationContent(props) {
     const {
       form: {
@@ -214,7 +214,7 @@ const IntegrationsConfigurationContent: React.FC<IntegrationsConfigurationConten
     );
   };
 
-const IntegrationsConfigurationScreen: React.FC =
+const IntegrationsConfigurationScreen: React.VFC =
   function IntegrationsConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
     const form = useAppConfigForm({

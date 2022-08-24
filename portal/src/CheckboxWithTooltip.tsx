@@ -9,7 +9,7 @@ interface CheckboxWithTooltipProps extends ICheckboxProps {
   tooltipMessageId: string;
 }
 
-const CheckboxWithTooltip: React.FC<CheckboxWithTooltipProps> =
+const CheckboxWithTooltip: React.VFC<CheckboxWithTooltipProps> =
   function CheckboxWithTooltip(props: CheckboxWithTooltipProps) {
     const { tooltipMessageId, className, ...rest } = props;
 

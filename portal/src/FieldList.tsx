@@ -1,10 +1,11 @@
 import React, { useCallback, useMemo } from "react";
 import cn from "classnames";
-import { ActionButton, IconButton, Stack, Text } from "@fluentui/react";
+import { IconButton, Stack, Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import { useFormField } from "./form";
 import ErrorRenderer from "./ErrorRenderer";
+import ActionButton from "./ActionButton";
 
 import styles from "./FieldList.module.css";
 
@@ -105,14 +106,13 @@ const FieldList = function FieldList<T>(
         theme={themes.actionButton}
         iconProps={{ iconName: "CirclePlus", className: styles.addButtonIcon }}
         onClick={onItemAdd}
-      >
-        <FormattedMessage id={addButtonLabelMessageID ?? "add"} />
-      </ActionButton>
-      {description && (
+        text={<FormattedMessage id={addButtonLabelMessageID ?? "add"} />}
+      />
+      {description ? (
         <Text block={true} className={styles.description}>
           {description}
         </Text>
-      )}
+      ) : null}
     </section>
   );
 };

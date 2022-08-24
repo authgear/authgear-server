@@ -470,7 +470,7 @@ interface StandardAttributesFormProps {
   standardAttributeAccessControl: Record<string, AccessControlLevelString>;
 }
 
-const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
+const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
   // eslint-disable-next-line complexity
   function StandardAttributesForm(props: StandardAttributesFormProps) {
     const {
@@ -836,55 +836,55 @@ const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
           </Text>
         </Label>
         <Div className={styles.nameGroup}>
-          {isReadable("name") && (
+          {isReadable("name") ? (
             <StandardAttributeTextField
               fieldName="name"
               standardAttributes={standardAttributes}
               makeOnChangeText={makeOnChangeText}
               isDisabled={isDisabled}
             />
-          )}
-          {isReadable("nickname") && (
+          ) : null}
+          {isReadable("nickname") ? (
             <StandardAttributeTextField
               fieldName="nickname"
               standardAttributes={standardAttributes}
               makeOnChangeText={makeOnChangeText}
               isDisabled={isDisabled}
             />
-          )}
-          {isReadable("given_name") && (
+          ) : null}
+          {isReadable("given_name") ? (
             <StandardAttributeTextField
               fieldName="given_name"
               standardAttributes={standardAttributes}
               makeOnChangeText={makeOnChangeText}
               isDisabled={isDisabled}
             />
-          )}
-          {isReadable("middle_name") && (
+          ) : null}
+          {isReadable("middle_name") ? (
             <StandardAttributeTextField
               fieldName="middle_name"
               standardAttributes={standardAttributes}
               makeOnChangeText={makeOnChangeText}
               isDisabled={isDisabled}
             />
-          )}
-          {isReadable("family_name") && (
+          ) : null}
+          {isReadable("family_name") ? (
             <StandardAttributeTextField
               fieldName="family_name"
               standardAttributes={standardAttributes}
               makeOnChangeText={makeOnChangeText}
               isDisabled={isDisabled}
             />
-          )}
+          ) : null}
         </Div>
-        {isReadable("picture") && (
+        {isReadable("picture") ? (
           <StandardAttributeLabel
             fieldName="picture"
             standardAttributes={standardAttributes}
           />
-        )}
+        ) : null}
         <Div className={styles.singleColumnGroup}>
-          {isReadable("profile") && (
+          {isReadable("profile") ? (
             <StandardAttributeTextField
               fieldName="profile"
               standardAttributes={standardAttributes}
@@ -894,8 +894,8 @@ const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
                 "UserProfileForm.profile.placeholder"
               )}
             />
-          )}
-          {isReadable("website") && (
+          ) : null}
+          {isReadable("website") ? (
             <StandardAttributeTextField
               fieldName="website"
               standardAttributes={standardAttributes}
@@ -905,7 +905,7 @@ const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
                 "UserProfileForm.website.placeholder"
               )}
             />
-          )}
+          ) : null}
         </Div>
         <Div className={styles.twoColumnGroup}>
           <Dropdown
@@ -930,7 +930,7 @@ const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
             disabled={preferredUsernameOptions.length <= 0}
           />
         </Div>
-        {isReadable("gender") && (
+        {isReadable("gender") ? (
           <Div className={styles.twoColumnGroup}>
             <Dropdown
               label={renderToString("standard-attribute.gender")}
@@ -948,8 +948,8 @@ const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
               }
             />
           </Div>
-        )}
-        {isReadable("birthdate") && (
+        ) : null}
+        {isReadable("birthdate") ? (
           <DatePicker
             label={renderToString("standard-attribute.birthdate")}
             firstDayOfWeek={DayOfWeek.Monday}
@@ -963,9 +963,9 @@ const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
             placeholder="yyyy-MM-dd"
             disabled={isDisabled("birthdate")}
           />
-        )}
+        ) : null}
         <Div className={styles.twoColumnGroup}>
-          {isReadable("zoneinfo") && (
+          {isReadable("zoneinfo") ? (
             <Dropdown
               label={renderToString("standard-attribute.zoneinfo")}
               selectedKey={zoneinfo}
@@ -973,8 +973,8 @@ const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
               onChange={onChangeZoneinfo}
               disabled={isDisabled("zoneinfo")}
             />
-          )}
-          {isReadable("locale") && (
+          ) : null}
+          {isReadable("locale") ? (
             <Dropdown
               label={renderToString("standard-attribute.locale")}
               selectedKey={locale}
@@ -982,9 +982,9 @@ const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
               onChange={onChangeLocale}
               disabled={isDisabled("locale")}
             />
-          )}
+          ) : null}
         </Div>
-        {isReadable("address") && (
+        {isReadable("address") ? (
           <Div className={styles.addressGroup}>
             <FormTextField
               className={styles.gridAreaStreet}
@@ -1032,7 +1032,7 @@ const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
               disabled={isDisabled("address")}
             />
           </Div>
-        )}
+        ) : null}
       </>
     );
   };
@@ -1043,7 +1043,7 @@ interface CustomAttributesFormProps {
   customAttributesConfig: CustomAttributesAttributeConfig[];
 }
 
-const CustomAttributesForm: React.FC<CustomAttributesFormProps> =
+const CustomAttributesForm: React.VFC<CustomAttributesFormProps> =
   function CustomAttributesForm(props: CustomAttributesFormProps) {
     const {
       customAttributes,
@@ -1074,7 +1074,7 @@ const CustomAttributesForm: React.FC<CustomAttributesFormProps> =
     );
   };
 
-const UserProfileForm: React.FC<UserProfileFormProps> =
+const UserProfileForm: React.VFC<UserProfileFormProps> =
   function UserProfileForm(props: UserProfileFormProps) {
     const {
       identities,
@@ -1110,7 +1110,7 @@ const UserProfileForm: React.FC<UserProfileFormProps> =
           onChangeCustomAttributes={onChangeCustomAttributes}
           customAttributesConfig={customAttributesConfig}
         />
-        {updatedAtFormatted != null && (
+        {updatedAtFormatted != null ? (
           <Text variant="small" styles={UPDATED_AT_STYLES}>
             <FormattedMessage
               id="standard-attribute.updated_at"
@@ -1119,7 +1119,7 @@ const UserProfileForm: React.FC<UserProfileFormProps> =
               }}
             />
           </Text>
-        )}
+        ) : null}
       </div>
     );
   };

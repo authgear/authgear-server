@@ -16,7 +16,7 @@ interface ButtonWithLoadingProps extends IButtonProps {
   spinnerStyles?: ISpinnerProps["styles"];
 }
 
-const ButtonWithLoading: React.FC<ButtonWithLoadingProps> =
+const ButtonWithLoading: React.VFC<ButtonWithLoadingProps> =
   function ButtonWithLoading(props: ButtonWithLoadingProps) {
     const {
       loading,
@@ -38,19 +38,23 @@ const ButtonWithLoading: React.FC<ButtonWithLoadingProps> =
     }, [disabled, props.theme, themes.main]);
 
     return (
-      <PrimaryButton disabled={disabled} {...rest}>
-        {loading ? (
-          <Spinner
-            label={renderToString(loadingLabelId ?? labelId)}
-            size={SpinnerSize.xSmall}
-            styles={spinnerStyles ?? { label: { color: textColor } }}
-            ariaLive="assertive"
-            labelPosition="left"
-          />
-        ) : (
-          <FormattedMessage id={labelId} />
-        )}
-      </PrimaryButton>
+      <PrimaryButton
+        {...rest}
+        disabled={disabled}
+        text={
+          loading ? (
+            <Spinner
+              label={renderToString(loadingLabelId ?? labelId)}
+              size={SpinnerSize.xSmall}
+              styles={spinnerStyles ?? { label: { color: textColor } }}
+              ariaLive="assertive"
+              labelPosition="left"
+            />
+          ) : (
+            <FormattedMessage id={labelId} />
+          )
+        }
+      />
     );
   };
 

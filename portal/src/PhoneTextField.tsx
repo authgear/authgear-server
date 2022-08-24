@@ -93,7 +93,7 @@ export default class PhoneTextField extends React.Component<PhoneTextFieldProps>
     const disabledBackground = semanticColors?.disabledBackground ?? "";
     return (
       <div className={className}>
-        {label && <Label disabled={disabled}>{label}</Label>}
+        {label ? <Label disabled={disabled}>{label}</Label> : null}
         <input
           style={{
             // @ts-expect-error
@@ -108,7 +108,7 @@ export default class PhoneTextField extends React.Component<PhoneTextFieldProps>
           ref={this.inputRef}
           disabled={disabled}
         />
-        {errorMessage && (
+        {errorMessage ? (
           <Text
             block={true}
             styles={{
@@ -120,7 +120,7 @@ export default class PhoneTextField extends React.Component<PhoneTextFieldProps>
           >
             {errorMessage}
           </Text>
-        )}
+        ) : null}
       </div>
     );
   }

@@ -94,7 +94,7 @@ interface AddIdentityFormProps {
   onReset?: () => void;
 }
 
-const AddIdentityForm: React.FC<AddIdentityFormProps> =
+const AddIdentityForm: React.VFC<AddIdentityFormProps> =
   function AddIdentityForm(props: AddIdentityFormProps) {
     const {
       appConfig,
@@ -205,7 +205,7 @@ const AddIdentityForm: React.FC<AddIdentityFormProps> =
         <ScreenContent>
           {title}
           <LoginIDField value={form.state.loginID} onChange={onLoginIDChange} />
-          {requirePassword && (
+          {requirePassword ? (
             <PasswordField
               className={styles.widget}
               passwordPolicy={passwordPolicy}
@@ -215,7 +215,7 @@ const AddIdentityForm: React.FC<AddIdentityFormProps> =
               parentJSONPointer=""
               fieldName="password"
             />
-          )}
+          ) : null}
         </ScreenContent>
       </FormContainer>
     );

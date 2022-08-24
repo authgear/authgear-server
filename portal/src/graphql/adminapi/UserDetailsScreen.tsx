@@ -201,7 +201,7 @@ function makeCustomAttributesFromState(
   return out;
 }
 
-const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
+const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
 ) {
   const { selectedKey, onLinkClick } = usePivotNavigation([
@@ -428,7 +428,7 @@ interface UserDetailsScreenContentProps {
   effectiveAppConfig: PortalAPIAppConfig;
 }
 
-const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
+const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
   // eslint-disable-next-line complexity
   function UserDetailsScreenContent(props: UserDetailsScreenContentProps) {
     const { user, refreshUser, effectiveAppConfig } = props;
@@ -551,7 +551,7 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
     );
   };
 
-const UserDetailsScreen: React.FC = function UserDetailsScreen() {
+const UserDetailsScreen: React.VFC = function UserDetailsScreen() {
   const { appID, userID } = useParams() as { appID: string; userID: string };
   const { user, loading: loadingUser, error, refetch } = useUserQuery(userID);
   const {

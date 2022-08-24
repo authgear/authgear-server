@@ -9,7 +9,7 @@ export interface FormPhoneTextFieldProps extends PhoneTextFieldProps {
   errorRules?: ErrorParseRule[];
 }
 
-const FormPhoneTextField: React.FC<FormPhoneTextFieldProps> =
+const FormPhoneTextField: React.VFC<FormPhoneTextFieldProps> =
   function FormPhoneTextField(props: FormPhoneTextFieldProps) {
     const {
       parentJSONPointer,

@@ -489,7 +489,7 @@ function Footer() {
 
 type Props = Omit<ThemePreviewWidgetProps, "ref">;
 
-const ThemePreviewWidget: React.FC<Props> = forwardRef(
+const ThemePreviewWidget: React.VFC<Props> = forwardRef(
   function ThemePreviewWidget(props: Props, ref: ForwardedRef<HTMLElement>) {
     const {
       className,
@@ -545,7 +545,7 @@ const ThemePreviewWidget: React.FC<Props> = forwardRef(
                   <OAuthForm />
                   <Disclaimer />
                 </div>
-                {watermarkEnabled && <Footer />}
+                {watermarkEnabled ? <Footer /> : null}
               </div>
             </div>
           </div>

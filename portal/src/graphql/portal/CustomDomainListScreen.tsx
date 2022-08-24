@@ -11,8 +11,6 @@ import produce from "immer";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import {
-  ActionButton,
-  DefaultButton,
   DetailsList,
   Dialog,
   DialogFooter,
@@ -32,6 +30,8 @@ import { useDeleteDomainMutation } from "./mutations/deleteDomainMutation";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import DefaultButton from "../../DefaultButton";
+import ActionButton from "../../ActionButton";
 import { useTextField } from "../../hook/useInput";
 import {
   ErrorParseRule,
@@ -130,7 +130,7 @@ function makeDomainListColumn(renderToString: (messageID: string) => string) {
   ];
 }
 
-const AddDomainSection: React.FC = function AddDomainSection() {
+const AddDomainSection: React.VFC = function AddDomainSection() {
   const { renderToString } = useContext(Context);
   const { appID } = useParams() as { appID: string };
 
@@ -226,7 +226,7 @@ interface DomainListActionButtonsProps {
   onDomainActivate: (urlOrigin: string, cookieDomain: string) => void;
 }
 
-const DomainListActionButtons: React.FC<DomainListActionButtonsProps> =
+const DomainListActionButtons: React.VFC<DomainListActionButtonsProps> =
   // eslint-disable-next-line complexity
   function DomainListActionButtons(props) {
     const {
@@ -279,9 +279,8 @@ const DomainListActionButtons: React.FC<DomainListActionButtonsProps> =
           className={styles.actionButton}
           theme={themes.actionButton}
           onClick={onActivateClick}
-        >
-          <FormattedMessage id="activate" />
-        </ActionButton>
+          text={<FormattedMessage id="activate" />}
+        />
       );
     }
 
@@ -292,9 +291,8 @@ const DomainListActionButtons: React.FC<DomainListActionButtonsProps> =
           className={styles.actionButton}
           theme={themes.actionButton}
           onClick={onVerifyClicked}
-        >
-          <FormattedMessage id="verify" />
-        </ActionButton>
+          text={<FormattedMessage id="verify" />}
+        />
       );
     }
 
@@ -305,9 +303,8 @@ const DomainListActionButtons: React.FC<DomainListActionButtonsProps> =
           className={styles.actionButton}
           theme={themes.destructive}
           onClick={onDeleteClick}
-        >
-          <FormattedMessage id="delete" />
-        </ActionButton>
+          text={<FormattedMessage id="delete" />}
+        />
       );
     }
 
@@ -336,7 +333,7 @@ interface DeleteDomainDialogProps {
   dismissDialog: () => void;
 }
 
-const DeleteDomainDialog: React.FC<DeleteDomainDialogProps> =
+const DeleteDomainDialog: React.VFC<DeleteDomainDialogProps> =
   function DeleteDomainDialog(props: DeleteDomainDialogProps) {
     const { domain, domainID, visible, dismissDialog } = props;
     const { appID } = useParams() as { appID: string };
@@ -396,9 +393,8 @@ const DeleteDomainDialog: React.FC<DeleteDomainDialogProps> =
             <DefaultButton
               onClick={dismissDialog}
               disabled={deletingDomain || !visible}
-            >
-              <FormattedMessage id="cancel" />
-            </DefaultButton>
+              text={<FormattedMessage id="cancel" />}
+            />
           </DialogFooter>
         </Dialog>
         <ErrorDialog
@@ -419,7 +415,7 @@ interface UpdatePublicOriginDialogProps {
   dismissDialog: () => void;
 }
 
-const UpdatePublicOriginDialog: React.FC<UpdatePublicOriginDialogProps> =
+const UpdatePublicOriginDialog: React.VFC<UpdatePublicOriginDialogProps> =
   function UpdatePublicOriginDialog(props: UpdatePublicOriginDialogProps) {
     const {
       urlOrigin,
@@ -464,9 +460,8 @@ const UpdatePublicOriginDialog: React.FC<UpdatePublicOriginDialogProps> =
             <DefaultButton
               onClick={dismissDialog}
               disabled={isSaving || !visible}
-            >
-              <FormattedMessage id="cancel" />
-            </DefaultButton>
+              text={<FormattedMessage id="cancel" />}
+            />
           </DialogFooter>
         </Dialog>
         <ErrorDialog
@@ -484,7 +479,7 @@ interface CustomDomainListContentProps {
   featureConfig?: CustomDomainFeatureConfig;
 }
 
-const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
+const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
   function CustomDomainListContent(props) {
     const {
       domains,
@@ -659,7 +654,7 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
         return (
           <>
             {defaultHeaderNode}
-            {!customDomainDisabled && <AddDomainSection />}
+            {!customDomainDisabled ? <AddDomainSection /> : null}
           </>
         );
       },
@@ -674,7 +669,7 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
             <Text block={true}>
               <FormattedMessage id="CustomDomainListScreen.desc" />
             </Text>
-            {customDomainDisabled && (
+            {customDomainDisabled ? (
               <FeatureDisabledMessageBar>
                 <FormattedMessage
                   id="FeatureConfig.custom-domain.disabled"
@@ -683,7 +678,7 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
                   }}
                 />
               </FeatureDisabledMessageBar>
-            )}
+            ) : null}
             <DetailsList
               columns={domainListColumns}
               items={domainListItems}
@@ -713,7 +708,7 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
     );
   };
 
-const CustomDomainListScreen: React.FC = function CustomDomainListScreen() {
+const CustomDomainListScreen: React.VFC = function CustomDomainListScreen() {
   const { appID } = useParams() as { appID: string };
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -763,14 +758,14 @@ const CustomDomainListScreen: React.FC = function CustomDomainListScreen() {
 
   return (
     <>
-      {isVerifySuccessMessageVisible && (
+      {isVerifySuccessMessageVisible ? (
         <MessageBar
           messageBarType={MessageBarType.success}
           onDismiss={dismissVerifySuccessMessageBar}
         >
           <FormattedMessage id="CustomDomainListScreen.verify-success-message" />
         </MessageBar>
-      )}
+      ) : null}
       <CustomDomainListContent
         domains={domains ?? []}
         appConfigForm={form}

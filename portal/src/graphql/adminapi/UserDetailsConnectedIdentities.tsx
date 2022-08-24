@@ -9,7 +9,6 @@ import cn from "classnames";
 import { useNavigate, useParams } from "react-router-dom";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import {
-  DefaultButton,
   Dialog,
   DialogFooter,
   Icon,
@@ -23,6 +22,7 @@ import ButtonWithLoading from "../../ButtonWithLoading";
 import ListCellLayout from "../../ListCellLayout";
 import ErrorDialog from "../../error/ErrorDialog";
 import PrimaryButton from "../../PrimaryButton";
+import DefaultButton from "../../DefaultButton";
 import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
 import { useSetVerifiedStatusMutation } from "./mutations/setVerifiedStatusMutation";
 import { formatDatetime } from "../../util/formatDatetime";
@@ -240,7 +240,7 @@ const ConnectedIdentitiesMutationLoadingContext = createContext({
   deletingIdentity: false,
 });
 
-const VerifyButton: React.FC<VerifyButtonProps> = function VerifyButton(
+const VerifyButton: React.VFC<VerifyButtonProps> = function VerifyButton(
   props: VerifyButtonProps
 ) {
   const { verified, verifying, toggleVerified } = props;
@@ -282,7 +282,7 @@ const VerifyButton: React.FC<VerifyButtonProps> = function VerifyButton(
   );
 };
 
-const IdentityListCell: React.FC<IdentityListCellProps> =
+const IdentityListCell: React.VFC<IdentityListCellProps> =
   // eslint-disable-next-line complexity
   function IdentityListCell(props: IdentityListCellProps) {
     const {
@@ -328,7 +328,7 @@ const IdentityListCell: React.FC<IdentityListCellProps> =
         <div className={styles.cellIcon}>{icon}</div>
         <Text className={styles.cellName}>{identityName}</Text>
         <Text className={styles.cellDesc}>
-          {verified != null && (
+          {verified != null ? (
             <>
               {verified ? (
                 <Text className={styles.cellDescVerified}>
@@ -343,41 +343,41 @@ const IdentityListCell: React.FC<IdentityListCellProps> =
                 {" | "}
               </Text>
             </>
-          )}
-          {identityType === "oauth" && (
+          ) : null}
+          {identityType === "oauth" ? (
             <FormattedMessage
               id="UserDetails.connected-identities.connected-on"
               values={{ datetime: connectedOn }}
             />
-          )}
-          {identityType === "login_id" && (
+          ) : null}
+          {identityType === "login_id" ? (
             <FormattedMessage
               id="UserDetails.connected-identities.added-on"
               values={{ datetime: connectedOn }}
             />
-          )}
-          {identityType === "biometric" && (
+          ) : null}
+          {identityType === "biometric" ? (
             <FormattedMessage
               id="UserDetails.connected-identities.added-on"
               values={{ datetime: connectedOn }}
             />
-          )}
-          {identityType === "anonymous" && (
+          ) : null}
+          {identityType === "anonymous" ? (
             <FormattedMessage
               id="UserDetails.connected-identities.added-on"
               values={{ datetime: connectedOn }}
             />
-          )}
+          ) : null}
         </Text>
         <div className={styles.buttonGroup}>
-          {shouldShowVerifyButton && (
+          {shouldShowVerifyButton ? (
             <VerifyButton
               verified={verified}
               verifying={verifying}
               toggleVerified={onVerifyClicked}
             />
-          )}
-          {removeButtonTextId[identityType] !== "" && (
+          ) : null}
+          {removeButtonTextId[identityType] !== "" ? (
             <DefaultButton
               className={cn(
                 styles.controlButton,
@@ -387,16 +387,15 @@ const IdentityListCell: React.FC<IdentityListCellProps> =
               disabled={settingVerifiedStatus}
               theme={themes.destructive}
               onClick={onRemoveClicked}
-            >
-              <FormattedMessage id={removeButtonTextId[identityType]} />
-            </DefaultButton>
-          )}
+              text={<FormattedMessage id={removeButtonTextId[identityType]} />}
+            />
+          ) : null}
         </div>
       </ListCellLayout>
     );
   };
 
-const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesProps> =
+const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesProps> =
   function UserDetailsConnectedIdentities(
     props: UserDetailsConnectedIdentitiesProps
   ) {
@@ -676,9 +675,8 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
               <DefaultButton
                 disabled={deletingIdentity || !isConfirmationDialogVisible}
                 onClick={onDismissConfirmationDialog}
-              >
-                <FormattedMessage id="cancel" />
-              </DefaultButton>
+                text={<FormattedMessage id="cancel" />}
+              />
             </DialogFooter>
           </Dialog>
           <ErrorDialog
@@ -708,12 +706,13 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
                 menuIcon: { paddingLeft: "3px" },
                 icon: { paddingRight: "3px" },
               }}
-            >
-              <FormattedMessage id="UserDetails.connected-identities.add-identity" />
-            </PrimaryButton>
+              text={
+                <FormattedMessage id="UserDetails.connected-identities.add-identity" />
+              }
+            />
           </section>
           <section className={styles.identityLists}>
-            {identityLists.oauth.length > 0 && (
+            {identityLists.oauth.length > 0 ? (
               <div>
                 <Text as="h3" className={styles.subHeader}>
                   <FormattedMessage id="UserDetails.connected-identities.oauth" />
@@ -724,8 +723,8 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
                   onShouldVirtualize={onShouldVirtualize}
                 />
               </div>
-            )}
-            {identityLists.email.length > 0 && (
+            ) : null}
+            {identityLists.email.length > 0 ? (
               <div>
                 <Text as="h3" className={styles.subHeader}>
                   <FormattedMessage id="UserDetails.connected-identities.email" />
@@ -736,8 +735,8 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
                   onShouldVirtualize={onShouldVirtualize}
                 />
               </div>
-            )}
-            {identityLists.phone.length > 0 && (
+            ) : null}
+            {identityLists.phone.length > 0 ? (
               <div>
                 <Text as="h3" className={styles.subHeader}>
                   <FormattedMessage id="UserDetails.connected-identities.phone" />
@@ -748,8 +747,8 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
                   onShouldVirtualize={onShouldVirtualize}
                 />
               </div>
-            )}
-            {identityLists.username.length > 0 && (
+            ) : null}
+            {identityLists.username.length > 0 ? (
               <div>
                 <Text as="h3" className={styles.subHeader}>
                   <FormattedMessage id="UserDetails.connected-identities.username" />
@@ -760,8 +759,8 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
                   onShouldVirtualize={onShouldVirtualize}
                 />
               </div>
-            )}
-            {identityLists.biometric.length > 0 && (
+            ) : null}
+            {identityLists.biometric.length > 0 ? (
               <div>
                 <Text as="h3" className={styles.subHeader}>
                   <FormattedMessage id="UserDetails.connected-identities.biometric" />
@@ -772,8 +771,8 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
                   onShouldVirtualize={onShouldVirtualize}
                 />
               </div>
-            )}
-            {identityLists.anonymous.length > 0 && (
+            ) : null}
+            {identityLists.anonymous.length > 0 ? (
               <div>
                 <Text as="h3" className={styles.subHeader}>
                   <FormattedMessage id="UserDetails.connected-identities.anonymous" />
@@ -784,7 +783,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
                   onShouldVirtualize={onShouldVirtualize}
                 />
               </div>
-            )}
+            ) : null}
           </section>
         </div>
       </ConnectedIdentitiesMutationLoadingContext.Provider>

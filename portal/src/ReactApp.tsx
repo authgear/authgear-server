@@ -74,7 +74,7 @@ async function initApp(systemConfig: SystemConfig) {
 }
 
 // ReactAppRoutes defines the routes.
-const ReactAppRoutes: React.FC = function ReactAppRoutes() {
+const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
@@ -193,7 +193,7 @@ function ExternalLink(props: ILinkProps) {
   return <FluentLink target="_blank" rel="noreferrer" {...props} />;
 }
 
-const DocLink: React.FC<ILinkProps> = (props: ILinkProps) => {
+const DocLink: React.VFC<ILinkProps> = (props: ILinkProps) => {
   const makeGTMEventDataAttributes = useMakeAuthgearGTMEventDataAttributes();
   const gtmEventDataAttributes = useMemo(() => {
     return makeGTMEventDataAttributes({
@@ -224,7 +224,7 @@ export interface LoadCurrentUserProps {
   children?: React.ReactNode;
 }
 
-const LoadCurrentUser: React.FC<LoadCurrentUserProps> =
+const LoadCurrentUser: React.VFC<LoadCurrentUserProps> =
   function LoadCurrentUser({ children }: LoadCurrentUserProps) {
     const { loading, viewer } = useViewerQuery();
 
@@ -256,7 +256,7 @@ const LoadCurrentUser: React.FC<LoadCurrentUserProps> =
   };
 
 // ReactApp is responsible for fetching runtime config and initialize authgear SDK.
-const ReactApp: React.FC = function ReactApp() {
+const ReactApp: React.VFC = function ReactApp() {
   const [systemConfig, setSystemConfig] = useState<SystemConfig | null>(null);
   const [error, setError] = useState<unknown>(null);
 

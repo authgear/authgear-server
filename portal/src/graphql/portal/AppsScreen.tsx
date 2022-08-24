@@ -18,7 +18,7 @@ interface AppCardData {
   appID: string;
   url: string;
 }
-const AppCard: React.FC<AppCardData> = function AppCard(props: AppCardData) {
+const AppCard: React.VFC<AppCardData> = function AppCard(props: AppCardData) {
   const { appName, appID, url } = props;
 
   return (
@@ -33,7 +33,7 @@ const AppCard: React.FC<AppCardData> = function AppCard(props: AppCardData) {
   );
 };
 
-const AppList: React.FC<AppListProps> = function AppList(props: AppListProps) {
+const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
   const { apps } = props;
   const navigate = useNavigate();
 
@@ -71,15 +71,17 @@ const AppList: React.FC<AppListProps> = function AppList(props: AppListProps) {
             return <AppCard key={appCardData.appID} {...appCardData} />;
           })}
         </section>
-        <PrimaryButton className={styles.createButton} onClick={onCreateClick}>
-          <FormattedMessage id="AppsScreen.create-app" />
-        </PrimaryButton>
+        <PrimaryButton
+          className={styles.createButton}
+          onClick={onCreateClick}
+          text={<FormattedMessage id="AppsScreen.create-app" />}
+        />
       </section>
     </main>
   );
 };
 
-const AppsScreen: React.FC = function AppsScreen() {
+const AppsScreen: React.VFC = function AppsScreen() {
   const { loading, error, apps, refetch } = useAppListQuery();
 
   if (loading) {

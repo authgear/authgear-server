@@ -6,17 +6,17 @@ export interface ToggleProps extends IToggleProps {
   toggleClassName?: string;
 }
 
-const Toggle: React.FC<ToggleProps> = function Toggle(props: ToggleProps) {
+const Toggle: React.VFC<ToggleProps> = function Toggle(props: ToggleProps) {
   const { description, className, toggleClassName, ...rest } = props;
 
   return (
     <div className={className}>
       <FluentUIToggle {...rest} className={toggleClassName} />
-      {description && (
+      {description ? (
         <Text variant="medium" block={true} style={{ lineHeight: "20px" }}>
           {description}
         </Text>
-      )}
+      ) : null}
     </div>
   );
 };

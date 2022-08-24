@@ -68,9 +68,13 @@ function EmptyState() {
       <Text className={styles.emptyStateMessage} block={true}>
         <FormattedMessage id="CustomAttributesConfigurationScreen.empty-message" />
       </Text>
-      <PrimaryButton className={styles.addNewAttributeButton} onClick={onClick}>
-        <FormattedMessage id="CustomAttributesConfigurationScreen.label.add-new-attribute" />
-      </PrimaryButton>
+      <PrimaryButton
+        className={styles.addNewAttributeButton}
+        onClick={onClick}
+        text={
+          <FormattedMessage id="CustomAttributesConfigurationScreen.label.add-new-attribute" />
+        }
+      />
     </div>
   );
 }
@@ -88,7 +92,7 @@ function ItemComponent(
   );
 }
 
-const CustomAttributesConfigurationScreenContent: React.FC<CustomAttributesConfigurationScreenContentProps> =
+const CustomAttributesConfigurationScreenContent: React.VFC<CustomAttributesConfigurationScreenContentProps> =
   function CustomAttributesConfigurationScreenContent(props) {
     const navigate = useNavigate();
     const { state, setState } = props.form;
@@ -134,7 +138,7 @@ const CustomAttributesConfigurationScreenContent: React.FC<CustomAttributesConfi
     );
   };
 
-const CustomAttributesConfigurationScreen: React.FC =
+const CustomAttributesConfigurationScreen: React.VFC =
   function CustomAttributesConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
     const form = useAppConfigForm({

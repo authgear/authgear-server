@@ -10,7 +10,7 @@ function isString(value: unknown): value is string {
   return typeof value === "string";
 }
 
-const OAuthRedirect: React.FC = function OAuthRedirect() {
+const OAuthRedirect: React.VFC = function OAuthRedirect() {
   const navigate = useNavigate();
 
   useEffect(() => {

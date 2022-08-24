@@ -29,7 +29,7 @@ interface InviteAdminContentProps {
   form: SimpleFormModel<FormState>;
 }
 
-const InviteAdminContent: React.FC<InviteAdminContentProps> =
+const InviteAdminContent: React.VFC<InviteAdminContentProps> =
   function InviteAdminContent(props: InviteAdminContentProps) {
     const { state, setState } = props.form;
     const { renderToString } = useContext(Context);
@@ -67,7 +67,7 @@ const InviteAdminContent: React.FC<InviteAdminContentProps> =
     );
   };
 
-const InviteAdminScreen: React.FC = function InviteAdminScreen() {
+const InviteAdminScreen: React.VFC = function InviteAdminScreen() {
   const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
   const { createCollaboratorInvitation } =

@@ -13,7 +13,7 @@ function encodeOAuthState(state: Record<string, unknown>): string {
   return btoa(JSON.stringify(state));
 }
 
-const ShowQueryResult: React.FC<ShowQueryResultProps> =
+const ShowQueryResult: React.VFC<ShowQueryResultProps> =
   function ShowQueryResult(props: ShowQueryResultProps) {
     const { isAuthenticated } = props;
 
@@ -51,7 +51,9 @@ interface Props {
 }
 
 // CAVEAT: <Authenticated><Route path="/foobar/:id"/></Authenticated> will cause useParams to return empty object :(
-const Authenticated: React.FC<Props> = function Authenticated(ownProps: Props) {
+const Authenticated: React.VFC<Props> = function Authenticated(
+  ownProps: Props
+) {
   const { loading, error, viewer, refetch } = useViewerQuery();
 
   if (loading) {

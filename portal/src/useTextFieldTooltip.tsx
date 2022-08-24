@@ -83,9 +83,9 @@ export function useTextFieldTooltip(
               ariaLabel={tooltipLabel}
               styles={iconButtonStyles}
             />
-            {props.required === true && (
+            {props.required === true ? (
               <span className={styles.required} style={{ color: errorText }} />
-            )}
+            ) : null}
           </div>
         </TooltipHost>
       );

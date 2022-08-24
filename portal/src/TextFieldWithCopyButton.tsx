@@ -7,7 +7,7 @@ import styles from "./TextFieldWithCopyButton.module.css";
 
 export interface TextFieldWithCopyButtonProps extends TextFieldProps {}
 
-const TextFieldWithCopyButton: React.FC<TextFieldWithCopyButtonProps> =
+const TextFieldWithCopyButton: React.VFC<TextFieldWithCopyButtonProps> =
   function TextFieldWithCopyButton(props: TextFieldWithCopyButtonProps) {
     const { ...rest } = props;
     const { themes } = useSystemConfig();

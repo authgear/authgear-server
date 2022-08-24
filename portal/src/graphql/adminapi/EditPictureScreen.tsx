@@ -11,13 +11,13 @@ import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import {
   Dialog,
   DialogFooter,
-  DefaultButton,
   ICommandBarItemProps,
   ProgressIndicator,
 } from "@fluentui/react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import PrimaryButton from "../../PrimaryButton";
+import DefaultButton from "../../DefaultButton";
 import CommandBarContainer from "../../CommandBarContainer";
 import { FormProvider } from "../../form";
 import { FormErrorMessageBar } from "../../FormErrorMessageBar";
@@ -84,12 +84,15 @@ function RemoveDialog(props: RemoveDialogProps) {
       onDismiss={onDismiss}
     >
       <DialogFooter>
-        <PrimaryButton onClick={onConfirm} theme={themes.destructive}>
-          <FormattedMessage id="remove" />
-        </PrimaryButton>
-        <DefaultButton onClick={onDismiss}>
-          <FormattedMessage id="cancel" />
-        </DefaultButton>
+        <PrimaryButton
+          onClick={onConfirm}
+          theme={themes.destructive}
+          text={<FormattedMessage id="remove" />}
+        />
+        <DefaultButton
+          onClick={onDismiss}
+          text={<FormattedMessage id="cancel" />}
+        />
       </DialogFooter>
     </Dialog>
   );
@@ -413,7 +416,7 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
   );
 }
 
-const EditPictureScreen: React.FC = function EditPictureScreen() {
+const EditPictureScreen: React.VFC = function EditPictureScreen() {
   const navigate = useNavigate();
   const { appID, userID } = useParams() as { appID: string; userID: string };
   const {

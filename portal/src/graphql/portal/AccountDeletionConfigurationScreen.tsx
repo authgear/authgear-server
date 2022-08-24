@@ -59,7 +59,7 @@ function constructConfig(
   });
 }
 
-const AccountDeletionConfigurationContent: React.FC<AccountDeletionConfigurationContentProps> =
+const AccountDeletionConfigurationContent: React.VFC<AccountDeletionConfigurationContentProps> =
   function AccountDeletionConfigurationContent(props) {
     const { form } = props;
     const { state, setState } = form;
@@ -134,7 +134,7 @@ const AccountDeletionConfigurationContent: React.FC<AccountDeletionConfiguration
     );
   };
 
-const AccountDeletionConfigurationScreen: React.FC =
+const AccountDeletionConfigurationScreen: React.VFC =
   function AccountDeletionConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
     const form = useAppConfigForm({

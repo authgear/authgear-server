@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 import {
   DefaultEffects,
   Text,
-  DefaultButton,
   Link as FluentLink,
   useTheme,
 } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import ReactRouterLink from "./ReactRouterLink";
+import DefaultButton from "./DefaultButton";
 import styles from "./WizardContentLayout.module.css";
 import {
   AuthgearGTMEventType,
@@ -101,14 +101,15 @@ export default function WizardContentLayout(
         {children}
         <div className={styles.buttons}>
           {primaryButton}
-          {backButtonDisabled !== true && (
-            <DefaultButton onClick={onClickBackButton}>
-              <FormattedMessage id="back" />
-            </DefaultButton>
-          )}
+          {backButtonDisabled !== true ? (
+            <DefaultButton
+              onClick={onClickBackButton}
+              text={<FormattedMessage id="back" />}
+            />
+          ) : null}
         </div>
       </div>
-      {appID != null && (
+      {appID != null ? (
         <ReactRouterLink
           className={styles.skip}
           to={`/project/${appID}`}
@@ -117,7 +118,7 @@ export default function WizardContentLayout(
         >
           <FormattedMessage id="WizardContentLayout.skip.label" />
         </ReactRouterLink>
-      )}
+      ) : null}
     </div>
   );
 }

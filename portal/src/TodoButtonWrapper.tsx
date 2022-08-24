@@ -11,7 +11,7 @@ interface TodoButtonWrapperProps {
   className?: string;
 }
 
-const TodoButtonWrapper: React.FC<TodoButtonWrapperProps> =
+const TodoButtonWrapper: React.VFC<TodoButtonWrapperProps> =
   function TodoButtonWrapper(props: TodoButtonWrapperProps) {
     const { children, className } = props;
     const { renderToString } = useContext(Context);
@@ -41,9 +41,10 @@ const TodoButtonWrapper: React.FC<TodoButtonWrapperProps> =
           onDismiss={onTodoDialogDismissed}
         >
           <DialogFooter>
-            <PrimaryButton onClick={onTodoDialogDismissed}>
-              <FormattedMessage id="confirm" />
-            </PrimaryButton>
+            <PrimaryButton
+              onClick={onTodoDialogDismissed}
+              text={<FormattedMessage id="confirm" />}
+            />
           </DialogFooter>
         </Dialog>
         <div style={{ pointerEvents: "none" }}>{children}</div>

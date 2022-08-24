@@ -23,7 +23,7 @@ const LabelColor = "#FFFFFF";
 const LabelBorderColor = "#FFFFFF";
 const LabelBackgroundColor = "#176DF3";
 
-const AnalyticsSignupConversionChart: React.FC<AnalyticsSignupConversionChartProps> =
+const AnalyticsSignupConversionChart: React.VFC<AnalyticsSignupConversionChartProps> =
   function AnalyticsSignupConversionChart(props) {
     const { renderToString } = useContext(Context);
     const { totalSignup = 0, totalSignupUniquePageView = 0 } =
@@ -118,7 +118,7 @@ const AnalyticsSignupConversionChart: React.FC<AnalyticsSignupConversionChartPro
     return (
       <div className={styles.chartContainer}>
         <Pie data={data} options={options} plugins={[ChartDataLabels]} />
-        {noDataAvailable && (
+        {noDataAvailable ? (
           <div className={styles.noDataAvailableLabel}>
             <Text variant="medium">
               <FormattedMessage
@@ -126,12 +126,12 @@ const AnalyticsSignupConversionChart: React.FC<AnalyticsSignupConversionChartPro
               />
             </Text>
           </div>
-        )}
+        ) : null}
       </div>
     );
   };
 
-const AnalyticsSignupConversionWidgetContent: React.FC<AnalyticsSignupConversionWidgetProps> =
+const AnalyticsSignupConversionWidgetContent: React.VFC<AnalyticsSignupConversionWidgetProps> =
   function AnalyticsSignupConversionWidgetContent(props) {
     const { loading, signupConversionRate } = props;
 
@@ -176,7 +176,7 @@ interface AnalyticsSignupConversionWidgetProps {
   signupConversionRate: AnalyticChartsQueryQuery["signupConversionRate"] | null;
 }
 
-const AnalyticsSignupConversionWidget: React.FC<AnalyticsSignupConversionWidgetProps> =
+const AnalyticsSignupConversionWidget: React.VFC<AnalyticsSignupConversionWidgetProps> =
   function AnalyticsSignupConversionWidget(props) {
     return (
       <Widget className={props.className}>

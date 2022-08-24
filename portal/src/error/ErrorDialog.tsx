@@ -12,7 +12,7 @@ interface ErrorDialogProps {
   fallbackErrorMessageID?: string;
 }
 
-const ErrorDialog: React.FC<ErrorDialogProps> = function ErrorDialog(
+const ErrorDialog: React.VFC<ErrorDialogProps> = function ErrorDialog(
   props: ErrorDialogProps
 ) {
   const { error, rules, fallbackErrorMessageID } = props;
@@ -49,9 +49,10 @@ const ErrorDialog: React.FC<ErrorDialogProps> = function ErrorDialog(
       onDismiss={onDismiss}
     >
       <DialogFooter>
-        <PrimaryButton onClick={onDismiss}>
-          <FormattedMessage id="ok" />
-        </PrimaryButton>
+        <PrimaryButton
+          onClick={onDismiss}
+          text={<FormattedMessage id="ok" />}
+        />
       </DialogFooter>
     </Dialog>
   );

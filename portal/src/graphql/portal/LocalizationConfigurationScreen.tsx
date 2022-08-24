@@ -136,7 +136,7 @@ const ALL_PIVOT_KEYS = [
   PIVOT_KEY_TRANSLATION_JSON,
 ];
 
-const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps> =
+const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProps> =
   function ResourcesConfigurationContent(props) {
     const { state, setState } = props.form;
     const {
@@ -611,7 +611,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             >
               <EditTemplatesWidget sections={sectionsForgotPassword} />
             </PivotItem>
-            {passwordlessViaEmailEnabled && (
+            {passwordlessViaEmailEnabled ? (
               <PivotItem
                 headerText={renderToString(
                   "LocalizationConfigurationScreen.passwordless-via-email.title"
@@ -620,8 +620,8 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
               >
                 <EditTemplatesWidget sections={sectionsPasswordlessViaEmail} />
               </PivotItem>
-            )}
-            {passwordlessViaSMSEnabled && (
+            ) : null}
+            {passwordlessViaSMSEnabled ? (
               <PivotItem
                 headerText={renderToString(
                   "LocalizationConfigurationScreen.passwordless-via-sms.title"
@@ -630,7 +630,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
               >
                 <EditTemplatesWidget sections={sectionsPasswordlessViaSMS} />
               </PivotItem>
-            )}
+            ) : null}
             <PivotItem
               headerText={renderToString(
                 "LocalizationConfigurationScreen.translationjson.title"
@@ -645,7 +645,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     );
   };
 
-const LocalizationConfigurationScreen: React.FC =
+const LocalizationConfigurationScreen: React.VFC =
   function LocalizationConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
     const [selectedLanguage, setSelectedLanguage] =

@@ -123,7 +123,7 @@ interface VerificationConfigurationContentProps {
   identityFeatureConfig?: IdentityFeatureConfig;
 }
 
-const VerificationConfigurationContent: React.FC<VerificationConfigurationContentProps> =
+const VerificationConfigurationContent: React.VFC<VerificationConfigurationContentProps> =
   function VerificationConfigurationContent(props) {
     const { state, setState } = props.form;
 
@@ -292,7 +292,7 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
           <WidgetTitle>
             <FormattedMessage id="VerificationConfigurationScreen.verification.claims.phoneNumber" />
           </WidgetTitle>
-          {loginIDPhoneDisabled && (
+          {loginIDPhoneDisabled ? (
             <FeatureDisabledMessageBar>
               <FormattedMessage
                 id="FeatureConfig.disabled"
@@ -301,7 +301,7 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
                 }}
               />
             </FeatureDisabledMessageBar>
-          )}
+          ) : null}
           <Dropdown
             disabled={loginIDPhoneDisabled}
             label={renderToString(
@@ -332,7 +332,7 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
     );
   };
 
-const VerificationConfigurationScreen: React.FC =
+const VerificationConfigurationScreen: React.VFC =
   function VerificationConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
     const form = useAppConfigForm({

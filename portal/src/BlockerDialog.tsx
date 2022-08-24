@@ -4,11 +4,11 @@ import {
   Dialog,
   DialogType,
   DialogFooter,
-  DefaultButton,
   IDialogProps,
   IButtonProps,
 } from "@fluentui/react";
 import PrimaryButton from "./PrimaryButton";
+import DefaultButton from "./DefaultButton";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "./context/SystemConfigContext";
 
@@ -21,7 +21,7 @@ export interface BlockerDialogProps extends IDialogProps {
   onDialogDismiss?: () => void;
 }
 
-const BlockerDialog: React.FC<BlockerDialogProps> = function BlockerDialog(
+const BlockerDialog: React.VFC<BlockerDialogProps> = function BlockerDialog(
   props
 ) {
   const {
@@ -53,12 +53,15 @@ const BlockerDialog: React.FC<BlockerDialogProps> = function BlockerDialog(
       {...rest}
     >
       <DialogFooter>
-        <PrimaryButton onClick={onDialogConfirm} theme={themes.destructive}>
-          <FormattedMessage id={contentConfirmId ?? "confirm"} />
-        </PrimaryButton>
-        <DefaultButton onClick={onDialogDismiss}>
-          <FormattedMessage id={contentCancelId ?? "cancel"} />
-        </DefaultButton>
+        <PrimaryButton
+          onClick={onDialogConfirm}
+          theme={themes.destructive}
+          text={<FormattedMessage id={contentConfirmId ?? "confirm"} />}
+        />
+        <DefaultButton
+          onClick={onDialogDismiss}
+          text={<FormattedMessage id={contentCancelId ?? "cancel"} />}
+        />
       </DialogFooter>
     </Dialog>
   );

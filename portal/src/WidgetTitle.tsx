@@ -7,7 +7,7 @@ export interface WidgetTitleProps {
   id?: string;
 }
 
-const WidgetTitle: React.FC<WidgetTitleProps> = function WidgetTitle(
+const WidgetTitle: React.VFC<WidgetTitleProps> = function WidgetTitle(
   props: WidgetTitleProps
 ) {
   const { className, children, id } = props;

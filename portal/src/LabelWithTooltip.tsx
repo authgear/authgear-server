@@ -27,7 +27,7 @@ interface LabelWithTooltipProps {
   labelIIconProps?: IIconProps;
 }
 
-const LabelWithTooltip: React.FC<LabelWithTooltipProps> =
+const LabelWithTooltip: React.VFC<LabelWithTooltipProps> =
   function LabelWithTooltip(props: LabelWithTooltipProps) {
     const {
       className,
@@ -48,13 +48,13 @@ const LabelWithTooltip: React.FC<LabelWithTooltipProps> =
         // eslint-disable-next-line react/no-unstable-nested-components
         onRenderContent: () => (
           <div className={styles.tooltip}>
-            {tooltipHeaderId && (
+            {tooltipHeaderId ? (
               <Text
                 className={cn(styles.tooltipHeader, tooltipHeaderClassName)}
               >
                 <FormattedMessage id={tooltipHeaderId} />
               </Text>
-            )}
+            ) : null}
             <Text className={styles.tooltipMessage}>
               <FormattedMessage id={tooltipMessageId} />
             </Text>
@@ -77,9 +77,9 @@ const LabelWithTooltip: React.FC<LabelWithTooltipProps> =
         >
           <div className={styles.root}>
             <Label className={labelClassName} required={required}>
-              {labelIIconProps && (
+              {labelIIconProps ? (
                 <Icon {...labelIIconProps} className={styles.labelIcon} />
-              )}
+              ) : null}
               <FormattedMessage id={labelId} />
             </Label>
             <Icon

@@ -10,7 +10,6 @@ import {
   Checkbox,
   Label,
   IconButton,
-  DefaultButton,
   SearchBox,
   Link,
   Dialog,
@@ -31,6 +30,7 @@ import { useExactKeywordSearch } from "../../util/search";
 
 import styles from "./ManageLanguageWidget.module.css";
 import PrimaryButton from "../../PrimaryButton";
+import DefaultButton from "../../DefaultButton";
 
 interface ManageLanguageWidgetProps {
   className?: string;
@@ -80,7 +80,7 @@ function getLanguageLocaleKey(locale: LanguageTag) {
   return `Locales.${locale}`;
 }
 
-const Cell: React.FC<CellProps> = function Cell(props: CellProps) {
+const Cell: React.VFC<CellProps> = function Cell(props: CellProps) {
   const {
     language,
     checked,
@@ -117,16 +117,16 @@ const Cell: React.FC<CellProps> = function Cell(props: CellProps) {
           }}
         />
       </Text>
-      {checked && !disabled && (
+      {checked && !disabled ? (
         <Link onClick={onClickSetAsFallback}>
           <FormattedMessage id="ManageLanguageWidget.set-as-default" />
         </Link>
-      )}
+      ) : null}
     </div>
   );
 };
 
-const ManageLanguageWidgetDialog: React.FC<ManageLanguageWidgetDialogProps> =
+const ManageLanguageWidgetDialog: React.VFC<ManageLanguageWidgetDialogProps> =
   function ManageLanguageWidgetDialog(props: ManageLanguageWidgetDialogProps) {
     const {
       presented,
@@ -276,18 +276,20 @@ const ManageLanguageWidgetDialog: React.FC<ManageLanguageWidgetDialogProps> =
           <List items={listItems} onRenderCell={renderLocaleListItemCell} />
         </div>
         <DialogFooter>
-          <DefaultButton onClick={onCancel}>
-            <FormattedMessage id="cancel" />
-          </DefaultButton>
-          <PrimaryButton onClick={onApplyClick}>
-            <FormattedMessage id="apply" />
-          </PrimaryButton>
+          <DefaultButton
+            onClick={onCancel}
+            text={<FormattedMessage id="cancel" />}
+          />
+          <PrimaryButton
+            onClick={onApplyClick}
+            text={<FormattedMessage id="apply" />}
+          />
         </DialogFooter>
       </Dialog>
     );
   };
 
-const ManageLanguageWidget: React.FC<ManageLanguageWidgetProps> =
+const ManageLanguageWidget: React.VFC<ManageLanguageWidgetProps> =
   function ManageLanguageWidget(props: ManageLanguageWidgetProps) {
     const {
       className,

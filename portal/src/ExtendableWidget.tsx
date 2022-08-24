@@ -20,7 +20,7 @@ const ICON_PROPS = {
   iconName: "ChevronDown",
 };
 
-const ExtendableWidget: React.FC<ExtendableWidgetProps> =
+const ExtendableWidget: React.VFC<ExtendableWidgetProps> =
   function ExtendableWidget(props: ExtendableWidgetProps) {
     const {
       className,
@@ -63,13 +63,13 @@ const ExtendableWidget: React.FC<ExtendableWidgetProps> =
           />
         </div>
         <div className={styles.contentContainer}>
-          {extended && (
+          {extended ? (
             <div
               className={cn(styles.content, { [styles.readOnly]: readOnly })}
             >
               {children}
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     );

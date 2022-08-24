@@ -29,7 +29,7 @@ export function swap<T>(items: T[], index1: number, index2: number): T[] {
   return newItems;
 }
 
-const OrderButtons: React.FC<OrderButtonsProps> = function OrderButtons(
+const OrderButtons: React.VFC<OrderButtonsProps> = function OrderButtons(
   props: OrderButtonsProps
 ) {
   const { index, disabled, itemCount, onSwapClicked, renderAriaLabel } = props;

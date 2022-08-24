@@ -8,7 +8,7 @@ interface ListCellLayoutProps {
   children: React.ReactNode;
 }
 
-const ListCellLayout: React.FC<ListCellLayoutProps> = function ListCellLayout(
+const ListCellLayout: React.VFC<ListCellLayoutProps> = function ListCellLayout(
   props: ListCellLayoutProps
 ) {
   return (

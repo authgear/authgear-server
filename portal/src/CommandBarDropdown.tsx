@@ -68,7 +68,7 @@ function Title(props: CommandBarDropdownProps, options: IDropdownOption[]) {
 
 // CommandBarDropdown is Dropdown component that looks like CommandBarButton.
 // The primary usage is for placing a Dropdown in the CommandBar.
-const CommandBarDropdown: React.FC<CommandBarDropdownProps> =
+const CommandBarDropdown: React.VFC<CommandBarDropdownProps> =
   function CommandBarDropdown(props: CommandBarDropdownProps) {
     const BoundTitle = useMemo(() => Title.bind(null, props), [props]);
     return (

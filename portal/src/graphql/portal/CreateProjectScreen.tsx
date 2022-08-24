@@ -135,9 +135,12 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
         <WizardContentLayout
           backButtonDisabled={true}
           primaryButton={
-            <PrimaryButton onClick={onSubmitForm}>
-              <FormattedMessage id="CreateProjectScreen.create-project.label" />
-            </PrimaryButton>
+            <PrimaryButton
+              onClick={onSubmitForm}
+              text={
+                <FormattedMessage id="CreateProjectScreen.create-project.label" />
+              }
+            />
           }
         >
           <WizardTitle>
@@ -170,7 +173,7 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
   );
 }
 
-const CreateProjectScreen: React.FC = function CreateProjectScreen() {
+const CreateProjectScreen: React.VFC = function CreateProjectScreen() {
   const { loading, error, apps, refetch } = useAppListQuery();
 
   if (loading) {

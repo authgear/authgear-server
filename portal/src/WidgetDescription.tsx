@@ -6,7 +6,7 @@ export interface WidgetDescriptionProps {
   children?: React.ReactNode;
 }
 
-const WidgetDescription: React.FC<WidgetDescriptionProps> =
+const WidgetDescription: React.VFC<WidgetDescriptionProps> =
   function WidgetDescription(props: WidgetDescriptionProps) {
     const { className, children } = props;
     return (

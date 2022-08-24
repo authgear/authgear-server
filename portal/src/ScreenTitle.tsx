@@ -8,7 +8,7 @@ export interface ScreenTitleProps {
   children?: React.ReactNode;
 }
 
-const ScreenTitle: React.FC<ScreenTitleProps> = function ScreenTitle(
+const ScreenTitle: React.VFC<ScreenTitleProps> = function ScreenTitle(
   props: ScreenTitleProps
 ) {
   const { className, children } = props;

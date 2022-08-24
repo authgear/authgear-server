@@ -9,7 +9,7 @@ import {
 import { client } from "./apollo";
 import ShowLoading from "../../ShowLoading";
 
-const ProjectRootScreen: React.FC = function ProjectRootScreen() {
+const ProjectRootScreen: React.VFC = function ProjectRootScreen() {
   const { appID } = useParams() as { appID: string };
   const { analyticEnabled } = useSystemConfig();
   const navigate = useNavigate();

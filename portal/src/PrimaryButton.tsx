@@ -6,9 +6,12 @@ import {
   useTheme,
 } from "@fluentui/react";
 
-export interface PrimaryButtonProps extends IButtonProps {}
+export interface PrimaryButtonProps
+  extends Omit<IButtonProps, "children" | "text"> {
+  text?: React.ReactNode;
+}
 
-const PrimaryButton: React.FC<PrimaryButtonProps> = function PrimaryButton(
+const PrimaryButton: React.VFC<PrimaryButtonProps> = function PrimaryButton(
   props: PrimaryButtonProps
 ) {
   const theme = useTheme();
@@ -21,6 +24,7 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = function PrimaryButton(
     };
   }, [props.styles, theme.palette.neutralTertiary]);
 
+  // @ts-expect-error
   return <FluentUIPrimaryButton {...props} styles={styles} />;
 };
 
