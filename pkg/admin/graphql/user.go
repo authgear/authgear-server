@@ -120,6 +120,9 @@ var nodeUser = node(
 			"customAttributes": &graphql.Field{
 				Type: graphql.NewNonNull(UserCustomAttributes),
 			},
+			"web3": &graphql.Field{
+				Type: graphql.NewNonNull(Web3Claims),
+			},
 			"formattedName": &graphql.Field{
 				Type: graphql.String,
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
