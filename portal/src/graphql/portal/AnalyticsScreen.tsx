@@ -45,6 +45,12 @@ const CommandBarLabelValue = (label: string, value: string) => {
             </span>
           </>
         }
+        styles={{
+          // https://github.com/authgear/authgear-server/issues/2348#issuecomment-1226545493
+          label: {
+            whiteSpace: "nowrap",
+          },
+        }}
       />
     );
   };
@@ -156,6 +162,10 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
     return [
       {
         key: "startDate",
+        text: `${renderToString(
+          "AnalyticsScreen.start-date.label"
+        )} ${rangeFromStr}`,
+        iconProps: { iconName: "Calendar" },
         commandBarButtonAs: CommandBarLabelValue(
           renderToString("AnalyticsScreen.start-date.label"),
           rangeFromStr
@@ -167,6 +177,10 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
       },
       {
         key: "endDate",
+        text: `${renderToString(
+          "AnalyticsScreen.end-date.label"
+        )} ${rangeToStr}`,
+        iconProps: { iconName: "Calendar" },
         commandBarButtonAs: CommandBarLabelValue(
           renderToString("AnalyticsScreen.end-date.label"),
           rangeToStr
