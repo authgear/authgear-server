@@ -8,7 +8,6 @@ import {
   Image,
   Label,
   Toggle,
-  DefaultButton,
   DefaultEffects,
   Dialog,
   DialogFooter,
@@ -41,6 +40,7 @@ import {
 import logoSendgrid from "../../images/sendgrid_logo.png";
 import styles from "./SMTPConfigurationScreen.module.css";
 import PrimaryButton from "../../PrimaryButton";
+import DefaultButton from "../../DefaultButton";
 
 type ProviderType = "sendgrid" | "custom";
 
@@ -572,9 +572,10 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                   className={styles.columnSmall}
                   onClick={onClickSendTestEmail}
                   disabled={!openSendTestEmailDialogButtonEnabled}
-                >
-                  <FormattedMessage id="SMTPConfigurationScreen.send-test-email.label" />
-                </DefaultButton>
+                  text={
+                    <FormattedMessage id="SMTPConfigurationScreen.send-test-email.label" />
+                  }
+                />
               )}
               <Dialog
                 hidden={isDialogHidden}
@@ -594,9 +595,11 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
                     disabled={!sendTestEmailButtonEnabled || loading}
                     text={<FormattedMessage id="send" />}
                   />
-                  <DefaultButton onClick={onDismissDialog} disabled={loading}>
-                    <FormattedMessage id="cancel" />
-                  </DefaultButton>
+                  <DefaultButton
+                    onClick={onDismissDialog}
+                    disabled={loading}
+                    text={<FormattedMessage id="cancel" />}
+                  />
                 </DialogFooter>
               </Dialog>
             </>

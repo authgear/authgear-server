@@ -1,10 +1,5 @@
 import React, { useCallback, useContext, useMemo } from "react";
-import {
-  DefaultButton,
-  Dialog,
-  DialogFooter,
-  IDialogContentProps,
-} from "@fluentui/react";
+import { Dialog, DialogFooter, IDialogContentProps } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import ErrorDialog from "../../error/ErrorDialog";
@@ -12,6 +7,7 @@ import { useDeleteUserMutation } from "./mutations/deleteUserMutation";
 import { useScheduleAccountDeletionMutation } from "./mutations/scheduleAccountDeletion";
 import { extractRawID } from "../../util/graphql";
 import PrimaryButton from "../../PrimaryButton";
+import DefaultButton from "../../DefaultButton";
 
 interface DeleteUserDialogProps {
   isHidden: boolean;
@@ -108,9 +104,11 @@ const DeleteUserDialog: React.VFC<DeleteUserDialogProps> = React.memo(
                 <FormattedMessage id="DeleteUserDialog.label.remove-immediately" />
               }
             />
-            <DefaultButton onClick={onDialogDismiss} disabled={loading}>
-              <FormattedMessage id="cancel" />
-            </DefaultButton>
+            <DefaultButton
+              onClick={onDialogDismiss}
+              disabled={loading}
+              text={<FormattedMessage id="cancel" />}
+            />
           </DialogFooter>
         </Dialog>
         <ErrorDialog error={error} />

@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import authgear from "@authgear/web";
-import { DefaultButton, Text, DefaultEffects } from "@fluentui/react";
+import { Text, DefaultEffects } from "@fluentui/react";
 import {
   Context,
   FormattedMessage,
@@ -22,6 +22,7 @@ import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import { useAuthenticatedForInvitationQuery } from "./query/authenticatedForInvitationQuery";
 import PrimaryButton from "../../PrimaryButton";
+import DefaultButton from "../../DefaultButton";
 
 function encodeOAuthState(state: Record<string, unknown>): string {
   return btoa(JSON.stringify(state));
@@ -234,11 +235,10 @@ const AcceptAdminInvitationScreen: React.VFC =
           <DefaultButton
             className={styles.createAccountButton}
             onClick={() => goToAuth("signup")}
-          >
-            {renderToString(
+            text={renderToString(
               "AcceptAdminInvitationScreen.create-new-account.label"
             )}
-          </DefaultButton>
+          />
         </AcceptAdminInvitationContent>
       );
     }

@@ -1,7 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import {
   ActionButton,
-  DefaultButton,
   DetailsList,
   Dialog,
   DialogFooter,
@@ -21,6 +20,7 @@ import { useRevokeAllSessionsMutation } from "./mutations/revokeAllSessionsMutat
 import { useParams } from "react-router-dom";
 import ErrorDialog from "../../error/ErrorDialog";
 import { Session, SessionType } from "../../types";
+import DefaultButton from "../../DefaultButton";
 
 interface RevokeConfirmationDialogProps {
   isHidden: boolean;
@@ -70,9 +70,11 @@ const RevokeConfirmationDialog: React.VFC<RevokeConfirmationDialogProps> =
             labelId="confirm"
             loading={isLoading}
           />
-          <DefaultButton disabled={isLoading} onClick={onDialogDismiss}>
-            <FormattedMessage id="cancel" />
-          </DefaultButton>
+          <DefaultButton
+            disabled={isLoading}
+            onClick={onDialogDismiss}
+            text={<FormattedMessage id="cancel" />}
+          />
         </DialogFooter>
       </Dialog>
     );
@@ -244,9 +246,8 @@ const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
         }}
         disabled={sessions.length === 0}
         onClick={onRevokeAllClick}
-      >
-        <FormattedMessage id="UserDetails.session.revoke-all" />
-      </DefaultButton>
+        text={<FormattedMessage id="UserDetails.session.revoke-all" />}
+      />
       {confirmDialogProps ? (
         <RevokeConfirmationDialog
           {...confirmDialogProps}

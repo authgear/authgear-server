@@ -11,13 +11,13 @@ import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import {
   Dialog,
   DialogFooter,
-  DefaultButton,
   ICommandBarItemProps,
   ProgressIndicator,
 } from "@fluentui/react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import PrimaryButton from "../../PrimaryButton";
+import DefaultButton from "../../DefaultButton";
 import CommandBarContainer from "../../CommandBarContainer";
 import { FormProvider } from "../../form";
 import { FormErrorMessageBar } from "../../FormErrorMessageBar";
@@ -89,9 +89,10 @@ function RemoveDialog(props: RemoveDialogProps) {
           theme={themes.destructive}
           text={<FormattedMessage id="remove" />}
         />
-        <DefaultButton onClick={onDismiss}>
-          <FormattedMessage id="cancel" />
-        </DefaultButton>
+        <DefaultButton
+          onClick={onDismiss}
+          text={<FormattedMessage id="cancel" />}
+        />
       </DialogFooter>
     </Dialog>
   );

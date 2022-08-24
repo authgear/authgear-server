@@ -18,7 +18,6 @@ import {
   Link,
   ThemeProvider,
   PartialTheme,
-  DefaultButton,
 } from "@fluentui/react";
 import { useConst } from "@fluentui/react-hooks";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -62,6 +61,7 @@ import { useSystemConfig } from "../../context/SystemConfigContext";
 import ErrorDialog from "../../error/ErrorDialog";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import PrimaryButton from "../../PrimaryButton";
+import DefaultButton from "../../DefaultButton";
 
 const ALL_KNOWN_PLANS = ["free", "developers", "startups", "business"];
 const PAID_PLANS = ALL_KNOWN_PLANS.slice(1);
@@ -687,9 +687,8 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
           <DefaultButton
             onClick={onDismiss}
             disabled={cancelSubscriptionLoading || cancelDialogHidden}
-          >
-            <FormattedMessage id="cancel" />
-          </DefaultButton>
+            text={<FormattedMessage id="cancel" />}
+          />
         </DialogFooter>
       </Dialog>
       <ErrorDialog

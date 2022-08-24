@@ -1,19 +1,13 @@
 import React, { useMemo, useCallback, useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import cn from "classnames";
-import {
-  DefaultButton,
-  Dialog,
-  DialogFooter,
-  Icon,
-  List,
-  Text,
-} from "@fluentui/react";
+import { Dialog, DialogFooter, Icon, List, Text } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
 import { useDeleteAuthenticatorMutation } from "./mutations/deleteAuthenticatorMutation";
 import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
 import PrimaryButton from "../../PrimaryButton";
+import DefaultButton from "../../DefaultButton";
 import ListCellLayout from "../../ListCellLayout";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import ErrorDialog from "../../error/ErrorDialog";
@@ -409,9 +403,8 @@ const RemoveConfirmationDialog: React.VFC<RemoveConfirmationDialogProps> =
           <DefaultButton
             disabled={(loading ?? false) || !visible}
             onClick={onDismiss}
-          >
-            <FormattedMessage id="cancel" />
-          </DefaultButton>
+            text={<FormattedMessage id="cancel" />}
+          />
         </DialogFooter>
       </Dialog>
     );
@@ -449,9 +442,8 @@ const PasskeyIdentityCell: React.VFC<PasskeyIdentityCellProps> =
           className={cn(styles.button, styles.passkeyCellRemoveButton)}
           onClick={onRemoveClicked}
           theme={themes.destructive}
-        >
-          <FormattedMessage id="remove" />
-        </DefaultButton>
+          text={<FormattedMessage id="remove" />}
+        />
       </ListCellLayout>
     );
   };
@@ -505,9 +497,8 @@ const PasswordAuthenticatorCell: React.VFC<PasswordAuthenticatorCellProps> =
             className={cn(styles.button, styles.removePasswordButton)}
             onClick={onRemoveClicked}
             theme={themes.destructive}
-          >
-            <FormattedMessage id="remove" />
-          </DefaultButton>
+            text={<FormattedMessage id="remove" />}
+          />
         ) : null}
       </ListCellLayout>
     );
@@ -542,9 +533,8 @@ const TOTPAuthenticatorCell: React.VFC<TOTPAuthenticatorCellProps> =
             className={cn(styles.button, styles.totpRemoveButton)}
             onClick={onRemoveClicked}
             theme={themes.destructive}
-          >
-            <FormattedMessage id="remove" />
-          </DefaultButton>
+            text={<FormattedMessage id="remove" />}
+          />
         ) : null}
       </ListCellLayout>
     );
@@ -582,9 +572,8 @@ const OOBOTPAuthenticatorCell: React.VFC<OOBOTPAuthenticatorCellProps> =
             className={cn(styles.button, styles.oobOtpRemoveButton)}
             onClick={onRemoveClicked}
             theme={themes.destructive}
-          >
-            <FormattedMessage id="remove" />
-          </DefaultButton>
+            text={<FormattedMessage id="remove" />}
+          />
         ) : null}
       </ListCellLayout>
     );

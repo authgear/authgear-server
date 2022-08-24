@@ -2,7 +2,6 @@ import React, { useState, useCallback, useMemo, useContext } from "react";
 import {
   useTheme,
   Text,
-  DefaultButton,
   ThemeProvider,
   PartialTheme,
   Dialog,
@@ -21,6 +20,7 @@ import { usePreviewUpdateSubscriptionMutation } from "./mutations/previewUpdateS
 import ErrorDialog from "../../error/ErrorDialog";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import PrimaryButton from "../../PrimaryButton";
+import DefaultButton from "../../DefaultButton";
 
 interface CardProps {
   isActive: boolean;
@@ -396,9 +396,10 @@ export function CTA(props: CTAProps): React.ReactElement {
                   <FormattedMessage id="SubscriptionPlanCard.label.upgrade" />
                 }
               />
-              <DefaultButton onClick={onDismiss}>
-                <FormattedMessage id="cancel" />
-              </DefaultButton>
+              <DefaultButton
+                onClick={onDismiss}
+                text={<FormattedMessage id="cancel" />}
+              />
             </DialogFooter>
           </Dialog>
           <PrimaryButton
@@ -426,9 +427,10 @@ export function CTA(props: CTAProps): React.ReactElement {
                   <FormattedMessage id="SubscriptionPlanCard.label.downgrade" />
                 }
               />
-              <DefaultButton onClick={onDismiss}>
-                <FormattedMessage id="cancel" />
-              </DefaultButton>
+              <DefaultButton
+                onClick={onDismiss}
+                text={<FormattedMessage id="cancel" />}
+              />
             </DialogFooter>
           </Dialog>
           <ThemeProvider theme={DOWNGRADE_BUTTON_THEME}>
@@ -436,26 +438,33 @@ export function CTA(props: CTAProps): React.ReactElement {
               className={styles.cta}
               onClick={onClickDowngrade}
               disabled={disabled}
-            >
-              <FormattedMessage id="SubscriptionPlanCard.label.downgrade" />
-            </DefaultButton>
+              text={
+                <FormattedMessage id="SubscriptionPlanCard.label.downgrade" />
+              }
+            />
           </ThemeProvider>
         </>
       );
     case "current":
       return (
         <ThemeProvider theme={CURRENT_BUTTON_THEME}>
-          <DefaultButton className={styles.cta} disabled={true}>
-            <FormattedMessage id="SubscriptionPlanCard.label.current" />
-          </DefaultButton>
+          <DefaultButton
+            className={styles.cta}
+            disabled={true}
+            text={<FormattedMessage id="SubscriptionPlanCard.label.current" />}
+          />
         </ThemeProvider>
       );
     case "non-applicable":
       return (
         <ThemeProvider theme={CURRENT_BUTTON_THEME}>
-          <DefaultButton className={styles.cta} disabled={true}>
-            <FormattedMessage id="SubscriptionPlanCard.label.subscribe" />
-          </DefaultButton>
+          <DefaultButton
+            className={styles.cta}
+            disabled={true}
+            text={
+              <FormattedMessage id="SubscriptionPlanCard.label.subscribe" />
+            }
+          />
         </ThemeProvider>
       );
     case "reactivate":
@@ -476,9 +485,8 @@ export function CTA(props: CTAProps): React.ReactElement {
               <DefaultButton
                 onClick={onDismiss}
                 disabled={hidden || reactivateLoading}
-              >
-                <FormattedMessage id="cancel" />
-              </DefaultButton>
+                text={<FormattedMessage id="cancel" />}
+              />
             </DialogFooter>
           </Dialog>
           <ErrorDialog

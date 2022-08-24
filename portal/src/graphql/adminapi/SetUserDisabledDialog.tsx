@@ -1,10 +1,5 @@
 import React, { useCallback, useContext, useMemo } from "react";
-import {
-  DefaultButton,
-  Dialog,
-  DialogFooter,
-  IDialogContentProps,
-} from "@fluentui/react";
+import { Dialog, DialogFooter, IDialogContentProps } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useSetDisabledStatusMutation } from "./mutations/setDisabledStatusMutation";
@@ -12,6 +7,7 @@ import { useUnscheduleAccountDeletionMutation } from "./mutations/unscheduleAcco
 import ErrorDialog from "../../error/ErrorDialog";
 import { extractRawID } from "../../util/graphql";
 import PrimaryButton from "../../PrimaryButton";
+import DefaultButton from "../../DefaultButton";
 
 interface SetUserDisabledDialogProps {
   isHidden: boolean;
@@ -143,9 +139,11 @@ const SetUserDisabledDialog: React.VFC<SetUserDisabledDialogProps> = React.memo(
               onClick={onConfirm}
               text={children}
             />
-            <DefaultButton onClick={onDialogDismiss} disabled={loading}>
-              <FormattedMessage id="cancel" />
-            </DefaultButton>
+            <DefaultButton
+              onClick={onDialogDismiss}
+              disabled={loading}
+              text={<FormattedMessage id="cancel" />}
+            />
           </DialogFooter>
         </Dialog>
         <ErrorDialog error={error} />

@@ -9,7 +9,6 @@ import cn from "classnames";
 import { useNavigate, useParams } from "react-router-dom";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import {
-  DefaultButton,
   Dialog,
   DialogFooter,
   Icon,
@@ -23,6 +22,7 @@ import ButtonWithLoading from "../../ButtonWithLoading";
 import ListCellLayout from "../../ListCellLayout";
 import ErrorDialog from "../../error/ErrorDialog";
 import PrimaryButton from "../../PrimaryButton";
+import DefaultButton from "../../DefaultButton";
 import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
 import { useSetVerifiedStatusMutation } from "./mutations/setVerifiedStatusMutation";
 import { formatDatetime } from "../../util/formatDatetime";
@@ -387,9 +387,8 @@ const IdentityListCell: React.VFC<IdentityListCellProps> =
               disabled={settingVerifiedStatus}
               theme={themes.destructive}
               onClick={onRemoveClicked}
-            >
-              <FormattedMessage id={removeButtonTextId[identityType]} />
-            </DefaultButton>
+              text={<FormattedMessage id={removeButtonTextId[identityType]} />}
+            />
           ) : null}
         </div>
       </ListCellLayout>
@@ -676,9 +675,8 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
               <DefaultButton
                 disabled={deletingIdentity || !isConfirmationDialogVisible}
                 onClick={onDismissConfirmationDialog}
-              >
-                <FormattedMessage id="cancel" />
-              </DefaultButton>
+                text={<FormattedMessage id="cancel" />}
+              />
             </DialogFooter>
           </Dialog>
           <ErrorDialog

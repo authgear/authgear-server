@@ -1,7 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import {
-  DefaultButton,
   Dialog,
   DialogFooter,
   IDialogProps,
@@ -13,6 +12,7 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import styles from "./ModifiedIndicator.module.css";
 import PrimaryButton from "./PrimaryButton";
+import DefaultButton from "./DefaultButton";
 
 export interface ModifiedIndicatorProps {
   className?: string;
@@ -84,9 +84,10 @@ export const ModifiedIndicator: React.VFC<ModifiedIndicatorProps> =
               onClick={onConfirmClicked}
               text={<FormattedMessage id="confirm" />}
             />
-            <DefaultButton onClick={dismissConfirmDialog}>
-              <FormattedMessage id="cancel" />
-            </DefaultButton>
+            <DefaultButton
+              onClick={dismissConfirmDialog}
+              text={<FormattedMessage id="cancel" />}
+            />
           </DialogFooter>
         </Dialog>
 

@@ -12,7 +12,6 @@ import {
   ImageFit,
   Dialog,
   IDialogContentProps,
-  DefaultButton,
   DialogFooter,
   ICommandBarItemProps,
 } from "@fluentui/react";
@@ -48,6 +47,7 @@ import {
   useMakeAuthgearGTMEventDataAttributes,
 } from "../../GTMProvider";
 import PrimaryButton from "../../PrimaryButton";
+import DefaultButton from "../../DefaultButton";
 
 interface FormState {
   publicOrigin: string;
@@ -564,9 +564,8 @@ const EditOAuthClientScreen: React.VFC = function EditOAuthClientScreen() {
           <DefaultButton
             onClick={dismissDialogAndResetRemoveClientByID}
             disabled={isUpdating || !isRemoveDialogVisible}
-          >
-            <FormattedMessage id="cancel" />
-          </DefaultButton>
+            text={<FormattedMessage id="cancel" />}
+          />
         </DialogFooter>
       </Dialog>
     </FormContainer>

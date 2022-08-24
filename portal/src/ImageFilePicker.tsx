@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useCallback } from "react";
 import cn from "classnames";
-import { Image, DefaultButton, ImageFit } from "@fluentui/react";
+import { Image, ImageFit } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import {
@@ -8,6 +8,7 @@ import {
   dataURIToBase64EncodedData,
 } from "./util/uri";
 import PrimaryButton from "./PrimaryButton";
+import DefaultButton from "./DefaultButton";
 
 import styles from "./ImageFilePicker.module.css";
 
@@ -137,9 +138,8 @@ const ImageFilePicker: React.VFC<ImageFilePickerProps> =
             className={styles.button}
             onClick={onClickSelectImage}
             disabled={disabled}
-          >
-            <FormattedMessage id="ImageFilePicker.upload" />
-          </DefaultButton>
+            text={<FormattedMessage id="ImageFilePicker.upload" />}
+          />
         )}
       </div>
     );

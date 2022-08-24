@@ -9,7 +9,6 @@ import {
   Dropdown,
   Dialog,
   DialogFooter,
-  DefaultButton,
   IconButton,
   SelectionMode,
   IColumn,
@@ -25,6 +24,7 @@ import {
   Text,
 } from "@fluentui/react";
 import PrimaryButton from "./PrimaryButton";
+import DefaultButton from "./DefaultButton";
 import LabelWithTooltip from "./LabelWithTooltip";
 import {
   UserProfileAttributesAccessControl,
@@ -639,9 +639,10 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
             onClick={onClickConfirmPendingUpdate}
             text={<FormattedMessage id="confirm" />}
           />
-          <DefaultButton onClick={onDismissPendingUpdateDialog}>
-            <FormattedMessage id="cancel" />
-          </DefaultButton>
+          <DefaultButton
+            onClick={onDismissPendingUpdateDialog}
+            text={<FormattedMessage id="cancel" />}
+          />
         </DialogFooter>
       </Dialog>
     </>

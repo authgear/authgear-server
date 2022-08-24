@@ -1,13 +1,9 @@
 import React, { useMemo, useContext, useCallback } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import {
-  DefaultButton,
-  Dialog,
-  DialogFooter,
-  IDialogContentProps,
-} from "@fluentui/react";
+import { Dialog, DialogFooter, IDialogContentProps } from "@fluentui/react";
 
 import ButtonWithLoading from "../../ButtonWithLoading";
+import DefaultButton from "../../DefaultButton";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 
 export interface RemovePortalAdminConfirmationDialogData {
@@ -75,9 +71,8 @@ const RemovePortalAdminConfirmationDialog: React.VFC<RemovePortalAdminConfirmati
           <DefaultButton
             disabled={deletingCollaborator || !visible}
             onClick={onDismiss}
-          >
-            <FormattedMessage id="cancel" />
-          </DefaultButton>
+            text={<FormattedMessage id="cancel" />}
+          />
         </DialogFooter>
       </Dialog>
     );

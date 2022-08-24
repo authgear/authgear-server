@@ -10,7 +10,6 @@ import {
   Checkbox,
   Label,
   IconButton,
-  DefaultButton,
   SearchBox,
   Link,
   Dialog,
@@ -31,6 +30,7 @@ import { useExactKeywordSearch } from "../../util/search";
 
 import styles from "./ManageLanguageWidget.module.css";
 import PrimaryButton from "../../PrimaryButton";
+import DefaultButton from "../../DefaultButton";
 
 interface ManageLanguageWidgetProps {
   className?: string;
@@ -276,9 +276,10 @@ const ManageLanguageWidgetDialog: React.VFC<ManageLanguageWidgetDialogProps> =
           <List items={listItems} onRenderCell={renderLocaleListItemCell} />
         </div>
         <DialogFooter>
-          <DefaultButton onClick={onCancel}>
-            <FormattedMessage id="cancel" />
-          </DefaultButton>
+          <DefaultButton
+            onClick={onCancel}
+            text={<FormattedMessage id="cancel" />}
+          />
           <PrimaryButton
             onClick={onApplyClick}
             text={<FormattedMessage id="apply" />}

@@ -4,11 +4,11 @@ import {
   Dialog,
   DialogType,
   DialogFooter,
-  DefaultButton,
   IDialogProps,
   IButtonProps,
 } from "@fluentui/react";
 import PrimaryButton from "./PrimaryButton";
+import DefaultButton from "./DefaultButton";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "./context/SystemConfigContext";
 
@@ -58,9 +58,10 @@ const BlockerDialog: React.VFC<BlockerDialogProps> = function BlockerDialog(
           theme={themes.destructive}
           text={<FormattedMessage id={contentConfirmId ?? "confirm"} />}
         />
-        <DefaultButton onClick={onDialogDismiss}>
-          <FormattedMessage id={contentCancelId ?? "cancel"} />
-        </DefaultButton>
+        <DefaultButton
+          onClick={onDialogDismiss}
+          text={<FormattedMessage id={contentCancelId ?? "cancel"} />}
+        />
       </DialogFooter>
     </Dialog>
   );

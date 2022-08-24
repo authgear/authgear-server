@@ -12,7 +12,6 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import {
   ActionButton,
-  DefaultButton,
   DetailsList,
   Dialog,
   DialogFooter,
@@ -32,6 +31,7 @@ import { useDeleteDomainMutation } from "./mutations/deleteDomainMutation";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import DefaultButton from "../../DefaultButton";
 import { useTextField } from "../../hook/useInput";
 import {
   ErrorParseRule,
@@ -396,9 +396,8 @@ const DeleteDomainDialog: React.VFC<DeleteDomainDialogProps> =
             <DefaultButton
               onClick={dismissDialog}
               disabled={deletingDomain || !visible}
-            >
-              <FormattedMessage id="cancel" />
-            </DefaultButton>
+              text={<FormattedMessage id="cancel" />}
+            />
           </DialogFooter>
         </Dialog>
         <ErrorDialog
@@ -464,9 +463,8 @@ const UpdatePublicOriginDialog: React.VFC<UpdatePublicOriginDialogProps> =
             <DefaultButton
               onClick={dismissDialog}
               disabled={isSaving || !visible}
-            >
-              <FormattedMessage id="cancel" />
-            </DefaultButton>
+              text={<FormattedMessage id="cancel" />}
+            />
           </DialogFooter>
         </Dialog>
         <ErrorDialog

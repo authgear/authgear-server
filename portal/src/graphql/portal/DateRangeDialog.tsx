@@ -1,14 +1,10 @@
-import {
-  DatePicker,
-  DefaultButton,
-  Dialog,
-  DialogFooter,
-} from "@fluentui/react";
+import { DatePicker, Dialog, DialogFooter } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import React, { useMemo } from "react";
 import styles from "./DateRangeDialog.module.css";
 import TextField from "../../TextField";
 import PrimaryButton from "../../PrimaryButton";
+import DefaultButton from "../../DefaultButton";
 
 interface DateRangeDialogProps {
   hidden: boolean;
@@ -84,9 +80,10 @@ const DateRangeDialog: React.VFC<DateRangeDialogProps> =
             onClick={onCommitDateRange}
             text={<FormattedMessage id="done" />}
           />
-          <DefaultButton onClick={onDismiss}>
-            <FormattedMessage id="cancel" />
-          </DefaultButton>
+          <DefaultButton
+            onClick={onDismiss}
+            text={<FormattedMessage id="cancel" />}
+          />
         </DialogFooter>
       </Dialog>
     );
