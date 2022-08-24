@@ -14,14 +14,14 @@ import (
 
 type Service struct {
 	APIEndpoint config.NFTIndexerAPIEndpoint
-	NFTConfig   *config.NFTConfig
+	Web3Config  *config.Web3Config
 }
 
 func (s *Service) GetWeb3Info(addresses []string) (*model.UserWeb3Info, error) {
-	if s.NFTConfig == nil {
+	if s.Web3Config == nil || s.Web3Config.NFT == nil {
 		return nil, fmt.Errorf("NFTConfig not defined")
 	}
-	nftCollections := s.NFTConfig.Collections
+	nftCollections := s.Web3Config.NFT.Collections
 	contractIDs := make([]web3.ContractID, 0, len(nftCollections))
 	for _, collection := range nftCollections {
 		contractID, err := web3.ParseContractID(collection)

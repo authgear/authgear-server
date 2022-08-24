@@ -476,10 +476,10 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -1237,10 +1237,10 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -1938,10 +1938,10 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -2673,10 +2673,10 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -3113,10 +3113,10 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -3449,10 +3449,10 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -3828,10 +3828,10 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -4288,10 +4288,10 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -4997,10 +4997,10 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -5725,10 +5725,10 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -6553,10 +6553,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -7319,10 +7319,10 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -8084,10 +8084,10 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -8832,10 +8832,10 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -9581,10 +9581,10 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -10322,10 +10322,10 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -11066,10 +11066,10 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -11813,10 +11813,10 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -12557,10 +12557,10 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -13304,10 +13304,10 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -14051,10 +14051,10 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -14799,10 +14799,10 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -15546,10 +15546,10 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -16293,10 +16293,10 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -17042,10 +17042,10 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -17789,10 +17789,10 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -18536,10 +18536,10 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -19285,10 +19285,10 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -20032,10 +20032,10 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -20772,10 +20772,10 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -21200,10 +21200,10 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -21947,10 +21947,10 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -22690,10 +22690,10 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -23435,10 +23435,10 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -24178,10 +24178,10 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -24926,10 +24926,10 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -25669,10 +25669,10 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -26413,10 +26413,10 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -27156,10 +27156,10 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -27925,10 +27925,10 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -28679,10 +28679,10 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -29446,10 +29446,10 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -30192,10 +30192,10 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -30936,10 +30936,10 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -31688,10 +31688,10 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -32432,10 +32432,10 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -33176,10 +33176,10 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -33920,10 +33920,10 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -34665,10 +34665,10 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -35414,10 +35414,10 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -36158,10 +36158,10 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -36902,10 +36902,10 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -37646,10 +37646,10 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -38390,10 +38390,10 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -39141,10 +39141,10 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -39886,10 +39886,10 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -40629,10 +40629,10 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -41394,10 +41394,10 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -42137,10 +42137,10 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -42897,10 +42897,10 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -43606,10 +43606,10 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -44557,10 +44557,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
@@ -45046,10 +45046,10 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftConfig := appConfig.NFT
+	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
-		NFTConfig:   nftConfig,
+		Web3Config:  web3Config,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
