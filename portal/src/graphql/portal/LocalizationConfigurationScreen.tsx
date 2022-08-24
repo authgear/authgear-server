@@ -598,7 +598,11 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           <WidgetTitle>
             <FormattedMessage id="LocalizationConfigurationScreen.template-content-title" />
           </WidgetTitle>
-          <Pivot onLinkClick={onLinkClick} selectedKey={selectedKey}>
+          <Pivot
+            overflowBehavior="menu"
+            onLinkClick={onLinkClick}
+            selectedKey={selectedKey}
+          >
             <PivotItem
               headerText={renderToString(
                 "LocalizationConfigurationScreen.forgot-password.title"

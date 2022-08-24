@@ -3,6 +3,8 @@
   flex-direction: column;
   height: 100vh;
   width: 100vw;
+
+  @apply mobile:h-full;
 }
 
 .body {
@@ -20,6 +22,8 @@
   /* Allow scrolling along y-axis */
   overflow-y: auto;
   overflow-x: hidden;
+
+  @apply mobile:hidden;
 }
 
 .content {

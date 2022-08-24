@@ -1,11 +1,18 @@
+.root {
+  display: flex;
+  flex-direction: column;
+}
+
 .searchBox {
   width: 300px;
-  margin: 0 7px 20px auto;
+  margin: 7px 20px;
+
+  @apply desktop:self-end mobile:self-auto mobile:w-auto;
 }
 
 .listWrapper {
   position: relative;
-  height: 400px;
+  height: 300px;
 }
 
 .countryNameCell {
@@ -35,4 +42,6 @@
 /* Fix horizontal scrollbar appears on windows browser */
 .detailsList {
   overflow-x: hidden;
+
+  @apply mobile:overflow-auto;
 }

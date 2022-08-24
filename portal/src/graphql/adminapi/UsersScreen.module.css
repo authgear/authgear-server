@@ -10,9 +10,12 @@
 
 .widget {
   grid-column: 1 / span 12;
+  @apply mobile:col-span-full;
 }
 
 .searchBox {
   align-self: center;
   width: 300px;
+
+  @apply mobile:w-auto;
 }

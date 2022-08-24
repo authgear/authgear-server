@@ -1,11 +1,17 @@
 .widget {
   grid-column: 1 / span 6;
+
+  @apply mobile:col-span-full;
 }
 
 .authenticatorColumn {
   justify-content: flex-start;
   align-items: center;
   display: flex;
+}
+
+.authenticatorOrder {
+  padding-left: 4px;
 }
 
 .authenticatorColumnSpanRow {

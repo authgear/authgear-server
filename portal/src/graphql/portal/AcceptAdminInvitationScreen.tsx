@@ -36,7 +36,7 @@ const AcceptAdminInvitationContent: React.FC<AcceptAdminInvitationWidgetProps> =
   function AcceptAdminInvitationContent({ title, descriptions, children }) {
     return (
       <main className={styles.root}>
-        <ScreenHeader />
+        <ScreenHeader showHamburger={false} />
         <div
           className={styles.widget}
           style={{

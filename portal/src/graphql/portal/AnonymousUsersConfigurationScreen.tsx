@@ -41,7 +41,7 @@ import styles from "./AnonymousUsersConfigurationScreen.module.css";
 
 const dropDownStyles = {
   dropdown: {
-    width: "300px",
+    maxWidth: "300px",
   },
 };
 

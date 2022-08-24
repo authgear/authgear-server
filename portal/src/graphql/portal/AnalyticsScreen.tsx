@@ -52,20 +52,6 @@ const CommandBarLabelValue = (label: string, value: string) => {
   };
 };
 
-const OnRenderCommandBarToLabel = () => {
-  const theme = useTheme();
-  return (
-    <div
-      className={styles.commandBarButtonTo}
-      style={{
-        color: theme.palette.neutralSecondary,
-      }}
-    >
-      <FormattedMessage id="AnalyticsScreen.to.label"></FormattedMessage>
-    </div>
-  );
-};
-
 const AnalyticsScreenContent: React.FC = function AnalyticsScreenContent() {
   const [dateRangeDialogHidden, setDateRangeDialogHidden] = useState(true);
 
@@ -180,10 +166,6 @@ const AnalyticsScreenContent: React.FC = function AnalyticsScreenContent() {
           iconProps: { iconName: "Calendar" },
           onClick: onClickDateRange,
         },
-      },
-      {
-        key: "to",
-        onRender: OnRenderCommandBarToLabel,
       },
       {
         key: "endDate",

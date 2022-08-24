@@ -20,7 +20,7 @@ import { Location } from "history";
 function getAppRouterPath(location: Location) {
   // app router -> /app/:appID/*
   // discard first 3 segment (include leading slash)
-  return location.pathname.split("/").slice(3).join("/");
+  return "./" + location.pathname.split("/").slice(3).join("/");
 }
 
 function getPath(url: string) {
@@ -59,7 +59,13 @@ interface NavLinkProps {
   }>;
 }
 
-const ScreenNav: React.FC = function ScreenNav() {
+interface ScreenNavProps {
+  mobileView?: boolean;
+  onLinkClick?: () => void;
+}
+
+const ScreenNav: React.FC<ScreenNavProps> = function ScreenNav(props) {
+  const { mobileView = false } = props;
   const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
   const { renderToString } = useContext(Context);
@@ -85,6 +91,7 @@ const ScreenNav: React.FC = function ScreenNav() {
 
   const links: NavLinkProps[] = useMemo(() => {
     const links = [
+      ...(mobileView ? [{ textKey: "ScreenNav.all-projects", url: "/" }] : []),
       ...(skippedTutorial
         ? []
         : [{ textKey: "ScreenNav.getting-started", url: "./getting-started" }]),
@@ -208,7 +215,13 @@ const ScreenNav: React.FC = function ScreenNav() {
     ];
 
     return links;
-  }, [analyticEnabled, auditLogEnabled, showIntegrations, skippedTutorial]);
+  }, [
+    analyticEnabled,
+    auditLogEnabled,
+    mobileView,
+    showIntegrations,
+    skippedTutorial,
+  ]);
 
   const [selectedKeys, selectedKey] = useMemo(() => {
     const matchedKeys: string[] = [];
@@ -273,9 +286,10 @@ const ScreenNav: React.FC = function ScreenNav() {
       const path = getAppRouterPath(location);
       if (item?.url && !isPathSame(item.url, path)) {
         navigate(item.url);
+        props.onLinkClick?.();
       }
     },
-    [navigate, location]
+    [location, navigate, props]
   );
   const onLinkExpandClick = useCallback(
     (e?: React.MouseEvent, item?: INavLink) => {

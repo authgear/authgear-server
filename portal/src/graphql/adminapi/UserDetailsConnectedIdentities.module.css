@@ -1,6 +1,6 @@
 .root {
   margin-left: 10px;
-  width: 640px;
+  max-width: 640px;
 }
 
 .headerSection {
@@ -8,6 +8,7 @@
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+  padding-top: 12px;
 }
 
 .header {
@@ -27,12 +28,28 @@
 }
 
 .cellContainer {
+  /* Desktop */
+  /* grid-template:
+    "       icon           name          .           button-group"
+    "       .              desc          .           button-group"
+    /       min-content    auto         1fr          auto; */
+
+  /* Mobile */
+  /* grid-template:
+    "        icon           name           name        "
+    "        .              desc           desc        "
+    "        button-group   button-group   button-group"
+    /        min-content     1fr            1fr; */
+
+  @apply desktop:grid-cols-[min-content_auto_1fr_auto]
+          desktop:grid-areas-[icon_name_._button-group,._desc_._button-group]
+          mobile:grid-cols-[min-content_auto_auto]
+          mobile:grid-areas-[icon_name_name,._desc_desc,button-group_button-group_button-group];
+
   display: grid;
   column-gap: 8px;
-  grid-template:
-    "        icon        name           .      verify      remove"
-    "           .        desc           .      verify      remove"
-    / min-content auto 1fr min-content min-content;
+  row-gap: 8px;
+  margin-top: 16px;
 }
 
 .cellIcon {
@@ -70,6 +87,13 @@
   flex-direction: row;
 }
 
+.buttonGroup {
+  grid-area: button-group;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 8px;
+}
+
 .controlButton {
   border: 1px solid #d8d8d8;
   font-weight: 600;
@@ -77,16 +101,17 @@
 }
 
 .removeButton {
-  grid-area: remove;
-  place-self: center;
+  grid-column: span 1 / span 1;
+}
+
+.removeButtonFull {
+  grid-column: 1 / -1;
 }
 
 .verifyButton {
-  grid-area: verify;
-  place-self: center;
+  grid-column: span 1 / span 1;
 }
 
 .unverifyButton {
-  grid-area: verify;
-  place-self: center;
+  grid-column: span 1 / span 1;
 }

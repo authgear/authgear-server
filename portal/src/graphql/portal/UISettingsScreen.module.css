@@ -4,10 +4,14 @@
   justify-content: space-between;
   align-items: center;
   grid-column: 1 / span 8;
+
+  @apply mobile:col-span-full mobile:flex-col mobile:items-stretch mobile:gap-y-5;
 }
 
 .widget {
   grid-column: 1 / span 8;
+
+  @apply mobile:col-span-full;
 }
 
 .grid {
@@ -20,8 +24,12 @@
 
 .columnFull {
   grid-column: 1 / span 8;
+
+  @apply mobile:col-span-full;
 }
 
 .columnLeft {
-  grid-column: 1 / span 5;
+  grid-column: 1 / span 12;
+
+  @apply mobile:col-span-full;
 }

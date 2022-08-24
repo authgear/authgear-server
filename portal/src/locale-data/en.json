@@ -3,6 +3,7 @@
   "system.name": "Authgear",
   "system.title": "Authgear Portal",
   "system.logo-uri": "/img/logo.png",
+  "system.logo-inverted-uri": "/img/logo-inverted.png",
 
   "loading": "Loading...",
 
@@ -102,6 +103,7 @@
   "TodoButtonWrapper.dialog-message": "This feature is not yet implemented",
 
   "ScreenNav.label": "Top-level tab navigation",
+  "ScreenNav.all-projects": "All projects",
   "ScreenNav.getting-started": "Getting Started",
   "ScreenNav.analytics": "Analytics",
   "ScreenNav.users": "User Management",
@@ -737,7 +739,7 @@
   "AuthenticatorType.primary.passkey": "Passkey",
   "AuthenticatorType.primary.oob-otp-email": "Passwordless via Email",
   "AuthenticatorType.primary.oob-otp-phone": "Passwordless via Phone",
-  "AuthenticatorType.secondary.totp": "OTP Code via Google Authenticator/Authy (TOTP)",
+  "AuthenticatorType.secondary.totp": "Google Authenticator/Authy (TOTP)",
   "AuthenticatorType.secondary.oob-otp-email": "OTP Code via Email",
   "AuthenticatorType.secondary.oob-otp-phone": "OTP Code via Phone",
   "AuthenticatorType.secondary.password": "Additional Password",
@@ -1065,11 +1067,10 @@
 
   "AnalyticsScreen.title": "Analytics",
   "AnalyticsScreen.description": "The analytics portal shows your project's activities. The numbers are delayed up to 24 hours.",
-  "AnalyticsScreen.start-date.label": "Start Date",
-  "AnalyticsScreen.end-date.label": "End Date",
+  "AnalyticsScreen.start-date.label": "From",
+  "AnalyticsScreen.end-date.label": "To",
   "AnalyticsScreen.clear-date-range.label": "Clear Date Range",
   "AnalyticsScreen.date-range.dialog-title": "Date Range",
-  "AnalyticsScreen.to.label": "to",
 
   "AnalyticsActivityWidget.title": "Activity",
   "AnalyticsActivityWidget.monthly.label": "Monthly",

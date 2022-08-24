@@ -6,7 +6,6 @@
 }
 
 .section {
-  min-width: 980px;
   max-width: 1252px;
 }
 
@@ -20,9 +19,12 @@
 .cards {
   display: grid;
   column-gap: 16px;
+  row-gap: 16px;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
   grid-template-rows: auto;
+
+  @apply mobile:grid-flow-row;
 }
 
 .footer {

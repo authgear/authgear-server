@@ -61,9 +61,9 @@ const AppList: React.FC<AppListProps> = function AppList(props: AppListProps) {
 
   return (
     <main className={styles.root}>
-      <ScreenHeader />
+      <ScreenHeader showHamburger={false} />
       <section className={styles.body}>
-        <Text as="h1" className={styles.header} variant="xLarge" block={true}>
+        <Text as="h1" variant="xLarge" block={true}>
           <FormattedMessage id="AppsScreen.title" />
         </Text>
         <section className={styles.cardsContainer}>
@@ -71,7 +71,7 @@ const AppList: React.FC<AppListProps> = function AppList(props: AppListProps) {
             return <AppCard key={appCardData.appID} {...appCardData} />;
           })}
         </section>
-        <PrimaryButton onClick={onCreateClick}>
+        <PrimaryButton className={styles.createButton} onClick={onCreateClick}>
           <FormattedMessage id="AppsScreen.create-app" />
         </PrimaryButton>
       </section>

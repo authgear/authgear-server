@@ -45,6 +45,7 @@ import {
   AuthgearGTMEventType,
   useMakeAuthgearGTMEventDataAttributes,
 } from "../../GTMProvider";
+import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 
 type Progress = keyof TutorialStatusData["progress"];
 
@@ -441,7 +442,7 @@ function GetStartedScreenContent(props: GetStartedScreenContentProps) {
   });
 
   return (
-    <div className={styles.scrollableScreen}>
+    <ScreenLayoutScrollView>
       <div className={styles.root}>
         <Title />
         <div className={styles.descriptionRow}>
@@ -456,7 +457,7 @@ function GetStartedScreenContent(props: GetStartedScreenContentProps) {
         <HelpText />
         <DismissButton onClick={onClickDismissButton} disabled={loading} />
       </div>
-    </div>
+    </ScreenLayoutScrollView>
   );
 }
 

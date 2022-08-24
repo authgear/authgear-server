@@ -492,7 +492,7 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> =
     );
 
     return (
-      <div className={className}>
+      <div className={cn(styles.root, className)}>
         <SearchBox
           className={styles.searchBox}
           placeholder={renderToString("search")}

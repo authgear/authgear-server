@@ -198,7 +198,7 @@ const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
     <CommandBarContainer isLoading={false} primaryItems={primaryItems}>
       <ScreenContent>
         <div className={styles.widget}>
-          <NavBreadcrumb items={navBreadcrumbItems} />
+          <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
           {effectiveFeatureConfig?.collaborator.maximum != null && (
             <FeatureDisabledMessageBar className={styles.messageBar}>
               <FormattedMessage

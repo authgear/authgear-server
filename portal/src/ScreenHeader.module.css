@@ -5,12 +5,24 @@
   align-items: center;
   border-bottom: 1px solid gray;
   height: 48px;
+  position: sticky;
+  top: 0;
+  z-index: 9999;
 }
 
-.headerLeft {
+.mobileView {
+  @apply desktop:hidden mobile:flex mobile:flex-row mobile:items-center mobile:text-white;
+}
+
+.desktopView {
+  @apply mobile:hidden desktop:flex desktop:flex-row desktop:items-center desktop:text-white;
+}
+
+.headerMobile {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  color: #ffffff;
+  height: 48px;
 }
 
 .headerArrow {
@@ -32,10 +44,19 @@
   margin: 12px 10px;
 }
 
+.logoNavHeader {
+  height: 24px;
+  margin: 12px;
+}
+
 .logoutButton {
   display: block;
   padding: 6px;
   margin: 6px;
   border-radius: 2px;
   background-color: orange;
+}
+
+.hamburger {
+  margin: 8px 20px 8px 16px;
 }

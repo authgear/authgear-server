@@ -4,8 +4,12 @@
   justify-content: space-between;
   align-items: center;
   grid-column: 1 / span 10;
+
+  @apply mobile:col-span-full mobile:flex-col mobile:items-stretch mobile:gap-y-5;
 }
 
 .widget {
   grid-column: 1 / span 10;
+
+  @apply mobile:col-span-full;
 }
