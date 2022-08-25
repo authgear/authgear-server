@@ -361,6 +361,15 @@ function useDeleteUserCommandBarItem(
             {...props}
             theme={themes.destructive}
             onClick={onClick}
+            styles={{
+              root: {
+                height: "44px",
+              },
+              // https://github.com/authgear/authgear-server/issues/2348#issuecomment-1226545493
+              label: {
+                whiteSpace: "nowrap",
+              },
+            }}
           />
         );
       },
@@ -391,7 +400,21 @@ function useSetUserDisabledCommandBarItem(
         iconName,
       },
       onRender: (props) => {
-        return <CommandButton {...props} onClick={onClick} />;
+        return (
+          <CommandButton
+            {...props}
+            onClick={onClick}
+            styles={{
+              root: {
+                height: "44px",
+              },
+              // https://github.com/authgear/authgear-server/issues/2348#issuecomment-1226545493
+              label: {
+                whiteSpace: "nowrap",
+              },
+            }}
+          />
+        );
       },
     };
   }, [user.deleteAt, user.isDisabled, onClick, renderToString]);

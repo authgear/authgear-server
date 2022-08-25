@@ -15,6 +15,10 @@ export function onRenderCommandBarPrimaryButton(
           padding: "0 16px",
           margin: "6px 4px",
         },
+        // https://github.com/authgear/authgear-server/issues/2348#issuecomment-1226545493
+        label: {
+          whiteSpace: "nowrap",
+        },
       }}
       iconProps={item.iconProps}
       disabled={item.disabled}
