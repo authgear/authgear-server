@@ -400,6 +400,7 @@
   "SingleSignOnConfigurationScreen.widget.add-uri": "Add URI",
   "SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-label": "WeChat redirect URIs",
   "SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-tooltip-message": "For mobile app only, to receive delegate call when user click on login with WeChat button.",
+  "SingleSignOnConfigurationScreen.whatsapp-otp-doc.message": "Looking for WhatsApp OTP? See the {DocLink, react, href{https://docs.authgear.com/strategies/whatsapp-otp-login} children{instructions here}}.",
 
   "OAuthBranding.apple": "Sign in with Apple",
   "OAuthBranding.google": "Sign in with Google",

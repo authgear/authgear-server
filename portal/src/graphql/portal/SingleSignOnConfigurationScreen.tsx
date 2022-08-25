@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
-import { Text } from "@fluentui/react";
+import { MessageBar, MessageBarType, Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import SingleSignOnConfigurationWidget from "./SingleSignOnConfigurationWidget";
 import ShowLoading from "../../ShowLoading";
@@ -314,6 +314,12 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
             limitReached={limitReached}
           />
         ))}
+        <MessageBar
+          messageBarType={MessageBarType.info}
+          className={styles.widget}
+        >
+          <FormattedMessage id="SingleSignOnConfigurationScreen.whatsapp-otp-doc.message" />
+        </MessageBar>
       </ScreenContent>
     );
   };
