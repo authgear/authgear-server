@@ -103,24 +103,35 @@ function makeOAuthClientListColumns(
   ];
 }
 
-interface OAuthClientIdCellProps {
+interface OAuthClientIdCopyButtonProps {
   clientId: string;
 }
 
-const OAuthClientIdCell: React.VFC<OAuthClientIdCellProps> =
-  function OAuthClientIdCell(props) {
+const OAuthClientIdCopyButton: React.VFC<OAuthClientIdCopyButtonProps> =
+  function OAuthClientIdCopyButton(props) {
     const { clientId } = props;
     const { copyButtonProps, Feedback } = useCopyFeedback({
       textToCopy: clientId,
     });
 
     return (
+      <div>
+        <IconButton {...copyButtonProps} styles={COPY_ICON_STLYES} />
+        <Feedback />
+      </div>
+    );
+  };
+
+interface OAuthClientIdCellProps {
+  clientId: string;
+}
+
+const OAuthClientIdCell: React.VFC<OAuthClientIdCellProps> =
+  function OAuthClientIdCell({ clientId }: OAuthClientIdCellProps) {
+    return (
       <>
         <span className={styles.cellContent}>{clientId}</span>
-        <div>
-          <IconButton {...copyButtonProps} styles={COPY_ICON_STLYES} />
-          <Feedback />
-        </div>
+        <OAuthClientIdCopyButton clientId={clientId} />
       </>
     );
   };
@@ -147,11 +158,14 @@ const ClientCard: React.VFC<ClientCardProps> = (props) => {
     <Link to={targetPath}>
       <Widget>
         <Text className={styles.clientCardTitle}>{name}</Text>
-        <div
-          className={cn(styles.clientCardContent, styles.clientCardIdContainer)}
-          style={{ color: neutralSecondary }}
-        >
-          <OAuthClientIdCell clientId={clientId} />
+        <div className={styles.clientCardIdContainer}>
+          <Text
+            className={styles.clientCardContent}
+            style={{ color: neutralSecondary }}
+          >
+            {clientId}
+          </Text>
+          <OAuthClientIdCopyButton clientId={clientId} />
         </div>
         <Text
           className={styles.clientCardContent}

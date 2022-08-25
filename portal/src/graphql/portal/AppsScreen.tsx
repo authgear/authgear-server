@@ -6,6 +6,7 @@ import PrimaryButton from "../../PrimaryButton";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import ScreenHeader from "../../ScreenHeader";
+import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import { App, useAppListQuery } from "./query/appListQuery";
 import styles from "./AppsScreen.module.css";
 
@@ -62,21 +63,23 @@ const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
   return (
     <main className={styles.root}>
       <ScreenHeader showHamburger={false} />
-      <section className={styles.body}>
-        <Text as="h1" variant="xLarge" block={true}>
-          <FormattedMessage id="AppsScreen.title" />
-        </Text>
-        <section className={styles.cardsContainer}>
-          {appCardsData.map((appCardData) => {
-            return <AppCard key={appCardData.appID} {...appCardData} />;
-          })}
+      <ScreenLayoutScrollView>
+        <section className={styles.body}>
+          <Text as="h1" variant="xLarge" block={true}>
+            <FormattedMessage id="AppsScreen.title" />
+          </Text>
+          <section className={styles.cardsContainer}>
+            {appCardsData.map((appCardData) => {
+              return <AppCard key={appCardData.appID} {...appCardData} />;
+            })}
+          </section>
+          <PrimaryButton
+            className={styles.createButton}
+            onClick={onCreateClick}
+            text={<FormattedMessage id="AppsScreen.create-app" />}
+          />
         </section>
-        <PrimaryButton
-          className={styles.createButton}
-          onClick={onCreateClick}
-          text={<FormattedMessage id="AppsScreen.create-app" />}
-        />
-      </section>
+      </ScreenLayoutScrollView>
     </main>
   );
 };
