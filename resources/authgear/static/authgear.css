@@ -36,7 +36,6 @@
   color: var(--color-error-unshaded);
 }
 
-
 .page {
   background-color: var(--color-background-unshaded);
 }
@@ -102,12 +101,6 @@
 
 .row-sep:not(:last-child) {
   border-bottom: 1px solid var(--color-separator);
-}
-
-.divide-y > * + * {
-  border-top-width: 1px;
-  border-top-style: solid;
-  border-top-color: var(--color-separator);
 }
 
 .recovery-code-list {

@@ -447,7 +447,8 @@
     color: var(--color-error-unshaded);
     background-color: transparent;
   }
-  .destructive-secondary-btn:hover, .destructive-secondary-btn:focus {
+  .destructive-secondary-btn:hover,
+  .destructive-secondary-btn:focus {
     color: var(--color-error-shaded-4);
   }
   .destructive-secondary-btn:active {
@@ -455,5 +456,11 @@
   }
   .destructive-secondary-btn:disabled {
     color: var(--color-error-shaded-1);
+  }
+}
+
+@layer utilities {
+  .divide-y > * + * {
+    border-top-color: var(--color-separator);
   }
 }
