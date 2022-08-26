@@ -31,31 +31,33 @@ func (s *Service) GetWeb3Info(addresses []string) (*model.UserWeb3Info, error) {
 		contractIDs = append(contractIDs, *contractID)
 	}
 
-	nfts, err := s.GetNFTsByAddresses(contractIDs, addresses)
-	if err != nil {
-		return nil, err
+	ownerships := make([]model.NFTOwnership, 0)
+	for _, address := range addresses {
+		nfts, err := s.GetNFTsByAddress(contractIDs, address)
+		if err != nil {
+			return nil, err
+		}
+
+		ownerships = append(ownerships, (nfts.Items)...)
+
 	}
 
 	web3Info := &model.UserWeb3Info{
-		NFTs: nfts.Items,
+		Accounts: ownerships,
 	}
 
 	return web3Info, nil
 }
 
-func (s *Service) GetNFTsByAddresses(contracts []web3.ContractID, ownerAddresses []string) (*model.GetUserNFTsResponse, error) {
+func (s *Service) GetNFTsByAddress(contracts []web3.ContractID, ownerAddresses string) (*model.GetUserNFTsResponse, error) {
 	endpoint, err := url.Parse(string(s.APIEndpoint))
 	if err != nil {
 		return nil, err
 	}
 
-	endpoint.Path = path.Join("nfts")
+	endpoint.Path = path.Join("nfts", ownerAddresses)
 
 	query := endpoint.Query()
-	if len(ownerAddresses) > 0 {
-		query["owner_address"] = ownerAddresses
-	}
-
 	if len(contracts) > 0 {
 		urls := make([]string, 0, len(contracts))
 		for _, contract := range contracts {
