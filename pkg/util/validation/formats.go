@@ -6,7 +6,6 @@ import (
 	"net/mail"
 	"net/url"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -15,6 +14,7 @@ import (
 	"github.com/iawaknahc/originmatcher"
 	"golang.org/x/text/language"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 	"github.com/authgear/authgear-server/pkg/util/territoryutil"
@@ -41,7 +41,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["x_picture"] = FormatPicture{}
 	jsonschemaformat.DefaultChecker["google_tag_manager_container_id"] = FormatGoogleTagManagerContainerID{}
 	jsonschemaformat.DefaultChecker["x_web3_contract_id"] = FormatContractID{}
-	jsonschemaformat.DefaultChecker["x_web3_ethereum_chain_id"] = FormatChainID{}
+	jsonschemaformat.DefaultChecker["x_web3_network_id"] = FormatNetworkID{}
 }
 
 // FormatPhone checks if input is a phone number in E.164 format.
@@ -400,28 +400,35 @@ func (FormatContractID) CheckFormat(value interface{}) error {
 		return nil
 	}
 
-	if _, err := web3util.ParseContractID(str); err != nil {
+	contractID, err := web3util.ParseContractID(str)
+	if err != nil {
 		return fmt.Errorf("invalid contract ID: %#v", str)
+	}
+
+	if contractID.Blockchain == "ethereum" {
+		if _, ok := model.ParseEthereumNetwork(contractID.Network); !ok {
+			return fmt.Errorf("invalid ethereum chain ID: %#v", contractID.Network)
+		}
 	}
 
 	return nil
 }
 
-type FormatChainID struct{}
+type FormatNetworkID struct{}
 
-func (FormatChainID) CheckFormat(value interface{}) error {
+func (FormatNetworkID) CheckFormat(value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
 	}
 
-	chainID, err := strconv.Atoi(str)
+	contractID, err := web3util.ParseContractID(str)
 	if err != nil {
-		return fmt.Errorf("invalid chain ID: %#v", str)
+		return fmt.Errorf("invalid network ID: %#v", str)
 	}
 
-	if chainID <= 0 {
-		return errors.New("Ethereum Chain ID must be an positive integer")
+	if contractID.ContractAddress != "0x0" {
+		return fmt.Errorf("invalid network ID: %#v", str)
 	}
 
 	return nil
