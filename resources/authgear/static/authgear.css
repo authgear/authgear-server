@@ -40,29 +40,6 @@
   background-color: var(--color-background-unshaded);
 }
 
-.banner-wrapper {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  /* padding in media queries */
-}
-
-.banner-frame {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.banner.dark {
-  display: none;
-}
-.dark .banner.light {
-  display: none;
-}
-.dark .banner.dark {
-  display: initial;
-}
-
 .pane {
   background-color: var(--color-pane-background);
   box-shadow: 0px 4px 8px 0px var(--color-pane-shadow);

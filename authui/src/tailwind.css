@@ -245,6 +245,7 @@
   }
 
   .banner-wrapper {
+    @apply w-full flex justify-center;
     /* 16px is the banner default padding */
     /* 40px - 16px = 8px */
     /* 40px - 16px = 8px */
@@ -255,6 +256,20 @@
     /* 80px - 16px = 48px */
     /* 64px - 16px = 32px */
     @apply desktop:pt-[66px] desktop:pb-12;
+  }
+
+  .banner-frame {
+    @apply flex justify-center items-center;
+  }
+
+  .banner.dark {
+    @apply hidden;
+  }
+  .dark .banner.light {
+    @apply hidden;
+  }
+  .dark .banner.dark {
+    display: initial;
   }
 
   .dot-flashing {
