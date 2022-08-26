@@ -1,15 +1,3 @@
-.messages-bar .messages-txt {
-  color: var(--color-black-shaded-4);
-}
-
-.messages-bar.errors {
-  background-color: var(--color-error-shaded-2);
-}
-
-.messages-bar.success {
-  background-color: var(--color-success-shaded-2);
-}
-
 .primary-txt {
   color: var(--color-text-unshaded);
 }
