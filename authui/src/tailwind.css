@@ -232,4 +232,37 @@
     /* 64px - 16px = 32px */
     @apply desktop:pt-[66px] desktop:pb-12;
   }
+
+  .dot-flashing {
+    @apply relative w-1 h-1 rounded-sm;
+    background-color: var(--color-text-unshaded);
+    color: var(--color-text-unshaded);
+    animation: dotFlashing 1s infinite linear alternate;
+    animation-delay: 0.5s;
+  }
+  .dot-flashing::before,
+  .dot-flashing::after {
+    @apply inline-block absolute w-1 h-1 rounded-sm top-0;
+    content: "";
+    background-color: var(--color-text-unshaded);
+    color: var(--color-text-unshaded);
+    animation: dotFlashing 1s infinite alternate;
+  }
+  .dot-flashing::before {
+    @apply -left-1.5;
+    animation-delay: 0s;
+  }
+  .dot-flashing::after {
+    @apply left-1.5;
+    animation-delay: 1s;
+  }
+  @keyframes dotFlashing {
+    0% {
+      background-color: var(--color-text-unshaded);
+    }
+    50%,
+    100% {
+      background-color: var(--color-text-shaded-1);
+    }
+  }
 }
