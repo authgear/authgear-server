@@ -22,59 +22,26 @@ type NFTConfig struct {
 	Collections []string `json:"collections,omitempty"`
 }
 
-type BlockchainType string
-
-const (
-	BlockchainTypeEthereum BlockchainType = "ethereum"
-)
-
-var _ = Schema.Add("BlockchainConfig", `
+var _ = Schema.Add("SIWEConfig", `
 {
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"blockchain": { "type": "string", "enum": ["ethereum"] },
-		"network": { "type": "string" }
-	},
-	"required": ["blockchain", "network"],
-	"allOf": [
-		{
-			"if": {
-				"properties": {
-					"blockchain": {
-						"const": "ethereum"
-					}
-				},
-				"required": ["blockchain"]
+		"networks": { 
+			"type": "array",
+			"items": {
+				"type": "string",
+				"format": "x_web3_network_id",
+				"minLength": 1
 			},
-			"then": {
-				"properties": {
-					"network": {
-						"format": "x_web3_ethereum_chain_id"
-					}
-				},
-				"required": ["network"]
-			}
+			"uniqueItems": true
 		}
-	]
+	}
 }
 `)
 
-type BlockchainConfig struct {
-	Blockchain BlockchainType `json:"blockchain,omitempty"`
-	Network    string         `json:"network,omitempty"`
-}
-
-func (b *BlockchainConfig) SetDefaults() {
-	// Default ethereum blockchain
-	if b.Blockchain == "" {
-		b.Blockchain = BlockchainTypeEthereum
-	}
-
-	// Default ethereum mainnet
-	if b.Network == "" {
-		b.Network = "1"
-	}
+type SIWEConfig struct {
+	Networks []string `json:"networks,omitempty"`
 }
 
 var _ = Schema.Add("Web3Config", `
@@ -82,13 +49,13 @@ var _ = Schema.Add("Web3Config", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"blockchain": { "$ref": "#/$defs/BlockchainConfig" },
+		"siwe": { "$ref": "#/$defs/SIWEConfig" },
 		"nft": { "$ref": "#/$defs/NFTConfig" }
 	}
 }
 `)
 
 type Web3Config struct {
-	Blockchain *BlockchainConfig `json:"blockchain,omitempty"`
-	NFT        *NFTConfig        `json:"nft,omitempty"`
+	SIWE *SIWEConfig `json:"siwe,omitempty"`
+	NFT  *NFTConfig  `json:"nft,omitempty"`
 }

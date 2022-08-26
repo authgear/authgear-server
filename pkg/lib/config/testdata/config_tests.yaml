@@ -892,20 +892,21 @@ config:
   http:
     public_origin: http://test
   web3:
-    blockchain:
-      blockchain: ethereum
-      network: "1"
+    siwe:
+      networks:
+        - ethereum:0x0@1
+
 ---
 name: web3-ethereum-chain-id-invalid-format
 error: |-
   invalid configuration:
-  /web3/blockchain/network: format
-    map[error:invalid chain ID: "foo" format:x_web3_ethereum_chain_id]
+  /web3/siwe/networks/0: format
+    map[error:invalid network ID: "ethereum:0x1234@1" format:x_web3_network_id]
 config:
   id: test
   http:
     public_origin: http://test
   web3:
-    blockchain:
-      blockchain: ethereum
-      network: foo
+    siwe:
+      networks:
+        - ethereum:0x1234@1
