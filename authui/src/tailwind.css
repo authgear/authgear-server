@@ -219,4 +219,17 @@
     @apply p-5 text-sm w-full;
     text-align: inherit;
   }
+
+  .banner-wrapper {
+    /* 16px is the banner default padding */
+    /* 40px - 16px = 8px */
+    /* 40px - 16px = 8px */
+    @apply pt-6 pb-6;
+    /* 80px - 16px = 48px */
+    /* 64px - 16px = 32px */
+    @apply tablet:pt-[66px] tablet:pb-12;
+    /* 80px - 16px = 48px */
+    /* 64px - 16px = 32px */
+    @apply desktop:pt-[66px] desktop:pb-12;
+  }
 }
