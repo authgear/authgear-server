@@ -23,7 +23,7 @@ export type Scalars = {
   /** The `UserStandardAttributes` scalar type represents the standard attributes of the user */
   UserStandardAttributes: GQL_UserStandardAttributes;
   /** The `Web3Claims` scalar type represents the scalar type of the user */
-  Web3Claims: any;
+  Web3Claims: GQL_Web3Claims;
 };
 
 /** Audit log */
