@@ -265,4 +265,118 @@
       background-color: var(--color-text-shaded-1);
     }
   }
+
+  .password-strength-meter {
+    @apply appearance-none block w-[266px] h-1;
+  }
+  .password-strength-meter::-webkit-meter-optimum-value,
+  .password-strength-meter::-webkit-meter-suboptimum-value,
+  .password-strength-meter::-webkit-meter-even-less-good-value {
+    background: none;
+  }
+  .password-strength-meter,
+  .password-strength-meter::-webkit-meter-bar {
+    background: linear-gradient(
+      90deg,
+      var(--color-password-strength-meter-0) 0% 18.4%,
+      transparent 18.4% 20.4%,
+      var(--color-password-strength-meter-0) 20.4% 38.8%,
+      transparent 38.8% 40.8%,
+      var(--color-password-strength-meter-0) 40.8% 59.2%,
+      transparent 59.2% 61.2%,
+      var(--color-password-strength-meter-0) 61.2% 79.6%,
+      transparent 79.6% 81.6%,
+      var(--color-password-strength-meter-0) 81.6% 100%
+    );
+  }
+  .password-strength-meter[value="1"],
+  .password-strength-meter[value="1"]::-webkit-meter-bar {
+    background: linear-gradient(
+      90deg,
+      var(--color-password-strength-meter-1) 0% 18.4%,
+      transparent 18.4% 20.4%,
+      var(--color-password-strength-meter-0) 20.4% 38.8%,
+      transparent 38.8% 40.8%,
+      var(--color-password-strength-meter-0) 40.8% 59.2%,
+      transparent 59.2% 61.2%,
+      var(--color-password-strength-meter-0) 61.2% 79.6%,
+      transparent 79.6% 81.6%,
+      var(--color-password-strength-meter-0) 81.6% 100%
+    );
+  }
+  .password-strength-meter-description[data-value="1"] {
+    color: var(--color-password-strength-meter-1);
+  }
+  .password-strength-meter[value="2"],
+  .password-strength-meter[value="2"]::-webkit-meter-bar {
+    background: linear-gradient(
+      90deg,
+      var(--color-password-strength-meter-2) 0% 18.4%,
+      transparent 18.4% 20.4%,
+      var(--color-password-strength-meter-2) 20.4% 38.8%,
+      transparent 38.8% 40.8%,
+      var(--color-password-strength-meter-0) 40.8% 59.2%,
+      transparent 59.2% 61.2%,
+      var(--color-password-strength-meter-0) 61.2% 79.6%,
+      transparent 79.6% 81.6%,
+      var(--color-password-strength-meter-0) 81.6% 100%
+    );
+  }
+  .password-strength-meter-description[data-value="2"] {
+    color: var(--color-password-strength-meter-2);
+  }
+  .password-strength-meter[value="3"],
+  .password-strength-meter[value="3"]::-webkit-meter-bar {
+    background: linear-gradient(
+      90deg,
+      var(--color-password-strength-meter-3) 0% 18.4%,
+      transparent 18.4% 20.4%,
+      var(--color-password-strength-meter-3) 20.4% 38.8%,
+      transparent 38.8% 40.8%,
+      var(--color-password-strength-meter-3) 40.8% 59.2%,
+      transparent 59.2% 61.2%,
+      var(--color-password-strength-meter-0) 61.2% 79.6%,
+      transparent 79.6% 81.6%,
+      var(--color-password-strength-meter-0) 81.6% 100%
+    );
+  }
+  .password-strength-meter-description[data-value="3"] {
+    color: var(--color-password-strength-meter-3);
+  }
+  .password-strength-meter[value="4"],
+  .password-strength-meter[value="4"]::-webkit-meter-bar {
+    background: linear-gradient(
+      90deg,
+      var(--color-password-strength-meter-4) 0% 18.4%,
+      transparent 18.4% 20.4%,
+      var(--color-password-strength-meter-4) 20.4% 38.8%,
+      transparent 38.8% 40.8%,
+      var(--color-password-strength-meter-4) 40.8% 59.2%,
+      transparent 59.2% 61.2%,
+      var(--color-password-strength-meter-4) 61.2% 79.6%,
+      transparent 79.6% 81.6%,
+      var(--color-password-strength-meter-0) 81.6% 100%
+    );
+  }
+  .password-strength-meter-description[data-value="4"] {
+    color: var(--color-password-strength-meter-4);
+  }
+  .password-strength-meter[value="5"],
+  .password-strength-meter[value="5"]::-webkit-meter-bar {
+    background: linear-gradient(
+      90deg,
+      var(--color-password-strength-meter-5) 0% 18.4%,
+      transparent 18.4% 20.4%,
+      var(--color-password-strength-meter-5) 20.4% 38.8%,
+      transparent 38.8% 40.8%,
+      var(--color-password-strength-meter-5) 40.8% 59.2%,
+      transparent 59.2% 61.2%,
+      var(--color-password-strength-meter-5) 61.2% 79.6%,
+      transparent 79.6% 81.6%,
+      var(--color-password-strength-meter-5) 81.6% 100%
+    );
+  }
+  .password-strength-meter-description[data-value="5"] {
+    color: var(--color-password-strength-meter-5);
+  }
 }
