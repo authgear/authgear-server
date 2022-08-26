@@ -667,6 +667,50 @@ export interface StandardAttributesAddress {
   country?: string;
 }
 
+export interface NFTContract {
+  name?: string;
+  address?: string;
+}
+
+export interface TransactionIdentifier {
+  hash?: string;
+}
+
+export interface BlockIdentifier {
+  index?: number;
+  timestamp?: Date;
+}
+
+export interface NFTToken {
+  tokenId?: string;
+  transaction_identifier?: TransactionIdentifier;
+  block_identifier?: BlockIdentifier;
+}
+
+export interface NFT {
+  contract?: NFTContract;
+  balance?: number;
+  tokens?: NFTToken[];
+}
+
+export interface AccountIdentifier {
+  address?: string;
+}
+
+export interface NetworkIdentifier {
+  blockchain?: string;
+  network?: string;
+}
+export interface Web3Account {
+  account_identifier?: AccountIdentifier;
+  network_identifier?: NetworkIdentifier;
+  nfts?: NFT[];
+}
+
+export interface Web3Claims {
+  accounts?: Web3Account[];
+}
+
 export interface Identity {
   id: string;
   claims: IdentityClaims;
