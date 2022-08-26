@@ -24,17 +24,26 @@ type TransactionIdentifier struct {
 }
 
 type BlockIdentifier struct {
-	Index big.Int `json:"index"`
+	Index     big.Int   `json:"index"`
+	Timestamp time.Time `json:"timestamp"`
 }
 
-type NFTOwner struct {
-	AccountIdentifier     AccountIdentifier     `json:"account_identifier"`
-	NetworkIdentifier     NetworkIdentifier     `json:"network_identifier"`
-	Contract              Contract              `json:"contract"`
+type Token struct {
 	TokenID               big.Int               `json:"token_id"`
 	TransactionIdentifier TransactionIdentifier `json:"transaction_identifier"`
 	BlockIdentifier       BlockIdentifier       `json:"block_identifier"`
-	Timestamp             time.Time             `json:"timestamp"`
+}
+
+type NFT struct {
+	Contract Contract `json:"contract"`
+	Balance  int      `json:"balance"`
+	Tokens   []Token  `json:"tokens"`
+}
+
+type NFTOwnership struct {
+	AccountIdentifier AccountIdentifier `json:"account_identifier"`
+	NetworkIdentifier NetworkIdentifier `json:"network_identifier"`
+	NFTs              []NFT             `json:"nfts"`
 }
 
 type NFTCollection struct {
@@ -46,8 +55,7 @@ type NFTCollection struct {
 }
 
 type GetUserNFTsResponse struct {
-	Items      []NFTOwner `json:"items"`
-	TotalCount int        `json:"total_count"`
+	Items []NFTOwnership `json:"items"`
 }
 
 type WatchCollectionRequest struct {
@@ -68,5 +76,20 @@ type GetCollectionsResponse struct {
 }
 
 type UserWeb3Info struct {
-	NFTs []NFTOwner `json:"nfts"`
+	Accounts []NFTOwnership `json:"accounts"`
+}
+
+type EthereumNetwork string
+
+const (
+	EthereumNetworkEthereumMainnet EthereumNetwork = "1"
+)
+
+func ParseEthereumNetwork(s string) (EthereumNetwork, bool) {
+	switch s {
+	case "1":
+		return EthereumNetworkEthereumMainnet, true
+	default:
+		return "", false
+	}
 }
