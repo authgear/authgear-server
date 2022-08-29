@@ -1,0 +1,235 @@
+@tailwind components;
+
+@layer components {
+  :root.dark {
+    --color-primary-unshaded: #317bf4;
+    --color-primary-shaded-1: #f6faff;
+    --color-primary-shaded-2: #dde9fd;
+    --color-primary-shaded-3: #bfd7fc;
+    --color-primary-shaded-4: #81aff9;
+    --color-primary-shaded-5: #498bf6;
+    --color-primary-shaded-6: #2c70dc;
+    --color-primary-shaded-7: #255eba;
+    --color-primary-shaded-8: #1b4589;
+
+    --color-text-unshaded: #ffffff;
+    --color-text-shaded-1: #767676;
+    --color-text-shaded-2: #a6a6a6;
+    --color-text-shaded-3: #c8c8c8;
+    --color-text-shaded-4: #d0d0d0;
+    --color-text-shaded-5: #dadada;
+    --color-text-shaded-6: #eaeaea;
+    --color-text-shaded-7: #f4f4f4;
+    --color-text-shaded-8: #f8f8f8;
+
+    --color-background-unshaded: #212121;
+    --color-background-shaded-1: #e4e4e4;
+    --color-background-shaded-2: #cccccc;
+    --color-background-shaded-3: #b4b4b4;
+    --color-background-shaded-4: #9b9b9b;
+    --color-background-shaded-5: #838383;
+    --color-background-shaded-6: #6a6a6a;
+    --color-background-shaded-7: #525252;
+    --color-background-shaded-8: #3a3a3a;
+
+    --color-google-unshaded: #4285f4;
+    --color-google-shaded-1: #f7faff;
+    --color-google-shaded-2: #e0ebfd;
+    --color-google-shaded-3: #c5dafc;
+    --color-google-shaded-4: #8cb6f9;
+    --color-google-shaded-5: #5895f6;
+    --color-google-shaded-6: #3b79dc;
+    --color-google-shaded-7: #3266ba;
+    --color-google-shaded-8: #254b89;
+
+    --color-pane-background: #353535;
+    --color-pane-border: #3e3e3e;
+
+    --color-separator: #595653;
+
+    --color-settings-item-background: rgba(248, 248, 248, 0.2);
+
+    --color-password-strength-meter-0: #8a8886;
+
+    --color-signin-signup-link-current: #ffffff;
+
+    --color-action-btn-active-background: rgba(255, 255, 255, 0.1);
+  }
+
+  .dark .text-input:focus {
+    border-bottom-color: var(--color-primary-shaded-5);
+  }
+
+  .dark .textarea:focus {
+    border-bottom-color: var(--color-primary-shaded-5);
+  }
+
+  .dark .select:focus {
+    border-bottom-color: var(--color-primary-shaded-5);
+  }
+
+  .dark .secondary-txt {
+    color: var(--color-text-shaded-6);
+  }
+
+  .dark .primary-btn {
+    color: var(--color-white-shaded-8);
+    background-color: var(--color-primary-unshaded);
+  }
+  .dark .primary-btn:focus {
+    background-color: var(--color-primary-unshaded);
+  }
+  .dark .primary-btn:hover {
+    background-color: var(--color-primary-shaded-6);
+  }
+  .dark .primary-btn:active {
+    background-color: var(--color-primary-shaded-7);
+  }
+  .dark .primary-btn:disabled {
+    background-color: var(--color-primary-shaded-3);
+  }
+  .dark .primary-btn.outline {
+    color: var(--color-primary-unshaded);
+    border-color: var(--color-primary-unshaded);
+    background-color: transparent;
+  }
+  .dark .primary-btn.outline:focus {
+    color: var(--color-primary-unshaded);
+    border-color: var(--color-primary-unshaded);
+  }
+  .dark .primary-btn.outline:hover {
+    color: var(--color-primary-shaded-6);
+    border-color: var(--color-primary-shaded-6);
+  }
+  .dark .primary-btn.outline:active {
+    color: var(--color-primary-shaded-7);
+    border-color: var(--color-primary-shaded-7);
+  }
+  .dark .primary-btn.outline:disabled {
+    color: var(--color-primary-shaded-3);
+    border-color: var(--color-primary-shaded-3);
+  }
+
+  .dark .secondary-btn {
+    color: var(--color-primary-shaded-5);
+    background-color: transparent;
+  }
+  .dark .secondary-btn:focus {
+    color: var(--color-primary-shaded-5);
+  }
+  .dark .secondary-btn:hover {
+    color: var(--color-primary-shaded-4);
+  }
+  .dark .secondary-btn:active {
+    color: var(--color-primary-shaded-7);
+  }
+  .dark .secondary-btn:disabled {
+    color: var(--color-black-shaded-2);
+  }
+
+  .dark .action-btn:active {
+    background-color: var(--color-black-shaded-6);
+  }
+
+  /* <a> does not have disabled attribute */
+  .dark a:not(.not-a),
+  .dark a:not(.not-a):visited,
+  .dark .link,
+  .dark .link:visited,
+  .dark a:not(.not-a):focus,
+  .dark .link:focus {
+    color: var(--color-primary-shaded-5);
+    background-color: transparent;
+  }
+  .dark a:not(.not-a):hover,
+  .dark .link:hover {
+    color: var(--color-primary-shaded-4);
+  }
+  .dark a:not(.not-a):active,
+  .dark .link:active {
+    color: var(--color-primary-shaded-7);
+  }
+
+  .dark .apple {
+    color: var(--color-black-unshaded);
+    background-color: var(--color-white-unshaded);
+  }
+  .dark .apple:focus {
+    background-color: var(--color-white-unshaded);
+  }
+  .dark .apple:hover {
+    background-color: var(--color-white-shaded-4);
+  }
+  .dark .apple:active {
+    background-color: var(--color-white-shaded-7);
+  }
+  .dark .apple:disabled {
+    background-color: var(--color-white-shaded-2);
+  }
+  .dark .apple .sso-btn-icon.apple-icon {
+    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB0AAAAjCAYAAABo4wHSAAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAG2SURBVHgBvZc9LENRGIZfImJjsYggYWFhYfDbAYPNRMTQQU1GqygTm6SJSAw1ioHF3kEiEjUgMaoEkSCoQRDU++XcysntuW0T/fokT5qcntv3/N9ToPR00xDKQAWdoSc0Q7fzVa7C/6mj+7TPKruFItLoC5je2Y5CkRVHYApmuFVopK+O0F4oEnYELkCZDSvskUaKfbDQ6m2m1TBzdEPfrO+u6R5N0nX6Tltok1f/gV565QWRLbAI03p76L69kAlf/X4ao8/IHe4PGvcaE8h4wMN+pY4cBHdF1BV/vI7kMAszFBlFoxKUndMWmIWhtr9IGmae/ziCbg9lOgbtwBHlQHHa3+1V5cAzf2AlHYAua3CEtkOXczhCa6HLPRyh2tTAEZqGLoNwhKpeLcgUHKGH0CVEh/yhSeizRdvsgi7on0hiio7ZwQdlChaXsltmE+WjPvsqk88nmFuDJvIyb7UL5qE/tHF/K2SoNd+rVwi4K/XQF6XQMPIQUQiMoQiWSxgof7CKvntFA34kQefoMMydV87WHfrlqLsLx44o1IIOOkkbYBbZMT0NqNsMsyY66SfMgZNwVfwFgVRzhx92KF0AAAAASUVORK5CYII=");
+  }
+
+  .dark .sso-btn.google {
+    @apply border-0;
+  }
+  .dark .google {
+    color: var(--color-white-unshaded);
+    background-color: var(--color-google-unshaded);
+  }
+  .dark .google:focus {
+    background-color: var(--color-google-unshaded);
+  }
+  .dark .google:hover {
+    background-color: var(--color-google-shaded-4);
+  }
+  .dark .google:active {
+    background-color: var(--color-google-shaded-7);
+  }
+  .dark .google:disabled {
+    background-color: var(--color-google-shaded-2);
+  }
+  .dark .google .sso-btn-icon {
+    @apply rounded-sm m-px;
+    color: var(--color-black-unshaded);
+    background-color: var(--color-white-unshaded);
+  }
+
+  .dark .signin-signup-link.current {
+    border-color: var(--color-signin-signup-link-current);
+    color: var(--color-signin-signup-link-current);
+  }
+
+  .dark .wechat {
+    /* The class is used in both WeChat login button and login proceed button */
+    color: var(--color-white-unshaded);
+    background-color: var(--color-wechat-unshaded);
+  }
+  .dark .wechat:focus {
+    background-color: var(--color-wechat-unshaded);
+  }
+  .dark .wechat:hover {
+    background-color: var(--color-wechat-shaded-4);
+  }
+  .dark .wechat:active {
+    background-color: var(--color-wechat-shaded-7);
+  }
+  .dark .wechat:disabled {
+    background-color: var(--color-wechat-shaded-2);
+  }
+
+  .dark ::-webkit-calendar-picker-indicator {
+    /* Chrome <= 95 show this icon as black even in dark mode. */
+    /* Chrome <= 95 requires the user to click this icon to open the picker. */
+    /* Other browsers do not have such icon */
+    filter: invert(100%);
+  }
+
+  .dark .tutorial {
+    @apply border-b border-solid;
+    @apply desktop:border-t desktop:border-r desktop:border-l;
+    background-color: var(--color-black-shaded-4);
+    color: var(--color-white-shaded-7);
+    border-color: var(--color-white-shaded-7);
+  }
+}

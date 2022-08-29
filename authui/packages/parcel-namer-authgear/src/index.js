@@ -5,6 +5,16 @@ const NAMING_LIST = [
   { asset: "src/authgear.ts", newName: "authgear", type: "js" },
   { asset: "src/colorscheme.ts", newName: "colorscheme", type: "js" },
   { asset: "src/tailwind.css", newName: "tailwind", type: "css" },
+  {
+    asset: "src/tailwind-light-theme.css",
+    newName: "tailwind-light-theme",
+    type: "css",
+  },
+  {
+    asset: "src/tailwind-dark-theme.css",
+    newName: "tailwind-dark-theme",
+    type: "css",
+  },
 
   {
     asset: "src/icons/authgear-icons.css",

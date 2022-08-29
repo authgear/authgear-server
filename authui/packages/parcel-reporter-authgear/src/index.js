@@ -91,9 +91,17 @@ function elementsTohtmlString(elements) {
   const textArray = [];
   for (const element of elements) {
     if (element.type === "css") {
-      textArray.push(
-        `<link rel="stylesheet" href="{{ call $.GeneratedStaticAssetURL "${element.name}" }}">`
-      );
+      if (element.name === "tailwind-dark-theme.css") {
+        textArray.push(`{{ if $.DarkThemeEnabled }}`);
+        textArray.push(
+          `<link rel="stylesheet" href="{{ call $.GeneratedStaticAssetURL "${element.name}" }}">`
+        );
+        textArray.push(`{{ end }}`);
+      } else {
+        textArray.push(
+          `<link rel="stylesheet" href="{{ call $.GeneratedStaticAssetURL "${element.name}" }}">`
+        );
+      }
     }
     if (element.type === "js") {
       textArray.push(
