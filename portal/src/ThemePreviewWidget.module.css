@@ -187,6 +187,11 @@
   color: var(--color-primary-unshaded);
 }
 
+.dark .signinSignupLink.current {
+  border-bottom: 2px solid #ffffff;
+  color: #ffffff;
+}
+
 .ssoLoginIDSeparator::before,
 .ssoLoginIDSeparator::after {
   content: "";
