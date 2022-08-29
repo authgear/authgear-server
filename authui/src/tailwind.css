@@ -536,6 +536,13 @@
     @apply border-b-2 border-solid;
     border-color: var(--color-separator);
   }
+
+  #loading-progress-bar {
+    @apply fixed block top-0 left-0 h-[3px] z-[9999] opacity-0;
+    background-color: var(--color-primary-unshaded);
+    transition: width 300ms ease-out, opacity 150ms 150ms ease-in;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 @layer utilities {
