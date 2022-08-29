@@ -525,6 +525,13 @@
   .pane > :last-child {
     @apply rounded-b-md;
   }
+
+  .alternative-separator::before,
+  .alternative-separator::after {
+    @apply flex-1 h-px;
+    content: "";
+    background-color: var(--color-separator);
+  }
 }
 
 @layer utilities {
