@@ -512,6 +512,19 @@
   .border-color {
     border-color: var(--color-separator);
   }
+
+  .pane {
+    @apply rounded-md border border-solid;
+    box-shadow: 0px 4px 8px 0px var(--color-pane-shadow);
+    border-color: var(--color-pane-border);
+    background-color: var(--color-pane-background);
+  }
+  .pane > :first-child {
+    @apply rounded-t-md;
+  }
+  .pane > :last-child {
+    @apply rounded-b-md;
+  }
 }
 
 @layer utilities {
