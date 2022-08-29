@@ -189,28 +189,24 @@
   .modal {
     @apply fixed flex top-0 left-0 w-full h-full justify-center items-center transition-opacity duration-300;
   }
-
   .modal.closed {
     @apply opacity-0 pointer-events-none;
   }
-
   .modal-overlay {
     @apply absolute bg-gray-900 w-full h-full opacity-50;
   }
-
   .modal-container {
     @apply max-w-md z-50 mx-auto overflow-y-auto rounded-md;
     width: 95%;
+    background-color: var(--color-pane-background);
+    box-shadow: 0px 4px 16px var(--color-pane-shadow);
   }
-
   .modal-content {
     @apply p-5 text-left;
   }
-
   .modal-title {
     @apply m-0 text-xl;
   }
-
   .modal-body {
     @apply mt-0 mb-5;
   }
