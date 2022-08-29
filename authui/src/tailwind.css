@@ -492,25 +492,23 @@
   .primary-txt {
     color: var(--color-text-unshaded);
   }
-
   .good-txt {
     color: var(--color-good);
   }
-
   .warn-txt {
     color: var(--color-warn);
   }
-
   .error-txt {
     color: var(--color-error-unshaded);
   }
-
   .page {
     background-color: var(--color-background-unshaded);
   }
-
   .border-color {
     border-color: var(--color-separator);
+  }
+  .recovery-code-list {
+    background-color: var(--color-recovery-code-list-background);
   }
 
   .pane {
