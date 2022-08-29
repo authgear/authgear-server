@@ -1,12 +1,3 @@
-.settings-profile-profile-picture {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
-}
-
 #loading-progress-bar {
   position: fixed;
   display: block;
