@@ -532,6 +532,11 @@
     content: "";
     background-color: var(--color-separator);
   }
+
+  .row-sep:not(:last-child) {
+    @apply border-b border-solid;
+    border-color: var(--color-separator);
+  }
 }
 
 @layer utilities {
