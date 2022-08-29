@@ -210,7 +210,7 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
               name: renderToString(
                 "EditOAuthClientScreen.quick-start.framework.vue"
               ),
-              docLink: "https://docs.authgear.com/get-started/website",
+              docLink: "https://docs.authgear.com/tutorials/spa/vue",
             },
             {
               icon: <i className={cn("fab", "fa-angular")} />,
