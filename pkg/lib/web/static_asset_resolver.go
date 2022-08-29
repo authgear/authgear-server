@@ -16,10 +16,9 @@ import (
 )
 
 var StaticAssetResources = map[string]resource.Descriptor{
-	"app-logo":           AppLogo,
-	"app-logo-dark":      AppLogoDark,
-	"favicon":            Favicon,
-	"avatar-placeholder": AvatarPlaceholder,
+	"app-logo":      AppLogo,
+	"app-logo-dark": AppLogoDark,
+	"favicon":       Favicon,
 
 	"authgear-light-theme.css": AuthgearLightThemeCSS,
 	"authgear-dark-theme.css":  AuthgearDarkThemeCSS,

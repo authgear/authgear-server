@@ -14,7 +14,7 @@
       {{ if $.Picture }}
 	src="{{ $.Picture }}"
       {{ else }}
-        src="{{ call $.StaticAssetURL "avatar-placeholder" }}"
+        src="{{ call $.GeneratedStaticAssetURL "avatar_placeholder.png" }}"
       {{ end }}
     >
     {{ if (call $.IsEditable "/picture") }}

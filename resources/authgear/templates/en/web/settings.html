@@ -18,7 +18,7 @@
       {{ if (and (call $.IsReadable "/picture") $.Picture) }}
         src="{{ $.Picture }}"
       {{ else }}
-        src="{{ call $.StaticAssetURL "avatar-placeholder" }}"
+        src="{{ call $.GeneratedStaticAssetURL "avatar_placeholder.png" }}"
       {{ end }}
     >
     <div class="mx-2.5 flex flex-col space-y-1">
