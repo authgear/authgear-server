@@ -21,7 +21,6 @@ var StaticAssetResources = map[string]resource.Descriptor{
 	"favicon":            Favicon,
 	"avatar-placeholder": AvatarPlaceholder,
 
-	"authgear.css":             AuthgearCSS,
 	"authgear-light-theme.css": AuthgearLightThemeCSS,
 	"authgear-dark-theme.css":  AuthgearDarkThemeCSS,
 }
