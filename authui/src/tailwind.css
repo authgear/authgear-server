@@ -543,6 +543,9 @@
     transition: width 300ms ease-out, opacity 150ms 150ms ease-in;
     transform: translate3d(0, 0, 0);
   }
+  .turbo-progress-bar {
+    background: var(--color-primary-unshaded);
+  }
 }
 
 @layer utilities {

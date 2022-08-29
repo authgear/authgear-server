@@ -1,7 +1,3 @@
-.turbo-progress-bar {
-  background: var(--color-primary-unshaded);
-}
-
 @media (min-width: 1024px) {
   .tutorial {
     position: absolute;
