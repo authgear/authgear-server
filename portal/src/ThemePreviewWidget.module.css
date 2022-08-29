@@ -126,6 +126,14 @@
   color: var(--color-text-unshaded);
 }
 
+.secondaryTxt {
+  color: var(--color-text-shaded-1);
+}
+
+.dark .secondaryTxt {
+  color: var(--color-text-shaded-6);
+}
+
 .textInput {
   background-color: transparent;
   height: 36px;
