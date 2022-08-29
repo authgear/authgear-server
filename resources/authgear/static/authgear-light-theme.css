@@ -181,23 +181,6 @@
   --color-recovery-code-list-background: #eaeaea;
 }
 
-.banner-frame {
-  background-color: transparent;
-  padding-top: 16px;
-  padding-right: 16px;
-  padding-bottom: 16px;
-  padding-left: 16px;
-}
-.banner {
-  height: 55px;
-  width: initial;
-}
-/* it is intended to apply padding to __page_frame.html only */
-/* but not __wide_page_frame.html */
-.page-header .no-banner {
-  padding: 16px 0;
-}
-
 .secondary-txt {
   color: var(--color-text-shaded-1);
 }
@@ -331,8 +314,6 @@
 }
 
 .settings-security-item {
-  border-width: 1px;
-  border-style: solid;
   border-color: var(--color-settings-item-background);
   background-color: var(--color-settings-item-background);
 }
