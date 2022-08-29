@@ -26,7 +26,7 @@
     <h2 class="flex-1 primary-txt text-base m-0 truncate text-sm font-normal">{{ .DisplayName }}</h2>
   </div>
   {{ range .Sessions }}
-  <div class="grid grid-cols-1fr-auto py-1.5">
+  <div class="grid grid-cols-[minmax(0,_1fr)_auto] py-1.5">
     <p class="col-start-1 text-sm leading-normal m-0 secondary-txt">
       {{ if and .LastAccessedByIPEnglishCountryName .LastAccessedByIPCountryCode }}
       {{ template "settings-sessions-item-title" (dict "countryName" .LastAccessedByIPEnglishCountryName "countryCode" .LastAccessedByIPCountryCode "ip" .LastAccessedByIP) }}
