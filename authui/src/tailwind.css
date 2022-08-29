@@ -546,6 +546,10 @@
   .turbo-progress-bar {
     background: var(--color-primary-unshaded);
   }
+
+  .tutorial {
+    @apply desktop:absolute desktop:w-[330px] desktop:top-5 desktop:right-5;
+  }
 }
 
 @layer utilities {
