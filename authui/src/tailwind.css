@@ -535,6 +535,11 @@
     @apply border-b border-solid;
     border-color: var(--color-separator);
   }
+
+  .signin-signup-link {
+    @apply border-b-2 border-solid;
+    border-color: var(--color-separator);
+  }
 }
 
 @layer utilities {

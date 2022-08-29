@@ -207,7 +207,7 @@
 }
 
 .dark .signin-signup-link.current {
-  border-bottom: 2px solid var(--color-signin-signup-link-current);
+  border-color: var(--color-signin-signup-link-current);
   color: var(--color-signin-signup-link-current);
 }
 

@@ -525,7 +525,7 @@ a:not(.not-a):active, .link:active {
 }
 
 .signin-signup-link.current {
-  border-bottom: 2px solid var(--color-primary-unshaded);
+  border-color: var(--color-primary-unshaded);
   color: var(--color-primary-unshaded);
 }
 
