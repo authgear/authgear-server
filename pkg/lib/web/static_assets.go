@@ -5,7 +5,6 @@ import (
 )
 
 const StaticAssetResourcePrefix = "static/"
-const StaticAssetFontResourcePrefix = "static/fonts/"
 
 type StaticAsset struct {
 	Path string
