@@ -1,7 +1,7 @@
 .widget {
   grid-column: 1 / span 6;
 
-  @apply mobile:col-span-full;
+  @apply tablet:col-span-full;
 }
 
 .widgetColumn {
@@ -20,7 +20,7 @@
   height: calc(100vh - 47px - 48px - 24px - 16px);
   top: 16px;
 
-  @apply mobile:static mobile:col-span-full mobile:row-start-2 mobile:h-auto mobile:top-auto;
+  @apply mobile:static tablet:col-span-full mobile:row-start-2 mobile:h-auto mobile:top-auto;
 }
 
 .quickStartWidget {

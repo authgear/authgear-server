@@ -1,7 +1,7 @@
 .widget {
   grid-column: 1 / span 8;
 
-  @apply mobile:col-span-full;
+  @apply tablet:col-span-full;
 }
 
 .grid {
@@ -15,24 +15,24 @@
 .columnFull {
   grid-column: 1 / span 8;
 
-  @apply mobile:col-span-full;
+  @apply tablet:col-span-full;
 }
 
 .columnLeft {
   grid-column: 1 / span 4;
-  @apply mobile:col-span-full;
+  @apply tablet:col-span-full;
 }
 
 .columnRight {
   grid-column: 5 / span 4;
 
-  @apply mobile:col-span-full;
+  @apply tablet:col-span-full;
 }
 
 .columnSmall {
   grid-column: 1 / span 2;
 
-  @apply mobile:col-span-full;
+  @apply tablet:col-span-full;
 }
 
 .providerCard {

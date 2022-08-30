@@ -1,23 +1,23 @@
 .widget {
   grid-column: 1 / span 12;
 
-  @apply mobile:col-span-full;
+  @apply tablet:col-span-full;
 }
 
 .activityWidget {
   grid-column: 1 / span 12;
 
-  @apply mobile:col-span-full;
+  @apply tablet:col-span-full;
 }
 
 .signupConversionWidget {
   grid-column: 1 / span 6;
 
-  @apply mobile:col-span-full;
+  @apply tablet:col-span-full;
 }
 
 .signupMethodsWidget {
-  @apply col-span-6 col-start-7 mobile:col-span-full;
+  @apply col-span-6 col-start-7 tablet:col-span-full;
 }
 
 .commandBarButtonLabelValue .label {
