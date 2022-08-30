@@ -1,11 +1,9 @@
-package configsource_test
+package filepathutil
 
 import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
-
-	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 )
 
 func TestPathEscape(t *testing.T) {
@@ -23,9 +21,9 @@ func TestPathEscape(t *testing.T) {
 		}
 
 		for _, testCase := range cases {
-			escaped := configsource.EscapePath(testCase.raw)
+			escaped := EscapePath(testCase.raw)
 			So(escaped, ShouldEqual, testCase.escaped)
-			raw, err := configsource.UnescapePath(escaped)
+			raw, err := UnescapePath(escaped)
 			So(err, ShouldBeNil)
 			So(raw, ShouldEqual, testCase.raw)
 		}

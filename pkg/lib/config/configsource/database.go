@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/filepathutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -190,7 +191,7 @@ func (d *Database) CreateDatabaseSource(appID string, resources map[string][]byt
 
 		dbData := make(map[string][]byte)
 		for path, data := range resources {
-			dbData[EscapePath(path)] = data
+			dbData[filepathutil.EscapePath(path)] = data
 		}
 
 		dbSource := &DatabaseSource{
@@ -214,7 +215,7 @@ func (d *Database) UpdateDatabaseSource(appID string, updates []*resource.Resour
 
 		updated := false
 		for _, u := range updates {
-			key := EscapePath(u.Location.Path)
+			key := filepathutil.EscapePath(u.Location.Path)
 			if u.Data == nil {
 				if _, ok := dbs.Data[key]; ok {
 					delete(dbs.Data, key)
@@ -284,7 +285,7 @@ func MakeAppFSFromDatabaseSource(s *DatabaseSource) (resource.Fs, error) {
 	}
 
 	for key, data := range s.Data {
-		path, err := UnescapePath(key)
+		path, err := filepathutil.UnescapePath(key)
 		if err != nil {
 			return nil, err
 		}
