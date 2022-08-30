@@ -280,7 +280,11 @@ function PageSwitch() {
         <FormattedMessage id="ThemePreviewWidget.page-switch.login" />
       </a>
       <a
-        className={cn(styles.notA, styles.signinSignupLink, styles.primaryTxt)}
+        className={cn(
+          styles.notA,
+          styles.signinSignupLink,
+          styles.secondaryTxt
+        )}
       >
         <FormattedMessage id="ThemePreviewWidget.page-switch.signup" />
       </a>
