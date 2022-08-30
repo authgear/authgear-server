@@ -44,36 +44,44 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 		p.Middleware(newSentryMiddleware),
 		p.Middleware(newSessionInfoMiddleware),
 		securityMiddleware,
-		httproute.MiddlewareFunc(httputil.NoCache),
 	)
-
+	systemConfigJSONChain := httproute.Chain(
+		rootChain,
+	)
 	graphqlChain := httproute.Chain(
 		rootChain,
+		httproute.MiddlewareFunc(httputil.NoCache),
 		httputil.CheckContentType([]string{
 			graphqlhandler.ContentTypeJSON,
 			graphqlhandler.ContentTypeGraphQL,
 		}),
 	)
-
 	adminAPIChain := httproute.Chain(
 		rootChain,
+		httproute.MiddlewareFunc(httputil.NoCache),
 		p.Middleware(newSessionRequiredMiddleware),
 		httputil.CheckContentType([]string{
 			graphqlhandler.ContentTypeJSON,
 			graphqlhandler.ContentTypeGraphQL,
 		}),
 	)
+	incomingWebhookChain := httproute.Chain(
+		rootChain,
+		httproute.MiddlewareFunc(httputil.NoCache),
+	)
 
-	rootRoute := httproute.Route{Middleware: rootChain}
+	systemConfigJSONRoute := httproute.Route{Middleware: systemConfigJSONChain}
 	graphqlRoute := httproute.Route{Middleware: graphqlChain}
 	adminAPIRoute := httproute.Route{Middleware: adminAPIChain}
+	incomingWebhookRoute := httproute.Route{Middleware: incomingWebhookChain}
 
-	router.Add(transport.ConfigureSystemConfigRoute(rootRoute), p.Handler(newSystemConfigHandler))
+	router.Add(transport.ConfigureSystemConfigRoute(systemConfigJSONRoute), p.Handler(newSystemConfigHandler))
+
 	router.Add(transport.ConfigureGraphQLRoute(graphqlRoute), p.Handler(newGraphQLHandler))
 
 	router.Add(transport.ConfigureAdminAPIRoute(adminAPIRoute), p.Handler(newAdminAPIHandler))
 
-	router.Add(transport.ConfigureStripeWebhookRoute(rootRoute), p.Handler(newStripeWebhookHandler))
+	router.Add(transport.ConfigureStripeWebhookRoute(incomingWebhookRoute), p.Handler(newStripeWebhookHandler))
 
 	router.NotFound(securityMiddleware.Handle(p.Handler(newStaticAssetsHandler)))
 
