@@ -15,7 +15,7 @@ import (
 )
 
 const DefaultResourceDir = "resources/authgear/"
-const DefaultResourcePrefix = "static/generated/"
+const DefaultResourcePrefix = "generated/"
 const DefaultManifestName = "manifest.json"
 
 type Manifest struct {

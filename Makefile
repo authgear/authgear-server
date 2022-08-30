@@ -114,7 +114,7 @@ authui:
 	npm run --silent --prefix ./authui typecheck
 	npm run --silent --prefix ./authui format
 	npm run --silent --prefix ./authui build
-	rm resources/authgear/static/generated/build*.html
+	rm resources/authgear/generated/build*.html
 
 .PHONY: portal
 portal:
@@ -126,8 +126,8 @@ portal:
 clean:
 	rm -rf ./resources/portal/static
 	git checkout -- ./resources/portal/static
-	rm -rf ./resources/authgear/static/generated/*
-	git checkout -- ./resources/authgear/static/generated/*
+	rm -rf ./resources/authgear/generated/
+	git checkout -- ./resources/authgear/generated/
 
 .PHONY: export-schemas
 export-schemas:

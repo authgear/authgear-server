@@ -11,9 +11,9 @@ import (
 	api2 "github.com/authgear/authgear-server/pkg/auth/api"
 	"github.com/authgear/authgear-server/pkg/auth/handler/api"
 	"github.com/authgear/authgear-server/pkg/auth/handler/oauth"
-	webapp2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
-	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	webapp2 "github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
@@ -96,6 +96,14 @@ func newHealthzHandler(p *deps.RootProvider, w http.ResponseWriter, r *http.Requ
 	return handler
 }
 
+func newWebAppGeneratedStaticAssetsHandler(p *deps.RootProvider, w http.ResponseWriter, r *http.Request, ctx context.Context) http.Handler {
+	globalEmbeddedResourceManager := p.EmbeddedResources
+	generatedStaticAssetsHandler := &webapp.GeneratedStaticAssetsHandler{
+		EmbeddedResources: globalEmbeddedResourceManager,
+	}
+	return generatedStaticAssetsHandler
+}
+
 func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
@@ -175,18 +183,18 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &oauth2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	serviceLogger := webapp.NewServiceLogger(factory)
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	serviceLogger := webapp2.NewServiceLogger(factory)
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -629,10 +637,10 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	webappURLProvider := &webapp.URLProvider{
+	webappURLProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -751,7 +759,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -762,7 +770,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
-	authenticateURLProvider := &webapp.AuthenticateURLProvider{
+	authenticateURLProvider := &webapp2.AuthenticateURLProvider{
 		Endpoints: endpointsProvider,
 		Pages:     webappService2,
 		Clock:     clock,
@@ -775,7 +783,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clock,
 	}
-	loginHintHandler := &webapp.LoginHintHandler{
+	loginHintHandler := &webapp2.LoginHintHandler{
 		Config:                  oAuthConfig,
 		Anonymous:               anonymousProvider,
 		AnonymousPromotionCodes: anonymousStoreRedis,
@@ -907,18 +915,18 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &oauth2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	serviceLogger := webapp.NewServiceLogger(factory)
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	serviceLogger := webapp2.NewServiceLogger(factory)
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -1361,10 +1369,10 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	webappURLProvider := &webapp.URLProvider{
+	webappURLProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -1483,7 +1491,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -1494,7 +1502,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
-	authenticateURLProvider := &webapp.AuthenticateURLProvider{
+	authenticateURLProvider := &webapp2.AuthenticateURLProvider{
 		Endpoints: endpointsProvider,
 		Pages:     webappService2,
 		Clock:     clockClock,
@@ -1507,7 +1515,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	loginHintHandler := &webapp.LoginHintHandler{
+	loginHintHandler := &webapp2.LoginHintHandler{
 		Config:                  oAuthConfig,
 		Anonymous:               anonymousProvider,
 		AnonymousPromotionCodes: anonymousStoreRedis,
@@ -2049,10 +2057,10 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -3325,7 +3333,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
 	appredisHandle := appProvider.Redis
@@ -4258,10 +4266,10 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -4952,10 +4960,10 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -5651,10 +5659,10 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -5869,12 +5877,12 @@ func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	responseWriter := &webapp2.ResponseWriter{
+	responseWriter := &webapp.ResponseWriter{
 		JSONResponseWriter: jsonResponseWriter,
 		Renderer:           responseRenderer,
 	}
@@ -5919,7 +5927,7 @@ func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 }
 
 func newWebAppOAuthEntrypointHandler(p *deps.RequestProvider) http.Handler {
-	oAuthEntrypointHandler := &webapp2.OAuthEntrypointHandler{}
+	oAuthEntrypointHandler := &webapp.OAuthEntrypointHandler{}
 	return oAuthEntrypointHandler
 }
 
@@ -5934,8 +5942,8 @@ func newWebAppRootHandler(p *deps.RequestProvider) http.Handler {
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
-	rootHandler := &webapp2.RootHandler{
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
+	rootHandler := &webapp.RootHandler{
 		AuthenticationConfig: authenticationConfig,
 		Cookies:              cookieManager,
 		SignedUpCookie:       signedUpCookieDef,
@@ -5951,23 +5959,23 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -6450,10 +6458,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -6593,7 +6601,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -6626,13 +6634,13 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -6645,11 +6653,11 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	formPrefiller := &webapp2.FormPrefiller{
+	formPrefiller := &webapp.FormPrefiller{
 		LoginID: loginIDConfig,
 		UI:      uiConfig,
 	}
@@ -6668,7 +6676,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	tutorialCookie := &httputil.TutorialCookie{
 		Cookies: cookieManager,
 	}
-	loginHandler := &webapp2.LoginHandler{
+	loginHandler := &webapp.LoginHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		FormPrefiller:     formPrefiller,
@@ -6688,23 +6696,23 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -7187,10 +7195,10 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -7330,7 +7338,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -7363,13 +7371,13 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -7382,11 +7390,11 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	formPrefiller := &webapp2.FormPrefiller{
+	formPrefiller := &webapp.FormPrefiller{
 		LoginID: loginIDConfig,
 		UI:      uiConfig,
 	}
@@ -7405,7 +7413,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	tutorialCookie := &httputil.TutorialCookie{
 		Cookies: cookieManager,
 	}
-	signupHandler := &webapp2.SignupHandler{
+	signupHandler := &webapp.SignupHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		FormPrefiller:     formPrefiller,
@@ -7424,23 +7432,23 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -7923,10 +7931,10 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -8066,7 +8074,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -8099,13 +8107,13 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -8118,15 +8126,15 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	formPrefiller := &webapp2.FormPrefiller{
+	formPrefiller := &webapp.FormPrefiller{
 		LoginID: loginIDConfig,
 		UI:      uiConfig,
 	}
-	promoteHandler := &webapp2.PromoteHandler{
+	promoteHandler := &webapp.PromoteHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		FormPrefiller:     formPrefiller,
@@ -8143,23 +8151,23 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -8642,10 +8650,10 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -8785,7 +8793,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -8818,13 +8826,13 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -8837,11 +8845,11 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	selectAccountHandler := &webapp2.SelectAccountHandler{
+	selectAccountHandler := &webapp.SelectAccountHandler{
 		ControllerFactory:         controllerFactory,
 		BaseViewModel:             baseViewModeler,
 		Renderer:                  responseRenderer,
@@ -8863,23 +8871,23 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -9362,10 +9370,10 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -9505,7 +9513,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -9538,13 +9546,13 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -9557,11 +9565,11 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	ssoCallbackHandler := &webapp2.SSOCallbackHandler{
+	ssoCallbackHandler := &webapp.SSOCallbackHandler{
 		ControllerFactory: controllerFactory,
 	}
 	return ssoCallbackHandler
@@ -9575,23 +9583,23 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -10074,10 +10082,10 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -10217,7 +10225,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -10250,13 +10258,13 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -10269,11 +10277,11 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	wechatAuthHandler := &webapp2.WechatAuthHandler{
+	wechatAuthHandler := &webapp.WechatAuthHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -10290,23 +10298,23 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -10789,10 +10797,10 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -10932,7 +10940,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -10965,13 +10973,13 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -10984,7 +10992,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
@@ -10992,7 +11000,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	jsonResponseWriter := &httputil.JSONResponseWriter{
 		Logger: jsonResponseWriterLogger,
 	}
-	wechatCallbackHandler := &webapp2.WechatCallbackHandler{
+	wechatCallbackHandler := &webapp.WechatCallbackHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		JSON:              jsonResponseWriter,
@@ -11008,23 +11016,23 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -11507,10 +11515,10 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -11650,7 +11658,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -11683,13 +11691,13 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -11702,11 +11710,11 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	enterLoginIDHandler := &webapp2.EnterLoginIDHandler{
+	enterLoginIDHandler := &webapp.EnterLoginIDHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -11723,23 +11731,23 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -12222,10 +12230,10 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -12365,7 +12373,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -12398,13 +12406,13 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -12417,14 +12425,14 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
 	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
 		AuthenticationConfig: authenticationConfig,
 	}
-	enterPasswordHandler := &webapp2.EnterPasswordHandler{
+	enterPasswordHandler := &webapp.EnterPasswordHandler{
 		ControllerFactory:         controllerFactory,
 		BaseViewModel:             baseViewModeler,
 		AlternativeStepsViewModel: alternativeStepsViewModeler,
@@ -12441,23 +12449,23 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -12940,10 +12948,10 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -13083,7 +13091,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -13116,13 +13124,13 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -13135,14 +13143,14 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
 	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
 		AuthenticationConfig: authenticationConfig,
 	}
-	usePasskeyHandler := &webapp2.UsePasskeyHandler{
+	usePasskeyHandler := &webapp.UsePasskeyHandler{
 		ControllerFactory:         controllerFactory,
 		BaseViewModel:             baseViewModeler,
 		AlternativeStepsViewModel: alternativeStepsViewModeler,
@@ -13159,23 +13167,23 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -13658,10 +13666,10 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -13801,7 +13809,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -13834,13 +13842,13 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -13853,14 +13861,14 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
 	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
 		AuthenticationConfig: authenticationConfig,
 	}
-	createPasswordHandler := &webapp2.CreatePasswordHandler{
+	createPasswordHandler := &webapp.CreatePasswordHandler{
 		ControllerFactory:         controllerFactory,
 		BaseViewModel:             baseViewModeler,
 		AlternativeStepsViewModel: alternativeStepsViewModeler,
@@ -13878,23 +13886,23 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -14377,10 +14385,10 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -14520,7 +14528,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -14553,13 +14561,13 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -14572,14 +14580,14 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
 	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
 		AuthenticationConfig: authenticationConfig,
 	}
-	createPasskeyHandler := &webapp2.CreatePasskeyHandler{
+	createPasskeyHandler := &webapp.CreatePasskeyHandler{
 		ControllerFactory:         controllerFactory,
 		BaseViewModel:             baseViewModeler,
 		AlternativeStepsViewModel: alternativeStepsViewModeler,
@@ -14596,23 +14604,23 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -15095,10 +15103,10 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -15238,7 +15246,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -15271,13 +15279,13 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -15290,14 +15298,14 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
 	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
 		AuthenticationConfig: authenticationConfig,
 	}
-	promptCreatePasskeyHandler := &webapp2.PromptCreatePasskeyHandler{
+	promptCreatePasskeyHandler := &webapp.PromptCreatePasskeyHandler{
 		ControllerFactory:         controllerFactory,
 		BaseViewModel:             baseViewModeler,
 		AlternativeStepsViewModel: alternativeStepsViewModeler,
@@ -15314,23 +15322,23 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -15813,10 +15821,10 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -15956,7 +15964,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -15989,13 +15997,13 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -16008,14 +16016,14 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
 	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
 		AuthenticationConfig: authenticationConfig,
 	}
-	setupTOTPHandler := &webapp2.SetupTOTPHandler{
+	setupTOTPHandler := &webapp.SetupTOTPHandler{
 		ControllerFactory:         controllerFactory,
 		BaseViewModel:             baseViewModeler,
 		AlternativeStepsViewModel: alternativeStepsViewModeler,
@@ -16034,23 +16042,23 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -16533,10 +16541,10 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -16676,7 +16684,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -16709,13 +16717,13 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -16728,14 +16736,14 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
 	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
 		AuthenticationConfig: authenticationConfig,
 	}
-	enterTOTPHandler := &webapp2.EnterTOTPHandler{
+	enterTOTPHandler := &webapp.EnterTOTPHandler{
 		ControllerFactory:         controllerFactory,
 		BaseViewModel:             baseViewModeler,
 		AlternativeStepsViewModel: alternativeStepsViewModeler,
@@ -16752,23 +16760,23 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -17251,10 +17259,10 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -17394,7 +17402,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -17427,13 +17435,13 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -17446,14 +17454,14 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
 	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
 		AuthenticationConfig: authenticationConfig,
 	}
-	setupOOBOTPHandler := &webapp2.SetupOOBOTPHandler{
+	setupOOBOTPHandler := &webapp.SetupOOBOTPHandler{
 		ControllerFactory:         controllerFactory,
 		BaseViewModel:             baseViewModeler,
 		AlternativeStepsViewModel: alternativeStepsViewModeler,
@@ -17470,23 +17478,23 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -17969,10 +17977,10 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -18112,7 +18120,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -18145,13 +18153,13 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -18164,14 +18172,14 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
 	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
 		AuthenticationConfig: authenticationConfig,
 	}
-	enterOOBOTPHandler := &webapp2.EnterOOBOTPHandler{
+	enterOOBOTPHandler := &webapp.EnterOOBOTPHandler{
 		ControllerFactory:         controllerFactory,
 		BaseViewModel:             baseViewModeler,
 		AlternativeStepsViewModel: alternativeStepsViewModeler,
@@ -18190,23 +18198,23 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -18689,10 +18697,10 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -18832,7 +18840,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -18865,13 +18873,13 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -18884,14 +18892,14 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
 	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
 		AuthenticationConfig: authenticationConfig,
 	}
-	setupWhatsappOTPHandler := &webapp2.SetupWhatsappOTPHandler{
+	setupWhatsappOTPHandler := &webapp.SetupWhatsappOTPHandler{
 		ControllerFactory:         controllerFactory,
 		BaseViewModel:             baseViewModeler,
 		AlternativeStepsViewModel: alternativeStepsViewModeler,
@@ -18908,23 +18916,23 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -19407,10 +19415,10 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -19550,7 +19558,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -19583,13 +19591,13 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -19602,14 +19610,14 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
 	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
 		AuthenticationConfig: authenticationConfig,
 	}
-	whatsappOTPHandler := &webapp2.WhatsappOTPHandler{
+	whatsappOTPHandler := &webapp.WhatsappOTPHandler{
 		ControllerFactory:         controllerFactory,
 		BaseViewModel:             baseViewModeler,
 		AlternativeStepsViewModel: alternativeStepsViewModeler,
@@ -19997,12 +20005,12 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 	}
-	whatsappWATICallbackHandlerLogger := webapp2.NewWhatsappWATICallbackHandlerLogger(factory)
-	globalSessionServiceFactory := &webapp2.GlobalSessionServiceFactory{
+	whatsappWATICallbackHandlerLogger := webapp.NewWhatsappWATICallbackHandlerLogger(factory)
+	globalSessionServiceFactory := &webapp.GlobalSessionServiceFactory{
 		Clock:       clockClock,
 		RedisHandle: handle,
 	}
-	whatsappWATICallbackHandler := &webapp2.WhatsappWATICallbackHandler{
+	whatsappWATICallbackHandler := &webapp.WhatsappWATICallbackHandler{
 		WhatsappCodeProvider:        whatsappProvider,
 		Logger:                      whatsappWATICallbackHandlerLogger,
 		WATICredentials:             watiCredentials,
@@ -20019,23 +20027,23 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -20518,10 +20526,10 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -20661,7 +20669,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -20694,13 +20702,13 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -20713,14 +20721,14 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
 	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
 		AuthenticationConfig: authenticationConfig,
 	}
-	enterRecoveryCodeHandler := &webapp2.EnterRecoveryCodeHandler{
+	enterRecoveryCodeHandler := &webapp.EnterRecoveryCodeHandler{
 		ControllerFactory:         controllerFactory,
 		BaseViewModel:             baseViewModeler,
 		AlternativeStepsViewModel: alternativeStepsViewModeler,
@@ -20737,23 +20745,23 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -21236,10 +21244,10 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -21379,7 +21387,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -21412,13 +21420,13 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -21431,11 +21439,11 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	setupRecoveryCodeHandler := &webapp2.SetupRecoveryCodeHandler{
+	setupRecoveryCodeHandler := &webapp.SetupRecoveryCodeHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -21451,23 +21459,23 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -21950,10 +21958,10 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -22093,7 +22101,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -22126,13 +22134,13 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -22145,11 +22153,11 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	verifyIdentityHandler := &webapp2.VerifyIdentityHandler{
+	verifyIdentityHandler := &webapp.VerifyIdentityHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -22167,23 +22175,23 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -22666,10 +22674,10 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -22809,7 +22817,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -22842,13 +22850,13 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -22861,11 +22869,11 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	verifyIdentitySuccessHandler := &webapp2.VerifyIdentitySuccessHandler{
+	verifyIdentitySuccessHandler := &webapp.VerifyIdentitySuccessHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -22881,23 +22889,23 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -23380,10 +23388,10 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -23523,7 +23531,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -23556,13 +23564,13 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -23575,15 +23583,15 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	formPrefiller := &webapp2.FormPrefiller{
+	formPrefiller := &webapp.FormPrefiller{
 		LoginID: loginIDConfig,
 		UI:      uiConfig,
 	}
-	forgotPasswordHandler := &webapp2.ForgotPasswordHandler{
+	forgotPasswordHandler := &webapp.ForgotPasswordHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		FormPrefiller:     formPrefiller,
@@ -23600,23 +23608,23 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -24099,10 +24107,10 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -24242,7 +24250,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -24275,13 +24283,13 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -24294,11 +24302,11 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	forgotPasswordSuccessHandler := &webapp2.ForgotPasswordSuccessHandler{
+	forgotPasswordSuccessHandler := &webapp.ForgotPasswordSuccessHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -24314,23 +24322,23 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -24813,10 +24821,10 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -24956,7 +24964,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -24989,13 +24997,13 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -25008,11 +25016,11 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	resetPasswordHandler := &webapp2.ResetPasswordHandler{
+	resetPasswordHandler := &webapp.ResetPasswordHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -25029,23 +25037,23 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -25528,10 +25536,10 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -25671,7 +25679,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -25704,13 +25712,13 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -25723,11 +25731,11 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	resetPasswordSuccessHandler := &webapp2.ResetPasswordSuccessHandler{
+	resetPasswordSuccessHandler := &webapp.ResetPasswordSuccessHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -25743,23 +25751,23 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -26242,10 +26250,10 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -26385,7 +26393,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -26418,13 +26426,13 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -26437,7 +26445,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
@@ -26461,7 +26469,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	tutorialCookie := &httputil.TutorialCookie{
 		Cookies: cookieManager,
 	}
-	settingsHandler := &webapp2.SettingsHandler{
+	settingsHandler := &webapp.SettingsHandler{
 		ControllerFactory:        controllerFactory,
 		BaseViewModel:            baseViewModeler,
 		SettingsViewModel:        settingsViewModeler,
@@ -26483,23 +26491,23 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -26982,10 +26990,10 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -27125,7 +27133,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -27158,13 +27166,13 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -27177,7 +27185,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
@@ -27191,7 +27199,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Identities:        facadeIdentityFacade,
 		Clock:             clockClock,
 	}
-	settingsProfileHandler := &webapp2.SettingsProfileHandler{
+	settingsProfileHandler := &webapp.SettingsProfileHandler{
 		ControllerFactory:        controllerFactory,
 		BaseViewModel:            baseViewModeler,
 		SettingsProfileViewModel: settingsProfileViewModeler,
@@ -27208,23 +27216,23 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -27707,10 +27715,10 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -27850,7 +27858,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -27883,13 +27891,13 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -27902,7 +27910,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
@@ -27925,7 +27933,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent: customattrsServiceNoEvent,
 		Events:         eventService,
 	}
-	settingsProfileEditHandler := &webapp2.SettingsProfileEditHandler{
+	settingsProfileEditHandler := &webapp.SettingsProfileEditHandler{
 		ControllerFactory:        controllerFactory,
 		BaseViewModel:            baseViewModeler,
 		SettingsProfileViewModel: settingsProfileViewModeler,
@@ -27946,23 +27954,23 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -28445,10 +28453,10 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -28588,7 +28596,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -28621,13 +28629,13 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -28640,11 +28648,11 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	settingsIdentityHandler := &webapp2.SettingsIdentityHandler{
+	settingsIdentityHandler := &webapp.SettingsIdentityHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -28663,23 +28671,23 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -29162,10 +29170,10 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -29305,7 +29313,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -29338,13 +29346,13 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -29357,11 +29365,11 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	settingsBiometricHandler := &webapp2.SettingsBiometricHandler{
+	settingsBiometricHandler := &webapp.SettingsBiometricHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -29378,23 +29386,23 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -29877,10 +29885,10 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -30020,7 +30028,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -30053,13 +30061,13 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -30072,7 +30080,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
@@ -30083,7 +30091,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		Biometric:      biometricConfig,
 	}
-	settingsMFAHandler := &webapp2.SettingsMFAHandler{
+	settingsMFAHandler := &webapp.SettingsMFAHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		SettingsViewModel: settingsViewModeler,
@@ -30101,23 +30109,23 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -30600,10 +30608,10 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -30743,7 +30751,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -30776,13 +30784,13 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -30795,11 +30803,11 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	settingsTOTPHandler := &webapp2.SettingsTOTPHandler{
+	settingsTOTPHandler := &webapp.SettingsTOTPHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -30816,23 +30824,23 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -31315,10 +31323,10 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -31458,7 +31466,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -31491,13 +31499,13 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -31510,11 +31518,11 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	settingsPasskeyHandler := &webapp2.SettingsPasskeyHandler{
+	settingsPasskeyHandler := &webapp.SettingsPasskeyHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -31531,23 +31539,23 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -32030,10 +32038,10 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -32173,7 +32181,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -32206,13 +32214,13 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -32225,11 +32233,11 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	settingsOOBOTPHandler := &webapp2.SettingsOOBOTPHandler{
+	settingsOOBOTPHandler := &webapp.SettingsOOBOTPHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -32246,23 +32254,23 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -32745,10 +32753,10 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -32888,7 +32896,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -32921,13 +32929,13 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -32940,11 +32948,11 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	settingsRecoveryCodeHandler := &webapp2.SettingsRecoveryCodeHandler{
+	settingsRecoveryCodeHandler := &webapp.SettingsRecoveryCodeHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -32962,23 +32970,23 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -33461,10 +33469,10 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -33604,7 +33612,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -33637,13 +33645,13 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -33656,7 +33664,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
@@ -33665,7 +33673,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	settingsSessionsHandler := &webapp2.SettingsSessionsHandler{
+	settingsSessionsHandler := &webapp.SettingsSessionsHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -33682,23 +33690,23 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -34181,10 +34189,10 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -34324,7 +34332,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -34357,13 +34365,13 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -34376,11 +34384,11 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	forceChangePasswordHandler := &webapp2.ForceChangePasswordHandler{
+	forceChangePasswordHandler := &webapp.ForceChangePasswordHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -34397,23 +34405,23 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -34896,10 +34904,10 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -35039,7 +35047,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -35072,13 +35080,13 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -35091,11 +35099,11 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	settingsChangePasswordHandler := &webapp2.SettingsChangePasswordHandler{
+	settingsChangePasswordHandler := &webapp.SettingsChangePasswordHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -35112,23 +35120,23 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -35611,10 +35619,10 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -35754,7 +35762,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -35787,13 +35795,13 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -35806,11 +35814,11 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	forceChangeSecondaryPasswordHandler := &webapp2.ForceChangeSecondaryPasswordHandler{
+	forceChangeSecondaryPasswordHandler := &webapp.ForceChangeSecondaryPasswordHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -35827,23 +35835,23 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -36326,10 +36334,10 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -36469,7 +36477,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -36502,13 +36510,13 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -36521,11 +36529,11 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	settingsChangeSecondaryPasswordHandler := &webapp2.SettingsChangeSecondaryPasswordHandler{
+	settingsChangeSecondaryPasswordHandler := &webapp.SettingsChangeSecondaryPasswordHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -36542,23 +36550,23 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -37041,10 +37049,10 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -37184,7 +37192,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -37217,13 +37225,13 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -37236,7 +37244,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
@@ -37244,7 +37252,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		UserProvider: userProvider,
 		Coordinator:  coordinator,
 	}
-	settingsDeleteAccountHandler := &webapp2.SettingsDeleteAccountHandler{
+	settingsDeleteAccountHandler := &webapp.SettingsDeleteAccountHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -37264,23 +37272,23 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -37763,10 +37771,10 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -37906,7 +37914,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -37939,13 +37947,13 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -37958,11 +37966,11 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	settingsDeleteAccountSuccessHandler := &webapp2.SettingsDeleteAccountSuccessHandler{
+	settingsDeleteAccountSuccessHandler := &webapp.SettingsDeleteAccountSuccessHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -37980,23 +37988,23 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -38479,10 +38487,10 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -38622,7 +38630,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -38655,13 +38663,13 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -38674,11 +38682,11 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	accountStatusHandler := &webapp2.AccountStatusHandler{
+	accountStatusHandler := &webapp.AccountStatusHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -38694,23 +38702,23 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -39193,10 +39201,10 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -39336,7 +39344,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -39369,13 +39377,13 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -39388,7 +39396,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
@@ -39397,7 +39405,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	logoutHandler := &webapp2.LogoutHandler{
+	logoutHandler := &webapp.LogoutHandler{
 		ControllerFactory: controllerFactory,
 		Database:          handle,
 		TrustProxy:        trustProxy,
@@ -39410,16 +39418,13 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	return logoutHandler
 }
 
-func newWebAppStaticAssetsHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppAppStaticAssetsHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	manager := appProvider.Resources
-	rootProvider := appProvider.RootProvider
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetsHandler := &webapp2.StaticAssetsHandler{
-		Resources:         manager,
-		EmbeddedResources: globalEmbeddedResourceManager,
+	appStaticAssetsHandler := &webapp.AppStaticAssetsHandler{
+		Resources: manager,
 	}
-	return staticAssetsHandler
+	return appStaticAssetsHandler
 }
 
 func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
@@ -39430,23 +39435,23 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -39929,10 +39934,10 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -40072,7 +40077,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -40105,13 +40110,13 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -40124,11 +40129,11 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	returnHandler := &webapp2.ReturnHandler{
+	returnHandler := &webapp.ReturnHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -40144,23 +40149,23 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -40643,10 +40648,10 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -40786,7 +40791,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -40819,13 +40824,13 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, appredisHandle)
-	controllerDeps := webapp2.ControllerDeps{
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
 		AppID:         appID,
@@ -40838,11 +40843,11 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
-	controllerFactory := webapp2.ControllerFactory{
+	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	errorHandler := &webapp2.ErrorHandler{
+	errorHandler := &webapp.ErrorHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -40857,8 +40862,8 @@ func newWebAppWebsocketHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Redis
-	publisher := webapp2.NewPublisher(appID, handle)
-	websocketHandler := &webapp2.WebsocketHandler{
+	publisher := webapp.NewPublisher(appID, handle)
+	websocketHandler := &webapp.WebsocketHandler{
 		AppID:         appID,
 		LoggerFactory: factory,
 		RedisHandle:   handle,
@@ -40870,27 +40875,27 @@ func newWebAppWebsocketHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	handle := appProvider.Redis
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: handle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -41374,10 +41379,10 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -41517,7 +41522,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -41538,7 +41543,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		IdentityService: serviceService,
 		Store:           store2,
 	}
-	passkeyCreationOptionsHandler := &webapp2.PasskeyCreationOptionsHandler{
+	passkeyCreationOptionsHandler := &webapp.PasskeyCreationOptionsHandler{
 		Page:     webappService2,
 		Database: appdbHandle,
 		JSON:     jsonResponseWriter,
@@ -41550,27 +41555,27 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	serviceLogger := webapp.NewServiceLogger(factory)
+	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	handle := appProvider.Redis
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: handle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -42054,10 +42059,10 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	urlProvider := &webapp.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	wechatURLProvider := &webapp.WechatURLProvider{
+	wechatURLProvider := &webapp2.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
 	normalizer := &stdattrs2.Normalizer{
@@ -42197,7 +42202,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	webappService2 := &webapp.Service2{
+	webappService2 := &webapp2.Service2{
 		Logger:               serviceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
@@ -42217,7 +42222,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		IdentityService: serviceService,
 		Store:           store2,
 	}
-	passkeyRequestOptionsHandler := &webapp2.PasskeyRequestOptionsHandler{
+	passkeyRequestOptionsHandler := &webapp.PasskeyRequestOptionsHandler{
 		Page:     webappService2,
 		Database: appdbHandle,
 		JSON:     jsonResponseWriter,
@@ -42256,7 +42261,7 @@ func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
 func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	panicMiddlewareLogger := webapp2.NewPanicMiddlewareLogger(factory)
+	panicMiddlewareLogger := webapp.NewPanicMiddlewareLogger(factory)
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
@@ -42284,9 +42289,9 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	forgotPasswordConfig := appConfig.ForgotPassword
 	authenticationConfig := appConfig.Authentication
 	googleTagManagerConfig := appConfig.GoogleTagManager
-	errorCookieDef := webapp.NewErrorCookieDef()
+	errorCookieDef := webapp2.NewErrorCookieDef()
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp.ErrorCookie{
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
@@ -42325,12 +42330,12 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	panicMiddleware := &webapp2.PanicMiddleware{
+	panicMiddleware := &webapp.PanicMiddleware{
 		Logger:        panicMiddlewareLogger,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -42347,8 +42352,8 @@ func newPublicOriginMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	factory := appProvider.LoggerFactory
-	publicOriginMiddlewareLogger := webapp.NewPublicOriginMiddlewareLogger(factory)
-	publicOriginMiddleware := &webapp.PublicOriginMiddleware{
+	publicOriginMiddlewareLogger := webapp2.NewPublicOriginMiddlewareLogger(factory)
+	publicOriginMiddleware := &webapp2.PublicOriginMiddleware{
 		Config:     httpConfig,
 		TrustProxy: trustProxy,
 		Logger:     publicOriginMiddlewareLogger,
@@ -42386,7 +42391,7 @@ func newDynamicCSPMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	dynamicCSPMiddleware := &webapp.DynamicCSPMiddleware{
+	dynamicCSPMiddleware := &webapp2.DynamicCSPMiddleware{
 		Cookies:    cookieManager,
 		HTTPConfig: httpConfig,
 	}
@@ -42400,11 +42405,11 @@ func newCSRFMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	csrfKeyMaterials := deps.ProvideCSRFKeyMaterials(secretConfig)
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
+	csrfCookieDef := webapp2.NewCSRFCookieDef(httpConfig)
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	csrfMiddleware := &webapp.CSRFMiddleware{
+	csrfMiddleware := &webapp2.CSRFMiddleware{
 		Secret:     csrfKeyMaterials,
 		CookieDef:  csrfCookieDef,
 		TrustProxy: trustProxy,
@@ -42420,7 +42425,7 @@ func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	authEntryPointMiddleware := &webapp.AuthEntryPointMiddleware{
+	authEntryPointMiddleware := &webapp2.AuthEntryPointMiddleware{
 		TrustProxy: trustProxy,
 		UIConfig:   uiConfig,
 	}
@@ -42835,18 +42840,18 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	handle := appProvider.Redis
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: handle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	sessionMiddleware := &webapp.SessionMiddleware{
+	sessionMiddleware := &webapp2.SessionMiddleware{
 		States:    sessionStoreRedis,
 		CookieDef: sessionCookieDef,
 		Cookies:   cookieManager,
@@ -42864,7 +42869,7 @@ func newWebAppUILocalesMiddleware(p *deps.RequestProvider) httproute.Middleware 
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	uiLocalesMiddleware := &webapp.UILocalesMiddleware{
+	uiLocalesMiddleware := &webapp2.UILocalesMiddleware{
 		Cookies: cookieManager,
 	}
 	return uiLocalesMiddleware
@@ -42880,7 +42885,7 @@ func newWebAppColorSchemeMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	colorSchemeMiddleware := &webapp.ColorSchemeMiddleware{
+	colorSchemeMiddleware := &webapp2.ColorSchemeMiddleware{
 		Cookies: cookieManager,
 	}
 	return colorSchemeMiddleware
@@ -42892,19 +42897,19 @@ func newWebAppClientIDMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	handle := appProvider.Redis
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: handle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef()
-	clientIDCookieDef := webapp.NewClientIDCookieDef()
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	clientIDCookieDef := webapp2.NewClientIDCookieDef()
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	clientIDMiddleware := &webapp.ClientIDMiddleware{
+	clientIDMiddleware := &webapp2.ClientIDMiddleware{
 		States:            sessionStoreRedis,
 		SessionCookieDef:  sessionCookieDef,
 		ClientIDCookieDef: clientIDCookieDef,
@@ -42923,7 +42928,7 @@ func newWebAppWeChatRedirectURIMiddleware(p *deps.RequestProvider) httproute.Mid
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	weChatRedirectURIMiddleware := &webapp.WeChatRedirectURIMiddleware{
+	weChatRedirectURIMiddleware := &webapp2.WeChatRedirectURIMiddleware{
 		Cookies: cookieManager,
 	}
 	return weChatRedirectURIMiddleware
@@ -42939,7 +42944,7 @@ func newWebAppVisitorIDMiddleware(p *deps.RequestProvider) httproute.Middleware 
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	visitorIDMiddleware := &webapp.VisitorIDMiddleware{
+	visitorIDMiddleware := &webapp2.VisitorIDMiddleware{
 		Cookies: cookieManager,
 	}
 	return visitorIDMiddleware
@@ -43413,7 +43418,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	identityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
-	settingsSubRoutesMiddleware := &webapp.SettingsSubRoutesMiddleware{
+	settingsSubRoutesMiddleware := &webapp2.SettingsSubRoutesMiddleware{
 		Database:   handle,
 		Identities: identityFacade,
 	}
@@ -43430,12 +43435,12 @@ func newSuccessPageMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookieDef := webapp.NewErrorCookieDef()
-	errorCookie := &webapp.ErrorCookie{
+	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
-	successPageMiddleware := &webapp.SuccessPageMiddleware{
+	successPageMiddleware := &webapp2.SuccessPageMiddleware{
 		Cookies:     cookieManager,
 		ErrorCookie: errorCookie,
 	}
@@ -43468,7 +43473,7 @@ func newTutorialMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	tutorialCookie := &httputil.TutorialCookie{
 		Cookies: cookieManager,
 	}
-	tutorialMiddleware := &webapp.TutorialMiddleware{
+	tutorialMiddleware := &webapp2.TutorialMiddleware{
 		TutorialCookie: tutorialCookie,
 	}
 	return tutorialMiddleware

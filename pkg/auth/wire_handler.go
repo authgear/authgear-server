@@ -14,6 +14,7 @@ import (
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 )
 
 func newHealthzHandler(p *deps.RootProvider, w http.ResponseWriter, r *http.Request, ctx context.Context) http.Handler {
@@ -21,6 +22,15 @@ func newHealthzHandler(p *deps.RootProvider, w http.ResponseWriter, r *http.Requ
 		deps.RootDependencySet,
 		healthz.DependencySet,
 		wire.Bind(new(http.Handler), new(*healthz.Handler)),
+	))
+}
+
+func newWebAppGeneratedStaticAssetsHandler(p *deps.RootProvider, w http.ResponseWriter, r *http.Request, ctx context.Context) http.Handler {
+	panic(wire.Build(
+		deps.RootDependencySet,
+		wire.Struct(new(handlerwebapp.GeneratedStaticAssetsHandler), "*"),
+		wire.Bind(new(handlerwebapp.GlobalEmbeddedResourceManager), new(*web.GlobalEmbeddedResourceManager)),
+		wire.Bind(new(http.Handler), new(*handlerwebapp.GeneratedStaticAssetsHandler)),
 	))
 }
 
@@ -458,10 +468,10 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newWebAppStaticAssetsHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppAppStaticAssetsHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.StaticAssetsHandler)),
+		wire.Bind(new(http.Handler), new(*handlerwebapp.AppStaticAssetsHandler)),
 	))
 }
 

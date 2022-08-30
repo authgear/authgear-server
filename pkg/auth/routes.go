@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -29,34 +30,44 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 			RootProvider: p,
 			ConfigSource: configSource,
 		},
-		p.Middleware(newPublicOriginMiddleware),
 	)
 
-	staticChain := httproute.Chain(
+	// This route is intentionally simple.
+	// This does not check Host and allow any origin.
+	generatedStaticChain := httproute.Chain(
+		httproute.MiddlewareFunc(middleware.CORSEcho),
+		httproute.MiddlewareFunc(httputil.ETag),
+	)
+
+	appStaticChain := httproute.Chain(
 		rootChain,
 		p.Middleware(newCORSMiddleware),
+		p.Middleware(newPublicOriginMiddleware),
 		httproute.MiddlewareFunc(httputil.ETag),
 	)
 
 	oauthStaticChain := httproute.Chain(
 		rootChain,
 		p.Middleware(newCORSMiddleware),
+		p.Middleware(newPublicOriginMiddleware),
 		httproute.MiddlewareFunc(httputil.ETag),
 	)
 
 	oauthAPIChain := httproute.Chain(
 		rootChain,
+		p.Middleware(newCORSMiddleware),
+		p.Middleware(newPublicOriginMiddleware),
 		p.Middleware(newSessionMiddleware),
 		httproute.MiddlewareFunc(httputil.NoCache),
-		p.Middleware(newCORSMiddleware),
 		p.Middleware(newWebAppWeChatRedirectURIMiddleware),
 	)
 
 	apiChain := httproute.Chain(
 		rootChain,
+		p.Middleware(newCORSMiddleware),
+		p.Middleware(newPublicOriginMiddleware),
 		p.Middleware(newSessionMiddleware),
 		httproute.MiddlewareFunc(httputil.NoCache),
-		p.Middleware(newCORSMiddleware),
 	)
 
 	apiAuthenticatedChain := httproute.Chain(
@@ -66,15 +77,17 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	scopedChain := httproute.Chain(
 		rootChain,
+		p.Middleware(newCORSMiddleware),
+		p.Middleware(newPublicOriginMiddleware),
 		p.Middleware(newSessionMiddleware),
 		httproute.MiddlewareFunc(httputil.NoCache),
-		p.Middleware(newCORSMiddleware),
 		// Current we only require valid session and do not require any scope.
 		httproute.MiddlewareFunc(oauth.RequireScope()),
 	)
 
 	webappChain := httproute.Chain(
 		rootChain,
+		p.Middleware(newPublicOriginMiddleware),
 		p.Middleware(newPanicWebAppMiddleware),
 		p.Middleware(newSessionMiddleware),
 		httproute.MiddlewareFunc(httputil.NoCache),
@@ -132,7 +145,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.Middleware(newSettingsSubRoutesMiddleware),
 	)
 
-	staticRoute := httproute.Route{Middleware: staticChain}
+	appStaticRoute := httproute.Route{Middleware: appStaticChain}
+	generatedStaticRoute := httproute.Route{Middleware: generatedStaticChain}
 	oauthStaticRoute := httproute.Route{Middleware: oauthStaticChain}
 	oauthAPIRoute := httproute.Route{Middleware: oauthAPIChain}
 	apiRoute := httproute.Route{Middleware: apiChain}
@@ -231,7 +245,9 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	router.Add(webapphandler.ConfigureWebsocketRoute(webappWebsocketRoute), p.Handler(newWebAppWebsocketHandler))
 
-	router.Add(webapphandler.ConfigureStaticAssetsRoute(staticRoute), p.Handler(newWebAppStaticAssetsHandler))
+	router.Add(webapphandler.ConfigureAppStaticAssetsRoute(appStaticRoute), p.Handler(newWebAppAppStaticAssetsHandler))
+
+	router.Add(webapphandler.ConfigureGeneratedStaticAssetsRoute(generatedStaticRoute), p.RootHandler(newWebAppGeneratedStaticAssetsHandler))
 
 	return router
 }

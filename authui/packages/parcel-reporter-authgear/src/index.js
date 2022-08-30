@@ -50,8 +50,7 @@ module.exports = new Reporter({
       );
     }
 
-    const targetManifestPath =
-      "../resources/authgear/static/generated/manifest.json";
+    const targetManifestPath = "../resources/authgear/generated/manifest.json";
     await options.outputFS.writeFile(
       targetManifestPath,
       JSON.stringify(manifest)
