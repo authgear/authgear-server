@@ -24,21 +24,26 @@ func CSPJoin(directives []string) string {
 	return strings.Join(directives, "; ")
 }
 
-func CSPDirectives(publicOrigin string, nonce string) ([]string, error) {
+func CSPDirectives(publicOrigin string, nonce string, cdnHost string) ([]string, error) {
 	u, err := url.Parse(publicOrigin)
 	if err != nil {
 		return nil, err
 	}
 
+	selfSrc := "'self'"
+	if cdnHost != "" {
+		selfSrc = fmt.Sprintf("'self' %v", cdnHost)
+	}
+
 	return []string{
 		"default-src 'self'",
-		fmt.Sprintf("script-src 'self' 'nonce-%s' www.googletagmanager.com", nonce),
+		fmt.Sprintf("script-src %v 'nonce-%v' www.googletagmanager.com", selfSrc, nonce),
 		"frame-src 'self' www.googletagmanager.com",
-		"font-src 'self' cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com",
-		"style-src 'self' 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com",
+		fmt.Sprintf("font-src %v cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com", selfSrc),
+		fmt.Sprintf("style-src %v 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com", selfSrc),
 		// We use data URI to show QR image.
 		// We can display external profile picture.
-		"img-src 'self' http: https: data:",
+		fmt.Sprintf("img-src %v http: https: data:", selfSrc),
 		"object-src 'none'",
 		"base-uri 'none'",
 		// https://github.com/w3c/webappsec-csp/issues/7

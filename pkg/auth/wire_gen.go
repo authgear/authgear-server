@@ -290,11 +290,14 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -1020,11 +1023,14 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -1688,11 +1694,15 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpConfig := appConfig.HTTP
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -1836,7 +1846,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -2392,11 +2401,15 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         resourceManager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -2540,7 +2553,6 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -2803,11 +2815,14 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	localizationConfig := appConfig.Localization
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -3109,11 +3124,14 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	localizationConfig := appConfig.Localization
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -3459,11 +3477,14 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         resourceManager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -3887,11 +3908,15 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpConfig := appConfig.HTTP
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -4035,7 +4060,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -4565,11 +4589,15 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpConfig := appConfig.HTTP
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -4713,7 +4741,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -5262,11 +5289,15 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Resolver: resolver,
 	}
 	httpConfig := appConfig.HTTP
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -5410,7 +5441,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -6059,11 +6089,15 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -6207,7 +6241,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -6794,11 +6827,15 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -6942,7 +6979,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -7528,11 +7564,15 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -7676,7 +7716,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -8245,11 +8284,15 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -8393,7 +8436,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -8963,11 +9005,15 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -9111,7 +9157,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -9673,11 +9718,15 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -9821,7 +9870,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -10386,11 +10434,15 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -10534,7 +10586,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -11102,11 +11153,15 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -11250,7 +11305,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -11815,11 +11869,15 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -11963,7 +12021,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -12531,11 +12588,15 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -12679,7 +12740,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -13247,11 +13307,15 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -13395,7 +13459,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -13964,11 +14027,15 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -14112,7 +14179,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -14680,11 +14746,15 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -14828,7 +14898,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -15396,11 +15465,15 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -15544,7 +15617,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -16114,11 +16186,15 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -16262,7 +16338,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -16830,11 +16905,15 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -16978,7 +17057,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -17546,11 +17624,15 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -17694,7 +17776,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -18264,11 +18345,15 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -18412,7 +18497,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -18980,11 +19064,15 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -19128,7 +19216,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -19689,11 +19776,15 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpConfig := appConfig.HTTP
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -19837,7 +19928,6 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -20087,11 +20177,15 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -20235,7 +20329,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -20803,11 +20896,15 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -20951,7 +21048,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -21515,11 +21611,15 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -21663,7 +21763,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -22229,11 +22328,15 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -22377,7 +22480,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -22941,11 +23043,15 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -23089,7 +23195,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -23658,11 +23763,15 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -23806,7 +23915,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -24370,11 +24478,15 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -24518,7 +24630,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -25083,11 +25194,15 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -25231,7 +25346,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -25795,11 +25909,15 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -25943,7 +26061,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -26533,11 +26650,15 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -26681,7 +26802,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -27256,11 +27376,15 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -27404,7 +27528,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -27992,11 +28115,15 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -28140,7 +28267,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -28707,11 +28833,15 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -28855,7 +28985,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -29420,11 +29549,15 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -29568,7 +29701,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -30141,11 +30273,15 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -30289,7 +30425,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -30854,11 +30989,15 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -31002,7 +31141,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -31567,11 +31705,15 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -31715,7 +31857,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -32280,11 +32421,15 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -32428,7 +32573,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -32994,11 +33138,15 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -33142,7 +33290,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -33712,11 +33859,15 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -33860,7 +34011,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -34425,11 +34575,15 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -34573,7 +34727,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -35138,11 +35291,15 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -35286,7 +35443,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -35851,11 +36007,15 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -35999,7 +36159,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -36564,11 +36723,15 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -36712,7 +36875,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -37284,11 +37446,15 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -37432,7 +37598,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -37998,11 +38163,15 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -38146,7 +38315,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -38710,11 +38878,15 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -38858,7 +39030,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -39441,11 +39612,15 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -39589,7 +39764,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -40153,11 +40327,15 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -40301,7 +40479,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -40882,11 +41059,15 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -41030,7 +41211,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -41560,11 +41740,15 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -41708,7 +41892,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -42153,12 +42336,16 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	contextContext := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
 	localizationConfig := appConfig.Localization
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	manager := appProvider.Resources
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -42267,9 +42454,11 @@ func newDynamicCSPMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	dynamicCSPMiddleware := &webapp2.DynamicCSPMiddleware{
-		Cookies:    cookieManager,
-		HTTPConfig: httpConfig,
+		Cookies:       cookieManager,
+		HTTPConfig:    httpConfig,
+		WebAppCDNHost: webAppCDNHost,
 	}
 	return dynamicCSPMiddleware
 }
@@ -42480,11 +42669,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Resolver: templateResolver,
 	}
 	localizationConfig := appConfig.Localization
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -42937,11 +43129,15 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Resolver: resolver,
 	}
 	httpConfig := appConfig.HTTP
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -43085,7 +43281,6 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{

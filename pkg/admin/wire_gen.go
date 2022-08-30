@@ -248,11 +248,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	localizationConfig := appConfig.Localization
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -397,7 +401,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{

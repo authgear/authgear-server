@@ -10,6 +10,8 @@ type SentryDSN string
 
 type ImagesCDNHost string
 
+type WebAppCDNHost string
+
 type CORSAllowedOrigins string
 
 func (c *CORSAllowedOrigins) List() []string {
@@ -41,6 +43,8 @@ type EnvironmentConfig struct {
 	RedisConfig RedisEnvironmentConfig `envconfig:"REDIS_CONFIG"`
 
 	ImagesCDNHost ImagesCDNHost `envconfig:"IMAGES_CDN_HOST"`
+	WebAppCDNHost WebAppCDNHost `envconfig:"WEB_APP_CDN_HOST"`
+
 	// CORSAllowOrigins configures a comma-separated list of allowed origins for CORSMiddleware
 	CORSAllowedOrigins CORSAllowedOrigins `envconfig:"CORS_ALLOWED_ORIGINS"`
 }

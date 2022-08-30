@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
@@ -36,6 +37,8 @@ type StaticAssetResolver struct {
 	Context           context.Context
 	Config            *config.HTTPConfig
 	Localization      *config.LocalizationConfig
+	HTTPProto         httputil.HTTPProto
+	WebAppCDNHost     config.WebAppCDNHost
 	Resources         ResourceManager
 	EmbeddedResources *GlobalEmbeddedResourceManager
 }
@@ -91,7 +94,12 @@ func (r *StaticAssetResolver) GeneratedStaticAssetURL(key string) (string, error
 		return "", err
 	}
 
-	return staticAssetURL(r.Config.PublicOrigin, prefix, assetPath)
+	origin := r.Config.PublicOrigin
+	if r.WebAppCDNHost != "" {
+		origin = fmt.Sprintf("%s://%s", r.HTTPProto, r.WebAppCDNHost)
+	}
+
+	return staticAssetURL(origin, prefix, assetPath)
 }
 
 func staticAssetURL(origin string, prefix string, assetPath string) (string, error) {

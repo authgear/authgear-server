@@ -162,11 +162,15 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	}
 	httpConfig := appConfig.HTTP
 	localizationConfig := appConfig.Localization
+	httpProto := ProvideHTTPProto()
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := p.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           ctx,
 		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
@@ -396,7 +400,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := ProvideHTTPProto()
 	httpHost := ProvideHTTPHost()
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{

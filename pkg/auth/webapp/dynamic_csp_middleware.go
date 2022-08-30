@@ -22,8 +22,9 @@ var CSPNonceCookieDef = &httputil.CookieDef{
 }
 
 type DynamicCSPMiddleware struct {
-	Cookies    CookieManager
-	HTTPConfig *config.HTTPConfig
+	Cookies       CookieManager
+	HTTPConfig    *config.HTTPConfig
+	WebAppCDNHost config.WebAppCDNHost
 }
 
 func (m *DynamicCSPMiddleware) Handle(next http.Handler) http.Handler {
@@ -40,7 +41,7 @@ func (m *DynamicCSPMiddleware) Handle(next http.Handler) http.Handler {
 
 		r = r.WithContext(web.WithCSPNonce(r.Context(), nonce))
 
-		cspDirectives, err := web.CSPDirectives(m.HTTPConfig.PublicOrigin, nonce)
+		cspDirectives, err := web.CSPDirectives(m.HTTPConfig.PublicOrigin, nonce, string(m.WebAppCDNHost))
 		if err != nil {
 			panic(err)
 		}
