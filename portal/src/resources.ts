@@ -114,13 +114,6 @@ export const ALL_LANGUAGES_TEMPLATES = [
   RESOURCE_FORGOT_PASSWORD_SMS_TXT,
 ];
 
-export const RESOURCE_AUTHGEAR_CSS: ResourceDefinition = {
-  resourcePath: resourcePath`static/authgear.css`,
-  type: "text",
-  extensions: [],
-  optional: true,
-};
-
 export const RESOURCE_AUTHGEAR_LIGHT_THEME_CSS: ResourceDefinition = {
   resourcePath: resourcePath`static/authgear-light-theme.css`,
   type: "text",

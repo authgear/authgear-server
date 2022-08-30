@@ -13,7 +13,7 @@
   </div>
 
   {{ range $.PasskeyIdentities }}
-    <form class="p-5 row-sep grid grid-cols-1fr-auto auto-rows-auto gap-y-1 gap-x-2" method="post" novalidate>
+    <form class="p-5 row-sep grid grid-cols-[minmax(0,_1fr)_auto] auto-rows-auto gap-y-1 gap-x-2" method="post" novalidate>
       <p class="col-start-1 col-span-1 self-center m-0 primary-txt text-base">
         {{ .Passkey.CreationOptions.PublicKey.User.DisplayName }}
       </p>

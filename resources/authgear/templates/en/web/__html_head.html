@@ -21,7 +21,6 @@
 
 <!-- Our CSS have to override the tailwind.css in __generated_asset.html -->
 {{ template "__generated_asset.html" . }}
-<link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear.css" }}">
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-light-theme.css" }}">
 {{ if $.DarkThemeEnabled }}
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-dark-theme.css" }}">
