@@ -17,7 +17,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/util/filepathutil"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
@@ -195,7 +195,7 @@ func constructConfigSourceData(resourceDir string) (map[string]string, error) {
 		}
 
 		str := base64.StdEncoding.EncodeToString(data)
-		dbData[configsource.EscapePath(path)] = str
+		dbData[filepathutil.EscapePath(path)] = str
 	}
 
 	return dbData, nil

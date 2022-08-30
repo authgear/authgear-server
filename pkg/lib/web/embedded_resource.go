@@ -11,6 +11,7 @@ import (
 
 	"gopkg.in/fsnotify.v1"
 
+	"github.com/authgear/authgear-server/pkg/util/filepathutil"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -176,15 +177,15 @@ func (m *GlobalEmbeddedResourceManager) AssetPath(key string) (prefix string, na
 func (m *GlobalEmbeddedResourceManager) Resolve(resourcePath string) (string, bool) {
 	manifest := m.GetManifestContext().Content
 
-	filePathWithoutHash, hashInPath := ParsePathWithHash(resourcePath)
+	filePathWithoutHash, hashInPath, _ := filepathutil.ParseHashedPath(resourcePath)
 
 	key := strings.TrimPrefix(filePathWithoutHash, m.Manifest.ResourcePrefix)
-	if IsSourceMapPath(key) {
+	if filepathutil.IsSourceMapPath(key) {
 		key = strings.TrimSuffix(key, ".map")
 	}
 
 	if assetFileName, ok := manifest[key]; ok {
-		if _, hash := ParsePathWithHash(assetFileName); hash != hashInPath {
+		if _, hash, _ := filepathutil.ParseHashedPath(assetFileName); hash != hashInPath {
 			return "", false
 		}
 
