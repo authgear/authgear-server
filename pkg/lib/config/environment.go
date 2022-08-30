@@ -8,8 +8,6 @@ type DevMode bool
 
 type SentryDSN string
 
-type StaticAssetURLPrefix string
-
 type ImagesCDNHost string
 
 type CORSAllowedOrigins string
@@ -29,8 +27,6 @@ type EnvironmentConfig struct {
 	DevMode DevMode `envconfig:"DEV_MODE" default:"false"`
 	// LogLevel sets the global log level
 	LogLevel string `envconfig:"LOG_LEVEL" default:"warn"`
-	// StaticAssetURLPrefix sets the URL prefix for static assets
-	StaticAssetURLPrefix StaticAssetURLPrefix `envconfig:"STATIC_ASSET_URL_PREFIX" default:"/static"`
 	// SentryDSN sets the sentry DSN.
 	SentryDSN SentryDSN `envconfig:"SENTRY_DSN"`
 	// GlobalDatabase configures the global database

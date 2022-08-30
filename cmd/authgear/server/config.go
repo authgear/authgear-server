@@ -67,12 +67,6 @@ func (c *Config) Validate() error {
 		)
 	}
 
-	if c.EnvironmentConfig.StaticAssetURLPrefix == "" {
-		ctx.Child("STATIC_ASSET_URL_PREFIX").EmitErrorMessage(
-			"static asset URL prefix must be set",
-		)
-	}
-
 	sourceTypes := make([]string, len(configsource.Types))
 	ok := false
 	for i, t := range configsource.Types {

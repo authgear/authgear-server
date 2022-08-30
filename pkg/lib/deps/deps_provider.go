@@ -24,7 +24,6 @@ var envConfigDeps = wire.NewSet(
 		"TrustProxy",
 		"DevMode",
 		"SentryDSN",
-		"StaticAssetURLPrefix",
 		"GlobalDatabase",
 		"DatabaseConfig",
 		"ImagesCDNHost",

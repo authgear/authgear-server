@@ -162,15 +162,13 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	}
 	httpConfig := appConfig.HTTP
 	localizationConfig := appConfig.Localization
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := p.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            ctx,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           ctx,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        ctx,

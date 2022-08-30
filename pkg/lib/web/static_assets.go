@@ -4,6 +4,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
+const StaticAssetURLPrefix = "/static"
 const StaticAssetResourcePrefix = "static/"
 
 type StaticAsset struct {

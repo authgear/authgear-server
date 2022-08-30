@@ -290,15 +290,13 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -1022,15 +1020,13 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -1692,15 +1688,13 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpConfig := appConfig.HTTP
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -2398,15 +2392,13 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          resourceManager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         resourceManager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -2811,15 +2803,13 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	localizationConfig := appConfig.Localization
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -3119,15 +3109,13 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	localizationConfig := appConfig.Localization
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -3471,15 +3459,13 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          resourceManager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         resourceManager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -3901,15 +3887,13 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpConfig := appConfig.HTTP
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -4581,15 +4565,13 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpConfig := appConfig.HTTP
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -5280,15 +5262,13 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Resolver: resolver,
 	}
 	httpConfig := appConfig.HTTP
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -6079,15 +6059,13 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -6816,15 +6794,13 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -7552,15 +7528,13 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -8271,15 +8245,13 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -8991,15 +8963,13 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -9703,15 +9673,13 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -10418,15 +10386,13 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -11136,15 +11102,13 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -11851,15 +11815,13 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -12569,15 +12531,13 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -13287,15 +13247,13 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -14006,15 +13964,13 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -14724,15 +14680,13 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -15442,15 +15396,13 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -16162,15 +16114,13 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -16880,15 +16830,13 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -17598,15 +17546,13 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -18318,15 +18264,13 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -19036,15 +18980,13 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -19747,15 +19689,13 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpConfig := appConfig.HTTP
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -20147,15 +20087,13 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -20865,15 +20803,13 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -21579,15 +21515,13 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -22295,15 +22229,13 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -23009,15 +22941,13 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -23728,15 +23658,13 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -24442,15 +24370,13 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -25157,15 +25083,13 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -25871,15 +25795,13 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -26611,15 +26533,13 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -27336,15 +27256,13 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -28074,15 +27992,13 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -28791,15 +28707,13 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -29506,15 +29420,13 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -30229,15 +30141,13 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -30944,15 +30854,13 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -31659,15 +31567,13 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -32374,15 +32280,13 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -33090,15 +32994,13 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -33810,15 +33712,13 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -34525,15 +34425,13 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -35240,15 +35138,13 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -35955,15 +35851,13 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -36670,15 +36564,13 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -37392,15 +37284,13 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -38108,15 +37998,13 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -38822,15 +38710,13 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -39555,15 +39441,13 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -40269,15 +40153,13 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -41000,15 +40882,13 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -41680,15 +41560,13 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -42275,16 +42153,14 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	contextContext := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
 	localizationConfig := appConfig.Localization
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	authenticationConfig := appConfig.Authentication
@@ -42604,15 +42480,13 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Resolver: templateResolver,
 	}
 	localizationConfig := appConfig.Localization
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
@@ -43063,15 +42937,13 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Resolver: resolver,
 	}
 	httpConfig := appConfig.HTTP
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        contextContext,
