@@ -41,6 +41,24 @@ type StaticAssetResolver struct {
 	EmbeddedResources  *GlobalEmbeddedResourceManager
 }
 
+func (r *StaticAssetResolver) HasAppSpecificAsset(id string) bool {
+	desc, ok := StaticAssetResources[id]
+	if !ok {
+		return false
+	}
+
+	css, ok := desc.(CSSDescriptor)
+	if !ok {
+		return false
+	}
+
+	_, err := r.Resources.Read(desc, resource.AppFile{
+		Path: css.Path,
+	})
+
+	return err == nil
+}
+
 func (r *StaticAssetResolver) StaticAssetURL(id string) (string, error) {
 	desc, ok := StaticAssetResources[id]
 	if !ok {

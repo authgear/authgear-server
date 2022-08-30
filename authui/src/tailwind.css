@@ -233,6 +233,7 @@
 
   .settings-security-item {
     @apply p-3 tablet:p-3 desktop:p-4 rounded-md flex flex-col space-y-2.5;
+    @apply border border-solid;
   }
 
   .settings-add-btn {
@@ -256,8 +257,12 @@
 
   .banner-frame {
     @apply flex justify-center items-center;
+    @apply bg-transparent pt-4 pr-4 pb-4 pl-4;
   }
-
+  .banner {
+    @apply h-[55px];
+    width: initial;
+  }
   .banner.dark {
     @apply hidden;
   }
@@ -553,6 +558,12 @@
 
   .whatsapp-icon {
     background-image: url(./img/icon-whatsapp.svg);
+  }
+
+  /* it is intended to apply padding to __page_frame.html only */
+  /* but not __wide_page_frame.html */
+  .page-header .no-banner {
+    @apply py-4 px-0;
   }
 }
 

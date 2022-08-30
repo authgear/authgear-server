@@ -34,6 +34,7 @@ type BaseViewModel struct {
 	CSPNonce                    string
 	CSRFField                   htmltemplate.HTML
 	Translations                TranslationService
+	HasAppSpecificAsset         func(id string) bool
 	StaticAssetURL              func(id string) (url string)
 	GeneratedStaticAssetURL     func(id string) (url string)
 	DarkThemeEnabled            bool
@@ -102,6 +103,7 @@ func (m *BaseViewModel) SetTutorial(name httputil.TutorialCookieName) {
 }
 
 type StaticAssetResolver interface {
+	HasAppSpecificAsset(id string) bool
 	StaticAssetURL(id string) (url string, err error)
 	GeneratedStaticAssetURL(id string) (url string, err error)
 }
@@ -172,6 +174,9 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		CSPNonce:     cspNonce,
 		CSRFField:    csrf.TemplateField(r),
 		Translations: m.Translations,
+		HasAppSpecificAsset: func(id string) bool {
+			return m.StaticAssets.HasAppSpecificAsset(id)
+		},
 		// This function has to return 1-value only.
 		// Otherwise it cannot be used in template variable declartion.
 		// What I mean here is that
