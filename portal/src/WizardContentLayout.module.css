@@ -6,7 +6,7 @@
   grid-auto-rows: auto;
   align-self: center;
 
-  @apply desktop:grid-cols-[repeat(6,_80px)] mobile:grid-cols-6;
+  @apply grid-cols-[repeat(6,_80px)] mobile:grid-cols-6;
 }
 
 .content {

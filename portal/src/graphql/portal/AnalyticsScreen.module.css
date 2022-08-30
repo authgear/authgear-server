@@ -17,7 +17,7 @@
 }
 
 .signupMethodsWidget {
-  @apply desktop:col-span-6 desktop:col-start-7 mobile:col-span-full;
+  @apply col-span-6 col-start-7 mobile:col-span-full;
 }
 
 .commandBarButtonLabelValue .label {
