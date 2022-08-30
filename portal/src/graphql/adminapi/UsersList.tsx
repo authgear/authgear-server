@@ -289,7 +289,10 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
         default:
           return (
             <div className={styles.cell}>
-              {item[column?.key as keyof UserListItem] ?? USER_LIST_PLACEHOLDER}
+              <div className={styles.cellText}>
+                {item[column?.key as keyof UserListItem] ??
+                  USER_LIST_PLACEHOLDER}
+              </div>
             </div>
           );
       }
