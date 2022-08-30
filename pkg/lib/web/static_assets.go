@@ -4,8 +4,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
+const StaticAssetURLPrefix = "/static"
 const StaticAssetResourcePrefix = "static/"
-const StaticAssetFontResourcePrefix = "static/fonts/"
 
 type StaticAsset struct {
 	Path string

@@ -162,15 +162,17 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	}
 	httpConfig := appConfig.HTTP
 	localizationConfig := appConfig.Localization
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	httpProto := ProvideHTTPProto()
+	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := p.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            ctx,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-		EmbeddedResources:  globalEmbeddedResourceManager,
+		Context:           ctx,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
 		Context:        ctx,
@@ -398,7 +400,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	httpProto := ProvideHTTPProto()
 	httpHost := ProvideHTTPHost()
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
