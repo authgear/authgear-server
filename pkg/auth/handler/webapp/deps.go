@@ -17,7 +17,7 @@ var DependencySet = wire.NewSet(
 	NewPanicMiddlewareLogger,
 	wire.Struct(new(PanicMiddleware), "*"),
 
-	wire.Struct(new(StaticAssetsHandler), "*"),
+	wire.Struct(new(AppStaticAssetsHandler), "*"),
 
 	wire.Struct(new(RootHandler), "*"),
 	wire.Struct(new(OAuthEntrypointHandler), "*"),

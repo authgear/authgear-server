@@ -7,7 +7,7 @@
   "scripts": {
     "typecheck": "tsc -b",
     "format": "prettier --write --list-different ./src ./packages",
-    "build": "parcel build --no-cache 'src/*.html' --dist-dir ../resources/authgear/static/generated",
+    "build": "parcel build --no-cache 'src/*.html' --dist-dir ../resources/authgear/generated",
     "test": "jest"
   },
   "alias": {

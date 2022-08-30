@@ -17,7 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
-func ConfigureStaticAssetsRoute(route httproute.Route) httproute.Route {
+func ConfigureAppStaticAssetsRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("HEAD", "GET").
 		WithPathPattern("/static/*all")
@@ -28,17 +28,11 @@ type ResourceManager interface {
 	Resolve(path string) (resource.Descriptor, bool)
 }
 
-type GlobalEmbeddedResourceManager interface {
-	Resolve(resourcePath string) (string, bool)
-	Open(assetPath string) (http.File, error)
+type AppStaticAssetsHandler struct {
+	Resources ResourceManager
 }
 
-type StaticAssetsHandler struct {
-	Resources         ResourceManager
-	EmbeddedResources GlobalEmbeddedResourceManager
-}
-
-func (h *StaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *AppStaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fileServer := http.StripPrefix("/static/", http.FileServer(h))
 
 	filePath := strings.TrimPrefix(r.URL.Path, "/static/")
@@ -52,16 +46,12 @@ func (h *StaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	fileServer.ServeHTTP(w, r)
 }
 
-func (h *StaticAssetsHandler) Resolve(name string) bool {
+func (h *AppStaticAssetsHandler) Resolve(name string) bool {
 	p := path.Join(web.StaticAssetResourcePrefix, name)
 
 	filePath, hashInPath := web.ParsePathWithHash(p)
 	if filePath == "" || hashInPath == "" {
 		return false
-	}
-
-	if _, ok := h.EmbeddedResources.Resolve(p); ok {
-		return true
 	}
 
 	if _, ok := h.Resources.Resolve(filePath); ok {
@@ -71,17 +61,12 @@ func (h *StaticAssetsHandler) Resolve(name string) bool {
 	return false
 }
 
-func (h *StaticAssetsHandler) Open(name string) (http.File, error) {
+func (h *AppStaticAssetsHandler) Open(name string) (http.File, error) {
 	p := path.Join(web.StaticAssetResourcePrefix, name)
 
 	filePath, hashInPath := web.ParsePathWithHash(p)
 	if filePath == "" || hashInPath == "" {
 		return nil, os.ErrNotExist
-	}
-
-	// Use GlobalEmbeddedResourceManager to check if the static asset is belong to it
-	if asset, ok := h.EmbeddedResources.Resolve(p); ok {
-		return h.EmbeddedResources.Open(asset)
 	}
 
 	// Fallback ResourceManager
