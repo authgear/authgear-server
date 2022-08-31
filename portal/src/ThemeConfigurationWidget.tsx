@@ -5,7 +5,6 @@ import React, {
   useContext,
   useMemo,
 } from "react";
-import cn from "classnames";
 import {
   Text,
   Label,
@@ -345,124 +344,62 @@ const ThemeConfigurationWidget: React.VFC<ThemeConfigurationWidgetProps> =
       : (lightTheme ?? DEFAULT_LIGHT_THEME).backgroundColor;
 
     return (
-      <Widget className={cn(styles.root, className)}>
-        <div className={styles.titleSection}>
-          {isDarkMode ? (
-            <Toggle
-              className={styles.toggle}
-              checked={darkModeEnabled}
-              onChange={onChangeChecked}
-            />
-          ) : null}
-          <WidgetTitle>
-            <FormattedMessage
-              id={
-                isDarkMode
-                  ? "ThemeConfigurationWidget.dark-mode"
-                  : "ThemeConfigurationWidget.light-mode"
-              }
-            />
-          </WidgetTitle>
-        </div>
-
-        <div className={styles.themeColorSection}>
-          <Label>
-            <FormattedMessage id="ThemeConfigurationWidget.theme-color-title" />
-          </Label>
-          <ThemePresetWidget
-            disabled={disabled}
-            isDarkMode={isDarkMode}
-            highlightedLightTheme={highlightedLightTheme}
-            highlightedDarkTheme={highlightedDarkTheme}
-            darkThemeIsCustom={darkThemeIsCustom}
-            lightThemeIsCustom={lightThemeIsCustom}
-            onClickLightTheme={onChangeLightTheme}
-            onClickDarkTheme={onChangeDarkTheme}
-            onClickCustom={onClickCustom}
-          />
-          <div className={styles.colorControl}>
-            <Label className={styles.colorControlLabel}>
-              <FormattedMessage id="ThemeConfigurationWidget.primary-color" />
-            </Label>
-            <PortalColorPicker
-              className={styles.colorPicker}
-              color={primaryColor}
-              onChange={onPickerChangePrimaryColor}
-              disabled={disabled || colorControlsDisabled}
-            />
-          </div>
-          <div className={styles.colorControl}>
-            <Label className={styles.colorControlLabel}>
-              <FormattedMessage id="ThemeConfigurationWidget.text-color" />
-            </Label>
-            <PortalColorPicker
-              className={styles.colorPicker}
-              color={textColor}
-              onChange={onPickerChangeTextColor}
-              disabled={disabled || colorControlsDisabled}
-            />
-          </div>
-          <div className={styles.colorControl}>
-            <Label className={styles.colorControlLabel}>
-              <FormattedMessage id="ThemeConfigurationWidget.background-color" />
-            </Label>
-            <PortalColorPicker
-              className={styles.colorPicker}
-              color={backgroundColor}
-              onChange={onPickerChangeBackgroundColor}
-              disabled={disabled || colorControlsDisabled}
-            />
-          </div>
-
-          <div className={styles.appLogoSection}>
-            <Label>
-              <FormattedMessage id="ThemeConfigurationWidget.app-logo-title" />
-            </Label>
-            <Text variant="small" className={styles.themeColorTitle}>
-              <FormattedMessage id="ThemeConfigurationWidget.app-logo-description" />
-            </Text>
-            <ImageFilePicker
-              disabled={disabled}
-              base64EncodedData={appLogoValue}
-              onChange={onChangeAppLogo}
-            />
-            <div className={styles.appLogoControl}>
-              <Dropdown
-                className={styles.appLogoDropdown}
-                label={renderToString(
-                  "ThemeConfigurationWidget.app-logo-dropown-title"
-                )}
-                options={appLogoOptions}
-                selectedKey={dropdownSelectedKey}
-                onChange={onChangeDropdown}
-                disabled={disabled}
+      <Widget className={className}>
+        <div className={styles.root}>
+          <div className={styles.titleSection}>
+            {isDarkMode ? (
+              <Toggle
+                className={styles.toggle}
+                checked={darkModeEnabled}
+                onChange={onChangeChecked}
               />
-              <TextField
-                className={styles.appLogoDimension}
-                label={renderToString("ThemeConfigurationWidget.value")}
-                value={appLogoDimensionValue}
-                onChange={onChangeAppLogoDimensionValue}
-                disabled={disabled}
+            ) : null}
+            <WidgetTitle>
+              <FormattedMessage
+                id={
+                  isDarkMode
+                    ? "ThemeConfigurationWidget.dark-mode"
+                    : "ThemeConfigurationWidget.light-mode"
+                }
+              />
+            </WidgetTitle>
+          </div>
+
+          <div className={styles.themeColorSection}>
+            <Label>
+              <FormattedMessage id="ThemeConfigurationWidget.theme-color-title" />
+            </Label>
+            <ThemePresetWidget
+              disabled={disabled}
+              isDarkMode={isDarkMode}
+              highlightedLightTheme={highlightedLightTheme}
+              highlightedDarkTheme={highlightedDarkTheme}
+              darkThemeIsCustom={darkThemeIsCustom}
+              lightThemeIsCustom={lightThemeIsCustom}
+              onClickLightTheme={onChangeLightTheme}
+              onClickDarkTheme={onChangeDarkTheme}
+              onClickCustom={onClickCustom}
+            />
+            <div className={styles.colorControl}>
+              <Label className={styles.colorControlLabel}>
+                <FormattedMessage id="ThemeConfigurationWidget.primary-color" />
+              </Label>
+              <PortalColorPicker
+                className={styles.colorPicker}
+                color={primaryColor}
+                onChange={onPickerChangePrimaryColor}
+                disabled={disabled || colorControlsDisabled}
               />
             </div>
-            <div className={styles.appLogoControl}>
-              <TextField
-                className={styles.appLogoPadding}
-                label={renderToString(
-                  "ThemeConfigurationWidget.left-right-padding"
-                )}
-                value={appLogoHorizontalPadding}
-                onChange={onChangeAppLogoHorizontalPadding}
-                disabled={disabled}
-              />
-              <TextField
-                className={styles.appLogoPadding}
-                label={renderToString(
-                  "ThemeConfigurationWidget.top-bottom-padding"
-                )}
-                value={appLogoVerticalPadding}
-                onChange={onChangeAppLogoVerticalPadding}
-                disabled={disabled}
+            <div className={styles.colorControl}>
+              <Label className={styles.colorControlLabel}>
+                <FormattedMessage id="ThemeConfigurationWidget.text-color" />
+              </Label>
+              <PortalColorPicker
+                className={styles.colorPicker}
+                color={textColor}
+                onChange={onPickerChangeTextColor}
+                disabled={disabled || colorControlsDisabled}
               />
             </div>
             <div className={styles.colorControl}>
@@ -471,36 +408,100 @@ const ThemeConfigurationWidget: React.VFC<ThemeConfigurationWidgetProps> =
               </Label>
               <PortalColorPicker
                 className={styles.colorPicker}
-                color={bannerConfiguration.backgroundColor}
-                onChange={onChangeAppLogoBackgroundColor}
-                disabled={disabled}
-                alphaType="alpha"
+                color={backgroundColor}
+                onChange={onPickerChangeBackgroundColor}
+                disabled={disabled || colorControlsDisabled}
               />
             </div>
+
+            <div className={styles.appLogoSection}>
+              <Label>
+                <FormattedMessage id="ThemeConfigurationWidget.app-logo-title" />
+              </Label>
+              <Text variant="small" className={styles.themeColorTitle}>
+                <FormattedMessage id="ThemeConfigurationWidget.app-logo-description" />
+              </Text>
+              <ImageFilePicker
+                disabled={disabled}
+                base64EncodedData={appLogoValue}
+                onChange={onChangeAppLogo}
+              />
+              <div className={styles.appLogoControl}>
+                <Dropdown
+                  className={styles.appLogoDropdown}
+                  label={renderToString(
+                    "ThemeConfigurationWidget.app-logo-dropown-title"
+                  )}
+                  options={appLogoOptions}
+                  selectedKey={dropdownSelectedKey}
+                  onChange={onChangeDropdown}
+                  disabled={disabled}
+                />
+                <TextField
+                  className={styles.appLogoDimension}
+                  label={renderToString("ThemeConfigurationWidget.value")}
+                  value={appLogoDimensionValue}
+                  onChange={onChangeAppLogoDimensionValue}
+                  disabled={disabled}
+                />
+              </div>
+              <div className={styles.appLogoControl}>
+                <TextField
+                  className={styles.appLogoPadding}
+                  label={renderToString(
+                    "ThemeConfigurationWidget.left-right-padding"
+                  )}
+                  value={appLogoHorizontalPadding}
+                  onChange={onChangeAppLogoHorizontalPadding}
+                  disabled={disabled}
+                />
+                <TextField
+                  className={styles.appLogoPadding}
+                  label={renderToString(
+                    "ThemeConfigurationWidget.top-bottom-padding"
+                  )}
+                  value={appLogoVerticalPadding}
+                  onChange={onChangeAppLogoVerticalPadding}
+                  disabled={disabled}
+                />
+              </div>
+              <div className={styles.colorControl}>
+                <Label className={styles.colorControlLabel}>
+                  <FormattedMessage id="ThemeConfigurationWidget.background-color" />
+                </Label>
+                <PortalColorPicker
+                  className={styles.colorPicker}
+                  color={bannerConfiguration.backgroundColor}
+                  onChange={onChangeAppLogoBackgroundColor}
+                  disabled={disabled}
+                  alphaType="alpha"
+                />
+              </div>
+            </div>
           </div>
-        </div>
-        <div className={styles.previewSection}>
-          <Label>
-            <FormattedMessage id="ThemeConfigurationWidget.preview-mode" />
-          </Label>
-          <ScaleContainer
-            className={styles.previewContainer}
-            childrenRef={previewWidgetRef}
-            mode="fixed-width"
-          >
-            <ThemePreviewWidget
-              /* @ts-expect-error */
-              ref={previewWidgetRef}
-              className={styles.previewWidget}
-              isDarkMode={isDarkMode}
-              watermarkEnabled={watermarkEnabled}
-              appLogoValue={appLogoValue}
-              bannerConfiguration={bannerConfiguration}
-              primaryColor={primaryColor}
-              textColor={textColor}
-              backgroundColor={backgroundColor}
-            />
-          </ScaleContainer>
+          <div className={styles.previewSection}>
+            <Label>
+              <FormattedMessage id="ThemeConfigurationWidget.preview-mode" />
+            </Label>
+            <ScaleContainer
+              className={styles.previewContainer}
+              childrenRef={previewWidgetRef}
+              mode="fixed-width"
+            >
+              <ThemePreviewWidget
+                /* @ts-expect-error */
+                ref={previewWidgetRef}
+                className={styles.previewWidget}
+                isDarkMode={isDarkMode}
+                watermarkEnabled={watermarkEnabled}
+                appLogoValue={appLogoValue}
+                bannerConfiguration={bannerConfiguration}
+                primaryColor={primaryColor}
+                textColor={textColor}
+                backgroundColor={backgroundColor}
+              />
+            </ScaleContainer>
+          </div>
         </div>
       </Widget>
     );
