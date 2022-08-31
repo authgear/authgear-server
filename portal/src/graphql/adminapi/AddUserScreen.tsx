@@ -1,7 +1,13 @@
 import React, { useCallback, useContext, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { ChoiceGroup, IChoiceGroupOption, Label, Text } from "@fluentui/react";
+import {
+  ChoiceGroup,
+  IChoiceGroupOption,
+  Label,
+  MessageBar,
+  Text,
+} from "@fluentui/react";
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
 import { useCreateUserMutation } from "./mutations/createUserMutation";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
@@ -127,6 +133,7 @@ interface AddUserContentProps {
   passwordPolicy: PasswordPolicyConfig;
   loginIDTypes: LoginIDKeyType[];
   form: SimpleFormModel<FormState>;
+  isPasskeyOnly: boolean;
 }
 
 const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
@@ -137,6 +144,7 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
     passwordPolicy,
     loginIDTypes,
     form: { state, setState },
+    isPasskeyOnly,
   } = props;
   const { renderToString } = useContext(Context);
 
@@ -265,24 +273,34 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
   return (
     <ScreenContent>
       <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-      <ChoiceGroup
-        className={styles.widget}
-        styles={{ label: { marginBottom: "15px", fontSize: "14px" } }}
-        selectedKey={selectedLoginIDType ?? undefined}
-        options={loginIdTypeOptions}
-        onChange={onSelectLoginIdType}
-        label={renderToString("AddUserScreen.user-info.label")}
-      />
-      <PasswordField
-        className={styles.widget}
-        disabled={passwordFieldDisabled}
-        label={renderToString("AddUserScreen.password.label")}
-        value={password}
-        onChange={onPasswordChange}
-        passwordPolicy={passwordPolicy}
-        parentJSONPointer=""
-        fieldName="password"
-      />
+      {isPasskeyOnly ? (
+        <div className={styles.widget}>
+          <MessageBar>
+            <FormattedMessage id="AddUserScreen.passkey-only.message" />
+          </MessageBar>
+        </div>
+      ) : (
+        <>
+          <ChoiceGroup
+            className={styles.widget}
+            styles={{ label: { marginBottom: "15px", fontSize: "14px" } }}
+            selectedKey={selectedLoginIDType ?? undefined}
+            options={loginIdTypeOptions}
+            onChange={onSelectLoginIdType}
+            label={renderToString("AddUserScreen.user-info.label")}
+          />
+          <PasswordField
+            className={styles.widget}
+            disabled={passwordFieldDisabled}
+            label={renderToString("AddUserScreen.password.label")}
+            value={password}
+            onChange={onPasswordChange}
+            passwordPolicy={passwordPolicy}
+            parentJSONPointer=""
+            fieldName="password"
+          />
+        </>
+      )}
     </ScreenContent>
   );
 };
@@ -308,6 +326,15 @@ const AddUserScreen: React.VFC = function AddUserScreen() {
     () => effectiveAppConfig?.authenticator?.password?.policy ?? {},
     [effectiveAppConfig]
   );
+
+  const isPasskeyOnly = useMemo(() => {
+    const primaryAuthenticators =
+      effectiveAppConfig?.authentication?.primary_authenticators ?? [];
+    return (
+      primaryAuthenticators.length === 1 &&
+      primaryAuthenticators[0] === "passkey"
+    );
+  }, [effectiveAppConfig]);
 
   const defaultState = useMemo(() => {
     return makeDefaultFormState(loginIDTypes);
@@ -389,6 +416,7 @@ const AddUserScreen: React.VFC = function AddUserScreen() {
         primaryAuthenticators={primaryAuthenticators}
         loginIDTypes={loginIDTypes}
         passwordPolicy={passwordPolicy}
+        isPasskeyOnly={isPasskeyOnly}
       />
     </FormContainer>
   );

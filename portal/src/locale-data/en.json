@@ -147,6 +147,7 @@
   "AddUserScreen.cannot-add-user": "Please enable at least one of username, email or phone in authentication screen",
   "AddUserScreen.error.invalid-password": "Please check password policies below",
   "AddUserScreen.error.duplicated-identity": "Duplicated identity",
+  "AddUserScreen.passkey-only.message": "User must be created using their own devices when passkey is the only way to login.",
 
   "UserDetailsScreen.title": "User Details",
   "UserDetailsScreen.remove-user": "Remove User",
