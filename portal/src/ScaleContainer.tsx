@@ -20,24 +20,31 @@ const ScaleContainer: React.VFC<ScaleContainerProps> = function ScaleContainer(
   const { className, children, childrenRef } = props;
 
   useLayoutEffect(() => {
-    const parent = containerRef.current;
-    const child = childrenRef.current;
-    if (parent == null || child == null) {
-      return;
+    function updateSize() {
+      const parent = containerRef.current;
+      const child = childrenRef.current;
+      if (parent == null || child == null) {
+        return;
+      }
+
+      const childWidth = child.offsetWidth;
+      const childHeight = child.offsetHeight;
+      const parentWidth = parent.offsetWidth;
+
+      const aspectRatio = childWidth / childHeight;
+      const parentHeight = parentWidth / aspectRatio;
+      const scale = parentWidth / childWidth;
+
+      // When we use useLayoutEffect, we opt-in to imperative DOM manipulation,
+      // so we change the dom directly here, instead of using setState.
+      parent.style.height = `${parentHeight}px`;
+      child.style.transform = `scale(${scale})`;
     }
 
-    const childWidth = child.offsetWidth;
-    const childHeight = child.offsetHeight;
-    const parentWidth = parent.offsetWidth;
+    window.addEventListener("resize", updateSize);
+    updateSize();
 
-    const aspectRatio = childWidth / childHeight;
-    const parentHeight = parentWidth / aspectRatio;
-    const scale = parentWidth / childWidth;
-
-    // When we use useLayoutEffect, we opt-in to imperative DOM manipulation,
-    // so we change the dom directly here, instead of using setState.
-    parent.style.height = `${parentHeight}px`;
-    child.style.transform = `scale(${scale})`;
+    return () => window.removeEventListener("resize", updateSize);
   }, [childrenRef]);
 
   return (
