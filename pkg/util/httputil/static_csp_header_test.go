@@ -1,4 +1,4 @@
-package web
+package httputil
 
 import (
 	"net/http"
@@ -8,9 +8,15 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestStaticCSPMiddleware(t *testing.T) {
-	Convey("StaticCSPMiddleware", t, func() {
-		middleware := StaticCSPMiddleware{}
+func TestCSPJoin(t *testing.T) {
+	Convey("CSPJoin", t, func() {
+		So(CSPJoin([]string{"a", "b"}), ShouldResemble, "a; b")
+	})
+}
+
+func TestStaticCSPHeader(t *testing.T) {
+	Convey("StaticCSPHeader", t, func() {
+		middleware := StaticCSPHeader{}
 		makeHandler := func() http.Handler {
 			dummy := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 			h := middleware.Handle(dummy)

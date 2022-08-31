@@ -5,7 +5,6 @@ import (
 
 	graphqlhandler "github.com/graphql-go/handler"
 
-	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/transport"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -21,7 +20,7 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 
 	securityMiddleware := httproute.Chain(
 		httproute.MiddlewareFunc(httputil.StaticSecurityHeaders),
-		web.StaticCSPMiddleware{
+		httputil.StaticCSPHeader{
 			CSPDirectives: []string{
 				// FIXME(regeneratorRuntime)
 				// parcel-2.0.0-rc.0 requires us to use ES6 module when the browser supports it.

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"strings"
 )
 
 type dynamicCSPContextKeyType struct{}
@@ -18,10 +17,6 @@ func WithCSPNonce(ctx context.Context, nonce string) context.Context {
 func GetCSPNonce(ctx context.Context) string {
 	nonce, _ := ctx.Value(dynamicCSPContextKey).(string)
 	return nonce
-}
-
-func CSPJoin(directives []string) string {
-	return strings.Join(directives, "; ")
 }
 
 func CSPDirectives(publicOrigin string, nonce string, cdnHost string) ([]string, error) {

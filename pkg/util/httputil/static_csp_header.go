@@ -1,14 +1,19 @@
-package web
+package httputil
 
 import (
 	"net/http"
+	"strings"
 )
 
-type StaticCSPMiddleware struct {
+func CSPJoin(directives []string) string {
+	return strings.Join(directives, "; ")
+}
+
+type StaticCSPHeader struct {
 	CSPDirectives []string
 }
 
-func (m StaticCSPMiddleware) Handle(next http.Handler) http.Handler {
+func (m StaticCSPHeader) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Security-Policy", CSPJoin(m.CSPDirectives))
 		next.ServeHTTP(w, r)

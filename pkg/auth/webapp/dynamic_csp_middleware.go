@@ -46,7 +46,7 @@ func (m *DynamicCSPMiddleware) Handle(next http.Handler) http.Handler {
 			panic(err)
 		}
 
-		w.Header().Set("Content-Security-Policy", web.CSPJoin(cspDirectives))
+		w.Header().Set("Content-Security-Policy", httputil.CSPJoin(cspDirectives))
 		next.ServeHTTP(w, r)
 	})
 }
