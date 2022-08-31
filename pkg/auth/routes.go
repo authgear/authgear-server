@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
-	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -117,7 +116,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		// Turbo no longer requires us to tell the redirected location.
 		// It can now determine redirection from the response.
 		// https://github.com/hotwired/turbo/blob/daabebb0575fffbae1b2582dc458967cd638e899/src/core/drive/visit.ts#L316
-		web.StaticSecurityHeadersMiddleware{},
+		httproute.MiddlewareFunc(httputil.StaticSecurityHeaders),
 		p.Middleware(newDynamicCSPMiddleware),
 	)
 	webappAuthEntrypointChain := httproute.Chain(

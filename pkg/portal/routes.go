@@ -20,7 +20,7 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 	}, http.HandlerFunc(httputil.HealthCheckHandler))
 
 	securityMiddleware := httproute.Chain(
-		web.StaticSecurityHeadersMiddleware{},
+		httproute.MiddlewareFunc(httputil.StaticSecurityHeaders),
 		web.StaticCSPMiddleware{
 			CSPDirectives: []string{
 				// FIXME(regeneratorRuntime)

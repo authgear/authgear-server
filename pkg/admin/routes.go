@@ -21,7 +21,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 	}, p.RootHandler(newHealthzHandler))
 
 	securityMiddleware := httproute.Chain(
-		web.StaticSecurityHeadersMiddleware{},
+		httproute.MiddlewareFunc(httputil.StaticSecurityHeaders),
 		web.StaticCSPMiddleware{
 			CSPDirectives: []string{
 				"script-src 'self' 'unsafe-inline' cdn.jsdelivr.net",
