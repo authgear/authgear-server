@@ -24,7 +24,7 @@
   grid-auto-columns: 1fr;
   grid-template-rows: auto;
 
-  @apply mobile:grid-flow-row;
+  @apply tablet:grid-flow-row;
 }
 
 .footer {
