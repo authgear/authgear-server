@@ -35,7 +35,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	// This route is intentionally simple.
 	// This does not check Host and allow any origin.
 	generatedStaticChain := httproute.Chain(
-		httproute.MiddlewareFunc(middleware.CORSEcho),
+		httproute.MiddlewareFunc(middleware.CORSStar),
 		httproute.MiddlewareFunc(httputil.ETag),
 	)
 
