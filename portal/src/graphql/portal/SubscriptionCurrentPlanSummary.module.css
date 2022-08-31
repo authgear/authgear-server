@@ -37,9 +37,9 @@
 }
 
 .usageMeterProgressBar {
-  width: 355px;
+  max-width: 355px;
 
-  @apply mobile:w-full;
+  @apply mobile:max-w-full;
 }
 
 .subscriptionManagement {
