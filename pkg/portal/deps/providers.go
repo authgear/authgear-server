@@ -13,6 +13,7 @@ import (
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/sentry"
@@ -42,6 +43,7 @@ type RootProvider struct {
 	ConfigSourceController *configsource.Controller
 	Resources              *resource.Manager
 	AppBaseResources       *resource.Manager
+	FilesystemCache        *httputil.FilesystemCache
 }
 
 func NewRootProvider(
@@ -88,6 +90,8 @@ func NewRootProvider(
 		loggerFactory,
 	)
 
+	filesystemCache := httputil.NewFilesystemCache()
+
 	return &RootProvider{
 		EnvironmentConfig:      cfg,
 		ConfigSourceConfig:     configSourceConfig,
@@ -118,6 +122,7 @@ func NewRootProvider(
 			appBuiltinResourceDirectory,
 			appCustomResourceDirectory,
 		),
+		FilesystemCache: filesystemCache,
 	}, nil
 }
 

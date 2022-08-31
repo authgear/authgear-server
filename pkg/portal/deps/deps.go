@@ -69,6 +69,7 @@ var DependencySet = wire.NewSet(
 		"GlobalRedisHandle",
 		"ConfigSourceController",
 		"Resources",
+		"FilesystemCache",
 	),
 	wire.FieldsOf(new(*config.EnvironmentConfig),
 		"TrustProxy",
