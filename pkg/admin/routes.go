@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
-	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -21,8 +20,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 	}, p.RootHandler(newHealthzHandler))
 
 	securityMiddleware := httproute.Chain(
-		web.StaticSecurityHeadersMiddleware{},
-		web.StaticCSPMiddleware{
+		httproute.MiddlewareFunc(httputil.StaticSecurityHeaders),
+		httputil.StaticCSPHeader{
 			CSPDirectives: []string{
 				"script-src 'self' 'unsafe-inline' cdn.jsdelivr.net",
 				"object-src 'none'",

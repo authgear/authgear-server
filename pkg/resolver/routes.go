@@ -5,6 +5,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/resolver/handler"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *httproute.Router {
@@ -19,6 +20,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.RootMiddleware(newPanicMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
+		httproute.MiddlewareFunc(httputil.StaticSecurityHeaders),
 		&deps.RequestMiddleware{
 			RootProvider: p,
 			ConfigSource: configSource,

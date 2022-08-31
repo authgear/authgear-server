@@ -6,12 +6,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestCSPJoin(t *testing.T) {
-	Convey("CSPJoin", t, func() {
-		So(CSPJoin([]string{"a", "b"}), ShouldResemble, "a; b")
-	})
-}
-
 func TestCSPDirectives(t *testing.T) {
 	Convey("CSPDirectives", t, func() {
 		test := func(publicOrigin string, nonce string, cdnHost string, expected []string) {

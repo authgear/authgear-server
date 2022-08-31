@@ -1,4 +1,4 @@
-package web
+package httputil
 
 import (
 	"net/http"
@@ -8,12 +8,11 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestStaticSecurityHeadersMiddleware(t *testing.T) {
-	Convey("StaticSecurityHeadersMiddleware", t, func() {
-		middleware := &StaticSecurityHeadersMiddleware{}
+func TestStaticSecurityHeaders(t *testing.T) {
+	Convey("StaticSecurityHeaders", t, func() {
 		makeHandler := func() http.Handler {
 			dummy := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-			h := middleware.Handle(dummy)
+			h := StaticSecurityHeaders(dummy)
 			return h
 		}
 
