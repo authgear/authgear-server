@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/filepathutil"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/resource"
@@ -84,7 +85,7 @@ func (r *StaticAssetResolver) StaticAssetURL(id string) (string, error) {
 	// nolint:gosec
 	hash := md5.Sum(asset.Data)
 
-	hashPath := PathWithHash(assetPath, fmt.Sprintf("%x", hash))
+	hashPath := filepathutil.MakeHashedPath(assetPath, fmt.Sprintf("%x", hash))
 	return staticAssetURL(r.Config.PublicOrigin, StaticAssetURLPrefix, hashPath)
 }
 
@@ -113,12 +114,6 @@ func staticAssetURL(origin string, prefix string, assetPath string) (string, err
 	}
 	u.Path = path.Join(u.Path, assetPath)
 	return u.String(), nil
-}
-
-func PathWithHash(filePath string, hash string) string {
-	extension := path.Ext(filePath)
-	nameOnly := strings.TrimSuffix(filePath, extension)
-	return fmt.Sprintf("%s.%s%s", nameOnly, hash, extension)
 }
 
 func LookLikeAHash(s string) bool {

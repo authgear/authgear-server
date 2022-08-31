@@ -31,26 +31,6 @@ func TestStaticAssetURL(t *testing.T) {
 }
 
 func TestHasedPath(t *testing.T) {
-	Convey("PathWithHash", t, func() {
-		So(
-			PathWithHash("logo.png", "hash1"),
-			ShouldEqual,
-			"logo.hash1.png",
-		)
-
-		So(
-			PathWithHash("/img/logo.png", "hash2"),
-			ShouldEqual,
-			"/img/logo.hash2.png",
-		)
-
-		So(
-			PathWithHash("/img/logo", "hash"),
-			ShouldEqual,
-			"/img/logo.hash",
-		)
-	})
-
 	Convey("LookLikeAHash", t, func() {
 		result := LookLikeAHash("c90cf340")
 		So(result, ShouldEqual, true)

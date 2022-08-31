@@ -6,8 +6,16 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+func TestExt(t *testing.T) {
+	Convey("Ext", t, func() {
+		So(Ext("logo.hash1.png"), ShouldEqual, ".png")
+		So(Ext("logo.hash1.png.map"), ShouldEqual, ".png.map")
+		So(Ext("logo.hash1"), ShouldEqual, ".hash1")
+	})
+}
+
 func TestParseHashedPath(t *testing.T) {
-	Convey("parsePathWithHash", t, func() {
+	Convey("ParsePathWithHash", t, func() {
 		filePath, hash, _ := ParseHashedPath("logo.hash1.png")
 		So(filePath, ShouldEqual, "logo.png")
 		So(hash, ShouldEqual, "hash1")
@@ -31,6 +39,17 @@ func TestParseHashedPath(t *testing.T) {
 		filePath, hash, _ = ParseHashedPath("script.hash.js.map")
 		So(filePath, ShouldEqual, "script.js.map")
 		So(hash, ShouldEqual, "hash")
+	})
+}
+
+func TestMakeHashedPath(t *testing.T) {
+	Convey("MakeHashedPath", t, func() {
+		So(MakeHashedPath("logo.png", "hash1"), ShouldEqual, "logo.hash1.png")
+		So(MakeHashedPath("/img/logo.png", "hash2"), ShouldEqual, "/img/logo.hash2.png")
+		So(MakeHashedPath("/img/logo", "hash"), ShouldEqual, "/img/logo.hash")
+		So(MakeHashedPath("logo", "hash"), ShouldEqual, "logo.hash")
+		So(MakeHashedPath("logo", ""), ShouldEqual, "logo")
+		So(MakeHashedPath("script.js.map", "hash"), ShouldEqual, "script.hash.js.map")
 	})
 }
 
