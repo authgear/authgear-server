@@ -126,8 +126,10 @@ portal:
 clean:
 	rm -rf ./resources/portal/static
 	git checkout -- ./resources/portal/static
-	rm -rf ./resources/authgear/generated/
-	git checkout -- ./resources/authgear/generated/
+	# It is important NOT to remove the directory.
+	# Otherwise the watcher is stopped.
+	rm -rf ./resources/authgear/generated/*
+	git checkout -- ./resources/authgear/generated/*
 
 .PHONY: export-schemas
 export-schemas:
