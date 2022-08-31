@@ -15,8 +15,8 @@
 
 .addon {
   display: grid;
-  grid-template-columns: 36px auto;
-  grid-template-rows: repeat(2, 20px);
+  grid-template-columns: 36px 1fr;
+  grid-template-rows: 20px 1fr;
   column-gap: 14px;
 }
 
@@ -42,6 +42,8 @@
 .addonDescription {
   grid-column: 2 / span 1;
   grid-row: 2 / span 1;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 .action {
