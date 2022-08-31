@@ -25,6 +25,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.RootMiddleware(newPanicMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
+		httproute.MiddlewareFunc(httputil.StaticSecurityHeaders),
 		&deps.RequestMiddleware{
 			RootProvider: p,
 			ConfigSource: configSource,
@@ -34,6 +35,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	// This route is intentionally simple.
 	// This does not check Host and allow any origin.
 	generatedStaticChain := httproute.Chain(
+		httproute.MiddlewareFunc(httputil.StaticSecurityHeaders),
 		httproute.MiddlewareFunc(middleware.CORSStar),
 		httproute.MiddlewareFunc(httputil.ETag),
 	)
@@ -116,7 +118,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		// Turbo no longer requires us to tell the redirected location.
 		// It can now determine redirection from the response.
 		// https://github.com/hotwired/turbo/blob/daabebb0575fffbae1b2582dc458967cd638e899/src/core/drive/visit.ts#L316
-		httproute.MiddlewareFunc(httputil.StaticSecurityHeaders),
 		p.Middleware(newDynamicCSPMiddleware),
 	)
 	webappAuthEntrypointChain := httproute.Chain(
