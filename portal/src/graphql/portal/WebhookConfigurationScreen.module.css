@@ -25,7 +25,9 @@
 }
 
 .secretButton {
-  grid-column: 5 / span 1;
+  grid-column: 4 / span 2;
+  width: 80px;
+  justify-self: center;
   align-self: end;
 }
 
