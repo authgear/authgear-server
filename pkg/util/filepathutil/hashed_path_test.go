@@ -16,29 +16,35 @@ func TestExt(t *testing.T) {
 
 func TestParseHashedPath(t *testing.T) {
 	Convey("ParsePathWithHash", t, func() {
-		filePath, hash, _ := ParseHashedPath("logo.hash1.png")
+		filePath, hash, ok := ParseHashedPath("logo.hash1.png")
 		So(filePath, ShouldEqual, "logo.png")
 		So(hash, ShouldEqual, "hash1")
+		So(ok, ShouldBeTrue)
 
-		filePath, hash, _ = ParseHashedPath("/img/logo.hash2.png")
+		filePath, hash, ok = ParseHashedPath("/img/logo.hash2.png")
 		So(filePath, ShouldEqual, "/img/logo.png")
 		So(hash, ShouldEqual, "hash2")
+		So(ok, ShouldBeTrue)
 
-		filePath, hash, _ = ParseHashedPath("/img/logo.hash")
+		filePath, hash, ok = ParseHashedPath("/img/logo.hash")
 		So(filePath, ShouldEqual, "/img/logo")
 		So(hash, ShouldEqual, "hash")
+		So(ok, ShouldBeTrue)
 
-		filePath, hash, _ = ParseHashedPath("logo.hash")
+		filePath, hash, ok = ParseHashedPath("logo.hash")
 		So(filePath, ShouldEqual, "logo")
 		So(hash, ShouldEqual, "hash")
+		So(ok, ShouldBeTrue)
 
-		filePath, hash, _ = ParseHashedPath("logo")
+		filePath, hash, ok = ParseHashedPath("logo")
 		So(filePath, ShouldEqual, "")
 		So(hash, ShouldEqual, "")
+		So(ok, ShouldBeFalse)
 
-		filePath, hash, _ = ParseHashedPath("script.hash.js.map")
+		filePath, hash, ok = ParseHashedPath("script.hash.js.map")
 		So(filePath, ShouldEqual, "script.js.map")
 		So(hash, ShouldEqual, "hash")
+		So(ok, ShouldBeTrue)
 	})
 }
 

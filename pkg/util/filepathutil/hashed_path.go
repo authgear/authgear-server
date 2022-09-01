@@ -36,6 +36,7 @@ func ParseHashedPath(hashedPath string) (filePath string, hash string, ok bool) 
 		// so the extension is the hashed
 		filePath = nameWithHash
 		hash = strings.TrimPrefix(extension, ".")
+		ok = true
 		return
 	}
 
@@ -43,6 +44,7 @@ func ParseHashedPath(hashedPath string) (filePath string, hash string, ok bool) 
 
 	hash = nameWithHash[dotIdx+1:]
 	filePath = fmt.Sprintf("%s%s", nameOnly, extension)
+	ok = true
 
 	return
 }
