@@ -1,0 +1,37 @@
+.widget {
+  grid-column: 1 / span 6;
+
+  @apply mobile:col-span-full;
+}
+
+.actionButton {
+  @apply h-auto leading-4 text-xs;
+}
+
+.networkSection {
+  @apply flex flex-col mt-2 mb-4;
+}
+
+.networkDropdown {
+  @apply mb-1;
+}
+
+.separator {
+  @apply h-px;
+}
+
+.nftCollectionTitle {
+  @apply font-bold mb-2;
+}
+
+.nftCollectionList {
+  @apply mt-4;
+}
+
+.addCollectionForm {
+  @apply mt-1.5;
+}
+
+.addCollectionButton {
+  @apply p-2;
+}

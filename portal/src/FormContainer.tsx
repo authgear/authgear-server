@@ -36,6 +36,7 @@ export interface FormContainerProps {
   messageBar?: React.ReactNode;
   primaryItems?: ICommandBarItemProps[];
   secondaryItems?: ICommandBarItemProps[];
+  beforeSave?: () => Promise<void>;
   afterSave?: () => void;
   children?: React.ReactNode;
 }
@@ -60,6 +61,7 @@ const FormContainer: React.VFC<FormContainerProps> = function FormContainer(
     primaryItems,
     secondaryItems,
     messageBar,
+    beforeSave = async () => Promise.resolve(),
     afterSave,
   } = props;
 
@@ -68,11 +70,16 @@ const FormContainer: React.VFC<FormContainerProps> = function FormContainer(
   const { renderToString } = useContext(Context);
 
   const callSave = useCallback(() => {
-    save().then(
-      () => afterSave?.(),
+    beforeSave().then(
+      () => {
+        save().then(
+          () => afterSave?.(),
+          () => {}
+        );
+      },
       () => {}
     );
-  }, [save, afterSave]);
+  }, [beforeSave, save, afterSave]);
 
   const onFormSubmit = useCallback(
     (e: React.FormEvent) => {

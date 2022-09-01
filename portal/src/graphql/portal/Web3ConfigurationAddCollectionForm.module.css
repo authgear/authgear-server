@@ -1,0 +1,7 @@
+.addCollection {
+  @apply flex flex-row gap-x-2;
+}
+
+.addCollectionField {
+  @apply w-full;
+}
