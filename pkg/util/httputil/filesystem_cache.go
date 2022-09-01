@@ -69,14 +69,14 @@ func (c *FilesystemCache) Serve(r *http.Request, make func() ([]byte, error)) (h
 	var err error
 	var bytes []byte
 
-	originalPath := r.URL.Path
-	filename := filepathutil.EscapePath(originalPath)
-
-	c.mutexForMapping.RLock()
-	mappedFilename, ok := c.mapping[filename]
-	c.mutexForMapping.RUnlock()
-
 	handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		originalPath := r.URL.Path
+		filename := filepathutil.EscapePath(originalPath)
+
+		c.mutexForMapping.RLock()
+		mappedFilename, ok := c.mapping[filename]
+		c.mutexForMapping.RUnlock()
+
 		if ok {
 			r.URL.Path = fmt.Sprintf("/%v", mappedFilename)
 		} else {
@@ -86,6 +86,13 @@ func (c *FilesystemCache) Serve(r *http.Request, make func() ([]byte, error)) (h
 
 		http.FileServer(http.Dir(os.TempDir())).ServeHTTP(w, r)
 	})
+
+	originalPath := r.URL.Path
+	filename := filepathutil.EscapePath(originalPath)
+
+	c.mutexForMapping.RLock()
+	mappedFilename, ok := c.mapping[filename]
+	c.mutexForMapping.RUnlock()
 
 	needWrite := false
 	if ok {
