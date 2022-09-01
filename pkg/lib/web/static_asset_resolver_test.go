@@ -31,65 +31,11 @@ func TestStaticAssetURL(t *testing.T) {
 }
 
 func TestHasedPath(t *testing.T) {
-	Convey("PathWithHash", t, func() {
-		So(
-			PathWithHash("logo.png", "hash1"),
-			ShouldEqual,
-			"logo.hash1.png",
-		)
-
-		So(
-			PathWithHash("/img/logo.png", "hash2"),
-			ShouldEqual,
-			"/img/logo.hash2.png",
-		)
-
-		So(
-			PathWithHash("/img/logo", "hash"),
-			ShouldEqual,
-			"/img/logo.hash",
-		)
-	})
-
-	Convey("parsePathWithHash", t, func() {
-		filePath, hash := ParsePathWithHash("logo.hash1.png")
-		So(filePath, ShouldEqual, "logo.png")
-		So(hash, ShouldEqual, "hash1")
-
-		filePath, hash = ParsePathWithHash("/img/logo.hash2.png")
-		So(filePath, ShouldEqual, "/img/logo.png")
-		So(hash, ShouldEqual, "hash2")
-
-		filePath, hash = ParsePathWithHash("/img/logo.hash")
-		So(filePath, ShouldEqual, "/img/logo")
-		So(hash, ShouldEqual, "hash")
-
-		filePath, hash = ParsePathWithHash("logo.hash")
-		So(filePath, ShouldEqual, "logo")
-		So(hash, ShouldEqual, "hash")
-
-		filePath, hash = ParsePathWithHash("logo")
-		So(filePath, ShouldEqual, "")
-		So(hash, ShouldEqual, "")
-
-		filePath, hash = ParsePathWithHash("script.hash.js.map")
-		So(filePath, ShouldEqual, "script.js.map")
-		So(hash, ShouldEqual, "hash")
-	})
-
 	Convey("LookLikeAHash", t, func() {
 		result := LookLikeAHash("c90cf340")
 		So(result, ShouldEqual, true)
 
 		result = LookLikeAHash("123")
-		So(result, ShouldEqual, false)
-	})
-
-	Convey("IsSourceMapPath", t, func() {
-		result := IsSourceMapPath("script.hash.js.map")
-		So(result, ShouldEqual, true)
-
-		result = IsSourceMapPath("style.css")
 		So(result, ShouldEqual, false)
 	})
 }

@@ -1,4 +1,4 @@
-package configsource
+package filepathutil
 
 import (
 	"regexp"

@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/spf13/cobra"
+
 	portalcmd "github.com/authgear/authgear-server/cmd/portal/cmd"
 	"github.com/authgear/authgear-server/cmd/portal/internal"
-	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/theme"
-	"github.com/spf13/cobra"
+	"github.com/authgear/authgear-server/pkg/util/filepathutil"
 )
 
 var cmdInternalMigrateMediaQueryDarkTheme = &cobra.Command{
@@ -38,7 +39,7 @@ var cmdInternalMigrateMediaQueryDarkTheme = &cobra.Command{
 
 func migrateMediaQueryDarkTheme(appID string, configSourceData map[string]string, dryRun bool) error {
 	originalPath := "static/authgear-dark-theme.css"
-	escapedPath := configsource.EscapePath(originalPath)
+	escapedPath := filepathutil.EscapePath(originalPath)
 	encodedData, ok := configSourceData[escapedPath]
 	if !ok {
 		return nil

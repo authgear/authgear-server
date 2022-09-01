@@ -13,6 +13,7 @@ import (
 	aferomem "github.com/spf13/afero/mem"
 
 	"github.com/authgear/authgear-server/pkg/lib/web"
+	"github.com/authgear/authgear-server/pkg/util/filepathutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
@@ -49,8 +50,8 @@ func (h *AppStaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 func (h *AppStaticAssetsHandler) Resolve(name string) bool {
 	p := path.Join(web.StaticAssetResourcePrefix, name)
 
-	filePath, hashInPath := web.ParsePathWithHash(p)
-	if filePath == "" || hashInPath == "" {
+	filePath, _, ok := filepathutil.ParseHashedPath(p)
+	if !ok {
 		return false
 	}
 
@@ -64,8 +65,8 @@ func (h *AppStaticAssetsHandler) Resolve(name string) bool {
 func (h *AppStaticAssetsHandler) Open(name string) (http.File, error) {
 	p := path.Join(web.StaticAssetResourcePrefix, name)
 
-	filePath, hashInPath := web.ParsePathWithHash(p)
-	if filePath == "" || hashInPath == "" {
+	filePath, hashInPath, ok := filepathutil.ParseHashedPath(p)
+	if !ok {
 		return nil, os.ErrNotExist
 	}
 

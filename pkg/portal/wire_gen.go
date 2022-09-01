@@ -334,8 +334,10 @@ func newSystemConfigHandler(p *deps.RequestProvider) http.Handler {
 		GTMConfig:      googleTagManagerConfig,
 		Resources:      manager,
 	}
+	filesystemCache := rootProvider.FilesystemCache
 	systemConfigHandler := &transport.SystemConfigHandler{
-		SystemConfig: systemConfigProvider,
+		SystemConfig:    systemConfigProvider,
+		FilesystemCache: filesystemCache,
 	}
 	return systemConfigHandler
 }
