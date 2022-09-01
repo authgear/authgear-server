@@ -31,10 +31,14 @@
   align-items: center;
 }
 
+.cellText {
+  @apply truncate;
+}
+
 .userInfo {
   display: grid;
   column-gap: 12px;
-  grid-template-columns: 40px 1fr;
+  grid-template-columns: 40px minmax(0, 1fr);
   grid-template-rows: repeat(2, 20px);
 }
 
@@ -48,12 +52,14 @@
   grid-row: 1 / span 1;
   font-weight: 600;
   align-self: center;
+  @apply truncate;
 }
 
 .userInfoRawID {
   grid-column: 2 / span 1;
   grid-row: 2 / span 1;
   align-self: center;
+  @apply truncate;
 }
 
 .anonymousUserLabel {
