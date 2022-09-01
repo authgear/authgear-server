@@ -1,0 +1,19 @@
+query nftCollectionsQuery($appID: ID!) {
+  node(id: $appID) {
+    __typename
+    ... on App {
+      id
+      nftCollections {
+        id
+        name
+        blockchain
+        network
+        contractAddress
+        blockHeight
+        totalSupply
+        type
+        createdAt
+      }
+    }
+  }
+}

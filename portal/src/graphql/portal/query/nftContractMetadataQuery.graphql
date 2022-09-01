@@ -1,0 +1,9 @@
+query nftContractMetadataQuery($appID: ID!, $contractID: String!) {
+  nftContractMetadata(appID: $appID, contractID: $contractID) {
+    address
+    name
+    symbol
+    totalSupply
+    tokenType
+  }
+}

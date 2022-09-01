@@ -1,0 +1,20 @@
+mutation watchNFTCollectionsMutation(
+  $appID: String!
+  $contractIDs: [String!]!
+) {
+  watchNFTCollections(input: { id: $appID, contractIDs: $contractIDs }) {
+    app {
+      id
+      nftCollections {
+        id
+        name
+        blockchain
+        network
+        contractAddress
+        totalSupply
+        type
+        createdAt
+      }
+    }
+  }
+}

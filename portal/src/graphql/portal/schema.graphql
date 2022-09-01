@@ -49,6 +49,9 @@ type App implements Node {
   isProcessingSubscription: Boolean!
 
   """"""
+  nftCollections: [NFTCollection!]!
+
+  """"""
   planName: String!
 
   """"""
@@ -398,6 +401,57 @@ type Mutation {
 
   """Request verification of a domain of target app"""
   verifyDomain(input: VerifyDomainInput!): VerifyDomainPayload!
+
+  """Start watching a batch of NFT Collections"""
+  watchNFTCollections(input: WatchNFTCollectionsInput!): WatchNFTCollectionsPayload!
+}
+
+"""Web3 NFT Collection"""
+type NFTCollection {
+  """"""
+  blockHeight: Int!
+
+  """"""
+  blockchain: String!
+
+  """"""
+  contractAddress: String!
+
+  """"""
+  createdAt: DateTime!
+
+  """"""
+  id: ID
+
+  """"""
+  name: String!
+
+  """"""
+  network: String!
+
+  """"""
+  totalSupply: Int!
+
+  """"""
+  type: String!
+}
+
+"""Web3 NFT ContractMetadata"""
+type NFTContractMetadata {
+  """"""
+  address: String!
+
+  """"""
+  name: String!
+
+  """"""
+  symbol: String!
+
+  """"""
+  tokenType: String!
+
+  """"""
+  totalSupply: String!
 }
 
 """An object with an ID"""
@@ -488,6 +542,9 @@ type Query {
 
   """Check whether the viewer can accept the collaboration invitation"""
   checkCollaboratorInvitation(code: String!): CheckCollaboratorInvitationPayload
+
+  """Fetch NFT Contract Metadata"""
+  nftContractMetadata(appID: ID, contractID: String): NFTContractMetadata
 
   """Fetches an object given its ID"""
   node(
@@ -866,6 +923,21 @@ type VerifyDomainPayload {
 
   """"""
   domain: Domain!
+}
+
+""""""
+input WatchNFTCollectionsInput {
+  """"""
+  contractIDs: [String!]!
+
+  """ID of the app."""
+  id: String!
+}
+
+""""""
+type WatchNFTCollectionsPayload {
+  """"""
+  app: App!
 }
 
 """Webhook secret"""
