@@ -283,6 +283,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clock,
 		AppConfig:         appConfig,
 	}
+	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
+	nftService := &service.NFTService{
+		APIEndpoint: nftIndexerAPIEndpoint,
+	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:               logger,
 		Users:                   userLoader,
@@ -300,6 +304,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		TutorialService:         tutorialService,
 		StripeService:           libstripeService,
 		SubscriptionService:     subscriptionService,
+		NFTService:              nftService,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		DevMode:        devMode,

@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
+	"github.com/authgear/authgear-server/pkg/util/web3"
 )
 
 var checkCollaboratorInvitationPayload = graphql.NewObject(graphql.ObjectConfig{
@@ -258,6 +259,35 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					return nil, err
 				}
 				return plans, nil
+			},
+		},
+		"nftContractMetadata": &graphql.Field{
+			Description: "Fetch NFT Contract Metadata",
+			Type:        nftContractMetadata,
+			Args: graphql.FieldConfigArgument{
+				"appID": &graphql.ArgumentConfig{
+					Type: graphql.ID,
+				},
+				"contractID": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+			},
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				ctx := GQLContext(p.Context)
+				appNodeID := p.Args["appID"].(string)
+				contractURL := p.Args["contractID"].(string)
+
+				contractID, err := web3.ParseContractID(contractURL)
+				if err != nil {
+					return nil, err
+				}
+
+				metadata, err := ctx.NFTService.GetContractMetadata(appNodeID, *contractID)
+				if err != nil {
+					return nil, err
+				}
+
+				return metadata, nil
 			},
 		},
 	},
