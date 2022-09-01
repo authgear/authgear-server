@@ -19,14 +19,13 @@
 }
 
 .secretInput {
-  grid-column: 1 / span 8;
+  grid-column: 1 / span 7;
 
   @apply tablet:col-span-full;
 }
 
 .secretButton {
-  grid-column: 4 / span 2;
-  width: 80px;
+  grid-column: span 1 / span 1;
   justify-self: center;
   align-self: end;
 }
