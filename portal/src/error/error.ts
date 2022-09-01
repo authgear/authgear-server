@@ -44,6 +44,11 @@ export interface RequestEntityTooLargeError {
   reason: "RequestEntityTooLarge";
 }
 
+export interface TooManyRequestError {
+  errorName: "TooManyRequest";
+  reason: "TooManyRequest";
+}
+
 export interface UnknownError {
   errorName: "Unknown";
   reason: "Unknown";
@@ -65,6 +70,7 @@ export type APIError =
   | RequestEntityTooLargeError
   | UnknownError
   | LocalError
+  | TooManyRequestError
   | WebHookDisallowedError
   | WebHookDeliveryTimeoutError
   | WebHookInvalidResponseError

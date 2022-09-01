@@ -99,6 +99,9 @@ const AuthenticatorConfigurationScreen = lazy(
 const VerificationConfigurationScreen = lazy(
   async () => import("./graphql/portal/VerificationConfigurationScreen")
 );
+const Web3ConfigurationScreen = lazy(
+  async () => import("./graphql/portal/Web3ConfigurationScreen")
+);
 const BiometricConfigurationScreen = lazy(
   async () => import("./graphql/portal/BiometricConfigurationScreen")
 );
@@ -325,6 +328,14 @@ const AppRoot: React.VFC = function AppRoot() {
                   element={
                     <Suspense fallback={<ShowLoading />}>
                       <VerificationConfigurationScreen />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="web3"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <Web3ConfigurationScreen />
                     </Suspense>
                   }
                 />

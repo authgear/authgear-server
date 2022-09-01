@@ -125,6 +125,10 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             textKey: "ScreenNav.verification",
             url: `/project/${appID}/configuration/authentication/verification`,
           },
+          {
+            textKey: "ScreenNav.web3",
+            url: "./configuration/authentication/web3",
+          },
         ],
       },
       {

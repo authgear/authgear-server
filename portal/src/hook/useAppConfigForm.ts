@@ -13,6 +13,7 @@ export interface AppConfigFormModel<State> {
   canSave?: boolean;
   loadError: unknown;
   updateError: unknown;
+  initialState: State;
   state: State;
   setState: (fn: (state: State) => State) => void;
   reload: () => void;
@@ -167,6 +168,7 @@ export function useAppConfigForm<State>(
     updateError,
     canSave,
     setCanSave,
+    initialState,
     state,
     setState,
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
