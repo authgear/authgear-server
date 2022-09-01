@@ -8,13 +8,13 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"strings"
 
 	aferomem "github.com/spf13/afero/mem"
 
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/filepathutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -34,32 +34,11 @@ type AppStaticAssetsHandler struct {
 }
 
 func (h *AppStaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fileServer := http.StripPrefix("/static/", http.FileServer(h))
-
-	filePath := strings.TrimPrefix(r.URL.Path, "/static/")
-	ok := h.Resolve(filePath)
-	if ok {
-		// set cache control header if the file is found
-		// 604800 seconds is a week
-		w.Header().Set("Cache-Control", "public, max-age=604800")
-	}
-
+	fileServer := http.StripPrefix("/static/", &httputil.FileServer{
+		FileSystem:          h,
+		FallbackToIndexHTML: false,
+	})
 	fileServer.ServeHTTP(w, r)
-}
-
-func (h *AppStaticAssetsHandler) Resolve(name string) bool {
-	p := path.Join(web.StaticAssetResourcePrefix, name)
-
-	filePath, _, ok := filepathutil.ParseHashedPath(p)
-	if !ok {
-		return false
-	}
-
-	if _, ok := h.Resources.Resolve(filePath); ok {
-		return true
-	}
-
-	return false
 }
 
 func (h *AppStaticAssetsHandler) Open(name string) (http.File, error) {

@@ -37,21 +37,18 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	generatedStaticChain := httproute.Chain(
 		httproute.MiddlewareFunc(httputil.StaticSecurityHeaders),
 		httproute.MiddlewareFunc(middleware.CORSStar),
-		httproute.MiddlewareFunc(httputil.ETag),
 	)
 
 	appStaticChain := httproute.Chain(
 		rootChain,
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
-		httproute.MiddlewareFunc(httputil.ETag),
 	)
 
 	oauthStaticChain := httproute.Chain(
 		rootChain,
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
-		httproute.MiddlewareFunc(httputil.ETag),
 	)
 
 	oauthAPIChain := httproute.Chain(

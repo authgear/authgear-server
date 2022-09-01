@@ -18,10 +18,10 @@ type StaticAssetsHandler struct {
 }
 
 func (h *StaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	server := http.FileServer(&httputil.TryFileSystem{
-		Fallback: "/index.html",
-		FS:       h,
-	})
+	server := &httputil.FileServer{
+		FileSystem:          h,
+		FallbackToIndexHTML: true,
+	}
 	server.ServeHTTP(w, r)
 }
 

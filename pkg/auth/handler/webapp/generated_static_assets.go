@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"strings"
 
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func ConfigureGeneratedStaticAssetsRoute(route httproute.Route) httproute.Route {
@@ -27,25 +27,11 @@ type GeneratedStaticAssetsHandler struct {
 }
 
 func (h *GeneratedStaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fileServer := http.StripPrefix("/generated/", http.FileServer(h))
-
-	filePath := strings.TrimPrefix(r.URL.Path, "/generated/")
-	ok := h.Resolve(filePath)
-	if ok {
-		// set cache control header if the file is found
-		// 604800 seconds is a week
-		w.Header().Set("Cache-Control", "public, max-age=604800")
-	}
-
+	fileServer := http.StripPrefix("/generated/", &httputil.FileServer{
+		FileSystem:          h,
+		FallbackToIndexHTML: false,
+	})
 	fileServer.ServeHTTP(w, r)
-}
-
-func (h *GeneratedStaticAssetsHandler) Resolve(name string) bool {
-	p := path.Join(web.DefaultResourcePrefix, name)
-	if _, ok := h.EmbeddedResources.Resolve(p); ok {
-		return true
-	}
-	return false
 }
 
 func (h *GeneratedStaticAssetsHandler) Open(name string) (http.File, error) {
