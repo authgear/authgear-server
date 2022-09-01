@@ -240,6 +240,7 @@ export const identityTypes = [
   "anonymous",
   "biometric",
   "passkey",
+  "siwe",
 ] as const;
 export type IdentityType = typeof identityTypes[number];
 
@@ -439,6 +440,20 @@ export interface UserProfileConfig {
   custom_attributes?: CustomAttributesConfig;
 }
 
+// Web3 Configs
+export interface SIWEConfig {
+  networks?: string[];
+}
+
+export interface NFTConfig {
+  collections?: string[];
+}
+
+export interface Web3Config {
+  nft?: NFTConfig;
+  siwe?: SIWEConfig;
+}
+
 // PortalAPIAppConfig
 export interface PortalAPIAppConfig {
   id: string;
@@ -453,6 +468,7 @@ export interface PortalAPIAppConfig {
   oauth?: OAuthConfig;
   session?: SessionConfig;
   hook?: HookConfig;
+  web3?: Web3Config;
   user_profile?: UserProfileConfig;
   account_deletion?: AccountDeletionConfig;
   google_tag_manager?: GoogleTagManagerConfig;
