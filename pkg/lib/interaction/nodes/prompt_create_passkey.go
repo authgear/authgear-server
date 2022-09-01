@@ -25,6 +25,23 @@ func (e *EdgePromptCreatePasskeyBegin) Instantiate(ctx *interaction.Context, gra
 		return nil, err
 	}
 
+	// Check if the user has identity that needs passkey
+	// e.g. Should not ask the user to create passkey when they only have
+	// oauth / anonymous identities
+	needPasskey := false
+	identities, err := ctx.Identities.ListByUser(userID)
+	if err != nil {
+		return nil, err
+	}
+	for _, ii := range identities {
+		types := ii.PrimaryAuthenticatorTypes()
+		for _, typ := range types {
+			if typ == model.AuthenticatorTypePasskey {
+				needPasskey = true
+			}
+		}
+	}
+
 	passkeyEnabled := false
 	for _, typ := range *ctx.Config.Authentication.PrimaryAuthenticators {
 		if typ == model.AuthenticatorTypePasskey {
@@ -32,7 +49,7 @@ func (e *EdgePromptCreatePasskeyBegin) Instantiate(ctx *interaction.Context, gra
 		}
 	}
 
-	if !passkeyEnabled || len(ais) > 0 {
+	if !passkeyEnabled || len(ais) > 0 || !needPasskey {
 		return &NodePromptCreatePasskeyEnd{}, nil
 	}
 
