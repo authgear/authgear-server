@@ -83,25 +83,3 @@ func (s *Service) GetNFTsByAddress(contracts []web3.ContractID, ownerAddresses s
 
 	return &response, nil
 }
-
-func (s *Service) GetNFTCollections() (*model.GetCollectionsResponse, error) {
-	endpoint, err := url.Parse(string(s.APIEndpoint))
-	if err != nil {
-		return nil, err
-	}
-
-	endpoint.Path = path.Join("collections")
-
-	res, err := http.Get(endpoint.String())
-	if err != nil {
-		return nil, err
-	}
-
-	var response model.GetCollectionsResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, err
-	}
-
-	return &response, nil
-}

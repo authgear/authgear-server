@@ -47,11 +47,22 @@ type NFTOwnership struct {
 }
 
 type NFTCollection struct {
-	ID              string `json:"id"`
-	Blockchain      string `json:"blockchain"`
-	Network         string `json:"network"`
-	Name            string `json:"name"`
-	ContractAddress string `json:"contract_address"`
+	ID              string    `json:"id"`
+	Blockchain      string    `json:"blockchain"`
+	Network         string    `json:"network"`
+	Name            string    `json:"name"`
+	BlockHeight     int       `json:"block_height"`
+	ContractAddress string    `json:"contract_address"`
+	TotalSupply     int       `json:"total_supply"`
+	Type            string    `json:"type"`
+	CreatedAt       time.Time `json:"created_at"`
+}
+
+type ContractMetadataMetadata struct {
+	Name        string `json:"name"`
+	Symbol      string `json:"symbol"`
+	TotalSupply string `json:"total_supply"`
+	TokenType   string `json:"token_type"`
 }
 
 type GetUserNFTsResponse struct {
@@ -63,16 +74,13 @@ type WatchCollectionRequest struct {
 	Name       string `json:"name,omitempty"`
 }
 
-type WatchColletionResponse struct {
-	ID              string `json:"id"`
-	Blockchain      string `json:"blockchain"`
-	Network         string `json:"network"`
-	ContractAddress string `json:"contract_address"`
-	Name            string `json:"name,omitempty"`
+type GetCollectionsResult struct {
+	Items []NFTCollection `json:"items"`
 }
 
-type GetCollectionsResponse struct {
-	Items []NFTCollection `json:"items"`
+type ContractMetadata struct {
+	Address  string                   `json:"address"`
+	Metadata ContractMetadataMetadata `json:"contract_metadata"`
 }
 
 type UserWeb3Info struct {
