@@ -13,7 +13,6 @@ require (
 	github.com/elastic/go-elasticsearch/v7 v7.16.0
 	github.com/felixge/httpsnoop v1.0.3
 	github.com/getsentry/sentry-go v0.13.0
-	github.com/go-http-utils/etag v0.0.0-20161124023236-513ea8f21eb1
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-redsync/redsync/v4 v4.5.1
 	github.com/golang/mock v1.6.0
@@ -106,8 +105,6 @@ require (
 	github.com/fullstorydev/grpcurl v1.8.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
 	github.com/go-gorp/gorp/v3 v3.0.2 // indirect
-	github.com/go-http-utils/fresh v0.0.0-20161124030543-7231e26a4b27 // indirect
-	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a // indirect
 	github.com/go-logr/logr v0.4.0 // indirect
 	github.com/goccy/go-json v0.9.7 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
