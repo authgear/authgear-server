@@ -1,5 +1,11 @@
 import React, { useCallback, useMemo } from "react";
-import { Dialog, DialogFooter, Text } from "@fluentui/react";
+import {
+  Dialog,
+  DialogFooter,
+  MessageBar,
+  MessageBarType,
+  Text,
+} from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import DefaultButton from "../../DefaultButton";
 import { NftCollection } from "./globalTypes.generated";
@@ -7,6 +13,7 @@ import styles from "./Web3ConfigurationDetailDialog.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { getNetworkNameId } from "../../util/networkId";
 import ActionButton from "../../ActionButton";
+import { DateTime } from "luxon";
 
 interface Web3ConfigurationDetailDialogProps {
   nftCollection: NftCollection;
@@ -31,6 +38,13 @@ const Web3ConfigurationDetailDialog: React.VFC<Web3ConfigurationDetailDialogProp
     const onRemoveCollection = useCallback(() => {
       onDelete(nftCollection);
     }, [nftCollection, onDelete]);
+
+    const isRecentlyAdded = useMemo(() => {
+      const createdAt = DateTime.fromISO(nftCollection.createdAt);
+      const now = DateTime.now();
+
+      return createdAt.plus({ minutes: 5 }) > now;
+    }, [nftCollection]);
 
     return (
       <Dialog
@@ -75,6 +89,15 @@ const Web3ConfigurationDetailDialog: React.VFC<Web3ConfigurationDetailDialogProp
             <Text as="p" block={true}>
               {nftCollection.blockHeight}
             </Text>
+
+            {isRecentlyAdded ? (
+              <MessageBar
+                className={styles.messageBar}
+                messageBarType={MessageBarType.info}
+              >
+                <FormattedMessage id="Web3ConfigurationScreen.detail-dialog.recent-added-info" />
+              </MessageBar>
+            ) : null}
           </div>
 
           <div className={styles.fieldContainer}>
