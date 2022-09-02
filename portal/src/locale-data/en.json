@@ -1220,6 +1220,7 @@
   "GetStartedScreen.card.skip-button.label": "Skip this",
 
   "NetworkId.ethereum-mainnet": "Ethereum mainnet",
+  "NetworkId.ethereum-goerli": "Goerli Test Network",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
