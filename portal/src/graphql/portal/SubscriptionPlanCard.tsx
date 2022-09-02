@@ -601,7 +601,7 @@ function SubscriptionPlanCard(
   } = props;
   return (
     <Card tag={cardTag} isActive={isCurrentPlan}>
-      <div>
+      <div className={styles.cardTopSection}>
         {cardTitle}
         {cardTagline}
         <BasePriceSection>
