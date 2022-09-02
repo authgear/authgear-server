@@ -5,6 +5,10 @@ export const ALL_SUPPORTED_NETWORKS: NetworkId[] = [
     blockchain: "ethereum",
     network: "1",
   },
+  {
+    blockchain: "ethereum",
+    network: "5",
+  },
 ];
 export interface NetworkId {
   blockchain: string;
@@ -53,6 +57,8 @@ export function getNetworkNameId(networkId: NetworkId): string {
       switch (networkId.network) {
         case "1":
           return "NetworkId.ethereum-mainnet";
+        case "5":
+          return "NetworkId.ethereum-goerli";
         default:
           throw new Error(`Unsupported chain id: ${networkId.network}`);
       }

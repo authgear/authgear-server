@@ -91,12 +91,15 @@ type EthereumNetwork string
 
 const (
 	EthereumNetworkEthereumMainnet EthereumNetwork = "1"
+	EthereumNetworkEthereumGoerli  EthereumNetwork = "5"
 )
 
 func ParseEthereumNetwork(s string) (EthereumNetwork, bool) {
 	switch s {
 	case "1":
 		return EthereumNetworkEthereumMainnet, true
+	case "5":
+		return EthereumNetworkEthereumGoerli, true
 	default:
 		return "", false
 	}
