@@ -6,4 +6,6 @@
 
 .control {
   width: 50%;
+
+  @apply tablet:w-full;
 }
