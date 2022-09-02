@@ -363,6 +363,7 @@
   "Web3ConfigurationScreen.confirmation-dialog.collection-removed.title": "Removing NFT Collections",
   "Web3ConfigurationScreen.confirmation-dialog.collection-removed.description": "The following collections will be removed from your project",
   "Web3ConfigurationScreen.confirmation-dialog.confirm": "Confirm and save",
+  "Web3ConfigurationScreen.detail-dialog.recent-added-info": "Syncing chain. It will take few minutes.",
   "Web3ConfigurationScreen.network-droplist.warning": "Switching to another network will clear your NFT Collections",
   "Web3ConfigurationScreen.detail-dialog.contract-address": "Contract Address",
   "Web3ConfigurationScreen.detail-dialog.view-on-etherscan": "{DocLink, react, href{https://etherscan.io/address/{address}} children{View on Etherscan}}",
