@@ -215,26 +215,33 @@ func (c *Coordinator) IdentityDelete(is *identity.Info) error {
 		)
 	}
 
-	// And for each identifiable identity, if it requires primary authenticator,
-	// there is at least one applicable primary authenticator remaining.
-	for _, i := range remaining {
-		types := i.PrimaryAuthenticatorTypes()
-		if len(types) <= 0 {
-			continue
-		}
-
-		ok := false
-		for _, a := range authenticators {
-			if a.IsApplicableTo(i) {
-				ok = true
+	// Allow deleting anonymous identity, even if the remaining identities don't have an applicable authenticator
+	// In promotion flow, we will
+	// 1. Create a new identity
+	// 2. Remove the anonymous identity
+	// 3. Add the new authenticator
+	if is.Type != model.IdentityTypeAnonymous {
+		// And for each identifiable identity, if it requires primary authenticator,
+		// there is at least one applicable primary authenticator remaining.
+		for _, i := range remaining {
+			types := i.PrimaryAuthenticatorTypes()
+			if len(types) <= 0 {
+				continue
 			}
-		}
-		if !ok {
-			return NewInvariantViolated(
-				"RemoveLastPrimaryAuthenticator",
-				"cannot remove last primary authenticator for identity",
-				map[string]interface{}{"identity_id": i.ID},
-			)
+
+			ok := false
+			for _, a := range authenticators {
+				if a.IsApplicableTo(i) {
+					ok = true
+				}
+			}
+			if !ok {
+				return NewInvariantViolated(
+					"RemoveLastPrimaryAuthenticator",
+					"cannot remove last primary authenticator for identity",
+					map[string]interface{}{"identity_id": i.ID},
+				)
+			}
 		}
 	}
 
