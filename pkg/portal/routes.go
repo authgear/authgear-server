@@ -47,6 +47,7 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 	)
 	systemConfigJSONChain := httproute.Chain(
 		rootChain,
+		httproute.MiddlewareFunc(httputil.NoCache),
 	)
 	graphqlChain := httproute.Chain(
 		rootChain,
