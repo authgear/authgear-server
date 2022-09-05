@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"sync/atomic"
 
 	"gopkg.in/fsnotify.v1"
@@ -12,15 +13,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
-const DefaultResourceDir = "resources/authgear/"
-const DefaultResourcePrefix = "generated/"
-const DefaultManifestName = "manifest.json"
+const defaultResourceDir = "resources/authgear/generated"
+const defaultManifestName = "manifest.json"
 
 type Manifest struct {
-	ResourceDir    string
-	ResourcePrefix string
-	Name           string
-	content        atomic.Value
+	ResourceDir string
+	Name        string
+	content     atomic.Value
 }
 
 type GlobalEmbeddedResourceManager struct {
@@ -34,9 +33,8 @@ type ManifestContext struct {
 
 func NewDefaultGlobalEmbeddedResourceManager() (*GlobalEmbeddedResourceManager, error) {
 	return NewGlobalEmbeddedResourceManager(&Manifest{
-		ResourceDir:    DefaultResourceDir,
-		ResourcePrefix: DefaultResourcePrefix,
-		Name:           DefaultManifestName,
+		ResourceDir: defaultResourceDir,
+		Name:        defaultManifestName,
 	})
 }
 
@@ -48,9 +46,8 @@ func NewGlobalEmbeddedResourceManager(manifest *Manifest) (*GlobalEmbeddedResour
 
 	m := &GlobalEmbeddedResourceManager{
 		Manifest: &Manifest{
-			ResourceDir:    manifest.ResourceDir,
-			ResourcePrefix: manifest.ResourcePrefix,
-			Name:           manifest.Name,
+			ResourceDir: manifest.ResourceDir,
+			Name:        manifest.Name,
 		},
 		watcher: watcher,
 	}
@@ -91,17 +88,17 @@ func (m *GlobalEmbeddedResourceManager) setupWatch(event *fsnotify.Event) (err e
 	if event == nil {
 		err = m.watcher.Add(m.ManifestFilePath())
 		if os.IsNotExist(err) {
-			err = m.watcher.Add(m.ManifestDir())
+			err = m.watcher.Add(m.Manifest.ResourceDir)
 		}
 		return
 	}
 
 	switch event.Op {
 	case fsnotify.Create, fsnotify.Write:
-		_ = m.watcher.Remove(m.ManifestDir())
+		_ = m.watcher.Remove(m.Manifest.ResourceDir)
 		err = m.watcher.Add(m.ManifestFilePath())
 	case fsnotify.Remove:
-		err = m.watcher.Add(m.ManifestDir())
+		err = m.watcher.Add(m.Manifest.ResourceDir)
 	}
 
 	return
@@ -143,12 +140,8 @@ func (m *GlobalEmbeddedResourceManager) reload() error {
 	return nil
 }
 
-func (m *GlobalEmbeddedResourceManager) ManifestDir() string {
-	return m.Manifest.ResourceDir + m.Manifest.ResourcePrefix
-}
-
 func (m *GlobalEmbeddedResourceManager) ManifestFilePath() string {
-	return m.ManifestDir() + m.Manifest.Name
+	return path.Join(m.Manifest.ResourceDir, m.Manifest.Name)
 }
 
 func (m *GlobalEmbeddedResourceManager) GetManifestContext() *ManifestContext {
@@ -168,6 +161,6 @@ func (m *GlobalEmbeddedResourceManager) AssetName(key string) (name string, err 
 }
 
 func (m *GlobalEmbeddedResourceManager) Open(name string) (http.File, error) {
-	fs := http.Dir(m.ManifestDir())
+	fs := http.Dir(m.Manifest.ResourceDir)
 	return fs.Open(name)
 }

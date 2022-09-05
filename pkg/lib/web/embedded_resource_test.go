@@ -13,35 +13,10 @@ import (
 
 func TestGlobalEmbeddedResourceManager(t *testing.T) {
 	Convey("GlobalEmbeddedResourceManager", t, func() {
-		Convey("should create GlobalEmbeddedResourceManager", func() {
-			m, err := web.NewGlobalEmbeddedResourceManager(&web.Manifest{
-				ResourceDir:    "testdata/" + web.DefaultResourceDir,
-				ResourcePrefix: web.DefaultResourcePrefix,
-				Name:           web.DefaultManifestName,
-			})
-			So(err, ShouldBeNil)
-			defer m.Close()
-
-			So(m.Manifest.ResourceDir, ShouldEqual, "testdata/"+web.DefaultResourceDir)
-			So(m.Manifest.ResourcePrefix, ShouldEqual, web.DefaultResourcePrefix)
-			So(m.Manifest.Name, ShouldEqual, web.DefaultManifestName)
-		})
-
 		Convey("should throw error if resource directory does not exist", func() {
 			m, err := web.NewGlobalEmbeddedResourceManager(&web.Manifest{
-				ResourceDir:    "testdata/123/",
-				ResourcePrefix: web.DefaultResourcePrefix,
-				Name:           "test.json",
-			})
-			So(err.Error(), ShouldContainSubstring, "no such file or directory")
-			So(m, ShouldBeNil)
-		})
-
-		Convey("should throw error if resource prefix does not exist", func() {
-			m, err := web.NewGlobalEmbeddedResourceManager(&web.Manifest{
-				ResourceDir:    "testdata/" + web.DefaultResourceDir,
-				ResourcePrefix: "123",
-				Name:           "test.json",
+				ResourceDir: "testdata/123/generated",
+				Name:        "test.json",
 			})
 			So(err.Error(), ShouldContainSubstring, "no such file or directory")
 			So(m, ShouldBeNil)
@@ -49,9 +24,8 @@ func TestGlobalEmbeddedResourceManager(t *testing.T) {
 
 		Convey("should load manifest content after manager created", func() {
 			m, err := web.NewGlobalEmbeddedResourceManager(&web.Manifest{
-				ResourceDir:    "testdata/" + web.DefaultResourceDir,
-				ResourcePrefix: web.DefaultResourcePrefix,
-				Name:           web.DefaultManifestName,
+				ResourceDir: "testdata/resources/authgear/generated",
+				Name:        "manifest.json",
 			})
 			So(err, ShouldBeNil)
 			defer m.Close()
@@ -66,14 +40,13 @@ func TestGlobalEmbeddedResourceManager(t *testing.T) {
 
 		Convey("should reload manifest with any changes", func() {
 			m, err := web.NewGlobalEmbeddedResourceManager(&web.Manifest{
-				ResourceDir:    "testdata/" + web.DefaultResourceDir,
-				ResourcePrefix: web.DefaultResourcePrefix,
-				Name:           web.DefaultManifestName,
+				ResourceDir: "testdata/resources/authgear/generated",
+				Name:        "manifest.json",
 			})
 			So(err, ShouldBeNil)
 			defer m.Close()
 
-			filePath := "testdata/" + web.DefaultResourceDir + web.DefaultResourcePrefix + web.DefaultManifestName
+			filePath := "testdata/resources/authgear/generated/manifest.json"
 
 			f, err := os.Open(filePath)
 			So(err, ShouldBeNil)
@@ -110,9 +83,8 @@ func TestGlobalEmbeddedResourceManager(t *testing.T) {
 
 		Convey("should return asset file name and prefix by key", func() {
 			m, err := web.NewGlobalEmbeddedResourceManager(&web.Manifest{
-				ResourceDir:    "testdata/" + web.DefaultResourceDir,
-				ResourcePrefix: web.DefaultResourcePrefix,
-				Name:           web.DefaultManifestName,
+				ResourceDir: "testdata/resources/authgear/generated",
+				Name:        "manifest.json",
 			})
 			So(err, ShouldBeNil)
 			defer m.Close()
