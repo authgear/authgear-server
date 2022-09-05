@@ -815,6 +815,7 @@
   "AuditLogList.column.created-at": "Timestamp",
   "AuditLogList.column.user-id": "User ID",
   "AuditLogList.label.user-id": "{id} (deleted)",
+  "AuditLogList.empty": "No activity in the selected date range.",
 
   "AuditLogEntryScreen.title": "Log Details",
   "AuditLogEntryScreen.activity-type": "Activity Type: {type}",

@@ -17,3 +17,7 @@
 .sortIcon {
   margin-right: 8px;
 }
+
+.empty {
+  @apply hidden;
+}
