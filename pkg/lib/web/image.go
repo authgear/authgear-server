@@ -221,7 +221,7 @@ func (a ImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile
 	if matched == nil {
 		if fallbackImage != nil {
 			// Use first item in case of no match, to ensure resolution always succeed
-			matched = fallbackImage
+			matched = *fallbackImage
 		} else {
 			// If no configured translation, fail the resolution process
 			return nil, resource.ErrResourceNotFound
