@@ -273,6 +273,7 @@
   "UserDetails.session.confirm-dialog.revoke-all.title": "Terminate all sessions",
   "UserDetails.session.confirm-dialog.revoke-all.message": "Are you sure to terminate all sessions of the user?",
   "UserDetails.session.revoke-error.generic": "Failed to terminate session.",
+  "UserDetails.session.empty": "No sessions yet.",
 
   "LoginIDConfigurationScreen.title": "Login IDs",
   "LoginIDConfigurationScreen.columns.order": "Order",
