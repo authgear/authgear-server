@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"net/url"
 	"path"
-	"strings"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/filepathutil"
@@ -17,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
+const AppAssetsURLDirname = "static"
 const GeneratedAssetsURLDirname = "generated"
 
 var StaticAssetResources = map[string]resource.Descriptor{
@@ -82,13 +82,12 @@ func (r *StaticAssetResolver) StaticAssetURL(id string) (string, error) {
 
 	asset := result.(*StaticAsset)
 
-	assetPath := strings.TrimPrefix(asset.Path, StaticAssetResourcePrefix)
 	// md5 is used to compute the hash in the filename for caching purpose only
 	// nolint:gosec
 	hash := md5.Sum(asset.Data)
 
-	hashPath := filepathutil.MakeHashedPath(assetPath, fmt.Sprintf("%x", hash))
-	return staticAssetURL(r.Config.PublicOrigin, StaticAssetURLPrefix, hashPath)
+	hashPath := filepathutil.MakeHashedPath(asset.Path, fmt.Sprintf("%x", hash))
+	return staticAssetURL(r.Config.PublicOrigin, "", hashPath)
 }
 
 func (r *StaticAssetResolver) GeneratedStaticAssetURL(key string) (string, error) {

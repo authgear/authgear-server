@@ -1,11 +1,10 @@
 package web
 
 import (
+	"path"
+
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
-
-const StaticAssetURLPrefix = "/static"
-const StaticAssetResourcePrefix = "static/"
 
 type StaticAsset struct {
 	Path string
@@ -13,11 +12,11 @@ type StaticAsset struct {
 }
 
 var AuthgearLightThemeCSS = resource.RegisterResource(CSSDescriptor{
-	Path: StaticAssetResourcePrefix + "authgear-light-theme.css",
+	Path: path.Join(AppAssetsURLDirname, "authgear-light-theme.css"),
 })
 
 var AuthgearDarkThemeCSS = resource.RegisterResource(CSSDescriptor{
-	Path: StaticAssetResourcePrefix + "authgear-dark-theme.css",
+	Path: path.Join(AppAssetsURLDirname, "authgear-dark-theme.css"),
 })
 
 var AppLogo = resource.RegisterResource(ImageDescriptor{Name: "app_logo"})
