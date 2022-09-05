@@ -159,12 +159,12 @@ func (m *GlobalEmbeddedResourceManager) Close() error {
 	return m.watcher.Close()
 }
 
-func (m *GlobalEmbeddedResourceManager) AssetPath(key string) (prefix string, name string, err error) {
+func (m *GlobalEmbeddedResourceManager) AssetName(key string) (name string, err error) {
 	manifest := m.GetManifestContext().Content
 	if val, ok := manifest[key]; ok {
-		return m.Manifest.ResourcePrefix, val, nil
+		return val, nil
 	}
-	return "", "", resource.ErrResourceNotFound
+	return "", resource.ErrResourceNotFound
 }
 
 func (m *GlobalEmbeddedResourceManager) Open(name string) (http.File, error) {

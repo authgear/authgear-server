@@ -118,15 +118,13 @@ func TestGlobalEmbeddedResourceManager(t *testing.T) {
 			defer m.Close()
 
 			// if key exists
-			prefix, assetFileName, err := m.AssetPath("test.js")
+			assetFileName, err := m.AssetName("test.js")
 			So(err, ShouldBeNil)
-			So(prefix, ShouldEqual, web.DefaultResourcePrefix)
 			So(assetFileName, ShouldEqual, "test.12345678.js")
 
 			// if key does not exist
-			prefix, assetFileName, err = m.AssetPath("test123.js")
+			assetFileName, err = m.AssetName("test123.js")
 			So(err, ShouldBeError, "specified resource is not configured")
-			So(prefix, ShouldBeEmpty)
 			So(assetFileName, ShouldBeEmpty)
 		})
 	})

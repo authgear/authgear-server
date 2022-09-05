@@ -3,6 +3,7 @@ package webapp
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -10,7 +11,7 @@ import (
 func ConfigureGeneratedStaticAssetsRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("HEAD", "GET", "OPTIONS").
-		WithPathPattern("/generated/*all")
+		WithPathPattern("/" + web.GeneratedAssetsURLDirname + "/*all")
 }
 
 type GlobalEmbeddedResourceManager interface {
@@ -22,7 +23,7 @@ type GeneratedStaticAssetsHandler struct {
 }
 
 func (h *GeneratedStaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fileServer := http.StripPrefix("/generated/", &httputil.FileServer{
+	fileServer := http.StripPrefix("/"+web.GeneratedAssetsURLDirname+"/", &httputil.FileServer{
 		FileSystem:          h.EmbeddedResources,
 		FallbackToIndexHTML: false,
 	})

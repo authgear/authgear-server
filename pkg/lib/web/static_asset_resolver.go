@@ -17,6 +17,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
+const GeneratedAssetsURLDirname = "generated"
+
 var StaticAssetResources = map[string]resource.Descriptor{
 	"app-logo":      AppLogo,
 	"app-logo-dark": AppLogoDark,
@@ -31,7 +33,7 @@ type ResourceManager interface {
 }
 
 type EmbeddedResourceManager interface {
-	AssetPath(key string) (prefix string, name string, err error)
+	AssetName(key string) (name string, err error)
 }
 
 type StaticAssetResolver struct {
@@ -41,7 +43,7 @@ type StaticAssetResolver struct {
 	HTTPProto         httputil.HTTPProto
 	WebAppCDNHost     config.WebAppCDNHost
 	Resources         ResourceManager
-	EmbeddedResources *GlobalEmbeddedResourceManager
+	EmbeddedResources EmbeddedResourceManager
 }
 
 func (r *StaticAssetResolver) HasAppSpecificAsset(id string) bool {
@@ -90,7 +92,7 @@ func (r *StaticAssetResolver) StaticAssetURL(id string) (string, error) {
 }
 
 func (r *StaticAssetResolver) GeneratedStaticAssetURL(key string) (string, error) {
-	prefix, assetPath, err := r.EmbeddedResources.AssetPath(key)
+	name, err := r.EmbeddedResources.AssetName(key)
 	if err != nil {
 		return "", err
 	}
@@ -100,7 +102,7 @@ func (r *StaticAssetResolver) GeneratedStaticAssetURL(key string) (string, error
 		origin = fmt.Sprintf("%s://%s", r.HTTPProto, r.WebAppCDNHost)
 	}
 
-	return staticAssetURL(origin, prefix, assetPath)
+	return staticAssetURL(origin, GeneratedAssetsURLDirname, name)
 }
 
 func staticAssetURL(origin string, prefix string, assetPath string) (string, error) {
