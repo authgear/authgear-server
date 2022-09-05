@@ -17,7 +17,7 @@ import (
 )
 
 const AppAssetsURLDirname = "static"
-const GeneratedAssetsURLDirname = "generated"
+const GeneratedAssetsURLDirname = "shared-assets"
 
 var StaticAssetResources = map[string]resource.Descriptor{
 	"app-logo":      AppLogo,
