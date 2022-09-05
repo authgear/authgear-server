@@ -7,7 +7,7 @@ import (
 	"mime"
 	"net/http"
 	"os"
-	"path"
+	stdlibpath "path"
 	"regexp"
 	"sort"
 
@@ -75,7 +75,7 @@ func (a ImageDescriptor) FindResources(fs resource.Fs) ([]resource.Location, err
 
 	var locations []resource.Location
 	for _, langTag := range langTagDirs {
-		stat, err := fs.Stat(path.Join("static", langTag))
+		stat, err := fs.Stat(stdlibpath.Join("static", langTag))
 		if err != nil {
 			return nil, err
 		}
@@ -86,7 +86,7 @@ func (a ImageDescriptor) FindResources(fs resource.Fs) ([]resource.Location, err
 		for mediaType := range preferredExtensions {
 			exts, _ := mime.ExtensionsByType(mediaType)
 			for _, ext := range exts {
-				p := path.Join("static", langTag, a.Name+ext)
+				p := stdlibpath.Join("static", langTag, a.Name+ext)
 				location := resource.Location{
 					Fs:   fs,
 					Path: p,
@@ -236,7 +236,7 @@ func (a ImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile
 		return nil, fmt.Errorf("invalid image format: %s", mimeType)
 	}
 
-	path := fmt.Sprintf("%s%s/%s%s", StaticAssetResourcePrefix, tagger.RealLanguageTag, a.Name, ext)
+	path := stdlibpath.Join(AppAssetsURLDirname, tagger.RealLanguageTag, a.Name+ext)
 	return &StaticAsset{
 		Path: path,
 		Data: tagger.Data,
@@ -297,7 +297,7 @@ func (a ImageDescriptor) viewByPath(resources []resource.ResourceFile, path stri
 		return nil, fmt.Errorf("invalid image format: %s", mimeType)
 	}
 
-	p := fmt.Sprintf("%s%s/%s%s", StaticAssetResourcePrefix, requestedLangTag, a.Name, ext)
+	p := stdlibpath.Join(AppAssetsURLDirname, requestedLangTag, a.Name+ext)
 	return &StaticAsset{
 		Path: p,
 		Data: bytes,

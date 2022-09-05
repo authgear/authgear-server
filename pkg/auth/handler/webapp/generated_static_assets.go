@@ -1,10 +1,7 @@
 package webapp
 
 import (
-	// nolint:gosec
 	"net/http"
-	"os"
-	"path"
 
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -14,12 +11,11 @@ import (
 func ConfigureGeneratedStaticAssetsRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("HEAD", "GET", "OPTIONS").
-		WithPathPattern("/generated/*all")
+		WithPathPattern("/" + web.GeneratedAssetsURLDirname + "/*all")
 }
 
 type GlobalEmbeddedResourceManager interface {
-	Resolve(resourcePath string) (string, bool)
-	Open(assetPath string) (http.File, error)
+	Open(name string) (http.File, error)
 }
 
 type GeneratedStaticAssetsHandler struct {
@@ -27,17 +23,9 @@ type GeneratedStaticAssetsHandler struct {
 }
 
 func (h *GeneratedStaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fileServer := http.StripPrefix("/generated/", &httputil.FileServer{
-		FileSystem:          h,
+	fileServer := http.StripPrefix("/"+web.GeneratedAssetsURLDirname+"/", &httputil.FileServer{
+		FileSystem:          h.EmbeddedResources,
 		FallbackToIndexHTML: false,
 	})
 	fileServer.ServeHTTP(w, r)
-}
-
-func (h *GeneratedStaticAssetsHandler) Open(name string) (http.File, error) {
-	p := path.Join(web.DefaultResourcePrefix, name)
-	if asset, ok := h.EmbeddedResources.Resolve(p); ok {
-		return h.EmbeddedResources.Open(asset)
-	}
-	return nil, os.ErrNotExist
 }

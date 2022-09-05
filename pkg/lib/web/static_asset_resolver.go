@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"net/url"
 	"path"
-	"strings"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/filepathutil"
@@ -16,6 +15,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
+
+const AppAssetsURLDirname = "static"
+const GeneratedAssetsURLDirname = "shared-assets"
 
 var StaticAssetResources = map[string]resource.Descriptor{
 	"app-logo":      AppLogo,
@@ -31,7 +33,7 @@ type ResourceManager interface {
 }
 
 type EmbeddedResourceManager interface {
-	AssetPath(key string) (prefix string, name string, err error)
+	AssetName(key string) (name string, err error)
 }
 
 type StaticAssetResolver struct {
@@ -41,7 +43,7 @@ type StaticAssetResolver struct {
 	HTTPProto         httputil.HTTPProto
 	WebAppCDNHost     config.WebAppCDNHost
 	Resources         ResourceManager
-	EmbeddedResources *GlobalEmbeddedResourceManager
+	EmbeddedResources EmbeddedResourceManager
 }
 
 func (r *StaticAssetResolver) HasAppSpecificAsset(id string) bool {
@@ -80,17 +82,16 @@ func (r *StaticAssetResolver) StaticAssetURL(id string) (string, error) {
 
 	asset := result.(*StaticAsset)
 
-	assetPath := strings.TrimPrefix(asset.Path, StaticAssetResourcePrefix)
 	// md5 is used to compute the hash in the filename for caching purpose only
 	// nolint:gosec
 	hash := md5.Sum(asset.Data)
 
-	hashPath := filepathutil.MakeHashedPath(assetPath, fmt.Sprintf("%x", hash))
-	return staticAssetURL(r.Config.PublicOrigin, StaticAssetURLPrefix, hashPath)
+	hashPath := filepathutil.MakeHashedPath(asset.Path, fmt.Sprintf("%x", hash))
+	return staticAssetURL(r.Config.PublicOrigin, "", hashPath)
 }
 
 func (r *StaticAssetResolver) GeneratedStaticAssetURL(key string) (string, error) {
-	prefix, assetPath, err := r.EmbeddedResources.AssetPath(key)
+	name, err := r.EmbeddedResources.AssetName(key)
 	if err != nil {
 		return "", err
 	}
@@ -100,7 +101,7 @@ func (r *StaticAssetResolver) GeneratedStaticAssetURL(key string) (string, error
 		origin = fmt.Sprintf("%s://%s", r.HTTPProto, r.WebAppCDNHost)
 	}
 
-	return staticAssetURL(origin, prefix, assetPath)
+	return staticAssetURL(origin, GeneratedAssetsURLDirname, name)
 }
 
 func staticAssetURL(origin string, prefix string, assetPath string) (string, error) {

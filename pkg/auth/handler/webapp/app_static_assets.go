@@ -21,7 +21,7 @@ import (
 func ConfigureAppStaticAssetsRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("HEAD", "GET").
-		WithPathPattern("/static/*all")
+		WithPathPattern("/" + web.AppAssetsURLDirname + "/*all")
 }
 
 type ResourceManager interface {
@@ -34,7 +34,7 @@ type AppStaticAssetsHandler struct {
 }
 
 func (h *AppStaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fileServer := http.StripPrefix("/static/", &httputil.FileServer{
+	fileServer := http.StripPrefix("/"+web.AppAssetsURLDirname+"/", &httputil.FileServer{
 		FileSystem:          h,
 		FallbackToIndexHTML: false,
 	})
@@ -42,7 +42,7 @@ func (h *AppStaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *AppStaticAssetsHandler) Open(name string) (http.File, error) {
-	p := path.Join(web.StaticAssetResourcePrefix, name)
+	p := path.Join(web.AppAssetsURLDirname, name)
 
 	filePath, hashInPath, ok := filepathutil.ParseHashedPath(p)
 	if !ok {
