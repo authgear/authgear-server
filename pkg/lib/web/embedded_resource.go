@@ -5,13 +5,10 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path"
-	"strings"
 	"sync/atomic"
 
 	"gopkg.in/fsnotify.v1"
 
-	"github.com/authgear/authgear-server/pkg/util/filepathutil"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -162,10 +159,6 @@ func (m *GlobalEmbeddedResourceManager) Close() error {
 	return m.watcher.Close()
 }
 
-func (m *GlobalEmbeddedResourceManager) HTTPFileSystem() http.FileSystem {
-	return http.Dir(m.ManifestDir())
-}
-
 func (m *GlobalEmbeddedResourceManager) AssetPath(key string) (prefix string, name string, err error) {
 	manifest := m.GetManifestContext().Content
 	if val, ok := manifest[key]; ok {
@@ -174,34 +167,7 @@ func (m *GlobalEmbeddedResourceManager) AssetPath(key string) (prefix string, na
 	return "", "", resource.ErrResourceNotFound
 }
 
-func (m *GlobalEmbeddedResourceManager) Resolve(resourcePath string) (string, bool) {
-	manifest := m.GetManifestContext().Content
-
-	filePathWithoutHash, hashInPath, _ := filepathutil.ParseHashedPath(resourcePath)
-
-	key := strings.TrimPrefix(filePathWithoutHash, m.Manifest.ResourcePrefix)
-	if filepathutil.IsSourceMapPath(key) {
-		key = strings.TrimSuffix(key, ".map")
-	}
-
-	if assetFileName, ok := manifest[key]; ok {
-		if _, hash, _ := filepathutil.ParseHashedPath(assetFileName); hash != hashInPath {
-			return "", false
-		}
-
-		// Add source map extension to the file name if resourcePath is a source map path
-		ae := path.Ext(assetFileName)
-		ve := path.Ext(resourcePath)
-		if ae != ve {
-			assetFileName += ve
-		}
-
-		return assetFileName, true
-	}
-	return "", false
-}
-
-func (m *GlobalEmbeddedResourceManager) Open(assetPath string) (http.File, error) {
-	fs := m.HTTPFileSystem()
-	return fs.Open(assetPath)
+func (m *GlobalEmbeddedResourceManager) Open(name string) (http.File, error) {
+	fs := http.Dir(m.ManifestDir())
+	return fs.Open(name)
 }
