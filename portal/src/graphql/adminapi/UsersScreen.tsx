@@ -195,6 +195,7 @@ const UsersScreen: React.VFC = function UsersScreen() {
           <NavBreadcrumb className={styles.widget} items={items} />
           <UsersList
             className={styles.widget}
+            isSearch={searchKeyword !== ""}
             loading={loading}
             users={data?.users ?? null}
             offset={offset}

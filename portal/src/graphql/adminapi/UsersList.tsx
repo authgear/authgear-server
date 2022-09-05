@@ -11,6 +11,7 @@ import {
   Persona,
   PersonaSize,
   Text,
+  MessageBar,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { Link } from "react-router-dom";
@@ -30,6 +31,7 @@ import ActionButton from "../../ActionButton";
 
 interface UsersListProps {
   className?: string;
+  isSearch: boolean;
   loading: boolean;
   users: UsersListFragment | null;
   offset: number;
@@ -117,6 +119,7 @@ function UserInfo(props: UserInfoProps) {
 const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
   const {
     className,
+    isSearch,
     loading: rawLoading,
     offset,
     pageSize,
@@ -318,10 +321,12 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
     [onColumnClick]
   );
 
+  const isEmpty = !loading && items.length === 0;
+
   return (
     <>
       <div className={cn(styles.root, className)}>
-        <div className={styles.listWrapper}>
+        <div className={cn(styles.listWrapper, isEmpty && styles.empty)}>
           <ShimmeredDetailsList
             enableShimmer={loading}
             enableUpdateAnimations={false}
@@ -335,12 +340,21 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
           />
         </div>
         <PaginationWidget
-          className={styles.pagination}
+          className={cn(styles.pagination, isEmpty && styles.empty)}
           offset={offset}
           pageSize={pageSize}
           totalCount={totalCount}
           onChangeOffset={onChangeOffset}
         />
+        {isEmpty ? (
+          <MessageBar>
+            {isSearch ? (
+              <FormattedMessage id="UsersList.empty.search" />
+            ) : (
+              <FormattedMessage id="UsersList.empty.normal" />
+            )}
+          </MessageBar>
+        ) : null}
       </div>
       {disableUserDialogData != null ? (
         <SetUserDisabledDialog

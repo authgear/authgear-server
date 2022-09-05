@@ -166,6 +166,8 @@
   "UsersList.reenable-user": "Re-enable User",
   "UsersList.cancel-removal": "Cancel Removal",
   "UsersList.anonymous-user": "Anonymous User",
+  "UsersList.empty.normal": "No users yet.",
+  "UsersList.empty.search": "No results matched your search.",
 
   "SetUserDisabledDialog.disable-user.title": "Disable User",
   "SetUserDisabledDialog.disable-user.description": "Do you really want to disable user {username}? Disabling the user {username} will forbid them from logging in. Their existing sessions will also be removed.",
