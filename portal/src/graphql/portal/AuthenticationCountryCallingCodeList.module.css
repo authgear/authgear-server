@@ -7,7 +7,7 @@
   width: 300px;
   margin: 7px 20px;
 
-  @apply desktop:self-end mobile:self-auto mobile:w-auto;
+  @apply self-end tablet:self-auto tablet:w-auto;
 }
 
 .listWrapper {

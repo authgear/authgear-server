@@ -1,7 +1,7 @@
 .widget {
-  grid-column: 1 / span 6;
+  grid-column: 1 / span 8;
 
-  @apply mobile:col-span-full;
+  @apply tablet:col-span-full;
 }
 
 .description {

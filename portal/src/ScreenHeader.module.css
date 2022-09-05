@@ -11,11 +11,11 @@
 }
 
 .mobileView {
-  @apply desktop:hidden mobile:flex mobile:flex-row mobile:items-center mobile:text-white;
+  @apply hidden mobile:flex mobile:flex-row mobile:items-center mobile:text-white;
 }
 
 .desktopView {
-  @apply mobile:hidden desktop:flex desktop:flex-row desktop:items-center desktop:text-white;
+  @apply mobile:hidden flex flex-row items-center text-white;
 }
 
 .headerMobile {

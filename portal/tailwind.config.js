@@ -7,7 +7,7 @@ module.exports = {
   theme: {
     screens: {
       mobile: { max: "640px" },
-      desktop: "640px",
+      tablet: { max: "1080px" },
     },
   },
   plugins: [require("@savvywombat/tailwindcss-grid-areas")],

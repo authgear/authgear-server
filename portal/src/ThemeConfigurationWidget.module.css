@@ -12,7 +12,7 @@
   align-items: center;
   column-gap: 16px;
   grid-column: 1 / span 8;
-  @apply mobile:col-span-full;
+  @apply tablet:col-span-full;
 }
 .toggle {
   margin: 0;
@@ -20,7 +20,7 @@
 
 .themeColorSection {
   grid-column: 1 / span 5;
-  @apply mobile:col-span-full;
+  @apply tablet:col-span-full;
   display: flex;
   flex-direction: column;
   row-gap: 10px;
@@ -31,6 +31,8 @@
   display: flex;
   flex-direction: column;
   row-gap: 10px;
+
+  @apply tablet:col-span-full;
 }
 
 .colorControl {
@@ -60,7 +62,7 @@
 
 .appLogoSection {
   grid-column: 1 / span 5;
-  @apply mobile:col-span-full;
+  @apply tablet:col-span-full;
   display: flex;
   flex-direction: column;
   row-gap: 10px;

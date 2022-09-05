@@ -3,13 +3,13 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  grid-column: 1 / span 10;
+  grid-column: 1 / span 8;
 
-  @apply mobile:col-span-full mobile:flex-col mobile:items-stretch mobile:gap-y-5;
+  @apply tablet:col-span-full tablet:flex-col tablet:items-stretch tablet:gap-y-5;
 }
 
 .widget {
-  grid-column: 1 / span 10;
+  grid-column: 1 / span 8;
 
-  @apply mobile:col-span-full;
+  @apply tablet:col-span-full;
 }

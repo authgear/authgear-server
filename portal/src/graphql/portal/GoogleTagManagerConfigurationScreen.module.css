@@ -1,9 +1,11 @@
 .widget {
-  grid-column: 1 / span 10;
+  grid-column: 1 / span 8;
 
-  @apply mobile:col-span-full;
+  @apply tablet:col-span-full;
 }
 
 .control {
   width: 50%;
+
+  @apply tablet:w-full;
 }

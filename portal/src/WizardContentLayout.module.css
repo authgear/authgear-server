@@ -6,7 +6,7 @@
   grid-auto-rows: auto;
   align-self: center;
 
-  @apply desktop:grid-cols-[repeat(6,_80px)] mobile:grid-cols-6;
+  @apply grid-cols-[repeat(6,_80px)] mobile:grid-cols-6;
 }
 
 .content {
@@ -19,7 +19,7 @@
   background-color: white;
 
   grid-column: 1 / span 6;
-  @apply mobile:col-span-full;
+  @apply tablet:col-span-full;
 }
 
 .title {
@@ -37,5 +37,5 @@
   font-size: smaller;
 
   grid-column: 1 / span 6;
-  @apply mobile:col-span-full;
+  @apply tablet:col-span-full;
 }

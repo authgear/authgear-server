@@ -5,13 +5,13 @@
   align-items: center;
   grid-column: 1 / span 8;
 
-  @apply mobile:col-span-full mobile:flex-col mobile:items-stretch mobile:gap-y-5;
+  @apply tablet:col-span-full tablet:flex-col tablet:items-stretch tablet:gap-y-5;
 }
 
 .widget {
   grid-column: 1 / span 8;
 
-  @apply mobile:col-span-full;
+  @apply tablet:col-span-full;
 }
 
 .grid {
@@ -25,11 +25,11 @@
 .columnFull {
   grid-column: 1 / span 8;
 
-  @apply mobile:col-span-full;
+  @apply tablet:col-span-full;
 }
 
 .columnLeft {
   grid-column: 1 / span 12;
 
-  @apply mobile:col-span-full;
+  @apply tablet:col-span-full;
 }

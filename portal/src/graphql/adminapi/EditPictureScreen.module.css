@@ -1,6 +1,6 @@
 .widget {
-  grid-column: 1 / span 6;
-  @apply mobile:col-span-full;
+  grid-column: 1 / span 8;
+  @apply tablet:col-span-full;
 }
 
 .fileInput {

@@ -1,7 +1,7 @@
 .widget {
-  grid-column: 1 / span 6;
+  grid-column: 1 / span 8;
 
-  @apply mobile:col-span-full;
+  @apply tablet:col-span-full;
 }
 
 .grid {
@@ -15,17 +15,16 @@
 .columnFull {
   grid-column: 1 / span 8;
 
-  @apply mobile:col-span-full;
+  @apply tablet:col-span-full;
 }
 
 .secretInput {
-  grid-column: 1 / span 12;
-
-  @apply mobile:col-span-full;
+  grid-column: 1 / span 7;
 }
 
 .secretButton {
-  grid-column: 5 / span 1;
+  grid-column: span 1 / span 1;
+  justify-self: center;
   align-self: end;
 }
 
