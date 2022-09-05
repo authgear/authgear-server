@@ -56,7 +56,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
 		p.Middleware(newSessionMiddleware),
-		httproute.MiddlewareFunc(httputil.NoCache),
+		httproute.MiddlewareFunc(httputil.NoStore),
 		p.Middleware(newWebAppWeChatRedirectURIMiddleware),
 	)
 
@@ -65,7 +65,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
 		p.Middleware(newSessionMiddleware),
-		httproute.MiddlewareFunc(httputil.NoCache),
+		httproute.MiddlewareFunc(httputil.NoStore),
 	)
 
 	apiAuthenticatedChain := httproute.Chain(
@@ -78,7 +78,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
 		p.Middleware(newSessionMiddleware),
-		httproute.MiddlewareFunc(httputil.NoCache),
+		httproute.MiddlewareFunc(httputil.NoStore),
 		// Current we only require valid session and do not require any scope.
 		httproute.MiddlewareFunc(oauth.RequireScope()),
 	)
@@ -88,7 +88,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.Middleware(newPublicOriginMiddleware),
 		p.Middleware(newPanicWebAppMiddleware),
 		p.Middleware(newSessionMiddleware),
-		httproute.MiddlewareFunc(httputil.NoCache),
+		httproute.MiddlewareFunc(httputil.NoStore),
 		httproute.MiddlewareFunc(webapp.IntlMiddleware),
 		p.Middleware(newWebAppSessionMiddleware),
 		p.Middleware(newWebAppUILocalesMiddleware),

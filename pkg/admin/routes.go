@@ -37,7 +37,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 		p.RootMiddleware(newBodyLimitMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
 		securityMiddleware,
-		httproute.MiddlewareFunc(httputil.NoCache),
+		httproute.MiddlewareFunc(httputil.NoStore),
 		&deps.RequestMiddleware{
 			RootProvider: p,
 			ConfigSource: configSource,
