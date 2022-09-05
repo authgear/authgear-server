@@ -7,8 +7,9 @@ import {
   DetailsListLayoutMode,
   ShimmeredDetailsList,
   Link as FluentLink,
+  MessageBar,
 } from "@fluentui/react";
-import { Context, Values } from "@oursky/react-messageformat";
+import { Context, FormattedMessage, Values } from "@oursky/react-messageformat";
 import ReactRouterLink from "../../ReactRouterLink";
 import PaginationWidget from "../../PaginationWidget";
 import {
@@ -182,10 +183,12 @@ const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
     [onToggleSortDirection, onChangeOffset]
   );
 
+  const isEmpty = !loading && items.length === 0;
+
   return (
     <>
       <div className={cn(styles.root, className)}>
-        <div className={styles.listWrapper}>
+        <div className={cn(styles.listWrapper, isEmpty && styles.empty)}>
           <ShimmeredDetailsList
             className={styles.list}
             enableShimmer={loading}
@@ -199,12 +202,17 @@ const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
           />
         </div>
         <PaginationWidget
-          className={styles.pagination}
+          className={cn(styles.pagination, isEmpty && styles.empty)}
           offset={offset}
           pageSize={pageSize}
           totalCount={totalCount}
           onChangeOffset={onChangeOffset}
         />
+        {isEmpty ? (
+          <MessageBar>
+            <FormattedMessage id="AuditLogList.empty" />
+          </MessageBar>
+        ) : null}
       </div>
     </>
   );

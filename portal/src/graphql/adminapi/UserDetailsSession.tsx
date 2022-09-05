@@ -4,6 +4,7 @@ import {
   Dialog,
   DialogFooter,
   IColumn,
+  MessageBar,
   SelectionMode,
   Text,
 } from "@fluentui/react";
@@ -227,26 +228,34 @@ const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
 
   return (
     <div className={styles.root}>
-      <Text as="h2" className={styles.header}>
-        <FormattedMessage id="UserDetails.session.header" />
-      </Text>
-      <DetailsList
-        items={sessionListItems}
-        columns={sessionColumns}
-        selectionMode={SelectionMode.none}
-      />
-      <DefaultButton
-        className={styles.revokeAllButton}
-        theme={themes.destructive}
-        iconProps={{ iconName: "ErrorBadge" }}
-        styles={{
-          menuIcon: { paddingLeft: "3px" },
-          icon: { paddingRight: "3px" },
-        }}
-        disabled={sessions.length === 0}
-        onClick={onRevokeAllClick}
-        text={<FormattedMessage id="UserDetails.session.revoke-all" />}
-      />
+      {sessionListItems.length === 0 ? (
+        <MessageBar>
+          <FormattedMessage id="UserDetails.session.empty" />
+        </MessageBar>
+      ) : (
+        <>
+          <Text as="h2" className={styles.header}>
+            <FormattedMessage id="UserDetails.session.header" />
+          </Text>
+          <DetailsList
+            items={sessionListItems}
+            columns={sessionColumns}
+            selectionMode={SelectionMode.none}
+          />
+          <DefaultButton
+            className={styles.revokeAllButton}
+            theme={themes.destructive}
+            iconProps={{ iconName: "ErrorBadge" }}
+            styles={{
+              menuIcon: { paddingLeft: "3px" },
+              icon: { paddingRight: "3px" },
+            }}
+            disabled={sessions.length === 0}
+            onClick={onRevokeAllClick}
+            text={<FormattedMessage id="UserDetails.session.revoke-all" />}
+          />
+        </>
+      )}
       {confirmDialogProps ? (
         <RevokeConfirmationDialog
           {...confirmDialogProps}

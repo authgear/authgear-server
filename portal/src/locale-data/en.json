@@ -166,6 +166,8 @@
   "UsersList.reenable-user": "Re-enable User",
   "UsersList.cancel-removal": "Cancel Removal",
   "UsersList.anonymous-user": "Anonymous User",
+  "UsersList.empty.normal": "No users yet.",
+  "UsersList.empty.search": "No results matched your search.",
 
   "SetUserDisabledDialog.disable-user.title": "Disable User",
   "SetUserDisabledDialog.disable-user.description": "Do you really want to disable user {username}? Disabling the user {username} will forbid them from logging in. Their existing sessions will also be removed.",
@@ -271,6 +273,7 @@
   "UserDetails.session.confirm-dialog.revoke-all.title": "Terminate all sessions",
   "UserDetails.session.confirm-dialog.revoke-all.message": "Are you sure to terminate all sessions of the user?",
   "UserDetails.session.revoke-error.generic": "Failed to terminate session.",
+  "UserDetails.session.empty": "No sessions yet.",
 
   "LoginIDConfigurationScreen.title": "Login IDs",
   "LoginIDConfigurationScreen.columns.order": "Order",
@@ -812,6 +815,7 @@
   "AuditLogList.column.created-at": "Timestamp",
   "AuditLogList.column.user-id": "User ID",
   "AuditLogList.label.user-id": "{id} (deleted)",
+  "AuditLogList.empty": "No activity in the selected date range.",
 
   "AuditLogEntryScreen.title": "Log Details",
   "AuditLogEntryScreen.activity-type": "Activity Type: {type}",
