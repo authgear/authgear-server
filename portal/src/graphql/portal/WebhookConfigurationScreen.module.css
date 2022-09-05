@@ -20,8 +20,6 @@
 
 .secretInput {
   grid-column: 1 / span 7;
-
-  @apply tablet:col-span-full;
 }
 
 .secretButton {
