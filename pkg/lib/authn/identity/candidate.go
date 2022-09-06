@@ -52,6 +52,14 @@ func NewLoginIDCandidate(c *config.LoginIDKeyConfig) Candidate {
 	}
 }
 
+func NewSIWECandidate() Candidate {
+	return Candidate{
+		CandidateKeyIdentityID: "",
+		CandidateKeyType:       string(model.IdentityTypeSIWE),
+		CandidateKeyDisplayID:  "",
+	}
+}
+
 func IsOAuthSSOProviderTypeDisabled(typ config.OAuthSSOProviderType, featureConfig *config.OAuthSSOProvidersFeatureConfig) bool {
 	switch typ {
 	case config.OAuthSSOProviderTypeGoogle:
