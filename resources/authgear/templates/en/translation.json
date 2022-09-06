@@ -189,6 +189,11 @@
 
   "web3-provider-metamask": "MetaMask",
 
+  "confirm-web3-account-page-title": "Account Connected",
+  "confirm-web3-account-page-description": "Connected with {provider}",
+  "confirm-web3-account-page-next": "Next",
+  "confirm-web3-account-page-change-account": "Change account",
+
   "prompt-create-passkey-page-title": "Set up a passkey",
   "prompt-create-passkey-page-description": "Your device support passkey authentication. Set up a passkey for faster and safer login. If you use biometrics, we will never see or store your biometric data.",
   "prompt-create-passkey-skip-label": "Not now",

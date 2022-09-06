@@ -189,9 +189,13 @@
 
   "web3-provider-metamask": "MetaMask",
 
+  "confirm-web3-account-page-title": "帳戶已連接",
+  "confirm-web3-account-page-description": "已連接到 {provider}",
+  "confirm-web3-account-page-next": "下一步",
+  "confirm-web3-account-page-change-account": "更改帳戶",
+
   "prompt-create-passkey-page-title": "設置通行密鑰",
   "prompt-create-passkey-page-description": "你的裝置支援通行密鑰。設置通行密鑰使你可以更快、更安全地登入。若你使用生物認證，我們永不會看見或儲存你的生物認證資料。",
-
   "prompt-create-passkey-skip-label": "下次再算",
 
   "use-passkey-page-title": "使用通行密鑰",
