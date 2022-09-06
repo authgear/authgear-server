@@ -10,6 +10,7 @@ import { FormErrorMessageBar } from "./FormErrorMessageBar";
 import { onRenderCommandBarPrimaryButton } from "./CommandBarPrimaryButton";
 import PrimaryButton from "./PrimaryButton";
 import DefaultButton from "./DefaultButton";
+import { useConsumeError } from "./hook/error";
 
 export interface FormModel {
   updateError: unknown;
@@ -62,6 +63,7 @@ const FormContainer: React.VFC<FormContainerProps> = function FormContainer(
     afterSave,
   } = props;
 
+  const contextError = useConsumeError();
   const { themes } = useSystemConfig();
   const { renderToString } = useContext(Context);
 
@@ -151,7 +153,7 @@ const FormContainer: React.VFC<FormContainerProps> = function FormContainer(
   return (
     <FormProvider
       loading={isUpdating}
-      error={updateError ?? localError}
+      error={contextError ?? updateError ?? localError}
       rules={errorRules}
       fallbackErrorMessageID={fallbackErrorMessageID}
     >
