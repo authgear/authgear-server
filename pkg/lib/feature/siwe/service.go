@@ -1,6 +1,8 @@
 package siwe
 
 import (
+	"net/url"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
@@ -75,10 +77,13 @@ func (s *Service) VerifyMessage(request model.SIWEVerificationRequest) (*siwego.
 		return nil, nil, err
 	}
 
-	domain := s.HTTPConfig.PublicOrigin
+	publicOrigin, err := url.Parse(s.HTTPConfig.PublicOrigin)
+	if err != nil {
+		return nil, nil, err
+	}
 	now := s.Clock.NowUTC()
 
-	pubKey, err := message.Verify(request.Signature, &domain, &existingNonce.Nonce, &now)
+	pubKey, err := message.Verify(request.Signature, &publicOrigin.Host, &existingNonce.Nonce, &now)
 	if err != nil {
 		return nil, nil, err
 	}
