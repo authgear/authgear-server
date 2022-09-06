@@ -10,13 +10,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-func TestNoCache(t *testing.T) {
-	Convey("NoCache", t, func() {
+func TestNoStore(t *testing.T) {
+	Convey("NoStore", t, func() {
 		originalHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			_, _ = w.Write([]byte("good"))
 		})
 
-		middleware := httputil.NoCache
+		middleware := httputil.NoStore
 
 		handler := middleware(originalHandler)
 
@@ -37,7 +37,7 @@ func TestNoCache(t *testing.T) {
 
 			handler.ServeHTTP(w, r)
 
-			So(w.Header().Get("Cache-Control"), ShouldEqual, "no-cache")
+			So(w.Header().Get("Cache-Control"), ShouldEqual, "no-store")
 			So(w.Header().Get("Pragma"), ShouldEqual, "no-cache")
 		}
 	})

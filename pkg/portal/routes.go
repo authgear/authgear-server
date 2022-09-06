@@ -47,10 +47,11 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 	)
 	systemConfigJSONChain := httproute.Chain(
 		rootChain,
+		httproute.MiddlewareFunc(httputil.NoCache),
 	)
 	graphqlChain := httproute.Chain(
 		rootChain,
-		httproute.MiddlewareFunc(httputil.NoCache),
+		httproute.MiddlewareFunc(httputil.NoStore),
 		httputil.CheckContentType([]string{
 			graphqlhandler.ContentTypeJSON,
 			graphqlhandler.ContentTypeGraphQL,
@@ -58,7 +59,7 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 	)
 	adminAPIChain := httproute.Chain(
 		rootChain,
-		httproute.MiddlewareFunc(httputil.NoCache),
+		httproute.MiddlewareFunc(httputil.NoStore),
 		p.Middleware(newSessionRequiredMiddleware),
 		httputil.CheckContentType([]string{
 			graphqlhandler.ContentTypeJSON,
@@ -67,7 +68,7 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 	)
 	incomingWebhookChain := httproute.Chain(
 		rootChain,
-		httproute.MiddlewareFunc(httputil.NoCache),
+		httproute.MiddlewareFunc(httputil.NoStore),
 	)
 
 	systemConfigJSONRoute := httproute.Route{Middleware: systemConfigJSONChain}
