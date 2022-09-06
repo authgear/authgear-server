@@ -32,6 +32,10 @@ import {
   PasskeyRequestController,
   PasskeyAutofillController,
 } from "./passkey";
+import {
+  WalletConnectionController,
+  WalletConfirmationController,
+} from "./web3";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
 
@@ -86,3 +90,6 @@ Stimulus.register("back-button", BackButtonController);
 Stimulus.register("passkey-creation", PasskeyCreationController);
 Stimulus.register("passkey-request", PasskeyRequestController);
 Stimulus.register("passkey-autofill", PasskeyAutofillController);
+
+Stimulus.register("web3-wallet-connection", WalletConnectionController);
+Stimulus.register("web3-wallet-confirmation", WalletConfirmationController);
