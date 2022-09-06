@@ -9,12 +9,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/rand"
-	"github.com/authgear/authgear-server/pkg/util/secrets"
 	"github.com/lestrrat-go/jwx/jwk"
 	siwego "github.com/spruceid/siwe-go"
 )
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package siwe
+
+const Alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 type NonceStore interface {
 	Create(nonce *Nonce) error
@@ -41,7 +42,7 @@ type Service struct {
 }
 
 func (s *Service) CreateNewNonce() (*Nonce, error) {
-	nonce := secrets.GenerateSecret(16, rand.SecureRand)
+	nonce := rand.StringWithAlphabet(8, Alphabet, rand.SecureRand)
 	nonceModel := &Nonce{
 		Nonce:    nonce,
 		ExpireAt: s.Clock.NowUTC().Add(duration.Short),
