@@ -286,16 +286,31 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -384,16 +399,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:     clockClock,
 		Logger:    oobLogger,
 	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
-	}
 	service4 := &service2.Service{
 		Store:       store3,
 		Password:    passwordProvider,
@@ -402,7 +407,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
 	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile

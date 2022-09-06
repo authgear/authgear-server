@@ -302,10 +302,14 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		AppID:   configAppID,
 		Clock:   clockClock,
 	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
