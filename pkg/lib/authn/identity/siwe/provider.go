@@ -7,13 +7,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
-	"github.com/lestrrat-go/jwx/jwk"
 	siwego "github.com/spruceid/siwe-go"
 )
 
 // nolint: golint
 type SIWEService interface {
-	VerifyMessage(request model.SIWEVerificationRequest) (*siwego.Message, jwk.Key, error)
+	VerifyMessage(request model.SIWEVerificationRequest) (*siwego.Message, string, error)
 }
 
 type Provider struct {

@@ -1,6 +1,7 @@
 package siwe
 
 import (
+	"encoding/hex"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -11,7 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/rand"
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/ethereum/go-ethereum/crypto"
 	siwego "github.com/spruceid/siwe-go"
 )
 
@@ -63,10 +64,10 @@ func (s *Service) CreateNewNonce() (*Nonce, error) {
 	return nonceModel, nil
 }
 
-func (s *Service) VerifyMessage(request model.SIWEVerificationRequest) (*siwego.Message, jwk.Key, error) {
+func (s *Service) VerifyMessage(request model.SIWEVerificationRequest) (*siwego.Message, string, error) {
 	message, err := siwego.ParseMessage(request.Message)
 	if err != nil {
-		return nil, nil, err
+		return nil, "", err
 	}
 
 	messageNonce := message.GetNonce()
@@ -74,28 +75,27 @@ func (s *Service) VerifyMessage(request model.SIWEVerificationRequest) (*siwego.
 		Nonce: messageNonce,
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, "", err
 	}
 
 	publicOrigin, err := url.Parse(s.HTTPConfig.PublicOrigin)
 	if err != nil {
-		return nil, nil, err
+		return nil, "", err
 	}
 	now := s.Clock.NowUTC()
 
 	pubKey, err := message.Verify(request.Signature, &publicOrigin.Host, &existingNonce.Nonce, &now)
 	if err != nil {
-		return nil, nil, err
+		return nil, "", err
 	}
 
-	jwkKey, err := jwk.New(pubKey)
-	if err != nil {
-		return nil, nil, err
-	}
+	compressKey := crypto.CompressPubkey(pubKey)
+
+	pubKeyHex := hex.EncodeToString(compressKey)
 
 	if err = s.NonceStore.Delete(existingNonce); err != nil {
 		s.Logger.WithError(err).Error("failed to delete nonce after verification")
 	}
 
-	return message, jwkKey, nil
+	return message, pubKeyHex, nil
 }
