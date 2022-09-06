@@ -144,7 +144,7 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
     });
 
     const onRenderLabel = useCallback((description: string) => {
-      return (option?: IChoiceGroupOptionProps) => {
+      return (option?: IChoiceGroupOption | IChoiceGroupOptionProps) => {
         return (
           <div className={styles.optionLabel}>
             <Text className={styles.optionLabelText} block={true}>
