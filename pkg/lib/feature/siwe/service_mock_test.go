@@ -7,6 +7,7 @@ package siwe
 import (
 	reflect "reflect"
 
+	ratelimit "github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -74,4 +75,41 @@ func (m *MockNonceStore) Get(nonce *Nonce) (*Nonce, error) {
 func (mr *MockNonceStoreMockRecorder) Get(nonce interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockNonceStore)(nil).Get), nonce)
+}
+
+// MockRateLimiter is a mock of RateLimiter interface.
+type MockRateLimiter struct {
+	ctrl     *gomock.Controller
+	recorder *MockRateLimiterMockRecorder
+}
+
+// MockRateLimiterMockRecorder is the mock recorder for MockRateLimiter.
+type MockRateLimiterMockRecorder struct {
+	mock *MockRateLimiter
+}
+
+// NewMockRateLimiter creates a new mock instance.
+func NewMockRateLimiter(ctrl *gomock.Controller) *MockRateLimiter {
+	mock := &MockRateLimiter{ctrl: ctrl}
+	mock.recorder = &MockRateLimiterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockRateLimiter) EXPECT() *MockRateLimiterMockRecorder {
+	return m.recorder
+}
+
+// TakeToken mocks base method.
+func (m *MockRateLimiter) TakeToken(bucket ratelimit.Bucket) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TakeToken", bucket)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// TakeToken indicates an expected call of TakeToken.
+func (mr *MockRateLimiterMockRecorder) TakeToken(bucket interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TakeToken", reflect.TypeOf((*MockRateLimiter)(nil).TakeToken), bucket)
 }
