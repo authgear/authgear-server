@@ -73,7 +73,8 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 			if node.IdentityInfo == nil {
 				switch node.IdentitySpec.Type {
 				// Special case: login with new OAuth/anonymous identity means signup.
-				case model.IdentityTypeOAuth, model.IdentityTypeAnonymous:
+				// Special case: login and signup with SIWE shares the same behaviour.
+				case model.IdentityTypeOAuth, model.IdentityTypeAnonymous, model.IdentityTypeSIWE:
 					return []interaction.Edge{
 						&nodes.EdgeDoCreateUser{},
 					}, nil
@@ -92,7 +93,8 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 			if node.IdentityInfo != nil {
 				switch node.IdentitySpec.Type {
 				// Special case: signup with existing OAuth identity means login.
-				case model.IdentityTypeOAuth:
+				// Special case: login and signup with SIWE shares the same behaviour.
+				case model.IdentityTypeOAuth, model.IdentityTypeSIWE:
 					return []interaction.Edge{
 						&nodes.EdgeDoUseIdentity{
 							Identity:   node.IdentityInfo,

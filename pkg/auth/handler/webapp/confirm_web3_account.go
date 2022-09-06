@@ -9,12 +9,25 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 var TemplateWebConfirmWeb3AccountHTML = template.RegisterHTML(
 	"web/confirm_web3_account.html",
 	components...,
 )
+
+var Web3AccountConfirmationSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_siwe_message": { "type": "string" },
+			"x_siwe_signature": { "type": "string" },
+			"x_siwe_pub_key": { "type": "string" }
+		},
+		"required": ["x_siwe_message", "x_siwe_signature", "x_siwe_pub_key"]
+	}
+`)
 
 func ConfigureConfirmWeb3AccountRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -96,6 +109,32 @@ func (h *ConfirmWeb3AccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		}
 
 		h.Renderer.RenderHTML(w, r, TemplateWebConfirmWeb3AccountHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("submit", func() error {
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			err = Web3AccountConfirmationSchema.Validator().ValidateValue(FormToJSON(r.Form))
+			if err != nil {
+				return
+			}
+
+			message := r.Form.Get("x_siwe_message")
+			signature := r.Form.Get("x_siwe_signature")
+			pubKey := r.Form.Get("x_siwe_pub_key")
+
+			input = &InputConfirmWeb3Account{
+				Message:       message,
+				Signature:     signature,
+				EncodedPubKey: pubKey,
+			}
+			return
+		})
+		if err != nil {
+			return err
+		}
+
+		result.WriteResponse(w, r)
 		return nil
 	})
 }
