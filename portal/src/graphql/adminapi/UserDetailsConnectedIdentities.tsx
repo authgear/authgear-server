@@ -1,10 +1,4 @@
-import React, {
-  useMemo,
-  useCallback,
-  useContext,
-  useState,
-  createContext,
-} from "react";
+import React, { useMemo, useCallback, useContext, useState } from "react";
 import cn from "classnames";
 import { useNavigate, useParams } from "react-router-dom";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
@@ -20,7 +14,6 @@ import {
 // import PrimaryIdentitiesSelectionForm from "./PrimaryIdentitiesSelectionForm";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import ListCellLayout from "../../ListCellLayout";
-import ErrorDialog from "../../error/ErrorDialog";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
@@ -28,10 +21,11 @@ import { useSetVerifiedStatusMutation } from "./mutations/setVerifiedStatusMutat
 import { formatDatetime } from "../../util/formatDatetime";
 import { OAuthSSOProviderType } from "../../types";
 import { UserQueryNodeFragment } from "./query/userQuery.generated";
-import { makeInvariantViolatedErrorParseRule } from "../../error/parse";
 
 import styles from "./UserDetailsConnectedIdentities.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import { useIsLoading, useLoading } from "../../hook/loading";
+import { useProvideError } from "../../hook/error";
 
 // Always disable virtualization for List component, as it wont work properly with mobile view
 const onShouldVirtualize = () => {
@@ -235,19 +229,12 @@ function checkIsClaimVerified(
   return matchedClaim != null;
 }
 
-const ConnectedIdentitiesMutationLoadingContext = createContext({
-  settingVerifiedStatus: false,
-  deletingIdentity: false,
-});
-
 const VerifyButton: React.VFC<VerifyButtonProps> = function VerifyButton(
   props: VerifyButtonProps
 ) {
   const { verified, verifying, toggleVerified } = props;
   const { themes } = useSystemConfig();
-  const { settingVerifiedStatus } = useContext(
-    ConnectedIdentitiesMutationLoadingContext
-  );
+  const loading = useIsLoading();
 
   const onClickVerify = useCallback(() => {
     toggleVerified(true);
@@ -261,7 +248,7 @@ const VerifyButton: React.VFC<VerifyButtonProps> = function VerifyButton(
     return (
       <ButtonWithLoading
         className={cn(styles.controlButton, styles.unverifyButton)}
-        disabled={settingVerifiedStatus}
+        disabled={loading}
         theme={themes.defaultButton}
         onClick={onClickUnverify}
         labelId="make-as-unverified"
@@ -273,7 +260,7 @@ const VerifyButton: React.VFC<VerifyButtonProps> = function VerifyButton(
   return (
     <ButtonWithLoading
       className={cn(styles.controlButton, styles.verifyButton)}
-      disabled={settingVerifiedStatus}
+      disabled={loading}
       theme={themes.verifyButton}
       onClick={onClickVerify}
       loading={verifying}
@@ -299,9 +286,7 @@ const IdentityListCell: React.VFC<IdentityListCellProps> =
     } = props;
 
     const { themes } = useSystemConfig();
-    const { settingVerifiedStatus } = useContext(
-      ConnectedIdentitiesMutationLoadingContext
-    );
+    const loading = useIsLoading();
     const [verifying, setVerifying] = useState(false);
     const onRemoveClicked = useCallback(() => {
       _onRemoveClicked(identityID, identityName);
@@ -384,7 +369,7 @@ const IdentityListCell: React.VFC<IdentityListCellProps> =
                 styles.removeButton,
                 shouldShowVerifyButton ? "" : styles.removeButtonFull
               )}
-              disabled={settingVerifiedStatus}
+              disabled={loading}
               theme={themes.destructive}
               onClick={onRemoveClicked}
               text={<FormattedMessage id={removeButtonTextId[identityType]} />}
@@ -417,11 +402,16 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
       loading: deletingIdentity,
       error: deleteIdentityError,
     } = useDeleteIdentityMutation();
+    useLoading(deletingIdentity);
+    useProvideError(deleteIdentityError);
+
     const {
       setVerifiedStatus,
       loading: settingVerifiedStatus,
       error: setVerifiedStatusError,
     } = useSetVerifiedStatusMutation(userID);
+    useLoading(settingVerifiedStatus);
+    useProvideError(setVerifiedStatusError);
 
     const [isConfirmationDialogVisible, setIsConfirmationDialogVisible] =
       useState(false);
@@ -649,144 +639,120 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
       };
     }, [confirmationDialogData, renderToString]);
 
-    const contextValue = useMemo(() => {
-      return {
-        settingVerifiedStatus,
-        deletingIdentity,
-      };
-    }, [settingVerifiedStatus, deletingIdentity]);
-
     return (
-      <ConnectedIdentitiesMutationLoadingContext.Provider value={contextValue}>
-        <div className={styles.root}>
-          <Dialog
-            hidden={!isConfirmationDialogVisible}
-            dialogContentProps={confirmationDialogContentProps}
-            modalProps={{ isBlocking: deletingIdentity }}
-            onDismiss={onDismissConfirmationDialog}
-          >
-            <DialogFooter>
-              <ButtonWithLoading
-                labelId="confirm"
-                onClick={onConfirmRemoveIdentity}
-                loading={deletingIdentity}
-                disabled={!isConfirmationDialogVisible}
-              />
-              <DefaultButton
-                disabled={deletingIdentity || !isConfirmationDialogVisible}
-                onClick={onDismissConfirmationDialog}
-                text={<FormattedMessage id="cancel" />}
-              />
-            </DialogFooter>
-          </Dialog>
-          <ErrorDialog
-            error={deleteIdentityError}
-            rules={[
-              makeInvariantViolatedErrorParseRule(
-                "RemoveLastIdentity",
-                "UserDetails.connected-identities.remove-identity-error.connot-remove-last"
-              ),
-            ]}
-            fallbackErrorMessageID="UserDetails.connected-identities.remove-identity-error.generic"
-          />
-          <ErrorDialog
-            error={setVerifiedStatusError}
-            rules={[]}
-            fallbackErrorMessageID="UserDetails.connected-identities.verify-identity-error.generic"
-          />
-          <section className={styles.headerSection}>
-            <Text as="h2" variant="medium" className={styles.header}>
-              <FormattedMessage id="UserDetails.connected-identities.title" />
-            </Text>
-            <PrimaryButton
-              disabled={addIdentitiesMenuProps.items.length === 0}
-              iconProps={{ iconName: "CirclePlus" }}
-              menuProps={addIdentitiesMenuProps}
-              styles={{
-                menuIcon: { paddingLeft: "3px" },
-                icon: { paddingRight: "3px" },
-              }}
-              text={
-                <FormattedMessage id="UserDetails.connected-identities.add-identity" />
-              }
+      <div className={styles.root}>
+        <Dialog
+          hidden={!isConfirmationDialogVisible}
+          dialogContentProps={confirmationDialogContentProps}
+          modalProps={{ isBlocking: deletingIdentity }}
+          onDismiss={onDismissConfirmationDialog}
+        >
+          <DialogFooter>
+            <ButtonWithLoading
+              labelId="confirm"
+              onClick={onConfirmRemoveIdentity}
+              loading={deletingIdentity}
+              disabled={!isConfirmationDialogVisible}
             />
-          </section>
-          <section className={styles.identityLists}>
-            {identityLists.oauth.length > 0 ? (
-              <div>
-                <Text as="h3" className={styles.subHeader}>
-                  <FormattedMessage id="UserDetails.connected-identities.oauth" />
-                </Text>
-                <List
-                  items={identityLists.oauth}
-                  onRenderCell={onRenderIdentityCell}
-                  onShouldVirtualize={onShouldVirtualize}
-                />
-              </div>
-            ) : null}
-            {identityLists.email.length > 0 ? (
-              <div>
-                <Text as="h3" className={styles.subHeader}>
-                  <FormattedMessage id="UserDetails.connected-identities.email" />
-                </Text>
-                <List
-                  items={identityLists.email}
-                  onRenderCell={onRenderIdentityCell}
-                  onShouldVirtualize={onShouldVirtualize}
-                />
-              </div>
-            ) : null}
-            {identityLists.phone.length > 0 ? (
-              <div>
-                <Text as="h3" className={styles.subHeader}>
-                  <FormattedMessage id="UserDetails.connected-identities.phone" />
-                </Text>
-                <List
-                  items={identityLists.phone}
-                  onRenderCell={onRenderIdentityCell}
-                  onShouldVirtualize={onShouldVirtualize}
-                />
-              </div>
-            ) : null}
-            {identityLists.username.length > 0 ? (
-              <div>
-                <Text as="h3" className={styles.subHeader}>
-                  <FormattedMessage id="UserDetails.connected-identities.username" />
-                </Text>
-                <List
-                  items={identityLists.username}
-                  onRenderCell={onRenderIdentityCell}
-                  onShouldVirtualize={onShouldVirtualize}
-                />
-              </div>
-            ) : null}
-            {identityLists.biometric.length > 0 ? (
-              <div>
-                <Text as="h3" className={styles.subHeader}>
-                  <FormattedMessage id="UserDetails.connected-identities.biometric" />
-                </Text>
-                <List
-                  items={identityLists.biometric}
-                  onRenderCell={onRenderIdentityCell}
-                  onShouldVirtualize={onShouldVirtualize}
-                />
-              </div>
-            ) : null}
-            {identityLists.anonymous.length > 0 ? (
-              <div>
-                <Text as="h3" className={styles.subHeader}>
-                  <FormattedMessage id="UserDetails.connected-identities.anonymous" />
-                </Text>
-                <List
-                  items={identityLists.anonymous}
-                  onRenderCell={onRenderIdentityCell}
-                  onShouldVirtualize={onShouldVirtualize}
-                />
-              </div>
-            ) : null}
-          </section>
-        </div>
-      </ConnectedIdentitiesMutationLoadingContext.Provider>
+            <DefaultButton
+              disabled={deletingIdentity || !isConfirmationDialogVisible}
+              onClick={onDismissConfirmationDialog}
+              text={<FormattedMessage id="cancel" />}
+            />
+          </DialogFooter>
+        </Dialog>
+        <section className={styles.headerSection}>
+          <Text as="h2" variant="medium" className={styles.header}>
+            <FormattedMessage id="UserDetails.connected-identities.title" />
+          </Text>
+          <PrimaryButton
+            disabled={addIdentitiesMenuProps.items.length === 0}
+            iconProps={{ iconName: "CirclePlus" }}
+            menuProps={addIdentitiesMenuProps}
+            styles={{
+              menuIcon: { paddingLeft: "3px" },
+              icon: { paddingRight: "3px" },
+            }}
+            text={
+              <FormattedMessage id="UserDetails.connected-identities.add-identity" />
+            }
+          />
+        </section>
+        <section className={styles.identityLists}>
+          {identityLists.oauth.length > 0 ? (
+            <div>
+              <Text as="h3" className={styles.subHeader}>
+                <FormattedMessage id="UserDetails.connected-identities.oauth" />
+              </Text>
+              <List
+                items={identityLists.oauth}
+                onRenderCell={onRenderIdentityCell}
+                onShouldVirtualize={onShouldVirtualize}
+              />
+            </div>
+          ) : null}
+          {identityLists.email.length > 0 ? (
+            <div>
+              <Text as="h3" className={styles.subHeader}>
+                <FormattedMessage id="UserDetails.connected-identities.email" />
+              </Text>
+              <List
+                items={identityLists.email}
+                onRenderCell={onRenderIdentityCell}
+                onShouldVirtualize={onShouldVirtualize}
+              />
+            </div>
+          ) : null}
+          {identityLists.phone.length > 0 ? (
+            <div>
+              <Text as="h3" className={styles.subHeader}>
+                <FormattedMessage id="UserDetails.connected-identities.phone" />
+              </Text>
+              <List
+                items={identityLists.phone}
+                onRenderCell={onRenderIdentityCell}
+                onShouldVirtualize={onShouldVirtualize}
+              />
+            </div>
+          ) : null}
+          {identityLists.username.length > 0 ? (
+            <div>
+              <Text as="h3" className={styles.subHeader}>
+                <FormattedMessage id="UserDetails.connected-identities.username" />
+              </Text>
+              <List
+                items={identityLists.username}
+                onRenderCell={onRenderIdentityCell}
+                onShouldVirtualize={onShouldVirtualize}
+              />
+            </div>
+          ) : null}
+          {identityLists.biometric.length > 0 ? (
+            <div>
+              <Text as="h3" className={styles.subHeader}>
+                <FormattedMessage id="UserDetails.connected-identities.biometric" />
+              </Text>
+              <List
+                items={identityLists.biometric}
+                onRenderCell={onRenderIdentityCell}
+                onShouldVirtualize={onShouldVirtualize}
+              />
+            </div>
+          ) : null}
+          {identityLists.anonymous.length > 0 ? (
+            <div>
+              <Text as="h3" className={styles.subHeader}>
+                <FormattedMessage id="UserDetails.connected-identities.anonymous" />
+              </Text>
+              <List
+                items={identityLists.anonymous}
+                onRenderCell={onRenderIdentityCell}
+                onShouldVirtualize={onShouldVirtualize}
+              />
+            </div>
+          ) : null}
+        </section>
+      </div>
     );
   };
 

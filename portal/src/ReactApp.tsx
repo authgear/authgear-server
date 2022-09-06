@@ -33,6 +33,7 @@ import { loadTheme, Link as FluentLink, ILinkProps } from "@fluentui/react";
 import { ReactRouterLink, ReactRouterLinkProps } from "./ReactRouterLink";
 import Authenticated from "./graphql/portal/Authenticated";
 import { LoadingContextProvider } from "./hook/loading";
+import { ErrorContextProvider } from "./hook/error";
 import ShowLoading from "./ShowLoading";
 import GTMProvider, {
   AuthgearGTMEvent,
@@ -295,23 +296,25 @@ const ReactApp: React.VFC = function ReactApp() {
 
   return (
     <GTMProvider containerID={systemConfig.gtmContainerID}>
-      <LoadingContextProvider>
-        <LocaleProvider
-          locale="en"
-          messageByID={systemConfig.translations.en}
-          defaultComponents={defaultComponents}
-        >
-          <HelmetProvider>
-            <ApolloProvider client={client}>
-              <SystemConfigContext.Provider value={systemConfig}>
-                <LoadCurrentUser>
-                  <PortalRoot />
-                </LoadCurrentUser>
-              </SystemConfigContext.Provider>
-            </ApolloProvider>
-          </HelmetProvider>
-        </LocaleProvider>
-      </LoadingContextProvider>
+      <ErrorContextProvider>
+        <LoadingContextProvider>
+          <LocaleProvider
+            locale="en"
+            messageByID={systemConfig.translations.en}
+            defaultComponents={defaultComponents}
+          >
+            <HelmetProvider>
+              <ApolloProvider client={client}>
+                <SystemConfigContext.Provider value={systemConfig}>
+                  <LoadCurrentUser>
+                    <PortalRoot />
+                  </LoadCurrentUser>
+                </SystemConfigContext.Provider>
+              </ApolloProvider>
+            </HelmetProvider>
+          </LocaleProvider>
+        </LoadingContextProvider>
+      </ErrorContextProvider>
     </GTMProvider>
   );
 };

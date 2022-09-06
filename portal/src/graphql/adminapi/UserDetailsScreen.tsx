@@ -48,6 +48,7 @@ import { jsonPointerToString, parseJSONPointer } from "../../util/jsonpointer";
 import { formatDatetime } from "../../util/formatDatetime";
 
 import styles from "./UserDetailsScreen.module.css";
+import { makeInvariantViolatedErrorParseRule } from "../../error/parse";
 
 interface UserDetailsProps {
   form: SimpleFormModel<FormState>;
@@ -65,6 +66,17 @@ interface FormState {
   standardAttributes: StandardAttributesState;
   customAttributes: CustomAttributesState;
 }
+
+const ERROR_RULES = [
+  makeInvariantViolatedErrorParseRule(
+    "RemoveLastIdentity",
+    "errors.invariant.remove-last-identity"
+  ),
+  makeInvariantViolatedErrorParseRule(
+    "RemoveLastPrimaryAuthenticator",
+    "errors.invariant.remove-last-primary-authenticator"
+  ),
+];
 
 // eslint-disable-next-line complexity
 function makeStandardAttributesState(
@@ -547,6 +559,7 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
 
     return (
       <FormContainer
+        errorRules={ERROR_RULES}
         form={form}
         primaryItems={primaryItems}
         messageBar={<WarnScheduledDeletion user={user} />}

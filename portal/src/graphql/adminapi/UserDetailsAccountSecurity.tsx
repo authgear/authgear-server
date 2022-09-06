@@ -10,7 +10,6 @@ import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import ListCellLayout from "../../ListCellLayout";
 import ButtonWithLoading from "../../ButtonWithLoading";
-import ErrorDialog from "../../error/ErrorDialog";
 import { formatDatetime } from "../../util/formatDatetime";
 import {
   Identity,
@@ -19,7 +18,7 @@ import {
   AuthenticatorKind,
   IdentityType,
 } from "./globalTypes.generated";
-
+import { useProvideError } from "../../hook/error";
 import styles from "./UserDetailsAccountSecurity.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 
@@ -590,12 +589,14 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
       loading: deletingAuthenticator,
       error: deleteAuthenticatorError,
     } = useDeleteAuthenticatorMutation();
+    useProvideError(deleteAuthenticatorError);
 
     const {
       deleteIdentity,
       loading: deletingIdentity,
       error: deleteIdentityError,
     } = useDeleteIdentityMutation();
+    useProvideError(deleteIdentityError);
 
     const [isConfirmationDialogVisible, setIsConfirmationDialogVisible] =
       useState(false);
@@ -729,11 +730,6 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
               : undefined
           }
           onDismiss={dismissConfirmationDialog}
-        />
-        <ErrorDialog
-          rules={[]}
-          error={deleteAuthenticatorError || deleteIdentityError}
-          fallbackErrorMessageID="UserDetails.account-security.remove-authenticator.generic-error"
         />
         {primaryAuthenticatorLists.hasVisibleList ? (
           <div className={styles.authenticatorContainer}>
