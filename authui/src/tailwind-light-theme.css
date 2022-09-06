@@ -162,6 +162,16 @@
     --color-wechat-shaded-7: #06934a;
     --color-wechat-shaded-8: #046d37;
 
+    --color-metamask-unshaded: #ffffff;
+    --color-metamask-shaded-1: #767676;
+    --color-metamask-shaded-2: #a6a6a6;
+    --color-metamask-shaded-3: #c8c8c8;
+    --color-metamask-shaded-4: #d0d0d0;
+    --color-metamask-shaded-5: #dadada;
+    --color-metamask-shaded-6: #eaeaea;
+    --color-metamask-shaded-7: #f4f4f4;
+    --color-metamask-shaded-8: #f8f8f8;
+
     --color-warn: #fbca4e;
     --color-good: #58ca9a;
     --color-status-dark: #8a8886;
@@ -538,6 +548,27 @@
   }
   .wechat:disabled {
     background-color: var(--color-wechat-shaded-2);
+  }
+
+  .wallet-btn.metamask {
+    @apply border border-solid;
+    border-color: var(--color-separator);
+  }
+  .metamask {
+    color: var(--color-black-unshaded);
+    background-color: var(--color-metamask-unshaded);
+  }
+  .metamask:focus {
+    background-color: var(--color-metamask-unshaded);
+  }
+  .metamask:hover {
+    background-color: var(--color-metamask-shaded-4);
+  }
+  .metamask:active {
+    background-color: var(--color-metamask-shaded-7);
+  }
+  .metamask:disabled {
+    background-color: var(--color-metamask-shaded-2);
   }
 
   .signin-signup-link.current {
