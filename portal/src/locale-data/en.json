@@ -198,7 +198,6 @@
   "UserDetails.account-security.secondary": "Multi-factor Authentications",
   "UserDetails.account-security.remove-confirm-dialog.title": "Remove Authenticator",
   "UserDetails.account-security.remove-confirm-dialog.message": "Are you sure you want to remove authenticator {displayName}",
-  "UserDetails.account-security.remove-authenticator.generic-error": "Failed to remove authenticator",
 
   "ResetPasswordScreen.title": "Reset Password",
   "ResetPasswordScreen.new-password": "New Password",
@@ -226,9 +225,6 @@
 
   "UserDetails.connected-identities.confirm-remove-identity-title": "Remove Identity",
   "UserDetails.connected-identities.confirm-remove-identity-message": "Are you sure you want to remove identity {identityName}",
-  "UserDetails.connected-identities.remove-identity-error.generic": "Failed to remove identity",
-  "UserDetails.connected-identities.remove-identity-error.connot-remove-last": "Cannot remove last identity",
-  "UserDetails.connected-identities.verify-identity-error.generic": "Failed to set verified status of identity claim",
 
   "UserProfileForm.standard-attributes.title": "Standard Attributes",
   "UserProfileForm.custom-attributes.title": "Custom Attributes",

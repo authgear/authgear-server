@@ -14,7 +14,6 @@ import {
 // import PrimaryIdentitiesSelectionForm from "./PrimaryIdentitiesSelectionForm";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import ListCellLayout from "../../ListCellLayout";
-import ErrorDialog from "../../error/ErrorDialog";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
@@ -22,11 +21,11 @@ import { useSetVerifiedStatusMutation } from "./mutations/setVerifiedStatusMutat
 import { formatDatetime } from "../../util/formatDatetime";
 import { OAuthSSOProviderType } from "../../types";
 import { UserQueryNodeFragment } from "./query/userQuery.generated";
-import { makeInvariantViolatedErrorParseRule } from "../../error/parse";
 
 import styles from "./UserDetailsConnectedIdentities.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useIsLoading, useLoading } from "../../hook/loading";
+import { useProvideError } from "../../hook/error";
 
 // Always disable virtualization for List component, as it wont work properly with mobile view
 const onShouldVirtualize = () => {
@@ -404,12 +403,15 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
       error: deleteIdentityError,
     } = useDeleteIdentityMutation();
     useLoading(deletingIdentity);
+    useProvideError(deleteIdentityError);
+
     const {
       setVerifiedStatus,
       loading: settingVerifiedStatus,
       error: setVerifiedStatusError,
     } = useSetVerifiedStatusMutation(userID);
     useLoading(settingVerifiedStatus);
+    useProvideError(setVerifiedStatusError);
 
     const [isConfirmationDialogVisible, setIsConfirmationDialogVisible] =
       useState(false);
@@ -659,21 +661,6 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
             />
           </DialogFooter>
         </Dialog>
-        <ErrorDialog
-          error={deleteIdentityError}
-          rules={[
-            makeInvariantViolatedErrorParseRule(
-              "RemoveLastIdentity",
-              "UserDetails.connected-identities.remove-identity-error.connot-remove-last"
-            ),
-          ]}
-          fallbackErrorMessageID="UserDetails.connected-identities.remove-identity-error.generic"
-        />
-        <ErrorDialog
-          error={setVerifiedStatusError}
-          rules={[]}
-          fallbackErrorMessageID="UserDetails.connected-identities.verify-identity-error.generic"
-        />
         <section className={styles.headerSection}>
           <Text as="h2" variant="medium" className={styles.header}>
             <FormattedMessage id="UserDetails.connected-identities.title" />
