@@ -37,6 +37,7 @@
     "cropperjs": "1.5.12",
     "intl-tel-input": "17.0.18",
     "luxon": "3.0.3",
+    "ethers": "5.5.1",
     "zxcvbn": "4.4.2"
   }
 }
