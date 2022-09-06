@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/api"
 	handlerapi "github.com/authgear/authgear-server/pkg/auth/handler/api"
 	handleroauth "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
+	handlersiwe "github.com/authgear/authgear-server/pkg/auth/handler/siwe"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	viewmodelswebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -25,6 +26,7 @@ import (
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	featurepasskey "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
+	featuresiwe "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
@@ -151,6 +153,12 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.ErrorCookie), new(*webapp.ErrorCookie)),
 	wire.Bind(new(handlerwebapp.PasskeyCreationOptionsService), new(*featurepasskey.CreationOptionsService)),
 	wire.Bind(new(handlerwebapp.PasskeyRequestOptionsService), new(*featurepasskey.RequestOptionsService)),
+
+	handlersiwe.DependencySet,
+	wire.Bind(new(handlersiwe.NonceHandlerJSONResponseWriter), new(*httputil.JSONResponseWriter)),
+	wire.Bind(new(handlersiwe.NonceHandlerSIWEService), new(*featuresiwe.Service)),
+	wire.Bind(new(handlersiwe.VerifyHandlerJSONResponseWriter), new(*httputil.JSONResponseWriter)),
+	wire.Bind(new(handlersiwe.VerifyHandlerSIWEService), new(*featuresiwe.Service)),
 
 	api.DependencySet,
 	wire.Bind(new(api.JSONResponseWriter), new(*httputil.JSONResponseWriter)),

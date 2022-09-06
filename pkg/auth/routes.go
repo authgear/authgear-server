@@ -3,6 +3,7 @@ package auth
 import (
 	apihandler "github.com/authgear/authgear-server/pkg/auth/handler/api"
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
+	siwehandler "github.com/authgear/authgear-server/pkg/auth/handler/siwe"
 	webapphandler "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
@@ -58,6 +59,13 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.Middleware(newSessionMiddleware),
 		httproute.MiddlewareFunc(httputil.NoStore),
 		p.Middleware(newWebAppWeChatRedirectURIMiddleware),
+	)
+
+	siweAPIChain := httproute.Chain(
+		rootChain,
+		p.Middleware(newCORSMiddleware),
+		p.Middleware(newPublicOriginMiddleware),
+		httproute.MiddlewareFunc(httputil.NoCache),
 	)
 
 	apiChain := httproute.Chain(
@@ -146,6 +154,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	generatedStaticRoute := httproute.Route{Middleware: generatedStaticChain}
 	oauthStaticRoute := httproute.Route{Middleware: oauthStaticChain}
 	oauthAPIRoute := httproute.Route{Middleware: oauthAPIChain}
+	siweAPIRoute := httproute.Route{Middleware: siweAPIChain}
 	apiRoute := httproute.Route{Middleware: apiChain}
 	apiAuthenticatedRoute := httproute.Route{Middleware: apiAuthenticatedChain}
 	scopedRoute := httproute.Route{Middleware: scopedChain}
@@ -236,6 +245,9 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(oauthhandler.ConfigureAppSessionTokenRoute(apiRoute), p.Handler(newOAuthAppSessionTokenHandler))
 
 	router.Add(oauthhandler.ConfigureUserInfoRoute(scopedRoute), p.Handler(newOAuthUserInfoHandler))
+
+	router.Add(siwehandler.ConfigureNonceRoute(siweAPIRoute), p.Handler(newSIWENonceHandler))
+	router.Add(siwehandler.ConfigureVerifyRoute(siweAPIRoute), p.Handler(newSIWEVerifyHandler))
 
 	router.Add(apihandler.ConfigureAnonymousUserSignupRoute(apiRoute), p.Handler(newAPIAnonymousUserSignupHandler))
 	router.Add(apihandler.ConfigureAnonymousUserPromotionCodeRoute(apiRoute), p.Handler(newAPIAnonymousUserPromotionCodeHandler))
