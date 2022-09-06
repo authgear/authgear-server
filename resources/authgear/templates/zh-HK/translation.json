@@ -111,6 +111,7 @@
 
   "log-in-to-continue": "登入至{AppOrClientName}",
   "sign-up-to-continue": "註冊至{AppOrClientName}",
+  "collect-wallet-to-continue": "連接到加密銀包",
 
   "oauth-branding-apple": "使用 Apple 帳戶登入",
   "oauth-branding-google": "使用 Google 帳戶登入",
@@ -156,7 +157,7 @@
   "whatsapp-otp-no-code-description": "我們沒有看到你的訊息。 \n你要重新發送嗎？",
   "whatsapp-otp-invalid-code-description": "您輸入了錯誤的驗證碼。 \n你要重新發送嗎？",
   "whatsapp-otp-refresh-button-label": "重試",
-  "whatsapp-otp-installed-on-this-device-hint" : "在此裝置上安裝了 WhatsApp？",
+  "whatsapp-otp-installed-on-this-device-hint": "在此裝置上安裝了 WhatsApp？",
   "whatsapp-otp-open-in-whatsapp-button-label": "是，在 WhatsApp 中打開",
   "whatsapp-otp-scan-code-button-label": "否，在其他設備上掃描QR碼",
   "whatsapp-otp-code-matched-description": "收到訊息！",
@@ -183,6 +184,8 @@
 
   "create-passkey-page-title": "建立通行密匙",
   "create-passkey-label": "建立通行密匙",
+
+  "web3-provider-metamask": "MetaMask",
 
   "prompt-create-passkey-page-title": "建立通行密匙",
   "prompt-create-passkey-page-description": "建立一個可以更快、更安全登入的通行密匙",
@@ -298,7 +301,7 @@
   "settings-sessions-title": "已登入的裝置",
   "settings-sessions-description": "你目前在以下裝置登入",
   "settings-sessions-item-title": "{countryName} ({countryCode}) - {ip}",
- "settings-sessions-item-description": "{isCurrent, select, true {{desc} · <b class=\"good-txt\">使用中</b>} other {{desc} · <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>}}",
+  "settings-sessions-item-description": "{isCurrent, select, true {{desc} · <b class=\"good-txt\">使用中</b>} other {{desc} · <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>}}",
   "settings-sessions-revoke-label": "登出",
   "settings-sessions-revoke-group-label": "登出此組別的裝置",
   "settings-sessions-revoke-all-label": "登出所有其他裝置",
@@ -334,7 +337,7 @@
   "setup-phone-otp-instead": "改為使用手機作雙重驗證",
   "verify-phone-otp-instead": "改為通過手機驗證 {target}",
 
-  "phone-otp-verify-with-sms-instead":"改為通過短信接收一次性密碼",
+  "phone-otp-verify-with-sms-instead": "改為通過短信接收一次性密碼",
   "phone-otp-verify-with-whatsapp-instead": "改為通過 WhatsApp 驗證",
 
   "enter-recovery-code-instead-v1": "遇到問題? <button class=\"btn secondary-btn\" type=\"submit\">改為輸入備用碼</button>",

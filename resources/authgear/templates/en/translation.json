@@ -111,6 +111,7 @@
 
   "log-in-to-continue": "Log in to {AppOrClientName}",
   "sign-up-to-continue": "Sign up to {AppOrClientName}",
+  "collect-wallet-to-continue": "Connect a Wallet",
 
   "oauth-branding-apple": "Sign in with Apple",
   "oauth-branding-google": "Sign in with Google",
@@ -183,6 +184,8 @@
 
   "create-passkey-page-title": "Create Passkey",
   "create-passkey-label": "Create Passkey",
+
+  "web3-provider-metamask": "MetaMask",
 
   "prompt-create-passkey-page-title": "Create Passkey",
   "prompt-create-passkey-page-description": "Create a passkey so that you can sign in faster and safer",
