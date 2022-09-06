@@ -10,6 +10,12 @@ func init() {
 	interaction.RegisterNode(&NodeUseIdentitySIWE{})
 }
 
+type InputUseIdentitySIWE interface {
+	GetMessage() string
+	GetSignature() string
+	GetEncodedPubKey() string
+}
+
 type EdgeUseIdentitySIWE struct {
 	IsAuthentication bool
 }
@@ -21,10 +27,19 @@ func (e *EdgeUseIdentitySIWE) GetIdentityCandidates() []identity.Candidate {
 }
 
 func (e *EdgeUseIdentitySIWE) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+	var input InputUseIdentitySIWE
+	if !interaction.Input(rawInput, &input) {
+		return nil, interaction.ErrIncompatibleInput
+	}
+
 	spec := &identity.Spec{
-		Type: model.IdentityTypePasskey,
+		Type: model.IdentityTypeSIWE,
 		SIWE: &identity.SIWESpec{
-			VerificationRequest: model.SIWEVerificationRequest{},
+			VerifiedData: model.SIWEVerifiedData{
+				Message:          input.GetMessage(),
+				Signature:        input.GetSignature(),
+				EncodedPublicKey: input.GetEncodedPubKey(),
+			},
 		},
 	}
 
