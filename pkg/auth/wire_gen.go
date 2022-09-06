@@ -11,6 +11,7 @@ import (
 	api2 "github.com/authgear/authgear-server/pkg/auth/api"
 	"github.com/authgear/authgear-server/pkg/auth/handler/api"
 	"github.com/authgear/authgear-server/pkg/auth/handler/oauth"
+	siwe3 "github.com/authgear/authgear-server/pkg/auth/handler/siwe"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	webapp2 "github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -333,10 +334,24 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clock,
-		NonceStore: siweStoreRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clock,
+		NonceStore:  siweStoreRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -424,16 +439,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -1095,10 +1100,24 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: siweStoreRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  siweStoreRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -1186,16 +1205,6 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -1796,10 +1805,24 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -1887,16 +1910,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -2532,10 +2545,24 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: siweStoreRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  siweStoreRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -2623,16 +2650,6 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -2967,16 +2984,31 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	logger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  logger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -3005,7 +3037,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorConfig := appConfig.Authenticator
 	authenticatorPasswordConfig := authenticatorConfig.Password
-	logger := password.NewLogger(factory)
+	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
 		SQLBuilder:  sqlBuilderApp,
@@ -3023,7 +3055,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
 		Clock:           clockClock,
-		Logger:          logger,
+		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
@@ -3065,16 +3097,6 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Clock:     clockClock,
 		Logger:    oobLogger,
 	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
-	}
 	service3 := &service2.Service{
 		Store:       store3,
 		Password:    passwordProvider,
@@ -3083,7 +3105,6 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
 	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -3304,16 +3325,31 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	logger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  logger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -3342,7 +3378,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorConfig := appConfig.Authenticator
 	authenticatorPasswordConfig := authenticatorConfig.Password
-	logger := password.NewLogger(factory)
+	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
 		SQLBuilder:  sqlBuilderApp,
@@ -3360,7 +3396,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
 		Clock:           clockClock,
-		Logger:          logger,
+		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
@@ -3402,16 +3438,6 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Clock:     clockClock,
 		Logger:    oobLogger,
 	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
-	}
 	service3 := &service2.Service{
 		Store:       store3,
 		Password:    passwordProvider,
@@ -3420,7 +3446,6 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
 	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -3691,10 +3716,24 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: siweStoreRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  siweStoreRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -3782,16 +3821,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -4151,10 +4180,24 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -4242,16 +4285,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -4699,6 +4732,112 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	return appSessionTokenHandler
 }
 
+func newSIWENonceHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	nonceHandlerLogger := siwe3.NewNonceHandlerLogger(factory)
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	httpConfig := appConfig.HTTP
+	clockClock := _wireSystemClockValue
+	contextContext := deps.ProvideRequestContext(request)
+	handle := appProvider.Redis
+	appID := appConfig.ID
+	storeRedis := &siwe2.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
+	logger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  logger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
+	siweService := &siwe2.Service{
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
+	}
+	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
+	jsonResponseWriter := &httputil.JSONResponseWriter{
+		Logger: jsonResponseWriterLogger,
+	}
+	nonceHandler := &siwe3.NonceHandler{
+		Logger: nonceHandlerLogger,
+		SIWE:   siweService,
+		JSON:   jsonResponseWriter,
+	}
+	return nonceHandler
+}
+
+func newSIWEVerifyHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	verifyHandlerLogger := siwe3.NewVerifyHandlerLogger(factory)
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	httpConfig := appConfig.HTTP
+	clockClock := _wireSystemClockValue
+	contextContext := deps.ProvideRequestContext(request)
+	handle := appProvider.Redis
+	appID := appConfig.ID
+	storeRedis := &siwe2.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
+	logger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  logger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
+	siweService := &siwe2.Service{
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
+	}
+	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
+	jsonResponseWriter := &httputil.JSONResponseWriter{
+		Logger: jsonResponseWriterLogger,
+	}
+	verifyHandler := &siwe3.VerifyHandler{
+		Logger: verifyHandlerLogger,
+		SIWE:   siweService,
+		JSON:   jsonResponseWriter,
+	}
+	return verifyHandler
+}
+
 func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
@@ -4861,10 +5000,24 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -4952,16 +5105,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -5590,10 +5733,24 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -5681,16 +5838,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -6419,10 +6566,24 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -6510,16 +6671,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -7186,10 +7337,24 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -7277,16 +7442,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -7952,10 +8107,24 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -8043,16 +8212,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -8701,10 +8860,24 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -8792,16 +8965,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -9451,10 +9614,24 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -9542,16 +9719,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -10193,10 +10360,24 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -10284,16 +10465,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -10938,10 +11109,24 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -11029,16 +11214,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -11686,10 +11861,24 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -11777,16 +11966,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -12431,10 +12610,24 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -12522,16 +12715,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -13179,10 +13362,24 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -13270,16 +13467,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -13927,10 +14114,24 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -14018,16 +14219,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -14676,10 +14867,24 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -14767,16 +14972,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -15424,10 +15619,24 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -15515,16 +15724,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -16172,10 +16371,24 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -16263,16 +16476,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -16922,10 +17125,24 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -17013,16 +17230,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -17670,10 +17877,24 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -17761,16 +17982,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -18418,10 +18629,24 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -18509,16 +18734,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -19168,10 +19383,24 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -19259,16 +19488,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -19916,10 +20135,24 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -20007,16 +20240,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -20657,10 +20880,24 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: siweStoreRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  siweStoreRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -20748,16 +20985,6 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: handle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -21086,10 +21313,24 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -21177,16 +21418,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -21834,10 +22065,24 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -21925,16 +22170,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -22578,10 +22813,24 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -22669,16 +22918,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -23324,10 +23563,24 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -23415,16 +23668,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -24068,10 +24311,24 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -24159,16 +24416,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -24817,10 +25064,24 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -24908,16 +25169,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -25561,10 +25812,24 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -25652,16 +25917,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -26306,10 +26561,24 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -26397,16 +26666,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -27050,10 +27309,24 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -27141,16 +27414,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -27820,10 +28083,24 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -27911,16 +28188,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -28575,10 +28842,24 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -28666,16 +28947,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -29343,10 +29614,24 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -29434,16 +29719,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -30090,10 +30365,24 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -30181,16 +30470,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -30835,10 +31114,24 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -30926,16 +31219,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -31588,10 +31871,24 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -31679,16 +31976,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -32333,10 +32620,24 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -32424,16 +32725,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -33078,10 +33369,24 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -33169,16 +33474,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -33823,10 +34118,24 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -33914,16 +34223,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -34569,10 +34868,24 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -34660,16 +34973,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -35319,10 +35622,24 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -35410,16 +35727,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -36064,10 +36371,24 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -36155,16 +36476,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -36809,10 +37120,24 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -36900,16 +37225,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -37554,10 +37869,24 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -37645,16 +37974,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -38299,10 +38618,24 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -38390,16 +38723,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -39051,10 +39374,24 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -39142,16 +39479,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -39797,10 +40124,24 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -39888,16 +40229,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -40541,10 +40872,24 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -40632,16 +40977,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -41304,10 +41639,24 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -41395,16 +41744,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -42048,10 +42387,24 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -42139,16 +42492,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -42809,10 +43152,24 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -42900,16 +43257,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: handle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -43519,10 +43866,24 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -43610,16 +43971,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: handle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -44228,10 +44579,24 @@ func newWebAppConfirmWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -44319,16 +44684,6 @@ func newWebAppConfirmWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -45224,10 +45579,24 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: siweStoreRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  siweStoreRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -45315,16 +45684,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: handle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -45713,10 +46072,24 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -45804,16 +46177,6 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,

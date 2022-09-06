@@ -11,6 +11,7 @@ import (
 
 	handlerapi "github.com/authgear/authgear-server/pkg/auth/handler/api"
 	handleroauth "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
+	handlersiwe "github.com/authgear/authgear-server/pkg/auth/handler/siwe"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
@@ -101,6 +102,20 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handleroauth.AppSessionTokenHandler)),
+	))
+}
+
+func newSIWENonceHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlersiwe.NonceHandler)),
+	))
+}
+
+func newSIWEVerifyHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlersiwe.VerifyHandler)),
 	))
 }
 
