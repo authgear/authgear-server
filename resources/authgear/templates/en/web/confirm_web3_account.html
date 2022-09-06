@@ -1,0 +1,67 @@
+{{ template "__page_frame.html" . }} {{ define "page-content" }}
+<div
+  class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8"
+>
+  <h1 class="m-0 primary-txt text-center text-xl font-bold">
+    {{ template "confirm-web3-account-page-title" }}
+  </h1>
+
+  <div class="text-sm break-words primary-txt text-center">
+    {{ template "confirm-web3-account-page-description" (dict "provider"
+    ($.Translations.RenderText (printf "web3-provider-%s" $.Provider) nil)) }}
+  </div>
+
+  <div
+    class="twc-container-vertical"
+    data-controller="web3-wallet-confirmation"
+    data-web3-wallet-confirmation-provider-value="{{ $.Provider }}"
+  >
+    <div class="flex flex-col space-y-5 items-center">
+      <div class="flex flex-row space-x-2 items-center">
+        <div
+          class="w-5 h-5 rounded-full"
+          data-web3-wallet-confirmation-target="icon"
+        ></div>
+        <span
+          class="text-xl leading-6 font-semibold primary-txt"
+          data-web3-wallet-confirmation-target="displayed"
+        ></span>
+      </div>
+      <form class="flex flex-col items-center w-full" method="post" novalidate>
+        {{ $.CSRFField }}
+        <input
+          class="hidden"
+          name="x_web3_address"
+          data-web3-wallet-confirmation-target="address"
+        />
+        <input
+          class="hidden"
+          name="x_web3_network"
+          data-web3-wallet-confirmation-target="network"
+        />
+        <button
+          class="w-full btn primary-btn px-5 py-1.5 text-center"
+          type="submit"
+          name="x_action"
+          value="confirm"
+        >
+          {{ template "confirm-web3-account-page-next" }}
+        </button>
+      </form>
+    </div>
+    <div class="alternative-separator flex flex-row items-center">
+      <span class="primary-txt mx-1.5 text-sm">{{ template "or-label" }}</span>
+    </div>
+    <div class="flex flex-row items-start">
+      <button
+        class="primary-txt text-sm leading-tight"
+        type="button"
+        data-action="click->web3-wallet-confirmation#reconnect"
+      >
+        {{ template "confirm-web3-account-page-change-account"}}
+      </button>
+    </div>
+  </div>
+  {{ template "__watermark.html" . }}
+</div>
+{{ end }}

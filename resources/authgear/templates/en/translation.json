@@ -187,6 +187,11 @@
 
   "web3-provider-metamask": "MetaMask",
 
+  "confirm-web3-account-page-title": "Account Connected",
+  "confirm-web3-account-page-description": "Connected with {provider}",
+  "confirm-web3-account-page-next": "Next",
+  "confirm-web3-account-page-change-account": "Change account",
+
   "prompt-create-passkey-page-title": "Create Passkey",
   "prompt-create-passkey-page-description": "Create a passkey so that you can sign in faster and safer",
   "prompt-create-passkey-skip-label": "Not now",

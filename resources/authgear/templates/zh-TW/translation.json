@@ -187,6 +187,11 @@
 
   "web3-provider-metamask": "MetaMask",
 
+  "confirm-web3-account-page-title": "帳戶已連接",
+  "confirm-web3-account-page-description": "已連接到 {provider}",
+  "confirm-web3-account-page-next": "下一步",
+  "confirm-web3-account-page-change-account": "更改帳戶",
+
   "prompt-create-passkey-page-title": "建立通行密鑰",
   "prompt-create-passkey-page-description": "建立一個可以更快、更安全登入的通行密鑰",
   "prompt-create-passkey-skip-label": "下次再算",
