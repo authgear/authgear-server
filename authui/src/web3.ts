@@ -1,7 +1,9 @@
 import { Controller } from "@hotwired/stimulus";
-import { showErrorMessage } from "./messageBar";
+import { handleAxiosError, showErrorMessage } from "./messageBar";
 import jazzicon from "@metamask/jazzicon";
 import { ethers } from "ethers";
+import axios from "axios";
+import { SiweMessage } from "siwe";
 
 enum WalletProvider {
   MetaMask = "metamask",
@@ -12,6 +14,47 @@ function metamaskIsAvailable(): boolean {
     typeof window.ethereum !== "undefined" &&
     window.ethereum?.isMetaMask === true
   );
+}
+
+function deserializeNonceResponse(data: any): SIWENonce {
+  return {
+    nonce: data.nonce,
+    expireAt: new Date(data.expire_at),
+  };
+}
+
+function serializeVerificationRequest(message: string, signature: string) {
+  return {
+    message,
+    signature,
+  };
+}
+
+function deserializeVerificationResponse(data: any): SIWEVerifiedData {
+  return {
+    message: data.message,
+    signature: data.signature,
+    encodedPubKey: data.encoded_public_key,
+  };
+}
+
+function createSIWEMessage(
+  address: string,
+  chainId: number,
+  nonce: string,
+  expiry: string
+): string {
+  const message = new SiweMessage({
+    domain: window.location.host,
+    address,
+    uri: window.location.origin,
+    version: "1",
+    chainId,
+    nonce,
+    expirationTime: expiry,
+  });
+
+  return message.prepareMessage();
 }
 
 function checkProviderIsAvailable(provider: string): boolean {
@@ -101,16 +144,26 @@ export class WalletConnectionController extends Controller {
 }
 
 export class WalletConfirmationController extends Controller {
-  static targets = ["button", "icon", "displayed", "address", "network"];
+  static targets = [
+    "button",
+    "icon",
+    "displayed",
+    "message",
+    "signature",
+    "pubKey",
+    "submit",
+  ];
   static values = {
     provider: String,
   };
 
   declare buttonTarget: HTMLButtonElement;
   declare displayedTarget: HTMLSpanElement;
-  declare addressTarget: HTMLInputElement;
-  declare networkTarget: HTMLInputElement;
   declare iconTarget: HTMLDivElement;
+  declare messageTarget: HTMLInputElement;
+  declare signatureTarget: HTMLInputElement;
+  declare pubKeyTarget: HTMLInputElement;
+  declare submitTarget: HTMLButtonElement;
 
   declare providerValue: string;
   declare provider: ethers.providers.Web3Provider | null;
@@ -126,11 +179,8 @@ export class WalletConfirmationController extends Controller {
       return;
     }
 
-    const account = await this.provider.send("eth_requestAccounts", []);
-    const network = await this.provider.getNetwork();
+    const [account] = await this.provider.send("eth_requestAccounts", []);
 
-    this.addressTarget.value = account;
-    this.networkTarget.value = network.chainId.toString();
     this.displayedTarget.textContent = truncateAddress(account);
 
     const icon = generateIcon(account, 20);
@@ -164,6 +214,53 @@ export class WalletConfirmationController extends Controller {
       ]);
     } catch (err: unknown) {
       handleError(err);
+    }
+  }
+
+  async performSIWE() {
+    if (!this.provider) {
+      return;
+    }
+
+    try {
+      const nonceResp = await axios("/siwe/nonce", {
+        method: "get",
+      });
+
+      const nonce = deserializeNonceResponse(nonceResp.data.result);
+
+      const signer = this.provider.getSigner();
+
+      const address = await signer.getAddress();
+      const chainId = await signer.getChainId();
+
+      const siweMessage = createSIWEMessage(
+        address,
+        chainId,
+        nonce.nonce,
+        nonce.expireAt.toISOString()
+      );
+
+      const signature = await signer.signMessage(siweMessage);
+
+      const requestBody = serializeVerificationRequest(siweMessage, signature);
+
+      const verificationResp = await axios("/siwe/verify", {
+        method: "post",
+        data: requestBody,
+      });
+
+      const verifiedData = deserializeVerificationResponse(
+        verificationResp.data.result
+      );
+
+      this.messageTarget.value = verifiedData.message;
+      this.signatureTarget.value = verifiedData.signature;
+      this.pubKeyTarget.value = verifiedData.encodedPubKey;
+
+      this.submitTarget.click();
+    } catch (e: unknown) {
+      handleAxiosError(e);
     }
   }
 }
