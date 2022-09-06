@@ -69,6 +69,8 @@ require (
 	github.com/aws/aws-sdk-go v1.44.91
 	github.com/davidbyttow/govips/v2 v2.11.0
 	github.com/duo-labs/webauthn v0.0.0-20220815211337-00c9fb5711f5
+	github.com/ethereum/go-ethereum v1.10.15
+	github.com/goccy/go-json v0.9.7
 	github.com/spruceid/siwe-go v0.2.0
 	github.com/stripe/stripe-go/v72 v72.122.0
 	github.com/tdewolff/parse/v2 v2.6.3
@@ -102,7 +104,6 @@ require (
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/envoyproxy/go-control-plane v0.10.2-0.20220325020618-49ff273808a1 // indirect
 	github.com/envoyproxy/protoc-gen-validate v0.6.1 // indirect
-	github.com/ethereum/go-ethereum v1.10.15 // indirect
 	github.com/evanphx/json-patch v4.11.0+incompatible // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
@@ -110,7 +111,6 @@ require (
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
 	github.com/go-gorp/gorp/v3 v3.0.2 // indirect
 	github.com/go-logr/logr v0.4.0 // indirect
-	github.com/goccy/go-json v0.9.7 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang-jwt/jwt/v4 v4.1.0 // indirect

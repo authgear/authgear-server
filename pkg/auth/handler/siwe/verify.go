@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/validation"
-	"github.com/lestrrat-go/jwx/jwk"
 	siwego "github.com/spruceid/siwe-go"
 )
 
@@ -32,19 +31,13 @@ var SIWEVerificationRequestSchema = validation.NewSimpleSchema(`
 `)
 
 type VerifyHandlerSIWEService interface {
-	VerifyMessage(request apimodel.SIWEVerificationRequest) (*siwego.Message, jwk.Key, error)
+	VerifyMessage(request apimodel.SIWEVerificationRequest) (*siwego.Message, string, error)
 }
 
 type VerifyHandlerLogger struct{ *log.Logger }
 
 func NewVerifyHandlerLogger(lf *log.Factory) VerifyHandlerLogger {
 	return VerifyHandlerLogger{lf.New("handler-verify")}
-}
-
-type VerifyResponse struct {
-	Address string  `json:"address"`
-	ChainID int     `json:"chain_id"`
-	PubKey  jwk.Key `json:"pub_key"`
 }
 
 type VerifyHandlerJSONResponseWriter interface {
@@ -65,21 +58,18 @@ func (h *VerifyHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	msg, pubKey, err := h.SIWE.VerifyMessage(payload)
+	_, pubKey, err := h.SIWE.VerifyMessage(payload)
 	if err != nil {
 		h.Logger.WithError(err).Error("failed to verify siwe message")
 		http.Error(rw, "internal server error", 500)
 		return
 	}
 
-	address := msg.GetAddress().Hex()
-	chainID := msg.GetChainID()
-
 	h.JSON.WriteResponse(rw, &api.Response{
-		Result: &VerifyResponse{
-			Address: address,
-			ChainID: chainID,
-			PubKey:  pubKey,
+		Result: &apimodel.SIWEVerifiedData{
+			Message:          payload.Message,
+			Signature:        payload.Signature,
+			EncodedPublicKey: pubKey,
 		},
 	})
 }
