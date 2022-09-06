@@ -31,19 +31,31 @@
         {{ $.CSRFField }}
         <input
           class="hidden"
-          name="x_web3_address"
-          data-web3-wallet-confirmation-target="address"
+          name="x_siwe_message"
+          type="hidden"
+          data-web3-wallet-confirmation-target="message"
         />
         <input
           class="hidden"
-          name="x_web3_network"
-          data-web3-wallet-confirmation-target="network"
+          name="x_siwe_signature"
+          data-web3-wallet-confirmation-target="signature"
+        />
+        <input
+          class="hidden"
+          name="x_siwe_pub_key"
+          data-web3-wallet-confirmation-target="pubKey"
         />
         <button
-          class="w-full btn primary-btn px-5 py-1.5 text-center"
+          class="hidden"
           type="submit"
           name="x_action"
-          value="confirm"
+          value="submit"
+          data-web3-wallet-confirmation-target="submit"
+        ></button>
+        <button
+          class="w-full btn primary-btn px-5 py-1.5 text-center"
+          type="button"
+          data-action="click->web3-wallet-confirmation#performSIWE"
         >
           {{ template "confirm-web3-account-page-next" }}
         </button>
