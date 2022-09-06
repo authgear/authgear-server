@@ -385,3 +385,4 @@ Various files in this project have versioned dependencies.
   - You can find out the server version by going into the container and run `apt list --installed`.
   - The version of Debian bullseye is `2021a`, which correspond to `tzdata@v1.0.25`.
 - [The cropperjs type definition in ./authui/src](./authui/src)
+- [GeoLite2-Country.mmdb](./GeoLite2-Country.mmdb)
