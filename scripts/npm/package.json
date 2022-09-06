@@ -8,9 +8,9 @@
   },
   "devDependencies": {
     "cldr-localenames-modern": "41.0.0",
-    "graphql": "16.5.0",
-    "luxon": "2.4.0",
-    "mjml": "4.12.0",
+    "graphql": "16.6.0",
+    "luxon": "3.0.3",
+    "mjml": "4.13.0",
     "tzdata": "1.0.25"
   }
 }

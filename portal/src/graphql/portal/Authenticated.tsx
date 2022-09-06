@@ -26,7 +26,7 @@ const ShowQueryResult: React.VFC<ShowQueryResultProps> =
         // But we know that we are first party app and are using response_type=none so
         // we can skip that.
         authgear
-          .startAuthorization({
+          .startAuthentication({
             redirectURI,
             prompt: "login",
             state: encodeOAuthState({

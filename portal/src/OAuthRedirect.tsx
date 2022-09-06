@@ -15,7 +15,7 @@ const OAuthRedirect: React.VFC = function OAuthRedirect() {
 
   useEffect(() => {
     authgear
-      .finishAuthorization()
+      .finishAuthentication()
       .then((result) => {
         const state = result.state ? decodeOAuthState(result.state) : null;
         let navigateToPath = "/";
