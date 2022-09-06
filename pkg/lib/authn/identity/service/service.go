@@ -80,9 +80,9 @@ type PasskeyIdentityProvider interface {
 type SIWEIdentityProvider interface {
 	Get(userID, id string) (*identity.SIWE, error)
 	GetMany(ids []string) ([]*identity.SIWE, error)
-	GetByMessageRequest(messageRequest model.SIWEVerificationRequest) (*identity.SIWE, error)
+	GetByVerifiedData(data model.SIWEVerifiedData) (*identity.SIWE, error)
 	List(userID string) ([]*identity.SIWE, error)
-	New(userID string, messageRequest model.SIWEVerificationRequest) (*identity.SIWE, error)
+	New(userID string, verifiedData model.SIWEVerifiedData) (*identity.SIWE, error)
 	Create(i *identity.SIWE) error
 	Delete(i *identity.SIWE) error
 }
@@ -279,8 +279,8 @@ func (s *Service) getBySpec(spec *identity.Spec) (*identity.Info, error) {
 		}
 		return p.ToInfo(), nil
 	case model.IdentityTypeSIWE:
-		request := spec.SIWE.VerificationRequest
-		e, err := s.SIWE.GetByMessageRequest(request)
+		data := spec.SIWE.VerifiedData
+		e, err := s.SIWE.GetByVerifiedData(data)
 		if err != nil {
 			return nil, err
 		}
@@ -488,8 +488,8 @@ func (s *Service) New(userID string, spec *identity.Spec, options identity.NewId
 		}
 		return p.ToInfo(), nil
 	case model.IdentityTypeSIWE:
-		request := spec.SIWE.VerificationRequest
-		e, err := s.SIWE.New(userID, request)
+		data := spec.SIWE.VerifiedData
+		e, err := s.SIWE.New(userID, data)
 		if err != nil {
 			return nil, err
 		}

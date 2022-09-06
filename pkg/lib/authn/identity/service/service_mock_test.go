@@ -839,19 +839,19 @@ func (mr *MockSIWEIdentityProviderMockRecorder) Get(userID, id interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).Get), userID, id)
 }
 
-// GetByMessageRequest mocks base method.
-func (m *MockSIWEIdentityProvider) GetByMessageRequest(messageRequest model.SIWEVerificationRequest) (*identity.SIWE, error) {
+// GetByVerifiedData mocks base method.
+func (m *MockSIWEIdentityProvider) GetByVerifiedData(data model.SIWEVerifiedData) (*identity.SIWE, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByMessageRequest", messageRequest)
+	ret := m.ctrl.Call(m, "GetByVerifiedData", data)
 	ret0, _ := ret[0].(*identity.SIWE)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetByMessageRequest indicates an expected call of GetByMessageRequest.
-func (mr *MockSIWEIdentityProviderMockRecorder) GetByMessageRequest(messageRequest interface{}) *gomock.Call {
+// GetByVerifiedData indicates an expected call of GetByVerifiedData.
+func (mr *MockSIWEIdentityProviderMockRecorder) GetByVerifiedData(data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByMessageRequest", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).GetByMessageRequest), messageRequest)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByVerifiedData", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).GetByVerifiedData), data)
 }
 
 // GetMany mocks base method.
@@ -885,16 +885,16 @@ func (mr *MockSIWEIdentityProviderMockRecorder) List(userID interface{}) *gomock
 }
 
 // New mocks base method.
-func (m *MockSIWEIdentityProvider) New(userID string, messageRequest model.SIWEVerificationRequest) (*identity.SIWE, error) {
+func (m *MockSIWEIdentityProvider) New(userID string, verifiedData model.SIWEVerifiedData) (*identity.SIWE, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "New", userID, messageRequest)
+	ret := m.ctrl.Call(m, "New", userID, verifiedData)
 	ret0, _ := ret[0].(*identity.SIWE)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // New indicates an expected call of New.
-func (mr *MockSIWEIdentityProviderMockRecorder) New(userID, messageRequest interface{}) *gomock.Call {
+func (mr *MockSIWEIdentityProviderMockRecorder) New(userID, verifiedData interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).New), userID, messageRequest)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).New), userID, verifiedData)
 }

@@ -35,8 +35,8 @@ func (p *Provider) Get(userID, id string) (*identity.SIWE, error) {
 	return p.Store.Get(userID, id)
 }
 
-func (p *Provider) GetByMessageRequest(messageRequest model.SIWEVerificationRequest) (*identity.SIWE, error) {
-	message, _, err := p.SIWE.VerifyMessage(messageRequest)
+func (p *Provider) GetByVerifiedData(data model.SIWEVerifiedData) (*identity.SIWE, error) {
+	message, err := siwego.ParseMessage(data.Message)
 	if err != nil {
 		return nil, err
 	}
@@ -53,9 +53,9 @@ func (p *Provider) GetMany(ids []string) ([]*identity.SIWE, error) {
 
 func (p *Provider) New(
 	userID string,
-	messageRequest model.SIWEVerificationRequest,
+	verifiedData model.SIWEVerifiedData,
 ) (*identity.SIWE, error) {
-	message, pubKey, err := p.SIWE.VerifyMessage(messageRequest)
+	message, err := siwego.ParseMessage(verifiedData.Message)
 	if err != nil {
 		return nil, err
 	}
@@ -66,12 +66,7 @@ func (p *Provider) New(
 		Address: message.GetAddress().Hex(),
 		ChainID: message.GetChainID(),
 
-		Data: &model.SIWEVerifiedData{
-			Message:   messageRequest.Message,
-			Signature: messageRequest.Signature,
-
-			EncodedPublicKey: pubKey,
-		},
+		Data: &verifiedData,
 	}
 	return i, nil
 }

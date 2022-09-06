@@ -75,9 +75,10 @@ func (i *Info) ToSpec() Spec {
 		return Spec{
 			Type: i.Type,
 			SIWE: &SIWESpec{
-				VerificationRequest: model.SIWEVerificationRequest{
-					Message:   i.SIWE.Data.Message,
-					Signature: i.SIWE.Data.Signature,
+				VerifiedData: model.SIWEVerifiedData{
+					Message:          i.SIWE.Data.Message,
+					Signature:        i.SIWE.Data.Signature,
+					EncodedPublicKey: i.SIWE.Data.EncodedPublicKey,
 				},
 			},
 		}
