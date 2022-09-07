@@ -106,6 +106,10 @@
     {{ if eq .login_id_type "phone" }}   {{ $ti = "ti ti-device-mobile" }}   {{ end }}
     {{ end }}
 
+    {{ if eq .type "siwe" }}
+    {{ $ti = "ti ti-currency-ethereum" }}
+    {{ end }}
+
     <div class="grid grid-cols-1 auto-rows-auto gap-y-1 flex-1">
 
       {{/* Row */}}
@@ -117,6 +121,9 @@
           {{ end }}
           {{ if eq .type "login_id" }}
             {{ $.Translations.RenderText (printf "settings-identity-login-id-%s" .login_id_type) nil }}
+          {{ end }}
+          {{ if eq .type "siwe" }}
+            {{ template "settings-identity-siwe" }}
           {{ end }}
         </p>
       </div>

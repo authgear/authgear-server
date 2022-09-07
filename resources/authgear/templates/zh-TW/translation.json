@@ -290,6 +290,7 @@
   "settings-identity-login-id-phone": "電話號碼",
   "settings-identity-login-id-username": "用戶名稱",
   "settings-identity-login-id-raw": "用戶名稱",
+  "settings-identity-siwe": "以太坊錢包",
   "settings-biometric-title": "生物驗證登入",
 
   "settings-biometric-description": "你已在以下裝置啓用生物驗證登入",
