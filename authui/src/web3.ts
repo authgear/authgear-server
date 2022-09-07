@@ -4,6 +4,7 @@ import jazzicon from "@metamask/jazzicon";
 import { ethers } from "ethers";
 import axios from "axios";
 import { SiweMessage } from "siwe";
+import { visit } from "@hotwired/turbo";
 
 enum WalletProvider {
   MetaMask = "metamask",
@@ -108,13 +109,12 @@ function handleError(err: unknown) {
 }
 
 export class WalletConnectionController extends Controller {
-  static targets = ["button", "confirm"];
+  static targets = ["button"];
   static values = {
     provider: String,
   };
 
   declare buttonTarget: HTMLButtonElement;
-  declare confirmTarget: HTMLAnchorElement;
 
   declare providerValue: string;
   declare provider: ethers.providers.Web3Provider | null;
@@ -132,14 +132,14 @@ export class WalletConnectionController extends Controller {
 
   async _connectWallet() {
     if (!this.provider) {
+      visit(`/missing_web3_wallet?provider=${this.providerValue}`);
       return;
     }
 
     // Ensure wallet is connected
     await this.provider.send("eth_requestAccounts", []);
 
-    this.confirmTarget.href = `${this.confirmTarget.href}?provider=${this.providerValue}`;
-    this.confirmTarget.click();
+    visit(`/confirm_web3_account?provider=${this.providerValue}`);
   }
 }
 
@@ -171,6 +171,11 @@ export class WalletConfirmationController extends Controller {
   connect() {
     this.provider = getProvider(this.providerValue);
 
+    if (!this.provider) {
+      visit(`/missing_web3_wallet?provider=${this.providerValue}`);
+      return;
+    }
+
     this._getAccount();
   }
 
@@ -179,7 +184,11 @@ export class WalletConfirmationController extends Controller {
       return;
     }
 
-    const [account] = await this.provider.send("eth_requestAccounts", []);
+    await this.provider.send("eth_requestAccounts", []);
+
+    // Get account from the signer to ensure the requested account is the correct one
+    const signer = this.provider.getSigner();
+    const account = await signer.getAddress();
 
     this.displayedTarget.textContent = truncateAddress(account);
 
