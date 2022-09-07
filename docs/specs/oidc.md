@@ -56,6 +56,9 @@
     + [The user has NOT signed in yet in my mobile app. I want to authenticate any user.](#the-user-has-not-signed-in-yet-in-my-mobile-app-i-want-to-authenticate-any-user)
     + [The user has NOT signed in yet in my mobile app. I want to authenticate any user. Possibly reuse any previous signed in sessions.](#the-user-has-not-signed-in-yet-in-my-mobile-app-i-want-to-authenticate-any-user-possibly-reuse-any-previous-signed-in-sessions)
     + [The user has signed in. I want to reauthenticate the user before they can perform sensitive operation.](#the-user-has-signed-in-i-want-to-reauthenticate-the-user-before-they-can-perform-sensitive-operation)
+  * [Third-party Clients](#third-party-clients)
+    + [Implementation Details](#implementation-details)
+
 
 # OIDC
 
@@ -80,7 +83,7 @@ Supported [standard client metadata](https://openid.net/specs/openid-connect-reg
 - `client_id`: OIDC client ID.
 - `access_token_lifetime`: Access token lifetime in seconds, default to 1800.
 - `refresh_token_lifetime`: Refresh token lifetime in seconds, default to max(access_token_lifetime, 86400). It must be greater than or equal to `access_token_lifetime`.
-- `is_first_party`: Indicate whether the client is a [first-party client](#first-party-clients), default to false.
+- `x_application_type`: Indicate the application type. Except `third_party_app`, all clients are [first-party client](#first-party-clients) even it is not specified. The application type is not changeable after creation on the portal. Supported values: `spa`, `traditional_webapp`, `native`, `third_party_app`.
 
 #### Generic RP Client Metadata example
 
@@ -469,8 +472,8 @@ However, developers may want to give first-party clients full trust:
 - First-party clients have access to privileged user operations through a
   special OAuth scope value (`https://authgear.com/scopes/full-access`).
 
-To designate an OAuth client as first-party client, developer may set
-`is_first_party` attribute to `true` in the corresponding client metadata.
+If the clients' application type is not `third_party_app`, then they are
+first-party clients.
 
 Developers should note the security implications for first-party clients:
 - Access tokens for first-party clients should not be passed to third-party
@@ -568,3 +571,20 @@ The user is authenticated fully.
 
 It is possible that we show a tailor made screen that let the user to choose which login method to use,
 but this requires much effort to implement and may leak available login methods.
+
+## Third-Party Client
+
+To designate an OAuth Client as third-party, set the `x_application_type` to `third_party_app`.
+
+### Implementation Details
+
+#### Configuration migration
+
+To migrate the configuration to remove `is_first_party` and support the new application type `third_party_app`.
+
+- Add new application type `third_party_app`, determine if the client is a first-party app by checking the application type.
+- Ignore `is_first_party`. Make `is_first_party` not required in the JSON schema. Mark this as VersionA.
+- Deploy VersionA
+- Add and run a config migration to remove `is_first_party`.
+- Remove `is_first_party` from the JSON schema. Mark this as VersionB
+- Deploy VersionB
