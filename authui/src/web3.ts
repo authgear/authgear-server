@@ -101,10 +101,44 @@ function generateIcon(address: string, diameter: number): SVGElement | null {
   return svg;
 }
 
+interface MetaMaskError {
+  code: number;
+  message: string;
+}
+function isMetaMaskError(err: unknown): err is MetaMaskError {
+  return (
+    typeof err === "object" && err !== null && "code" in err && "message" in err
+  );
+}
+function parseWalletError(err: unknown): string {
+  if (isMetaMaskError(err)) {
+    switch (err.code) {
+      // User rejection
+      case 4001:
+        return "error-message-metamask-user-rejected";
+      // Unauthorized
+      case 4100:
+        return "error-message-metamask-unauthorized";
+      // Request method not supported
+      case 4200:
+        return "error-message-metamask-unsupported-method";
+      // Disconnected from chains
+      case 4900:
+      case 4901:
+        return "error-message-metamask-disconnected";
+      default:
+        return "error-message-failed-to-connect-wallet";
+    }
+  }
+  return "error-message-failed-to-connect-wallet";
+}
+
 function handleError(err: unknown) {
   console.error(err);
 
-  showErrorMessage("error-message-failed-to-connect-wallet");
+  const parsedErrorId = parseWalletError(err);
+
+  showErrorMessage(parsedErrorId);
   return;
 }
 
