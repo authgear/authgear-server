@@ -292,6 +292,7 @@
   "settings-identity-login-id-phone": "Phone Number",
   "settings-identity-login-id-username": "Username",
   "settings-identity-login-id-raw": "Username",
+  "settings-identity-siwe": "Ethereum Wallet",
 
   "settings-biometric-title": "Biometric logins",
   "settings-biometric-description": "You''ve enabled biometric logins on these devices.",

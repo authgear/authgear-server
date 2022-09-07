@@ -682,6 +682,7 @@ func (s *Service) CheckDuplicated(is *identity.Info) (dupeIdentity *identity.Inf
 func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err error) {
 	var loginIDs []*identity.LoginID
 	var oauths []*identity.OAuth
+	var siwes []*identity.SIWE
 
 	if userID != "" {
 		loginIDs, err = s.LoginID.List(userID)
@@ -695,6 +696,11 @@ func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err e
 		// No need to consider anonymous identity
 		// No need to consider biometric identity
 		// No need to consider passkey identity
+
+		siwes, err = s.SIWE.List(userID)
+		if err != nil {
+			return
+		}
 	}
 
 	for _, i := range s.Authentication.Identities {
@@ -745,7 +751,18 @@ func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err e
 					out = append(out, candidate)
 				}
 			}
+		case model.IdentityTypeSIWE:
+
+			for _, iden := range siwes {
+				candidate := identity.NewSIWECandidate()
+				candidate[identity.CandidateKeyDisplayID] = iden.Address
+				candidate[identity.CandidateKeyIdentityID] = iden.ID
+
+				out = append(out, candidate)
+
+			}
 		}
+
 	}
 
 	return

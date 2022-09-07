@@ -22,6 +22,7 @@ func TestProviderListCandidates(t *testing.T) {
 
 		loginIDProvider := NewMockLoginIDIdentityProvider(ctrl)
 		oauthProvider := NewMockOAuthIdentityProvider(ctrl)
+		siweProvider := NewMockSIWEIdentityProvider(ctrl)
 
 		p := &Service{
 			Authentication: &config.AuthenticationConfig{},
@@ -40,6 +41,7 @@ func TestProviderListCandidates(t *testing.T) {
 			},
 			LoginID: loginIDProvider,
 			OAuth:   oauthProvider,
+			SIWE:    siweProvider,
 		}
 
 		Convey("no candidates", func() {
@@ -143,6 +145,7 @@ func TestProviderListCandidates(t *testing.T) {
 				},
 			}, nil)
 			oauthProvider.EXPECT().List(userID).Return(nil, nil)
+			siweProvider.EXPECT().List(userID).Return(nil, nil)
 
 			actual, err := p.ListCandidates(userID)
 			So(err, ShouldBeNil)
@@ -172,6 +175,7 @@ func TestProviderListCandidates(t *testing.T) {
 			}
 
 			loginIDProvider.EXPECT().List(userID).Return(nil, nil)
+			siweProvider.EXPECT().List(userID).Return(nil, nil)
 			oauthProvider.EXPECT().List(userID).Return([]*identity.OAuth{
 				{
 					ProviderID: config.ProviderID{
@@ -197,6 +201,30 @@ func TestProviderListCandidates(t *testing.T) {
 					"provider_subject_id": "john.doe@gmail.com",
 					"provider_app_type":   "",
 					"modify_disabled":     false,
+				},
+			})
+		})
+
+		Convey("associate siwe identity", func() {
+			userID := "a"
+
+			p.Authentication.Identities = []model.IdentityType{model.IdentityTypeSIWE}
+
+			loginIDProvider.EXPECT().List(userID).Return(nil, nil)
+			oauthProvider.EXPECT().List(userID).Return(nil, nil)
+			siweProvider.EXPECT().List(userID).Return([]*identity.SIWE{
+				{
+					Address: "0x0",
+				},
+			}, nil)
+
+			actual, err := p.ListCandidates(userID)
+			So(err, ShouldBeNil)
+			So(actual, ShouldResemble, []identity.Candidate{
+				{
+					"identity_id": "",
+					"type":        "siwe",
+					"display_id":  "0x0",
 				},
 			})
 		})
