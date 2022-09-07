@@ -1,0 +1,32 @@
+{{ template "__page_frame.html" . }} {{ define "page-content" }}
+<div
+  class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8"
+>
+  <h1 class="m-0 primary-txt text-center text-xl font-bold">
+    {{ template "missing-web3-wallet-page-title" }}
+  </h1>
+
+  <div class="text-sm break-words primary-txt text-center">
+    {{ template "missing-web3-wallet-page-description" (dict "provider"
+    ($.Translations.RenderText (printf "web3-provider-%s" $.Provider) nil)) }}
+  </div>
+
+  <div class="twc-container-vertical">
+    {{ if eq $.Provider "metamask" }}
+    <a
+      class="not-a as-btn btn wallet-btn metamask"
+      href="https://metamask.io/download/"
+    >
+      <div class="wallet-btn-content">
+        <div class="wallet-btn-icon metamask-icon"></div>
+        <span class="text-base leading-5 font-semibold"
+          >{{ $.Translations.RenderText (printf "web3-provider-%s-install"
+          $.Provider) nil }}</span
+        >
+      </div>
+    </a>
+    {{ end }}
+  </div>
+  {{ template "__watermark.html" . }}
+</div>
+{{ end }}

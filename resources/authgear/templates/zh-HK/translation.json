@@ -186,11 +186,15 @@
   "create-passkey-label": "建立通行密匙",
 
   "web3-provider-metamask": "MetaMask",
+  "web3-provider-metamask-install": "安裝 MetaMask",
 
   "confirm-web3-account-page-title": "帳號已連接",
   "confirm-web3-account-page-description": "已連接到 {provider}",
   "confirm-web3-account-page-next": "下一步",
   "confirm-web3-account-page-change-account": "更改帳號",
+
+  "missing-web3-wallet-page-title": "安裝加密銀包",
+  "missing-web3-wallet-page-description": "在您的瀏覽器中沒有找到 {provider} 加密銀包，請安裝擴展程序以繼續",
 
   "prompt-create-passkey-page-title": "建立通行密匙",
   "prompt-create-passkey-page-description": "建立一個可以更快、更安全登入的通行密匙",
