@@ -531,3 +531,10 @@ func newWebAppConfirmWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		wire.Bind(new(http.Handler), new(*handlerwebapp.ConfirmWeb3AccountHandler)),
 	))
 }
+
+func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.MissingWeb3WalletHandler)),
+	))
+}
