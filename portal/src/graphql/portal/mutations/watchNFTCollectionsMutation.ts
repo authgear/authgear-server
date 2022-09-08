@@ -8,7 +8,7 @@ import {
 } from "./watchNFTCollectionsMutation.generated";
 
 export function useWatchNFTCollectionsMutation(appID: string): {
-  watchNFTCollections: (contractIds: string[]) => Promise<boolean>;
+  watchNFTCollections: (contractIds: string[]) => Promise<void>;
   loading: boolean;
   error: unknown;
 } {
@@ -21,11 +21,9 @@ export function useWatchNFTCollectionsMutation(appID: string): {
     );
   const watchNFTCollections = useCallback(
     async (contractIds: string[]) => {
-      const result = await mutationFunction({
+      await mutationFunction({
         variables: { appID, contractIDs: contractIds },
       });
-
-      return result.data != null;
     },
     [mutationFunction, appID]
   );
