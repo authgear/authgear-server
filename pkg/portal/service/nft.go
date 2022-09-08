@@ -63,6 +63,7 @@ func (s *NFTService) WatchNFTCollection(contractID web3.ContractID) (*apimodel.N
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 
 	var response WatchColletionResponse
 	err = json.NewDecoder(res.Body).Decode(&response)
@@ -104,6 +105,7 @@ func (s *NFTService) GetNFTCollections(contracts []web3.ContractID) (*apimodel.G
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 
 	var response GetCollectionsResponse
 	err = json.NewDecoder(res.Body).Decode(&response)
@@ -140,6 +142,7 @@ func (s *NFTService) GetContractMetadata(appID string, contract web3.ContractID)
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 
 	var response GetContractMetadataResponse
 	err = json.NewDecoder(res.Body).Decode(&response)
