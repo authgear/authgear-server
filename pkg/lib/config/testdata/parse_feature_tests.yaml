@@ -122,6 +122,9 @@ config:
       maximum: 1
   audit_log:
     retrieval_days: 3
+  web3:
+    nft:
+      maximum: 3
 ---
 name: disable-google-tag-manager
 error: null
