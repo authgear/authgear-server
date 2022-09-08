@@ -352,7 +352,7 @@
   "Web3ConfigurationScreen.colleciton-list.action.details": "Details",
   "Web3ConfigurationScreen.collection-list.add-collection": "Add Collection",
   "Web3ConfigurationScreen.collection-list.description": "Add your collection contracts here. Authgear will monitor them and verify the ownership for your users.",
-  "Web3ConfigurationScreen.collection-list.add-collection.placeholder": "0x06012c8cf97bead5deae237070f9587f8e7a266d",
+  "Web3ConfigurationScreen.collection-list.add-collection.placeholder": "e.g. 0x06012c8cf97bead5deae237070f9587f8e7a266d",
   "Web3ConfigurationScreen.confirmation-dialog.title": "Confirm Changes?",
   "Web3ConfigurationScreen.confirmation-dialog.siwe-enabled.title": "Enabling Login with Ethereum",
   "Web3ConfigurationScreen.confirmation-dialog.siwe-enabled.description": "This will replace all other login methods. Users cannot login with email, phone, username or social connections. All your current authentication settings will be lost.",
