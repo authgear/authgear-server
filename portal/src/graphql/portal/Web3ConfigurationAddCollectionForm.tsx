@@ -137,6 +137,9 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionFormProps> =
       <FormProvider loading={isUpdating} error={updateError}>
         <div className={cn(styles.addCollection, className)}>
           <FormTextField
+            label={renderToString(
+              "Web3ConfigurationScreen.collection-list.add-collection.contract-address"
+            )}
             className={styles.addCollectionField}
             placeholder={renderToString(
               "Web3ConfigurationScreen.collection-list.add-collection.placeholder"
