@@ -4,7 +4,7 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import DefaultButton from "../../DefaultButton";
 import { NftCollection } from "./globalTypes.generated";
 import { useSystemConfig } from "../../context/SystemConfigContext";
-import { getNetworkNameId } from "../../util/networkId";
+import { getNetworkNameID } from "../../util/networkId";
 import PrimaryButton from "../../PrimaryButton";
 import { truncateAddress } from "../../util/hexAddress";
 
@@ -25,7 +25,7 @@ const Web3ConfigurationCollectionDeletionDialog: React.VFC<Web3ConfigurationColl
 
     const renderCollectionItem = useCallback(
       (collection: NftCollection) => {
-        const networkNameId = getNetworkNameId(collection);
+        const networkNameId = getNetworkNameID(collection);
 
         return `${collection.name} (${renderToString(
           networkNameId

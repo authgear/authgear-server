@@ -1,12 +1,12 @@
 import { createEIP681URL, parseEIP681 } from "./eip681";
 
-export interface ContractId {
+export interface ContractID {
   blockchain: string;
   network: string;
   address: string;
 }
 
-export function parseContractId(url: string): ContractId {
+export function parseContractID(url: string): ContractID {
   const curl = new URL(url);
 
   const protocol = curl.protocol.replace(":", "");
@@ -27,7 +27,7 @@ export function parseContractId(url: string): ContractId {
   }
 }
 
-export function createContractIdURL(contractId: ContractId): string {
+export function createContractIDURL(contractId: ContractID): string {
   switch (contractId.blockchain) {
     case "ethereum":
       return createEIP681URL({

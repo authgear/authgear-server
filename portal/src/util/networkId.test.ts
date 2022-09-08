@@ -1,10 +1,10 @@
 import { describe, it, expect } from "@jest/globals";
-import { createNetworkIdURL, NetworkId, parseNetworkId } from "./networkId";
+import { createNetworkIDURL, NetworkID, parseNetworkID } from "./networkId";
 
 describe("NetworkId", () => {
   it("parses network id", () => {
-    function test(uri: string, expected: NetworkId) {
-      const networkId = parseNetworkId(uri);
+    function test(uri: string, expected: NetworkID) {
+      const networkId = parseNetworkID(uri);
 
       expect(networkId).toEqual(expected);
     }
@@ -16,8 +16,8 @@ describe("NetworkId", () => {
   });
 
   it("generate network id url", () => {
-    function test(networkId: NetworkId, expected: string) {
-      const url = createNetworkIdURL(networkId);
+    function test(networkId: NetworkID, expected: string) {
+      const url = createNetworkIDURL(networkId);
 
       expect(url).toEqual(expected);
     }

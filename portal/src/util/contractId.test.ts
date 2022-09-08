@@ -1,10 +1,10 @@
 import { describe, it, expect } from "@jest/globals";
-import { parseContractId, ContractId, createContractIdURL } from "./contractId";
+import { parseContractID, ContractID, createContractIDURL } from "./contractId";
 
-describe("ContractId", () => {
+describe("ContractID", () => {
   it("parses contract id", () => {
-    function test(uri: string, expected: ContractId) {
-      const contractId = parseContractId(uri);
+    function test(uri: string, expected: ContractID) {
+      const contractId = parseContractID(uri);
 
       expect(contractId).toEqual(expected);
     }
@@ -17,8 +17,8 @@ describe("ContractId", () => {
   });
 
   it("generate contract id url", () => {
-    function test(contractId: ContractId, expected: string) {
-      const url = createContractIdURL(contractId);
+    function test(contractId: ContractID, expected: string) {
+      const url = createContractIDURL(contractId);
 
       expect(url).toEqual(expected);
     }

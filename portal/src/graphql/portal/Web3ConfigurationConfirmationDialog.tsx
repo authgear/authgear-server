@@ -9,7 +9,7 @@ import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import { NftCollection } from "./globalTypes.generated";
 import styles from "./Web3ConfigurationConfirmationDialog.module.css";
-import { getNetworkNameId } from "../../util/networkId";
+import { getNetworkNameID } from "../../util/networkId";
 import { truncateAddress } from "../../util/hexAddress";
 
 interface Web3ConfigurationConfirmationDialogProps {
@@ -45,7 +45,7 @@ const Web3ConfigurationConfirmationDialog: React.VFC<Web3ConfigurationConfirmati
 
     const renderCollectionItem = useCallback(
       (collection: NftCollection) => {
-        const networkNameId = getNetworkNameId(collection);
+        const networkNameId = getNetworkNameID(collection);
 
         return `${collection.name} (${renderToString(
           networkNameId
