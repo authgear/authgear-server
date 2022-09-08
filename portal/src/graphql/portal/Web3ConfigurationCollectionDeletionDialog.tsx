@@ -23,28 +23,22 @@ const Web3ConfigurationCollectionDeletionDialog: React.VFC<Web3ConfigurationColl
     const { themes } = useSystemConfig();
     const { renderToString } = useContext(Context);
 
-    const renderCollectionItem = useCallback(
-      (collection: NftCollection) => {
-        const networkNameId = getNetworkNameID(collection);
-
-        return `${collection.name} (${renderToString(
-          networkNameId
-        )}: ${truncateAddress(collection.contractAddress)})`;
-      },
-      [renderToString]
-    );
-
     const dialogContentProps = useMemo(() => {
+      const networkNameId = getNetworkNameID(nftCollection);
       return {
         title: renderToString("Web3ConfigurationScreen.deletion-dialog.title"),
         subText: renderToString(
           "Web3ConfigurationScreen.deletion-dialog.description",
           {
-            collection: renderCollectionItem(nftCollection),
+            collection: renderToString("NftCollection.item.identifier", {
+              name: nftCollection.name,
+              network: renderToString(networkNameId),
+              address: truncateAddress(nftCollection.contractAddress),
+            }),
           }
         ),
       };
-    }, [nftCollection, renderCollectionItem, renderToString]);
+    }, [nftCollection, renderToString]);
 
     const onConfirmDelete = useCallback(() => {
       onConfirm(nftCollection);
