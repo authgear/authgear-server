@@ -89,7 +89,7 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionFormProps> =
           blockHeight: 0,
           createdAt: DateTime.now().toISO(),
           totalSupply: parseInt(metadata.totalSupply, 10),
-          type: metadata.tokenType,
+          tokenType: metadata.tokenType,
           status: "pending",
         });
       },

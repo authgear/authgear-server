@@ -13,9 +13,6 @@ var nftCollection = graphql.NewObject(graphql.ObjectConfig{
 	Name:        typeNFTCollection,
 	Description: "Web3 NFT Collection",
 	Fields: graphql.Fields{
-		"id": &graphql.Field{
-			Type: graphql.ID,
-		},
 		"blockchain": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
 		},
@@ -34,7 +31,7 @@ var nftCollection = graphql.NewObject(graphql.ObjectConfig{
 		"totalSupply": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.Int),
 		},
-		"type": &graphql.Field{
+		"tokenType": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
 		},
 		"createdAt": &graphql.Field{

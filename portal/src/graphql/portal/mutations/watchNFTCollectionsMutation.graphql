@@ -6,13 +6,12 @@ mutation watchNFTCollectionsMutation(
     app {
       id
       nftCollections {
-        id
         name
         blockchain
         network
         contractAddress
         totalSupply
-        type
+        tokenType
         createdAt
       }
     }
