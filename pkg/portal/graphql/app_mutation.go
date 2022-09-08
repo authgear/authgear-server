@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
@@ -463,7 +462,6 @@ var _ = registerMutationField(
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			input := p.Args["input"].(map[string]interface{})
-			fmt.Printf("input: %+v\n", input)
 			appNodeID := input["id"].(string)
 			rawContractURLs := input["contractIDs"].([]interface{})
 			contractURLs := make([]string, 0, len(rawContractURLs))
