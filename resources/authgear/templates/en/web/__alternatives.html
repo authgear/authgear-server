@@ -8,7 +8,7 @@
                     <span class="primary-txt mx-1.5 text-sm">{{ template "or-label" }}</span>
                 </div>
             {{ end }}
-            <div class="text-sm" data-controller="passkey-creation" data-passkey-creation-auto-value="true">
+            <div class="text-sm" data-controller="passkey-creation">
             <button class="btn secondary-btn" type="button" data-action="click->passkey-creation#create" data-passkey-creation-target="button">
                 {{ template "setup-passkey-instead" .Data }}
             </button>
