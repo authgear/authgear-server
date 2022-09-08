@@ -4,14 +4,13 @@ query nftCollectionsQuery($appID: ID!) {
     ... on App {
       id
       nftCollections {
-        id
         name
         blockchain
         network
         contractAddress
         blockHeight
         totalSupply
-        type
+        tokenType
         createdAt
       }
     }

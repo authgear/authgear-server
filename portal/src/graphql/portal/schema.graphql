@@ -421,19 +421,16 @@ type NFTCollection {
   createdAt: DateTime!
 
   """"""
-  id: ID
-
-  """"""
   name: String!
 
   """"""
   network: String!
 
   """"""
-  totalSupply: Int!
+  tokenType: String!
 
   """"""
-  type: String!
+  totalSupply: Int!
 }
 
 """Web3 NFT ContractMetadata"""

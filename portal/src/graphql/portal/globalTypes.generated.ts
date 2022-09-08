@@ -400,11 +400,10 @@ export type NftCollection = {
   blockchain: Scalars['String'];
   contractAddress: Scalars['String'];
   createdAt: Scalars['DateTime'];
-  id?: Maybe<Scalars['ID']>;
   name: Scalars['String'];
   network: Scalars['String'];
+  tokenType: Scalars['String'];
   totalSupply: Scalars['Int'];
-  type: Scalars['String'];
 };
 
 /** Web3 NFT ContractMetadata */

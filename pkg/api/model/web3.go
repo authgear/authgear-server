@@ -54,7 +54,7 @@ type NFTCollection struct {
 	BlockHeight     int       `json:"block_height"`
 	ContractAddress string    `json:"contract_address"`
 	TotalSupply     int       `json:"total_supply"`
-	Type            string    `json:"type"`
+	TokenType       string    `json:"type"`
 	CreatedAt       time.Time `json:"created_at"`
 }
 

@@ -9,7 +9,7 @@ export type WatchNftCollectionsMutationMutationVariables = Types.Exact<{
 }>;
 
 
-export type WatchNftCollectionsMutationMutation = { __typename?: 'Mutation', watchNFTCollections: { __typename?: 'WatchNFTCollectionsPayload', app: { __typename?: 'App', id: string, nftCollections: Array<{ __typename?: 'NFTCollection', id?: string | null, name: string, blockchain: string, network: string, contractAddress: string, totalSupply: number, type: string, createdAt: any }> } } };
+export type WatchNftCollectionsMutationMutation = { __typename?: 'Mutation', watchNFTCollections: { __typename?: 'WatchNFTCollectionsPayload', app: { __typename?: 'App', id: string, nftCollections: Array<{ __typename?: 'NFTCollection', name: string, blockchain: string, network: string, contractAddress: string, totalSupply: number, tokenType: string, createdAt: any }> } } };
 
 
 export const WatchNftCollectionsMutationDocument = gql`
@@ -18,13 +18,12 @@ export const WatchNftCollectionsMutationDocument = gql`
     app {
       id
       nftCollections {
-        id
         name
         blockchain
         network
         contractAddress
         totalSupply
-        type
+        tokenType
         createdAt
       }
     }
