@@ -522,6 +522,7 @@ export interface PortalAPIFeatureConfig {
   audit_log?: AuditLogFeatureConfig;
   google_tag_manager?: GoogleTagManagerFeatureConfig;
   collaborator?: CollaboratorFeatureConfig;
+  web3?: Web3FeatureConfig;
 }
 
 export interface AuthenticatorFeatureConfig {
@@ -560,6 +561,14 @@ export interface AuthenticatorsFeatureConfig {
 
 export interface AuthenticatorOOBOTBSMSFeatureConfig {
   disabled?: boolean;
+}
+
+export interface Web3NFTFeatureConfig {
+  maximum?: number;
+}
+
+export interface Web3FeatureConfig {
+  nft?: Web3NFTFeatureConfig;
 }
 
 export interface IdentityFeatureConfig {

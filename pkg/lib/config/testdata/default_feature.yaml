@@ -71,3 +71,6 @@ rate_limit:
     size: 100000
     reset_period: 2592000
 collaborator: {}
+web3:
+  nft:
+    maximum: 3

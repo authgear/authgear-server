@@ -50,6 +50,8 @@ import Web3ConfigurationDetailDialog from "./Web3ConfigurationDetailDialog";
 import Web3ConfigurationCollectionDeletionDialog from "./Web3ConfigurationCollectionDeletionDialog";
 import Web3ConfigurationAddCollectionForm from "./Web3ConfigurationAddCollectionForm";
 import CommandBarButton from "../../CommandBarButton";
+import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
+import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 
 export interface CollectionItem extends NftCollection {
   status: "pending" | "active";
@@ -184,6 +186,7 @@ const ALL_NETWORK_OPTIONS: string[] = ALL_SUPPORTED_NETWORKS.map((n) =>
 
 interface Web3ConfigurationContentProps {
   nftCollections: NftCollection[];
+  maximumCollections: number;
   fetchMetadata: (
     contractId: string
   ) => Promise<
@@ -425,6 +428,10 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
       []
     );
 
+    const collectionLimitReached = useMemo(() => {
+      return state.collections.length >= props.maximumCollections;
+    }, [props.maximumCollections, state.collections.length]);
+
     return (
       <>
         <ScreenContent>
@@ -487,14 +494,14 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
                 <CommandBarButton
                   className={styles.addCollectionButton}
                   iconProps={{ iconName: "Add" }}
-                  disabled={!state.siweChecked}
+                  disabled={!state.siweChecked || collectionLimitReached}
                   text={renderToString(
                     "Web3ConfigurationScreen.collection-list.add-collection"
                   )}
                   onClick={onEnableNewCollectionField}
                 />
                 <Separator />
-                {showAddCollectionField ? (
+                {showAddCollectionField && !collectionLimitReached ? (
                   <Web3ConfigurationAddCollectionForm
                     className={styles.addCollectionForm}
                     selectedNetwork={state.network}
@@ -503,6 +510,17 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
                   />
                 ) : null}
                 <div className={styles.listWrapper}>
+                  {collectionLimitReached ? (
+                    <FeatureDisabledMessageBar>
+                      <FormattedMessage
+                        id="FeatureConfig.web3-nft.maximum"
+                        values={{
+                          maximum: props.maximumCollections,
+                          planPagePath: "./../../../billing",
+                        }}
+                      />
+                    </FeatureDisabledMessageBar>
+                  ) : null}
                   <DetailsList
                     className={styles.list}
                     selectionMode={SelectionMode.none}
@@ -547,6 +565,8 @@ const Web3ConfigurationScreen: React.VFC = function Web3ConfigurationScreen() {
     useState<boolean>(false);
 
   const nftCollections = useNftCollectionsQuery(appID);
+
+  const featureConfig = useAppFeatureConfigQuery(appID);
 
   const { fetch: fetchMetadata, error: fetchMetadataError } =
     useNftContractMetadataLazyQuery(appID);
@@ -648,6 +668,10 @@ const Web3ConfigurationScreen: React.VFC = function Web3ConfigurationScreen() {
     return [makeReasonErrorParseRule("TooManyRequest", "errors.rate-limited")];
   }, []);
 
+  const collectionsMaximum = useMemo(() => {
+    return featureConfig.effectiveFeatureConfig?.web3?.nft?.maximum ?? 3;
+  }, [featureConfig]);
+
   if (form.isLoading || nftCollections.loading) {
     return <ShowLoading />;
   }
@@ -682,6 +706,7 @@ const Web3ConfigurationScreen: React.VFC = function Web3ConfigurationScreen() {
       <Web3ConfigurationContent
         form={form}
         fetchMetadata={fetchMetadata}
+        maximumCollections={collectionsMaximum}
         nftCollections={nftCollections.collections}
       />
 
