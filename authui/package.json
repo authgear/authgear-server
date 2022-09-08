@@ -32,6 +32,7 @@
     "@hotwired/stimulus": "3.1.0",
     "@hotwired/turbo": "7.1.0",
     "@tabler/icons": "1.92.0",
+    "@metamask/jazzicon": "github:MetaMask/jazzicon#d923914fda6a8795f74c2e66134f73cd72070667",
     "axios": "0.27.2",
     "cropperjs": "1.5.12",
     "intl-tel-input": "17.0.18",
