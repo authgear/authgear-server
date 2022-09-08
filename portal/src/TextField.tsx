@@ -14,7 +14,13 @@ const TextField: React.VFC<TextFieldProps> = function TextField(
   const { ...rest } = props;
   const theme = useTheme();
   const styles = useMemo(() => {
-    let styles = {};
+    let styles: TextFieldProps["styles"] = {
+      field: {
+        "::placeholder": {
+          color: theme.palette.neutralTertiary,
+        },
+      },
+    };
     if (props.description) {
       // only apply margin bottom to wrapper when there is description
       styles = {
@@ -48,6 +54,7 @@ const TextField: React.VFC<TextFieldProps> = function TextField(
     props.styles,
     theme.semanticColors.bodyText,
     theme.palette.neutralLight,
+    theme.palette.neutralTertiary,
   ]);
 
   return <FluentUITextField styles={styles} {...rest} />;
