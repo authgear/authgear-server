@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useContext, useMemo } from "react";
 import { Dialog, DialogFooter, Text } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import {
@@ -42,17 +42,6 @@ const Web3ConfigurationConfirmationDialog: React.VFC<Web3ConfigurationConfirmati
         ),
       };
     }, []);
-
-    const renderCollectionItem = useCallback(
-      (collection: NftCollection) => {
-        const networkNameId = getNetworkNameID(collection);
-
-        return `${collection.name} (${renderToString(
-          networkNameId
-        )}: ${truncateAddress(collection.contractAddress)})`;
-      },
-      [renderToString]
-    );
 
     const formChanges: FormChanges = useMemo(() => {
       const changes: FormChanges = {
@@ -134,8 +123,18 @@ const Web3ConfigurationConfirmationDialog: React.VFC<Web3ConfigurationConfirmati
               </Text>
               <ul className={styles.changesSectionCollectionList}>
                 {formChanges.collectionRemoved.map((c) => {
+                  const networkNameId = getNetworkNameID(c);
                   return (
-                    <li key={c.contractAddress}>{renderCollectionItem(c)}</li>
+                    <li key={c.contractAddress}>
+                      <FormattedMessage
+                        id="NftCollection.item.identifier"
+                        values={{
+                          name: c.name,
+                          network: renderToString(networkNameId),
+                          address: truncateAddress(c.contractAddress),
+                        }}
+                      />
+                    </li>
                   );
                 })}
               </ul>
@@ -152,8 +151,18 @@ const Web3ConfigurationConfirmationDialog: React.VFC<Web3ConfigurationConfirmati
               </Text>
               <ul className={styles.changesSectionCollectionList}>
                 {formChanges.collectionAdded.map((c) => {
+                  const networkNameId = getNetworkNameID(c);
                   return (
-                    <li key={c.contractAddress}>{renderCollectionItem(c)}</li>
+                    <li key={c.contractAddress}>
+                      <FormattedMessage
+                        id="NftCollection.item.identifier"
+                        values={{
+                          name: c.name,
+                          network: renderToString(networkNameId),
+                          address: truncateAddress(c.contractAddress),
+                        }}
+                      />
+                    </li>
                   );
                 })}
               </ul>
