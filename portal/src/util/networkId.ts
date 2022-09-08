@@ -1,6 +1,6 @@
 import { createEIP681URL, parseEIP681 } from "./eip681";
 
-export const ALL_SUPPORTED_NETWORKS: NetworkId[] = [
+export const ALL_SUPPORTED_NETWORKS: NetworkID[] = [
   {
     blockchain: "ethereum",
     network: "1",
@@ -10,12 +10,12 @@ export const ALL_SUPPORTED_NETWORKS: NetworkId[] = [
     network: "5",
   },
 ];
-export interface NetworkId {
+export interface NetworkID {
   blockchain: string;
   network: string;
 }
 
-export function parseNetworkId(url: string): NetworkId {
+export function parseNetworkID(url: string): NetworkID {
   const curl = new URL(url);
 
   const protocol = curl.protocol.replace(":", "");
@@ -39,30 +39,30 @@ export function parseNetworkId(url: string): NetworkId {
   }
 }
 
-export function createNetworkIdURL(networkId: NetworkId): string {
-  switch (networkId.blockchain) {
+export function createNetworkIDURL(networkID: NetworkID): string {
+  switch (networkID.blockchain) {
     case "ethereum":
       return createEIP681URL({
-        chainId: parseInt(networkId.network, 10),
+        chainId: parseInt(networkID.network, 10),
         address: "0x0",
       });
     default:
-      throw new Error(`Unknown blockchain: ${networkId.blockchain}`);
+      throw new Error(`Unknown blockchain: ${networkID.blockchain}`);
   }
 }
 
-export function getNetworkNameId(networkId: NetworkId): string {
-  switch (networkId.blockchain) {
+export function getNetworkNameID(networkID: NetworkID): string {
+  switch (networkID.blockchain) {
     case "ethereum":
-      switch (networkId.network) {
+      switch (networkID.network) {
         case "1":
           return "NetworkId.ethereum-mainnet";
         case "5":
           return "NetworkId.ethereum-goerli";
         default:
-          throw new Error(`Unsupported chain id: ${networkId.network}`);
+          throw new Error(`Unsupported chain id: ${networkID.network}`);
       }
     default:
-      throw new Error(`Unsupported blockchain: ${networkId.blockchain}`);
+      throw new Error(`Unsupported blockchain: ${networkID.blockchain}`);
   }
 }

@@ -11,7 +11,7 @@ import DefaultButton from "../../DefaultButton";
 import { NftCollection } from "./globalTypes.generated";
 import styles from "./Web3ConfigurationDetailDialog.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
-import { getNetworkNameId } from "../../util/networkId";
+import { getNetworkNameID } from "../../util/networkId";
 import ActionButton from "../../ActionButton";
 import { DateTime } from "luxon";
 
@@ -79,7 +79,7 @@ const Web3ConfigurationDetailDialog: React.VFC<Web3ConfigurationDetailDialogProp
               <FormattedMessage id="Web3ConfigurationScreen.detail-dialog.network" />
             </Text>
             <Text as="p" block={true}>
-              <FormattedMessage id={getNetworkNameId(nftCollection)} />
+              <FormattedMessage id={getNetworkNameID(nftCollection)} />
             </Text>
           </div>
           <div className={styles.fieldContainer}>

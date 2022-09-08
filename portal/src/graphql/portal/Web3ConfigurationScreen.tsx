@@ -32,17 +32,17 @@ import styles from "./Web3ConfigurationScreen.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useNftCollectionsQuery } from "./query/nftCollectionsQuery";
 import { NftCollection } from "./globalTypes.generated";
-import { createContractIdURL } from "../../util/contractId";
+import { createContractIDURL } from "../../util/contractId";
 import { useNftContractMetadataLazyQuery } from "./query/nftContractMetadataQuery";
 import { LazyQueryResult, OperationVariables } from "@apollo/client";
 import { NftContractMetadataQueryQuery } from "./query/nftContractMetadataQuery.generated";
 import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 import {
   ALL_SUPPORTED_NETWORKS,
-  createNetworkIdURL,
-  getNetworkNameId,
-  NetworkId,
-  parseNetworkId,
+  createNetworkIDURL,
+  getNetworkNameID,
+  NetworkID,
+  parseNetworkID,
 } from "../../util/networkId";
 import { useWatchNFTCollectionsMutation } from "./mutations/watchNFTCollectionsMutation";
 import Web3ConfigurationConfirmationDialog from "./Web3ConfigurationConfirmationDialog";
@@ -66,7 +66,7 @@ export function isNFTCollectionEqual(
   );
 }
 export interface FormState {
-  network: NetworkId;
+  network: NetworkID;
   collections: CollectionItem[];
 
   siweChecked: boolean;
@@ -89,7 +89,7 @@ function constructConfig(
       config.authentication.identities = ["login_id", "oauth"];
     }
 
-    const selectedNetwork = createNetworkIdURL(currentState.network);
+    const selectedNetwork = createNetworkIDURL(currentState.network);
 
     let collections: CollectionItem[] = [];
 
@@ -106,7 +106,7 @@ function constructConfig(
 
     config.web3.siwe.networks = [selectedNetwork];
     config.web3.nft.collections = collections.map((c) => {
-      return createContractIdURL({
+      return createContractIDURL({
         blockchain: c.blockchain,
         network: c.network,
         address: c.contractAddress,
@@ -148,7 +148,7 @@ const DuplicatedContractError: APIError = {
 };
 
 const ALL_NETWORK_OPTIONS: string[] = ALL_SUPPORTED_NETWORKS.map((n) =>
-  createNetworkIdURL(n)
+  createNetworkIDURL(n)
 );
 
 interface Web3ConfigurationContentProps {
@@ -189,8 +189,8 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
 
     const renderBlockchainNetwork = useCallback(
       (networkIdUrl: string) => {
-        const networkId = parseNetworkId(networkIdUrl);
-        return renderToString(getNetworkNameId(networkId));
+        const networkId = parseNetworkID(networkIdUrl);
+        return renderToString(getNetworkNameID(networkId));
       },
       [renderToString]
     );
@@ -201,10 +201,10 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
         (option) => {
           setState((prev) => ({
             ...prev,
-            network: parseNetworkId(option),
+            network: parseNetworkID(option),
           }));
         },
-        createNetworkIdURL(state.network),
+        createNetworkIDURL(state.network),
         renderBlockchainNetwork
       );
 
@@ -425,7 +425,7 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
                   )}
                   disabled={!state.siweChecked}
                   options={blockchainOptions}
-                  selectedKey={createNetworkIdURL(state.network)}
+                  selectedKey={createNetworkIDURL(state.network)}
                   onChange={onBlockchainChange}
                 />
                 <Text
@@ -529,7 +529,7 @@ const Web3ConfigurationScreen: React.VFC = function Web3ConfigurationScreen() {
       const siweChecked = siweIndex != null && siweIndex >= 0;
 
       let siweNetworks = (config.web3?.siwe?.networks ?? []).map((n) =>
-        parseNetworkId(n)
+        parseNetworkID(n)
       );
       if (siweNetworks.length === 0) {
         siweNetworks = [
@@ -547,7 +547,7 @@ const Web3ConfigurationScreen: React.VFC = function Web3ConfigurationScreen() {
 
       const existingCollections = nftCollections.collections
         .filter((c) => {
-          const contractIdUrl = createContractIdURL({
+          const contractIdUrl = createContractIDURL({
             blockchain: c.blockchain,
             network: c.network,
             address: c.contractAddress,
@@ -602,7 +602,7 @@ const Web3ConfigurationScreen: React.VFC = function Web3ConfigurationScreen() {
 
   const beforeFormSaved = useCallback(async () => {
     const contractURLs = form.state.collections.map((c) =>
-      createContractIdURL({
+      createContractIDURL({
         blockchain: c.blockchain,
         network: c.network,
         address: c.contractAddress,

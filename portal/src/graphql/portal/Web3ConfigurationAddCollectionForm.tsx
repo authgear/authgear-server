@@ -5,13 +5,13 @@ import { APIError } from "../../error/error";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import styles from "./Web3ConfigurationAddCollectionForm.module.css";
-import { createContractIdURL } from "../../util/contractId";
+import { createContractIDURL } from "../../util/contractId";
 import { FormProvider } from "../../form";
 import FormTextField from "../../FormTextField";
 import { useSimpleForm } from "../../hook/useSimpleForm";
 import { LazyQueryResult, OperationVariables } from "@apollo/client";
 import { NftContractMetadataQueryQuery } from "./query/nftContractMetadataQuery.generated";
-import { NetworkId } from "../../util/networkId";
+import { NetworkID } from "../../util/networkId";
 import { CollectionItem } from "./Web3ConfigurationScreen";
 import { DateTime } from "luxon";
 
@@ -35,7 +35,7 @@ const InvalidAddressError: APIError = {
 
 interface AddCollectionFormProps {
   className?: string;
-  selectedNetwork: NetworkId;
+  selectedNetwork: NetworkID;
   fetchMetadata: (
     contractId: string
   ) => Promise<
@@ -69,7 +69,7 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionFormProps> =
         };
 
         const metadataResponse = await fetchMetadata(
-          createContractIdURL(contractId)
+          createContractIDURL(contractId)
         );
         if (metadataResponse.error) {
           throw metadataResponse.error;
