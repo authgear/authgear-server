@@ -22,7 +22,7 @@ export function parseNetworkID(url: string): NetworkID {
 
   switch (protocol) {
     case "ethereum": {
-      const eip681 = parseEIP681(url);
+      const eip681 = parseEIP681(url, true);
 
       if (eip681.address !== "0x0") {
         throw new Error(`Unknown network Id: ${url}`);
@@ -42,10 +42,13 @@ export function parseNetworkID(url: string): NetworkID {
 export function createNetworkIDURL(networkID: NetworkID): string {
   switch (networkID.blockchain) {
     case "ethereum":
-      return createEIP681URL({
-        chainId: parseInt(networkID.network, 10),
-        address: "0x0",
-      });
+      return createEIP681URL(
+        {
+          chainId: parseInt(networkID.network, 10),
+          address: "0x0",
+        },
+        true
+      );
     default:
       throw new Error(`Unknown blockchain: ${networkID.blockchain}`);
   }

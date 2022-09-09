@@ -105,6 +105,7 @@
   "errors.invalid-address": "Please input a valid ERC-721 contract address.",
   "errors.duplicated-contract": "Duplicated contract address.",
   "errors.rate-limited": "You have exceeded the rate limit. Please Try again later.",
+  "errors.bad-nft-collection": "This NFT collection is not yet supported.",
 
   "TodoButtonWrapper.dialog-title": "Feature Not Ready",
   "TodoButtonWrapper.dialog-message": "This feature is not yet implemented",

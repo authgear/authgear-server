@@ -637,7 +637,10 @@ const Web3ConfigurationScreen: React.VFC = function Web3ConfigurationScreen() {
   }, [form.state.collections, watchNFTCollections]);
 
   const errorRules: ErrorParseRule[] = useMemo(() => {
-    return [makeReasonErrorParseRule("TooManyRequest", "errors.rate-limited")];
+    return [
+      makeReasonErrorParseRule("TooManyRequest", "errors.rate-limited"),
+      makeReasonErrorParseRule("BadNFTCollection", "errors.bad-nft-collection"),
+    ];
   }, []);
 
   const collectionsMaximum = useMemo(() => {
