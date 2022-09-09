@@ -1,0 +1,11 @@
+.root {
+  position: relative;
+}
+
+.copyButton {
+  position: absolute;
+  z-index: 1000;
+  top: 0;
+  /* The scrollbar of the code editor is in width of 14px */
+  right: 14px;
+}

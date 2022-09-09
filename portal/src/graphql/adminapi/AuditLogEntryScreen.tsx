@@ -19,7 +19,7 @@ import {
 } from "./query/auditLogEntryQuery.generated";
 
 import styles from "./AuditLogEntryScreen.module.css";
-import CodeEditor from "../../CodeEditor";
+import CodeBlock from "../../CodeBlock";
 
 function getRawUserIDFromAuditLog(
   node: AuditLogEntryFragment
@@ -179,19 +179,10 @@ const AuditLogEntryScreen: React.VFC = function AuditLogEntryScreen() {
             <FormattedMessage id="AuditLogEntryScreen.raw-event-log" />
           </Label>
           {code != null ? (
-            <CodeEditor
+            <CodeBlock
               className={styles.codeBlock}
               value={code}
               language="json"
-              options={{
-                readOnly: true,
-                minimap: { enabled: false },
-                wordWrap: "on",
-                wrappingIndent: "deepIndent",
-                renderLineHighlight: "none",
-              }}
-              isCopyButtonVisible={true}
-              copyValue={code}
             />
           ) : null}
         </Widget>
