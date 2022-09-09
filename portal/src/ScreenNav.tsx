@@ -20,7 +20,7 @@ import { Location } from "history";
 function getAppRouterPath(location: Location) {
   // app router -> /app/:appID/*
   // discard first 3 segment (include leading slash)
-  return "./" + location.pathname.split("/").slice(3).join("/");
+  return "/" + location.pathname.split("/").slice(3).join("/");
 }
 
 function getPath(url: string) {
@@ -246,7 +246,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     for (const link of links) {
       const urls = [link.url, ...(link.children ?? []).map((l) => l.url)];
       for (const url of urls) {
-        if (!path.startsWith(url)) {
+        if (!url.includes(path)) {
           continue;
         }
         matchedKeys.push(url);
