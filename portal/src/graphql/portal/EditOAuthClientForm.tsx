@@ -419,7 +419,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
               <FormattedMessage
                 id="EditOAuthClientForm.cookie-settings.description"
                 values={{
-                  to: "./../../advanced/session",
+                  to: "./../../../../advanced/session",
                   hostname: publicOrigin,
                 }}
               />
