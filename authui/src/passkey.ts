@@ -268,10 +268,15 @@ export class PasskeyCreationController extends Controller {
 // There is no way to check if we have user activation currently.
 export class PasskeyRequestController extends Controller {
   static targets = ["button", "submit", "input"];
+  static values = {
+    auto: String,
+  };
 
   declare buttonTarget: HTMLButtonElement;
   declare submitTarget: HTMLButtonElement;
   declare inputTarget: HTMLInputElement;
+
+  declare autoValue: string;
 
   connect() {
     // Disable the button if PublicKeyCredential is unavailable.
@@ -280,10 +285,9 @@ export class PasskeyRequestController extends Controller {
       return;
     }
 
-    // The presence of this controller means passkey is enabled.
-    // When passkey is enabled, it is preferred.
-    // So we show the modal.
-    this._use();
+    if (this.autoValue === "true") {
+      this._use();
+    }
   }
 
   use(e: MouseEvent) {
