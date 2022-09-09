@@ -86,40 +86,12 @@ function constructConfig(
     config.web3.nft ??= {};
     config.web3.siwe ??= {};
 
-    function setEnable<T extends string>(
-      arr: T[],
-      value: T,
-      enabled: boolean
-    ): T[] {
-      const index = arr.indexOf(value);
-
-      if (enabled) {
-        if (index >= 0) {
-          return arr;
-        }
-        return [...arr, value];
-      }
-
-      if (index < 0) {
-        return arr;
-      }
-      return [...arr.slice(0, index), ...arr.slice(index + 1)];
-    }
-
     if (currentState.siweChecked) {
       config.authentication.identities = ["siwe"];
-      config.authentication.primary_authenticators = setEnable(
-        config.authentication.primary_authenticators,
-        "passkey",
-        false
-      );
+      config.authentication.primary_authenticators = [];
     } else {
       config.authentication.identities = ["login_id", "oauth"];
-      config.authentication.primary_authenticators = setEnable(
-        config.authentication.primary_authenticators,
-        "password",
-        true
-      );
+      config.authentication.primary_authenticators = ["password"];
     }
 
     const selectedNetwork = createNetworkIDURL(currentState.network);
