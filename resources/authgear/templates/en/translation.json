@@ -112,6 +112,8 @@
   "log-in-to-continue": "Log in to {AppOrClientName}",
   "sign-up-to-continue": "Sign up to {AppOrClientName}",
 
+  "sign-in-with-passkey": "Sign in with Passkey",
+
   "oauth-branding-apple": "Sign in with Apple",
   "oauth-branding-google": "Sign in with Google",
   "oauth-branding-facebook": "Login with Facebook",

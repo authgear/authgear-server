@@ -138,6 +138,18 @@
     background-size: 50%;
   }
 
+  .btn.passkey-btn {
+    @apply rounded-sm text-center;
+  }
+
+  .passkey-btn-icon {
+    @apply absolute top-0 left-0 w-9 h-9 text-lg flex items-center justify-center;
+  }
+
+  .passkey-btn-content {
+    @apply block relative px-9 py-1.5;
+  }
+
   .select {
     @apply rounded-none text-base py-1.5 pr-7 border border-solid;
     border-top-color: transparent;
