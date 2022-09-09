@@ -343,7 +343,7 @@
   "Web3ConfigurationScreen.siwe.title": "Login with Ethereum",
   "Web3ConfigurationScreen.siwe.on": "On",
   "Web3ConfigurationScreen.siwe.off": "Off",
-  "Web3ConfigurationScreen.siwe.description": "Add a button to the signup/login screen for the users to login with their crypto wallet such as MetaMask. Enabling this will replace all other login methods. See the list of supported wallets here.",
+  "Web3ConfigurationScreen.siwe.description": "Add a button to the signup/login screen for the users to login with their crypto wallet such as MetaMask. Enabling this will replace all other login methods. See the {DocLink, react, href{https://docs.authgear.com/strategies/web3#platform-support} children{list of supported wallets here.}}",
   "Web3ConfigurationScreen.network-droplist.label": "Network",
   "Web3ConfigurationScreen.collection-list.title": "NFT Collections",
   "Web3ConfigurationScreen.collection-list.status.pending": "Pending",
