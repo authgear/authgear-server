@@ -17,13 +17,13 @@ import("monaco-editor").finally(() => {});
 import("postcss").finally(() => {});
 import("react").finally(() => {});
 import("react-chartjs-2").finally(() => {});
-import("react-code-blocks").finally(() => {});
 import("tzdata").finally(() => {});
 import("uuid").finally(() => {});
 import("zxcvbn").finally(() => {});
 
 if (process.env.NODE_ENV === "production") {
   import("@apollo/client").finally(() => {});
+  import("@elgorditosalsero/react-gtm-hook").finally(() => {});
   import("@fluentui/react").finally(() => {});
   import("@fluentui/react-hooks").finally(() => {});
   import("@oursky/react-messageformat").finally(() => {});
