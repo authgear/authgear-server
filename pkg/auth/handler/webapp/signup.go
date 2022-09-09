@@ -44,12 +44,13 @@ type MeterService interface {
 }
 
 type SignupHandler struct {
-	ControllerFactory ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	FormPrefiller     *FormPrefiller
-	Renderer          Renderer
-	MeterService      MeterService
-	TutorialCookie    TutorialCookie
+	ControllerFactory       ControllerFactory
+	BaseViewModel           *viewmodels.BaseViewModeler
+	AuthenticationViewModel *viewmodels.AuthenticationViewModeler
+	FormPrefiller           *FormPrefiller
+	Renderer                Renderer
+	MeterService            MeterService
+	TutorialCookie          TutorialCookie
 }
 
 func (h *SignupHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -60,7 +61,7 @@ func (h *SignupHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *
 		baseViewModel.SetTutorial(httputil.SignupLoginTutorialCookieName)
 	}
 	viewmodels.Embed(data, baseViewModel)
-	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithGraph(graph)
+	authenticationViewModel := h.AuthenticationViewModel.NewWithGraph(graph)
 	viewmodels.Embed(data, authenticationViewModel)
 	return data, nil
 }

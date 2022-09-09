@@ -61,13 +61,14 @@ type LoginViewModel struct {
 }
 
 type LoginHandler struct {
-	ControllerFactory ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	FormPrefiller     *FormPrefiller
-	Renderer          Renderer
-	MeterService      MeterService
-	TutorialCookie    TutorialCookie
-	ErrorCookie       ErrorCookie
+	ControllerFactory       ControllerFactory
+	BaseViewModel           *viewmodels.BaseViewModeler
+	AuthenticationViewModel *viewmodels.AuthenticationViewModeler
+	FormPrefiller           *FormPrefiller
+	Renderer                Renderer
+	MeterService            MeterService
+	TutorialCookie          TutorialCookie
+	ErrorCookie             ErrorCookie
 }
 
 func (h *LoginHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph, allowLoginOnly bool) (map[string]interface{}, error) {
@@ -81,7 +82,7 @@ func (h *LoginHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *i
 		baseViewModel.SetTutorial(httputil.SignupLoginTutorialCookieName)
 	}
 	viewmodels.Embed(data, baseViewModel)
-	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithGraph(graph)
+	authenticationViewModel := h.AuthenticationViewModel.NewWithGraph(graph)
 	viewmodels.Embed(data, authenticationViewModel)
 	viewmodels.Embed(data, viewModel)
 	return data, nil

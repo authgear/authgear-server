@@ -35,16 +35,17 @@ func ConfigureForgotPasswordRoute(route httproute.Route) httproute.Route {
 }
 
 type ForgotPasswordHandler struct {
-	ControllerFactory ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	FormPrefiller     *FormPrefiller
-	Renderer          Renderer
+	ControllerFactory       ControllerFactory
+	BaseViewModel           *viewmodels.BaseViewModeler
+	AuthenticationViewModel *viewmodels.AuthenticationViewModeler
+	FormPrefiller           *FormPrefiller
+	Renderer                Renderer
 }
 
 func (h *ForgotPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithGraph(graph)
+	authenticationViewModel := h.AuthenticationViewModel.NewWithGraph(graph)
 	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, authenticationViewModel)

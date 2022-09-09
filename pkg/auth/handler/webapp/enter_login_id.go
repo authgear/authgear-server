@@ -78,10 +78,11 @@ func ConfigureEnterLoginIDRoute(route httproute.Route) httproute.Route {
 }
 
 type EnterLoginIDHandler struct {
-	ControllerFactory ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	Renderer          Renderer
-	Identities        EnterLoginIDService
+	ControllerFactory       ControllerFactory
+	BaseViewModel           *viewmodels.BaseViewModeler
+	AuthenticationViewModel *viewmodels.AuthenticationViewModeler
+	Renderer                Renderer
+	Identities              EnterLoginIDService
 }
 
 func (h *EnterLoginIDHandler) GetData(userID string, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -106,7 +107,7 @@ func (h *EnterLoginIDHandler) GetData(userID string, r *http.Request, rw http.Re
 	if err != nil {
 		return nil, err
 	}
-	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithCandidates(candidates)
+	authenticationViewModel := h.AuthenticationViewModel.NewWithCandidates(candidates)
 	viewmodels.Embed(data, authenticationViewModel)
 
 	viewmodels.Embed(data, baseViewModel)

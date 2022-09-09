@@ -32,12 +32,13 @@ type SettingsIdentityViewModel struct {
 }
 
 type SettingsIdentityHandler struct {
-	ControllerFactory ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	Renderer          Renderer
-	Identities        SettingsIdentityService
-	Verification      SettingsVerificationService
-	AccountDeletion   *config.AccountDeletionConfig
+	ControllerFactory       ControllerFactory
+	BaseViewModel           *viewmodels.BaseViewModeler
+	AuthenticationViewModel *viewmodels.AuthenticationViewModeler
+	Renderer                Renderer
+	Identities              SettingsIdentityService
+	Verification            SettingsVerificationService
+	AccountDeletion         *config.AccountDeletionConfig
 }
 
 func (h *SettingsIdentityHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -50,7 +51,7 @@ func (h *SettingsIdentityHandler) GetData(r *http.Request, rw http.ResponseWrite
 	if err != nil {
 		return nil, err
 	}
-	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithCandidates(candidates)
+	authenticationViewModel := h.AuthenticationViewModel.NewWithCandidates(candidates)
 
 	viewModel := SettingsIdentityViewModel{
 		AccountDeletionAllowed: h.AccountDeletion.ScheduledByEndUserEnabled,

@@ -56,6 +56,7 @@ type SettingsSessionManager interface {
 type SettingsHandler struct {
 	ControllerFactory        ControllerFactory
 	BaseViewModel            *viewmodels.BaseViewModeler
+	AuthenticationViewModel  *viewmodels.AuthenticationViewModeler
 	SettingsViewModel        *viewmodels.SettingsViewModeler
 	SettingsProfileViewModel *viewmodels.SettingsProfileViewModeler
 	Renderer                 Renderer
@@ -96,7 +97,7 @@ func (h *SettingsHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[
 	if err != nil {
 		return nil, err
 	}
-	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithCandidates(candidates)
+	authenticationViewModel := h.AuthenticationViewModel.NewWithCandidates(candidates)
 	viewmodels.Embed(data, authenticationViewModel)
 
 	// Identity - Part 2
