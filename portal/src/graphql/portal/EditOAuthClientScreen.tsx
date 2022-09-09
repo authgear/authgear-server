@@ -318,7 +318,7 @@ const EditOAuthClientNavBreadcrumb: React.VFC<EditOAuthClientNavBreadcrumbProps>
     const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
       return [
         {
-          to: "./../..",
+          to: "~/configuration/apps",
           label: (
             <FormattedMessage id="ApplicationsConfigurationScreen.title" />
           ),

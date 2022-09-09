@@ -128,11 +128,14 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
   const uploadedURLRef = useRef<string | null>(null);
   const navBreadcrumbItems = useMemo(() => {
     return [
-      { to: "./../../..", label: <FormattedMessage id="UsersScreen.title" /> },
-      { to: "./..", label: <FormattedMessage id="UserDetailsScreen.title" /> },
+      { to: "~/users", label: <FormattedMessage id="UsersScreen.title" /> },
+      {
+        to: `~/users/${user.id}/details`,
+        label: <FormattedMessage id="UserDetailsScreen.title" />,
+      },
       { to: ".", label: <FormattedMessage id="EditPictureScreen.title" /> },
     ];
-  }, []);
+  }, [user.id]);
 
   const [isRemoveDialogVisible, setIsRemoveDialogVisible] = useState(false);
   const onDismissRemoveDialog = useCallback(() => {
