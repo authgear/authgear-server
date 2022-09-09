@@ -1,5 +1,10 @@
 .addCollection {
-  @apply flex flex-row gap-x-2 items-end;
+  @apply flex flex-row gap-x-2 items-start;
+}
+
+.addCollectionAddButton {
+  /* Workaround to align the button with the text field */
+  margin-top: 29.5px;
 }
 
 .addCollectionField {
