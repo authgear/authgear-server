@@ -42,17 +42,6 @@ interface FormState {
   newClient: OAuthClientConfig;
 }
 
-const errorRules = [
-  makeValidationErrorMatchUnknownKindParseRule(
-    "general",
-    /^\/oauth\/clients$/,
-    "error.client-quota-exceeded",
-    {
-      to: "./../../../billing",
-    }
-  ),
-];
-
 function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
     clients: config.oauth?.clients ?? [],
@@ -108,6 +97,7 @@ interface CreateOAuthClientContentProps {
 const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
   function CreateOAuthClientContent(props) {
     const { state, setState, save, isDirty, isUpdating } = props.form;
+    const { appID } = useParams() as { appID: string };
     const navigate = useNavigate();
     const { renderToString } = useContext(Context);
 
@@ -218,7 +208,9 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
             };
             sendDataToGTM(event);
             navigate(
-              `./../${encodeURIComponent(clientId)}/edit?quickstart=true`,
+              `/project/${appID}/configuration/apps/${encodeURIComponent(
+                clientId
+              )}/edit?quickstart=true`,
               {
                 replace: true,
               }
@@ -228,12 +220,13 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
         )
         .catch(() => {});
     }, [
-      save,
       navigate,
+      appID,
       clientId,
-      sendDataToGTM,
+      save,
       gtmEventBase,
       client.x_application_type,
+      sendDataToGTM,
     ]);
 
     const parentJSONPointer = /\/oauth\/clients\/\d+/;
@@ -284,6 +277,20 @@ const CreateOAuthClientScreen: React.VFC = function CreateOAuthClientScreen() {
   });
 
   const { isLoading, loadError, reload, updateError, isUpdating } = form;
+
+  const errorRules = useMemo(
+    () => [
+      makeValidationErrorMatchUnknownKindParseRule(
+        "general",
+        /^\/oauth\/clients$/,
+        "error.client-quota-exceeded",
+        {
+          to: `/project/${appID}/billing`,
+        }
+      ),
+    ],
+    [appID]
+  );
 
   if (isLoading) {
     return <ShowLoading />;
