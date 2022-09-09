@@ -190,6 +190,8 @@ const AuditLogEntryScreen: React.VFC = function AuditLogEntryScreen() {
                 wrappingIndent: "deepIndent",
                 renderLineHighlight: "none",
               }}
+              isCopyButtonVisible={true}
+              copyValue={code}
             />
           ) : null}
         </Widget>
