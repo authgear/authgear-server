@@ -26,6 +26,7 @@ deps.sort();
 
 const productionOnlyDeps = [
   "@apollo/client",
+  "@elgorditosalsero/react-gtm-hook",
   "@fluentui/react",
   "@fluentui/react-hooks",
   "@oursky/react-messageformat",

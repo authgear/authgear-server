@@ -3,7 +3,6 @@ import { useParams, useLocation } from "react-router-dom";
 import { Text, Label } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { useQuery } from "@apollo/client";
-import { CopyBlock, dracula } from "react-code-blocks";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import CommandBarContainer from "../../CommandBarContainer";
 import ShowError from "../../ShowError";
@@ -20,6 +19,7 @@ import {
 } from "./query/auditLogEntryQuery.generated";
 
 import styles from "./AuditLogEntryScreen.module.css";
+import CodeBlock from "../../CodeBlock";
 
 function getRawUserIDFromAuditLog(
   node: AuditLogEntryFragment
@@ -179,14 +179,11 @@ const AuditLogEntryScreen: React.VFC = function AuditLogEntryScreen() {
             <FormattedMessage id="AuditLogEntryScreen.raw-event-log" />
           </Label>
           {code != null ? (
-            <div className={styles.codeBlock}>
-              <CopyBlock
-                text={code}
-                language="json"
-                codeBlock={true}
-                theme={dracula}
-              />
-            </div>
+            <CodeBlock
+              className={styles.codeBlock}
+              value={code}
+              language="json"
+            />
           ) : null}
         </Widget>
       </ScreenContent>
