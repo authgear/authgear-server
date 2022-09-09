@@ -14,6 +14,7 @@ import { NftContractMetadataQueryQuery } from "./query/nftContractMetadataQuery.
 import { NetworkID } from "../../util/networkId";
 import { CollectionItem } from "./Web3ConfigurationScreen";
 import { DateTime } from "luxon";
+import { parseRawError } from "../../error/parse";
 
 const InvalidAddressError: APIError = {
   errorName: "InvalidAddressError",
@@ -68,11 +69,18 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionFormProps> =
           address: state.contractAddress,
         };
 
-        const metadataResponse = await fetchMetadata(
-          createContractIDURL(contractId)
-        );
+        let contractID = "";
+        try {
+          contractID = createContractIDURL(contractId);
+        } catch (_: unknown) {
+          // eslint-disable-next-line @typescript-eslint/no-throw-literal
+          throw InvalidAddressError;
+        }
+
+        const metadataResponse = await fetchMetadata(contractID);
         if (metadataResponse.error) {
-          throw metadataResponse.error;
+          // eslint-disable-next-line @typescript-eslint/no-throw-literal
+          throw parseRawError(metadataResponse.error);
         }
         const metadata = metadataResponse.data?.nftContractMetadata;
 

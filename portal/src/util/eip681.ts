@@ -1,9 +1,14 @@
+const ETHEREUM_ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/;
+
 export interface EIP681 {
   chainId: number;
   address: string;
 }
 
-export function parseEIP681(url: string): EIP681 {
+export function parseEIP681(
+  url: string,
+  skipAddressCheck: boolean = false
+): EIP681 {
   const protocolURI = url.split(":");
 
   if (protocolURI.length !== 2) {
@@ -21,9 +26,8 @@ export function parseEIP681(url: string): EIP681 {
   }
 
   const address = addressURI[0];
-  try {
-    parseInt(address, 16);
-  } catch (_: unknown) {
+  const regex = new RegExp(ETHEREUM_ADDRESS_REGEX);
+  if (!skipAddressCheck && !regex.test(address)) {
     throw new Error(`Invalid address: ${address}`);
   }
 
@@ -38,6 +42,12 @@ export function parseEIP681(url: string): EIP681 {
   };
 }
 
-export function createEIP681URL(eip681: EIP681): string {
-  return `ethereum:${eip681.address}@${eip681.chainId}`;
+export function createEIP681URL(
+  eip681: EIP681,
+  skipAddressCheck: boolean = false
+): string {
+  const url = `ethereum:${eip681.address}@${eip681.chainId}`;
+  // Confirm the format is correct
+  parseEIP681(url, skipAddressCheck);
+  return url;
 }

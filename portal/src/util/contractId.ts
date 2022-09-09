@@ -6,14 +6,17 @@ export interface ContractID {
   address: string;
 }
 
-export function parseContractID(url: string): ContractID {
+export function parseContractID(
+  url: string,
+  skipAddressCheck: boolean = false
+): ContractID {
   const curl = new URL(url);
 
   const protocol = curl.protocol.replace(":", "");
 
   switch (protocol) {
     case "ethereum": {
-      const eip681 = parseEIP681(url);
+      const eip681 = parseEIP681(url, skipAddressCheck);
 
       return {
         blockchain: "ethereum",
