@@ -85,7 +85,6 @@ function onRenderItem(
 const NavBreadcrumb: React.VFC<Props> = function NavBreadcrumb(props: Props) {
   const { className, items } = props;
   const { renderToString } = useContext(Context);
-  const location = useLocation();
   const { appID } = useParams() as { appID: string };
 
   const breadcrumbItems: IBreadcrumbItem[] = [];

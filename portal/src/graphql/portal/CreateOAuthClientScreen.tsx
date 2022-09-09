@@ -114,7 +114,7 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
     const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
       return [
         {
-          to: "./..",
+          to: "~/configuration/apps",
           label: (
             <FormattedMessage id="ApplicationsConfigurationScreen.title" />
           ),
