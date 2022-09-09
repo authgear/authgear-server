@@ -18,6 +18,7 @@ import { ensureNonEmptyString } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import Toggle from "../../Toggle";
 import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
+import { useParams } from "react-router-dom";
 
 const ALL_APPLICATION_TYPES: ApplicationType[] = [...applicationTypes];
 interface EditOAuthClientFormProps {
@@ -72,6 +73,8 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
 
     const { renderToString } = useContext(Context);
     const theme = useTheme();
+
+    const { appID } = useParams() as { appID: string };
 
     const { onChange: onClientNameChange } = useTextField((value) => {
       onClientConfigChange(
@@ -419,7 +422,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
               <FormattedMessage
                 id="EditOAuthClientForm.cookie-settings.description"
                 values={{
-                  to: "./../../../../advanced/session",
+                  to: `/project/${appID}/advanced/session`,
                   hostname: publicOrigin,
                 }}
               />
