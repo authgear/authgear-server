@@ -772,14 +772,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             <FormattedMessage id="UISettingsScreen.branding.title" />
           </WidgetTitle>
           {state.whiteLabelingDisabled ? (
-            <FeatureDisabledMessageBar>
-              <FormattedMessage
-                id="FeatureConfig.white-labeling.disabled"
-                values={{
-                  planPagePath: "./../../billing",
-                }}
-              />
-            </FeatureDisabledMessageBar>
+            <FeatureDisabledMessageBar messageID="FeatureConfig.white-labeling.disabled" />
           ) : null}
           <Toggle
             checked={watermarkEnabled}

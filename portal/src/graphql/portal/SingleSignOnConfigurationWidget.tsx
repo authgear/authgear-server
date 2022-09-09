@@ -235,14 +235,7 @@ const WidgetHeader: React.VFC<WidgetHeaderProps> = function WidgetHeader(
   let messageBar;
   if (disabled) {
     messageBar = (
-      <FeatureDisabledMessageBar>
-        <FormattedMessage
-          id="FeatureConfig.disabled"
-          values={{
-            planPagePath: "./../../billing",
-          }}
-        />
-      </FeatureDisabledMessageBar>
+      <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
     );
   }
 

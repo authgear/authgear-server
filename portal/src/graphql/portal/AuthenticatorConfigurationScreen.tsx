@@ -676,14 +676,7 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
             <FormattedMessage id="AuthenticatorConfigurationScreen.primary-authenticators.title" />
           </WidgetTitle>
           {hasPrimaryFeatureDisabled ? (
-            <FeatureDisabledMessageBar>
-              <FormattedMessage
-                id="FeatureConfig.disabled"
-                values={{
-                  planPagePath: "./../../../billing",
-                }}
-              />
-            </FeatureDisabledMessageBar>
+            <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
           ) : null}
           {state.passkeyDisabled ? (
             <TooltipHost
@@ -756,14 +749,7 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
             })}
           >
             {hasSecondaryFeatureDisabled ? (
-              <FeatureDisabledMessageBar>
-                <FormattedMessage
-                  id="FeatureConfig.disabled"
-                  values={{
-                    planPagePath: "./../../../billing",
-                  }}
-                />
-              </FeatureDisabledMessageBar>
+              <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
             ) : null}
             <DetailsList
               items={secondaryItems}

@@ -293,14 +293,7 @@ const VerificationConfigurationContent: React.VFC<VerificationConfigurationConte
             <FormattedMessage id="VerificationConfigurationScreen.verification.claims.phoneNumber" />
           </WidgetTitle>
           {loginIDPhoneDisabled ? (
-            <FeatureDisabledMessageBar>
-              <FormattedMessage
-                id="FeatureConfig.disabled"
-                values={{
-                  planPagePath: "./../../../billing",
-                }}
-              />
-            </FeatureDisabledMessageBar>
+            <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
           ) : null}
           <Dropdown
             disabled={loginIDPhoneDisabled}

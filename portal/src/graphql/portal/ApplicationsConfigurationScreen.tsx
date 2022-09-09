@@ -280,15 +280,10 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
         </ScreenDescription>
         <div className={styles.widget}>
           {oauthClientsMaximum < 99 ? (
-            <FeatureDisabledMessageBar>
-              <FormattedMessage
-                id="FeatureConfig.oauth-clients.maximum"
-                values={{
-                  planPagePath: "./../../billing",
-                  maximum: oauthClientsMaximum,
-                }}
-              />
-            </FeatureDisabledMessageBar>
+            <FeatureDisabledMessageBar
+              messageID="FeatureConfig.oauth-clients.maximum"
+              messageValues={{ maximum: oauthClientsMaximum }}
+            />
           ) : null}
           <div className={styles.desktopView}>
             <DetailsList

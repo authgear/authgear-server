@@ -294,15 +294,12 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
             <FormattedMessage id="SingleSignOnConfigurationScreen.description" />
           </Text>
           {oauthClientsMaximum < 99 ? (
-            <FeatureDisabledMessageBar>
-              <FormattedMessage
-                id="FeatureConfig.sso.maximum"
-                values={{
-                  planPagePath: "./../../billing",
-                  maximum: oauthClientsMaximum,
-                }}
-              />
-            </FeatureDisabledMessageBar>
+            <FeatureDisabledMessageBar
+              messageID="FeatureConfig.sso.maximum"
+              messageValues={{
+                maximum: oauthClientsMaximum,
+              }}
+            />
           ) : null}
         </ScreenDescription>
         {oauthSSOProviderItemKeys.map((providerItemKey) => (

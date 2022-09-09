@@ -525,15 +525,11 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
           <div className={styles.widget}>
             <NavBreadcrumb className="" items={items} />
             {logRetrievalDays !== -1 ? (
-              <FeatureDisabledMessageBar className={styles.messageBar}>
-                <FormattedMessage
-                  id="FeatureConfig.audit-log.retrieval-days"
-                  values={{
-                    planPagePath: "./../billing",
-                    logRetrievalDays: logRetrievalDays,
-                  }}
-                />
-              </FeatureDisabledMessageBar>
+              <FeatureDisabledMessageBar
+                className={styles.messageBar}
+                messageID="FeatureConfig.audit-log.retrieval-days"
+                messageValues={{ logRetrievalDays: logRetrievalDays }}
+              />
             ) : null}
           </div>
           <AuditLogList
