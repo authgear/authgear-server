@@ -159,6 +159,7 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionFormProps> =
           />
           <PrimaryButton
             type="submit"
+            className={styles.addCollectionAddButton}
             disabled={!isModified || isUpdating}
             onClick={onSubmitForm}
           >
