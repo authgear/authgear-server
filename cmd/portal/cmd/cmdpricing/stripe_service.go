@@ -317,6 +317,25 @@ func (s *StripeService) uploadMonthlyUsageRecordToSubscriptionItem(
 		}
 	}
 
+	// We encounter this error
+	// {"status":400,"message":"Cannot create the usage record with this timestamp because timestamps must be after the subscription's last invoice period (or current period start time).","param":"timestamp","request_id":"redacted","type":"invalid_request_error"}
+	fields := map[string]interface{}{
+		"app_id":               appID,
+		"current_period_start": currentPeriodStart.Format(time.RFC3339),
+		"current_period_end":   currentPeriodEnd.Format(time.RFC3339),
+	}
+	if subscription.LatestInvoice != nil {
+		fields["latest_invoice_period_start"] = time.Unix(
+			subscription.LatestInvoice.PeriodStart,
+			0,
+		).UTC().Format(time.RFC3339)
+		fields["latest_invoice_period_end"] = time.Unix(
+			subscription.LatestInvoice.PeriodEnd,
+			0,
+		).UTC().Format(time.RFC3339)
+	}
+	s.Logger.WithFields(fields).Infof("subscription timestamps")
+
 	timestamp := currentPeriodStart.Unix()
 	_, err = s.ClientAPI.UsageRecords.New(&stripe.UsageRecordParams{
 		SubscriptionItem: stripe.String(si.ID),
@@ -340,7 +359,10 @@ func (s *StripeService) getStripeSubscription(ctx context.Context, stripeSubscri
 	params := &stripe.SubscriptionParams{
 		Params: stripe.Params{
 			Context: ctx,
-			Expand:  []*string{stripe.String("items.data.price.product")},
+			Expand: []*string{
+				stripe.String("items.data.price.product"),
+				stripe.String("latest_invoice"),
+			},
 		},
 	}
 	return s.ClientAPI.Subscriptions.Get(stripeSubscriptionID, params)
