@@ -22,6 +22,7 @@ import { extractRawID } from "../../util/graphql";
 import useDelayedValue from "../../hook/useDelayedValue";
 
 import styles from "./AuditLogList.module.css";
+import { useParams } from "react-router-dom";
 
 const PLACEHOLDER = "-";
 
@@ -82,6 +83,8 @@ const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
   } = props;
   const edges = props.auditLogs?.edges;
   const searchParams = props.searchParams;
+
+  const { appID } = useParams() as { appID: string };
 
   const loading = useDelayedValue(rawLoading, 500);
 
@@ -147,12 +150,12 @@ const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
       const state: any = {};
       switch (column?.key) {
         case "activityType":
-          href = `./${item.id}/details`;
+          href = `/project/${appID}/audit-log/${item.id}/details`;
           state["searchParams"] = searchParams;
           break;
         case "rawUserID":
           if (item.userID != null) {
-            href = `./../users/${item.userID}/details`;
+            href = `/project/${appID}/users/${item.userID}/details`;
           }
           break;
         default:
@@ -168,7 +171,7 @@ const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
       }
       return <span>{text}</span>;
     },
-    [searchParams]
+    [appID, searchParams]
   );
 
   const onColumnHeaderClick = useCallback(
