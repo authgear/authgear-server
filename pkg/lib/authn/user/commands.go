@@ -48,21 +48,9 @@ func (c *Commands) AfterCreate(
 		return err
 	}
 
-	web3Addresses := make([]string, 0)
-	for _, i := range identities {
-		if i.Type == model.IdentityTypeSIWE && i.SIWE != nil {
-			web3Addresses = append(web3Addresses, i.SIWE.Address)
-		}
-	}
-
-	web3Info := new(model.UserWeb3Info)
-	if len(web3Addresses) > 0 {
-		info, err := c.Web3.GetWeb3Info(web3Addresses)
-		if err != nil {
-			return err
-		}
-
-		web3Info = info
+	web3Info, err := c.Web3.GetWeb3Info(identities)
+	if err != nil {
+		return err
 	}
 
 	userModel := newUserModel(user, identities, authenticators, isVerified, stdAttrs, customAttrs, web3Info)
