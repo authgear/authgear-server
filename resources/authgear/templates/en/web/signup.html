@@ -25,13 +25,7 @@
 	{{ else }}
 
 	<div class="pane flex flex-col">
-		{{ if $has_siwe }}
-		<div class="flex flex-row">
-			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt" href="/login" data-turbo-action="replace">{{ template "login-label" }}</a>
-			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt current" href="/signup" data-turbo-action="replace">{{ template "signup-label" }}</a>
-		</div>
-		{{ end }}
-		{{ if not $.PublicSignupDisabled }}{{ if $has_login_id }}
+		{{ if not $.PublicSignupDisabled }}{{ if (or $has_login_id $has_siwe) }}
 		<div class="flex flex-row">
 			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt" href="{{ call $.MakeURL "/login" "x_login_id_input_type" $.x_login_id_input_type }}" data-turbo-action="replace">{{ template "login-label" }}</a>
 			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt current" href="{{ call $.MakeURL "/signup" "x_login_id_input_type" $.x_login_id_input_type }}" data-turbo-action="replace">{{ template "signup-label" }}</a>
