@@ -11,6 +11,7 @@ export interface SystemConfig {
   themes: SystemConfigThemes;
   translations: SystemConfigTranslations;
   searchEnabled: boolean;
+  web3Enabled: boolean;
   auditLogEnabled: boolean;
   gitCommitHash: string;
   analyticEnabled: boolean;
@@ -259,6 +260,7 @@ export function instantiateSystemConfig(
       en: config.translations?.en ?? {},
     },
     searchEnabled: config.searchEnabled ?? false,
+    web3Enabled: config.web3Enabled ?? false,
     auditLogEnabled: config.auditLogEnabled ?? false,
     gitCommitHash: config.gitCommitHash ?? "",
     analyticEnabled: config.analyticEnabled ?? false,
