@@ -674,7 +674,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	webappURLProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -687,7 +687,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  webappURLProvider,
 		Clock:                        clock,
 		WechatURLProvider:            wechatURLProvider,
@@ -1440,7 +1440,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	webappURLProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -1453,7 +1453,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  webappURLProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -2162,7 +2162,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -2175,7 +2175,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -4537,7 +4537,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -4550,7 +4550,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -5318,7 +5318,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -5331,7 +5331,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -6051,7 +6051,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -6064,7 +6064,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -6884,7 +6884,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -6897,7 +6897,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -7660,7 +7660,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -7673,7 +7673,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -8435,7 +8435,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -8448,7 +8448,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -9193,7 +9193,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -9206,7 +9206,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -9947,7 +9947,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -9960,7 +9960,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -10693,7 +10693,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -10706,7 +10706,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -11442,7 +11442,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -11455,7 +11455,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -12194,7 +12194,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -12207,7 +12207,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -12948,7 +12948,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -12961,7 +12961,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -13700,7 +13700,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -13713,7 +13713,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -14452,7 +14452,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -14465,7 +14465,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -15205,7 +15205,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -15218,7 +15218,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -15957,7 +15957,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -15970,7 +15970,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -16709,7 +16709,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -16722,7 +16722,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -17463,7 +17463,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -17476,7 +17476,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -18215,7 +18215,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -18228,7 +18228,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -18967,7 +18967,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -18980,7 +18980,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -19721,7 +19721,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -19734,7 +19734,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -20473,7 +20473,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -20486,7 +20486,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -21651,7 +21651,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -21664,7 +21664,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -22403,7 +22403,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -22416,7 +22416,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -23151,7 +23151,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -23164,7 +23164,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -23901,7 +23901,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -23914,7 +23914,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -24649,7 +24649,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -24662,7 +24662,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -25407,7 +25407,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -25420,7 +25420,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -26155,7 +26155,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -26168,7 +26168,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -26904,7 +26904,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -26917,7 +26917,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -27652,7 +27652,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -27665,7 +27665,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -28431,7 +28431,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -28444,7 +28444,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -29190,7 +29190,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -29203,7 +29203,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -29962,7 +29962,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -29975,7 +29975,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -30718,7 +30718,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -30731,7 +30731,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -31467,7 +31467,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -31480,7 +31480,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -32224,7 +32224,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -32237,7 +32237,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -32973,7 +32973,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -32986,7 +32986,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -33722,7 +33722,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -33735,7 +33735,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -34471,7 +34471,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -34484,7 +34484,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -35221,7 +35221,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -35234,7 +35234,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -35975,7 +35975,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -35988,7 +35988,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -36724,7 +36724,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -36737,7 +36737,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -37473,7 +37473,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -37486,7 +37486,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -38222,7 +38222,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -38235,7 +38235,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -38971,7 +38971,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -38984,7 +38984,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -39727,7 +39727,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -39740,7 +39740,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -40477,7 +40477,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -40490,7 +40490,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -41225,7 +41225,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -41238,7 +41238,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -41992,7 +41992,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -42005,7 +42005,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -42740,7 +42740,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -42753,7 +42753,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -43505,7 +43505,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -43518,7 +43518,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
@@ -45689,7 +45689,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
 	}
-	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -45702,7 +45702,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthClientCredentials,
+		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
