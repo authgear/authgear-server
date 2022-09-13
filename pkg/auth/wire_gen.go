@@ -4785,59 +4785,6 @@ func newSIWENonceHandler(p *deps.RequestProvider) http.Handler {
 	return nonceHandler
 }
 
-func newSIWEVerifyHandler(p *deps.RequestProvider) http.Handler {
-	appProvider := p.AppProvider
-	factory := appProvider.LoggerFactory
-	verifyHandlerLogger := siwe3.NewVerifyHandlerLogger(factory)
-	request := p.Request
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	config := appProvider.Config
-	appConfig := config.AppConfig
-	httpConfig := appConfig.HTTP
-	clockClock := _wireSystemClockValue
-	contextContext := deps.ProvideRequestContext(request)
-	handle := appProvider.Redis
-	appID := appConfig.ID
-	storeRedis := &siwe2.StoreRedis{
-		Context: contextContext,
-		Redis:   handle,
-		AppID:   appID,
-		Clock:   clockClock,
-	}
-	logger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: handle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  logger,
-		Storage: storageRedis,
-		Clock:   clockClock,
-	}
-	siweLogger := siwe2.NewLogger(factory)
-	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
-	}
-	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
-	jsonResponseWriter := &httputil.JSONResponseWriter{
-		Logger: jsonResponseWriterLogger,
-	}
-	verifyHandler := &siwe3.VerifyHandler{
-		Logger: verifyHandlerLogger,
-		SIWE:   siweService,
-		JSON:   jsonResponseWriter,
-	}
-	return verifyHandler
-}
-
 func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory

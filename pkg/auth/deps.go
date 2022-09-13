@@ -157,8 +157,6 @@ var DependencySet = wire.NewSet(
 	handlersiwe.DependencySet,
 	wire.Bind(new(handlersiwe.NonceHandlerJSONResponseWriter), new(*httputil.JSONResponseWriter)),
 	wire.Bind(new(handlersiwe.NonceHandlerSIWEService), new(*featuresiwe.Service)),
-	wire.Bind(new(handlersiwe.VerifyHandlerJSONResponseWriter), new(*httputil.JSONResponseWriter)),
-	wire.Bind(new(handlersiwe.VerifyHandlerSIWEService), new(*featuresiwe.Service)),
 
 	api.DependencySet,
 	wire.Bind(new(api.JSONResponseWriter), new(*httputil.JSONResponseWriter)),

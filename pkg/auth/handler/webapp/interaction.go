@@ -338,14 +338,12 @@ func (i *InputSelectVerifyIdentityViaWhatsapp) SelectVerifyIdentityViaWhatsapp()
 
 var _ nodes.InputVerifyIdentityViaWhatsapp = &InputSelectVerifyIdentityViaWhatsapp{}
 
-type InputConfirmWeb3Account struct {
-	Message       string
-	Signature     string
-	EncodedPubKey string
+type InputConfirmWeb3AccountRequest struct {
+	Message   string
+	Signature string
 }
 
-func (i *InputConfirmWeb3Account) GetMessage() string       { return i.Message }
-func (i *InputConfirmWeb3Account) GetSignature() string     { return i.Signature }
-func (i *InputConfirmWeb3Account) GetEncodedPubKey() string { return i.EncodedPubKey }
+func (i *InputConfirmWeb3AccountRequest) GetMessage() string   { return i.Message }
+func (i *InputConfirmWeb3AccountRequest) GetSignature() string { return i.Signature }
 
-var _ nodes.InputUseIdentitySIWE = &InputConfirmWeb3Account{}
+var _ nodes.InputUseIdentitySIWE = &InputConfirmWeb3AccountRequest{}
