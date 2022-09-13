@@ -59,7 +59,7 @@ function getProvider(provider: string): ethers.providers.Web3Provider | null {
   switch (provider) {
     case WalletProvider.MetaMask:
     default:
-      return new ethers.providers.Web3Provider(window.ethereum);
+      return new ethers.providers.Web3Provider(window.ethereum!);
   }
 }
 
