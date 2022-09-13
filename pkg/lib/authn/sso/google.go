@@ -17,7 +17,7 @@ type GoogleImpl struct {
 	Clock                        clock.Clock
 	RedirectURL                  RedirectURLProvider
 	ProviderConfig               config.OAuthSSOProviderConfig
-	Credentials                  config.OAuthClientCredentialsItem
+	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
 }
 

@@ -69,7 +69,7 @@ type StandardAttributesNormalizer interface {
 type OAuthProviderFactory struct {
 	Endpoints                    EndpointsProvider
 	IdentityConfig               *config.IdentityConfig
-	Credentials                  *config.OAuthClientCredentials
+	Credentials                  *config.OAuthSSOProviderCredentials
 	RedirectURL                  RedirectURLProvider
 	Clock                        clock.Clock
 	WechatURLProvider            WechatURLProvider

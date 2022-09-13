@@ -55,8 +55,8 @@ type SecretConfig struct {
 func NewSecretConfig(secretConfig *config.SecretConfig, unmasked bool) (*SecretConfig, error) {
 	out := &SecretConfig{}
 
-	if oauthClientCredentials, ok := secretConfig.LookupData(config.OAuthClientCredentialsKey).(*config.OAuthClientCredentials); ok {
-		for _, item := range oauthClientCredentials.Items {
+	if oauthSSOProviderCredentials, ok := secretConfig.LookupData(config.OAuthSSOProviderCredentialsKey).(*config.OAuthSSOProviderCredentials); ok {
+		for _, item := range oauthSSOProviderCredentials.Items {
 			out.OAuthClientSecrets = append(out.OAuthClientSecrets, OAuthClientSecret{
 				Alias:        item.Alias,
 				ClientSecret: item.ClientSecret,
@@ -134,22 +134,22 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmasked bool) (*SecretC
 	return out, nil
 }
 
-func (c *SecretConfig) updateOAuthClientCredentials() (item *config.SecretItem, err error) {
+func (c *SecretConfig) updateOAuthSSOProviderCredentials() (item *config.SecretItem, err error) {
 	if len(c.OAuthClientSecrets) <= 0 {
 		return
 	}
 
 	// The strategy is simply use incoming one.
-	var oauthItems []config.OAuthClientCredentialsItem
+	var oauthItems []config.OAuthSSOProviderCredentialsItem
 	for _, secret := range c.OAuthClientSecrets {
-		oauthItems = append(oauthItems, config.OAuthClientCredentialsItem{
+		oauthItems = append(oauthItems, config.OAuthSSOProviderCredentialsItem{
 			Alias:        secret.Alias,
 			ClientSecret: secret.ClientSecret,
 		})
 	}
 
 	var data []byte
-	data, err = json.Marshal(&config.OAuthClientCredentials{
+	data, err = json.Marshal(&config.OAuthSSOProviderCredentials{
 		Items: oauthItems,
 	})
 	if err != nil {
@@ -157,7 +157,7 @@ func (c *SecretConfig) updateOAuthClientCredentials() (item *config.SecretItem, 
 	}
 
 	item = &config.SecretItem{
-		Key:     config.OAuthClientCredentialsKey,
+		Key:     config.OAuthSSOProviderCredentialsKey,
 		RawData: json.RawMessage(data),
 	}
 	return
@@ -199,7 +199,7 @@ func (c *SecretConfig) updateSMTP(currentConfig *config.SecretConfig) (item *con
 func (c *SecretConfig) ToYAMLForUpdate(currentConfig *config.SecretConfig) ([]byte, error) {
 	var items []config.SecretItem
 
-	oauthItem, err := c.updateOAuthClientCredentials()
+	oauthItem, err := c.updateOAuthSSOProviderCredentials()
 	if err != nil {
 		return nil, err
 	}

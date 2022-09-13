@@ -121,7 +121,7 @@ func (c *AnalyticRedisCredentials) SensitiveStrings() []string {
 	return []string{c.RedisURL}
 }
 
-var _ = SecretConfigSchema.Add("OAuthClientCredentials", `
+var _ = SecretConfigSchema.Add("OAuthSSOProviderCredentials", `
 {
 	"type": "object",
 	"additionalProperties": false,
@@ -147,11 +147,11 @@ var _ = SecretConfigSchema.Add("OAuthClientCredentials", `
 }
 `)
 
-type OAuthClientCredentials struct {
-	Items []OAuthClientCredentialsItem `json:"items,omitempty"`
+type OAuthSSOProviderCredentials struct {
+	Items []OAuthSSOProviderCredentialsItem `json:"items,omitempty"`
 }
 
-func (c *OAuthClientCredentials) Lookup(alias string) (*OAuthClientCredentialsItem, bool) {
+func (c *OAuthSSOProviderCredentials) Lookup(alias string) (*OAuthSSOProviderCredentialsItem, bool) {
 	for _, item := range c.Items {
 		if item.Alias == alias {
 			ii := item
@@ -161,7 +161,7 @@ func (c *OAuthClientCredentials) Lookup(alias string) (*OAuthClientCredentialsIt
 	return nil, false
 }
 
-func (c *OAuthClientCredentials) SensitiveStrings() []string {
+func (c *OAuthSSOProviderCredentials) SensitiveStrings() []string {
 	var out []string
 	for _, item := range c.Items {
 		out = append(out, item.SensitiveStrings()...)
@@ -169,12 +169,12 @@ func (c *OAuthClientCredentials) SensitiveStrings() []string {
 	return out
 }
 
-type OAuthClientCredentialsItem struct {
+type OAuthSSOProviderCredentialsItem struct {
 	Alias        string `json:"alias,omitempty"`
 	ClientSecret string `json:"client_secret,omitempty"`
 }
 
-func (c *OAuthClientCredentialsItem) SensitiveStrings() []string {
+func (c *OAuthSSOProviderCredentialsItem) SensitiveStrings() []string {
 	return []string{c.ClientSecret}
 }
 
