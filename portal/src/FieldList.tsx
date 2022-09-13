@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { ComponentType, useCallback, useMemo } from "react";
 import { IconButton, Stack, Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "./context/SystemConfigContext";
@@ -8,13 +8,13 @@ import ActionButton from "./ActionButton";
 
 import styles from "./FieldList.module.css";
 
-type RenderFieldListItem<T> = (
-  index: number,
-  value: T,
-  onChange: (value: T) => void
-) => React.ReactElement;
+export interface ListItemProps<T> {
+  index: number;
+  value: T;
+  onChange: (value: T) => void;
+}
 
-interface FieldListProps<T> {
+export interface FieldListProps<T> {
   className?: string;
   label?: React.ReactNode;
   parentJSONPointer: string | RegExp;
@@ -22,10 +22,11 @@ interface FieldListProps<T> {
   list: T[];
   onListChange: (list: T[]) => void;
   makeDefaultItem: () => T;
-  renderListItem: RenderFieldListItem<T>;
+  ListItemComponent: ComponentType<ListItemProps<T>>;
   addButtonLabelMessageID?: string;
   description?: string;
   addDisabled?: boolean;
+  deleteDisabled?: boolean;
 }
 
 const FieldList = function FieldList<T>(
@@ -38,10 +39,11 @@ const FieldList = function FieldList<T>(
     fieldName,
     list,
     onListChange,
-    renderListItem,
+    ListItemComponent,
     makeDefaultItem,
     addButtonLabelMessageID,
     addDisabled,
+    deleteDisabled,
     description,
   } = props;
 
@@ -91,7 +93,8 @@ const FieldList = function FieldList<T>(
             value={value}
             onItemChange={onItemChange}
             onItemDelete={onItemDelete}
-            renderListItem={renderListItem}
+            ListItemComponent={ListItemComponent}
+            deleteDisabled={deleteDisabled}
           />
         ))}
       </Stack>
@@ -120,11 +123,19 @@ interface FieldListItemProps<T> {
   value: T;
   onItemChange: (index: number, newValue: T) => void;
   onItemDelete: (index: number) => void;
-  renderListItem: RenderFieldListItem<T>;
+  ListItemComponent: ComponentType<ListItemProps<T>>;
+  deleteDisabled?: boolean;
 }
 
 function FieldListItem<T>(props: FieldListItemProps<T>) {
-  const { index, value, onItemChange, onItemDelete, renderListItem } = props;
+  const {
+    index,
+    value,
+    onItemChange,
+    onItemDelete,
+    ListItemComponent,
+    deleteDisabled,
+  } = props;
   const { themes } = useSystemConfig();
 
   const onChange = useCallback(
@@ -138,12 +149,13 @@ function FieldListItem<T>(props: FieldListItemProps<T>) {
 
   return (
     <div className={styles.listItem}>
-      {renderListItem(index, value, onChange)}
+      <ListItemComponent index={index} value={value} onChange={onChange} />
       <IconButton
         className={styles.deleteButton}
         onClick={onDelete}
         iconProps={{ iconName: "Delete" }}
         theme={themes.destructive}
+        disabled={deleteDisabled}
       />
     </div>
   );
