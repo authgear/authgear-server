@@ -223,6 +223,7 @@
   "UserDetails.connected-identities.biometric": "Biometric",
   "UserDetails.connected-identities.biometric.unknown-device": "Unknown Device",
   "UserDetails.connected-identities.anonymous": "Anonymous",
+  "UserDetails.connected-identities.siwe": "Ethereum Wallet",
   "UserDetails.connected-identities.anonymous.anonymous-user": "Anonymous User",
 
   "UserDetails.connected-identities.connected-on": "Connected on {datetime}",

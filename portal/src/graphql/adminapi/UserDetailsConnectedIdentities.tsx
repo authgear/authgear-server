@@ -42,7 +42,7 @@ interface IdentityClaim extends Record<string, unknown> {
 
 interface Identity {
   id: string;
-  type: "ANONYMOUS" | "LOGIN_ID" | "OAUTH" | "BIOMETRIC" | "PASSKEY";
+  type: "ANONYMOUS" | "LOGIN_ID" | "OAUTH" | "BIOMETRIC" | "PASSKEY" | "SIWE";
   claims: IdentityClaim;
   createdAt: string;
   updatedAt: string;
@@ -57,13 +57,14 @@ interface UserDetailsConnectedIdentitiesProps {
 
 const loginIdIdentityTypes = ["email", "phone", "username"] as const;
 type LoginIDIdentityType = typeof loginIdIdentityTypes[number];
-type IdentityType = "login_id" | "oauth" | "biometric" | "anonymous";
+type IdentityType = "login_id" | "oauth" | "biometric" | "anonymous" | "siwe";
 
 type IdentityListItem =
   | OAuthIdentityListItem
   | LoginIDIdentityListItem
   | BiometricIdentityListItem
-  | AnonymousIdentityListItem;
+  | AnonymousIdentityListItem
+  | SIWEIdentityListItem;
 interface OAuthIdentityListItem {
   id: string;
   type: "oauth";
@@ -99,6 +100,15 @@ interface AnonymousIdentityListItem {
   connectedOn: string;
 }
 
+interface SIWEIdentityListItem {
+  id: string;
+  type: "siwe";
+  address: string;
+  chainId: number;
+  verified: undefined;
+  connectedOn: string;
+}
+
 export interface IdentityLists {
   oauth: OAuthIdentityListItem[];
   email: LoginIDIdentityListItem[];
@@ -106,6 +116,7 @@ export interface IdentityLists {
   username: LoginIDIdentityListItem[];
   biometric: BiometricIdentityListItem[];
   anonymous: AnonymousIdentityListItem[];
+  siwe: SIWEIdentityListItem[];
 }
 
 interface IdentityListCellProps {
@@ -157,12 +168,14 @@ const loginIdIconMap: Record<LoginIDIdentityType, React.ReactNode> = {
 
 const biometricIcon: React.ReactNode = <Icon iconName="Fingerprint" />;
 const anonymousIcon: React.ReactNode = <Icon iconName="People" />;
+const siweIcon: React.ReactNode = <i className={cn("fab", "fa-ethereum")} />;
 
 const removeButtonTextId: Record<IdentityType, "remove" | "disconnect" | ""> = {
   oauth: "disconnect",
   login_id: "remove",
   biometric: "remove",
   anonymous: "",
+  siwe: "",
 };
 
 function getIcon(item: IdentityListItem) {
@@ -175,6 +188,9 @@ function getIcon(item: IdentityListItem) {
   if (item.type === "anonymous") {
     return anonymousIcon;
   }
+  if (item.type === "siwe") {
+    return siweIcon;
+  }
   return loginIdIconMap[item.loginIDKey];
 }
 
@@ -185,6 +201,9 @@ function getClaimName(item: IdentityListItem): string | undefined {
   if (item.type === "anonymous") {
     return undefined;
   }
+  if (item.type === "siwe") {
+    return undefined;
+  }
   return item.claimName;
 }
 
@@ -193,6 +212,9 @@ function getClaimValue(item: IdentityListItem): string | undefined {
     return undefined;
   }
   if (item.type === "anonymous") {
+    return undefined;
+  }
+  if (item.type === "siwe") {
     return undefined;
   }
   return item.claimValue;
@@ -213,6 +235,9 @@ function getIdentityName(
     return renderToString(
       "UserDetails.connected-identities.anonymous.anonymous-user"
     );
+  }
+  if (item.type === "siwe") {
+    return item.address;
   }
   return item.claimValue;
 }
@@ -353,6 +378,12 @@ const IdentityListCell: React.VFC<IdentityListCellProps> =
               values={{ datetime: connectedOn }}
             />
           ) : null}
+          {identityType === "siwe" ? (
+            <FormattedMessage
+              id="UserDetails.connected-identities.added-on"
+              values={{ datetime: connectedOn }}
+            />
+          ) : null}
         </Text>
         <div className={styles.buttonGroup}>
           {shouldShowVerifyButton ? (
@@ -430,6 +461,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
       const usernameIdentityList: LoginIDIdentityListItem[] = [];
       const biometricIdentityList: BiometricIdentityListItem[] = [];
       const anonymousIdentityList: AnonymousIdentityListItem[] = [];
+      const siweIdentityList: SIWEIdentityListItem[] = [];
 
       for (const identity of identities) {
         const createdAtStr = formatDatetime(locale, identity.createdAt) ?? "";
@@ -537,6 +569,22 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
             connectedOn: createdAtStr,
           });
         }
+        if (identity.type === "SIWE") {
+          const address =
+            identity.claims["https://authgear.com/claims/siwe/address"];
+          const chainId =
+            identity.claims["https://authgear.com/claims/siwe/chain_id"];
+          const formattedAddress = typeof address === "string" ? address : "";
+          const formattedChainId = typeof chainId === "number" ? chainId : -1;
+          siweIdentityList.push({
+            id: identity.id,
+            type: "siwe",
+            verified: undefined,
+            address: formattedAddress,
+            chainId: formattedChainId,
+            connectedOn: createdAtStr,
+          });
+        }
       }
       return {
         oauth: oauthIdentityList,
@@ -545,6 +593,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
         username: usernameIdentityList,
         biometric: biometricIdentityList,
         anonymous: anonymousIdentityList,
+        siwe: siweIdentityList,
       };
     }, [locale, identities, verifiedClaims]);
 
@@ -746,6 +795,18 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
               </Text>
               <List
                 items={identityLists.anonymous}
+                onRenderCell={onRenderIdentityCell}
+                onShouldVirtualize={onShouldVirtualize}
+              />
+            </div>
+          ) : null}
+          {identityLists.siwe.length > 0 ? (
+            <div>
+              <Text as="h3" className={styles.subHeader}>
+                <FormattedMessage id="UserDetails.connected-identities.siwe" />
+              </Text>
+              <List
+                items={identityLists.siwe}
                 onRenderCell={onRenderIdentityCell}
                 onShouldVirtualize={onShouldVirtualize}
               />
