@@ -13,14 +13,16 @@
 
   <div
     class="twc-container-vertical"
-    data-controller="web3-wallet-confirmation"
+    data-controller="web3-wallet-confirmation web3-wallet-icon"
     data-web3-wallet-confirmation-provider-value="{{ $.Provider }}"
+    data-web3-wallet-icon-size-value="20"
+    data-action="web3-wallet-confirmation:addressUpdate->web3-wallet-icon#onAddressUpdate"
   >
     <div class="flex flex-col space-y-5 items-center">
       <div class="flex flex-row space-x-2 items-center">
         <div
           class="w-5 h-5 rounded-full"
-          data-web3-wallet-confirmation-target="icon"
+          data-web3-wallet-icon-target="iconContainer"
         ></div>
         <span
           class="text-xl leading-6 font-semibold primary-txt"
