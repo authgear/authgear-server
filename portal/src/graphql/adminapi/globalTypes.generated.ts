@@ -277,7 +277,8 @@ export enum IdentityType {
   Biometric = 'BIOMETRIC',
   LoginId = 'LOGIN_ID',
   Oauth = 'OAUTH',
-  Passkey = 'PASSKEY'
+  Passkey = 'PASSKEY',
+  Siwe = 'SIWE'
 }
 
 export type Mutation = {

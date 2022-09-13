@@ -409,6 +409,9 @@ enum IdentityType {
 
   """"""
   PASSKEY
+
+  """"""
+  SIWE
 }
 
 """"""
