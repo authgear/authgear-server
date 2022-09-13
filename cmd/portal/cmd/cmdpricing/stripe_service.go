@@ -57,6 +57,17 @@ var metadataMAU = map[string]string{
 	libstripe.MetadataKeyUsageType: string(model.UsageTypeMAU),
 }
 
+// SafeOffset is introduced to work around a weird bug of Stripe.
+// When the subscription has its first invoice issued,
+// It is an error to create an usage record of timestamp equal to current_period_start.
+// So we add a 1-second offset to ensure the timestamp is WITHIN the current period.
+const SafeOffset = 1 * time.Second
+
+func ToStripeConvention(t time.Time) *int64 {
+	unix := t.Unix()
+	return &unix
+}
+
 type StripeService struct {
 	ClientAPI   *client.API
 	Handle      *globaldb.Handle
@@ -161,7 +172,13 @@ func (s *StripeService) getUsageRecords(f func(builder squirrel.SelectBuilder) s
 	return
 }
 
-func (s *StripeService) getDailyUsageRecordsForUpload(appID string, recordName usage.RecordName, subscriptionCreatedAt time.Time, midnight time.Time) (out []*usage.UsageRecord, err error) {
+func (s *StripeService) getDailyUsageRecordsForUpload(
+	appID string,
+	recordName usage.RecordName,
+	subscriptionCreatedAt time.Time,
+	midnight time.Time,
+	stripeTimestamp time.Time,
+) (out []*usage.UsageRecord, err error) {
 	return s.getUsageRecords(func(b squirrel.SelectBuilder) squirrel.SelectBuilder {
 		// We have two conditions here.
 		// 1st condition is to retrieve usage records that have not been uploaded.
@@ -174,7 +191,7 @@ func (s *StripeService) getDailyUsageRecordsForUpload(appID string, recordName u
 			string(periodical.Daily),
 			subscriptionCreatedAt,
 			midnight,
-			midnight,
+			stripeTimestamp,
 		)
 	})
 }
@@ -191,7 +208,7 @@ func (s *StripeService) getMonthlyUsageRecordsForUpload(appID string, recordName
 	})
 }
 
-func (s *StripeService) markStripeTimestamp(usageRecords []*usage.UsageRecord, midnight time.Time) (err error) {
+func (s *StripeService) markStripeTimestamp(usageRecords []*usage.UsageRecord, stripeTimestamp time.Time) (err error) {
 	err = s.Handle.WithTx(func() (err error) {
 		var ids []string
 		for _, record := range usageRecords {
@@ -201,7 +218,7 @@ func (s *StripeService) markStripeTimestamp(usageRecords []*usage.UsageRecord, m
 		q := s.SQLBuilder.Update(
 			s.SQLBuilder.TableName("_portal_usage_record"),
 		).
-			Set("stripe_timestamp", midnight).
+			Set("stripe_timestamp", stripeTimestamp).
 			Where("id = ANY (?)", pq.Array(ids))
 
 		result, err := s.SQLExecutor.ExecWith(q)
@@ -232,12 +249,14 @@ func (s *StripeService) uploadDailyUsageRecordToSubscriptionItem(
 	recordName usage.RecordName,
 	midnight time.Time,
 ) (err error) {
+	timestamp := midnight.Add(SafeOffset)
 	subscriptionCreatedAt := time.Unix(subscription.Created, 0).UTC()
 	records, err := s.getDailyUsageRecordsForUpload(
 		appID,
 		recordName,
 		subscriptionCreatedAt,
 		midnight,
+		timestamp,
 	)
 	if err != nil {
 		return
@@ -253,18 +272,17 @@ func (s *StripeService) uploadDailyUsageRecordToSubscriptionItem(
 		quantity += record.Count
 	}
 
-	timestamp := midnight.Unix()
 	_, err = s.ClientAPI.UsageRecords.New(&stripe.UsageRecordParams{
 		SubscriptionItem: stripe.String(si.ID),
 		Action:           stripe.String(stripe.UsageRecordActionSet),
 		Quantity:         stripe.Int64(int64(quantity)),
-		Timestamp:        &timestamp,
+		Timestamp:        ToStripeConvention(timestamp),
 	})
 	if err != nil {
 		return
 	}
 
-	err = s.markStripeTimestamp(records, midnight)
+	err = s.markStripeTimestamp(records, timestamp)
 	if err != nil {
 		return
 	}
@@ -287,6 +305,7 @@ func (s *StripeService) uploadMonthlyUsageRecordToSubscriptionItem(
 		subscription.CurrentPeriodEnd,
 		0,
 	).UTC()
+	timestamp := currentPeriodStart.Add(SafeOffset)
 
 	records, err := s.getMonthlyUsageRecordsForUpload(
 		appID,
@@ -336,18 +355,17 @@ func (s *StripeService) uploadMonthlyUsageRecordToSubscriptionItem(
 	}
 	s.Logger.WithFields(fields).Infof("subscription timestamps")
 
-	timestamp := currentPeriodStart.Unix()
 	_, err = s.ClientAPI.UsageRecords.New(&stripe.UsageRecordParams{
 		SubscriptionItem: stripe.String(si.ID),
 		Action:           stripe.String(stripe.UsageRecordActionSet),
 		Quantity:         stripe.Int64(int64(quantity)),
-		Timestamp:        &timestamp,
+		Timestamp:        ToStripeConvention(timestamp),
 	})
 	if err != nil {
 		return
 	}
 
-	err = s.markStripeTimestamp(records, currentPeriodStart)
+	err = s.markStripeTimestamp(records, timestamp)
 	if err != nil {
 		return
 	}
