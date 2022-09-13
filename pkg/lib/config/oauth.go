@@ -31,6 +31,7 @@ const (
 	OAuthClientApplicationTypeSPA            OAuthClientApplicationType = "spa"
 	OAuthClientApplicationTypeTraditionalWeb OAuthClientApplicationType = "traditional_webapp"
 	OAuthClientApplicationTypeNative         OAuthClientApplicationType = "native"
+	OAuthClientApplicationTypeThirdPartyApp  OAuthClientApplicationType = "third_party_app"
 )
 
 var _ = Schema.Add("OAuthClientConfig", `
@@ -41,7 +42,7 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"client_id": { "type": "string" },
 		"client_uri": { "type": "string", "format": "uri" },
 		"name": { "type": "string" },
-		"x_application_type": { "type": "string", "enum": ["spa", "traditional_webapp", "native"] },
+		"x_application_type": { "type": "string", "enum": ["spa", "traditional_webapp", "native", "third_party_app"] },
 		"redirect_uris": {
 			"type": "array",
 			"items": { "type": "string", "format": "uri" },
@@ -82,20 +83,23 @@ var _ = Schema.Add("OAuthClientConfig", `
 `)
 
 type OAuthClientConfig struct {
-	ClientID                       string          `json:"client_id,omitempty"`
-	ClientURI                      string          `json:"client_uri,omitempty"`
-	Name                           string          `json:"name,omitempty"`
-	ApplicationType                string          `json:"x_application_type,omitempty"`
-	RedirectURIs                   []string        `json:"redirect_uris,omitempty"`
-	GrantTypes                     []string        `json:"grant_types,omitempty"`
-	ResponseTypes                  []string        `json:"response_types,omitempty"`
-	PostLogoutRedirectURIs         []string        `json:"post_logout_redirect_uris,omitempty"`
-	AccessTokenLifetime            DurationSeconds `json:"access_token_lifetime_seconds,omitempty"`
-	RefreshTokenLifetime           DurationSeconds `json:"refresh_token_lifetime_seconds,omitempty"`
-	RefreshTokenIdleTimeoutEnabled *bool           `json:"refresh_token_idle_timeout_enabled,omitempty"`
-	RefreshTokenIdleTimeout        DurationSeconds `json:"refresh_token_idle_timeout_seconds,omitempty"`
-	IssueJWTAccessToken            bool            `json:"issue_jwt_access_token,omitempty"`
-	IsFirstParty                   *bool           `json:"is_first_party,omitempty"`
+	ClientID                       string                     `json:"client_id,omitempty"`
+	ClientURI                      string                     `json:"client_uri,omitempty"`
+	Name                           string                     `json:"name,omitempty"`
+	ApplicationType                OAuthClientApplicationType `json:"x_application_type,omitempty"`
+	RedirectURIs                   []string                   `json:"redirect_uris,omitempty"`
+	GrantTypes                     []string                   `json:"grant_types,omitempty"`
+	ResponseTypes                  []string                   `json:"response_types,omitempty"`
+	PostLogoutRedirectURIs         []string                   `json:"post_logout_redirect_uris,omitempty"`
+	AccessTokenLifetime            DurationSeconds            `json:"access_token_lifetime_seconds,omitempty"`
+	RefreshTokenLifetime           DurationSeconds            `json:"refresh_token_lifetime_seconds,omitempty"`
+	RefreshTokenIdleTimeoutEnabled *bool                      `json:"refresh_token_idle_timeout_enabled,omitempty"`
+	RefreshTokenIdleTimeout        DurationSeconds            `json:"refresh_token_idle_timeout_seconds,omitempty"`
+	IssueJWTAccessToken            bool                       `json:"issue_jwt_access_token,omitempty"`
+}
+
+func (c *OAuthClientConfig) IsFirstParty() bool {
+	return c.ApplicationType != OAuthClientApplicationTypeThirdPartyApp
 }
 
 func (c *OAuthClientConfig) SetDefaults() {
@@ -117,10 +121,6 @@ func (c *OAuthClientConfig) SetDefaults() {
 	}
 	if c.RefreshTokenIdleTimeout == 0 {
 		c.RefreshTokenIdleTimeout = DefaultRefreshTokenIdleTimeout
-	}
-	if c.IsFirstParty == nil {
-		b := true
-		c.IsFirstParty = &b
 	}
 }
 
