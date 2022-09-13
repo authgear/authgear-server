@@ -279,7 +279,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
-	if !*client.IsFirstParty {
+	if !client.IsFirstParty() {
 		return nil, protocol.NewError(
 			"unauthorized_client",
 			"third-party clients may not use anonymous user",
@@ -387,7 +387,7 @@ func (h *TokenHandler) handleBiometricRequest(
 		)
 	}
 
-	if !*client.IsFirstParty {
+	if !client.IsFirstParty() {
 		return nil, protocol.NewError(
 			"unauthorized_client",
 			"third-party clients may not use biometric authentication",
