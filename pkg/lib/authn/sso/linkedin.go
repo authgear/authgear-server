@@ -16,7 +16,7 @@ const (
 type LinkedInImpl struct {
 	RedirectURL                  RedirectURLProvider
 	ProviderConfig               config.OAuthSSOProviderConfig
-	Credentials                  config.OAuthClientCredentialsItem
+	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
 }
 

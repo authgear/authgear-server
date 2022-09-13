@@ -19,7 +19,7 @@ type WechatURLProvider interface {
 
 type WechatImpl struct {
 	ProviderConfig               config.OAuthSSOProviderConfig
-	Credentials                  config.OAuthClientCredentialsItem
+	Credentials                  config.OAuthSSOProviderCredentialsItem
 	URLProvider                  WechatURLProvider
 	StandardAttributesNormalizer StandardAttributesNormalizer
 }
