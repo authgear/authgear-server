@@ -22,10 +22,9 @@ var Web3AccountConfirmationSchema = validation.NewSimpleSchema(`
 		"type": "object",
 		"properties": {
 			"x_siwe_message": { "type": "string" },
-			"x_siwe_signature": { "type": "string" },
-			"x_siwe_pub_key": { "type": "string" }
+			"x_siwe_signature": { "type": "string" }
 		},
-		"required": ["x_siwe_message", "x_siwe_signature", "x_siwe_pub_key"]
+		"required": ["x_siwe_message", "x_siwe_signature"]
 	}
 `)
 
@@ -121,12 +120,10 @@ func (h *ConfirmWeb3AccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 
 			message := r.Form.Get("x_siwe_message")
 			signature := r.Form.Get("x_siwe_signature")
-			pubKey := r.Form.Get("x_siwe_pub_key")
 
-			input = &InputConfirmWeb3Account{
-				Message:       message,
-				Signature:     signature,
-				EncodedPubKey: pubKey,
+			input = &InputConfirmWeb3AccountRequest{
+				Message:   message,
+				Signature: signature,
 			}
 			return
 		})

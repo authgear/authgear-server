@@ -112,13 +112,6 @@ func newSIWENonceHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newSIWEVerifyHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlersiwe.VerifyHandler)),
-	))
-}
-
 func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

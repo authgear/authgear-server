@@ -7,6 +7,4 @@ import (
 var DependencySet = wire.NewSet(
 	NewNonceHandlerLogger,
 	wire.Struct(new(NonceHandler), "*"),
-	NewVerifyHandlerLogger,
-	wire.Struct(new(VerifyHandler), "*"),
 )

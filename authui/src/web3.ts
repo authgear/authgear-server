@@ -24,21 +24,6 @@ function deserializeNonceResponse(data: any): SIWENonce {
   };
 }
 
-function serializeVerificationRequest(message: string, signature: string) {
-  return {
-    message,
-    signature,
-  };
-}
-
-function deserializeVerificationResponse(data: any): SIWEVerifiedData {
-  return {
-    message: data.message,
-    signature: data.signature,
-    encodedPubKey: data.encoded_public_key,
-  };
-}
-
 function createSIWEMessage(
   address: string,
   chainId: number,
@@ -184,7 +169,6 @@ export class WalletConfirmationController extends Controller {
     "displayed",
     "message",
     "signature",
-    "pubKey",
     "submit",
   ];
   static values = {
@@ -196,7 +180,6 @@ export class WalletConfirmationController extends Controller {
   declare iconTarget: HTMLDivElement;
   declare messageTarget: HTMLInputElement;
   declare signatureTarget: HTMLInputElement;
-  declare pubKeyTarget: HTMLInputElement;
   declare submitTarget: HTMLButtonElement;
 
   declare providerValue: string;
@@ -286,20 +269,8 @@ export class WalletConfirmationController extends Controller {
 
       const signature = await signer.signMessage(siweMessage);
 
-      const requestBody = serializeVerificationRequest(siweMessage, signature);
-
-      const verificationResp = await axios("/siwe/verify", {
-        method: "post",
-        data: requestBody,
-      });
-
-      const verifiedData = deserializeVerificationResponse(
-        verificationResp.data.result
-      );
-
-      this.messageTarget.value = verifiedData.message;
-      this.signatureTarget.value = verifiedData.signature;
-      this.pubKeyTarget.value = verifiedData.encodedPubKey;
+      this.messageTarget.value = siweMessage;
+      this.signatureTarget.value = signature;
 
       this.submitTarget.click();
     } catch (e: unknown) {
