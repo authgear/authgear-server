@@ -67,25 +67,6 @@ function truncateAddress(address: string): string {
   return address.slice(0, 6) + "..." + address.slice(address.length - 4);
 }
 
-function generateIcon(address: string, diameter: number): SVGElement | null {
-  // Metamask uses 8 characters from the address as seed
-  const addr = address.slice(2, 10);
-  const seed = parseInt(addr, 16);
-
-  const icon = jazzicon(diameter, seed);
-
-  const child = icon.firstChild;
-
-  const svg = child as SVGElement | null;
-
-  if (svg === null) {
-    return svg;
-  }
-
-  svg.style.borderRadius = "50%";
-  return svg;
-}
-
 interface MetaMaskError {
   code: number;
   message: string;
@@ -162,22 +143,65 @@ export class WalletConnectionController extends Controller {
   }
 }
 
+export class WalletIconController extends Controller {
+  static targets = ["iconContainer"];
+  static values = {
+    address: String,
+    size: Number,
+  };
+
+  declare iconContainerTarget: HTMLDivElement;
+
+  declare sizeValue: number;
+  declare addressValue: string;
+
+  generateIcon(): SVGElement | null {
+    // Metamask uses 8 characters from the address as seed
+    const addr = this.addressValue.slice(2, 10);
+    const seed = parseInt(addr, 16);
+
+    const icon = jazzicon(this.sizeValue, seed);
+
+    const child = icon.firstChild;
+    if (child instanceof SVGElement) {
+      child.style.borderRadius = "50%";
+      return child;
+    }
+
+    return null;
+  }
+
+  sizeValueChanged() {
+    this.renderIcon();
+  }
+
+  addressValueChanged() {
+    this.renderIcon();
+  }
+
+  onAddressUpdate({ detail: { address } }: { detail: { address: string } }) {
+    this.addressValue = address;
+  }
+
+  renderIcon() {
+    const icon = this.generateIcon();
+
+    if (icon) {
+      // Clear previous icons if exists
+      this.iconContainerTarget.innerHTML = "";
+      this.iconContainerTarget.appendChild(icon);
+    }
+  }
+}
+
 export class WalletConfirmationController extends Controller {
-  static targets = [
-    "button",
-    "icon",
-    "displayed",
-    "message",
-    "signature",
-    "submit",
-  ];
+  static targets = ["button", "displayed", "message", "signature", "submit"];
   static values = {
     provider: String,
   };
 
   declare buttonTarget: HTMLButtonElement;
   declare displayedTarget: HTMLSpanElement;
-  declare iconTarget: HTMLDivElement;
   declare messageTarget: HTMLInputElement;
   declare signatureTarget: HTMLInputElement;
   declare submitTarget: HTMLButtonElement;
@@ -209,12 +233,7 @@ export class WalletConfirmationController extends Controller {
 
     this.displayedTarget.textContent = truncateAddress(account);
 
-    const icon = generateIcon(account, 20);
-    if (icon) {
-      // Clear previous icons if exists
-      this.iconTarget.innerHTML = "";
-      this.iconTarget.appendChild(icon);
-    }
+    this.dispatch("addressUpdate", { detail: { address: account } });
   }
 
   reconnect(e: MouseEvent) {
