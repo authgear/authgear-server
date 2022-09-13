@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   MessageBar,
   IMessageBarProps,
@@ -6,12 +6,18 @@ import {
   PartialTheme,
   ThemeProvider,
 } from "@fluentui/react";
+import { FormattedMessage, Values } from "@oursky/react-messageformat";
+import { useParams } from "react-router-dom";
 
-export interface FeatureDisabledMessageBarProps extends IMessageBarProps {}
+export interface FeatureDisabledMessageBarProps extends IMessageBarProps {
+  messageID: string;
+  messageValues?: Values;
+}
 
 const FeatureDisabledMessageBar: React.VFC<FeatureDisabledMessageBarProps> =
   function FeatureDisabledMessageBar(props: FeatureDisabledMessageBarProps) {
-    const { ...rest } = props;
+    const { messageID, messageValues, ...rest } = props;
+    const { appID } = useParams() as { appID: string };
 
     const theme = useTheme();
     const newTheme: PartialTheme = {
@@ -22,6 +28,14 @@ const FeatureDisabledMessageBar: React.VFC<FeatureDisabledMessageBarProps> =
         infoIcon: theme.palette.themePrimary,
       },
     };
+
+    const values = useMemo(() => {
+      return {
+        planPagePath: `/project/${appID}/billing`,
+        ...messageValues,
+      };
+    }, [appID, messageValues]);
+
     return (
       <ThemeProvider theme={newTheme}>
         <MessageBar
@@ -43,7 +57,7 @@ const FeatureDisabledMessageBar: React.VFC<FeatureDisabledMessageBarProps> =
             },
           }}
         >
-          {props.children}
+          <FormattedMessage id={messageID} values={values} />
         </MessageBar>
       </ThemeProvider>
     );

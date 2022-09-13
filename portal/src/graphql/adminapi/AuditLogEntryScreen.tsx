@@ -53,7 +53,7 @@ function SummaryText(props: { children: React.ReactNode; light?: boolean }) {
 
 // eslint-disable-next-line complexity
 const AuditLogEntryScreen: React.VFC = function AuditLogEntryScreen() {
-  const { logID } = useParams() as { logID: string };
+  const { logID, appID } = useParams() as { logID: string; appID: string };
   const location = useLocation();
   const state = location.state as { searchParams?: string };
 
@@ -62,12 +62,12 @@ const AuditLogEntryScreen: React.VFC = function AuditLogEntryScreen() {
   const navBreadcrumbItems = useMemo(() => {
     return [
       {
-        to: `./../..?${state.searchParams ?? ""}`,
+        to: `/project/${appID}/audit-log?${state.searchParams ?? ""}`,
         label: <FormattedMessage id="AuditLogScreen.title" />,
       },
       { to: ".", label: <FormattedMessage id="AuditLogEntryScreen.title" /> },
     ];
-  }, [state]);
+  }, [appID, state.searchParams]);
 
   const { data, loading, error, refetch } = useQuery<
     AuditLogEntryQueryQuery,

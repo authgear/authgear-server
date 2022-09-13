@@ -20,7 +20,7 @@ import { Location } from "history";
 function getAppRouterPath(location: Location) {
   // app router -> /app/:appID/*
   // discard first 3 segment (include leading slash)
-  return "./" + location.pathname.split("/").slice(3).join("/");
+  return "/" + location.pathname.split("/").slice(3).join("/");
 }
 
 function getPath(url: string) {
@@ -94,76 +94,86 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
       ...(mobileView ? [{ textKey: "ScreenNav.all-projects", url: "/" }] : []),
       ...(skippedTutorial
         ? []
-        : [{ textKey: "ScreenNav.getting-started", url: "./getting-started" }]),
+        : [
+            {
+              textKey: "ScreenNav.getting-started",
+              url: `/project/${appID}/getting-started`,
+            },
+          ]),
       ...(analyticEnabled
-        ? [{ textKey: "ScreenNav.analytics", url: "./analytics" }]
+        ? [
+            {
+              textKey: "ScreenNav.analytics",
+              url: `/project/${appID}/analytics`,
+            },
+          ]
         : []),
-      { textKey: "ScreenNav.users", url: "./users" },
+      { textKey: "ScreenNav.users", url: `/project/${appID}/users` },
       {
         textKey: "ScreenNav.authentication",
-        url: "./configuration/authentication",
+        url: `/project/${appID}/configuration/authentication`,
         children: [
           {
             textKey: "ScreenNav.login-id",
-            url: "./configuration/authentication/login-id",
+            url: `/project/${appID}/configuration/authentication/login-id`,
           },
           {
             textKey: "ScreenNav.authenticators",
-            url: "./configuration/authentication/authenticators",
+            url: `/project/${appID}/configuration/authentication/authenticators`,
           },
           {
             textKey: "ScreenNav.verification",
-            url: "./configuration/authentication/verification",
+            url: `/project/${appID}/configuration/authentication/verification`,
           },
         ],
       },
       {
         textKey: "ScreenNav.anonymous-users",
-        url: "./configuration/anonymous-users",
+        url: `/project/${appID}/configuration/anonymous-users`,
       },
       {
         textKey: "ScreenNav.biometric",
-        url: "./configuration/biometric",
+        url: `/project/${appID}/configuration/biometric`,
       },
       {
         textKey: "ScreenNav.single-sign-on",
-        url: "./configuration/single-sign-on",
+        url: `/project/${appID}/configuration/single-sign-on`,
       },
       {
         textKey: "ScreenNav.password-policy",
-        url: "./configuration/password-policy",
+        url: `/project/${appID}/configuration/password-policy`,
       },
       {
         textKey: "ScreenNav.client-applications",
-        url: "./configuration/apps",
+        url: `/project/${appID}/configuration/apps`,
       },
       {
         textKey: "CustomDomainListScreen.title",
-        url: "./custom-domains",
+        url: `/project/${appID}/custom-domains`,
       },
       {
         textKey: "ScreenNav.smtp",
-        url: "./configuration/smtp",
+        url: `/project/${appID}/configuration/smtp`,
       },
       {
         textKey: "ScreenNav.ui-settings",
-        url: "./configuration/ui-settings",
+        url: `/project/${appID}/configuration/ui-settings`,
       },
       {
         textKey: "ScreenNav.localization",
-        url: "./configuration/localization",
+        url: `/project/${appID}/configuration/localization`,
       },
       {
         textKey: "ScreenNav.user-profile",
-        url: "./configuration/user-profile",
+        url: `/project/${appID}/configuration/user-profile`,
         children: [
           {
             textKey: "ScreenNav.standard-attributes",
-            url: "./configuration/user-profile/standard-attributes",
+            url: `/project/${appID}/configuration/user-profile/standard-attributes`,
           },
           {
             textKey: "ScreenNav.custom-attributes",
-            url: "./configuration/user-profile/custom-attributes",
+            url: `/project/${appID}/configuration/user-profile/custom-attributes`,
           },
         ],
       },
@@ -171,52 +181,58 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         ? [
             {
               textKey: "ScreenNav.integrations",
-              url: "./integrations",
+              url: `/project/${appID}/integrations`,
             },
           ]
         : []),
       {
         textKey: "ScreenNav.billing",
-        url: "./billing",
+        url: `/project/${appID}/billing`,
       },
       {
         textKey: "ScreenNav.advanced",
-        url: "./advanced",
+        url: `/project/${appID}/advanced`,
         children: [
           {
             textKey: "ScreenNav.password-reset-code",
-            url: "./advanced/password-reset-code",
+            url: `/project/${appID}/advanced/password-reset-code`,
           },
           {
             textKey: "ScreenNav.webhooks",
-            url: "./advanced/webhooks",
+            url: `/project/${appID}/advanced/webhooks`,
           },
           {
             textKey: "ScreenNav.admin-api",
-            url: "./advanced/admin-api",
+            url: `/project/${appID}/advanced/admin-api`,
           },
           {
             textKey: "ScreenNav.account-deletion",
-            url: "./advanced/account-deletion",
+            url: `/project/${appID}/advanced/account-deletion`,
           },
           {
             textKey: "ScreenNav.session",
-            url: "./advanced/session",
+            url: `/project/${appID}/advanced/session`,
           },
         ],
       },
       ...(auditLogEnabled
-        ? [{ textKey: "ScreenNav.audit-log", url: "./audit-log" }]
+        ? [
+            {
+              textKey: "ScreenNav.audit-log",
+              url: `/project/${appID}/audit-log`,
+            },
+          ]
         : []),
       {
         textKey: "PortalAdminSettings.title",
-        url: "./portal-admins",
+        url: `/project/${appID}/portal-admins`,
       },
     ];
 
     return links;
   }, [
     analyticEnabled,
+    appID,
     auditLogEnabled,
     mobileView,
     showIntegrations,
@@ -230,7 +246,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     for (const link of links) {
       const urls = [link.url, ...(link.children ?? []).map((l) => l.url)];
       for (const url of urls) {
-        if (!path.startsWith(url)) {
+        if (!url.includes(path)) {
           continue;
         }
         matchedKeys.push(url);

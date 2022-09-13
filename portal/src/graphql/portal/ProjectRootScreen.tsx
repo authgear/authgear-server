@@ -25,10 +25,10 @@ const ProjectRootScreen: React.VFC = function ProjectRootScreen() {
   const { loading } = queryResult;
   const skippedTutorial = app?.tutorialStatus.data.skipped === true;
   const path = !skippedTutorial
-    ? "./getting-started"
+    ? `/project/${appID}/getting-started`
     : analyticEnabled
-    ? "./analytics"
-    : "./users/";
+    ? `/project/${appID}/analytics`
+    : `/project/${appID}/users/`;
 
   useEffect(() => {
     if (!loading && app != null) {

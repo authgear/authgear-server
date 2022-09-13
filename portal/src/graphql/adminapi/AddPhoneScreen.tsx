@@ -83,11 +83,14 @@ const AddPhoneScreen: React.VFC = function AddPhoneScreen() {
 
   const navBreadcrumbItems = useMemo(() => {
     return [
-      { to: "./../../..", label: <FormattedMessage id="UsersScreen.title" /> },
-      { to: "./..", label: <FormattedMessage id="UserDetailsScreen.title" /> },
+      { to: "~/users", label: <FormattedMessage id="UsersScreen.title" /> },
+      {
+        to: `~/users/${user?.id}/details`,
+        label: <FormattedMessage id="UserDetailsScreen.title" />,
+      },
       { to: ".", label: <FormattedMessage id="AddPhoneScreen.title" /> },
     ];
-  }, []);
+  }, [user?.id]);
 
   const [resetToken, setResetToken] = useState({});
 

@@ -64,11 +64,14 @@ const AddEmailScreen: React.VFC = function AddEmailScreen() {
 
   const navBreadcrumbItems = useMemo(() => {
     return [
-      { to: "./../../..", label: <FormattedMessage id="UsersScreen.title" /> },
-      { to: "./..", label: <FormattedMessage id="UserDetailsScreen.title" /> },
+      { to: "~/users", label: <FormattedMessage id="UsersScreen.title" /> },
+      {
+        to: `~/users/${user?.id}/details`,
+        label: <FormattedMessage id="UserDetailsScreen.title" />,
+      },
       { to: ".", label: <FormattedMessage id="AddEmailScreen.title" /> },
     ];
-  }, []);
+  }, [user?.id]);
   const title = (
     <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
   );

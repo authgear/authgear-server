@@ -150,7 +150,7 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
 
   const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     return [
-      { to: "./..", label: <FormattedMessage id="UsersScreen.title" /> },
+      { to: "~/users", label: <FormattedMessage id="UsersScreen.title" /> },
       { to: ".", label: <FormattedMessage id="AddUserScreen.title" /> },
     ];
   }, []);

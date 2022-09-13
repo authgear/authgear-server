@@ -41,14 +41,18 @@ const ResetPasswordContent: React.VFC<ResetPasswordContentProps> = function (
     form: { state, setState },
   } = props;
   const { renderToString } = useContext(Context);
+  const { userID } = useParams() as { userID: string };
 
   const navBreadcrumbItems = useMemo(() => {
     return [
-      { to: "./../../..", label: <FormattedMessage id="UsersScreen.title" /> },
-      { to: "./..", label: <FormattedMessage id="UserDetailsScreen.title" /> },
+      { to: "~/users", label: <FormattedMessage id="UsersScreen.title" /> },
+      {
+        to: `~/users/${userID}/details`,
+        label: <FormattedMessage id="UserDetailsScreen.title" />,
+      },
       { to: ".", label: <FormattedMessage id="ResetPasswordScreen.title" /> },
     ];
-  }, []);
+  }, [userID]);
 
   const { onChange: onNewPasswordChange } = useTextField((value) => {
     setState((prev) => ({ ...prev, newPassword: value }));

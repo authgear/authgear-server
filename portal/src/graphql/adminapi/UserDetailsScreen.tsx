@@ -476,7 +476,7 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
 
     const navBreadcrumbItems = React.useMemo(() => {
       return [
-        { to: "./../..", label: <FormattedMessage id="UsersScreen.title" /> },
+        { to: "~/users", label: <FormattedMessage id="UsersScreen.title" /> },
         { to: ".", label: <FormattedMessage id="UserDetailsScreen.title" /> },
       ];
     }, []);

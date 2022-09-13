@@ -404,24 +404,14 @@ const WebhookConfigurationScreenContent: React.VFC<WebhookConfigurationScreenCon
           </WidgetDescription>
           {blockingHandlerMax < 99 ? (
             blockingHandlerDisabled ? (
-              <FeatureDisabledMessageBar>
-                <FormattedMessage
-                  id="FeatureConfig.webhook.blocking-events.disabled"
-                  values={{
-                    planPagePath: "./../../billing",
-                  }}
-                />
-              </FeatureDisabledMessageBar>
+              <FeatureDisabledMessageBar messageID="FeatureConfig.webhook.blocking-events.disabled" />
             ) : (
-              <FeatureDisabledMessageBar>
-                <FormattedMessage
-                  id="FeatureConfig.webhook.blocking-events.maximum"
-                  values={{
-                    planPagePath: "./../../billing",
-                    maximum: blockingHandlerMax,
-                  }}
-                />
-              </FeatureDisabledMessageBar>
+              <FeatureDisabledMessageBar
+                messageID="FeatureConfig.webhook.blocking-events.maximum"
+                messageValues={{
+                  maximum: blockingHandlerMax,
+                }}
+              />
             )
           ) : null}
           {!hideBlockingHandlerList ? (
@@ -452,24 +442,14 @@ const WebhookConfigurationScreenContent: React.VFC<WebhookConfigurationScreenCon
           </WidgetDescription>
           {nonBlockingHandlerMax < 99 ? (
             nonBlockingHandlerDisabled ? (
-              <FeatureDisabledMessageBar>
-                <FormattedMessage
-                  id="FeatureConfig.webhook.non-blocking-events.disabled"
-                  values={{
-                    planPagePath: "./../../billing",
-                  }}
-                />
-              </FeatureDisabledMessageBar>
+              <FeatureDisabledMessageBar messageID="FeatureConfig.webhook.non-blocking-events.disabled" />
             ) : (
-              <FeatureDisabledMessageBar>
-                <FormattedMessage
-                  id="FeatureConfig.webhook.non-blocking-events.maximum"
-                  values={{
-                    planPagePath: "./../../billing",
-                    maximum: nonBlockingHandlerMax,
-                  }}
-                />
-              </FeatureDisabledMessageBar>
+              <FeatureDisabledMessageBar
+                messageID="FeatureConfig.webhook.non-blocking-events.maximum"
+                messageValues={{
+                  maximum: nonBlockingHandlerMax,
+                }}
+              />
             )
           ) : null}
           {!hideNonBlockingHandlerList ? (

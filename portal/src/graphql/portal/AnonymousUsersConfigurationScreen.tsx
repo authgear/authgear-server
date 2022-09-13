@@ -125,6 +125,7 @@ interface AnonymousUserLifeTimeDescriptionProps {
 const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescriptionProps> =
   function AnonymousUserLifeTimeDescription(props) {
     const { renderToString } = useContext(Context);
+    const { appID } = useParams() as { appID: string };
     const {
       sessionIdleTimeoutEnabled,
       sessionIdleTimeoutSeconds,
@@ -325,7 +326,7 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
           <FormattedMessage
             id="AnonymousUsersConfigurationScreen.user-lifetime.go-to-applications.description"
             values={{
-              applicationsPath: "./../apps",
+              applicationsPath: `/project/${appID}/configuration/apps`,
             }}
           />
         </Text>

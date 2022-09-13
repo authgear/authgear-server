@@ -69,7 +69,7 @@ const GoogleTagManagerConfigurationContent: React.VFC<GoogleTagManagerConfigurat
     const navBreadcrumbItems = useMemo(() => {
       return [
         {
-          to: "./..",
+          to: "~/integrations",
           label: (
             <FormattedMessage id="IntegrationsConfigurationScreen.title" />
           ),

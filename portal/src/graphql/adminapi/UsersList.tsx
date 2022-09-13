@@ -14,7 +14,7 @@ import {
   MessageBar,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { UsersListFragment } from "./query/usersListQuery.generated";
 import { UserSortBy, SortDirection } from "./globalTypes.generated";
 
@@ -135,6 +135,7 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
 
   const { renderToString, locale } = useContext(Context);
   const { themes } = useSystemConfig();
+  const { appID } = useParams() as { appID: string };
 
   const columns: IColumn[] = [
     {
@@ -226,19 +227,22 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
     return items;
   }, [edges, locale]);
 
-  const onRenderUserRow = React.useCallback((props?: IDetailsRowProps) => {
-    if (props == null) {
-      return null;
-    }
-    const targetPath = isUserListItem(props.item)
-      ? `./${props.item.id}/details`
-      : ".";
-    return (
-      <Link to={targetPath}>
-        <DetailsRow {...props} />
-      </Link>
-    );
-  }, []);
+  const onRenderUserRow = React.useCallback(
+    (props?: IDetailsRowProps) => {
+      if (props == null) {
+        return null;
+      }
+      const targetPath = isUserListItem(props.item)
+        ? `/project/${appID}/users/${props.item.id}/details`
+        : ".";
+      return (
+        <Link to={targetPath}>
+          <DetailsRow {...props} />
+        </Link>
+      );
+    },
+    [appID]
+  );
 
   const onUserActionClick = useCallback(
     (e: React.MouseEvent<unknown>, item: UserListItem) => {

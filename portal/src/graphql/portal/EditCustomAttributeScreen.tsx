@@ -105,7 +105,7 @@ function EditCustomAttributeContent(props: EditCustomAttributeContentProps) {
   const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     return [
       {
-        to: "./../..",
+        to: "~/configuration/user-profile/custom-attributes",
         label: (
           <FormattedMessage id="CustomAttributesConfigurationScreen.title" />
         ),

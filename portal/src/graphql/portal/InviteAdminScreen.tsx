@@ -37,7 +37,7 @@ const InviteAdminContent: React.VFC<InviteAdminContentProps> =
     const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
       return [
         {
-          to: "./..",
+          to: "~/portal-admins",
           label: <FormattedMessage id="PortalAdminSettings.title" />,
         },
         { to: ".", label: <FormattedMessage id="InviteAdminScreen.title" /> },

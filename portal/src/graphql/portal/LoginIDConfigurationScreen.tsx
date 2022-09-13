@@ -388,14 +388,7 @@ const LoginIDTypeEdit: React.VFC<LoginIDTypeEditProps> =
     const widgetMessageHeader = useMemo(
       () =>
         featureDisabled && (
-          <FeatureDisabledMessageBar>
-            <FormattedMessage
-              id="FeatureConfig.disabled"
-              values={{
-                planPagePath: "./../../../billing",
-              }}
-            />
-          </FeatureDisabledMessageBar>
+          <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
         ),
       [featureDisabled]
     );

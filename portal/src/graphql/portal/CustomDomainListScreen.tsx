@@ -670,14 +670,7 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
               <FormattedMessage id="CustomDomainListScreen.desc" />
             </Text>
             {customDomainDisabled ? (
-              <FeatureDisabledMessageBar>
-                <FormattedMessage
-                  id="FeatureConfig.custom-domain.disabled"
-                  values={{
-                    planPagePath: "./../billing",
-                  }}
-                />
-              </FeatureDisabledMessageBar>
+              <FeatureDisabledMessageBar messageID="FeatureConfig.custom-domain.disabled" />
             ) : null}
             <DetailsList
               columns={domainListColumns}

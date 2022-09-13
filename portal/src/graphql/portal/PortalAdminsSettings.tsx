@@ -200,15 +200,13 @@ const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
         <div className={styles.widget}>
           <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
           {effectiveFeatureConfig?.collaborator.maximum != null ? (
-            <FeatureDisabledMessageBar className={styles.messageBar}>
-              <FormattedMessage
-                id="FeatureConfig.collaborator"
-                values={{
-                  planPagePath: "./../billing",
-                  maximum: effectiveFeatureConfig?.collaborator.maximum,
-                }}
-              />
-            </FeatureDisabledMessageBar>
+            <FeatureDisabledMessageBar
+              className={styles.messageBar}
+              messageID="FeatureConfig.collaborator"
+              messageValues={{
+                maximum: effectiveFeatureConfig?.collaborator.maximum,
+              }}
+            />
           ) : null}
         </div>
         <PortalAdminList

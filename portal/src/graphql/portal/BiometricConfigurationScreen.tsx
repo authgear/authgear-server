@@ -112,14 +112,7 @@ const BiometricConfigurationContent: React.VFC<BiometricConfigurationContentProp
             <FormattedMessage id="BiometricConfigurationScreen.title" />
           </WidgetTitle>
           {biometricDisabled ? (
-            <FeatureDisabledMessageBar>
-              <FormattedMessage
-                id="FeatureConfig.disabled"
-                values={{
-                  planPagePath: "./../../billing",
-                }}
-              />
-            </FeatureDisabledMessageBar>
+            <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
           ) : null}
           <Toggle
             disabled={biometricDisabled}

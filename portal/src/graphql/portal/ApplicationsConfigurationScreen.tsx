@@ -144,7 +144,8 @@ interface ClientCardProps {
 
 const ClientCard: React.VFC<ClientCardProps> = (props) => {
   const { name, clientId, applicationType } = props;
-  const targetPath = `./${clientId}/edit`;
+  const { appID } = useParams() as { appID: string };
+  const targetPath = `/project/${appID}/configuration/apps/${clientId}/edit`;
 
   const {
     themes: {
@@ -215,33 +216,39 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
       oauthClientsMaximum,
     } = props;
     const { renderToString } = useContext(Context);
+    const { appID } = useParams() as { appID: string };
 
     const oauthClientListColumns = useMemo(() => {
       return makeOAuthClientListColumns(renderToString);
     }, [renderToString]);
 
-    const onRenderOAuthClientRow = useCallback((props?: IDetailsRowProps) => {
-      if (!props) {
-        return null;
-      }
+    const onRenderOAuthClientRow = useCallback(
+      (props?: IDetailsRowProps) => {
+        if (!props) {
+          return null;
+        }
 
-      const clientID = "client_id" in props.item && props.item.client_id;
-      const targetPath =
-        typeof clientID === "string" ? `./${clientID}/edit` : ".";
-      props.styles = {
-        ...props.styles,
-        // Reduce the cell height after adding copy button to the list
-        cell: {
-          paddingTop: 4,
-          paddingBottom: 4,
-        },
-      };
-      return (
-        <Link to={targetPath}>
-          <DetailsRow {...props} />
-        </Link>
-      );
-    }, []);
+        const clientID = "client_id" in props.item && props.item.client_id;
+        const targetPath =
+          typeof clientID === "string"
+            ? `/project/${appID}/configuration/apps/${clientID}/edit`
+            : ".";
+        props.styles = {
+          ...props.styles,
+          // Reduce the cell height after adding copy button to the list
+          cell: {
+            paddingTop: 4,
+            paddingBottom: 4,
+          },
+        };
+        return (
+          <Link to={targetPath}>
+            <DetailsRow {...props} />
+          </Link>
+        );
+      },
+      [appID]
+    );
 
     const onRenderOAuthClientColumns = useCallback(
       (item?: OAuthClientConfig, _index?: number, column?: IColumn) => {
@@ -280,15 +287,10 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
         </ScreenDescription>
         <div className={styles.widget}>
           {oauthClientsMaximum < 99 ? (
-            <FeatureDisabledMessageBar>
-              <FormattedMessage
-                id="FeatureConfig.oauth-clients.maximum"
-                values={{
-                  planPagePath: "./../../billing",
-                  maximum: oauthClientsMaximum,
-                }}
-              />
-            </FeatureDisabledMessageBar>
+            <FeatureDisabledMessageBar
+              messageID="FeatureConfig.oauth-clients.maximum"
+              messageValues={{ maximum: oauthClientsMaximum }}
+            />
           ) : null}
           <div className={styles.desktopView}>
             <DetailsList
