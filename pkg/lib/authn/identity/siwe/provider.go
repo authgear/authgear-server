@@ -12,7 +12,7 @@ import (
 
 // nolint: golint
 type SIWEService interface {
-	VerifyMessage(request model.SIWEVerificationRequest) (*siwego.Message, string, error)
+	VerifyMessage(msg string, signature string) (*siwego.Message, string, error)
 }
 
 type Provider struct {
@@ -35,8 +35,8 @@ func (p *Provider) Get(userID, id string) (*identity.SIWE, error) {
 	return p.Store.Get(userID, id)
 }
 
-func (p *Provider) GetByVerifiedData(data model.SIWEVerifiedData) (*identity.SIWE, error) {
-	message, err := siwego.ParseMessage(data.Message)
+func (p *Provider) GetByMessage(msg string) (*identity.SIWE, error) {
+	message, err := siwego.ParseMessage(msg)
 	if err != nil {
 		return nil, err
 	}
@@ -53,9 +53,10 @@ func (p *Provider) GetMany(ids []string) ([]*identity.SIWE, error) {
 
 func (p *Provider) New(
 	userID string,
-	verifiedData model.SIWEVerifiedData,
+	msg string,
+	signature string,
 ) (*identity.SIWE, error) {
-	message, err := siwego.ParseMessage(verifiedData.Message)
+	message, pubKey, err := p.SIWE.VerifyMessage(msg, signature)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +67,11 @@ func (p *Provider) New(
 		Address: message.GetAddress().Hex(),
 		ChainID: message.GetChainID(),
 
-		Data: &verifiedData,
+		Data: &model.SIWEVerifiedData{
+			Message:          msg,
+			Signature:        signature,
+			EncodedPublicKey: pubKey,
+		},
 	}
 	return i, nil
 }

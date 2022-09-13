@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -64,8 +63,8 @@ func (s *Service) CreateNewNonce() (*Nonce, error) {
 	return nonceModel, nil
 }
 
-func (s *Service) VerifyMessage(request model.SIWEVerificationRequest) (*siwego.Message, string, error) {
-	message, err := siwego.ParseMessage(request.Message)
+func (s *Service) VerifyMessage(msg string, signature string) (*siwego.Message, string, error) {
+	message, err := siwego.ParseMessage(msg)
 	if err != nil {
 		return nil, "", err
 	}
@@ -84,7 +83,7 @@ func (s *Service) VerifyMessage(request model.SIWEVerificationRequest) (*siwego.
 	}
 	now := s.Clock.NowUTC()
 
-	pubKey, err := message.Verify(request.Signature, &publicOrigin.Host, &existingNonce.Nonce, &now)
+	pubKey, err := message.Verify(signature, &publicOrigin.Host, &existingNonce.Nonce, &now)
 	if err != nil {
 		return nil, "", err
 	}

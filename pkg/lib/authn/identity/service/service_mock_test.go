@@ -839,19 +839,19 @@ func (mr *MockSIWEIdentityProviderMockRecorder) Get(userID, id interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).Get), userID, id)
 }
 
-// GetByVerifiedData mocks base method.
-func (m *MockSIWEIdentityProvider) GetByVerifiedData(data model.SIWEVerifiedData) (*identity.SIWE, error) {
+// GetByMessage mocks base method.
+func (m *MockSIWEIdentityProvider) GetByMessage(msg string) (*identity.SIWE, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByVerifiedData", data)
+	ret := m.ctrl.Call(m, "GetByMessage", msg)
 	ret0, _ := ret[0].(*identity.SIWE)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetByVerifiedData indicates an expected call of GetByVerifiedData.
-func (mr *MockSIWEIdentityProviderMockRecorder) GetByVerifiedData(data interface{}) *gomock.Call {
+// GetByMessage indicates an expected call of GetByMessage.
+func (mr *MockSIWEIdentityProviderMockRecorder) GetByMessage(msg interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByVerifiedData", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).GetByVerifiedData), data)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByMessage", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).GetByMessage), msg)
 }
 
 // GetMany mocks base method.
@@ -885,16 +885,16 @@ func (mr *MockSIWEIdentityProviderMockRecorder) List(userID interface{}) *gomock
 }
 
 // New mocks base method.
-func (m *MockSIWEIdentityProvider) New(userID string, verifiedData model.SIWEVerifiedData) (*identity.SIWE, error) {
+func (m *MockSIWEIdentityProvider) New(userID, msg, signature string) (*identity.SIWE, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "New", userID, verifiedData)
+	ret := m.ctrl.Call(m, "New", userID, msg, signature)
 	ret0, _ := ret[0].(*identity.SIWE)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // New indicates an expected call of New.
-func (mr *MockSIWEIdentityProviderMockRecorder) New(userID, verifiedData interface{}) *gomock.Call {
+func (mr *MockSIWEIdentityProviderMockRecorder) New(userID, msg, signature interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).New), userID, verifiedData)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).New), userID, msg, signature)
 }

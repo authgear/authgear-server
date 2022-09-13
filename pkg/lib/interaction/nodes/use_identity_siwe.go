@@ -13,7 +13,6 @@ func init() {
 type InputUseIdentitySIWE interface {
 	GetMessage() string
 	GetSignature() string
-	GetEncodedPubKey() string
 }
 
 type EdgeUseIdentitySIWE struct {
@@ -35,15 +34,12 @@ func (e *EdgeUseIdentitySIWE) Instantiate(ctx *interaction.Context, graph *inter
 	spec := &identity.Spec{
 		Type: model.IdentityTypeSIWE,
 		SIWE: &identity.SIWESpec{
-			VerifiedData: model.SIWEVerifiedData{
-				Message:          input.GetMessage(),
-				Signature:        input.GetSignature(),
-				EncodedPublicKey: input.GetEncodedPubKey(),
-			},
+			Message:   input.GetMessage(),
+			Signature: input.GetSignature(),
 		},
 	}
 
-	return &NodeUseIdentityPasskey{
+	return &NodeUseIdentitySIWE{
 		IsAuthentication: e.IsAuthentication,
 		IdentitySpec:     spec,
 	}, nil
