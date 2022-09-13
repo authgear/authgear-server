@@ -65,10 +65,6 @@ type ContractMetadataMetadata struct {
 	TokenType   string `json:"token_type"`
 }
 
-type GetUserNFTsResponse struct {
-	Items []NFTOwnership `json:"items"`
-}
-
 type WatchCollectionRequest struct {
 	ContractID string `json:"contract_id"`
 	Name       string `json:"name,omitempty"`
