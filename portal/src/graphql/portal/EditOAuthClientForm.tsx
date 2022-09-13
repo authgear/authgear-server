@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import produce from "immer";
-import { Dropdown, Label, Text, useTheme } from "@fluentui/react";
+import { Label, Text, useTheme } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import Widget from "../../Widget";
@@ -8,19 +8,15 @@ import WidgetTitle from "../../WidgetTitle";
 import WidgetDescription from "../../WidgetDescription";
 import FormTextField from "../../FormTextField";
 import FormTextFieldList from "../../FormTextFieldList";
-import { useDropdown, useTextField } from "../../hook/useInput";
-import {
-  ApplicationType,
-  applicationTypes,
-  OAuthClientConfig,
-} from "../../types";
+import { useTextField } from "../../hook/useInput";
+import { ApplicationType, OAuthClientConfig } from "../../types";
 import { ensureNonEmptyString } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import Toggle from "../../Toggle";
 import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 import { useParams } from "react-router-dom";
+import TextField from "../../TextField";
 
-const ALL_APPLICATION_TYPES: ApplicationType[] = [...applicationTypes];
 interface EditOAuthClientFormProps {
   publicOrigin: string;
   className?: string;
@@ -172,27 +168,12 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [onClientConfigChange, clientConfig]
     );
 
-    const renderApplicationType = useCallback(
-      (key: ApplicationType) => {
-        const messageID = getApplicationTypeMessageID(key);
-        return renderToString(messageID);
-      },
-      [renderToString]
-    );
-
-    const {
-      options: applicationTypeOptions,
-      onChange: onApplicationTypeChange,
-    } = useDropdown(
-      ALL_APPLICATION_TYPES,
-      (option) => {
-        onClientConfigChange(
-          updateClientConfig(clientConfig, "x_application_type", option)
-        );
-      },
-      clientConfig.x_application_type,
-      renderApplicationType
-    );
+    const applicationTypeLabel = useMemo(() => {
+      const messageID = getApplicationTypeMessageID(
+        clientConfig.x_application_type
+      );
+      return renderToString(messageID);
+    }, [clientConfig.x_application_type, renderToString]);
 
     const redirectURIsDescription = useMemo(() => {
       const messageIdMap: Record<ApplicationType, string> = {
@@ -282,14 +263,10 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             value={publicOrigin}
             readOnly={true}
           />
-          <Dropdown
-            placeholder={renderToString(
-              "oauth-client.application-type.unspecified"
-            )}
+          <TextField
             label={renderToString("EditOAuthClientForm.application-type.label")}
-            options={applicationTypeOptions}
-            selectedKey={clientConfig.x_application_type}
-            onChange={onApplicationTypeChange}
+            value={applicationTypeLabel}
+            readOnly={true}
           />
         </Widget>
 
