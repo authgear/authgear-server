@@ -3,8 +3,7 @@ import cn from "classnames";
 import produce from "immer";
 import { Checkbox, DirectionalHint, Toggle } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-
-import ExtendableWidget from "../../ExtendableWidget";
+import Widget from "../../Widget";
 import FormTextField from "../../FormTextField";
 import {
   createOAuthSSOProviderItemKey,
@@ -363,7 +362,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
     const noneditable = !isEnabled || disabled || disabledByLimitReached;
 
     return (
-      <ExtendableWidget className={className} extendable={isEnabled}>
+      <Widget className={className} extendable={isEnabled}>
         <WidgetHeader
           icon={iconNode}
           checked={isEnabled}
@@ -561,7 +560,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
             disabled={noneditable}
           />
         ) : null}
-      </ExtendableWidget>
+      </Widget>
     );
   };
 
