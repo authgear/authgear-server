@@ -423,13 +423,13 @@ export type Node = {
 };
 
 /** OAuth client secret */
-export type OAuthClientSecret = {
-  __typename?: 'OAuthClientSecret';
+export type OAuthSsoProviderClientSecret = {
+  __typename?: 'OAuthSSOProviderClientSecret';
   alias: Scalars['String'];
   clientSecret: Scalars['String'];
 };
 
-export type OauthClientSecretInput = {
+export type OAuthSsoProviderClientSecretInput = {
   alias: Scalars['String'];
   clientSecret: Scalars['String'];
 };
@@ -569,13 +569,13 @@ export type SmtpSecretInput = {
 export type SecretConfig = {
   __typename?: 'SecretConfig';
   adminAPISecrets?: Maybe<Array<AdminApiSecret>>;
-  oauthClientSecrets?: Maybe<Array<OAuthClientSecret>>;
+  oauthSSOProviderClientSecrets?: Maybe<Array<OAuthSsoProviderClientSecret>>;
   smtpSecret?: Maybe<SmtpSecret>;
   webhookSecret?: Maybe<WebhookSecret>;
 };
 
 export type SecretConfigInput = {
-  oauthClientSecrets?: InputMaybe<Array<OauthClientSecretInput>>;
+  oauthSSOProviderClientSecrets?: InputMaybe<Array<OAuthSsoProviderClientSecretInput>>;
   smtpSecret?: InputMaybe<SmtpSecretInput>;
 };
 
