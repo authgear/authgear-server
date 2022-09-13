@@ -2,7 +2,7 @@ import { describe, it, expect } from "@jest/globals";
 import { createEIP681URL, EIP681, parseEIP681 } from "./eip681";
 
 describe("EIP681", () => {
-  it("parses eip681", () => {
+  it("parses eip681 success with address check", () => {
     function test(uri: string, expected: EIP681) {
       const eip681 = parseEIP681(uri);
 
@@ -25,7 +25,30 @@ describe("EIP681", () => {
     });
   });
 
-  it("create eip681 url", () => {
+  it("parses eip681 without address check", () => {
+    function test(uri: string, expected: EIP681) {
+      const eip681 = parseEIP681(uri, true);
+
+      expect(eip681).toEqual(expected);
+    }
+
+    test("ethereum:0x0@1", {
+      chainId: 1,
+      address: "0x0",
+    });
+
+    test("ethereum:0x0@1231", {
+      chainId: 1231,
+      address: "0x0",
+    });
+
+    test("ethereum:0x0@23821", {
+      chainId: 23821,
+      address: "0x0",
+    });
+  });
+
+  it("create eip681 url with address check", () => {
     function test(eip681: EIP681, expected: string) {
       const url = createEIP681URL(eip681);
 
@@ -54,6 +77,38 @@ describe("EIP681", () => {
         address: "0x71c7656ec7ab88b098defb751b7401b5f6d8976f",
       },
       "ethereum:0x71c7656ec7ab88b098defb751b7401b5f6d8976f@23821"
+    );
+  });
+
+  it("create eip681 url without address check", () => {
+    function test(eip681: EIP681, expected: string) {
+      const url = createEIP681URL(eip681, true);
+
+      expect(url).toEqual(expected);
+    }
+
+    test(
+      {
+        chainId: 1,
+        address: "0x0",
+      },
+      "ethereum:0x0@1"
+    );
+
+    test(
+      {
+        chainId: 1231,
+        address: "0x0",
+      },
+      "ethereum:0x0@1231"
+    );
+
+    test(
+      {
+        chainId: 23821,
+        address: "0x0",
+      },
+      "ethereum:0x0@23821"
     );
   });
 });
