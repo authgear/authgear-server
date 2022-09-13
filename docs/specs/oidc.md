@@ -640,7 +640,7 @@ There are 2 proposed solutions for allowing users to access the settings page.
     - Need to introduce a new scope `https://authgear.com/scopes/access-account-settings`.
     - The third-party app needs to request `https://authgear.com/scopes/access-account-settings` and `offline_access` to access the setting page.
 
-### Authorized Apps page (TBC)
+### Authorized Apps page
 
 In the original **Signed in Sessions** page, updating the list to show first-party sessions only (idp session and first-party app refresh token). Since revoking third-party app refresh token doesn't affect the login in the third-party app, in order to avoid confusion, we suggest to hide them.
 
