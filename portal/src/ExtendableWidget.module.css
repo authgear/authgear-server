@@ -1,27 +1,12 @@
-.header {
-  display: flex;
-  justify-content: space-between;
-  padding: 20px;
+.root {
+  @apply relative;
+  @apply flex flex-col;
+  @apply p-4 gap-y-5;
+  @apply overflow-hidden;
+  @apply transition-all;
 }
 
-.extendButton {
-  padding: 5px;
-  margin: -5px;
-}
-
-.contentContainer {
-  height: auto;
-}
-
-.contentContainerExtended {
-  height: auto;
-}
-
-.content {
-  padding: 0 20px 20px;
-}
-
-.readOnly {
-  pointer-events: none;
-  opacity: 0.5;
+.button {
+  @apply absolute;
+  @apply top-4 right-4;
 }

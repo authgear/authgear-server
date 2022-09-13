@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import cn from "classnames";
 import produce from "immer";
 import { Checkbox, DirectionalHint, Toggle } from "@fluentui/react";
@@ -32,10 +26,9 @@ interface WidgetHeaderLabelProps {
 }
 
 interface WidgetHeaderProps extends WidgetHeaderLabelProps {
-  isEnabled: boolean;
-  setIsEnabled: (value: boolean) => void;
+  checked: boolean;
+  onChange: (value: boolean) => void;
   disabled: boolean;
-  disabledByLimitReached: boolean;
 }
 
 interface SingleSignOnConfigurationWidgetProps {
@@ -216,45 +209,28 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
 const WidgetHeader: React.VFC<WidgetHeaderProps> = function WidgetHeader(
   props: WidgetHeaderProps
 ) {
-  const {
-    icon,
-    messageID,
-    isEnabled,
-    setIsEnabled,
-    disabled,
-    disabledByLimitReached,
-  } = props;
+  const { icon, messageID, checked, onChange: onChangeProp, disabled } = props;
 
   const onChange = useCallback(
     (_, value?: boolean) => {
-      setIsEnabled(value ?? false);
+      onChangeProp(value ?? false);
     },
-    [setIsEnabled]
+    [onChangeProp]
   );
 
-  let messageBar;
-  if (disabled) {
-    messageBar = (
-      <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
-    );
-  }
-
   return (
-    <div>
-      <Toggle
-        checked={isEnabled}
-        onChange={onChange}
-        inlineLabel={true}
-        label={
-          <>
-            {icon}
-            <FormattedMessage id={messageID} />
-          </>
-        }
-        disabled={Boolean(!isEnabled && (disabled || disabledByLimitReached))}
-      ></Toggle>
-      {messageBar}
-    </div>
+    <Toggle
+      checked={checked}
+      onChange={onChange}
+      inlineLabel={true}
+      label={
+        <>
+          {icon}
+          <FormattedMessage id={messageID} />
+        </>
+      }
+      disabled={disabled}
+    />
   );
 };
 
@@ -290,21 +266,6 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
     } = oauthProviders[providerItemKey];
 
     const messageID = "OAuthBranding." + providerItemKey;
-
-    const [extended, setExtended] = useState(isEnabled);
-
-    // Always extended when enabled
-    // Collapse on disabled
-    // make sure text field mounted for showing error
-    useEffect(() => {
-      if (isEnabled) {
-        setExtended(true);
-      }
-    }, [isEnabled]);
-
-    const onExtendClicked = useCallback(() => {
-      setExtended(!extended);
-    }, [extended]);
 
     const onAliasChange = useCallback(
       (_, value?: string) =>
@@ -399,25 +360,20 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       return !isEnabled && limitReached;
     }, [limitReached, isEnabled]);
 
+    const noneditable = !isEnabled || disabled || disabledByLimitReached;
+
     return (
-      <ExtendableWidget
-        className={className}
-        extendButtonAriaLabelId={messageID}
-        extendButtonDisabled={isEnabled}
-        extended={extended}
-        onExtendClicked={onExtendClicked}
-        readOnly={!isEnabled || disabled || disabledByLimitReached}
-        HeaderComponent={
-          <WidgetHeader
-            icon={iconNode}
-            isEnabled={isEnabled}
-            setIsEnabled={onIsEnabledChange}
-            messageID={messageID}
-            disabled={disabled}
-            disabledByLimitReached={disabledByLimitReached}
-          />
-        }
-      >
+      <ExtendableWidget className={className} extendable={isEnabled}>
+        <WidgetHeader
+          icon={iconNode}
+          checked={isEnabled}
+          onChange={onIsEnabledChange}
+          messageID={messageID}
+          disabled={Boolean(!isEnabled && (disabled || disabledByLimitReached))}
+        />
+        {disabled ? (
+          <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
+        ) : null}
         {visibleFields.has("alias") ? (
           <FormTextField
             parentJSONPointer={jsonPointer}
@@ -429,6 +385,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
             styles={TEXT_FIELD_STYLE}
             value={config.alias}
             onChange={onAliasChange}
+            disabled={noneditable}
           />
         ) : null}
         {visibleFields.has("client_id") ? (
@@ -442,6 +399,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
             styles={TEXT_FIELD_STYLE}
             value={config.client_id ?? ""}
             onChange={onClientIDChange}
+            disabled={noneditable}
           />
         ) : null}
         {visibleFields.has("client_secret") ? (
@@ -460,6 +418,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
             multiline={isSecretFieldTextArea}
             value={secret.clientSecret}
             onChange={onClientSecretChange}
+            disabled={noneditable}
           />
         ) : null}
         {visibleFields.has("tenant") ? (
@@ -473,6 +432,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
             styles={TEXT_FIELD_STYLE}
             value={config.tenant ?? ""}
             onChange={onTenantChange}
+            disabled={noneditable}
           />
         ) : null}
         {visibleFields.has("policy") ? (
@@ -489,6 +449,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
               "SingleSignOnConfigurationScreen.widget.policy.placeholder"
             )}
             onChange={onPolicyChange}
+            disabled={noneditable}
           />
         ) : null}
         {visibleFields.has("discovery_document_endpoint") ? (
@@ -503,6 +464,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
             value={config.discovery_document_endpoint ?? ""}
             onChange={onDiscoveryDocumentEndpointChange}
             placeholder="http://example.com/.well-known/openid-configuration"
+            disabled={noneditable}
           />
         ) : null}
         {visibleFields.has("key_id") ? (
@@ -516,6 +478,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
             styles={TEXT_FIELD_STYLE}
             value={config.key_id ?? ""}
             onChange={onKeyIDChange}
+            disabled={noneditable}
           />
         ) : null}
         {visibleFields.has("team_id") ? (
@@ -529,6 +492,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
             styles={TEXT_FIELD_STYLE}
             value={config.team_id ?? ""}
             onChange={onTeamIDChange}
+            disabled={noneditable}
           />
         ) : null}
         {visibleFields.has("account_id") ? (
@@ -542,6 +506,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
             styles={TEXT_FIELD_STYLE}
             value={config.account_id ?? ""}
             onChange={onAccountIDChange}
+            disabled={noneditable}
           />
         ) : null}
         {visibleFields.has("is_sandbox_account") ? (
@@ -552,6 +517,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
             className={styles.checkbox}
             checked={config.is_sandbox_account ?? false}
             onChange={onIsSandBoxAccountChange}
+            disabled={noneditable}
           />
         ) : null}
         {visibleFields.has("wechat_redirect_uris") ? (
@@ -570,6 +536,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
                 directionalHint={DirectionalHint.bottomLeftEdge}
               />
             }
+            /* FIXME: make FormTextFieldList support disabled */
           />
         ) : null}
         {visibleFields.has("email_required") ? (
@@ -580,6 +547,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
             className={styles.checkbox}
             checked={config.claims?.email?.required ?? true}
             onChange={onEmailRequiredChange}
+            disabled={noneditable}
           />
         ) : null}
         {visibleFields.has("modify_disabled") ? (
@@ -590,6 +558,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
             className={styles.checkbox}
             checked={config.modify_disabled ?? false}
             onChange={onModifyDisabledChange}
+            disabled={noneditable}
           />
         ) : null}
       </ExtendableWidget>

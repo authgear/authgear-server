@@ -1,76 +1,81 @@
-import React, { useMemo, useContext } from "react";
+import React, {
+  useState,
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  useMemo,
+} from "react";
 import { IconButton, DefaultEffects } from "@fluentui/react";
-import { Context } from "@oursky/react-messageformat";
 import cn from "classnames";
 
 import styles from "./ExtendableWidget.module.css";
 
 interface ExtendableWidgetProps {
-  HeaderComponent: React.ReactNode;
-  extended: boolean;
-  onExtendClicked: () => void;
-  extendButtonDisabled: boolean;
-  readOnly?: boolean;
-  extendButtonAriaLabelId: string;
-  children: React.ReactNode;
   className?: string;
+  extendable?: boolean;
+  children?: React.ReactNode;
 }
 
 const ICON_PROPS = {
   iconName: "ChevronDown",
 };
 
+// 16px top padding + 32px icon button height + 16px bottom padding
+const COLLAPSED_HEIGHT = 64;
+
 const ExtendableWidget: React.VFC<ExtendableWidgetProps> =
   function ExtendableWidget(props: ExtendableWidgetProps) {
-    const {
-      className,
-      HeaderComponent,
-      extended,
-      onExtendClicked,
-      extendButtonDisabled,
-      readOnly,
-      children,
-      extendButtonAriaLabelId,
-    } = props;
+    const { className, extendable, children } = props;
+    const [extended, setExtended] = useState(extendable ?? true);
+    const [measuredHeight, setMeasureHeight] = useState<number | null>(null);
+    const divRef = useRef<HTMLDivElement | null>(null);
 
-    const { renderToString } = useContext(Context);
+    const onClick = useCallback(() => {
+      setExtended((prev) => {
+        return !prev;
+      });
+    }, []);
 
-    const buttonAriaLabel = useMemo(
-      () => renderToString(extendButtonAriaLabelId),
-      [extendButtonAriaLabelId, renderToString]
-    );
+    const buttonStyles = useMemo(() => {
+      return {
+        icon: {
+          // https://tailwindcss.com/docs/transition-property
+          transitionProperty: "transform",
+          transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
+          transitionDuration: "150ms",
+          transform: extended ? "rotate(-180deg)" : undefined,
+        },
+      };
+    }, [extended]);
 
-    const buttonStyles = {
-      icon: {
-        transition: "transform 200ms ease",
-        transform: extended ? "rotate(-180deg)" : undefined,
-      },
-    };
+    useLayoutEffect(() => {
+      if (divRef.current instanceof HTMLDivElement) {
+        setMeasureHeight(divRef.current.clientHeight);
+      }
+    }, []);
 
     return (
       <div
-        className={className}
-        style={{ boxShadow: DefaultEffects.elevation4 }}
+        ref={divRef}
+        className={cn(className, styles.root)}
+        style={{
+          boxShadow: DefaultEffects.elevation4,
+          maxHeight:
+            measuredHeight == null
+              ? undefined
+              : extended
+              ? `${measuredHeight}px`
+              : `${COLLAPSED_HEIGHT}px`,
+        }}
       >
-        <div className={styles.header}>
-          <div className={styles.propsHeader}>{HeaderComponent}</div>
-          <IconButton
-            styles={buttonStyles}
-            ariaLabel={buttonAriaLabel}
-            onClick={onExtendClicked}
-            disabled={extendButtonDisabled}
-            iconProps={ICON_PROPS}
-          />
-        </div>
-        <div className={styles.contentContainer}>
-          {extended ? (
-            <div
-              className={cn(styles.content, { [styles.readOnly]: readOnly })}
-            >
-              {children}
-            </div>
-          ) : null}
-        </div>
+        {children}
+        <IconButton
+          styles={buttonStyles}
+          className={styles.button}
+          onClick={onClick}
+          disabled={extendable ?? false}
+          iconProps={ICON_PROPS}
+        />
       </div>
     );
   };
