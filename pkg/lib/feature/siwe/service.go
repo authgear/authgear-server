@@ -17,6 +17,8 @@ import (
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package siwe
 
+// siwe-go library regex does not support underscore so we define a new one for this case
+// https://github.com/spruceid/siwe-go/blob/fc1b0374f4ffff68e3455839655e680be7e0f862/regex.go#L17
 const Alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 type NonceStore interface {
@@ -44,7 +46,7 @@ type Service struct {
 }
 
 func (s *Service) CreateNewNonce() (*Nonce, error) {
-	nonce := rand.StringWithAlphabet(8, Alphabet, rand.SecureRand)
+	nonce := rand.StringWithAlphabet(16, Alphabet, rand.SecureRand)
 	nonceModel := &Nonce{
 		Nonce:    nonce,
 		ExpireAt: s.Clock.NowUTC().Add(duration.Short),
