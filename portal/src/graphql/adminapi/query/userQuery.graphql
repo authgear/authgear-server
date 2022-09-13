@@ -30,6 +30,7 @@ fragment UserQueryNode on User {
   }
   standardAttributes
   customAttributes
+  web3
   sessions {
     edges {
       node {
