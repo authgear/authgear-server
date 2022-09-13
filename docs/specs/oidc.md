@@ -602,7 +602,8 @@ The concent screen example:
 
 <CLIENT_NAME> wants to access your account.
 
-- Allows <CLIENT_NAME> to access your complete user info.
+- Allows <CLIENT_NAME> to access your email, phone number or username if available.
+- Allows <CLIENT_NAME> to access other information of your profile.
 - Allows <CLIENT_NAME> to access your information after login.
 
 [Cancel] [Authorize]
@@ -611,8 +612,11 @@ The concent screen example:
 
 The list will be changed based on the requested scopes. The copywriting are listed as follows:
 
-- `https://authgear.com/scopes/full-userinfo`: Allows <CLIENT_NAME> to access your complete user info.
-- `offline_access`: Allows <CLIENT_NAME> to access your information after login.
+- `https://authgear.com/scopes/full-userinfo`:
+  - Allows <CLIENT_NAME> to access your email, phone number or username if available.
+  - Allows <CLIENT_NAME> to access other information of your profile.
+- `offline_access`:
+  - Allows <CLIENT_NAME> to access your information after login.
 
 ### Settings (TBC)
 
