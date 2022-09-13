@@ -251,6 +251,8 @@ const (
 	WebhookKeyMaterialsKey SecretKey = "webhook"
 	ImagesKeyMaterialsKey  SecretKey = "images"
 	WATICredentialsKey     SecretKey = "whatsapp.wati"
+	// nolint: gosec
+	OAuthClientCredentialsKey SecretKey = "oauth.client_secrets"
 )
 
 func (key SecretKey) IsUpdatable() bool {
@@ -288,6 +290,7 @@ var secretItemKeys = map[SecretKey]secretKeyDef{
 	WebhookKeyMaterialsKey:         {"WebhookKeyMaterials", func() SecretItemData { return &WebhookKeyMaterials{} }},
 	ImagesKeyMaterialsKey:          {"ImagesKeyMaterials", func() SecretItemData { return &ImagesKeyMaterials{} }},
 	WATICredentialsKey:             {"WATICredentials", func() SecretItemData { return &WATICredentials{} }},
+	OAuthClientCredentialsKey:      {"OAuthClientCredentials", func() SecretItemData { return &OAuthClientCredentials{} }},
 }
 
 var _ = SecretConfigSchema.AddJSON("SecretKey", map[string]interface{}{
