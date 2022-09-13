@@ -536,7 +536,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
                 directionalHint={DirectionalHint.bottomLeftEdge}
               />
             }
-            /* FIXME: make FormTextFieldList support disabled */
+            disabled={noneditable}
           />
         ) : null}
         {visibleFields.has("email_required") ? (
