@@ -6668,6 +6668,9 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	authenticationViewModeler := &viewmodels.AuthenticationViewModeler{
+		Authentication: authenticationConfig,
+	}
 	formPrefiller := &webapp.FormPrefiller{
 		LoginID: loginIDConfig,
 		UI:      uiConfig,
@@ -6688,13 +6691,14 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	loginHandler := &webapp.LoginHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		FormPrefiller:     formPrefiller,
-		Renderer:          responseRenderer,
-		MeterService:      meterService,
-		TutorialCookie:    tutorialCookie,
-		ErrorCookie:       errorCookie,
+		ControllerFactory:       controllerFactory,
+		BaseViewModel:           baseViewModeler,
+		AuthenticationViewModel: authenticationViewModeler,
+		FormPrefiller:           formPrefiller,
+		Renderer:                responseRenderer,
+		MeterService:            meterService,
+		TutorialCookie:          tutorialCookie,
+		ErrorCookie:             errorCookie,
 	}
 	return loginHandler
 }
@@ -7406,6 +7410,9 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	authenticationViewModeler := &viewmodels.AuthenticationViewModeler{
+		Authentication: authenticationConfig,
+	}
 	formPrefiller := &webapp.FormPrefiller{
 		LoginID: loginIDConfig,
 		UI:      uiConfig,
@@ -7426,12 +7433,13 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	signupHandler := &webapp.SignupHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		FormPrefiller:     formPrefiller,
-		Renderer:          responseRenderer,
-		MeterService:      meterService,
-		TutorialCookie:    tutorialCookie,
+		ControllerFactory:       controllerFactory,
+		BaseViewModel:           baseViewModeler,
+		AuthenticationViewModel: authenticationViewModeler,
+		FormPrefiller:           formPrefiller,
+		Renderer:                responseRenderer,
+		MeterService:            meterService,
+		TutorialCookie:          tutorialCookie,
 	}
 	return signupHandler
 }
@@ -8143,15 +8151,19 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	authenticationViewModeler := &viewmodels.AuthenticationViewModeler{
+		Authentication: authenticationConfig,
+	}
 	formPrefiller := &webapp.FormPrefiller{
 		LoginID: loginIDConfig,
 		UI:      uiConfig,
 	}
 	promoteHandler := &webapp.PromoteHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		FormPrefiller:     formPrefiller,
-		Renderer:          responseRenderer,
+		ControllerFactory:       controllerFactory,
+		BaseViewModel:           baseViewModeler,
+		AuthenticationViewModel: authenticationViewModeler,
+		FormPrefiller:           formPrefiller,
+		Renderer:                responseRenderer,
 	}
 	return promoteHandler
 }
@@ -11732,11 +11744,15 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	authenticationViewModeler := &viewmodels.AuthenticationViewModeler{
+		Authentication: authenticationConfig,
+	}
 	enterLoginIDHandler := &webapp.EnterLoginIDHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
-		Identities:        serviceService,
+		ControllerFactory:       controllerFactory,
+		BaseViewModel:           baseViewModeler,
+		AuthenticationViewModel: authenticationViewModeler,
+		Renderer:                responseRenderer,
+		Identities:              serviceService,
 	}
 	return enterLoginIDHandler
 }
@@ -23622,15 +23638,19 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	authenticationViewModeler := &viewmodels.AuthenticationViewModeler{
+		Authentication: authenticationConfig,
+	}
 	formPrefiller := &webapp.FormPrefiller{
 		LoginID: loginIDConfig,
 		UI:      uiConfig,
 	}
 	forgotPasswordHandler := &webapp.ForgotPasswordHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		FormPrefiller:     formPrefiller,
-		Renderer:          responseRenderer,
+		ControllerFactory:       controllerFactory,
+		BaseViewModel:           baseViewModeler,
+		AuthenticationViewModel: authenticationViewModeler,
+		FormPrefiller:           formPrefiller,
+		Renderer:                responseRenderer,
 	}
 	return forgotPasswordHandler
 }
@@ -26488,6 +26508,9 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	authenticationViewModeler := &viewmodels.AuthenticationViewModeler{
+		Authentication: authenticationConfig,
+	}
 	biometricConfig := identityConfig.Biometric
 	settingsViewModeler := &viewmodels.SettingsViewModeler{
 		Authenticators: service3,
@@ -26511,6 +26534,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	settingsHandler := &webapp.SettingsHandler{
 		ControllerFactory:        controllerFactory,
 		BaseViewModel:            baseViewModeler,
+		AuthenticationViewModel:  authenticationViewModeler,
 		SettingsViewModel:        settingsViewModeler,
 		SettingsProfileViewModel: settingsProfileViewModeler,
 		Renderer:                 responseRenderer,
@@ -28694,13 +28718,17 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	authenticationViewModeler := &viewmodels.AuthenticationViewModeler{
+		Authentication: authenticationConfig,
+	}
 	settingsIdentityHandler := &webapp.SettingsIdentityHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
-		Identities:        serviceService,
-		Verification:      verificationService,
-		AccountDeletion:   accountDeletionConfig,
+		ControllerFactory:       controllerFactory,
+		BaseViewModel:           baseViewModeler,
+		AuthenticationViewModel: authenticationViewModeler,
+		Renderer:                responseRenderer,
+		Identities:              serviceService,
+		Verification:            verificationService,
+		AccountDeletion:         accountDeletionConfig,
 	}
 	return settingsIdentityHandler
 }

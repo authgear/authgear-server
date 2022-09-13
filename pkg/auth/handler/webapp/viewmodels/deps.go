@@ -7,4 +7,5 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(SettingsViewModeler), "*"),
 	wire.Struct(new(SettingsProfileViewModeler), "*"),
 	wire.Struct(new(AlternativeStepsViewModeler), "*"),
+	wire.Struct(new(AuthenticationViewModeler), "*"),
 )

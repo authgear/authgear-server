@@ -15,6 +15,15 @@ type RequestOptionsService struct {
 }
 
 func (s *RequestOptionsService) MakeConditionalRequestOptions() (*model.WebAuthnRequestOptions, error) {
+	options, err := s.MakeModalRequestOptions()
+	if err != nil {
+		return nil, err
+	}
+	options.Mediation = "conditional"
+	return options, nil
+}
+
+func (s *RequestOptionsService) MakeModalRequestOptions() (*model.WebAuthnRequestOptions, error) {
 	challenge, err := protocol.CreateChallenge()
 	if err != nil {
 		return nil, err
@@ -26,14 +35,12 @@ func (s *RequestOptionsService) MakeConditionalRequestOptions() (*model.WebAuthn
 	}
 
 	options := &model.WebAuthnRequestOptions{
-		Mediation: "conditional",
 		PublicKey: model.PublicKeyCredentialRequestOptions{
 			Challenge:        challenge,
 			Timeout:          config.MediationConditionalTimeout,
 			RPID:             config.RPID,
 			UserVerification: config.AuthenticatorSelection.UserVerification,
-			// Conditional request is for AutoFill.
-			// So any credential that exists on the platform is allowed.
+			// Any credential that exists on the platform is allowed
 			AllowCredentials: nil,
 			Extensions: map[string]interface{}{
 				// We want to know user verification method (uvm).
@@ -55,7 +62,7 @@ func (s *RequestOptionsService) MakeConditionalRequestOptions() (*model.WebAuthn
 	return options, nil
 }
 
-func (s *RequestOptionsService) MakeModalRequestOptions(userID string) (*model.WebAuthnRequestOptions, error) {
+func (s *RequestOptionsService) MakeModalRequestOptionsWithUser(userID string) (*model.WebAuthnRequestOptions, error) {
 	challenge, err := protocol.CreateChallenge()
 	if err != nil {
 		return nil, err

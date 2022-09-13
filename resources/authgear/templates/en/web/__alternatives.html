@@ -28,7 +28,7 @@
                     <span class="primary-txt mx-1.5 text-sm">{{ template "or-label" }}</span>
                 </div>
             {{ end }}
-            <div class="text-sm" data-controller="passkey-request">
+            <div class="text-sm" data-controller="passkey-request" data-passkey-request-auto-value="true">
             <button class="btn secondary-btn" type="button" data-action="click->passkey-request#use" data-passkey-request-target="button">
                 {{ template "use-passkey-instead" .Data }}
             </button>

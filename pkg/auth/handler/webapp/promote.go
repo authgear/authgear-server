@@ -37,10 +37,11 @@ func ConfigurePromoteRoute(route httproute.Route) httproute.Route {
 }
 
 type PromoteHandler struct {
-	ControllerFactory ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	FormPrefiller     *FormPrefiller
-	Renderer          Renderer
+	ControllerFactory       ControllerFactory
+	BaseViewModel           *viewmodels.BaseViewModeler
+	AuthenticationViewModel *viewmodels.AuthenticationViewModeler
+	FormPrefiller           *FormPrefiller
+	Renderer                Renderer
 }
 
 func (h *PromoteHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -48,7 +49,7 @@ func (h *PromoteHandler) GetData(r *http.Request, rw http.ResponseWriter, graph 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
-	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithGraph(graph)
+	authenticationViewModel := h.AuthenticationViewModel.NewWithGraph(graph)
 	viewmodels.Embed(data, authenticationViewModel)
 	return data, nil
 }

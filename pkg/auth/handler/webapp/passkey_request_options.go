@@ -19,7 +19,8 @@ func ConfigurePasskeyRequestOptionsRoute(route httproute.Route) httproute.Route 
 
 type PasskeyRequestOptionsService interface {
 	MakeConditionalRequestOptions() (*model.WebAuthnRequestOptions, error)
-	MakeModalRequestOptions(userID string) (*model.WebAuthnRequestOptions, error)
+	MakeModalRequestOptions() (*model.WebAuthnRequestOptions, error)
+	MakeModalRequestOptionsWithUser(userID string) (*model.WebAuthnRequestOptions, error)
 }
 
 type PasskeyRequestOptionsHandler struct {
@@ -54,20 +55,24 @@ func (h *PasskeyRequestOptionsHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		} else {
 			session := webapp.GetSession(r.Context())
 			if session == nil {
-				return webapp.ErrSessionNotFound
-			}
-			err := h.Page.PeekUncommittedChanges(session, func(graph *interaction.Graph) error {
-				userID := graph.MustGetUserID()
-				var err error
-				requestOptions, err = h.Passkey.MakeModalRequestOptions(userID)
+				requestOptions, err = h.Passkey.MakeModalRequestOptions()
 				if err != nil {
 					return err
 				}
+			} else {
+				err := h.Page.PeekUncommittedChanges(session, func(graph *interaction.Graph) error {
+					userID := graph.MustGetUserID()
+					var err error
+					requestOptions, err = h.Passkey.MakeModalRequestOptionsWithUser(userID)
+					if err != nil {
+						return err
+					}
 
-				return nil
-			})
-			if err != nil {
-				return err
+					return nil
+				})
+				if err != nil {
+					return err
+				}
 			}
 		}
 

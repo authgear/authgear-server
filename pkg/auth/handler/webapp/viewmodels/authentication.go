@@ -3,6 +3,7 @@ package viewmodels
 import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -19,18 +20,23 @@ type AuthenticationViewModel struct {
 	EmailLoginIDEnabled    bool
 	UsernameLoginIDEnabled bool
 	TextLoginIDInputType   string
+	PasskeyEnabled         bool
 }
 
-func NewAuthenticationViewModelWithGraph(graph *interaction.Graph) AuthenticationViewModel {
+type AuthenticationViewModeler struct {
+	Authentication *config.AuthenticationConfig
+}
+
+func (m *AuthenticationViewModeler) NewWithGraph(graph *interaction.Graph) AuthenticationViewModel {
 	var node IdentityCandidatesGetter
 	if !graph.FindLastNode(&node) {
 		panic("webapp: no node with identity candidates found")
 	}
 
-	return NewAuthenticationViewModelWithCandidates(node.GetIdentityCandidates())
+	return m.NewWithCandidates(node.GetIdentityCandidates())
 }
 
-func NewAuthenticationViewModelWithCandidates(candidates []identity.Candidate) AuthenticationViewModel {
+func (m *AuthenticationViewModeler) NewWithCandidates(candidates []identity.Candidate) AuthenticationViewModel {
 	hasEmail := false
 	hasUsername := false
 	hasPhone := false
@@ -81,6 +87,13 @@ func NewAuthenticationViewModelWithCandidates(candidates []identity.Candidate) A
 		}
 	}
 
+	passkeyEnabled := false
+	for _, typ := range m.Authentication.Identities {
+		if typ == model.IdentityTypePasskey {
+			passkeyEnabled = true
+		}
+	}
+
 	return AuthenticationViewModel{
 		IdentityCandidates:     candidates,
 		IdentityCount:          identityCount,
@@ -90,5 +103,6 @@ func NewAuthenticationViewModelWithCandidates(candidates []identity.Candidate) A
 		EmailLoginIDEnabled:    hasEmail,
 		UsernameLoginIDEnabled: hasUsername,
 		TextLoginIDInputType:   textLoginIDInputType,
+		PasskeyEnabled:         passkeyEnabled,
 	}
 }

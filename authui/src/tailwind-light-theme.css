@@ -368,6 +368,25 @@
     background-color: var(--color-apple-shaded-2);
   }
 
+  .passkey-btn {
+    @apply border border-solid;
+    border-color: var(--color-separator);
+    color: var(--color-black-unshaded);
+    background-color: var(--color-white-unshaded);
+  }
+  .passkey-btn:focus {
+    background-color: var(--color-white-unshaded);
+  }
+  .passkey-btn:hover {
+    background-color: var(--color-white-shaded-4);
+  }
+  .passkey-btn:active {
+    background-color: var(--color-white-shaded-7);
+  }
+  .passkey-btn:disabled {
+    background-color: var(--color-white-shaded-2);
+  }
+
   .sso-btn.google {
     @apply border border-solid;
     border-color: var(--color-separator);
