@@ -459,7 +459,7 @@ export interface PortalAPIAppConfig {
   google_tag_manager?: GoogleTagManagerConfig;
 }
 
-export interface OAuthClientSecret {
+export interface OAuthSSOProviderClientSecret {
   alias: string;
   clientSecret: string;
 }
@@ -483,7 +483,7 @@ export interface SMTPSecret {
 }
 
 export interface PortalAPISecretConfig {
-  oauthClientSecrets?: OAuthClientSecret[] | null;
+  oauthSSOProviderClientSecrets?: OAuthSSOProviderClientSecret[] | null;
   webhookSecret?: WebhookSecret | null;
   adminAPISecrets?: AdminAPISecret[] | null;
   smtpSecret?: SMTPSecret | null;

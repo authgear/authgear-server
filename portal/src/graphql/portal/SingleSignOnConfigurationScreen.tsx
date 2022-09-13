@@ -19,7 +19,7 @@ import {
 import {
   createOAuthSSOProviderItemKey,
   isOAuthSSOProvider,
-  OAuthClientSecret,
+  OAuthSSOProviderClientSecret,
   OAuthSSOFeatureConfig,
   OAuthSSOProviderConfig,
   OAuthSSOProviderFeatureConfig,
@@ -42,7 +42,7 @@ import {
 
 interface SSOProviderFormState {
   config: OAuthSSOProviderConfig;
-  secret: OAuthClientSecret;
+  secret: OAuthSSOProviderClientSecret;
 }
 
 interface FormState {
@@ -56,8 +56,8 @@ function constructFormState(
   secretConfig: PortalAPISecretConfig
 ): FormState {
   const providerList = appConfig.identity?.oauth?.providers ?? [];
-  const secretMap = new Map<string, OAuthClientSecret>();
-  for (const item of secretConfig.oauthClientSecrets ?? []) {
+  const secretMap = new Map<string, OAuthSSOProviderClientSecret>();
+  for (const item of secretConfig.oauthSSOProviderClientSecrets ?? []) {
     secretMap.set(item.alias, item);
   }
 
@@ -109,7 +109,7 @@ function constructConfig(
     );
 
     const configs: OAuthSSOProviderConfig[] = [];
-    const clientSecrets: OAuthClientSecret[] = [];
+    const clientSecrets: OAuthSSOProviderClientSecret[] = [];
     for (const p of providers) {
       configs.push(p.config);
       clientSecrets.push(p.secret);
@@ -119,7 +119,7 @@ function constructConfig(
     config.identity.oauth ??= {};
     config.identity.oauth.providers = configs;
 
-    secretConfig.oauthClientSecrets = clientSecrets;
+    secretConfig.oauthSSOProviderClientSecrets = clientSecrets;
 
     function hasOAuthProviders(s: FormState) {
       return Object.values(s.isEnabled).some(Boolean);
@@ -231,7 +231,7 @@ const OAuthClientItem: React.VFC<OAuthClientItemProps> =
     );
 
     const onChange = useCallback(
-      (config: OAuthSSOProviderConfig, secret: OAuthClientSecret) =>
+      (config: OAuthSSOProviderConfig, secret: OAuthSSOProviderClientSecret) =>
         setState((state) =>
           produce(state, (state) => {
             const index = state.providers.findIndex((p) =>
