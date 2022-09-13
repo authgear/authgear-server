@@ -441,3 +441,71 @@ func (c *WATICredentials) SensitiveStrings() []string {
 		c.WebhookAuth,
 	}
 }
+
+var _ = SecretConfigSchema.Add("OAuthClientCredentials", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"items": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"client_id": {
+						"type": "string"
+					},
+					"keys": {
+						"type": "array",
+						"items": { "$ref": "#/$defs/JWK" },
+						"minItems": 1
+					}
+				},
+				"required": ["client_id", "keys"]
+			}
+		}
+	},
+	"required": ["items"]
+}
+`)
+
+type OAuthClientCredentials struct {
+	Items []OAuthClientCredentialsItem `json:"items,omitempty"`
+}
+
+func (c *OAuthClientCredentials) Lookup(clientID string) (*OAuthClientCredentialsItem, bool) {
+	for _, item := range c.Items {
+		if item.ClientID == clientID {
+			ii := item
+			return &ii, true
+		}
+	}
+	return nil, false
+}
+
+func (c *OAuthClientCredentials) SensitiveStrings() []string {
+	return nil
+}
+
+type OAuthClientCredentialsItem struct {
+	ClientID string `json:"client_id,omitempty"`
+	OAuthClientCredentialsKeySet
+}
+
+type OAuthClientCredentialsKeySet struct {
+	jwk.Set
+}
+
+var _ json.Marshaler = &OAuthClientCredentialsKeySet{}
+var _ json.Unmarshaler = &OAuthClientCredentialsKeySet{}
+
+func (c *OAuthClientCredentialsKeySet) MarshalJSON() ([]byte, error) {
+	return c.Set.(interface{}).(json.Marshaler).MarshalJSON()
+}
+func (c *OAuthClientCredentialsKeySet) UnmarshalJSON(b []byte) error {
+	if c.Set == nil {
+		c.Set = jwk.NewSet()
+	}
+	return c.Set.(interface{}).(json.Unmarshaler).UnmarshalJSON(b)
+}
