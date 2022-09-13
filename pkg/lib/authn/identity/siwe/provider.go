@@ -1,6 +1,7 @@
 package siwe
 
 import (
+	"crypto/ecdsa"
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -12,7 +13,7 @@ import (
 
 // nolint: golint
 type SIWEService interface {
-	VerifyMessage(msg string, signature string) (*siwego.Message, string, error)
+	VerifyMessage(msg string, signature string) (*siwego.Message, *ecdsa.PublicKey, error)
 }
 
 type Provider struct {
@@ -61,6 +62,11 @@ func (p *Provider) New(
 		return nil, err
 	}
 
+	encodedPublicKey, err := model.NewSIWEPublicKey(pubKey)
+	if err != nil {
+		return nil, err
+	}
+
 	i := &identity.SIWE{
 		ID:      uuid.New(),
 		UserID:  userID,
@@ -70,7 +76,7 @@ func (p *Provider) New(
 		Data: &model.SIWEVerifiedData{
 			Message:          msg,
 			Signature:        signature,
-			EncodedPublicKey: pubKey,
+			EncodedPublicKey: encodedPublicKey,
 		},
 	}
 	return i, nil
