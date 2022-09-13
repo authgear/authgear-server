@@ -618,27 +618,9 @@ The list will be changed based on the requested scopes. The copywriting are list
 - `offline_access`:
   - Allows <CLIENT_NAME> to access your information after login.
 
-### Settings (TBC)
+### Settings
 
-There are 2 proposed solutions for allowing users to access the settings page.
-
-**Approach 1: Use the idp session to open settings**
-
-  - Pros
-    - The app doesn't need further integration.
-  - Cons
-    - Since opening settings solely depends on the idp session, the idp sessions maybe expire or the user may re-login another account in the browser. No way for the app to know if the browser has valid idp session.
-
-**Approach 2: The third-party app can use the refresh token to acquire an token (app session token) and use the token with the authz endpoint to redirect the user to the setting page.**
-
-  - Pros
-    - Since the third-party app use the refresh token to open the settings page. The app can logout the user from the app if the refresh token is invalid.
-  - Cons
-    - The app needs further integration which may not be easy in some platforms.
-    - It is not in the OIDC spec.
-  - Notes
-    - Need to introduce a new scope `https://authgear.com/scopes/access-account-settings`.
-    - The third-party app needs to request `https://authgear.com/scopes/access-account-settings` and `offline_access` to access the setting page.
+IDP session is created when the user login. Opening the settings page solely depends on the IDP session. If the IDP session expires, the user will need to log in again to access the settings page.
 
 ### Authorized Apps page
 
