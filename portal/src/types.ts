@@ -340,6 +340,7 @@ export interface OAuthClientConfig {
   name?: string;
   client_id: string;
   client_uri?: string;
+  client_name?: string;
   x_application_type?: ApplicationType;
   redirect_uris: string[];
   grant_types?: string[];

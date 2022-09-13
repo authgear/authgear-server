@@ -41,6 +41,7 @@ var _ = Schema.Add("OAuthClientConfig", `
 	"properties": {
 		"client_id": { "type": "string" },
 		"client_uri": { "type": "string", "format": "uri" },
+		"client_name": { "type": "string", "minLength": 1 },
 		"name": { "type": "string" },
 		"x_application_type": { "type": "string", "enum": ["spa", "traditional_webapp", "native", "third_party_app"] },
 		"redirect_uris": {
@@ -77,6 +78,17 @@ var _ = Schema.Add("OAuthClientConfig", `
 				},
 				"required": ["post_logout_redirect_uris"]
 			}
+		},
+		{
+			"if": {
+				"properties": {
+					"x_application_type": { "enum": ["third_party_app"] }
+				},
+				"required": ["x_application_type"]
+			},
+			"then": {
+				"required": ["client_name"]
+			}
 		}
 	]
 }
@@ -85,6 +97,7 @@ var _ = Schema.Add("OAuthClientConfig", `
 type OAuthClientConfig struct {
 	ClientID                       string                     `json:"client_id,omitempty"`
 	ClientURI                      string                     `json:"client_uri,omitempty"`
+	ClientName                     string                     `json:"client_name,omitempty"`
 	Name                           string                     `json:"name,omitempty"`
 	ApplicationType                OAuthClientApplicationType `json:"x_application_type,omitempty"`
 	RedirectURIs                   []string                   `json:"redirect_uris,omitempty"`
