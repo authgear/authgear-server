@@ -30,6 +30,10 @@ const cache = new InMemoryCache({
         },
       },
     },
+    // NFTCollection does not have id, so we must teach Apollo what is the key of NFTCollection.
+    NFTCollection: {
+      keyFields: ["blockchain", "network", "contractAddress"],
+    },
     // AppResource does not have id, so we must teach Apollo what is the key of AppResource.
     AppResource: {
       keyFields: ["path"],

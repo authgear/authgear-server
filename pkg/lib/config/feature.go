@@ -22,7 +22,8 @@ var _ = FeatureConfigSchema.Add("FeatureConfig", `
 		"audit_log": { "$ref": "#/$defs/AuditLogFeatureConfig" },
 		"google_tag_manager": { "$ref": "#/$defs/GoogleTagManagerFeatureConfig" },
 		"rate_limit": { "$ref": "#/$defs/RateLimitFeatureConfig" },
-		"collaborator": { "$ref": "#/$defs/CollaboratorFeatureConfig" }
+		"collaborator": { "$ref": "#/$defs/CollaboratorFeatureConfig" },
+		"web3": { "$ref": "#/$defs/Web3FeatureConfig" }
 	}
 }
 `)
@@ -39,6 +40,7 @@ type FeatureConfig struct {
 	GoogleTagManager *GoogleTagManagerFeatureConfig `json:"google_tag_manager,omitempty"`
 	RateLimit        *RateLimitFeatureConfig        `json:"rate_limit,omitempty"`
 	Collaborator     *CollaboratorFeatureConfig     `json:"collaborator,omitempty"`
+	Web3             *Web3FeatureConfig             `json:"web3,omitempty"`
 }
 
 func ParseFeatureConfig(inputYAML []byte) (*FeatureConfig, error) {

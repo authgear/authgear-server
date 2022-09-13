@@ -109,35 +109,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
 	handle := globaldb.NewHandle(context, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, logFactory)
 	sqlExecutor := globaldb.NewSQLExecutor(context, handle)
-	inProcessExecutorLogger := task.NewInProcessExecutorLogger(logFactory)
-	mailLogger := mail.NewLogger(logFactory)
-	smtpConfig := rootProvider.SMTPConfig
-	smtpServerCredentials := deps.ProvideSMTPServerCredentials(smtpConfig)
-	dialer := mail.NewGomailDialer(smtpServerCredentials)
-	sender := &mail.Sender{
-		Logger:       mailLogger,
-		DevMode:      devMode,
-		GomailDialer: dialer,
-	}
-	sendMessagesLogger := tasks.NewSendMessagesLogger(logFactory)
-	sendMessagesTask := &tasks.SendMessagesTask{
-		EmailSender: sender,
-		Logger:      sendMessagesLogger,
-	}
-	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftService := &service.NFTService{
-		APIEndpoint: nftIndexerAPIEndpoint,
-	}
-	watchNFTCollectionsLogger := tasks.NewWatchNFTCollectionsLogger(logFactory)
-	watchNFTCollectionsTask := &tasks.WatchNFTCollectionsTask{
-		NFTService:   nftService,
-		ConfigSource: configSource,
-		Logger:       watchNFTCollectionsLogger,
-	}
-	inProcessExecutor := task.NewExecutor(inProcessExecutorLogger, sendMessagesTask, watchNFTCollectionsTask)
-	inProcessQueue := &task.InProcessQueue{
-		Executor: inProcessExecutor,
-	}
 	appConfig := rootProvider.AppConfig
 	configServiceLogger := service.NewConfigServiceLogger(logFactory)
 	domainImplementationType := rootProvider.DomainImplementation
@@ -158,6 +129,25 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Kubernetes:           kubernetes,
 	}
 	mailConfig := rootProvider.MailConfig
+	inProcessExecutorLogger := task.NewInProcessExecutorLogger(logFactory)
+	mailLogger := mail.NewLogger(logFactory)
+	smtpConfig := rootProvider.SMTPConfig
+	smtpServerCredentials := deps.ProvideSMTPServerCredentials(smtpConfig)
+	dialer := mail.NewGomailDialer(smtpServerCredentials)
+	sender := &mail.Sender{
+		Logger:       mailLogger,
+		DevMode:      devMode,
+		GomailDialer: dialer,
+	}
+	sendMessagesLogger := tasks.NewSendMessagesLogger(logFactory)
+	sendMessagesTask := &tasks.SendMessagesTask{
+		EmailSender: sender,
+		Logger:      sendMessagesLogger,
+	}
+	inProcessExecutor := task.NewExecutor(inProcessExecutorLogger, sendMessagesTask)
+	inProcessQueue := &task.InProcessQueue{
+		Executor: inProcessExecutor,
+	}
 	trustProxy := environmentConfig.TrustProxy
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
@@ -228,7 +218,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           appServiceLogger,
 		SQLBuilder:       sqlBuilder,
 		SQLExecutor:      sqlExecutor,
-		TaskQueue:        inProcessQueue,
 		AppConfig:        appConfig,
 		AppConfigs:       configService,
 		AppAuthz:         authzService,
@@ -294,6 +283,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clock,
 		AppConfig:         appConfig,
 	}
+	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
+	nftService := &service.NFTService{
+		APIEndpoint: nftIndexerAPIEndpoint,
+	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:               logger,
 		Users:                   userLoader,
@@ -311,6 +304,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		TutorialService:         tutorialService,
 		StripeService:           libstripeService,
 		SubscriptionService:     subscriptionService,
+		NFTService:              nftService,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		DevMode:        devMode,
@@ -404,17 +398,7 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		EmailSender: sender,
 		Logger:      sendMessagesLogger,
 	}
-	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftService := &service.NFTService{
-		APIEndpoint: nftIndexerAPIEndpoint,
-	}
-	watchNFTCollectionsLogger := tasks.NewWatchNFTCollectionsLogger(logFactory)
-	watchNFTCollectionsTask := &tasks.WatchNFTCollectionsTask{
-		NFTService:   nftService,
-		ConfigSource: configSource,
-		Logger:       watchNFTCollectionsLogger,
-	}
-	inProcessExecutor := task.NewExecutor(inProcessExecutorLogger, sendMessagesTask, watchNFTCollectionsTask)
+	inProcessExecutor := task.NewExecutor(inProcessExecutorLogger, sendMessagesTask)
 	inProcessQueue := &task.InProcessQueue{
 		Executor: inProcessExecutor,
 	}

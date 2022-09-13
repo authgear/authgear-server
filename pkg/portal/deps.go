@@ -21,7 +21,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/smtp"
 	"github.com/authgear/authgear-server/pkg/portal/task"
-	"github.com/authgear/authgear-server/pkg/portal/task/tasks"
 	"github.com/authgear/authgear-server/pkg/portal/transport"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/resource"
@@ -57,15 +56,12 @@ var DependencySet = wire.NewSet(
 
 	usage.DependencySet,
 
-	wire.Bind(new(tasks.NFTService), new(*service.NFTService)),
-
 	wire.Bind(new(service.AuthzAdder), new(*adminauthz.Adder)),
 	wire.Bind(new(service.CollaboratorServiceTaskQueue), new(*task.InProcessQueue)),
 	wire.Bind(new(service.CollaboratorServiceEndpointsProvider), new(*endpoint.EndpointsProvider)),
 	wire.Bind(new(service.CollaboratorServiceAdminAPIService), new(*service.AdminAPIService)),
 	wire.Bind(new(service.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(service.AppPlanService), new(*plan.Service)),
-	wire.Bind(new(service.AppServiceTaskQueue), new(*task.InProcessQueue)),
 	wire.Bind(new(service.AppResourceManagerFactory), new(*appresource.ManagerFactory)),
 	wire.Bind(new(service.SubscriptionConfigSourceStore), new(*configsource.Store)),
 	wire.Bind(new(service.SubscriptionPlanStore), new(*plan.Store)),
@@ -94,6 +90,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.TutorialService), new(*tutorial.Service)),
 	wire.Bind(new(graphql.StripeService), new(*libstripe.Service)),
 	wire.Bind(new(graphql.SubscriptionService), new(*service.SubscriptionService)),
+	wire.Bind(new(graphql.NFTService), new(*service.NFTService)),
 
 	transport.DependencySet,
 	wire.Bind(new(transport.AdminAPIService), new(*service.AdminAPIService)),

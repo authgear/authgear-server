@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
+	"github.com/authgear/authgear-server/pkg/util/web3"
 )
 
 var appResourceUpdate = graphql.NewInputObject(graphql.InputObjectConfig{
@@ -417,6 +418,74 @@ var _ = registerMutationField(
 			err = gqlCtx.TutorialService.RecordProgresses(appID, []tutorial.Progress{progress})
 			if err != nil {
 				return nil, err
+			}
+
+			appLazy := gqlCtx.Apps.Load(appID)
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"app": appLazy,
+			}).Value, nil
+		},
+	},
+)
+
+var watchNFTCollectionsInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "WatchNFTCollectionsInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"id": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "ID of the app.",
+		},
+		"contractIDs": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(graphql.String))),
+		},
+	},
+})
+
+var watchNFTCollectionsPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "WatchNFTCollectionsPayload",
+	Fields: graphql.Fields{
+		"app": &graphql.Field{
+			Type: graphql.NewNonNull(nodeApp),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"watchNFTCollections",
+	&graphql.Field{
+		Description: "Start watching a batch of NFT Collections",
+		Type:        graphql.NewNonNull(watchNFTCollectionsPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(watchNFTCollectionsInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+			appNodeID := input["id"].(string)
+			rawContractURLs := input["contractIDs"].([]interface{})
+			contractURLs := make([]string, 0, len(rawContractURLs))
+			for _, contractURL := range rawContractURLs {
+				contractURLs = append(contractURLs, contractURL.(string))
+			}
+
+			resolvedNodeID := relay.FromGlobalID(appNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
+				return nil, apierrors.NewInvalid("invalid app ID")
+			}
+			appID := resolvedNodeID.ID
+
+			gqlCtx := GQLContext(p.Context)
+
+			for _, contractURL := range contractURLs {
+				contractID, err := web3.ParseContractID(contractURL)
+				if err != nil {
+					return nil, err
+				}
+				_, err = gqlCtx.NFTService.WatchNFTCollection(*contractID)
+				if err != nil {
+					return nil, err
+				}
 			}
 
 			appLazy := gqlCtx.Apps.Load(appID)
