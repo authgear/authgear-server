@@ -55,6 +55,8 @@ type Config struct {
 
 	GoogleTagManager portalconfig.GoogleTagManagerConfig `envconfig:"GTM"`
 
+	Web3 portalconfig.Web3Config `envconfig:"WEB3"`
+
 	*config.EnvironmentConfig
 }
 

@@ -84,7 +84,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     false;
   const skippedTutorial = app?.tutorialStatus.data.skipped === true;
 
-  const { auditLogEnabled, analyticEnabled } = useSystemConfig();
+  const { auditLogEnabled, analyticEnabled, web3Enabled } = useSystemConfig();
 
   const label = renderToString("ScreenNav.label");
   const [expandState, setExpandState] = useState<Record<string, boolean>>({});
@@ -125,10 +125,14 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             textKey: "ScreenNav.verification",
             url: `/project/${appID}/configuration/authentication/verification`,
           },
-          {
-            textKey: "ScreenNav.web3",
-            url: "./configuration/authentication/web3",
-          },
+          ...(web3Enabled
+            ? [
+                {
+                  textKey: "ScreenNav.web3",
+                  url: "./configuration/authentication/web3",
+                },
+              ]
+            : []),
         ],
       },
       {
@@ -238,6 +242,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     analyticEnabled,
     appID,
     auditLogEnabled,
+    web3Enabled,
     mobileView,
     showIntegrations,
     skippedTutorial,
