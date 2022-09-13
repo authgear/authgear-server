@@ -10,5 +10,5 @@ declare interface SIWEVerifiedData {
 }
 // Define ethereum interface in window
 declare interface Window {
-  ethereum?: any;
+  ethereum?: import("ethers").providers.ExternalProvider;
 }
