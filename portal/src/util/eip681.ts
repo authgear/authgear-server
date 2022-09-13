@@ -26,8 +26,7 @@ export function parseEIP681(
   }
 
   const address = addressURI[0];
-  const regex = new RegExp(ETHEREUM_ADDRESS_REGEX);
-  if (!skipAddressCheck && !regex.test(address)) {
+  if (!skipAddressCheck && !ETHEREUM_ADDRESS_REGEX.test(address)) {
     throw new Error(`Invalid address: ${address}`);
   }
 
