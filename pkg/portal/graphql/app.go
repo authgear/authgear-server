@@ -17,8 +17,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/web3"
 )
 
-var oauthClientSecret = graphql.NewObject(graphql.ObjectConfig{
-	Name:        "OAuthClientSecret",
+var oauthSSOProviderClientSecret = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "OAuthSSOProviderClientSecret",
 	Description: "OAuth client secret",
 	Fields: graphql.Fields{
 		"alias": &graphql.Field{
@@ -82,8 +82,8 @@ var secretConfig = graphql.NewObject(graphql.ObjectConfig{
 	Name:        "SecretConfig",
 	Description: "The content of authgear.secrets.yaml",
 	Fields: graphql.Fields{
-		"oauthClientSecrets": &graphql.Field{
-			Type: graphql.NewList(graphql.NewNonNull(oauthClientSecret)),
+		"oauthSSOProviderClientSecrets": &graphql.Field{
+			Type: graphql.NewList(graphql.NewNonNull(oauthSSOProviderClientSecret)),
 		},
 		"webhookSecret": &graphql.Field{
 			Type: webhookSecret,

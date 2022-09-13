@@ -19,11 +19,11 @@ function sanitizeSecretConfig(
   secretConfig: PortalAPISecretConfig
 ): PortalAPISecretConfig {
   return {
-    oauthClientSecrets:
-      secretConfig.oauthClientSecrets?.map((oauthClientSecret) => {
+    oauthSSOProviderClientSecrets:
+      secretConfig.oauthSSOProviderClientSecrets?.map((clientSecret) => {
         return {
-          alias: oauthClientSecret.alias,
-          clientSecret: oauthClientSecret.clientSecret,
+          alias: clientSecret.alias,
+          clientSecret: clientSecret.clientSecret,
         };
       }) ?? null,
     smtpSecret:

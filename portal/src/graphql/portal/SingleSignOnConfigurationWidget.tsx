@@ -7,7 +7,7 @@ import Widget from "../../Widget";
 import FormTextField from "../../FormTextField";
 import {
   createOAuthSSOProviderItemKey,
-  OAuthClientSecret,
+  OAuthSSOProviderClientSecret,
   OAuthSSOProviderConfig,
   OAuthSSOProviderItemKey,
   OAuthSSOProviderType,
@@ -41,8 +41,11 @@ interface SingleSignOnConfigurationWidgetProps {
   onIsEnabledChange: (value: boolean) => void;
 
   config: OAuthSSOProviderConfig;
-  secret: OAuthClientSecret;
-  onChange: (config: OAuthSSOProviderConfig, secret: OAuthClientSecret) => void;
+  secret: OAuthSSOProviderClientSecret;
+  onChange: (
+    config: OAuthSSOProviderConfig,
+    secret: OAuthSSOProviderClientSecret
+  ) => void;
 
   disabled: boolean;
   limitReached: boolean;

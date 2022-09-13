@@ -26,7 +26,7 @@ type WebhookSecret struct {
 	Secret *string `json:"secret,omitempty"`
 }
 
-type OAuthClientSecret struct {
+type OAuthSSOProviderClientSecret struct {
 	Alias        string `json:"alias,omitempty"`
 	ClientSecret string `json:"clientSecret,omitempty"`
 }
@@ -46,10 +46,10 @@ type SMTPSecret struct {
 }
 
 type SecretConfig struct {
-	OAuthClientSecrets []OAuthClientSecret `json:"oauthClientSecrets,omitempty"`
-	WebhookSecret      *WebhookSecret      `json:"webhookSecret,omitempty"`
-	AdminAPISecrets    []AdminAPISecret    `json:"adminAPISecrets,omitempty"`
-	SMTPSecret         *SMTPSecret         `json:"smtpSecret,omitempty"`
+	OAuthSSOProviderClientSecrets []OAuthSSOProviderClientSecret `json:"oauthSSOProviderClientSecrets,omitempty"`
+	WebhookSecret                 *WebhookSecret                 `json:"webhookSecret,omitempty"`
+	AdminAPISecrets               []AdminAPISecret               `json:"adminAPISecrets,omitempty"`
+	SMTPSecret                    *SMTPSecret                    `json:"smtpSecret,omitempty"`
 }
 
 func NewSecretConfig(secretConfig *config.SecretConfig, unmasked bool) (*SecretConfig, error) {
@@ -57,7 +57,7 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmasked bool) (*SecretC
 
 	if oauthSSOProviderCredentials, ok := secretConfig.LookupData(config.OAuthSSOProviderCredentialsKey).(*config.OAuthSSOProviderCredentials); ok {
 		for _, item := range oauthSSOProviderCredentials.Items {
-			out.OAuthClientSecrets = append(out.OAuthClientSecrets, OAuthClientSecret{
+			out.OAuthSSOProviderClientSecrets = append(out.OAuthSSOProviderClientSecrets, OAuthSSOProviderClientSecret{
 				Alias:        item.Alias,
 				ClientSecret: item.ClientSecret,
 			})
@@ -135,13 +135,13 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmasked bool) (*SecretC
 }
 
 func (c *SecretConfig) updateOAuthSSOProviderCredentials() (item *config.SecretItem, err error) {
-	if len(c.OAuthClientSecrets) <= 0 {
+	if len(c.OAuthSSOProviderClientSecrets) <= 0 {
 		return
 	}
 
 	// The strategy is simply use incoming one.
 	var oauthItems []config.OAuthSSOProviderCredentialsItem
-	for _, secret := range c.OAuthClientSecrets {
+	for _, secret := range c.OAuthSSOProviderClientSecrets {
 		oauthItems = append(oauthItems, config.OAuthSSOProviderCredentialsItem{
 			Alias:        secret.Alias,
 			ClientSecret: secret.ClientSecret,

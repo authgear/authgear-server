@@ -458,7 +458,7 @@ interface Node {
 }
 
 """OAuth client secret"""
-type OAuthClientSecret {
+type OAuthSSOProviderClientSecret {
   """"""
   alias: String!
 
@@ -467,7 +467,7 @@ type OAuthClientSecret {
 }
 
 """"""
-input OauthClientSecretInput {
+input OAuthSSOProviderClientSecretInput {
   """"""
   alias: String!
 
@@ -634,7 +634,7 @@ type SecretConfig {
   adminAPISecrets: [AdminAPISecret!]
 
   """"""
-  oauthClientSecrets: [OAuthClientSecret!]
+  oauthSSOProviderClientSecrets: [OAuthSSOProviderClientSecret!]
 
   """"""
   smtpSecret: SMTPSecret
@@ -646,7 +646,7 @@ type SecretConfig {
 """"""
 input SecretConfigInput {
   """"""
-  oauthClientSecrets: [OauthClientSecretInput!]
+  oauthSSOProviderClientSecrets: [OAuthSSOProviderClientSecretInput!]
 
   """"""
   smtpSecret: SMTPSecretInput

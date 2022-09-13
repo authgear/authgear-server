@@ -34,8 +34,8 @@ var appResourceUpdate = graphql.NewInputObject(graphql.InputObjectConfig{
 	},
 })
 
-var oauthClientSecretInput = graphql.NewInputObject(graphql.InputObjectConfig{
-	Name: "OauthClientSecretInput",
+var oauthSSOProviderClientSecretInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "OAuthSSOProviderClientSecretInput",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"alias": &graphql.InputObjectFieldConfig{
 			Type: graphql.NewNonNull(graphql.String),
@@ -67,8 +67,8 @@ var smtpSecretInput = graphql.NewInputObject(graphql.InputObjectConfig{
 var secretConfigInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "SecretConfigInput",
 	Fields: graphql.InputObjectConfigFieldMap{
-		"oauthClientSecrets": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewList(graphql.NewNonNull(oauthClientSecretInput)),
+		"oauthSSOProviderClientSecrets": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewList(graphql.NewNonNull(oauthSSOProviderClientSecretInput)),
 		},
 		"smtpSecret": &graphql.InputObjectFieldConfig{
 			Type: smtpSecretInput,
