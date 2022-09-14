@@ -401,10 +401,12 @@ func (h *AuthorizationHandler) validateRequest(
 
 	switch r.ResponseType() {
 	case "code":
-		if r.CodeChallenge() == "" {
-			return protocol.NewError("invalid_request", "PKCE code challenge is required")
+		if client.IsFirstParty() {
+			if r.CodeChallenge() == "" {
+				return protocol.NewError("invalid_request", "PKCE code challenge is required")
+			}
 		}
-		if r.CodeChallengeMethod() != "S256" {
+		if r.CodeChallenge() != "" && r.CodeChallengeMethod() != "S256" {
 			return protocol.NewError("invalid_request", "only 'S256' PKCE transform is supported")
 		}
 	case "none":
