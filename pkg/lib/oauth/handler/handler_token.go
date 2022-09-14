@@ -62,10 +62,11 @@ func NewTokenHandlerLogger(lf *log.Factory) TokenHandlerLogger {
 }
 
 type TokenHandler struct {
-	AppID                 config.AppID
-	Config                *config.OAuthConfig
-	IdentityFeatureConfig *config.IdentityFeatureConfig
-	Logger                TokenHandlerLogger
+	AppID                  config.AppID
+	Config                 *config.OAuthConfig
+	IdentityFeatureConfig  *config.IdentityFeatureConfig
+	OAuthClientCredentials *config.OAuthClientCredentials
+	Logger                 TokenHandlerLogger
 
 	Authorizations   oauth.AuthorizationStore
 	CodeGrants       oauth.CodeGrantStore
@@ -109,7 +110,7 @@ func (h *TokenHandler) doHandle(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
-	if err := h.validateRequest(r); err != nil {
+	if err := h.validateRequest(r, client); err != nil {
 		return nil, err
 	}
 
@@ -150,14 +151,21 @@ func (h *TokenHandler) doHandle(
 	}
 }
 
-func (h *TokenHandler) validateRequest(r protocol.TokenRequest) error {
+func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.OAuthClientConfig) error {
 	switch r.GrantType() {
 	case "authorization_code":
 		if r.Code() == "" {
 			return protocol.NewError("invalid_request", "code is required")
 		}
-		if r.CodeVerifier() == "" {
-			return protocol.NewError("invalid_request", "PKCE code verifier is required")
+		// either client secret or PKCE code verifier is required
+		if client.IsFirstParty() {
+			if r.CodeVerifier() == "" {
+				return protocol.NewError("invalid_request", "PKCE code verifier is required")
+			}
+		} else {
+			if r.CodeVerifier() == "" && r.ClientSecret() == "" {
+				return protocol.NewError("invalid_request", "either client secret or PKCE code verifier is required for third party app")
+			}
 		}
 	case "refresh_token":
 		if r.RefreshToken() == "" {
@@ -207,8 +215,28 @@ func (h *TokenHandler) handleAuthorizationCode(
 		return nil, protocol.NewError("invalid_request", "invalid redirect URI")
 	}
 
-	if codeGrant.PKCEChallenge != "" && !verifyPKCE(codeGrant.PKCEChallenge, r.CodeVerifier()) {
-		return nil, errInvalidAuthzCode
+	// if code verifier is provided, must verify PKCE
+	if r.CodeVerifier() != "" {
+		if codeGrant.PKCEChallenge == "" || !verifyPKCE(codeGrant.PKCEChallenge, r.CodeVerifier()) {
+			return nil, errInvalidAuthzCode
+		}
+	}
+
+	// verify client secret
+	if r.ClientSecret() != "" {
+		credentialsItem, ok := h.OAuthClientCredentials.Lookup(client.ClientID)
+		if !ok {
+			return nil, protocol.NewError("invalid_request", "client secret is not supported for the client")
+		}
+		key, _ := credentialsItem.Set.Get(0)
+		var expectedClientSecret []byte
+		err = key.Raw(&expectedClientSecret)
+		if err != nil {
+			return nil, err
+		}
+		if subtle.ConstantTimeCompare([]byte(r.ClientSecret()), []byte(expectedClientSecret)) != 1 {
+			return nil, protocol.NewError("invalid_request", "invalid client secret")
+		}
 	}
 
 	authz, err := h.Authorizations.GetByID(codeGrant.AuthorizationID)
