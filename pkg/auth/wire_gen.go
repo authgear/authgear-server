@@ -1574,8 +1574,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	oAuthConfig := appConfig.OAuth
 	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
-	handlerTokenHandlerLogger := handler.NewTokenHandlerLogger(factory)
 	secretConfig := config.SecretConfig
+	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	handlerTokenHandlerLogger := handler.NewTokenHandlerLogger(factory)
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	request := p.Request
@@ -2233,18 +2234,19 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Users:             queries,
 	}
 	tokenHandler := &handler.TokenHandler{
-		AppID:                 appID,
-		Config:                oAuthConfig,
-		IdentityFeatureConfig: identityFeatureConfig,
-		Logger:                handlerTokenHandlerLogger,
-		Authorizations:        authorizationStore,
-		CodeGrants:            store,
-		OfflineGrants:         store,
-		AppSessionTokens:      store,
-		Graphs:                interactionService,
-		IDTokenIssuer:         idTokenIssuer,
-		Clock:                 clockClock,
-		TokenService:          tokenService,
+		AppID:                  appID,
+		Config:                 oAuthConfig,
+		IdentityFeatureConfig:  identityFeatureConfig,
+		OAuthClientCredentials: oAuthClientCredentials,
+		Logger:                 handlerTokenHandlerLogger,
+		Authorizations:         authorizationStore,
+		CodeGrants:             store,
+		OfflineGrants:          store,
+		AppSessionTokens:       store,
+		Graphs:                 interactionService,
+		IDTokenIssuer:          idTokenIssuer,
+		Clock:                  clockClock,
+		TokenService:           tokenService,
 	}
 	oauthTokenHandler := &oauth.TokenHandler{
 		Logger:       tokenHandlerLogger,
@@ -3788,8 +3790,9 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	oAuthConfig := appConfig.OAuth
 	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
-	tokenHandlerLogger := handler.NewTokenHandlerLogger(factory)
 	secretConfig := config.SecretConfig
+	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	tokenHandlerLogger := handler.NewTokenHandlerLogger(factory)
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	request := p.Request
@@ -4447,18 +4450,19 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Users:             queries,
 	}
 	tokenHandler := &handler.TokenHandler{
-		AppID:                 appID,
-		Config:                oAuthConfig,
-		IdentityFeatureConfig: identityFeatureConfig,
-		Logger:                tokenHandlerLogger,
-		Authorizations:        authorizationStore,
-		CodeGrants:            store,
-		OfflineGrants:         store,
-		AppSessionTokens:      store,
-		Graphs:                interactionService,
-		IDTokenIssuer:         idTokenIssuer,
-		Clock:                 clockClock,
-		TokenService:          tokenService,
+		AppID:                  appID,
+		Config:                 oAuthConfig,
+		IdentityFeatureConfig:  identityFeatureConfig,
+		OAuthClientCredentials: oAuthClientCredentials,
+		Logger:                 tokenHandlerLogger,
+		Authorizations:         authorizationStore,
+		CodeGrants:             store,
+		OfflineGrants:          store,
+		AppSessionTokens:       store,
+		Graphs:                 interactionService,
+		IDTokenIssuer:          idTokenIssuer,
+		Clock:                  clockClock,
+		TokenService:           tokenService,
 	}
 	appSessionTokenHandler := &oauth.AppSessionTokenHandler{
 		Database:         handle,
