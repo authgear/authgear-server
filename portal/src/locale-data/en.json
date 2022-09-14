@@ -509,7 +509,7 @@
   "EditOAuthClientForm.access-token.description": "How frequent the access token should be refreshed. This will affect the timeliness of the information held in the JWT token.",
   "EditOAuthClientForm.issue-jwt-access-token.label": "Issue JWT as access token",
 
-  "oauth-client.application-type.unspecified": "Unspecified",
+  "oauth-client.application-type.unspecified": "Unspecified (Legacy)",
   "oauth-client.application-type.spa": "Single Page Application",
   "oauth-client.application-type.traditional-webapp": "Traditional Web Application",
   "oauth-client.application-type.native": "Native App",
