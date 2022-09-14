@@ -489,8 +489,54 @@ func (c *OAuthClientCredentials) SensitiveStrings() []string {
 }
 
 type OAuthClientCredentialsItem struct {
+	// It is important to update `MarshalJSON` and `UnmarshalJSON` functions
+	// when updating fields of OAuthClientCredentialsItem
 	ClientID string `json:"client_id,omitempty"`
 	OAuthClientCredentialsKeySet
+}
+
+func (c *OAuthClientCredentialsItem) MarshalJSON() ([]byte, error) {
+	// convert key to json string
+	keyJSON, err := json.Marshal(c.Set)
+	if err != nil {
+		return nil, err
+	}
+
+	// convert the json string to map
+	var dataMap map[string]interface{}
+	err = json.Unmarshal(keyJSON, &dataMap)
+	if err != nil {
+		return nil, err
+	}
+
+	// add fields to the map
+	dataMap["client_id"] = c.ClientID
+
+	// covert map to json
+	return json.Marshal(dataMap)
+}
+
+func (c *OAuthClientCredentialsItem) UnmarshalJSON(b []byte) error {
+	// unmarshal the keys
+	err := json.Unmarshal(b, &c.OAuthClientCredentialsKeySet)
+	if err != nil {
+		return err
+	}
+
+	// unmarshal to the map
+	var dataMap map[string]interface{}
+	err = json.Unmarshal(b, &dataMap)
+	if err != nil {
+		return err
+	}
+
+	// fill the fields
+	clientID, ok := dataMap["client_id"].(string)
+	if ok {
+		c.ClientID = clientID
+	}
+
+	return nil
 }
 
 type OAuthClientCredentialsKeySet struct {
