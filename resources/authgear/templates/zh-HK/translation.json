@@ -180,14 +180,14 @@
 
   "use-login-id-key": "改為用{key, select, email{電郵地址} username{用戶名稱} phone{電話號碼} other{{key}}}",
 
-  "create-password-page-title": "建立密碼",
-  "create-additional-password-page-title": "創建輔助密碼",
+  "create-password-page-title": "設置密碼",
+  "create-additional-password-page-title": "設置輔助密碼",
 
-  "create-passkey-page-title": "建立通行密匙",
-  "create-passkey-label": "建立通行密匙",
+  "create-passkey-page-title": "設置通行密匙",
+  "create-passkey-label": "設置通行密匙",
 
-  "prompt-create-passkey-page-title": "建立通行密匙",
-  "prompt-create-passkey-page-description": "建立一個可以更快、更安全登入的通行密匙",
+  "prompt-create-passkey-page-title": "設置通行密匙",
+  "prompt-create-passkey-page-description": "你的裝置支援通行密匙。設置通行密匙使你可以更快、更安全地登入。若你使用生物認證，我們永不會看見或儲存你的生物認證資料。",
   "prompt-create-passkey-skip-label": "下次再算",
 
   "use-passkey-page-title": "使用通行密匙",

@@ -7,11 +7,13 @@
 	{{ template "create-passkey-page-title" }}
 </h1>
 
+<i class="authgear-icons authgear-icons-passkey text-3xl block primary-txt text-center" aria-hidden="true"></i>
+
 <div class="text-sm break-words primary-txt text-center">{{ template "prompt-create-passkey-page-description" }}</div>
 
 <div class="twc-container-vertical" data-controller="passkey-creation">
 <button
-	class="btn primary-btn my-5"
+	class="btn primary-btn"
 	type="button"
 	data-action="click->passkey-creation#create"
 	data-passkey-creation-target="button"
