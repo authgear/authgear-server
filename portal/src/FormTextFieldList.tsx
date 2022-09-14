@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo } from "react";
-import FieldList from "./FieldList";
+import React, { useCallback, useMemo, ReactElement } from "react";
+import FieldList, { ListItemProps } from "./FieldList";
 import cn from "classnames";
 import styles from "./FormTextFieldList.module.css";
 import { useFormField } from "./form";
@@ -13,11 +13,19 @@ interface TextFieldListItemProps {
   textFieldProps?: TextFieldProps;
   value: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 }
 
 const TextFieldListItem: React.VFC<TextFieldListItemProps> =
   function TextFieldListItem(props: TextFieldListItemProps) {
-    const { index, parentJSONPointer, textFieldProps, value, onChange } = props;
+    const {
+      index,
+      parentJSONPointer,
+      textFieldProps,
+      value,
+      onChange,
+      disabled,
+    } = props;
     const {
       value: _value,
       className: inputClassName,
@@ -52,6 +60,7 @@ const TextFieldListItem: React.VFC<TextFieldListItemProps> =
         errorMessage={
           errors.length > 0 ? <ErrorRenderer errors={errors} /> : undefined
         }
+        disabled={disabled}
       />
     );
   };
@@ -66,6 +75,7 @@ export interface FormTextFieldListProps {
   list: string[];
   onListChange: (list: string[]) => void;
   addButtonLabelMessageID?: string;
+  disabled?: boolean;
 }
 
 const FormTextFieldList: React.VFC<FormTextFieldListProps> =
@@ -80,19 +90,25 @@ const FormTextFieldList: React.VFC<FormTextFieldListProps> =
       list,
       onListChange,
       addButtonLabelMessageID,
+      disabled,
     } = props;
     const makeDefaultItem = useCallback(() => "", []);
-    const renderListItem = useCallback(
-      (index: number, value: string, onChange: (newValue: string) => void) => (
-        <TextFieldListItem
-          index={index}
-          parentJSONPointer={joinParentChild(parentJSONPointer, fieldName)}
-          textFieldProps={inputProps}
-          value={value}
-          onChange={onChange}
-        />
-      ),
-      [inputProps, parentJSONPointer, fieldName]
+
+    const ListItemComponent = useCallback(
+      (props: ListItemProps<string>): ReactElement => {
+        const { index, value, onChange } = props;
+        return (
+          <TextFieldListItem
+            index={index}
+            parentJSONPointer={joinParentChild(parentJSONPointer, fieldName)}
+            textFieldProps={inputProps}
+            value={value}
+            onChange={onChange}
+            disabled={disabled}
+          />
+        );
+      },
+      [inputProps, parentJSONPointer, fieldName, disabled]
     );
 
     return (
@@ -105,8 +121,10 @@ const FormTextFieldList: React.VFC<FormTextFieldListProps> =
         list={list}
         onListChange={onListChange}
         makeDefaultItem={makeDefaultItem}
-        renderListItem={renderListItem}
+        ListItemComponent={ListItemComponent}
         addButtonLabelMessageID={addButtonLabelMessageID}
+        addDisabled={disabled}
+        deleteDisabled={disabled}
       />
     );
   };

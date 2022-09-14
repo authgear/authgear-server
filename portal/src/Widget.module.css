@@ -1,6 +1,16 @@
 .root {
-  display: flex;
-  flex-direction: column;
-  row-gap: 20px;
-  padding: 16px;
+  @apply relative;
+  @apply flex flex-col;
+  @apply p-4 gap-y-5;
+  @apply overflow-hidden;
+  @apply transition-all;
+}
+
+.button {
+  @apply absolute;
+  @apply top-4 right-4;
+}
+
+.hide {
+  @apply hidden;
 }

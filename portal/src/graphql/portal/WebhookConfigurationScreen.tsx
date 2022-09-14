@@ -26,7 +26,7 @@ import {
   useAppSecretConfigForm,
 } from "../../hook/useAppSecretConfigForm";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
-import FieldList from "../../FieldList";
+import FieldList, { ListItemProps } from "../../FieldList";
 import FormContainer from "../../FormContainer";
 import FormTextField from "../../FormTextField";
 import { clearEmptyObject } from "../../util/misc";
@@ -274,18 +274,17 @@ const WebhookConfigurationScreenContent: React.VFC<WebhookConfigurationScreenCon
       }),
       []
     );
-    const renderBlockingHandlerItem = useCallback(
-      (
-        index: number,
-        value: BlockingEventHandler,
-        onChange: (newValue: BlockingEventHandler) => void
-      ) => (
-        <BlockingHandlerItemEdit
-          index={index}
-          value={value}
-          onChange={onChange}
-        />
-      ),
+    const BlockingHandlerListItem = useCallback(
+      (props: ListItemProps<BlockingEventHandler>) => {
+        const { index, value, onChange } = props;
+        return (
+          <BlockingHandlerItemEdit
+            index={index}
+            value={value}
+            onChange={onChange}
+          />
+        );
+      },
       []
     );
     const onBlockingHandlersChange = useCallback(
@@ -304,18 +303,17 @@ const WebhookConfigurationScreenContent: React.VFC<WebhookConfigurationScreenCon
       []
     );
 
-    const renderNonBlockingHandlerItem = useCallback(
-      (
-        index: number,
-        value: NonBlockingEventHandler,
-        onChange: (newValue: NonBlockingEventHandler) => void
-      ) => (
-        <NonBlockingHandlerItemEdit
-          index={index}
-          value={value}
-          onChange={onChange}
-        />
-      ),
+    const NonBlockingHandlerListItem = useCallback(
+      (props: ListItemProps<NonBlockingEventHandler>) => {
+        const { index, value, onChange } = props;
+        return (
+          <NonBlockingHandlerItemEdit
+            index={index}
+            value={value}
+            onChange={onChange}
+          />
+        );
+      },
       []
     );
 
@@ -426,7 +424,7 @@ const WebhookConfigurationScreenContent: React.VFC<WebhookConfigurationScreenCon
               list={state.blocking_handlers}
               onListChange={onBlockingHandlersChange}
               makeDefaultItem={makeDefaultHandler}
-              renderListItem={renderBlockingHandlerItem}
+              ListItemComponent={BlockingHandlerListItem}
               addButtonLabelMessageID="add"
               addDisabled={blockingHandlerLimitReached}
             />
@@ -464,7 +462,7 @@ const WebhookConfigurationScreenContent: React.VFC<WebhookConfigurationScreenCon
               list={state.non_blocking_handlers}
               onListChange={onNonBlockingHandlersChange}
               makeDefaultItem={makeDefaultNonBlockingHandler}
-              renderListItem={renderNonBlockingHandlerItem}
+              ListItemComponent={NonBlockingHandlerListItem}
               addButtonLabelMessageID="add"
               addDisabled={nonBlockingHandlerLimitReached}
             />
