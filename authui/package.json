@@ -31,13 +31,14 @@
   "dependencies": {
     "@hotwired/stimulus": "3.1.0",
     "@hotwired/turbo": "7.1.0",
-    "@tabler/icons": "1.92.0",
+    "@metamask/detect-provider": "1.2.0",
     "@metamask/jazzicon": "github:MetaMask/jazzicon#d923914fda6a8795f74c2e66134f73cd72070667",
+    "@tabler/icons": "1.92.0",
     "axios": "0.27.2",
     "cropperjs": "1.5.12",
+    "ethers": "5.5.1",
     "intl-tel-input": "17.0.18",
     "luxon": "3.0.3",
-    "ethers": "5.5.1",
     "siwe": "1.1.6",
     "zxcvbn": "4.4.2"
   }
