@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import produce from "immer";
 import { Checkbox, DirectionalHint, Toggle } from "@fluentui/react";
@@ -253,6 +253,14 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
 
     const { renderToString } = useContext(Context);
 
+    const [extended, setExtended] = useState(isEnabled);
+
+    const onToggleButtonClick = useCallback(() => {
+      setExtended((prev) => {
+        return !prev;
+      });
+    }, []);
+
     const providerItemKey = createOAuthSSOProviderItemKey(
       config.type,
       config.app_type
@@ -362,7 +370,13 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
     const noneditable = !isEnabled || disabled || disabledByLimitReached;
 
     return (
-      <Widget className={className} extendable={isEnabled}>
+      <Widget
+        className={className}
+        extended={isEnabled || extended}
+        showToggleButton={true}
+        toggleButtonDisabled={isEnabled}
+        onToggleButtonClick={onToggleButtonClick}
+      >
         <WidgetHeader
           icon={iconNode}
           checked={isEnabled}

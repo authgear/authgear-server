@@ -12,8 +12,11 @@ import styles from "./Widget.module.css";
 
 interface WidgetProps {
   className?: string;
-  extendable?: boolean;
   children?: React.ReactNode;
+  extended?: boolean;
+  showToggleButton?: boolean;
+  toggleButtonDisabled?: boolean;
+  onToggleButtonClick?: () => void;
 }
 
 const ICON_PROPS = {
@@ -24,16 +27,25 @@ const ICON_PROPS = {
 const COLLAPSED_HEIGHT = 64;
 
 const Widget: React.VFC<WidgetProps> = function Widget(props: WidgetProps) {
-  const { className, extendable, children } = props;
-  const [extended, setExtended] = useState(extendable ?? true);
+  const {
+    className,
+    children,
+    extended = true,
+    showToggleButton = false,
+    toggleButtonDisabled = false,
+    onToggleButtonClick,
+  } = props;
   const [measuredHeight, setMeasureHeight] = useState<number | null>(null);
   const divRef = useRef<HTMLDivElement | null>(null);
 
-  const onClick = useCallback(() => {
-    setExtended((prev) => {
-      return !prev;
-    });
-  }, []);
+  const onClick = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onToggleButtonClick?.();
+    },
+    [onToggleButtonClick]
+  );
 
   const buttonStyles = useMemo(() => {
     return {
@@ -70,9 +82,9 @@ const Widget: React.VFC<WidgetProps> = function Widget(props: WidgetProps) {
       {children}
       <IconButton
         styles={buttonStyles}
-        className={cn(styles.button, extendable == null ? styles.hide : "")}
+        className={cn(styles.button, showToggleButton ? "" : styles.hide)}
         onClick={onClick}
-        disabled={extendable ?? false}
+        disabled={toggleButtonDisabled}
         iconProps={ICON_PROPS}
       />
     </div>
