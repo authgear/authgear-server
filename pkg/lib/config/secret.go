@@ -220,6 +220,36 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 		}
 	}
 
+	thirdPartyApps := []OAuthClientConfig{}
+	for _, c := range appConfig.OAuth.Clients {
+		if c.ApplicationType == OAuthClientApplicationTypeThirdPartyApp {
+			thirdPartyApps = append(thirdPartyApps, c)
+		}
+	}
+
+	if len(thirdPartyApps) > 0 {
+		require(OAuthClientCredentialsKey, "OAuth client credentials")
+		_, data, _ := c.LookupDataWithIndex(OAuthClientCredentialsKey)
+		oauth, ok := data.(*OAuthClientCredentials)
+		if ok {
+			for _, c := range thirdPartyApps {
+				matched := false
+				for index := range oauth.Items {
+					item := oauth.Items[index]
+					if c.ClientID == item.ClientID {
+						matched = true
+						break
+					}
+				}
+				if !matched {
+					ctx.EmitErrorMessage(fmt.Sprintf("OAuth client credentials for '%s' is required", c.ClientID))
+				} else {
+					// keys are validated by the jsonschema
+				}
+			}
+		}
+	}
+
 	require(OAuthKeyMaterialsKey, "OAuth key materials")
 	require(CSRFKeyMaterialsKey, "CSRF key materials")
 	if len(appConfig.Hook.BlockingHandlers) > 0 || len(appConfig.Hook.NonBlockingHandlers) > 0 {
