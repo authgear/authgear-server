@@ -40,9 +40,6 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
       {{ template "error-no-passkey" (dict "type"
       $.FirstNonPasskeyPrimaryAuthenticatorType) }}
     </li>
-    <li id="error-message-metamask-user-rejected" class="hidden">
-      {{ template "error-metamask-user-rejected" }}
-    </li>
     <li id="error-message-metamask-unauthorized" class="hidden">
       {{ template "error-metamask-unauthorized" }}
     </li>

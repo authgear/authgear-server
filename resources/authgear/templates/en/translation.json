@@ -78,7 +78,6 @@
   "error-invalid-selected-image": "The selected image is invalid. Try another one.",
   "error-no-passkey": "Passkey is not found on your device. {type, select, password{Sign in with password instead?} oob_otp_email{Sign in with one-time password instead?} oob_otp_sms{Sign in with one-time password instead?} other{Try another device?}}",
 
-  "error-metamask-user-rejected": "You rejected the request.",
   "error-metamask-unauthorized": "You did not authorize the operation.",
   "error-metamask-unsupported-method": "The requested method is not supported.",
   "error-metamask-disconnected": "The provider is disconnected from the specified chain.",
