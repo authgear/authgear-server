@@ -78,7 +78,6 @@
   "error-invalid-selected-image": "你所選擇的圖片格式有誤。請嘗試使用另一張圖片。",
   "error-no-passkey": "在你的裝置沒有通行密鑰。{type, select, password{請使用密碼登入。} oob_otp_email{請使用一次性密碼登入。} oob_otp_sms{請使用一次性密碼登入。} other{請嘗試使用另一個裝置。}}",
 
-  "error-metamask-user-rejected": "你拒絕了請求。",
   "error-metamask-unauthorized": "你拒絕了授權。",
   "error-metamask-unsupported-method": "無效的請求方式。",
   "error-metamask-disconnected": "已從區塊鏈斷開連接。",

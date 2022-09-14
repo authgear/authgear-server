@@ -13,7 +13,7 @@ enum WalletProvider {
 function metamaskIsAvailable(): boolean {
   return (
     typeof window.ethereum !== "undefined" &&
-    window.ethereum?.isMetaMask === true
+    window.ethereum.isMetaMask === true
   );
 }
 
@@ -76,12 +76,12 @@ function isMetaMaskError(err: unknown): err is MetaMaskError {
     typeof err === "object" && err !== null && "code" in err && "message" in err
   );
 }
-function parseWalletError(err: unknown): string {
+function parseWalletError(err: unknown): string | null {
   if (isMetaMaskError(err)) {
     switch (err.code) {
-      // User rejection
+      // User rejection, no need to show error message
       case 4001:
-        return "error-message-metamask-user-rejected";
+        return null;
       // Unauthorized
       case 4100:
         return "error-message-metamask-unauthorized";
@@ -104,7 +104,9 @@ function handleError(err: unknown) {
 
   const parsedErrorId = parseWalletError(err);
 
-  showErrorMessage(parsedErrorId);
+  if (parsedErrorId) {
+    showErrorMessage(parsedErrorId);
+  }
   return;
 }
 
@@ -136,10 +138,13 @@ export class WalletConnectionController extends Controller {
       return;
     }
 
-    // Ensure wallet is connected
-    await this.provider.send("eth_requestAccounts", []);
-
-    visit(`/confirm_web3_account?provider=${this.providerValue}`);
+    try {
+      // Ensure wallet is connected
+      await this.provider.send("eth_requestAccounts", []);
+      visit(`/confirm_web3_account?provider=${this.providerValue}`);
+    } catch (err) {
+      handleError(err);
+    }
   }
 }
 
