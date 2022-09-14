@@ -72,7 +72,7 @@ const Widget: React.VFC<WidgetProps> = function Widget(props: WidgetProps) {
       style={{
         boxShadow: DefaultEffects.elevation4,
         maxHeight:
-          measuredHeight == null
+          measuredHeight == null || !showToggleButton
             ? undefined
             : extended
             ? `${measuredHeight}px`
