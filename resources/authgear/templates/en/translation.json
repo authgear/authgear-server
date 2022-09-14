@@ -183,11 +183,11 @@
   "create-password-page-title": "Create Password",
   "create-additional-password-page-title": "Create Additional Password",
 
-  "create-passkey-page-title": "Create Passkey",
-  "create-passkey-label": "Create Passkey",
+  "create-passkey-page-title": "Set up a passkey",
+  "create-passkey-label": "Set up passkey",
 
-  "prompt-create-passkey-page-title": "Create Passkey",
-  "prompt-create-passkey-page-description": "Create a passkey so that you can sign in faster and safer",
+  "prompt-create-passkey-page-title": "Set up a passkey",
+  "prompt-create-passkey-page-description": "Your device support passkey authentication. Set up a passkey for faster and safer login. If you use biometrics, we will never see or store your biometric data.",
   "prompt-create-passkey-skip-label": "Not now",
 
   "use-passkey-page-title": "Use Passkey",
