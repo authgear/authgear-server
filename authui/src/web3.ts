@@ -1,20 +1,14 @@
 import { Controller } from "@hotwired/stimulus";
 import { handleAxiosError, showErrorMessage } from "./messageBar";
 import jazzicon from "@metamask/jazzicon";
-import { ethers } from "ethers";
 import axios from "axios";
 import { SiweMessage } from "siwe";
 import { visit } from "@hotwired/turbo";
+import detectEthereumProvider from "@metamask/detect-provider";
+import { ethers } from "ethers";
 
 enum WalletProvider {
   MetaMask = "metamask",
-}
-
-function metamaskIsAvailable(): boolean {
-  return (
-    typeof window.ethereum !== "undefined" &&
-    window.ethereum.isMetaMask === true
-  );
 }
 
 function deserializeNonceResponse(data: any): SIWENonce {
@@ -43,28 +37,36 @@ function createSIWEMessage(
   return message.prepareMessage();
 }
 
-function checkProviderIsAvailable(provider: string): boolean {
-  switch (provider) {
-    case WalletProvider.MetaMask:
-    default:
-      return metamaskIsAvailable();
-  }
-}
-
-function getProvider(provider: string): ethers.providers.Web3Provider | null {
-  if (!checkProviderIsAvailable(provider)) {
-    return null;
-  }
-
-  switch (provider) {
-    case WalletProvider.MetaMask:
-    default:
-      return new ethers.providers.Web3Provider(window.ethereum!);
-  }
-}
-
 function truncateAddress(address: string): string {
   return address.slice(0, 6) + "..." + address.slice(address.length - 4);
+}
+
+interface MetamaskProvider extends ethers.providers.ExternalProvider {
+  isMetaMask: true;
+  on: (eventName: string, callback: () => void) => void;
+  off: (eventName: string, callback: () => void) => void;
+}
+
+interface Web3Provider extends Omit<ethers.providers.Web3Provider, "provider"> {
+  provider: ethers.providers.ExternalProvider | MetamaskProvider;
+}
+
+function isProviderMetaMask(
+  provider?: ethers.providers.ExternalProvider | MetamaskProvider
+): provider is MetamaskProvider {
+  return provider?.isMetaMask === true;
+}
+
+async function getProvider(type: string): Promise<Web3Provider | null> {
+  const provider = (await detectEthereumProvider({
+    mustBeMetaMask: type === WalletProvider.MetaMask,
+  })) as ethers.providers.ExternalProvider | null;
+
+  if (provider) {
+    return new ethers.providers.Web3Provider(provider);
+  }
+
+  return null;
 }
 
 interface MetaMaskError {
@@ -122,7 +124,13 @@ export class WalletConnectionController extends Controller {
   declare provider: ethers.providers.Web3Provider | null;
 
   connect() {
-    this.provider = getProvider(this.providerValue);
+    getProvider(this.providerValue)
+      .then((provider) => {
+        this.provider = provider;
+      })
+      .catch((err) => {
+        handleError(err);
+      });
   }
 
   connectWallet(e: MouseEvent) {
@@ -212,17 +220,31 @@ export class WalletConfirmationController extends Controller {
   declare submitTarget: HTMLButtonElement;
 
   declare providerValue: string;
-  declare provider: ethers.providers.Web3Provider | null;
+  declare provider: Web3Provider | null;
 
   connect() {
-    this.provider = getProvider(this.providerValue);
+    getProvider(this.providerValue)
+      .then((provider) => {
+        if (!provider) {
+          visit(`/missing_web3_wallet?provider=${this.providerValue}`);
+          return;
+        }
+        this.provider = provider;
+        this._getAccount();
+      })
+      .catch((err) => {
+        handleError(err);
+      });
 
-    if (!this.provider) {
-      visit(`/missing_web3_wallet?provider=${this.providerValue}`);
-      return;
+    if (isProviderMetaMask(this.provider?.provider)) {
+      this.provider!.provider.on("accountsChanged", () => this._getAccount());
     }
+  }
 
-    this._getAccount();
+  disconnect() {
+    if (isProviderMetaMask(this.provider?.provider)) {
+      this.provider!.provider.off("accountsChanged", () => this._getAccount());
+    }
   }
 
   async _getAccount() {
@@ -239,32 +261,6 @@ export class WalletConfirmationController extends Controller {
     this.displayedTarget.textContent = truncateAddress(account);
 
     this.dispatch("addressUpdate", { detail: { address: account } });
-  }
-
-  reconnect(e: MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    this.disconnectAccount().then(() => {
-      this._getAccount();
-    });
-  }
-
-  async disconnectAccount() {
-    if (!this.provider) {
-      return;
-    }
-
-    try {
-      // Requesting this to revoke account permission
-      await this.provider.send("wallet_requestPermissions", [
-        {
-          eth_accounts: {},
-        },
-      ]);
-    } catch (err: unknown) {
-      handleError(err);
-    }
   }
 
   async performSIWE() {

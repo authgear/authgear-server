@@ -58,18 +58,6 @@
         </button>
       </form>
     </div>
-    <div class="alternative-separator flex flex-row items-center">
-      <span class="primary-txt mx-1.5 text-sm">{{ template "or-label" }}</span>
-    </div>
-    <div class="flex flex-row items-start">
-      <button
-        class="primary-txt text-sm leading-tight"
-        type="button"
-        data-action="click->web3-wallet-confirmation#reconnect"
-      >
-        {{ template "confirm-web3-account-page-change-account"}}
-      </button>
-    </div>
   </div>
   {{ template "__watermark.html" . }}
 </div>
