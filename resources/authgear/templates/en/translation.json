@@ -180,8 +180,8 @@
 
   "use-login-id-key": "Use {key, select, email{email address} username{username} phone{phone number} other{{key}}} instead",
 
-  "create-password-page-title": "Create Password",
-  "create-additional-password-page-title": "Create Additional Password",
+  "create-password-page-title": "Set up a password",
+  "create-additional-password-page-title": "Set up an additional password",
 
   "create-passkey-page-title": "Set up a passkey",
   "create-passkey-label": "Set up passkey",

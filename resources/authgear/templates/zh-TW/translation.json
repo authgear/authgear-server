@@ -180,8 +180,8 @@
 
   "use-login-id-key": "改為用{key, select, email{電郵地址} username{用戶名稱} phone{電話號碼} other{{key}}}",
 
-  "create-password-page-title": "建立密碼",
-  "create-additional-password-page-title": "創建輔助密碼",
+  "create-password-page-title": "設置密碼",
+  "create-additional-password-page-title": "設置輔助密碼",
 
   "create-passkey-page-title": "設置通行密鑰",
   "create-passkey-label": "設置通行密鑰",
