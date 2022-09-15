@@ -157,14 +157,13 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.O
 		if r.Code() == "" {
 			return protocol.NewError("invalid_request", "code is required")
 		}
-		// either client secret or PKCE code verifier is required
 		if client.IsFirstParty() {
 			if r.CodeVerifier() == "" {
 				return protocol.NewError("invalid_request", "PKCE code verifier is required")
 			}
 		} else {
-			if r.CodeVerifier() == "" && r.ClientSecret() == "" {
-				return protocol.NewError("invalid_request", "either client secret or PKCE code verifier is required for third party app")
+			if r.ClientSecret() == "" {
+				return protocol.NewError("invalid_request", "client secret is required")
 			}
 		}
 	case "refresh_token":
@@ -215,15 +214,20 @@ func (h *TokenHandler) handleAuthorizationCode(
 		return nil, protocol.NewError("invalid_request", "invalid redirect URI")
 	}
 
-	// if code verifier is provided, must verify PKCE
-	if r.CodeVerifier() != "" {
-		if codeGrant.PKCEChallenge == "" || !verifyPKCE(codeGrant.PKCEChallenge, r.CodeVerifier()) {
+	// verify pkce
+	needVerifyPKCE := client.IsFirstParty() || codeGrant.PKCEChallenge != "" || r.CodeVerifier() != ""
+	if needVerifyPKCE {
+		if codeGrant.PKCEChallenge == "" || r.CodeVerifier() == "" || !verifyPKCE(codeGrant.PKCEChallenge, r.CodeVerifier()) {
 			return nil, errInvalidAuthzCode
 		}
 	}
 
 	// verify client secret
-	if r.ClientSecret() != "" {
+	needClientSecret := !client.IsFirstParty()
+	if needClientSecret {
+		if r.ClientSecret() == "" {
+			return nil, protocol.NewError("invalid_request", "invalid client secret")
+		}
 		credentialsItem, ok := h.OAuthClientCredentials.Lookup(client.ClientID)
 		if !ok {
 			return nil, protocol.NewError("invalid_request", "client secret is not supported for the client")
