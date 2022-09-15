@@ -317,6 +317,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(welcomemessage.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(mfa.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(verification.RateLimiter), new(*ratelimit.Limiter)),
+		wire.Bind(new(featuresiwe.RateLimiter), new(*ratelimit.Limiter)),
 	),
 
 	wire.NewSet(

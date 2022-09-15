@@ -80,9 +80,9 @@ type PasskeyIdentityProvider interface {
 type SIWEIdentityProvider interface {
 	Get(userID, id string) (*identity.SIWE, error)
 	GetMany(ids []string) ([]*identity.SIWE, error)
-	GetByMessageRequest(messageRequest model.SIWEVerificationRequest) (*identity.SIWE, error)
+	GetByMessage(msg string) (*identity.SIWE, error)
 	List(userID string) ([]*identity.SIWE, error)
-	New(userID string, messageRequest model.SIWEVerificationRequest) (*identity.SIWE, error)
+	New(userID string, msg string, signature string) (*identity.SIWE, error)
 	Create(i *identity.SIWE) error
 	Delete(i *identity.SIWE) error
 }
@@ -279,8 +279,8 @@ func (s *Service) getBySpec(spec *identity.Spec) (*identity.Info, error) {
 		}
 		return p.ToInfo(), nil
 	case model.IdentityTypeSIWE:
-		request := spec.SIWE.VerificationRequest
-		e, err := s.SIWE.GetByMessageRequest(request)
+		message := spec.SIWE.Message
+		e, err := s.SIWE.GetByMessage(message)
 		if err != nil {
 			return nil, err
 		}
@@ -488,8 +488,9 @@ func (s *Service) New(userID string, spec *identity.Spec, options identity.NewId
 		}
 		return p.ToInfo(), nil
 	case model.IdentityTypeSIWE:
-		request := spec.SIWE.VerificationRequest
-		e, err := s.SIWE.New(userID, request)
+		message := spec.SIWE.Message
+		signature := spec.SIWE.Signature
+		e, err := s.SIWE.New(userID, message, signature)
 		if err != nil {
 			return nil, err
 		}
@@ -682,6 +683,7 @@ func (s *Service) CheckDuplicated(is *identity.Info) (dupeIdentity *identity.Inf
 func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err error) {
 	var loginIDs []*identity.LoginID
 	var oauths []*identity.OAuth
+	var siwes []*identity.SIWE
 
 	if userID != "" {
 		loginIDs, err = s.LoginID.List(userID)
@@ -695,6 +697,11 @@ func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err e
 		// No need to consider anonymous identity
 		// No need to consider biometric identity
 		// No need to consider passkey identity
+
+		siwes, err = s.SIWE.List(userID)
+		if err != nil {
+			return
+		}
 	}
 
 	for _, i := range s.Authentication.Identities {
@@ -745,7 +752,18 @@ func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err e
 					out = append(out, candidate)
 				}
 			}
+		case model.IdentityTypeSIWE:
+
+			for _, iden := range siwes {
+				candidate := identity.NewSIWECandidate()
+				candidate[identity.CandidateKeyDisplayID] = iden.Address
+				candidate[identity.CandidateKeyIdentityID] = iden.ID
+
+				out = append(out, candidate)
+
+			}
 		}
+
 	}
 
 	return

@@ -125,6 +125,10 @@
     @apply rounded-sm text-center;
   }
 
+  .btn.wallet-btn {
+    @apply rounded-sm text-center w-full;
+  }
+
   /* Safari button cannot have display being set to other value */
   /* Therefore we have to wrap the content in a span */
   /* However, other sizing properties still need to be declared on the button itself */
@@ -134,6 +138,15 @@
   }
 
   .sso-btn-icon {
+    @apply absolute top-0 left-0 w-9 h-9 bg-no-repeat bg-center;
+    background-size: 50%;
+  }
+
+  .wallet-btn-content {
+    @apply block relative px-9 py-1.5;
+  }
+
+  .wallet-btn-icon {
     @apply absolute top-0 left-0 w-9 h-9 bg-no-repeat bg-center;
     background-size: 50%;
   }
@@ -440,6 +453,10 @@
   }
   .sso-btn-icon.wechat-icon {
     background-image: url(./img/icon-wechat.svg);
+  }
+
+  .metamask-icon {
+    background-image: url(./img/icon-metamask.svg);
   }
 
   .destructive-btn {

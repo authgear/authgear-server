@@ -1,7 +1,6 @@
 package identity
 
-import "github.com/authgear/authgear-server/pkg/api/model"
-
 type SIWESpec struct {
-	VerificationRequest model.SIWEVerificationRequest `json:"data"`
+	Message   string `json:"message"`
+	Signature string `json:"signature"`
 }

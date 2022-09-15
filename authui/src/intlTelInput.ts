@@ -82,7 +82,6 @@ export class IntlTelInputController extends Controller {
     }
   }
 
-  // @ts-expect-error
   get inputElement(): HTMLInputElement {
     return this.element as HTMLInputElement;
   }

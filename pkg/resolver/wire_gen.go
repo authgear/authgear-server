@@ -303,10 +303,24 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AppID:   appID,
 		Clock:   clock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clock,
-		NonceStore: siweStoreRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clock,
+		NonceStore:  siweStoreRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -394,16 +408,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CodeStore: oobStoreRedis,
 		Clock:     clock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: handle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clock,
 	}
 	service3 := &service2.Service{
 		Store:       store3,
@@ -659,16 +663,32 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	factory := appProvider.LoggerFactory
+	logger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  logger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		HTTPConfig: httpConfig,
-		Clock:      clockClock,
-		NonceStore: storeRedis,
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -687,9 +707,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:               passkeyProvider,
 		SIWE:                  siweProvider,
 	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	factory := appProvider.LoggerFactory
-	logger := verification.NewLogger(factory)
+	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
@@ -701,19 +719,9 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
-	}
 	verificationService := &verification.Service{
 		RemoteIP:          remoteIP,
-		Logger:            logger,
+		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/goccy/go-json"
 	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -34,16 +35,23 @@ func (s *Store) selectQuery() db.SelectBuilder {
 
 func (s *Store) scan(scanner db.Scanner) (*identity.SIWE, error) {
 	i := &identity.SIWE{}
+	var data []byte
 	err := scanner.Scan(
 		&i.ID,
 		&i.UserID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ChainID,
 		&i.Address,
+		&data,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, identity.ErrIdentityNotFound
 	} else if err != nil {
+		return nil, err
+	}
+
+	if err = json.Unmarshal(data, &i.Data); err != nil {
 		return nil, err
 	}
 
@@ -112,6 +120,7 @@ func (s *Store) GetByAddress(chainID int, address string) (*identity.SIWE, error
 }
 
 func (s *Store) Create(i *identity.SIWE) error {
+
 	builder := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_identity")).
 		Columns(
@@ -134,6 +143,11 @@ func (s *Store) Create(i *identity.SIWE) error {
 		return err
 	}
 
+	data, err := json.Marshal(i.Data)
+	if err != nil {
+		return err
+	}
+
 	q := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_identity_siwe")).
 		Columns(
@@ -146,7 +160,7 @@ func (s *Store) Create(i *identity.SIWE) error {
 			i.ID,
 			i.Address,
 			i.ChainID,
-			i.Data,
+			data,
 		)
 
 	_, err = s.SQLExecutor.ExecWith(q)

@@ -6,8 +6,11 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"strconv"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/web3"
 )
@@ -17,7 +20,12 @@ type Service struct {
 	Web3Config  *config.Web3Config
 }
 
-func (s *Service) GetWeb3Info(addresses []string) (*model.UserWeb3Info, error) {
+type GetUserNFTsResponse struct {
+	Result model.NFTOwnership  `json:"result"`
+	Error  *apierrors.APIError `json:"error"`
+}
+
+func (s *Service) GetWeb3Info(identities []*identity.Info) (*model.UserWeb3Info, error) {
 	if s.Web3Config == nil || s.Web3Config.NFT == nil {
 		return nil, fmt.Errorf("NFTConfig not defined")
 	}
@@ -32,13 +40,38 @@ func (s *Service) GetWeb3Info(addresses []string) (*model.UserWeb3Info, error) {
 	}
 
 	ownerships := make([]model.NFTOwnership, 0)
-	for _, address := range addresses {
-		nfts, err := s.GetNFTsByAddress(contractIDs, address)
+	for _, identity := range identities {
+		if identity == nil {
+			continue
+		}
+		var ownerID *web3.ContractID
+		switch identity.Type {
+		case model.IdentityTypeSIWE:
+			// SIWE means blockchain has to be ethereum
+			ownerID = &web3.ContractID{
+				Blockchain:      "ethereum",
+				Network:         strconv.Itoa(identity.SIWE.ChainID),
+				ContractAddress: identity.SIWE.Address,
+			}
+		default:
+			// No supported identities
+			break
+		}
+
+		if ownerID == nil {
+			continue
+		}
+
+		nft, err := s.GetNFTsByAddress(contractIDs, *ownerID)
 		if err != nil {
 			return nil, err
 		}
 
-		ownerships = append(ownerships, (nfts.Items)...)
+		if nft == nil {
+			return nil, fmt.Errorf("Failed to fetch nfts for user")
+		}
+
+		ownerships = append(ownerships, *nft)
 
 	}
 
@@ -49,18 +82,23 @@ func (s *Service) GetWeb3Info(addresses []string) (*model.UserWeb3Info, error) {
 	return web3Info, nil
 }
 
-func (s *Service) GetNFTsByAddress(contracts []web3.ContractID, ownerAddresses string) (*model.GetUserNFTsResponse, error) {
+func (s *Service) GetNFTsByAddress(contractIDs []web3.ContractID, ownerID web3.ContractID) (*model.NFTOwnership, error) {
 	endpoint, err := url.Parse(string(s.APIEndpoint))
 	if err != nil {
 		return nil, err
 	}
 
-	endpoint.Path = path.Join("nfts", ownerAddresses)
+	ownerURL, err := ownerID.URL()
+	if err != nil {
+		return nil, err
+	}
+
+	endpoint.Path = path.Join("nfts", ownerURL.String())
 
 	query := endpoint.Query()
-	if len(contracts) > 0 {
-		urls := make([]string, 0, len(contracts))
-		for _, contract := range contracts {
+	if len(contractIDs) > 0 {
+		urls := make([]string, 0, len(contractIDs))
+		for _, contract := range contractIDs {
 			url, err := contract.URL()
 			if err != nil {
 				return nil, err
@@ -75,11 +113,15 @@ func (s *Service) GetNFTsByAddress(contracts []web3.ContractID, ownerAddresses s
 		return nil, err
 	}
 
-	var response model.GetUserNFTsResponse
+	var response GetUserNFTsResponse
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, err
 	}
 
-	return &response, nil
+	if response.Error != nil {
+		return nil, response.Error
+	}
+
+	return &response.Result, nil
 }
