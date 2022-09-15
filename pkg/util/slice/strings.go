@@ -53,3 +53,11 @@ func Deduplicate[T comparable](slice []T) []T {
 	}
 	return result
 }
+
+func ToStringSlice(slice [][]byte) []string {
+	strSlice := make([]string, len(slice))
+	for i, bytes := range slice {
+		strSlice[i] = string(bytes)
+	}
+	return strSlice
+}

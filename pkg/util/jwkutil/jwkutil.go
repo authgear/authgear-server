@@ -34,3 +34,23 @@ func ExtractOctetKey(set jwk.Set, id string) ([]byte, error) {
 	}
 	return nil, errors.New("octet key not found")
 }
+
+func ExtractOctetKeys(set jwk.Set) ([][]byte, error) {
+	keys := [][]byte{}
+	for it := set.Iterate(context.Background()); it.Next(context.Background()); {
+		pair := it.Pair()
+		key := pair.Value.(jwk.Key)
+		switch key.KeyType() {
+		case jwa.OctetSeq:
+			var bytes []byte
+			err := key.Raw(&bytes)
+			if err != nil {
+				return nil, err
+			}
+			keys = append(keys, bytes)
+		default:
+			return nil, errors.New("unexpected key type (key type should be octet)")
+		}
+	}
+	return keys, nil
+}

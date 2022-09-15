@@ -3,6 +3,8 @@ package config
 import (
 	"encoding/json"
 
+	"github.com/authgear/authgear-server/pkg/util/jwkutil"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/lestrrat-go/jwx/jwk"
 )
 
@@ -346,7 +348,8 @@ func (c *CSRFKeyMaterials) UnmarshalJSON(b []byte) error {
 }
 
 func (c *CSRFKeyMaterials) SensitiveStrings() []string {
-	return nil
+	keys, _ := jwkutil.ExtractOctetKeys(c.Set)
+	return slice.ToStringSlice(keys)
 }
 
 var _ = SecretConfigSchema.Add("WebhookKeyMaterials", `{ "$ref": "#/$defs/JWS" }`)
@@ -369,7 +372,8 @@ func (c *WebhookKeyMaterials) UnmarshalJSON(b []byte) error {
 }
 
 func (c *WebhookKeyMaterials) SensitiveStrings() []string {
-	return nil
+	keys, _ := jwkutil.ExtractOctetKeys(c.Set)
+	return slice.ToStringSlice(keys)
 }
 
 var _ = SecretConfigSchema.Add("AdminAPIAuthKey", `{ "$ref": "#/$defs/JWS" }`)
@@ -415,7 +419,8 @@ func (c *ImagesKeyMaterials) UnmarshalJSON(b []byte) error {
 }
 
 func (c *ImagesKeyMaterials) SensitiveStrings() []string {
-	return nil
+	keys, _ := jwkutil.ExtractOctetKeys(c.Set)
+	return slice.ToStringSlice(keys)
 }
 
 var _ = SecretConfigSchema.Add("WATICredentials", `
@@ -485,7 +490,11 @@ func (c *OAuthClientCredentials) Lookup(clientID string) (*OAuthClientCredential
 }
 
 func (c *OAuthClientCredentials) SensitiveStrings() []string {
-	return nil
+	var out []string
+	for _, item := range c.Items {
+		out = append(out, item.SensitiveStrings()...)
+	}
+	return out
 }
 
 type OAuthClientCredentialsItem struct {
@@ -554,4 +563,9 @@ func (c *OAuthClientCredentialsKeySet) UnmarshalJSON(b []byte) error {
 		c.Set = jwk.NewSet()
 	}
 	return c.Set.(interface{}).(json.Unmarshaler).UnmarshalJSON(b)
+}
+
+func (c *OAuthClientCredentialsKeySet) SensitiveStrings() []string {
+	keys, _ := jwkutil.ExtractOctetKeys(c.Set)
+	return slice.ToStringSlice(keys)
 }
