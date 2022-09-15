@@ -220,7 +220,21 @@ export class WalletConfirmationController extends Controller {
   declare submitTarget: HTMLButtonElement;
 
   declare providerValue: string;
-  declare provider: Web3Provider | null;
+  declare _provider: Web3Provider | null;
+
+  set provider(p: Web3Provider | null) {
+    if (isProviderMetaMask(p?.provider)) {
+      p!.provider.on("accountsChanged", this.onAccountChanged);
+    } else if (isProviderMetaMask(this._provider?.provider) && p === null) {
+      this._provider?.provider.off("accountsChanged", this.onAccountChanged);
+    }
+
+    this._provider = p;
+  }
+
+  get provider() {
+    return this._provider;
+  }
 
   connect() {
     getProvider(this.providerValue)
@@ -235,17 +249,15 @@ export class WalletConfirmationController extends Controller {
       .catch((err) => {
         handleError(err);
       });
-
-    if (isProviderMetaMask(this.provider?.provider)) {
-      this.provider!.provider.on("accountsChanged", () => this._getAccount());
-    }
   }
 
   disconnect() {
-    if (isProviderMetaMask(this.provider?.provider)) {
-      this.provider!.provider.off("accountsChanged", () => this._getAccount());
-    }
+    this.provider = null;
   }
+
+  onAccountChanged = () => {
+    this._getAccount();
+  };
 
   async _getAccount() {
     if (!this.provider) {
