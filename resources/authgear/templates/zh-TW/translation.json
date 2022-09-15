@@ -201,7 +201,7 @@
   "confirm-web3-account-page-change-account": "更改帳戶",
 
   "missing-web3-wallet-page-title": "安裝密碼貨幣錢包",
-  "missing-web3-wallet-page-description": "在您的瀏覽器中沒有找到 {provider} 密碼貨幣錢包，請安裝擴展程序以繼續",
+  "missing-web3-wallet-page-description": "您的瀏覽器中沒有找到或尚未支援 {provider} 密碼貨幣錢包",
 
   "prompt-create-passkey-page-title": "設置通行密鑰",
   "prompt-create-passkey-page-description": "你的裝置支援通行密鑰。設置通行密鑰使你可以更快、更安全地登入。若你使用生物認證，我們永不會看見或儲存你的生物認證資料。",
