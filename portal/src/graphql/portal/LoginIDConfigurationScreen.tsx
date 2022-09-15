@@ -352,7 +352,6 @@ const LoginIDTypeEdit: React.VFC<LoginIDTypeEditProps> =
       featureDisabled,
       isEnabled,
     } = props;
-    const { renderToString } = useContext(Context);
 
     const onToggleIsEnabled = useCallback(
       (_, isEnabled?: boolean) =>
@@ -365,11 +364,6 @@ const LoginIDTypeEdit: React.VFC<LoginIDTypeEditProps> =
       username: "LoginIDConfigurationScreen.username.title",
       phone: "LoginIDConfigurationScreen.phone.title",
     }[loginIDType];
-
-    const renderAriaLabel = useCallback(
-      () => renderToString(titleId),
-      [renderToString, titleId]
-    );
 
     const widgetHeader = useMemo(
       () => (
@@ -400,7 +394,6 @@ const LoginIDTypeEdit: React.VFC<LoginIDTypeEditProps> =
         index={index}
         itemCount={loginIDKeyTypes.length}
         onSwapClicked={swapPosition}
-        renderAriaLabel={renderAriaLabel}
         HeaderComponent={widgetHeader}
         HeaderMessageComponent={widgetMessageHeader}
       >

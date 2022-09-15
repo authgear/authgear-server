@@ -10,7 +10,6 @@ interface WidgetWithOrderingProps {
   HeaderMessageComponent?: React.ReactNode;
   HeaderComponent: React.ReactNode;
   onSwapClicked: (index1: number, index2: number) => void;
-  renderAriaLabel: (index?: number) => string;
   children: React.ReactNode;
   className?: string;
 }
@@ -26,7 +25,6 @@ const WidgetWithOrdering: React.VFC<WidgetWithOrderingProps> =
       onSwapClicked,
       children,
       className,
-      renderAriaLabel,
     } = props;
 
     return (
@@ -39,7 +37,6 @@ const WidgetWithOrdering: React.VFC<WidgetWithOrderingProps> =
             index={index}
             itemCount={itemCount}
             onSwapClicked={onSwapClicked}
-            renderAriaLabel={renderAriaLabel}
           />
         </div>
         {children}

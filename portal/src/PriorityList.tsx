@@ -31,10 +31,6 @@ interface LocalCheckboxProps {
   onChangeChecked: (key: string, checked: boolean) => void;
 }
 
-function renderAriaLabel() {
-  return "";
-}
-
 function LocalCheckbox(props: LocalCheckboxProps): ReactElement {
   const { item, onChangeChecked } = props;
 
@@ -112,7 +108,6 @@ function PriorityList(props: PriorityListProps): ReactElement {
               index={index}
               itemCount={items.length}
               onSwapClicked={onSwap}
-              renderAriaLabel={renderAriaLabel}
             />
           );
         },

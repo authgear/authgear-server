@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext } from "react";
 import { IconButton } from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
 
@@ -9,7 +9,6 @@ interface OrderButtonsProps {
   disabled: boolean;
   itemCount: number;
   onSwapClicked: (index1: number, index2: number) => void;
-  renderAriaLabel: (index?: number) => string;
 }
 
 export function swap<T>(items: T[], index1: number, index2: number): T[] {
@@ -29,10 +28,18 @@ export function swap<T>(items: T[], index1: number, index2: number): T[] {
   return newItems;
 }
 
+const DOWN_ICON_PROPS = {
+  iconName: "ChevronDown",
+};
+
+const UP_ICON_PROPS = {
+  iconName: "ChevronUp",
+};
+
 const OrderButtons: React.VFC<OrderButtonsProps> = function OrderButtons(
   props: OrderButtonsProps
 ) {
-  const { index, disabled, itemCount, onSwapClicked, renderAriaLabel } = props;
+  const { index, disabled, itemCount, onSwapClicked } = props;
   const { renderToString } = useContext(Context);
   const onUpClicked = useCallback(() => {
     if (index == null) {
@@ -47,32 +54,21 @@ const OrderButtons: React.VFC<OrderButtonsProps> = function OrderButtons(
     onSwapClicked(index, index + 1);
   }, [index, onSwapClicked]);
 
-  const ariaLabelUp = useMemo(() => {
-    return renderToString("OrderButtons.move-up", {
-      key: renderAriaLabel(index),
-    });
-  }, [renderAriaLabel, index, renderToString]);
-  const ariaLabelDown = useMemo(() => {
-    return renderToString("OrderButtons.move-down", {
-      key: renderAriaLabel(index),
-    });
-  }, [renderAriaLabel, index, renderToString]);
-
   return (
     <div>
       <IconButton
         className={styles.orderButton}
         disabled={disabled || index === itemCount - 1}
         onClick={onDownClicked}
-        iconProps={{ iconName: "ChevronDown" }}
-        ariaLabel={ariaLabelDown}
+        iconProps={DOWN_ICON_PROPS}
+        ariaLabel={renderToString("OrderButtons.move-down")}
       />
       <IconButton
         className={styles.orderButton}
         disabled={disabled || index === 0}
         onClick={onUpClicked}
-        iconProps={{ iconName: "ChevronUp" }}
-        ariaLabel={ariaLabelUp}
+        iconProps={UP_ICON_PROPS}
+        ariaLabel={renderToString("OrderButtons.move-up")}
       />
     </div>
   );
