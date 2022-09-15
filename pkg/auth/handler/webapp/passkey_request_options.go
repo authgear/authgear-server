@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -44,6 +45,7 @@ func (h *PasskeyRequestOptionsHandler) ServeHTTP(w http.ResponseWriter, r *http.
 	}
 
 	conditional := r.FormValue("conditional") == "true"
+	allowCredentials := r.FormValue("allow_credentials") == "true"
 
 	var requestOptions *model.WebAuthnRequestOptions
 	err = h.Database.ReadOnly(func() error {
@@ -52,28 +54,34 @@ func (h *PasskeyRequestOptionsHandler) ServeHTTP(w http.ResponseWriter, r *http.
 			if err != nil {
 				return err
 			}
-		} else {
+			return nil
+		}
+
+		if allowCredentials {
 			session := webapp.GetSession(r.Context())
 			if session == nil {
-				requestOptions, err = h.Passkey.MakeModalRequestOptions()
-				if err != nil {
-					return err
-				}
-			} else {
-				err := h.Page.PeekUncommittedChanges(session, func(graph *interaction.Graph) error {
-					userID := graph.MustGetUserID()
-					var err error
-					requestOptions, err = h.Passkey.MakeModalRequestOptionsWithUser(userID)
-					if err != nil {
-						return err
-					}
-
-					return nil
-				})
-				if err != nil {
-					return err
-				}
+				err = apierrors.NewBadRequest("session not found")
+				return err
 			}
+			err := h.Page.PeekUncommittedChanges(session, func(graph *interaction.Graph) error {
+				userID := graph.MustGetUserID()
+				var err error
+				requestOptions, err = h.Passkey.MakeModalRequestOptionsWithUser(userID)
+				if err != nil {
+					return err
+				}
+
+				return nil
+			})
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+
+		requestOptions, err = h.Passkey.MakeModalRequestOptions()
+		if err != nil {
+			return err
 		}
 
 		return nil

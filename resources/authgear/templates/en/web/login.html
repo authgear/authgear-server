@@ -124,7 +124,8 @@
 				{{ if $.PasskeyEnabled }}
 				<div class="flex flex-col"
 					data-controller="passkey-request"
-					data-passkey-request-auto-value="false">
+					data-passkey-request-auto-value="false"
+					data-passkey-request-allow-credentials-value="false">
 					<button class="btn passkey-btn"
 						type="button"
 						data-action="click->passkey-request#use"
