@@ -1,19 +1,15 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import cn from "classnames";
 import {
-  Checkbox,
   Dropdown,
-  IColumn,
-  SelectionMode,
   Toggle,
-  DetailsList,
-  Link,
+  Link as FluentLink,
   Text,
   TooltipHost,
 } from "@fluentui/react";
 import produce from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import OrderButtons, { swap } from "../../OrderButtons";
+import { swap } from "../../OrderButtons";
 import FormTextField from "../../FormTextField";
 import {
   PortalAPIAppConfig,
@@ -44,6 +40,8 @@ import WidgetDescription from "../../WidgetDescription";
 import Widget from "../../Widget";
 import FormContainer from "../../FormContainer";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
+import PriorityList, { PriorityListItem } from "../../PriorityList";
+import ReactRouterLink from "../../ReactRouterLink";
 
 import styles from "./AuthenticatorConfigurationScreen.module.css";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
@@ -248,45 +246,17 @@ const secondaryAuthenticatorNameIds = {
   password: "AuthenticatorType.secondary.password",
 };
 
-type AuthenticatorColumnItem = (
-  | { kind: "primary"; type: PrimaryAuthenticatorType }
-  | { kind: "secondary"; type: SecondaryAuthenticatorType }
-) & { isChecked: boolean; isDisabled: boolean };
-
-interface AuthenticatorCheckboxProps {
-  disabled: boolean;
-  item: AuthenticatorColumnItem;
-  onChange: (item: AuthenticatorColumnItem, checked: boolean) => void;
-}
-
-const AuthenticatorCheckbox: React.VFC<AuthenticatorCheckboxProps> =
-  function AuthenticatorCheckbox(props) {
-    const { disabled, item, onChange } = props;
-
-    const onCheckboxChange = useCallback(
-      (_event, checked?: boolean) => onChange(item, checked ?? false),
-      [item, onChange]
-    );
-
-    return (
-      <Checkbox
-        checked={item.isChecked}
-        onChange={onCheckboxChange}
-        disabled={Boolean(disabled && !item.isChecked)}
-      />
-    );
-  };
-
 interface AuthenticationAuthenticatorSettingsContentProps {
+  appID: string;
   form: AppConfigFormModel<FormState>;
   featureConfig?: PortalAPIFeatureConfig;
 }
 
 const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthenticatorSettingsContentProps> =
   function AuthenticationAuthenticatorSettingsContent(props) {
-    const { state, setState, effectiveConfig } = props.form;
+    const { appID, featureConfig } = props;
 
-    const { featureConfig } = props;
+    const { state, setState, effectiveConfig } = props.form;
 
     const tooltipResult = useTooltipTargetElement();
     const passkeyTooltipProps = useMemo(() => {
@@ -296,37 +266,6 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
     }, [tooltipResult.targetElement]);
 
     const { renderToString } = useContext(Context);
-
-    const authenticatorColumns: IColumn[] = [
-      {
-        key: "activated",
-        fieldName: "activated",
-        name: renderToString(
-          "AuthenticatorConfigurationScreen.columns.activate"
-        ),
-        className: styles.authenticatorColumn,
-        minWidth: 64,
-        maxWidth: 64,
-      },
-      {
-        key: "key",
-        fieldName: "key",
-        name: renderToString(
-          "AuthenticatorConfigurationScreen.columns.authenticator"
-        ),
-        className: styles.authenticatorColumn,
-        minWidth: 240,
-        maxWidth: 9999,
-      },
-      {
-        key: "order",
-        fieldName: "order",
-        name: renderToString("DetailsListWithOrdering.order"),
-        className: styles.authenticatorOrder,
-        minWidth: 100,
-        maxWidth: 100,
-      },
-    ];
 
     const featureDisabled: Record<
       string,
@@ -451,7 +390,7 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
       }
     );
 
-    const onPrimarySwapClicked = useCallback(
+    const onSwapPrimaryAuthenticator = useCallback(
       (index1: number, index2: number) => {
         setState((prev) => ({
           ...prev,
@@ -460,7 +399,7 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
       },
       [setState]
     );
-    const onSecondarySwapClicked = useCallback(
+    const onSwapSecondaryAuthenticator = useCallback(
       (index1: number, index2: number) => {
         setState((prev) => ({
           ...prev,
@@ -470,197 +409,78 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
       [setState]
     );
 
-    const onAuthenticatorEnabledChange = useCallback(
-      (item: AuthenticatorColumnItem, checked: boolean) =>
-        setState((state) => {
-          const s = produce(state, (state) => {
-            let t:
-              | AuthenticatorTypeFormState<
-                  PrimaryAuthenticatorType | SecondaryAuthenticatorType
-                >
-              | undefined;
-            switch (item.kind) {
-              case "primary":
-                t = state.primary.find((t) => t.type === item.type);
-                break;
-              case "secondary":
-                t = state.secondary.find((t) => t.type === item.type);
-                break;
-            }
-            if (t) {
-              t.isChecked = checked;
-            }
-          });
-
-          return makeAuthenticatorReasonable(s);
-        }),
+    const onChangePrimaryAuthenticatorChecked = useCallback(
+      (key: string, checked: boolean) => {
+        setState((state) =>
+          makeAuthenticatorReasonable(
+            produce(state, (state) => {
+              const t = state.primary.find((t) => t.type === key);
+              if (t != null) {
+                t.isChecked = checked;
+              }
+            })
+          )
+        );
+      },
       [setState]
     );
 
-    const renderPrimaryAriaLabel = React.useCallback(
-      (index?: number): string => {
-        return index != null
-          ? renderToString(
-              primaryAuthenticatorNameIds[state.primary[index].type]
-            )
-          : "";
+    const onChangeSecondaryAuthenticatorChecked = useCallback(
+      (key: string, checked: boolean) => {
+        setState((state) =>
+          makeAuthenticatorReasonable(
+            produce(state, (state) => {
+              const t = state.secondary.find((t) => t.type === key);
+              if (t != null) {
+                t.isChecked = checked;
+              }
+            })
+          )
+        );
       },
-      [state.primary, renderToString]
-    );
-    const renderSecondaryAriaLabel = React.useCallback(
-      (index?: number): string => {
-        return index != null
-          ? renderToString(
-              secondaryAuthenticatorNameIds[state.secondary[index].type]
-            )
-          : "";
-      },
-      [state.secondary, renderToString]
+      [setState]
     );
 
-    const primaryItems: AuthenticatorColumnItem[] = useMemo(
+    const primaryItems: PriorityListItem[] = useMemo(
       () =>
         state.primary.map(({ type, isChecked, isDisabled }) => ({
-          kind: "primary",
-          type,
-          isChecked,
-          isDisabled,
+          key: type,
+          checked: isChecked,
+          disabled: isDisabled || featureDisabled.primary[type],
+          content: (
+            <div>
+              <Text variant="small" block={true}>
+                <FormattedMessage id={primaryAuthenticatorNameIds[type]} />
+              </Text>
+              {type === "oob_otp_sms" && isChecked && isPhoneLoginIdDisabled ? (
+                <ReactRouterLink
+                  to={`/project/${appID}/configuration/authentication/login-id`}
+                  component={FluentLink}
+                >
+                  <FormattedMessage id="AuthenticatorHint.primary.oob-otp-phone" />
+                </ReactRouterLink>
+              ) : undefined}
+            </div>
+          ),
         })),
-      [state.primary]
+      [state.primary, featureDisabled.primary, isPhoneLoginIdDisabled, appID]
     );
 
-    const secondaryItems: AuthenticatorColumnItem[] = useMemo(
+    const secondaryItems: PriorityListItem[] = useMemo(
       () =>
         state.secondary.map(({ type, isChecked, isDisabled }) => ({
-          kind: "secondary",
-          type,
-          isChecked,
-          isDisabled,
+          key: type,
+          checked: isChecked,
+          disabled: isDisabled || featureDisabled.secondary[type],
+          content: (
+            <div>
+              <Text variant="small">
+                <FormattedMessage id={secondaryAuthenticatorNameIds[type]} />
+              </Text>
+            </div>
+          ),
         })),
-      [state.secondary]
-    );
-
-    const onRenderPrimaryColumn = useCallback(
-      (item: AuthenticatorColumnItem, index?: number, column?: IColumn) => {
-        const disabled = featureDisabled[item.kind][item.type];
-        switch (column?.key) {
-          case "activated":
-            return (
-              <AuthenticatorCheckbox
-                disabled={disabled}
-                item={item}
-                onChange={onAuthenticatorEnabledChange}
-              />
-            );
-
-          case "key": {
-            let nameId: string;
-            switch (item.kind) {
-              case "primary":
-                nameId = primaryAuthenticatorNameIds[item.type];
-                break;
-              case "secondary":
-                nameId = secondaryAuthenticatorNameIds[item.type];
-                break;
-            }
-            return (
-              <div className={styles.authenticatorColumnSpanRow}>
-                <span>
-                  <FormattedMessage id={nameId} />
-                </span>
-                {item.type === "oob_otp_sms" &&
-                item.isChecked &&
-                isPhoneLoginIdDisabled ? (
-                  <span>
-                    <Link href="./login-id">
-                      <FormattedMessage id="AuthenticatorHint.primary.oob-otp-phone" />
-                    </Link>
-                  </span>
-                ) : null}
-              </div>
-            );
-          }
-
-          case "order": {
-            return (
-              <OrderButtons
-                disabled={disabled}
-                index={index}
-                itemCount={primaryItems.length}
-                onSwapClicked={onPrimarySwapClicked}
-                renderAriaLabel={renderPrimaryAriaLabel}
-              />
-            );
-          }
-
-          default:
-            return null;
-        }
-      },
-      [
-        featureDisabled,
-        onAuthenticatorEnabledChange,
-        isPhoneLoginIdDisabled,
-        primaryItems.length,
-        onPrimarySwapClicked,
-        renderPrimaryAriaLabel,
-      ]
-    );
-
-    const onRenderSecondaryColumn = useCallback(
-      (item: AuthenticatorColumnItem, index?: number, column?: IColumn) => {
-        const disabled =
-          featureDisabled[item.kind][item.type] || item.isDisabled;
-        switch (column?.key) {
-          case "activated":
-            return (
-              <AuthenticatorCheckbox
-                disabled={disabled}
-                item={item}
-                onChange={onAuthenticatorEnabledChange}
-              />
-            );
-
-          case "key": {
-            let nameId: string;
-            switch (item.kind) {
-              case "primary":
-                nameId = primaryAuthenticatorNameIds[item.type];
-                break;
-              case "secondary":
-                nameId = secondaryAuthenticatorNameIds[item.type];
-                break;
-            }
-            return (
-              <span>
-                <FormattedMessage id={nameId} />
-              </span>
-            );
-          }
-
-          case "order": {
-            return (
-              <OrderButtons
-                disabled={disabled}
-                index={index}
-                itemCount={secondaryItems.length}
-                onSwapClicked={onSecondarySwapClicked}
-                renderAriaLabel={renderSecondaryAriaLabel}
-              />
-            );
-          }
-
-          default:
-            return null;
-        }
-      },
-      [
-        onAuthenticatorEnabledChange,
-        featureDisabled,
-        onSecondarySwapClicked,
-        secondaryItems.length,
-        renderSecondaryAriaLabel,
-      ]
+      [state.secondary, featureDisabled.secondary]
     );
 
     return (
@@ -724,11 +544,16 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
               </Text>
             </div>
           )}
-          <DetailsList
+          <PriorityList
             items={primaryItems}
-            columns={authenticatorColumns}
-            onRenderItemColumn={onRenderPrimaryColumn}
-            selectionMode={SelectionMode.none}
+            checkedColumnLabel={renderToString(
+              "AuthenticatorConfigurationScreen.columns.activate"
+            )}
+            keyColumnLabel={renderToString(
+              "AuthenticatorConfigurationScreen.columns.authenticator"
+            )}
+            onChangeChecked={onChangePrimaryAuthenticatorChecked}
+            onSwap={onSwapPrimaryAuthenticator}
           />
         </Widget>
         <Widget className={styles.widget}>
@@ -751,11 +576,16 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
             {hasSecondaryFeatureDisabled ? (
               <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
             ) : null}
-            <DetailsList
+            <PriorityList
               items={secondaryItems}
-              columns={authenticatorColumns}
-              onRenderItemColumn={onRenderSecondaryColumn}
-              selectionMode={SelectionMode.none}
+              checkedColumnLabel={renderToString(
+                "AuthenticatorConfigurationScreen.columns.activate"
+              )}
+              keyColumnLabel={renderToString(
+                "AuthenticatorConfigurationScreen.columns.authenticator"
+              )}
+              onChangeChecked={onChangeSecondaryAuthenticatorChecked}
+              onSwap={onSwapSecondaryAuthenticator}
             />
           </div>
           <Toggle
@@ -844,6 +674,7 @@ const AuthenticatorConfigurationScreen: React.VFC =
     return (
       <FormContainer form={form}>
         <AuthenticationAuthenticatorSettingsContent
+          appID={appID}
           form={form}
           featureConfig={featureConfig.effectiveFeatureConfig ?? undefined}
         />
