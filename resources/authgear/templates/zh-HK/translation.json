@@ -199,7 +199,7 @@
   "confirm-web3-account-page-change-account": "更改帳號",
 
   "missing-web3-wallet-page-title": "安裝密碼貨幣錢包",
-  "missing-web3-wallet-page-description": "在您的瀏覽器中沒有找到 {provider} 密碼貨幣錢包，請安裝擴展程序以繼續",
+  "missing-web3-wallet-page-description": "您的瀏覽器中沒有找到或尚未支援 {provider} 密碼貨幣錢包",
 
   "prompt-create-passkey-page-title": "建立通行密匙",
   "prompt-create-passkey-page-description": "建立一個可以更快、更安全登入的通行密匙",

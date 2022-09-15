@@ -199,7 +199,7 @@
   "confirm-web3-account-page-change-account": "Change account",
 
   "missing-web3-wallet-page-title": "Install Wallet",
-  "missing-web3-wallet-page-description": "{provider} is not found in your browser. Please install the extension to continue.",
+  "missing-web3-wallet-page-description": "{provider} is either missing or not supported for your browser.",
 
   "prompt-create-passkey-page-title": "Create Passkey",
   "prompt-create-passkey-page-description": "Create a passkey so that you can sign in faster and safer",
