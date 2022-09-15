@@ -6,6 +6,7 @@ import styles from "./Widget.module.css";
 
 interface WidgetProps {
   className?: string;
+  contentLayout?: "flex-column" | "grid";
   children?: React.ReactNode;
   extended?: boolean;
   showToggleButton?: boolean;
@@ -23,6 +24,7 @@ const COLLAPSED_HEIGHT = 64;
 const Widget: React.VFC<WidgetProps> = function Widget(props: WidgetProps) {
   const {
     className,
+    contentLayout = "flex-column",
     children,
     extended = true,
     showToggleButton = false,
@@ -77,7 +79,14 @@ const Widget: React.VFC<WidgetProps> = function Widget(props: WidgetProps) {
       }}
     >
       {/* The height of this div is stable. It will not change during expand/collapse */}
-      <div ref={divRef} className={styles.content}>
+      <div
+        ref={divRef}
+        className={
+          contentLayout === "flex-column"
+            ? styles.contentFlexColumn
+            : styles.contentGrid
+        }
+      >
         {children}
       </div>
       <IconButton

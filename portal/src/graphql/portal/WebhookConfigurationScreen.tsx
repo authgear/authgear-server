@@ -1,6 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import cn from "classnames";
 import { useParams } from "react-router-dom";
 import {
   Dropdown,
@@ -489,7 +488,7 @@ const WebhookConfigurationScreenContent: React.VFC<WebhookConfigurationScreenCon
           />
         </Widget>
 
-        <Widget className={cn(styles.widget, styles.grid)}>
+        <Widget className={styles.widget} contentLayout="grid">
           <WidgetTitle className={styles.columnFull} id={WEBHOOK_SIGNATURE_ID}>
             <FormattedMessage id="WebhookConfigurationScreen.signature.title" />
           </WidgetTitle>
