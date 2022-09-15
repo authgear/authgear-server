@@ -258,6 +258,7 @@ export class PasskeyRequestController extends Controller {
   static targets = ["button", "submit", "input"];
   static values = {
     auto: String,
+    allowCredentials: String,
   };
 
   declare buttonTarget: HTMLButtonElement;
@@ -265,6 +266,7 @@ export class PasskeyRequestController extends Controller {
   declare inputTarget: HTMLInputElement;
 
   declare autoValue: string;
+  declare allowCredentialsValue: string;
 
   connect() {
     // Disable the button if PublicKeyCredential is unavailable.
@@ -287,11 +289,11 @@ export class PasskeyRequestController extends Controller {
 
   async _use() {
     try {
+      const params = new URLSearchParams();
+      params.set("allow_credentials", this.allowCredentialsValue);
       const resp = await axios("/passkey/request_options", {
         method: "post",
-        headers: {
-          "content-type": "application/json; charset=utf-8",
-        },
+        data: params,
       });
       const options = deserializeRequestOptions(resp.data.result);
       try {
