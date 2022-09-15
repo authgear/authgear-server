@@ -23,6 +23,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -232,13 +233,15 @@ func (h *TokenHandler) handleAuthorizationCode(
 		if !ok {
 			return nil, protocol.NewError("invalid_request", "client secret is not supported for the client")
 		}
-		key, _ := credentialsItem.Set.Get(0)
-		var expectedClientSecret []byte
-		err = key.Raw(&expectedClientSecret)
-		if err != nil {
-			return nil, err
+
+		pass := false
+		keys, _ := jwkutil.ExtractOctetKeys(credentialsItem.Set)
+		for _, clientSecret := range keys {
+			if subtle.ConstantTimeCompare([]byte(r.ClientSecret()), clientSecret) == 1 {
+				pass = true
+			}
 		}
-		if subtle.ConstantTimeCompare([]byte(r.ClientSecret()), []byte(expectedClientSecret)) != 1 {
+		if !pass {
 			return nil, protocol.NewError("invalid_request", "invalid client secret")
 		}
 	}
