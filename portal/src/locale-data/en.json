@@ -608,7 +608,7 @@
   "PaginationWidget.Last": "Go to the last page",
   "PaginationWidget.Page": "Go to page {PAGE}",
 
-  "DetailsListWithOrdering.order": "Order",
+  "PriorityList.order": "Order",
 
   "OrderButtons.move-up": "Move {key} up",
   "OrderButtons.move-down": "Move {key} down",
