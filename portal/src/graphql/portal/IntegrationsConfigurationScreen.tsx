@@ -7,7 +7,6 @@ import {
   ColumnActionsMode,
   SelectionMode,
   Text,
-  Link as FluentLink,
   Image,
   ImageFit,
 } from "@fluentui/react";
@@ -15,7 +14,7 @@ import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
-import ReactRouterLink from "../../ReactRouterLink";
+import Link from "../../Link";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import FormContainer from "../../FormContainer";
@@ -176,17 +175,13 @@ const IntegrationsConfigurationContent: React.VFC<IntegrationsConfigurationConte
           case "action": {
             return (
               <div className={styles.cell}>
-                <ReactRouterLink
-                  to="./google-tag-manager"
-                  component={FluentLink}
-                  className={styles.action}
-                >
+                <Link to="./google-tag-manager" className={styles.action}>
                   {item.connected ? (
                     <FormattedMessage id="edit" />
                   ) : (
                     <FormattedMessage id="connect" />
                   )}
-                </ReactRouterLink>
+                </Link>
               </div>
             );
           }

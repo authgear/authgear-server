@@ -1,13 +1,8 @@
 import React, { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  DefaultEffects,
-  Text,
-  Link as FluentLink,
-  useTheme,
-} from "@fluentui/react";
+import { DefaultEffects, Text, useTheme } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
-import ReactRouterLink from "./ReactRouterLink";
+import Link from "./Link";
 import DefaultButton from "./DefaultButton";
 import styles from "./WizardContentLayout.module.css";
 import {
@@ -110,14 +105,13 @@ export default function WizardContentLayout(
         </div>
       </div>
       {appID != null ? (
-        <ReactRouterLink
+        <Link
           className={styles.skip}
           to={`/project/${appID}`}
-          component={FluentLink}
           {...(trackSkipButtonClick ? gtmEventDataAttributes : {})}
         >
           <FormattedMessage id="WizardContentLayout.skip.label" />
-        </ReactRouterLink>
+        </Link>
       ) : null}
     </div>
   );

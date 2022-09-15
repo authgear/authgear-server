@@ -6,7 +6,6 @@ import {
   useTheme,
   TooltipHost,
   ITooltipHostProps,
-  Link,
   IButtonProps,
   ProgressIndicator,
   PartialTheme,
@@ -18,6 +17,7 @@ import { useId } from "@fluentui/react-hooks";
 import { DateTime } from "luxon";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { formatDatetime } from "../../util/formatDatetime";
+import LinkButton from "../../LinkButton";
 import styles from "./SubscriptionCurrentPlanSummary.module.css";
 
 export interface SubscriptionCurrentPlanSummaryProps {
@@ -215,13 +215,13 @@ function UsageMeter(props: UsageMeterProps) {
             ) : null}
           </Text>
           {limitReached ? (
-            <Link onClick={onClickUpgrade}>
+            <LinkButton onClick={onClickUpgrade}>
               <FormattedMessage id="SubscriptionCurrentPlanSummary.mau.limit-reached" />
-            </Link>
+            </LinkButton>
           ) : percentComplete >= warnPercentage ? (
-            <Link onClick={onClickUpgrade}>
+            <LinkButton onClick={onClickUpgrade}>
               <FormattedMessage id="SubscriptionCurrentPlanSummary.mau.approaching-limit" />
-            </Link>
+            </LinkButton>
           ) : (
             <Text block={true}>{"\u00a0"}</Text>
           )}
@@ -271,7 +271,7 @@ function SubscriptionManagement(props: SubscriptionManagementProps) {
           />
         </Text>
       ) : null}
-      <Link
+      <LinkButton
         className={styles.subscriptionManagementLink}
         onClick={onClickManageSubscription}
         disabled={manageSubscriptionLoading ?? manageSubscriptionDisabled}
@@ -280,7 +280,7 @@ function SubscriptionManagement(props: SubscriptionManagementProps) {
         {manageSubscriptionLoading === true ? (
           <Spinner size={SpinnerSize.xSmall} />
         ) : null}
-      </Link>
+      </LinkButton>
     </div>
   );
 }

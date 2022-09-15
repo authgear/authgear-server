@@ -48,7 +48,7 @@
         "message": "Please import \"GTMProvider\" from ./src/GTMProvider instead."
       }, {
         "name": "@fluentui/react",
-        "importNames": ["TextField", "PrimaryButton", "DefaultButton", "MessageBarButton", "ActionButton", "CommandBarButton"],
+        "importNames": ["TextField", "PrimaryButton", "DefaultButton", "MessageBarButton", "ActionButton", "CommandBarButton", "Link"],
         "message": "Please import the replacement from ./src instead."
       }]
     }]

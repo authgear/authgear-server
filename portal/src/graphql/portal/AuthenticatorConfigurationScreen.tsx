@@ -1,12 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import cn from "classnames";
-import {
-  Dropdown,
-  Toggle,
-  Link as FluentLink,
-  Text,
-  TooltipHost,
-} from "@fluentui/react";
+import { Dropdown, Toggle, Text, TooltipHost } from "@fluentui/react";
 import produce from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { swap } from "../../OrderButtons";
@@ -41,7 +35,7 @@ import Widget from "../../Widget";
 import FormContainer from "../../FormContainer";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import PriorityList, { PriorityListItem } from "../../PriorityList";
-import ReactRouterLink from "../../ReactRouterLink";
+import Link from "../../Link";
 
 import styles from "./AuthenticatorConfigurationScreen.module.css";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
@@ -453,12 +447,11 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
                 <FormattedMessage id={primaryAuthenticatorNameIds[type]} />
               </Text>
               {type === "oob_otp_sms" && isChecked && isPhoneLoginIdDisabled ? (
-                <ReactRouterLink
+                <Link
                   to={`/project/${appID}/configuration/authentication/login-id`}
-                  component={FluentLink}
                 >
                   <FormattedMessage id="AuthenticatorHint.primary.oob-otp-phone" />
-                </ReactRouterLink>
+                </Link>
               ) : undefined}
             </div>
           ),

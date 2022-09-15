@@ -29,8 +29,9 @@ import {
   instantiateSystemConfig,
   mergeSystemConfig,
 } from "./system-config";
-import { loadTheme, Link as FluentLink, ILinkProps } from "@fluentui/react";
-import { ReactRouterLink, ReactRouterLinkProps } from "./ReactRouterLink";
+import { loadTheme, ILinkProps } from "@fluentui/react";
+import ExternalLink from "./ExternalLink";
+import Link from "./Link";
 import Authenticated from "./graphql/portal/Authenticated";
 import { LoadingContextProvider } from "./hook/loading";
 import { ErrorContextProvider } from "./hook/error";
@@ -184,16 +185,6 @@ const PortalRoot = function PortalRoot() {
   );
 };
 
-const PortalLink = React.forwardRef<HTMLAnchorElement, ReactRouterLinkProps>(
-  function LinkWithRef({ ...rest }, ref) {
-    return <ReactRouterLink {...rest} ref={ref} component={FluentLink} />;
-  }
-);
-
-function ExternalLink(props: ILinkProps) {
-  return <FluentLink target="_blank" rel="noreferrer" {...props} />;
-}
-
 const DocLink: React.VFC<ILinkProps> = (props: ILinkProps) => {
   const makeGTMEventDataAttributes = useMakeAuthgearGTMEventDataAttributes();
   const gtmEventDataAttributes = useMemo(() => {
@@ -205,19 +196,12 @@ const DocLink: React.VFC<ILinkProps> = (props: ILinkProps) => {
     });
   }, [makeGTMEventDataAttributes, props.href]);
 
-  return (
-    <FluentLink
-      target="_blank"
-      rel="noreferrer"
-      {...gtmEventDataAttributes}
-      {...props}
-    />
-  );
+  return <ExternalLink {...gtmEventDataAttributes} {...props} />;
 };
 
 const defaultComponents = {
   ExternalLink,
-  ReactRouterLink: PortalLink,
+  ReactRouterLink: Link,
   DocLink,
 };
 
