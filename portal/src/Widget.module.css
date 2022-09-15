@@ -1,9 +1,12 @@
 .root {
   @apply relative;
-  @apply flex flex-col;
-  @apply p-4 gap-y-5;
   @apply overflow-hidden;
   @apply transition-all;
+}
+
+.content {
+  @apply flex flex-col;
+  @apply p-4 gap-y-5;
 }
 
 .button {
