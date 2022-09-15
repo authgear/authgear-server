@@ -13,7 +13,7 @@ import (
 func TestOAuthClientCredentialsItemMarshalUnmarshalJSON(t *testing.T) {
 	Convey("OAuthClientCredentialsItemMarshalUnmarshalJSON", t, func() {
 		// nolint: gosec
-		secretJSON := `{"client_id":"third_party_app","keys":[{"created_at":1136171045,"k":"WlZCbUZkcmc4aXNfRnVORDZ5Q1FLWkJvbUIzU25RUVY","kid":"9dc0e72c-bf34-4ab3-a616-393093bdae0b","kty":"oct"}]}`
+		secretJSON := `{"client_id":"third_party_app","keys":[{"created_at":1136171045,"k":"c2VjcmV0MQ","kid":"9dc0e72c-bf34-4ab3-a616-393093bdae0b","kty":"oct"}]}`
 
 		// Test Unmarshal
 		var item *config.OAuthClientCredentialsItem
@@ -27,11 +27,13 @@ func TestOAuthClientCredentialsItemMarshalUnmarshalJSON(t *testing.T) {
 		var key []byte
 		err = k.Raw(&key)
 		So(err, ShouldBeNil)
-		So(string(key), ShouldEqual, "ZVBmFdrg8is_FuND6yCQKZBomB3SnQQV")
+		So(string(key), ShouldEqual, "secret1")
 
 		// Test Marshal
 		actualJSON, err := json.Marshal(item)
 		So(err, ShouldBeNil)
 		So(string(actualJSON), ShouldEqualJSON, secretJSON)
+
+		So(item.SensitiveStrings(), ShouldResemble, []string{"secret1"})
 	})
 }

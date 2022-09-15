@@ -90,3 +90,29 @@ func TestExtractOctetKey(t *testing.T) {
 		})
 	})
 }
+
+func TestExtractOctetKeys(t *testing.T) {
+	Convey("ExtractOctetKeys", t, func() {
+		key1, err := jwk.New([]byte("secret1"))
+		if err != nil {
+			panic(err)
+		}
+		_ = key1.Set("kid", "key-1")
+
+		key2, err := jwk.New([]byte("secret2"))
+		if err != nil {
+			panic(err)
+		}
+		_ = key2.Set("kid", "key-2")
+
+		set := jwk.NewSet()
+		_ = set.Add(key1)
+		_ = set.Add(key2)
+
+		Convey("should extract keys", func() {
+			keys, err := ExtractOctetKeys(set)
+			So(err, ShouldBeNil)
+			So(keys, ShouldResemble, [][]byte{[]byte("secret1"), []byte("secret2")})
+		})
+	})
+}
