@@ -400,7 +400,6 @@ const CountryCallingCodeList: React.VFC<CountryCallingCodeListProps> =
                   index={index}
                   itemCount={pinnedAlpha2.length}
                   onSwapClicked={onSwap}
-                  renderAriaLabel={() => item.displayName}
                 />
               );
             }

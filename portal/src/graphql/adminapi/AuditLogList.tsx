@@ -6,11 +6,10 @@ import {
   SelectionMode,
   DetailsListLayoutMode,
   ShimmeredDetailsList,
-  Link as FluentLink,
   MessageBar,
 } from "@fluentui/react";
 import { Context, FormattedMessage, Values } from "@oursky/react-messageformat";
-import ReactRouterLink from "../../ReactRouterLink";
+import Link from "../../Link";
 import PaginationWidget from "../../PaginationWidget";
 import {
   AuditLogListFragment,
@@ -164,9 +163,9 @@ const AuditLogList: React.VFC<AuditLogListProps> = function AuditLogList(
 
       if (href != null) {
         return (
-          <ReactRouterLink to={href} state={state} component={FluentLink}>
+          <Link to={href} state={state}>
             {text}
-          </ReactRouterLink>
+          </Link>
         );
       }
       return <span>{text}</span>;

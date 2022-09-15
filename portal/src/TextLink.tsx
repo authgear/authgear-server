@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { Context } from "@oursky/react-messageformat";
-import { Label, Text, Link } from "@fluentui/react";
+import { Label, Text } from "@fluentui/react";
+import ExternalLink from "./ExternalLink";
 import styles from "./TextLink.module.css";
 
 export interface TextLinkProps {
@@ -17,9 +18,9 @@ const TextLink: React.VFC<TextLinkProps> = function TextLink(props) {
     <div className={className}>
       <Label>{label}</Label>
       {value != null && value !== "" ? (
-        <Link className={styles.link} href={value} target="_blank">
+        <ExternalLink className={styles.link} href={value}>
           {value}
-        </Link>
+        </ExternalLink>
       ) : (
         <Text>{renderToString("not-set")}</Text>
       )}

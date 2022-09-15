@@ -11,7 +11,6 @@ import {
   Label,
   IconButton,
   SearchBox,
-  Link,
   Dialog,
   DialogFooter,
   Dropdown,
@@ -31,6 +30,7 @@ import { useExactKeywordSearch } from "../../util/search";
 import styles from "./ManageLanguageWidget.module.css";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
+import LinkButton from "../../LinkButton";
 
 interface ManageLanguageWidgetProps {
   className?: string;
@@ -118,9 +118,9 @@ const Cell: React.VFC<CellProps> = function Cell(props: CellProps) {
         />
       </Text>
       {checked && !disabled ? (
-        <Link onClick={onClickSetAsFallback}>
+        <LinkButton onClick={onClickSetAsFallback}>
           <FormattedMessage id="ManageLanguageWidget.set-as-default" />
-        </Link>
+        </LinkButton>
       ) : null}
     </div>
   );

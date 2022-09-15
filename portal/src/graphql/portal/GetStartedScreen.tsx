@@ -1,16 +1,9 @@
 import React, { useCallback, useMemo } from "react";
-import {
-  Text,
-  FontIcon,
-  IButtonProps,
-  Image,
-  ImageFit,
-  Link,
-} from "@fluentui/react";
+import { Text, FontIcon, IButtonProps, Image, ImageFit } from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { useQuery, useMutation } from "@apollo/client";
-import ReactRouterLink from "../../ReactRouterLink";
+import Link from "../../Link";
 import ScreenTitle from "../../ScreenTitle";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
@@ -46,6 +39,8 @@ import {
 } from "../../GTMProvider";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import ActionButton from "../../ActionButton";
+import ExternalLink from "../../ExternalLink";
+import LinkButton from "../../LinkButton";
 
 type Progress = keyof TutorialStatusData["progress"];
 
@@ -258,10 +253,9 @@ function Card(props: CardProps) {
         <FormattedMessage id={"GetStartedScreen.card.description." + cardKey} />
       </Text>
       {internalHref != null ? (
-        <ReactRouterLink
+        <Link
           id={id}
           to={internalHref.replace("~/", `/project/${appID}/`)}
-          component={Link}
           className={styles.cardActionButton}
           {...eventDataAttributes}
         >
@@ -269,10 +263,10 @@ function Card(props: CardProps) {
             id={"GetStartedScreen.card.action-label." + cardKey}
           />
           {" >"}
-        </ReactRouterLink>
+        </Link>
       ) : null}
       {externalHref != null ? (
-        <Link
+        <ExternalLink
           id={id}
           className={styles.cardActionButton}
           href={externalHref}
@@ -283,18 +277,17 @@ function Card(props: CardProps) {
             id={"GetStartedScreen.card.action-label." + cardKey}
           />
           {" >"}
-        </Link>
+        </ExternalLink>
       ) : null}
       {skipProgress != null && !isDone ? (
-        <Link
+        <LinkButton
           className={styles.cardSkipButton}
-          as="button"
           onClick={onClickSkip}
           disabled={skipDisabled}
         >
           <FormattedMessage id="GetStartedScreen.card.skip-button.label" />
           {" >"}
-        </Link>
+        </LinkButton>
       ) : null}
     </div>
   );

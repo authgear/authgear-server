@@ -1,11 +1,10 @@
 import React, { useCallback, useContext, useMemo } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Context } from "@oursky/react-messageformat";
 import authgear from "@authgear/web";
 import {
   Icon,
   Text,
-  Link as FluentUILink,
   CommandButton,
   IconButton,
   Panel,
@@ -16,6 +15,8 @@ import {
 import { useAppAndSecretConfigQuery } from "./graphql/portal/query/appAndSecretConfigQuery";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import ScreenNav from "./ScreenNav";
+import ExternalLink from "./ExternalLink";
+import Link from "./Link";
 
 import styles from "./ScreenHeader.module.css";
 import { useSystemConfig } from "./context/SystemConfigContext";
@@ -87,15 +88,13 @@ const DesktopViewHeaderAppSection: React.VFC<
     <>
       <Icon className={styles.headerArrow} iconName="ChevronRight" />
       {rawAppID != null && endpoint != null ? (
-        <FluentUILink
+        <ExternalLink
           className={styles.headerAppID}
-          target="_blank"
-          rel="noopener"
           href={endpoint}
           theme={themes.inverted}
         >
           {`${rawAppID} - ${endpoint}`}
-        </FluentUILink>
+        </ExternalLink>
       ) : (
         <Text className={styles.headerAppID} theme={themes.inverted}>
           {appID}

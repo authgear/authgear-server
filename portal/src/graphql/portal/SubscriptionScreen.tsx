@@ -15,7 +15,6 @@ import {
   DialogType,
   DialogFooter,
   IDialogContentProps,
-  Link,
   ThemeProvider,
   PartialTheme,
 } from "@fluentui/react";
@@ -62,6 +61,7 @@ import ErrorDialog from "../../error/ErrorDialog";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
+import LinkButton from "../../LinkButton";
 
 const ALL_KNOWN_PLANS = ["free", "developers", "startups", "business"];
 const PAID_PLANS = ALL_KNOWN_PLANS.slice(1);
@@ -846,11 +846,11 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
                   </Text>
                 ) : (
                   <ThemeProvider theme={CANCEL_THEME}>
-                    <Link onClick={onClickCancel}>
+                    <LinkButton onClick={onClickCancel}>
                       <Text>
                         <FormattedMessage id="SubscriptionScreen.footer.cancel" />
                       </Text>
-                    </Link>
+                    </LinkButton>
                   </ThemeProvider>
                 )
               ) : null}

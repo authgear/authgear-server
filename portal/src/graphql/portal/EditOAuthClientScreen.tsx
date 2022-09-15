@@ -6,7 +6,6 @@ import produce, { createDraft } from "immer";
 import {
   Icon,
   Text,
-  Link,
   useTheme,
   Image,
   ImageFit,
@@ -38,6 +37,7 @@ import FormContainer from "../../FormContainer";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import styles from "./EditOAuthClientScreen.module.css";
 import Widget from "../../Widget";
+import ExternalLink from "../../ExternalLink";
 import flutterIconURL from "../../images/framework_flutter.svg";
 import xamarinIconURL from "../../images/framework_xamarin.svg";
 import ButtonWithLoading from "../../ButtonWithLoading";
@@ -147,7 +147,7 @@ const QuickStartFrameworkItem: React.VFC<QuickStartFrameworkItemProps> =
     }, [makeGTMEventDataAttributes, docLink]);
 
     return (
-      <Link
+      <ExternalLink
         onMouseOver={onMouseOver}
         onMouseOut={onMouseOut}
         className={cn(styles.quickStartItem, {
@@ -180,7 +180,7 @@ const QuickStartFrameworkItem: React.VFC<QuickStartFrameworkItemProps> =
             </Text>
           ) : null}
         </span>
-      </Link>
+      </ExternalLink>
     );
   };
 

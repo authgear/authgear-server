@@ -44,32 +44,12 @@
     }],
     "no-restricted-imports": ["error", {
       "paths": [{
-        "name": "@fluentui/react",
-        "importNames": ["TextField"],
-        "message": "Please import \"TextField\" from ./src/TextField instead."
-      }, {
         "name": "@elgorditosalsero/react-gtm-hook",
         "message": "Please import \"GTMProvider\" from ./src/GTMProvider instead."
       }, {
         "name": "@fluentui/react",
-        "importNames": ["PrimaryButton"],
-        "message": "Please import \"PrimaryButton\" from ./src/PrimaryButton instead."
-      }, {
-        "name": "@fluentui/react",
-        "importNames": ["DefaultButton"],
-        "message": "Please import \"DefaultButton\" from ./src/DefaultButton instead."
-      }, {
-        "name": "@fluentui/react",
-        "importNames": ["MessageBarButton"],
-        "message": "Please import \"MessageBarButton\" from ./src/MessageBarButton instead."
-      }, {
-        "name": "@fluentui/react",
-        "importNames": ["ActionButton"],
-        "message": "Please import \"ActionButton\" from ./src/ActionButton instead."
-      }, {
-        "name": "@fluentui/react",
-        "importNames": ["CommandBarButton"],
-        "message": "Please import \"CommandBarButton\" from ./src/CommandBarButton instead."
+        "importNames": ["TextField", "PrimaryButton", "DefaultButton", "MessageBarButton", "ActionButton", "CommandBarButton", "Link"],
+        "message": "Please import the replacement from ./src instead."
       }]
     }]
   }
