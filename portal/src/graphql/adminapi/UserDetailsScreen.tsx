@@ -498,6 +498,7 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
 
     const [setUserDisabledDialogIsHidden, setSetUserDisabledDialogIsHidden] =
       useState(true);
+    const [userIsDisabled, setUserIsDisabled] = useState(user.isDisabled);
     const onDismissSetUserDisabledDialog = useCallback(() => {
       setSetUserDisabledDialogIsHidden(true);
     }, []);
@@ -505,7 +506,8 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
       useDeleteUserCommandBarItem(onClickDeleteUser);
     const onClickSetUserDisabled = useCallback(() => {
       setSetUserDisabledDialogIsHidden(false);
-    }, []);
+      setUserIsDisabled(user.isDisabled);
+    }, [user.isDisabled]);
 
     const setUserDisabledCommandBarItem = useSetUserDisabledCommandBarItem(
       user,
@@ -579,7 +581,7 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
           isHidden={setUserDisabledDialogIsHidden}
           onDismiss={onDismissSetUserDisabledDialog}
           userID={user.id}
-          userIsDisabled={user.isDisabled}
+          userIsDisabled={userIsDisabled}
           userDeleteAt={user.deleteAt}
           endUserAccountIdentifier={user.endUserAccountID ?? undefined}
         />
