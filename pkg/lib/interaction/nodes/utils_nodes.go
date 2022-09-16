@@ -49,9 +49,9 @@ func identityFillDetails(err error, spec *identity.Spec, otherSpec *identity.Spe
 		details["IdentityTypeExisting"] = apierrors.APIErrorDetail.Value(otherSpec.Type)
 		switch otherSpec.Type {
 		case model.IdentityTypeLoginID:
-			details["LoginIDTypeExisting"] = apierrors.APIErrorDetail.Value(spec.LoginID.Type)
+			details["LoginIDTypeExisting"] = apierrors.APIErrorDetail.Value(otherSpec.LoginID.Type)
 		case model.IdentityTypeOAuth:
-			details["OAuthProviderTypeExisting"] = apierrors.APIErrorDetail.Value(spec.OAuth.ProviderID.Type)
+			details["OAuthProviderTypeExisting"] = apierrors.APIErrorDetail.Value(otherSpec.OAuth.ProviderID.Type)
 		}
 	}
 
