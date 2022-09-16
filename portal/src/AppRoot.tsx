@@ -306,7 +306,15 @@ const AppRoot: React.VFC = function AppRoot() {
             </Route>
 
             <Route path="configuration">
+              <Route
+                index={true}
+                element={<Navigate to="authentication" replace={true} />}
+              />
               <Route path="authentication">
+                <Route
+                  index={true}
+                  element={<Navigate to="login-id" replace={true} />}
+                />
                 <Route
                   path="login-id"
                   element={
@@ -430,6 +438,10 @@ const AppRoot: React.VFC = function AppRoot() {
               />
               <Route path="user-profile">
                 <Route
+                  index={true}
+                  element={<Navigate to="standard-attributes" replace={true} />}
+                />
+                <Route
                   path="standard-attributes"
                   element={
                     <Suspense fallback={<ShowLoading />}>
@@ -515,6 +527,18 @@ const AppRoot: React.VFC = function AppRoot() {
 
             <Route path="advanced">
               <Route
+                index={true}
+                element={<Navigate to="password-reset-code" replace={true} />}
+              />
+              <Route
+                path="password-reset-code"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <ForgotPasswordConfigurationScreen />
+                  </Suspense>
+                }
+              />
+              <Route
                 path="webhooks"
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -535,14 +559,6 @@ const AppRoot: React.VFC = function AppRoot() {
                 element={
                   <Suspense fallback={<ShowLoading />}>
                     <AccountDeletionConfigurationScreen />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="password-reset-code"
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <ForgotPasswordConfigurationScreen />
                   </Suspense>
                 }
               />
