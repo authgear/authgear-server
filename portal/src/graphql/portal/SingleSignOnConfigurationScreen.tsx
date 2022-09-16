@@ -205,7 +205,9 @@ const OAuthClientItem: React.VFC<OAuthClientItemProps> =
     const index = enabledProviders.findIndex((p) =>
       isOAuthSSOProvider(p.config, providerType, appType)
     );
-    const jsonPointer = index >= 0 ? `/identity/oauth/providers/${index}` : "";
+    const jsonPointer = useMemo(() => {
+      return index >= 0 ? `/identity/oauth/providers/${index}` : "";
+    }, [index]);
     const clientSecretParentJsonPointer =
       index >= 0
         ? new RegExp(`/secrets/\\d+/data/items/${index}`)
