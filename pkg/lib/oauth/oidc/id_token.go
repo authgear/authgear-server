@@ -226,5 +226,6 @@ func (ti *IDTokenIssuer) GetUserInfo(userID string) (map[string]interface{}, err
 		out[k] = v
 	}
 	out["custom_attributes"] = user.CustomAttributes
+	out["x_web3"] = user.Web3
 	return out, nil
 }

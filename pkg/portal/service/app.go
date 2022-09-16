@@ -277,6 +277,7 @@ func (s *AppService) UpdateResources(app *model.App, updates []appresource.Updat
 	}
 
 	err = s.AppConfigs.UpdateResources(app.ID, files)
+
 	return err
 }
 

@@ -19,12 +19,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/siwe"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
+	siwe2 "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
 	"github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
@@ -290,6 +293,40 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:   clock,
 		Passkey: passkeyService,
 	}
+	siweStore := &siwe.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	siweStoreRedis := &siwe2.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clock,
+	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
+	siweService := &siwe2.Service{
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clock,
+		NonceStore:  siweStoreRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
+	}
+	siweProvider := &siwe.Provider{
+		Store: siweStore,
+		Clock: clock,
+		SIWE:  siweService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -300,6 +337,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
 		Passkey:               passkeyProvider,
+		SIWE:                  siweProvider,
 	}
 	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -371,16 +409,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:     clock,
 		Logger:    oobLogger,
 	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: handle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clock,
-	}
 	service3 := &service2.Service{
 		Store:       store3,
 		Password:    passwordProvider,
@@ -431,6 +459,12 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		UserQueries: rawQueries,
 		UserStore:   userStore,
 	}
+	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
+	web3Config := appConfig.Web3
+	web3Service := &web3.Service{
+		APIEndpoint: nftIndexerAPIEndpoint,
+		Web3Config:  web3Config,
+	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              userStore,
@@ -439,6 +473,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		Web3:               web3Service,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets: oAuthKeyMaterials,
@@ -624,6 +659,42 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 		Passkey: passkeyService,
 	}
+	siweStore := &siwe.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	storeRedis := &siwe2.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
+	factory := appProvider.LoggerFactory
+	logger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  logger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
+	siweService := &siwe2.Service{
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
+	}
+	siweProvider := &siwe.Provider{
+		Store: siweStore,
+		Clock: clockClock,
+		SIWE:  siweService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -634,13 +705,12 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
 		Passkey:               passkeyProvider,
+		SIWE:                  siweProvider,
 	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	factory := appProvider.LoggerFactory
-	logger := verification.NewLogger(factory)
+	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	storeRedis := &verification.StoreRedis{
+	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -649,23 +719,13 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
-	}
 	verificationService := &verification.Service{
 		RemoteIP:          remoteIP,
-		Logger:            logger,
+		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         storeRedis,
+		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
@@ -776,6 +836,12 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		UserQueries: rawQueries,
 		UserStore:   userStore,
 	}
+	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
+	web3Config := appConfig.Web3
+	web3Service := &web3.Service{
+		APIEndpoint: nftIndexerAPIEndpoint,
+		Web3Config:  web3Config,
+	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              userStore,
@@ -784,6 +850,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		Web3:               web3Service,
 	}
 	resolveHandler := &handler.ResolveHandler{
 		Database:     handle,

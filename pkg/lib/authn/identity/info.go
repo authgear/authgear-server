@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/web3"
 )
 
 type Info struct {
@@ -20,6 +21,7 @@ type Info struct {
 	Anonymous *Anonymous `json:"anonymous,omitempty"`
 	Biometric *Biometric `json:"biometric,omitempty"`
 	Passkey   *Passkey   `json:"passkey,omitempty"`
+	SIWE      *SIWE      `json:"siwe,omitempty"`
 }
 
 func (i *Info) ToSpec() Spec {
@@ -69,6 +71,14 @@ func (i *Info) ToSpec() Spec {
 				AttestationResponse: i.Passkey.AttestationResponse,
 			},
 		}
+	case model.IdentityTypeSIWE:
+		return Spec{
+			Type: i.Type,
+			SIWE: &SIWESpec{
+				Message:   i.SIWE.Data.Message,
+				Signature: i.SIWE.Data.Signature,
+			},
+		}
 	default:
 		panic("identity: unknown identity type: " + i.Type)
 	}
@@ -105,6 +115,8 @@ func (i *Info) AMR() []string {
 	case model.IdentityTypeBiometric:
 		return []string{model.AMRXBiometric}
 	case model.IdentityTypePasskey:
+		return nil
+	case model.IdentityTypeSIWE:
 		return nil
 	default:
 		panic("identity: unknown identity type: " + i.Type)
@@ -144,6 +156,10 @@ func (i *Info) ToModel() model.Identity {
 		claims[IdentityClaimPasskeyCredentialID] = i.Passkey.CredentialID
 		claims[IdentityClaimPasskeyDisplayName] = i.Passkey.CreationOptions.PublicKey.User.DisplayName
 
+	case model.IdentityTypeSIWE:
+		claims[IdentityClaimSIWEAddress] = i.SIWE.Address
+		claims[IdentityClaimSIWEChainID] = i.SIWE.ChainID
+
 	default:
 		panic("identity: unknown identity type: " + i.Type)
 	}
@@ -161,6 +177,7 @@ func (i *Info) ToModel() model.Identity {
 // If it is a anonymous identity, the kid is returned.
 // If it is a biometric identity, the kid is returned.
 // If it is a passkey identity, the name is returned.
+// If it is a SIWE identity, EIP681 of the address and chainID is returned
 func (i *Info) DisplayID() string {
 	switch i.Type {
 	case model.IdentityTypeLoginID:
@@ -182,6 +199,12 @@ func (i *Info) DisplayID() string {
 		return i.Biometric.KeyID
 	case model.IdentityTypePasskey:
 		return i.Passkey.CreationOptions.PublicKey.User.DisplayName
+	case model.IdentityTypeSIWE:
+		eip681 := &web3.EIP681{
+			Address: i.SIWE.Address,
+			ChainID: i.SIWE.ChainID,
+		}
+		return eip681.URL().String()
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
 	}
@@ -210,6 +233,8 @@ func (i *Info) StandardClaims() map[model.ClaimName]string {
 	case model.IdentityTypeBiometric:
 		break
 	case model.IdentityTypePasskey:
+		break
+	case model.IdentityTypeSIWE:
 		break
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
@@ -262,6 +287,10 @@ func (i *Info) ModifyDisabled(c *config.IdentityConfig) bool {
 		// So we return false here.
 		return false
 	case model.IdentityTypePasskey:
+		// modify_disabled is only applicable to login_id and oauth.
+		// So we return false here.
+		return false
+	case model.IdentityTypeSIWE:
 		// modify_disabled is only applicable to login_id and oauth.
 		// So we return false here.
 		return false

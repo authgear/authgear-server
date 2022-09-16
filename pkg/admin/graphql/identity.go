@@ -31,6 +31,9 @@ var identityType = graphql.NewEnum(graphql.EnumConfig{
 		"PASSKEY": &graphql.EnumValueConfig{
 			Value: string(model.IdentityTypePasskey),
 		},
+		"SIWE": &graphql.EnumValueConfig{
+			Value: string(model.IdentityTypeSIWE),
+		},
 	},
 })
 

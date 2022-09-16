@@ -228,7 +228,7 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 
 	viewModel := &SettingsProfileViewModel{
 		FormattedName:    stdattrs.T(stdAttrs).FormattedName(),
-		EndUserAccountID: stdattrs.T(stdAttrs).EndUserAccountID(),
+		EndUserAccountID: user.EndUserAccountID(),
 		FormattedNames:   stdattrs.T(stdAttrs).FormattedNames(),
 		Today:            now.Format("2006-01-02"),
 

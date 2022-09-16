@@ -18,6 +18,7 @@ import (
 	identityoauth "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	identitypasskey "github.com/authgear/authgear-server/pkg/lib/authn/identity/passkey"
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
+	identitysiwe "github.com/authgear/authgear-server/pkg/lib/authn/identity/siwe"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
@@ -29,8 +30,10 @@ import (
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	featurepasskey "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
+	featuresiwe "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	featureweb3 "github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
@@ -178,12 +181,15 @@ var CommonDependencySet = wire.NewSet(
 		identitybiometric.DependencySet,
 		wire.Bind(new(interaction.BiometricIdentityProvider), new(*identitybiometric.Provider)),
 
+		identitysiwe.DependencySet,
+
 		identityservice.DependencySet,
 		wire.Bind(new(identityservice.LoginIDIdentityProvider), new(*identityloginid.Provider)),
 		wire.Bind(new(identityservice.OAuthIdentityProvider), new(*identityoauth.Provider)),
 		wire.Bind(new(identityservice.PasskeyIdentityProvider), new(*identitypasskey.Provider)),
 		wire.Bind(new(identityservice.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 		wire.Bind(new(identityservice.BiometricIdentityProvider), new(*identitybiometric.Provider)),
+		wire.Bind(new(identityservice.SIWEIdentityProvider), new(*identitysiwe.Provider)),
 
 		wire.Bind(new(facade.IdentityService), new(*identityservice.Service)),
 		wire.Bind(new(user.IdentityService), new(*identityservice.Service)),
@@ -311,6 +317,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(welcomemessage.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(mfa.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(verification.RateLimiter), new(*ratelimit.Limiter)),
+		wire.Bind(new(featuresiwe.RateLimiter), new(*ratelimit.Limiter)),
 	),
 
 	wire.NewSet(
@@ -341,5 +348,15 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(identitypasskey.PasskeyService), new(*featurepasskey.Service)),
 		wire.Bind(new(authenticatorpasskey.PasskeyService), new(*featurepasskey.Service)),
 		wire.Bind(new(interaction.PasskeyService), new(*featurepasskey.Service)),
+	),
+
+	wire.NewSet(
+		featuresiwe.DependencySet,
+		wire.Bind(new(identitysiwe.SIWEService), new(*featuresiwe.Service)),
+	),
+
+	wire.NewSet(
+		featureweb3.DependencySet,
+		wire.Bind(new(user.Web3Service), new(*featureweb3.Service)),
 	),
 )

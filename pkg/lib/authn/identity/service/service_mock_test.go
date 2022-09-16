@@ -508,21 +508,6 @@ func (mr *MockAnonymousIdentityProviderMockRecorder) List(userID interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).List), userID)
 }
 
-// ListByClaim mocks base method.
-func (m *MockAnonymousIdentityProvider) ListByClaim(name, value string) ([]*identity.Anonymous, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByClaim", name, value)
-	ret0, _ := ret[0].([]*identity.Anonymous)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListByClaim indicates an expected call of ListByClaim.
-func (mr *MockAnonymousIdentityProviderMockRecorder) ListByClaim(name, value interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaim", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).ListByClaim), name, value)
-}
-
 // New mocks base method.
 func (m *MockAnonymousIdentityProvider) New(userID, keyID string, key []byte) *identity.Anonymous {
 	m.ctrl.T.Helper()
@@ -646,21 +631,6 @@ func (m *MockBiometricIdentityProvider) List(userID string) ([]*identity.Biometr
 func (mr *MockBiometricIdentityProviderMockRecorder) List(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockBiometricIdentityProvider)(nil).List), userID)
-}
-
-// ListByClaim mocks base method.
-func (m *MockBiometricIdentityProvider) ListByClaim(name, value string) ([]*identity.Biometric, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByClaim", name, value)
-	ret0, _ := ret[0].([]*identity.Biometric)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListByClaim indicates an expected call of ListByClaim.
-func (mr *MockBiometricIdentityProviderMockRecorder) ListByClaim(name, value interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaim", reflect.TypeOf((*MockBiometricIdentityProvider)(nil).ListByClaim), name, value)
 }
 
 // New mocks base method.
@@ -788,21 +758,6 @@ func (mr *MockPasskeyIdentityProviderMockRecorder) List(userID interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).List), userID)
 }
 
-// ListByClaim mocks base method.
-func (m *MockPasskeyIdentityProvider) ListByClaim(name, value string) ([]*identity.Passkey, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByClaim", name, value)
-	ret0, _ := ret[0].([]*identity.Passkey)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListByClaim indicates an expected call of ListByClaim.
-func (mr *MockPasskeyIdentityProviderMockRecorder) ListByClaim(name, value interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaim", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).ListByClaim), name, value)
-}
-
 // New mocks base method.
 func (m *MockPasskeyIdentityProvider) New(userID string, attestationResponse []byte) (*identity.Passkey, error) {
 	m.ctrl.T.Helper()
@@ -816,4 +771,130 @@ func (m *MockPasskeyIdentityProvider) New(userID string, attestationResponse []b
 func (mr *MockPasskeyIdentityProviderMockRecorder) New(userID, attestationResponse interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).New), userID, attestationResponse)
+}
+
+// MockSIWEIdentityProvider is a mock of SIWEIdentityProvider interface.
+type MockSIWEIdentityProvider struct {
+	ctrl     *gomock.Controller
+	recorder *MockSIWEIdentityProviderMockRecorder
+}
+
+// MockSIWEIdentityProviderMockRecorder is the mock recorder for MockSIWEIdentityProvider.
+type MockSIWEIdentityProviderMockRecorder struct {
+	mock *MockSIWEIdentityProvider
+}
+
+// NewMockSIWEIdentityProvider creates a new mock instance.
+func NewMockSIWEIdentityProvider(ctrl *gomock.Controller) *MockSIWEIdentityProvider {
+	mock := &MockSIWEIdentityProvider{ctrl: ctrl}
+	mock.recorder = &MockSIWEIdentityProviderMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockSIWEIdentityProvider) EXPECT() *MockSIWEIdentityProviderMockRecorder {
+	return m.recorder
+}
+
+// Create mocks base method.
+func (m *MockSIWEIdentityProvider) Create(i *identity.SIWE) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", i)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockSIWEIdentityProviderMockRecorder) Create(i interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).Create), i)
+}
+
+// Delete mocks base method.
+func (m *MockSIWEIdentityProvider) Delete(i *identity.SIWE) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", i)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockSIWEIdentityProviderMockRecorder) Delete(i interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).Delete), i)
+}
+
+// Get mocks base method.
+func (m *MockSIWEIdentityProvider) Get(userID, id string) (*identity.SIWE, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", userID, id)
+	ret0, _ := ret[0].(*identity.SIWE)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockSIWEIdentityProviderMockRecorder) Get(userID, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).Get), userID, id)
+}
+
+// GetByMessage mocks base method.
+func (m *MockSIWEIdentityProvider) GetByMessage(msg string) (*identity.SIWE, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByMessage", msg)
+	ret0, _ := ret[0].(*identity.SIWE)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByMessage indicates an expected call of GetByMessage.
+func (mr *MockSIWEIdentityProviderMockRecorder) GetByMessage(msg interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByMessage", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).GetByMessage), msg)
+}
+
+// GetMany mocks base method.
+func (m *MockSIWEIdentityProvider) GetMany(ids []string) ([]*identity.SIWE, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMany", ids)
+	ret0, _ := ret[0].([]*identity.SIWE)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMany indicates an expected call of GetMany.
+func (mr *MockSIWEIdentityProviderMockRecorder) GetMany(ids interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMany", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).GetMany), ids)
+}
+
+// List mocks base method.
+func (m *MockSIWEIdentityProvider) List(userID string) ([]*identity.SIWE, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "List", userID)
+	ret0, _ := ret[0].([]*identity.SIWE)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// List indicates an expected call of List.
+func (mr *MockSIWEIdentityProviderMockRecorder) List(userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).List), userID)
+}
+
+// New mocks base method.
+func (m *MockSIWEIdentityProvider) New(userID, msg, signature string) (*identity.SIWE, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "New", userID, msg, signature)
+	ret0, _ := ret[0].(*identity.SIWE)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// New indicates an expected call of New.
+func (mr *MockSIWEIdentityProviderMockRecorder) New(userID, msg, signature interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).New), userID, msg, signature)
 }

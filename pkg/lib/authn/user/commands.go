@@ -23,6 +23,7 @@ type Commands struct {
 	UserProfileConfig  *config.UserProfileConfig
 	StandardAttributes StandardAttributesService
 	CustomAttributes   CustomAttributesService
+	Web3               Web3Service
 }
 
 func (c *Commands) AfterCreate(
@@ -47,7 +48,12 @@ func (c *Commands) AfterCreate(
 		return err
 	}
 
-	userModel := newUserModel(user, identities, authenticators, isVerified, stdAttrs, customAttrs)
+	web3Info, err := c.Web3.GetWeb3Info(identities)
+	if err != nil {
+		return err
+	}
+
+	userModel := newUserModel(user, identities, authenticators, isVerified, stdAttrs, customAttrs, web3Info)
 	var identityModels []model.Identity
 	for _, i := range identities {
 		identityModels = append(identityModels, i.ToModel())

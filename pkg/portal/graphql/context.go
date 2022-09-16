@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/smtp"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/web3"
 	"github.com/stripe/stripe-go/v72"
 )
 
@@ -121,6 +122,12 @@ type SubscriptionService interface {
 	SetSubscriptionCancelledStatus(id string, cancelled bool, endedAt *time.Time) error
 }
 
+type NFTService interface {
+	WatchNFTCollection(contractID web3.ContractID) (*apimodel.NFTCollection, error)
+	GetNFTCollections(contracts []web3.ContractID) (*apimodel.GetCollectionsResult, error)
+	GetContractMetadata(appID string, contract web3.ContractID) (*apimodel.ContractMetadata, error)
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("portal-graphql")} }
@@ -144,6 +151,7 @@ type Context struct {
 	TutorialService      TutorialService
 	StripeService        StripeService
 	SubscriptionService  SubscriptionService
+	NFTService           NFTService
 }
 
 func (c *Context) Logger() *log.Logger {

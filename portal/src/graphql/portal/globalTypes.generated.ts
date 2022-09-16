@@ -52,6 +52,7 @@ export type App = Node & {
   /** The ID of an object */
   id: Scalars['ID'];
   isProcessingSubscription: Scalars['Boolean'];
+  nftCollections: Array<NftCollection>;
   planName: Scalars['String'];
   rawAppConfig: Scalars['AppConfig'];
   resources: Array<AppResource>;
@@ -293,6 +294,8 @@ export type Mutation = {
   updateSubscription: UpdateSubscriptionPayload;
   /** Request verification of a domain of target app */
   verifyDomain: VerifyDomainPayload;
+  /** Start watching a batch of NFT Collections */
+  watchNFTCollections: WatchNftCollectionsPayload;
 };
 
 
@@ -385,6 +388,34 @@ export type MutationVerifyDomainArgs = {
   input: VerifyDomainInput;
 };
 
+
+export type MutationWatchNftCollectionsArgs = {
+  input: WatchNftCollectionsInput;
+};
+
+/** Web3 NFT Collection */
+export type NftCollection = {
+  __typename?: 'NFTCollection';
+  blockHeight: Scalars['Int'];
+  blockchain: Scalars['String'];
+  contractAddress: Scalars['String'];
+  createdAt: Scalars['DateTime'];
+  name: Scalars['String'];
+  network: Scalars['String'];
+  tokenType: Scalars['String'];
+  totalSupply: Scalars['Int'];
+};
+
+/** Web3 NFT ContractMetadata */
+export type NftContractMetadata = {
+  __typename?: 'NFTContractMetadata';
+  address: Scalars['String'];
+  name: Scalars['String'];
+  symbol: Scalars['String'];
+  tokenType: Scalars['String'];
+  totalSupply: Scalars['String'];
+};
+
 /** An object with an ID */
 export type Node = {
   /** The id of the object */
@@ -442,6 +473,8 @@ export type Query = {
   apps?: Maybe<AppConnection>;
   /** Check whether the viewer can accept the collaboration invitation */
   checkCollaboratorInvitation?: Maybe<CheckCollaboratorInvitationPayload>;
+  /** Fetch NFT Contract Metadata */
+  nftContractMetadata?: Maybe<NftContractMetadata>;
   /** Fetches an object given its ID */
   node?: Maybe<Node>;
   /** Lookup nodes by a list of IDs. */
@@ -477,6 +510,12 @@ export type QueryAppsArgs = {
 
 export type QueryCheckCollaboratorInvitationArgs = {
   code: Scalars['String'];
+};
+
+
+export type QueryNftContractMetadataArgs = {
+  appID?: InputMaybe<Scalars['ID']>;
+  contractID?: InputMaybe<Scalars['String']>;
 };
 
 
@@ -706,6 +745,17 @@ export type VerifyDomainPayload = {
   __typename?: 'VerifyDomainPayload';
   app: App;
   domain: Domain;
+};
+
+export type WatchNftCollectionsInput = {
+  contractIDs: Array<Scalars['String']>;
+  /** ID of the app. */
+  id: Scalars['String'];
+};
+
+export type WatchNftCollectionsPayload = {
+  __typename?: 'WatchNFTCollectionsPayload';
+  app: App;
 };
 
 /** Webhook secret */

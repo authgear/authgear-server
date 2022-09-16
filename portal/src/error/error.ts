@@ -32,6 +32,7 @@ import {
   WebHookDeliveryTimeoutError,
   WebHookInvalidResponseError,
 } from "./webhook";
+import { APIBadNFTCollectionError } from "./web3";
 import type { ParsedAPIError } from "./parse";
 
 export interface NetworkError {
@@ -42,6 +43,11 @@ export interface NetworkError {
 export interface RequestEntityTooLargeError {
   errorName: "RequestEntityTooLarge";
   reason: "RequestEntityTooLarge";
+}
+
+export interface TooManyRequestError {
+  errorName: "TooManyRequest";
+  reason: "TooManyRequest";
 }
 
 export interface UnknownError {
@@ -65,6 +71,7 @@ export type APIError =
   | RequestEntityTooLargeError
   | UnknownError
   | LocalError
+  | TooManyRequestError
   | WebHookDisallowedError
   | WebHookDeliveryTimeoutError
   | WebHookInvalidResponseError
@@ -88,7 +95,8 @@ export type APIError =
   | APIReservedAppIDError
   | APIResourceNotFoundError
   | APIResourceTooLargeError
-  | APIUnsupportedImageFileError;
+  | APIUnsupportedImageFileError
+  | APIBadNFTCollectionError;
 
 export function isAPIError(value: unknown): value is APIError {
   return (

@@ -540,6 +540,27 @@
     background-color: var(--color-wechat-shaded-2);
   }
 
+  .wallet-btn.metamask {
+    @apply border border-solid;
+    border-color: var(--color-separator);
+  }
+  .metamask {
+    color: var(--color-black-unshaded);
+    background-color: var(--color-white-unshaded);
+  }
+  .metamask:focus {
+    background-color: var(--color-white-unshaded);
+  }
+  .metamask:hover {
+    background-color: var(--color-white-shaded-4);
+  }
+  .metamask:active {
+    background-color: var(--color-white-shaded-7);
+  }
+  .metamask:disabled {
+    background-color: var(--color-white-shaded-2);
+  }
+
   .signin-signup-link.current {
     border-color: var(--color-primary-unshaded);
     color: var(--color-primary-unshaded);

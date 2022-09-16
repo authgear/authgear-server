@@ -12,6 +12,7 @@ generates:
         IdentityClaims: GQL_IdentityClaims
         UserCustomAttributes: GQL_UserCustomAttributes
         UserStandardAttributes: GQL_UserStandardAttributes
+        Web3Claims: GQL_Web3Claims
 
   ./src/graphql/adminapi/:
     preset: near-operation-file

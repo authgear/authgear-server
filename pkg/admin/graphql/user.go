@@ -120,6 +120,9 @@ var nodeUser = node(
 			"customAttributes": &graphql.Field{
 				Type: graphql.NewNonNull(UserCustomAttributes),
 			},
+			"web3": &graphql.Field{
+				Type: graphql.NewNonNull(Web3Claims),
+			},
 			"formattedName": &graphql.Field{
 				Type: graphql.String,
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -135,7 +138,7 @@ var nodeUser = node(
 				Type: graphql.String,
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					source := p.Source.(*model.User)
-					endUserAccountID := stdattrs.T(source.StandardAttributes).EndUserAccountID()
+					endUserAccountID := source.EndUserAccountID()
 					if endUserAccountID == "" {
 						return nil, nil
 					}

@@ -30,6 +30,7 @@ type RootProvider struct {
 	KubernetesConfig       *portalconfig.KubernetesConfig
 	DomainImplementation   portalconfig.DomainImplementationType
 	SearchConfig           *portalconfig.SearchConfig
+	Web3Config             *portalconfig.Web3Config
 	AuditLogConfig         *portalconfig.AuditLogConfig
 	AnalyticConfig         *config.AnalyticConfig
 	StripeConfig           *portalconfig.StripeConfig
@@ -61,6 +62,7 @@ func NewRootProvider(
 	kubernetesConfig *portalconfig.KubernetesConfig,
 	domainImplementation portalconfig.DomainImplementationType,
 	searchConfig *portalconfig.SearchConfig,
+	web3Config *portalconfig.Web3Config,
 	auditLogConfig *portalconfig.AuditLogConfig,
 	analyticConfig *config.AnalyticConfig,
 	stripeConfig *portalconfig.StripeConfig,
@@ -103,6 +105,7 @@ func NewRootProvider(
 		KubernetesConfig:       kubernetesConfig,
 		DomainImplementation:   domainImplementation,
 		SearchConfig:           searchConfig,
+		Web3Config:             web3Config,
 		AuditLogConfig:         auditLogConfig,
 		AnalyticConfig:         analyticConfig,
 		StripeConfig:           stripeConfig,

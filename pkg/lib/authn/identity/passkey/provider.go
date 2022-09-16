@@ -31,16 +31,6 @@ func (p *Provider) List(userID string) ([]*identity.Passkey, error) {
 	return is, nil
 }
 
-func (p *Provider) ListByClaim(name string, value string) ([]*identity.Passkey, error) {
-	is, err := p.Store.ListByClaim(name, value)
-	if err != nil {
-		return nil, err
-	}
-
-	sortIdentities(is)
-	return is, nil
-}
-
 func (p *Provider) Get(userID, id string) (*identity.Passkey, error) {
 	return p.Store.Get(userID, id)
 }

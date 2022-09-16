@@ -20,6 +20,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/siwe"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -31,8 +32,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/accountdeletion"
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
+	siwe2 "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
 	"github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -289,6 +292,30 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Clock:   clockClock,
 		Passkey: passkeyService,
 	}
+	siweStore := &siwe.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	storeRedis := &siwe2.StoreRedis{
+		Context: ctx,
+		Redis:   appredisHandle,
+		AppID:   configAppID,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
+	siweService := &siwe2.Service{
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
+	}
+	siweProvider := &siwe.Provider{
+		Store: siweStore,
+		Clock: clockClock,
+		SIWE:  siweService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -299,6 +326,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
 		Passkey:               passkeyProvider,
+		SIWE:                  siweProvider,
 	}
 	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -357,7 +385,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	storeRedis := &oob.StoreRedis{
+	oobStoreRedis := &oob.StoreRedis{
 		Redis: appredisHandle,
 		AppID: configAppID,
 		Clock: clockClock,
@@ -366,7 +394,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	oobProvider := &oob.Provider{
 		Config:    authenticatorOOBConfig,
 		Store:     oobStore,
-		CodeStore: storeRedis,
+		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
 	}
@@ -420,6 +448,12 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		UserQueries: rawQueries,
 		UserStore:   store,
 	}
+	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
+	web3Config := appConfig.Web3
+	web3Service := &web3.Service{
+		APIEndpoint: nftIndexerAPIEndpoint,
+		Web3Config:  web3Config,
+	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
@@ -428,6 +462,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		Web3:               web3Service,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -517,6 +552,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,

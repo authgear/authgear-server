@@ -29,6 +29,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/siwe"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
@@ -42,8 +43,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
+	siwe2 "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
 	"github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
@@ -279,6 +282,41 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 		Passkey: passkeyService,
 	}
+	siweStore := &siwe.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	storeRedis := &siwe2.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	siweLogger := siwe2.NewLogger(factory)
+	siweService := &siwe2.Service{
+		RemoteIP:    remoteIP,
+		HTTPConfig:  httpConfig,
+		Clock:       clockClock,
+		NonceStore:  storeRedis,
+		RateLimiter: limiter,
+		Logger:      siweLogger,
+	}
+	siweProvider := &siwe.Provider{
+		Store: siweStore,
+		Clock: clockClock,
+		SIWE:  siweService,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -289,6 +327,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
 		Passkey:               passkeyProvider,
+		SIWE:                  siweProvider,
 	}
 	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -347,7 +386,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	storeRedis := &oob.StoreRedis{
+	oobStoreRedis := &oob.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -356,19 +395,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	oobProvider := &oob.Provider{
 		Config:    authenticatorOOBConfig,
 		Store:     oobStore,
-		CodeStore: storeRedis,
+		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
 	}
 	service4 := &service2.Service{
 		Store:       store3,
@@ -378,7 +407,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
 	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -421,6 +449,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		UserQueries: rawQueries,
 		UserStore:   store,
 	}
+	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
+	web3Config := appConfig.Web3
+	web3Service := &web3.Service{
+		APIEndpoint: nftIndexerAPIEndpoint,
+		Web3Config:  web3Config,
+	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
 		Store:              store,
@@ -429,6 +463,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		Web3:               web3Service,
 	}
 	userLoader := loader.NewUserLoader(queries)
 	identityLoader := loader.NewIdentityLoader(serviceService)
@@ -551,6 +586,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
+		Web3:               web3Service,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,

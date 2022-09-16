@@ -52,7 +52,6 @@ type AnonymousIdentityProvider interface {
 	GetMany(ids []string) ([]*identity.Anonymous, error)
 	GetByKeyID(keyID string) (*identity.Anonymous, error)
 	List(userID string) ([]*identity.Anonymous, error)
-	ListByClaim(name string, value string) ([]*identity.Anonymous, error)
 	New(userID string, keyID string, key []byte) *identity.Anonymous
 	Create(i *identity.Anonymous) error
 	Delete(i *identity.Anonymous) error
@@ -63,7 +62,6 @@ type BiometricIdentityProvider interface {
 	GetMany(ids []string) ([]*identity.Biometric, error)
 	GetByKeyID(keyID string) (*identity.Biometric, error)
 	List(userID string) ([]*identity.Biometric, error)
-	ListByClaim(name string, value string) ([]*identity.Biometric, error)
 	New(userID string, keyID string, key []byte, deviceInfo map[string]interface{}) *identity.Biometric
 	Create(i *identity.Biometric) error
 	Delete(i *identity.Biometric) error
@@ -74,10 +72,19 @@ type PasskeyIdentityProvider interface {
 	GetMany(ids []string) ([]*identity.Passkey, error)
 	GetByAssertionResponse(assertionResponse []byte) (*identity.Passkey, error)
 	List(userID string) ([]*identity.Passkey, error)
-	ListByClaim(name string, value string) ([]*identity.Passkey, error)
 	New(userID string, attestationResponse []byte) (*identity.Passkey, error)
 	Create(i *identity.Passkey) error
 	Delete(i *identity.Passkey) error
+}
+
+type SIWEIdentityProvider interface {
+	Get(userID, id string) (*identity.SIWE, error)
+	GetMany(ids []string) ([]*identity.SIWE, error)
+	GetByMessage(msg string) (*identity.SIWE, error)
+	List(userID string) ([]*identity.SIWE, error)
+	New(userID string, msg string, signature string) (*identity.SIWE, error)
+	Create(i *identity.SIWE) error
+	Delete(i *identity.SIWE) error
 }
 
 type Service struct {
@@ -90,6 +97,7 @@ type Service struct {
 	Anonymous             AnonymousIdentityProvider
 	Biometric             BiometricIdentityProvider
 	Passkey               PasskeyIdentityProvider
+	SIWE                  SIWEIdentityProvider
 }
 
 func (s *Service) Get(id string) (*identity.Info, error) {
@@ -128,6 +136,12 @@ func (s *Service) Get(id string) (*identity.Info, error) {
 			return nil, err
 		}
 		return p.ToInfo(), nil
+	case model.IdentityTypeSIWE:
+		s, err := s.SIWE.Get(ref.UserID, id)
+		if err != nil {
+			return nil, err
+		}
+		return s.ToInfo(), nil
 	}
 
 	panic("identity: unknown identity type " + ref.Type)
@@ -139,7 +153,7 @@ func (s *Service) GetMany(ids []string) ([]*identity.Info, error) {
 		return nil, err
 	}
 
-	var loginIDs, oauthIDs, anonymousIDs, biometricIDs, passkeyIDs []string
+	var loginIDs, oauthIDs, anonymousIDs, biometricIDs, passkeyIDs, siweIDs []string
 	for _, ref := range refs {
 		switch ref.Type {
 		case model.IdentityTypeLoginID:
@@ -152,6 +166,8 @@ func (s *Service) GetMany(ids []string) ([]*identity.Info, error) {
 			biometricIDs = append(biometricIDs, ref.ID)
 		case model.IdentityTypePasskey:
 			passkeyIDs = append(passkeyIDs, ref.ID)
+		case model.IdentityTypeSIWE:
+			siweIDs = append(siweIDs, ref.ID)
 		default:
 			panic("identity: unknown identity type " + ref.Type)
 		}
@@ -196,6 +212,14 @@ func (s *Service) GetMany(ids []string) ([]*identity.Info, error) {
 		return nil, err
 	}
 	for _, i := range p {
+		infos = append(infos, i.ToInfo())
+	}
+
+	e, err := s.SIWE.GetMany(siweIDs)
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range e {
 		infos = append(infos, i.ToInfo())
 	}
 
@@ -254,6 +278,13 @@ func (s *Service) getBySpec(spec *identity.Spec) (*identity.Info, error) {
 			return nil, err
 		}
 		return p.ToInfo(), nil
+	case model.IdentityTypeSIWE:
+		message := spec.SIWE.Message
+		e, err := s.SIWE.GetByMessage(message)
+		if err != nil {
+			return nil, err
+		}
+		return e.ToInfo(), nil
 	}
 
 	panic("identity: unknown identity type " + spec.Type)
@@ -377,6 +408,15 @@ func (s *Service) ListByUser(userID string) ([]*identity.Info, error) {
 		infos = append(infos, i.ToInfo())
 	}
 
+	// siwe
+	sis, err := s.SIWE.List(userID)
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range sis {
+		infos = append(infos, i.ToInfo())
+	}
+
 	return infos, nil
 }
 
@@ -406,32 +446,6 @@ func (s *Service) ListByClaim(name string, value string) ([]*identity.Info, erro
 		return nil, err
 	}
 	for _, i := range ois {
-		infos = append(infos, i.ToInfo())
-	}
-
-	// anonymous
-	ais, err := s.Anonymous.ListByClaim(name, value)
-	if err != nil {
-		return nil, err
-	}
-	for _, i := range ais {
-		infos = append(infos, i.ToInfo())
-	}
-
-	// biometric
-	bis, err := s.Biometric.ListByClaim(name, value)
-	if err != nil {
-		return nil, err
-	}
-	for _, i := range bis {
-		infos = append(infos, i.ToInfo())
-	}
-
-	pis, err := s.Passkey.ListByClaim(name, value)
-	if err != nil {
-		return nil, err
-	}
-	for _, i := range pis {
 		infos = append(infos, i.ToInfo())
 	}
 
@@ -473,6 +487,14 @@ func (s *Service) New(userID string, spec *identity.Spec, options identity.NewId
 			return nil, err
 		}
 		return p.ToInfo(), nil
+	case model.IdentityTypeSIWE:
+		message := spec.SIWE.Message
+		signature := spec.SIWE.Signature
+		e, err := s.SIWE.New(userID, message, signature)
+		if err != nil {
+			return nil, err
+		}
+		return e.ToInfo(), nil
 	}
 
 	panic("identity: unknown identity type " + spec.Type)
@@ -511,6 +533,12 @@ func (s *Service) Create(info *identity.Info) error {
 	case model.IdentityTypePasskey:
 		i := info.Passkey
 		if err := s.Passkey.Create(i); err != nil {
+			return err
+		}
+		*info = *i.ToInfo()
+	case model.IdentityTypeSIWE:
+		i := info.SIWE
+		if err := s.SIWE.Create(i); err != nil {
 			return err
 		}
 		*info = *i.ToInfo()
@@ -566,6 +594,8 @@ func (s *Service) Update(info *identity.Info) error {
 		panic("identity: update no support for identity type " + info.Type)
 	case model.IdentityTypePasskey:
 		panic("identity: update no support for identity type " + info.Type)
+	case model.IdentityTypeSIWE:
+		panic("identity: update no support for identity type " + info.Type)
 	default:
 		panic("identity: unknown identity type " + info.Type)
 	}
@@ -598,6 +628,11 @@ func (s *Service) Delete(info *identity.Info) error {
 	case model.IdentityTypePasskey:
 		i := info.Passkey
 		if err := s.Passkey.Delete(i); err != nil {
+			return err
+		}
+	case model.IdentityTypeSIWE:
+		i := info.SIWE
+		if err := s.SIWE.Delete(i); err != nil {
 			return err
 		}
 	default:
@@ -640,12 +675,15 @@ func (s *Service) CheckDuplicated(is *identity.Info) (dupeIdentity *identity.Inf
 
 	// No need to consider passkey identity
 
+	// No need to consider SIWE identity
+
 	return
 }
 
 func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err error) {
 	var loginIDs []*identity.LoginID
 	var oauths []*identity.OAuth
+	var siwes []*identity.SIWE
 
 	if userID != "" {
 		loginIDs, err = s.LoginID.List(userID)
@@ -659,6 +697,11 @@ func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err e
 		// No need to consider anonymous identity
 		// No need to consider biometric identity
 		// No need to consider passkey identity
+
+		siwes, err = s.SIWE.List(userID)
+		if err != nil {
+			return
+		}
 	}
 
 	for _, i := range s.Authentication.Identities {
@@ -709,7 +752,18 @@ func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err e
 					out = append(out, candidate)
 				}
 			}
+		case model.IdentityTypeSIWE:
+
+			for _, iden := range siwes {
+				candidate := identity.NewSIWECandidate()
+				candidate[identity.CandidateKeyDisplayID] = iden.Address
+				candidate[identity.CandidateKeyIdentityID] = iden.ID
+
+				out = append(out, candidate)
+
+			}
 		}
+
 	}
 
 	return

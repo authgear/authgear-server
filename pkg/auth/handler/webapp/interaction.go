@@ -337,3 +337,13 @@ type InputSelectVerifyIdentityViaWhatsapp struct{}
 func (i *InputSelectVerifyIdentityViaWhatsapp) SelectVerifyIdentityViaWhatsapp() {}
 
 var _ nodes.InputVerifyIdentityViaWhatsapp = &InputSelectVerifyIdentityViaWhatsapp{}
+
+type InputConfirmWeb3AccountRequest struct {
+	Message   string
+	Signature string
+}
+
+func (i *InputConfirmWeb3AccountRequest) GetMessage() string   { return i.Message }
+func (i *InputConfirmWeb3AccountRequest) GetSignature() string { return i.Signature }
+
+var _ nodes.InputUseIdentitySIWE = &InputConfirmWeb3AccountRequest{}

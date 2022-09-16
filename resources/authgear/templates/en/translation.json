@@ -78,6 +78,11 @@
   "error-invalid-selected-image": "The selected image is invalid. Try another one.",
   "error-no-passkey": "Passkey is not found on your device. {type, select, password{Sign in with password instead?} oob_otp_email{Sign in with one-time password instead?} oob_otp_sms{Sign in with one-time password instead?} other{Try another device?}}",
 
+  "error-metamask-unauthorized": "You did not authorize the operation.",
+  "error-metamask-unsupported-method": "The requested method is not supported.",
+  "error-metamask-disconnected": "The provider is disconnected from the specified chain.",
+  "error-failed-to-connect-wallet": "Failed to connect to wallet.",
+
   "success-resend-code": "Resent code successfully!",
 
   "public-signup-disabled-notice": "Please contact the system administrator for creating new accounts.",
@@ -111,6 +116,7 @@
 
   "log-in-to-continue": "Log in to {AppOrClientName}",
   "sign-up-to-continue": "Sign up to {AppOrClientName}",
+  "collect-wallet-to-continue": "Connect a Wallet",
 
   "sign-in-with-passkey": "Sign in with Passkey",
 
@@ -185,6 +191,17 @@
 
   "create-passkey-page-title": "Set up a passkey",
   "create-passkey-label": "Set up passkey",
+
+  "web3-provider-metamask": "MetaMask",
+  "web3-provider-metamask-install": "Install MetaMask",
+
+  "confirm-web3-account-page-title": "Account Connected",
+  "confirm-web3-account-page-description": "Connected with {provider}",
+  "confirm-web3-account-page-next": "Next",
+  "confirm-web3-account-page-change-account": "Change account",
+
+  "missing-web3-wallet-page-title": "Install Wallet",
+  "missing-web3-wallet-page-description": "{provider} is either missing or not supported for your browser.",
 
   "prompt-create-passkey-page-title": "Set up a passkey",
   "prompt-create-passkey-page-description": "Your device support passkey authentication. Set up a passkey for faster and safer login. If you use biometrics, we will never see or store your biometric data.",
@@ -284,6 +301,7 @@
   "settings-identity-login-id-phone": "Phone Number",
   "settings-identity-login-id-username": "Username",
   "settings-identity-login-id-raw": "Username",
+  "settings-identity-siwe": "Ethereum Wallet",
 
   "settings-biometric-title": "Biometric logins",
   "settings-biometric-description": "You''ve enabled biometric logins on these devices.",

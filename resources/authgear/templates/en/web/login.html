@@ -4,6 +4,7 @@
 
 	{{ $has_oauth := false }}
 	{{ $has_login_id := false }}
+	{{ $has_siwe := false }}
 	{{ range $.IdentityCandidates }}
 		{{ if eq .type "oauth" }}
 		{{ $has_oauth = true }}
@@ -11,9 +12,12 @@
 		{{ if eq .type "login_id" }}
 		{{ $has_login_id = true }}
 		{{ end }}
+		{{ if eq .type "siwe" }}
+		{{ $has_siwe = true }}
+		{{ end }}
 	{{ end }}
 	<div class="pane flex flex-col">
-		{{ if $has_login_id }}{{ if (not (or $.PublicSignupDisabled $.AllowLoginOnly)) }}
+		{{ if (or $has_login_id $has_siwe) }}{{ if (not (or $.PublicSignupDisabled $.AllowLoginOnly)) }}
 		<div class="flex flex-row">
 			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt current" href="{{ call $.MakeURL "/login" "x_login_id_input_type" $.x_login_id_input_type }}" data-turbo-action="replace">{{ template "login-label" }}</a>
 			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt" href="{{ call $.MakeURL "/signup" "x_login_id_input_type" $.x_login_id_input_type }}" data-turbo-action="replace">{{ template "signup-label" }}</a>
@@ -37,7 +41,9 @@
 				{{ $.CSRFField }}
 
 				<h1 class="m-0 primary-txt text-center text-xl font-bold">
-					{{ if $.ClientName }}
+					{{ if $has_siwe }}
+					{{ template "collect-wallet-to-continue" }}
+					{{ else if $.ClientName }}
 					{{ template "log-in-to-continue" (dict "AppOrClientName" $.ClientName) }}
 					{{ else }}
 					{{ $appName := ($.Translations.RenderText "app.name" nil) }}
@@ -111,9 +117,26 @@
 				{{/* Forgot password link is deliberately omitted here. */}}
 			</form>
 
+			{{ if $has_siwe }}
+			<div data-controller="web3-wallet-connection" data-web3-wallet-connection-provider-value="metamask">
+				<button
+				class="btn wallet-btn metamask"
+				type="button"
+				data-action="click->web3-wallet-connection#connectWallet"
+				data-web3-wallet-connection-target="button"
+				data-authgear-event="authgear.button.connect_wallet"
+				>
+					<div class="wallet-btn-content">
+						<div class="wallet-btn-icon metamask-icon"></div>
+						<span class="text-base leading-5 font-semibold">{{ template "web3-provider-metamask" }}</span>
+					</div>
+				</button>
+			</div>
+			{{ end }}
+
 			{{/* Separator */}}
 
-			{{ if (and $has_login_id (or $has_oauth $.PasskeyEnabled)) }}
+			{{ if (and (or $has_login_id $has_siwe) (or $has_oauth $.PasskeyEnabled)) }}
 			<div class="alternative-separator flex flex-row items-center">
 				<span class="primary-txt mx-1.5 text-sm">{{ template "sso-login-id-separator-both-present" }}</span>
 			</div>

@@ -97,6 +97,26 @@ var _ = Schema.Add("AuthenticationConfig", `
 				},
 				"required": ["identities"]
 			}
+		},
+		{
+			"if": {
+				"properties": {
+					"identities": {
+						"contains": {
+							"const": "siwe"
+						}
+					}
+				},
+				"required": ["identities"]
+			},
+			"then": {
+				"properties": {
+					"identities": {
+						"const": ["siwe"]
+					}
+				},
+				"required": ["identities"]
+			}
 		}
 	]
 }
@@ -105,7 +125,7 @@ var _ = Schema.Add("AuthenticationConfig", `
 var _ = Schema.Add("IdentityType", `
 {
 	"type": "string",
-	"enum": ["login_id", "oauth", "anonymous", "biometric", "passkey"]
+	"enum": ["login_id", "oauth", "anonymous", "biometric", "passkey", "siwe"]
 }
 `)
 
