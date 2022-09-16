@@ -190,7 +190,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
                 {
                   type: "link" as const,
                   textKey: "ScreenNav.web3",
-                  url: "./configuration/authentication/web3",
+                  url: `/project/${appID}/configuration/authentication/web3`,
                 },
               ]
             : []),
