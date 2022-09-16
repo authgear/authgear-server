@@ -141,11 +141,11 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
                 },
               ]
             : []),
+          {
+            textKey: "ScreenNav.anonymous-users",
+            url: `/project/${appID}/configuration/authentication/anonymous-users`,
+          },
         ],
-      },
-      {
-        textKey: "ScreenNav.anonymous-users",
-        url: `/project/${appID}/configuration/anonymous-users`,
       },
       {
         textKey: "ScreenNav.password-policy",

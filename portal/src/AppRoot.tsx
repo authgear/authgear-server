@@ -355,15 +355,15 @@ const AppRoot: React.VFC = function AppRoot() {
                     </Suspense>
                   }
                 />
+                <Route
+                  path="anonymous-users"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <AnonymousUsersConfigurationScreen />
+                    </Suspense>
+                  }
+                />
               </Route>
-              <Route
-                path="anonymous-users"
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <AnonymousUsersConfigurationScreen />
-                  </Suspense>
-                }
-              />
               <Route
                 path="password-policy"
                 element={
