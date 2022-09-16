@@ -138,7 +138,7 @@ var nodeUser = node(
 				Type: graphql.String,
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					source := p.Source.(*model.User)
-					endUserAccountID := stdattrs.T(source.StandardAttributes).EndUserAccountID()
+					endUserAccountID := source.EndUserAccountID()
 					if endUserAccountID == "" {
 						return nil, nil
 					}

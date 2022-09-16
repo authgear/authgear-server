@@ -8,7 +8,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
@@ -44,7 +43,7 @@ func (s *CreationOptionsService) MakeCreationOptions(userID string) (*model.WebA
 		return nil, err
 	}
 
-	endUserAccountID := stdattrs.T(user.StandardAttributes).EndUserAccountID()
+	endUserAccountID := user.EndUserAccountID()
 
 	var exclude []model.PublicKeyCredentialDescriptor
 	identities, err := s.IdentityService.ListByUser(userID)

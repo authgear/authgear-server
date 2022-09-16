@@ -2,7 +2,10 @@ package model
 
 import (
 	"math/big"
+	"strconv"
 	"time"
+
+	web3util "github.com/authgear/authgear-server/pkg/util/web3"
 )
 
 type AccountIdentifier struct {
@@ -44,6 +47,22 @@ type NFTOwnership struct {
 	AccountIdentifier AccountIdentifier `json:"account_identifier"`
 	NetworkIdentifier NetworkIdentifier `json:"network_identifier"`
 	NFTs              []NFT             `json:"nfts"`
+}
+
+func (s *NFTOwnership) EndUserAccountID() string {
+	if s.NetworkIdentifier.Blockchain == "ethereum" {
+		chainID, err := strconv.ParseInt(s.NetworkIdentifier.Network, 10, 0)
+		if err != nil {
+			return ""
+		}
+		eip681 := web3util.EIP681{
+			ChainID: int(chainID),
+			Address: s.AccountIdentifier.Address,
+		}
+		return eip681.URL().String()
+	}
+
+	return ""
 }
 
 type NFTCollection struct {
