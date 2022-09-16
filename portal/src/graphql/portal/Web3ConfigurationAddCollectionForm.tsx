@@ -1,5 +1,4 @@
 import React, { useCallback, useContext, useMemo } from "react";
-import { PrimaryButton } from "@fluentui/react";
 import cn from "classnames";
 import { APIError } from "../../error/error";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -15,6 +14,7 @@ import { NetworkID } from "../../util/networkId";
 import { CollectionItem } from "./Web3ConfigurationScreen";
 import { DateTime } from "luxon";
 import { parseRawError } from "../../error/parse";
+import PrimaryButton from "../../PrimaryButton";
 
 const InvalidAddressError: APIError = {
   errorName: "InvalidAddressError",
@@ -162,13 +162,14 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionFormProps> =
             className={styles.addCollectionAddButton}
             disabled={!isModified || isUpdating}
             onClick={onSubmitForm}
-          >
-            {isUpdating ? (
-              <FormattedMessage id={"adding"} />
-            ) : (
-              <FormattedMessage id={"add"} />
-            )}
-          </PrimaryButton>
+            text={
+              isUpdating ? (
+                <FormattedMessage id={"adding"} />
+              ) : (
+                <FormattedMessage id={"add"} />
+              )
+            }
+          />
         </div>
       </FormProvider>
     );

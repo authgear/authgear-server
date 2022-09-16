@@ -6,7 +6,6 @@ import {
   useTheme,
   IColumn,
   SelectionMode,
-  ActionButton,
   DetailsList,
 } from "@fluentui/react";
 import { APIError } from "../../error/error";
@@ -50,6 +49,7 @@ import Web3ConfigurationDetailDialog from "./Web3ConfigurationDetailDialog";
 import Web3ConfigurationCollectionDeletionDialog from "./Web3ConfigurationCollectionDeletionDialog";
 import Web3ConfigurationAddCollectionForm from "./Web3ConfigurationAddCollectionForm";
 import CommandBarButton from "../../CommandBarButton";
+import ActionButton from "../../ActionButton";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 
@@ -343,7 +343,7 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
                 ? themes.destructive
                 : themes.actionButton;
 
-            const children =
+            const text =
               item.status === "pending" ? (
                 <FormattedMessage id="Web3ConfigurationScreen.colleciton-list.action.remove" />
               ) : (
@@ -356,9 +356,8 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
                 type="button"
                 theme={theme}
                 onClick={(event) => onCollectionUserActionClick(event, item)}
-              >
-                {children}
-              </ActionButton>
+                text={text}
+              />
             );
           }
 
@@ -483,15 +482,12 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
                 ) : null}
                 <div className={styles.listWrapper}>
                   {collectionLimitReached ? (
-                    <FeatureDisabledMessageBar>
-                      <FormattedMessage
-                        id="FeatureConfig.web3-nft.maximum"
-                        values={{
-                          maximum: props.maximumCollections,
-                          planPagePath: "./../../../billing",
-                        }}
-                      />
-                    </FeatureDisabledMessageBar>
+                    <FeatureDisabledMessageBar
+                      messageID="FeatureConfig.web3-nft.maximum"
+                      messageValues={{
+                        maximum: props.maximumCollections,
+                      }}
+                    />
                   ) : null}
                   <DetailsList
                     className={styles.list}
