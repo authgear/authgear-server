@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useQuery } from "@apollo/client";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { Context } from "@oursky/react-messageformat";
@@ -15,23 +9,6 @@ import {
   ScreenNavQueryDocument,
 } from "./graphql/portal/query/screenNavQuery.generated";
 import { client } from "./graphql/portal/apollo";
-import { Location } from "history";
-
-function getAppRouterPath(location: Location) {
-  // app router -> /app/:appID/*
-  // discard first 3 segment (include leading slash)
-  return "/" + location.pathname.split("/").slice(3).join("/");
-}
-
-function getPath(url: string) {
-  // remove fragment
-  const path = new URL("scheme:" + url).pathname;
-  // remove leading trailing slash
-  const pathWithoutLeadingTrailingSlash = path
-    .replace(/^\//, "")
-    .replace(/\/$/, "");
-  return pathWithoutLeadingTrailingSlash;
-}
 
 function getStyles(props: INavStyleProps) {
   return {
@@ -44,19 +21,19 @@ function getStyles(props: INavStyleProps) {
   };
 }
 
-function isPathSame(url1: string, url2: string) {
-  const path1 = getPath(url1);
-  const path2 = getPath(url2);
-  return path1 === path2;
+type NavLinkItem = NavLink | NavLinkGroup;
+
+interface NavLinkGroup {
+  type: "group";
+  textKey: string;
+  urlPrefix: string;
+  children: NavLink[];
 }
 
-interface NavLinkProps {
+interface NavLink {
+  type: "link";
   textKey: string;
   url: string;
-  children?: Array<{
-    textKey: string;
-    url: string;
-  }>;
 }
 
 interface ScreenNavProps {
@@ -64,13 +41,69 @@ interface ScreenNavProps {
   onLinkClick?: () => void;
 }
 
+function makeInitialExpandState(
+  items: NavLinkItem[],
+  pathname: string
+): Record<string, boolean> {
+  const out: Record<string, boolean> = {};
+  for (const item of items) {
+    if (item.type === "group") {
+      if (pathname.startsWith(item.urlPrefix)) {
+        out[item.urlPrefix] = true;
+      }
+    }
+  }
+  return out;
+}
+
+function getSelectedKey(
+  items: NavLinkItem[],
+  pathname: string
+): string | undefined {
+  let out = "";
+  for (const item of items) {
+    switch (item.type) {
+      case "group": {
+        for (const link of item.children) {
+          if (pathname.startsWith(link.url)) {
+            if (link.url.length > out.length) {
+              out = link.url;
+            }
+          }
+        }
+        break;
+      }
+      case "link": {
+        if (pathname.startsWith(item.url)) {
+          if (item.url.length > out.length) {
+            out = item.url;
+          }
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  }
+  if (out === "") {
+    return undefined;
+  }
+  return out;
+}
+
+// We simplified the group expand/collapse logic.
+//
+// 1. We no longer tangle with splitting the path. That is too fragile.
+// 2. We clearly define NavLink and NavLinkGroup as separate types.
+// 3. The expandState is initialized with pathname on mount. So switching route WILL NOT collapse a group.
+// 4. isExpanded is true if urlPrefix is a prefix of pathname.
+// 5. selectedKey is the longest prefix match.
 const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
   const { mobileView = false } = props;
   const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
   const { renderToString } = useContext(Context);
-  const location = useLocation();
-  const path = getAppRouterPath(location);
+  const { pathname } = useLocation();
   const queryResult = useQuery<ScreenNavQueryQuery>(ScreenNavQueryDocument, {
     client,
     variables: {
@@ -87,15 +120,23 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
   const { auditLogEnabled, analyticEnabled, web3Enabled } = useSystemConfig();
 
   const label = renderToString("ScreenNav.label");
-  const [expandState, setExpandState] = useState<Record<string, boolean>>({});
 
-  const links: NavLinkProps[] = useMemo(() => {
+  const links: NavLinkItem[] = useMemo(() => {
     const links = [
-      ...(mobileView ? [{ textKey: "ScreenNav.all-projects", url: "/" }] : []),
+      ...(mobileView
+        ? [
+            {
+              type: "link" as const,
+              textKey: "ScreenNav.all-projects",
+              url: "/",
+            },
+          ]
+        : []),
       ...(skippedTutorial
         ? []
         : [
             {
+              type: "link" as const,
               textKey: "ScreenNav.getting-started",
               url: `/project/${appID}/getting-started`,
             },
@@ -103,83 +144,105 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
       ...(analyticEnabled
         ? [
             {
+              type: "link" as const,
               textKey: "ScreenNav.analytics",
               url: `/project/${appID}/analytics`,
             },
           ]
         : []),
-      { textKey: "ScreenNav.users", url: `/project/${appID}/users` },
       {
+        type: "link" as const,
+        textKey: "ScreenNav.users",
+        url: `/project/${appID}/users`,
+      },
+      {
+        type: "group" as const,
         textKey: "ScreenNav.authentication",
-        url: `/project/${appID}/configuration/authentication`,
+        urlPrefix: `/project/${appID}/configuration/authentication`,
         children: [
           {
+            type: "link" as const,
             textKey: "ScreenNav.login-id",
             url: `/project/${appID}/configuration/authentication/login-id`,
           },
           {
+            type: "link" as const,
             textKey: "ScreenNav.authenticators",
             url: `/project/${appID}/configuration/authentication/authenticators`,
           },
           {
+            type: "link" as const,
             textKey: "ScreenNav.verification",
             url: `/project/${appID}/configuration/authentication/verification`,
           },
           {
+            type: "link" as const,
             textKey: "ScreenNav.external-oauth",
             url: `/project/${appID}/configuration/authentication/external-oauth`,
           },
           {
+            type: "link" as const,
             textKey: "ScreenNav.biometric",
             url: `/project/${appID}/configuration/authentication/biometric`,
           },
           ...(web3Enabled
             ? [
                 {
+                  type: "link" as const,
                   textKey: "ScreenNav.web3",
                   url: "./configuration/authentication/web3",
                 },
               ]
             : []),
           {
+            type: "link" as const,
             textKey: "ScreenNav.anonymous-users",
             url: `/project/${appID}/configuration/authentication/anonymous-users`,
           },
         ],
       },
       {
+        type: "link" as const,
         textKey: "ScreenNav.password-policy",
         url: `/project/${appID}/configuration/password-policy`,
       },
       {
+        type: "link" as const,
         textKey: "ScreenNav.client-applications",
         url: `/project/${appID}/configuration/apps`,
       },
       {
+        type: "link" as const,
         textKey: "CustomDomainListScreen.title",
         url: `/project/${appID}/custom-domains`,
       },
       {
+        type: "link" as const,
         textKey: "ScreenNav.smtp",
         url: `/project/${appID}/configuration/smtp`,
       },
       {
+        type: "link" as const,
         textKey: "ScreenNav.ui-settings",
         url: `/project/${appID}/configuration/ui-settings`,
       },
       {
+        type: "link" as const,
         textKey: "ScreenNav.localization",
         url: `/project/${appID}/configuration/localization`,
       },
       {
+        type: "group" as const,
         textKey: "ScreenNav.user-profile",
-        url: `/project/${appID}/configuration/user-profile`,
+        urlPrefix: `/project/${appID}/configuration/user-profile`,
         children: [
           {
+            type: "link" as const,
             textKey: "ScreenNav.standard-attributes",
             url: `/project/${appID}/configuration/user-profile/standard-attributes`,
           },
           {
+            type: "link" as const,
             textKey: "ScreenNav.custom-attributes",
             url: `/project/${appID}/configuration/user-profile/custom-attributes`,
           },
@@ -188,36 +251,44 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
       ...(showIntegrations
         ? [
             {
+              type: "link" as const,
               textKey: "ScreenNav.integrations",
               url: `/project/${appID}/integrations`,
             },
           ]
         : []),
       {
+        type: "link" as const,
         textKey: "ScreenNav.billing",
         url: `/project/${appID}/billing`,
       },
       {
+        type: "group" as const,
         textKey: "ScreenNav.advanced",
-        url: `/project/${appID}/advanced`,
+        urlPrefix: `/project/${appID}/advanced`,
         children: [
           {
+            type: "link" as const,
             textKey: "ScreenNav.password-reset-code",
             url: `/project/${appID}/advanced/password-reset-code`,
           },
           {
+            type: "link" as const,
             textKey: "ScreenNav.webhooks",
             url: `/project/${appID}/advanced/webhooks`,
           },
           {
+            type: "link" as const,
             textKey: "ScreenNav.admin-api",
             url: `/project/${appID}/advanced/admin-api`,
           },
           {
+            type: "link" as const,
             textKey: "ScreenNav.account-deletion",
             url: `/project/${appID}/advanced/account-deletion`,
           },
           {
+            type: "link" as const,
             textKey: "ScreenNav.session",
             url: `/project/${appID}/advanced/session`,
           },
@@ -226,12 +297,14 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
       ...(auditLogEnabled
         ? [
             {
+              type: "link" as const,
               textKey: "ScreenNav.audit-log",
               url: `/project/${appID}/audit-log`,
             },
           ]
         : []),
       {
+        type: "link" as const,
         textKey: "PortalAdminSettings.title",
         url: `/project/${appID}/portal-admins`,
       },
@@ -248,50 +321,43 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     skippedTutorial,
   ]);
 
-  const [selectedKeys, selectedKey] = useMemo(() => {
-    const matchedKeys: string[] = [];
-    let matchLength = 0;
-    let matchedKey: string | undefined;
-    for (const link of links) {
-      const urls = [link.url, ...(link.children ?? []).map((l) => l.url)];
-      for (const url of urls) {
-        if (!url.includes(path)) {
-          continue;
-        }
-        matchedKeys.push(url);
-        if (url.length > matchLength) {
-          matchedKey = url;
-          matchLength = url.length;
-        }
-      }
+  const [expandState, setExpandState] = useState<Record<string, boolean>>(
+    () => {
+      return makeInitialExpandState(links, pathname);
     }
-    return [matchedKeys, matchedKey];
-  }, [path, links]);
+  );
 
-  useEffect(() => {
-    for (const key of selectedKeys) {
-      if (!expandState[key]) {
-        setExpandState((s) => ({ ...s, [key]: true }));
-      }
-    }
-  }, [selectedKeys, expandState]);
+  const selectedKey = useMemo(
+    () => getSelectedKey(links, pathname),
+    [links, pathname]
+  );
 
   const navItem = useCallback(
-    (props: NavLinkProps): INavLink => {
-      const children = props.children ?? [];
-      let isExpanded = false;
-      if (children.length > 0) {
-        isExpanded = expandState[props.url] || selectedKeys.includes(props.url);
+    (item: NavLinkItem): INavLink => {
+      switch (item.type) {
+        case "group": {
+          return {
+            isExpanded:
+              Boolean(expandState[item.urlPrefix]) ||
+              pathname.startsWith(item.urlPrefix),
+            key: item.urlPrefix,
+            name: renderToString(item.textKey),
+            url: "",
+            links: item.children.map(navItem),
+          };
+        }
+        case "link": {
+          return {
+            key: item.url,
+            name: renderToString(item.textKey),
+            url: item.url,
+          };
+        }
+        default:
+          throw new Error("unreachable");
       }
-      return {
-        isExpanded,
-        key: props.url,
-        name: renderToString(props.textKey),
-        url: children.length > 0 ? "" : props.url,
-        links: children.map((p) => navItem(p)),
-      };
     },
-    [expandState, selectedKeys, renderToString]
+    [expandState, pathname, renderToString]
   );
 
   const navGroups: INavLinkGroup[] = useMemo(
@@ -308,25 +374,24 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
       e?.stopPropagation();
       e?.preventDefault();
 
-      const path = getAppRouterPath(location);
-      if (item?.url && !isPathSame(item.url, path)) {
-        navigate(item.url);
+      const url = item?.url;
+      if (url != null && url !== "") {
+        navigate(url);
         props.onLinkClick?.();
       }
     },
-    [location, navigate, props]
+    [navigate, props]
   );
   const onLinkExpandClick = useCallback(
     (e?: React.MouseEvent, item?: INavLink) => {
       e?.stopPropagation();
       e?.preventDefault();
-      const key = item?.key ?? "";
-      if (selectedKeys.includes(key)) {
-        return;
+      const key = item?.key;
+      if (key != null) {
+        setExpandState((s) => ({ ...s, [key]: !Boolean(s[key]) }));
       }
-      setExpandState((s) => ({ ...s, [key]: !Boolean(s[key]) }));
     },
-    [selectedKeys]
+    []
   );
 
   if (queryResult.loading) {
