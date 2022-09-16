@@ -1,6 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import {
-  Toggle,
   Text,
   Dropdown,
   useTheme,
@@ -50,6 +49,7 @@ import Web3ConfigurationCollectionDeletionDialog from "./Web3ConfigurationCollec
 import Web3ConfigurationAddCollectionForm from "./Web3ConfigurationAddCollectionForm";
 import CommandBarButton from "../../CommandBarButton";
 import ActionButton from "../../ActionButton";
+import Toggle from "../../Toggle";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 
@@ -417,10 +417,9 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
               <div>
                 <Toggle
                   label={renderToString("Web3ConfigurationScreen.siwe.title")}
-                  onText={renderToString("Web3ConfigurationScreen.siwe.on")}
-                  offText={renderToString("Web3ConfigurationScreen.siwe.off")}
                   checked={state.siweChecked}
                   onChange={onChangeSIWEChecked}
+                  inlineLabel={false}
                 />
                 <Text as="p" variant="medium" block={true}>
                   <FormattedMessage id="Web3ConfigurationScreen.siwe.description" />

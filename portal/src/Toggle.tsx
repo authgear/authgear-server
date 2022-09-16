@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useContext, forwardRef } from "react";
+import { Context } from "@oursky/react-messageformat";
+// eslint-disable-next-line no-restricted-imports
 import { Toggle as FluentUIToggle, IToggleProps, Text } from "@fluentui/react";
 
 export interface ToggleProps extends IToggleProps {
@@ -6,12 +8,29 @@ export interface ToggleProps extends IToggleProps {
   toggleClassName?: string;
 }
 
-const Toggle: React.VFC<ToggleProps> = function Toggle(props: ToggleProps) {
-  const { description, className, toggleClassName, ...rest } = props;
+export default forwardRef<HTMLDivElement, ToggleProps>(function Toggle(
+  props,
+  ref
+) {
+  const { description, className, toggleClassName, inlineLabel, ...rest } =
+    props;
+  const { renderToString } = useContext(Context);
+  const ownProps =
+    inlineLabel === false
+      ? {
+          onText: renderToString("Toggle.on"),
+          offText: renderToString("Toggle.off"),
+        }
+      : undefined;
 
   return (
-    <div className={className}>
-      <FluentUIToggle {...rest} className={toggleClassName} />
+    <div className={className} ref={ref}>
+      <FluentUIToggle
+        {...ownProps}
+        {...rest}
+        inlineLabel={inlineLabel}
+        className={toggleClassName}
+      />
       {description ? (
         <Text variant="medium" block={true} style={{ lineHeight: "20px" }}>
           {description}
@@ -19,6 +38,4 @@ const Toggle: React.VFC<ToggleProps> = function Toggle(props: ToggleProps) {
       ) : null}
     </div>
   );
-};
-
-export default Toggle;
+});

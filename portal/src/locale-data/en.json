@@ -110,6 +110,9 @@
   "TodoButtonWrapper.dialog-title": "Feature Not Ready",
   "TodoButtonWrapper.dialog-message": "This feature is not yet implemented",
 
+  "Toggle.on": "On",
+  "Toggle.off": "Off",
+
   "ScreenNav.label": "Top-level tab navigation",
   "ScreenNav.all-projects": "All projects",
   "ScreenNav.getting-started": "Getting Started",
@@ -336,15 +339,11 @@
   "AuthenticatorConfigurationScreen.recovery-code.recovery-code-number": "Number of Recovery Code",
   "AuthenticatorConfigurationScreen.recovery-code.allow-retrieve-recovery-code": "Allow user to retrieve or regenerate recovery code again",
   "AuthenticatorConfigurationScreen.passkey.title": "Login with passkey",
-  "AuthenticatorConfigurationScreen.passkey.on": "On",
-  "AuthenticatorConfigurationScreen.passkey.off": "Off",
   "AuthenticatorConfigurationScreen.passkey.description": "Passkeys give users a simple and secure way to sign in your apps and websites across platforms without passwords. {DocLink, react, href{https://docs.authgear.com/strategies/passkeys} children{Learn more about passkeys}}",
 
   "Web3ConfigurationScreen.title": "Ethereum & NFT",
   "Web3ConfigurationScreen.description": "Authenticate the user by crypto wallets and NFT ownership. Their wallet addresses and the list of NFTs owned will be available as user info.",
   "Web3ConfigurationScreen.siwe.title": "Login with Ethereum",
-  "Web3ConfigurationScreen.siwe.on": "On",
-  "Web3ConfigurationScreen.siwe.off": "Off",
   "Web3ConfigurationScreen.siwe.description": "Add a button to the signup/login screen for the users to login with their crypto wallet such as MetaMask. Enabling this will replace all other login methods. See the {DocLink, react, href{https://docs.authgear.com/strategies/web3#platform-support} children{list of supported wallets here.}}",
   "Web3ConfigurationScreen.network-droplist.label": "Network",
   "Web3ConfigurationScreen.collection-list.title": "NFT Collections",

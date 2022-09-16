@@ -7,7 +7,6 @@ import {
   FontIcon,
   Image,
   Label,
-  Toggle,
   DefaultEffects,
   Dialog,
   DialogFooter,
@@ -29,6 +28,7 @@ import ScreenTitle from "../../ScreenTitle";
 import ScreenDescription from "../../ScreenDescription";
 import Widget from "../../Widget";
 import TextField from "../../TextField";
+import Toggle from "../../Toggle";
 import { startReauthentication } from "./Authenticated";
 import { PortalAPIAppConfig, PortalAPISecretConfig } from "../../types";
 import { useSystemConfig } from "../../context/SystemConfigContext";

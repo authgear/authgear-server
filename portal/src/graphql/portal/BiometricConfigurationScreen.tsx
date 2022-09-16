@@ -2,7 +2,6 @@ import React, { useCallback, useContext, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { Toggle } from "@fluentui/react";
 import { PortalAPIAppConfig, IdentityFeatureConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import ShowLoading from "../../ShowLoading";
@@ -12,6 +11,7 @@ import ScreenTitle from "../../ScreenTitle";
 import ScreenDescription from "../../ScreenDescription";
 import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
+import Toggle from "../../Toggle";
 import {
   AppConfigFormModel,
   useAppConfigForm,
