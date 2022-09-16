@@ -45125,12 +45125,16 @@ func newWebAppConfirmWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	authenticationViewModeler := &viewmodels.AuthenticationViewModeler{
+		Authentication: authenticationConfig,
+	}
 	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
 		AuthenticationConfig: authenticationConfig,
 	}
 	confirmWeb3AccountHandler := &webapp.ConfirmWeb3AccountHandler{
 		ControllerFactory:         controllerFactory,
 		BaseViewModel:             baseViewModeler,
+		AuthenticationViewModel:   authenticationViewModeler,
 		AlternativeStepsViewModel: alternativeStepsViewModeler,
 		Renderer:                  responseRenderer,
 	}

@@ -41,6 +41,7 @@ type ConfirmWeb3AccountViewModel struct {
 type ConfirmWeb3AccountHandler struct {
 	ControllerFactory         ControllerFactory
 	BaseViewModel             *viewmodels.BaseViewModeler
+	AuthenticationViewModel   *viewmodels.AuthenticationViewModeler
 	AlternativeStepsViewModel *viewmodels.AlternativeStepsViewModeler
 	Renderer                  Renderer
 }
@@ -61,7 +62,7 @@ func (h *ConfirmWeb3AccountHandler) GetData(r *http.Request, rw http.ResponseWri
 		Provider: provider,
 	}
 
-	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithGraph(graph)
+	authenticationViewModel := h.AuthenticationViewModel.NewWithGraph(graph)
 	viewmodels.Embed(data, authenticationViewModel)
 	viewmodels.Embed(data, confirmWeb3AccountViewModel)
 	viewmodels.Embed(data, baseViewModel)
