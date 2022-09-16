@@ -59,6 +59,11 @@ var iosMachineMapping = map[string]string{
 	"iPhone14,3": "iPhone 13 Pro Max",
 	"iPhone14,4": "iPhone 13 mini",
 	"iPhone14,5": "iPhone 13",
+	"iPhone14,6": "iPhone SE", // (3rd Generation iPhone SE)
+	"iPhone14,7": "iPhone 14",
+	"iPhone14,8": "iPhone 14 Plus",
+	"iPhone15,2": "iPhone 14 Pro",
+	"iPhone15,3": "iPhone 14 Pro Max",
 
 	"iPad1,1":   "iPad",                                // (Original)
 	"iPad1,2":   "iPad 3G",                             //
@@ -132,6 +137,8 @@ var iosMachineMapping = map[string]string{
 	"iPad13,9":  "iPad Pro 12.9-inch (5th generation)",
 	"iPad13,10": "iPad Pro 12.9-inch (5th generation)",
 	"iPad13,11": "iPad Pro 12.9-inch (5th generation)",
+	"iPad13,16": "iPad Air (5th generation)",
+	"iPad13,17": "iPad Air (5th generation)",
 	"iPad14,1":  "iPad mini (6th generation)",
 	"iPad14,2":  "iPad mini (6th generation)",
 
