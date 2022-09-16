@@ -77,6 +77,7 @@
   "error-server": "Server encountered an internal error.",
   "error-invalid-selected-image": "The selected image is invalid. Try another one.",
   "error-no-passkey": "Passkey is not found on your device. {type, select, password{Sign in with password instead?} oob_otp_email{Sign in with one-time password instead?} oob_otp_sms{Sign in with one-time password instead?} other{Try another device?}}",
+  "error-passkey-empty-allow-credentials": "Sign in with passkey is not fully supported on this device.{variant, select, phone{ Please continue with your phone number.} email{ Please continue with your email address.} username{ Please continue with your username.} other{ Please continue with your email address or username.}}",
 
   "success-resend-code": "Resent code successfully!",
 
