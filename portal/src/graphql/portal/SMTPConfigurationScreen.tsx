@@ -446,7 +446,7 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
           <FormattedMessage id="SMTPConfigurationScreen.description" />
         </ScreenDescription>
 
-        <Widget className={cn(styles.widget, styles.grid)}>
+        <Widget className={styles.widget} contentLayout="grid">
           <Toggle
             className={styles.columnFull}
             checked={state.enabled}
