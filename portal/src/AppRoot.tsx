@@ -340,6 +340,14 @@ const AppRoot: React.VFC = function AppRoot() {
                   }
                 />
                 <Route
+                  path="biometric"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <BiometricConfigurationScreen />
+                    </Suspense>
+                  }
+                />
+                <Route
                   path="web3"
                   element={
                     <Suspense fallback={<ShowLoading />}>
@@ -353,14 +361,6 @@ const AppRoot: React.VFC = function AppRoot() {
                 element={
                   <Suspense fallback={<ShowLoading />}>
                     <AnonymousUsersConfigurationScreen />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="biometric"
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <BiometricConfigurationScreen />
                   </Suspense>
                 }
               />
