@@ -343,6 +343,11 @@ But we do not want to do that.
 The workaround is to add `alias` to package.json.
 See [https://github.com/parcel-bundler/parcel/issues/7697](https://github.com/parcel-bundler/parcel/issues/7697).
 
+Docker Desktop on Mac has [an issue](https://github.com/docker/for-mac/issues/5812#issuecomment-874532024) that would lead to an unresponsive reverse proxy.
+One of the comment says enabling "Use the new Virtualization framework" would help.
+After >5000 requests to the portal, "upstream timed out" errors will begin to pop up.
+If enabling "Use the new Virtualization framework" did not help, you can restart Docker Desktop on Mac as a workaround.
+
 ## Comment tags
 
 - `FIXME`: Should be fixed as soon as possible
