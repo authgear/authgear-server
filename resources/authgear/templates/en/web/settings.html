@@ -21,12 +21,12 @@
         src="{{ call $.GeneratedStaticAssetURL "avatar_placeholder.png" }}"
       {{ end }}
     >
-    <div class="mx-2.5 flex flex-col space-y-1">
+    <div class="min-w-0 flex-1 mx-2.5 flex flex-col space-y-1">
       {{ $any_name_readable := (or (call $.IsReadable "/name") (call $.IsReadable "/given_name") (call $.IsReadable "/family_name") (call $.IsReadable "/middle_name") (call $.IsReadable "/nickname")) }}
-      {{ if (and $any_name_readable $.FormattedName) }}<span class="primary-txt">{{ $.FormattedName }}</span>{{ end }}
-      {{ if (and (not $.FormattedName) $.EndUserAccountID) }}<span class="primary-txt">{{ $.EndUserAccountID }}</span>{{ end }}
-      {{ if (and $.FormattedName $.EndUserAccountID) }}<span class="secondary-txt font-sm">{{ $.EndUserAccountID }}</span>{{ end }}
-      {{ if (and (not $.FormattedName) (not $.EndUserAccountID)) }}<span class="secondary-txt font-sm">{{ template "settings-my-profile-empty-label" }}</span>{{ end }}
+      {{ if (and $any_name_readable $.FormattedName) }}<span class="primary-txt truncate">{{ $.FormattedName }}</span>{{ end }}
+      {{ if (and (not $.FormattedName) $.EndUserAccountID) }}<span class="primary-txt truncate">{{ $.EndUserAccountID }}</span>{{ end }}
+      {{ if (and $.FormattedName $.EndUserAccountID) }}<span class="secondary-txt truncate font-sm">{{ $.EndUserAccountID }}</span>{{ end }}
+      {{ if (and (not $.FormattedName) (not $.EndUserAccountID)) }}<span class="secondary-txt truncate font-sm">{{ template "settings-my-profile-empty-label" }}</span>{{ end }}
     </div>
   </div>
 

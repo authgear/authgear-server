@@ -107,28 +107,6 @@ func TestT(t *testing.T) {
 			}.FormattedNames(), ShouldEqual, "John Doe (Johnny)\nJohn Doe")
 		})
 
-		Convey("EndUserAccountID", func() {
-			So(T{}.EndUserAccountID(), ShouldEqual, "")
-			So(T{
-				"email": "user@example.com",
-			}.EndUserAccountID(), ShouldEqual, "user@example.com")
-			So(T{
-				"preferred_username": "user",
-			}.EndUserAccountID(), ShouldEqual, "user")
-			So(T{
-				"phone_number": "+85298765432",
-			}.EndUserAccountID(), ShouldEqual, "+85298765432")
-			So(T{
-				"preferred_username": "user",
-				"phone_number":       "+85298765432",
-			}.EndUserAccountID(), ShouldEqual, "user")
-			So(T{
-				"email":              "user@example.com",
-				"preferred_username": "user",
-				"phone_number":       "+85298765432",
-			}.EndUserAccountID(), ShouldEqual, "user@example.com")
-		})
-
 		Convey("Clone", func() {
 			a := T{
 				"address": map[string]interface{}{
