@@ -107,6 +107,10 @@ function serializeAssertionResponse(credential: PublicKeyCredential) {
   };
 }
 
+function isEmptyAllowCredentialsError(err: unknown) {
+  return err instanceof DOMException && /allowCredentials/i.test(err.message);
+}
+
 function isSafariCancel(err: unknown) {
   return (
     err instanceof DOMException &&
@@ -194,6 +198,10 @@ function handleError(err: unknown) {
   if (isFirefoxSecurityKeyError(err)) {
     showErrorMessage("error-message-no-passkey");
     return;
+  }
+
+  if (isEmptyAllowCredentialsError(err)) {
+    showErrorMessage("error-message-passkey-empty-allow-credentials");
   }
 
   return false;
