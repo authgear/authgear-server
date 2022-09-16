@@ -125,6 +125,11 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             textKey: "ScreenNav.verification",
             url: `/project/${appID}/configuration/authentication/verification`,
           },
+          {
+            textKey: "ScreenNav.external-oauth",
+            url: `/project/${appID}/configuration/authentication/external-oauth`,
+          },
+
           ...(web3Enabled
             ? [
                 {
@@ -142,10 +147,6 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
       {
         textKey: "ScreenNav.biometric",
         url: `/project/${appID}/configuration/biometric`,
-      },
-      {
-        textKey: "ScreenNav.single-sign-on",
-        url: `/project/${appID}/configuration/single-sign-on`,
       },
       {
         textKey: "ScreenNav.password-policy",
