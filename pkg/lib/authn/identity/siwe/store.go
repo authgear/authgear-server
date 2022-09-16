@@ -173,7 +173,7 @@ func (s *Store) Create(i *identity.SIWE) error {
 
 func (s *Store) Delete(i *identity.SIWE) error {
 	q := s.SQLBuilder.
-		Delete(s.SQLBuilder.TableName("_auth_identity_swie")).
+		Delete(s.SQLBuilder.TableName("_auth_identity_siwe")).
 		Where("id = ?", i.ID)
 
 	_, err := s.SQLExecutor.ExecWith(q)
