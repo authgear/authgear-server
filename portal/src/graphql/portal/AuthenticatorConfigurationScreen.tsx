@@ -1,23 +1,17 @@
 import React, { useCallback, useContext, useMemo } from "react";
-import cn from "classnames";
-import { Dropdown, Text } from "@fluentui/react";
+import { Text } from "@fluentui/react";
 import produce from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { swap } from "../../OrderButtons";
-import FormTextField from "../../FormTextField";
 import {
   PortalAPIAppConfig,
   PortalAPIFeatureConfig,
   PrimaryAuthenticatorType,
   primaryAuthenticatorTypes,
-  SecondaryAuthenticationMode,
-  secondaryAuthenticationModes,
   SecondaryAuthenticatorType,
   secondaryAuthenticatorTypes,
 } from "../../types";
-import { useCheckbox, useDropdown } from "../../hook/useInput";
 import { clearEmptyObject } from "../../util/misc";
-import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import { useParams } from "react-router-dom";
 import {
   AppConfigFormModel,
@@ -29,13 +23,11 @@ import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import ScreenDescription from "../../ScreenDescription";
 import WidgetTitle from "../../WidgetTitle";
-import WidgetDescription from "../../WidgetDescription";
 import Widget from "../../Widget";
 import FormContainer from "../../FormContainer";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import PriorityList, { PriorityListItem } from "../../PriorityList";
 import Link from "../../Link";
-import Toggle from "../../Toggle";
 
 import styles from "./AuthenticatorConfigurationScreen.module.css";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
@@ -66,12 +58,6 @@ function makeAuthenticatorReasonable(state: FormState): FormState {
 interface FormState {
   primary: AuthenticatorTypeFormState<PrimaryAuthenticatorType>[];
   secondary: AuthenticatorTypeFormState<SecondaryAuthenticatorType>[];
-
-  mfaMode: SecondaryAuthenticationMode;
-  recoveryCodeEnabled: boolean;
-  numRecoveryCode: number | undefined;
-  allowListRecoveryCode: boolean;
-  disableDeviceToken: boolean;
 }
 
 // eslint-disable-next-line complexity
@@ -112,15 +98,6 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
     primary,
     secondary,
-    mfaMode:
-      config.authentication?.secondary_authentication_mode ?? "if_exists",
-    numRecoveryCode: config.authentication?.recovery_code?.count,
-    recoveryCodeEnabled: !(
-      config.authentication?.recovery_code?.disabled ?? false
-    ),
-    allowListRecoveryCode:
-      config.authentication?.recovery_code?.list_enabled ?? false,
-    disableDeviceToken: config.authentication?.device_token?.disabled ?? false,
   };
 }
 
@@ -133,8 +110,6 @@ function constructConfig(
   // eslint-disable-next-line complexity
   return produce(config, (config) => {
     config.authentication ??= {};
-    config.authentication.recovery_code ??= {};
-    config.authentication.device_token ??= {};
 
     function filterEnabled<T extends string>(
       s: AuthenticatorTypeFormState<T>[]
@@ -149,22 +124,9 @@ function constructConfig(
       currentState.secondary
     );
 
-    config.authentication.secondary_authentication_mode = currentState.mfaMode;
-    config.authentication.recovery_code.disabled =
-      !currentState.recoveryCodeEnabled;
-    config.authentication.recovery_code.count = currentState.numRecoveryCode;
-    config.authentication.recovery_code.list_enabled =
-      currentState.allowListRecoveryCode;
-    config.authentication.device_token.disabled =
-      currentState.disableDeviceToken;
-
     clearEmptyObject(config);
   });
 }
-
-const ALL_REQUIRE_MFA_OPTIONS: SecondaryAuthenticationMode[] = [
-  ...secondaryAuthenticationModes,
-];
 
 const primaryAuthenticatorNameIds = {
   oob_otp_email: "AuthenticatorType.primary.oob-otp-email",
@@ -228,83 +190,12 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
       return false;
     }, [featureDisabled]);
 
-    const isSecondaryAuthenticatorDisabled = useMemo(
-      () => state.mfaMode === "disabled",
-      [state.mfaMode]
-    );
-
     const isPhoneLoginIdDisabled = useMemo(
       () =>
         effectiveConfig.identity?.login_id?.keys?.find(
           (t) => t.type === "phone"
         ) == null,
       [effectiveConfig.identity?.login_id?.keys]
-    );
-
-    const renderSecondaryAuthenticatorMode = useCallback(
-      (key: SecondaryAuthenticationMode) => {
-        const messageIdMap: Record<SecondaryAuthenticationMode, string> = {
-          disabled:
-            "AuthenticatorConfigurationScreen.secondary-authenticators.mode.disabled",
-          required:
-            "AuthenticatorConfigurationScreen.secondary-authenticators.mode.required",
-          if_exists:
-            "AuthenticatorConfigurationScreen.secondary-authenticators.mode.if-exists",
-        };
-
-        return renderToString(messageIdMap[key]);
-      },
-      [renderToString]
-    );
-
-    const { options: requireMFAOptions, onChange: onRequireMFAOptionChange } =
-      useDropdown(
-        ALL_REQUIRE_MFA_OPTIONS,
-        (option) => {
-          setState((prev) => ({
-            ...prev,
-            mfaMode: option,
-          }));
-        },
-        state.mfaMode,
-        renderSecondaryAuthenticatorMode
-      );
-
-    const onRecoveryCodeNumberChange = useCallback(
-      (_, value?: string) => {
-        setState((prev) => ({
-          ...prev,
-          numRecoveryCode: parseIntegerAllowLeadingZeros(value),
-        }));
-      },
-      [setState]
-    );
-
-    const { onChange: onChangeRecoveryCodeEnabled } = useCheckbox(
-      (checked: boolean) => {
-        setState((prev) => ({
-          ...prev,
-          recoveryCodeEnabled: checked,
-        }));
-      }
-    );
-
-    const { onChange: onAllowRetrieveRecoveryCodeChange } = useCheckbox(
-      (checked: boolean) => {
-        setState((prev) => ({
-          ...prev,
-          allowListRecoveryCode: checked,
-        }));
-      }
-    );
-
-    const { onChange: onDisableDeviceTokenChange } = useCheckbox(
-      (checked: boolean) => {
-        setState((prev) => ({
-          ...prev,
-          disableDeviceToken: checked,
-        }));
-      }
     );
 
     const onSwapPrimaryAuthenticator = useCallback(
@@ -430,83 +321,19 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
           <WidgetTitle>
             <FormattedMessage id="AuthenticatorConfigurationScreen.secondary-authenticators.title" />
           </WidgetTitle>
-          <Dropdown
-            label={renderToString(
-              "AuthenticatorConfigurationScreen.secondary-authenticators.mode.label"
+          {hasSecondaryFeatureDisabled ? (
+            <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
+          ) : null}
+          <PriorityList
+            items={secondaryItems}
+            checkedColumnLabel={renderToString(
+              "AuthenticatorConfigurationScreen.columns.activate"
             )}
-            options={requireMFAOptions}
-            selectedKey={state.mfaMode}
-            onChange={onRequireMFAOptionChange}
-          />
-          <div
-            className={cn({
-              [styles.readOnly]: isSecondaryAuthenticatorDisabled,
-            })}
-          >
-            {hasSecondaryFeatureDisabled ? (
-              <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
-            ) : null}
-            <PriorityList
-              items={secondaryItems}
-              checkedColumnLabel={renderToString(
-                "AuthenticatorConfigurationScreen.columns.activate"
-              )}
-              keyColumnLabel={renderToString(
-                "AuthenticatorConfigurationScreen.columns.authenticator"
-              )}
-              onChangeChecked={onChangeSecondaryAuthenticatorChecked}
-              onSwap={onSwapSecondaryAuthenticator}
-            />
-          </div>
-          <Toggle
-            className={cn({
-              [styles.readOnly]: isSecondaryAuthenticatorDisabled,
-            })}
-            inlineLabel={true}
-            label={
-              <FormattedMessage id="AuthenticatorConfigurationScreen.secondary-authenticators.disable-device-token.label" />
-            }
-            checked={state.disableDeviceToken}
-            onChange={onDisableDeviceTokenChange}
-          />
-        </Widget>
-        <Widget
-          className={cn(styles.widget, {
-            [styles.readOnly]: isSecondaryAuthenticatorDisabled,
-          })}
-        >
-          <WidgetTitle>
-            <FormattedMessage id="AuthenticatorConfigurationScreen.recovery-code.title" />
-          </WidgetTitle>
-          <WidgetDescription>
-            <FormattedMessage id="AuthenticatorConfigurationScreen.recovery-code.description" />
-          </WidgetDescription>
-          <Toggle
-            inlineLabel={true}
-            label={
-              <FormattedMessage id="AuthenticatorConfigurationScreen.recovery-code.enable-recovery-code" />
-            }
-            checked={state.recoveryCodeEnabled}
-            onChange={onChangeRecoveryCodeEnabled}
-          />
-          <FormTextField
-            disabled={!state.recoveryCodeEnabled}
-            parentJSONPointer="/authentication/recovery_code"
-            fieldName="count"
-            label={renderToString(
-              "AuthenticatorConfigurationScreen.recovery-code.recovery-code-number"
+            keyColumnLabel={renderToString(
+              "AuthenticatorConfigurationScreen.columns.authenticator"
             )}
-            value={state.numRecoveryCode?.toFixed(0) ?? ""}
-            onChange={onRecoveryCodeNumberChange}
-          />
-          <Toggle
-            disabled={!state.recoveryCodeEnabled}
-            inlineLabel={true}
-            label={
-              <FormattedMessage id="AuthenticatorConfigurationScreen.recovery-code.allow-retrieve-recovery-code" />
-            }
-            checked={state.allowListRecoveryCode}
-            onChange={onAllowRetrieveRecoveryCodeChange}
+            onChangeChecked={onChangeSecondaryAuthenticatorChecked}
+            onSwap={onSwapSecondaryAuthenticator}
           />
         </Widget>
       </ScreenContent>
