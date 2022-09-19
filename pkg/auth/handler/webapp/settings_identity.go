@@ -51,7 +51,7 @@ func (h *SettingsIdentityHandler) GetData(r *http.Request, rw http.ResponseWrite
 	if err != nil {
 		return nil, err
 	}
-	authenticationViewModel := h.AuthenticationViewModel.NewWithCandidates(candidates)
+	authenticationViewModel := h.AuthenticationViewModel.NewWithCandidates(candidates, r.Form)
 
 	viewModel := SettingsIdentityViewModel{
 		AccountDeletionAllowed: h.AccountDeletion.ScheduledByEndUserEnabled,

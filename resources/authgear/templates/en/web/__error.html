@@ -40,6 +40,9 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
       {{ template "error-no-passkey" (dict "type"
       $.FirstNonPasskeyPrimaryAuthenticatorType) }}
     </li>
+    <li id="error-message-passkey-empty-allow-credentials" class="hidden">
+      {{ template "error-passkey-empty-allow-credentials" (dict "variant" $.LoginIDContextualType) }}
+    </li>
     <li id="error-message-metamask-unauthorized" class="hidden">
       {{ template "error-metamask-unauthorized" }}
     </li>
@@ -55,22 +58,10 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
 
     {{ if $display_error }} {{ $info := .Error.info }} {{ if eq .Error.reason
     "ValidationFailed" }} {{ range .Error.info.causes }} {{ if (eq .kind
-    "required") }} {{ if (and (call $.SliceContains .details.missing
-    "x_login_id" ) ($.x_login_id_input_type)) }} {{ if (eq
-    $.x_login_id_input_type "phone") }}
+    "required") }}
+    {{ if (call $.SliceContains .details.missing "x_login_id") }}
     <li>
-      {{ template "error-login-id-required" (dict "variant"
-      $.x_login_id_input_type) }}
-    </li>
-    {{ else }}
-    <li>
-      {{ template "error-login-id-required" (dict "variant"
-      $.LoginIDInputVariant) }}
-    </li>
-    {{ end }} {{ else if (and (call $.SliceContains .details.missing
-    "x_login_id" ) ($.LoginIDType)) }}
-    <li>
-      {{ template "error-login-id-required" (dict "variant" $.LoginIDType) }}
+      {{ template "error-login-id-required" (dict "variant" $.LoginIDContextualType) }}
     </li>
     {{ else if (call $.SliceContains .details.missing "x_password" ) }}
     <li>{{ template "error-password-required" }}</li>

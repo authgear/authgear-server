@@ -107,7 +107,7 @@ func (h *EnterLoginIDHandler) GetData(userID string, r *http.Request, rw http.Re
 	if err != nil {
 		return nil, err
 	}
-	authenticationViewModel := h.AuthenticationViewModel.NewWithCandidates(candidates)
+	authenticationViewModel := h.AuthenticationViewModel.NewWithCandidates(candidates, r.Form)
 	viewmodels.Embed(data, authenticationViewModel)
 
 	viewmodels.Embed(data, baseViewModel)
