@@ -29,7 +29,7 @@
         <li id="error-message-network" class="hidden">{{ template "error-network" }}</li>
         <li id="error-message-invalid-selected-image" class="hidden">{{ template "error-invalid-selected-image" }}</li>
         <li id="error-message-no-passkey" class="hidden">{{ template "error-no-passkey" (dict "type" $.FirstNonPasskeyPrimaryAuthenticatorType) }}</li>
-        <li id="error-message-passkey-empty-allow-credentials" class="hidden">{{ template "error-passkey-empty-allow-credentials" (dict "variant" $.x_login_id_input_type) }}</li>
+        <li id="error-message-passkey-empty-allow-credentials" class="hidden">{{ template "error-passkey-empty-allow-credentials" (dict "variant" $.LoginIDContextualType) }}</li>
         {{ if $display_error }}
             {{ $info := .Error.info }}
             {{ if eq .Error.reason "ValidationFailed" }}
