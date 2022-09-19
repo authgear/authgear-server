@@ -23,6 +23,9 @@ import {
 } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
 import { useDropdown } from "../../hook/useInput";
+import WidgetDescription from "../../WidgetDescription";
+import FormTextField from "../../FormTextField";
+import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import styles from "./MFAConfigurationScreen.module.css";
 
 const ALL_MFA_OPTIONS: SecondaryAuthenticationMode[] = [
@@ -32,6 +35,9 @@ const ALL_MFA_OPTIONS: SecondaryAuthenticationMode[] = [
 interface FormState {
   mfaMode: SecondaryAuthenticationMode;
   deviceTokenDisabled: boolean;
+  recoveryCodeEnabled: boolean;
+  numRecoveryCode: number | undefined;
+  recoveryCodeListEnabled: boolean;
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
@@ -39,6 +45,12 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     mfaMode:
       config.authentication?.secondary_authentication_mode ?? "if_exists",
     deviceTokenDisabled: config.authentication?.device_token?.disabled ?? false,
+    recoveryCodeEnabled: !(
+      config.authentication?.recovery_code?.disabled ?? false
+    ),
+    numRecoveryCode: config.authentication?.recovery_code?.count,
+    recoveryCodeListEnabled:
+      config.authentication?.recovery_code?.list_enabled ?? false,
   };
 }
 
@@ -51,9 +63,18 @@ function constructConfig(
   return produce(config, (config) => {
     config.authentication ??= {};
     config.authentication.device_token ??= {};
+    config.authentication.recovery_code ??= {};
+
     config.authentication.secondary_authentication_mode = currentState.mfaMode;
     config.authentication.device_token.disabled =
       currentState.deviceTokenDisabled;
+
+    config.authentication.recovery_code.disabled =
+      !currentState.recoveryCodeEnabled;
+    config.authentication.recovery_code.count = currentState.numRecoveryCode;
+    config.authentication.recovery_code.list_enabled =
+      currentState.recoveryCodeListEnabled;
+
     clearEmptyObject(config);
   });
 }
@@ -65,7 +86,13 @@ interface MFAConfigurationContentProps {
 const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
   function MFAConfigurationContent(props) {
     const { state, setState } = props.form;
-    const { mfaMode, deviceTokenDisabled } = state;
+    const {
+      mfaMode,
+      deviceTokenDisabled,
+      recoveryCodeEnabled,
+      recoveryCodeListEnabled,
+      numRecoveryCode,
+    } = state;
     const { renderToString } = useContext(Context);
 
     const renderMFAMode = useCallback(
@@ -97,6 +124,36 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
       [setState]
     );
 
+    const onChangeRecoveryCodeEnabled = useCallback(
+      (_e, checked?: boolean) => {
+        setState((prev) => ({
+          ...prev,
+          recoveryCodeEnabled: checked ?? false,
+        }));
+      },
+      [setState]
+    );
+
+    const onChangeRecoveryCodeListEnabled = useCallback(
+      (_e, checked?: boolean) => {
+        setState((prev) => ({
+          ...prev,
+          recoveryCodeListEnabled: checked ?? false,
+        }));
+      },
+      [setState]
+    );
+
+    const onChangeNumRecoveryCode = useCallback(
+      (_, value?: string) => {
+        setState((prev) => ({
+          ...prev,
+          numRecoveryCode: parseIntegerAllowLeadingZeros(value),
+        }));
+      },
+      [setState]
+    );
+
     return (
       <ScreenContent>
         <ScreenTitle className={styles.widget}>
@@ -122,6 +179,41 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
             inlineLabel={false}
             checked={deviceTokenDisabled}
             onChange={onChangeDeviceTokenDisabled}
+          />
+        </Widget>
+        <Widget className={styles.widget}>
+          <WidgetTitle>
+            <FormattedMessage id="MFAConfigurationScreen.recovery-code.title" />
+          </WidgetTitle>
+          <WidgetDescription>
+            <FormattedMessage id="MFAConfigurationScreen.recovery-code.description" />
+          </WidgetDescription>
+          <Toggle
+            label={
+              <FormattedMessage id="MFAConfigurationScreen.recovery-code.toggle.title" />
+            }
+            inlineLabel={false}
+            checked={recoveryCodeEnabled}
+            onChange={onChangeRecoveryCodeEnabled}
+          />
+          <FormTextField
+            disabled={!recoveryCodeEnabled}
+            parentJSONPointer="/authentication/recovery_code"
+            fieldName="count"
+            label={renderToString(
+              "MFAConfigurationScreen.recovery-code.input.title"
+            )}
+            value={numRecoveryCode?.toFixed(0) ?? ""}
+            onChange={onChangeNumRecoveryCode}
+          />
+          <Toggle
+            disabled={!recoveryCodeEnabled}
+            label={
+              <FormattedMessage id="MFAConfigurationScreen.recovery-code.list.toggle.title" />
+            }
+            inlineLabel={false}
+            checked={recoveryCodeListEnabled}
+            onChange={onChangeRecoveryCodeListEnabled}
           />
         </Widget>
       </ScreenContent>
