@@ -6670,6 +6670,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationViewModeler := &viewmodels.AuthenticationViewModeler{
 		Authentication: authenticationConfig,
+		LoginID:        loginIDConfig,
 	}
 	formPrefiller := &webapp.FormPrefiller{
 		LoginID: loginIDConfig,
@@ -7412,6 +7413,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationViewModeler := &viewmodels.AuthenticationViewModeler{
 		Authentication: authenticationConfig,
+		LoginID:        loginIDConfig,
 	}
 	formPrefiller := &webapp.FormPrefiller{
 		LoginID: loginIDConfig,
@@ -8153,6 +8155,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationViewModeler := &viewmodels.AuthenticationViewModeler{
 		Authentication: authenticationConfig,
+		LoginID:        loginIDConfig,
 	}
 	formPrefiller := &webapp.FormPrefiller{
 		LoginID: loginIDConfig,
@@ -11746,6 +11749,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationViewModeler := &viewmodels.AuthenticationViewModeler{
 		Authentication: authenticationConfig,
+		LoginID:        loginIDConfig,
 	}
 	enterLoginIDHandler := &webapp.EnterLoginIDHandler{
 		ControllerFactory:       controllerFactory,
@@ -23640,6 +23644,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationViewModeler := &viewmodels.AuthenticationViewModeler{
 		Authentication: authenticationConfig,
+		LoginID:        loginIDConfig,
 	}
 	formPrefiller := &webapp.FormPrefiller{
 		LoginID: loginIDConfig,
@@ -26510,6 +26515,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationViewModeler := &viewmodels.AuthenticationViewModeler{
 		Authentication: authenticationConfig,
+		LoginID:        loginIDConfig,
 	}
 	biometricConfig := identityConfig.Biometric
 	settingsViewModeler := &viewmodels.SettingsViewModeler{
@@ -28720,6 +28726,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationViewModeler := &viewmodels.AuthenticationViewModeler{
 		Authentication: authenticationConfig,
+		LoginID:        loginIDConfig,
 	}
 	settingsIdentityHandler := &webapp.SettingsIdentityHandler{
 		ControllerFactory:       controllerFactory,

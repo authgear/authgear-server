@@ -97,7 +97,7 @@ func (h *SettingsHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[
 	if err != nil {
 		return nil, err
 	}
-	authenticationViewModel := h.AuthenticationViewModel.NewWithCandidates(candidates)
+	authenticationViewModel := h.AuthenticationViewModel.NewWithCandidates(candidates, r.Form)
 	viewmodels.Embed(data, authenticationViewModel)
 
 	// Identity - Part 2
