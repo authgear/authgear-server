@@ -74,7 +74,7 @@
 					autocomplete="username webauthn"
 					autocapitalize="none"
 					name="x_login_id"
-					placeholder="{{ template "login-id-placeholder" (dict "variant" $.LoginIDInputVariant) }}"
+					placeholder="{{ template "login-id-placeholder" (dict "variant" $.NonPhoneLoginIDType) }}"
 					data-controller="retain-form-input"
 					data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
 					data-retain-form-form-target="input"
@@ -85,7 +85,7 @@
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if (or $.EmailLoginIDEnabled $.UsernameLoginIDEnabled) }}
-				<a class="link text-sm self-start block" href="{{ call $.MakeURL "" "x_login_id_input_type" $.NonPhoneLoginIDInputType }}" data-turbo-action="replace">{{ template "use-text-login-id-description" (dict "variant" $.LoginIDInputVariant) }}</a>
+				<a class="link text-sm self-start block" href="{{ call $.MakeURL "" "x_login_id_input_type" $.NonPhoneLoginIDInputType }}" data-turbo-action="replace">{{ template "use-text-login-id-description" (dict "variant" $.NonPhoneLoginIDType) }}</a>
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if $.PhoneLoginIDEnabled }}
