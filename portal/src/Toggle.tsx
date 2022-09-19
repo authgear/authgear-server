@@ -1,7 +1,12 @@
-import React, { ReactNode, useContext, forwardRef } from "react";
+import React, { ReactNode, useContext, useMemo, forwardRef } from "react";
 import { Context } from "@oursky/react-messageformat";
-// eslint-disable-next-line no-restricted-imports
-import { Toggle as FluentUIToggle, IToggleProps, Text } from "@fluentui/react";
+import {
+  // eslint-disable-next-line no-restricted-imports
+  Toggle as FluentUIToggle,
+  IToggleProps,
+  Text,
+  useTheme,
+} from "@fluentui/react";
 
 export interface ToggleProps extends IToggleProps {
   description?: ReactNode;
@@ -12,9 +17,16 @@ export default forwardRef<HTMLDivElement, ToggleProps>(function Toggle(
   props,
   ref
 ) {
-  const { description, className, toggleClassName, inlineLabel, ...rest } =
-    props;
+  const {
+    description,
+    className,
+    toggleClassName,
+    inlineLabel,
+    disabled,
+    ...rest
+  } = props;
   const { renderToString } = useContext(Context);
+  const theme = useTheme();
   const ownProps =
     inlineLabel === false
       ? {
@@ -23,6 +35,16 @@ export default forwardRef<HTMLDivElement, ToggleProps>(function Toggle(
         }
       : undefined;
 
+  const textStyles = useMemo(() => {
+    return {
+      root: {
+        lineHeight: "20px",
+        color:
+          disabled === true ? theme.semanticColors.disabledText : undefined,
+      },
+    };
+  }, [disabled, theme.semanticColors.disabledText]);
+
   return (
     <div className={className} ref={ref}>
       <FluentUIToggle
@@ -30,9 +52,10 @@ export default forwardRef<HTMLDivElement, ToggleProps>(function Toggle(
         {...rest}
         inlineLabel={inlineLabel}
         className={toggleClassName}
+        disabled={disabled}
       />
       {description ? (
-        <Text variant="medium" block={true} style={{ lineHeight: "20px" }}>
+        <Text variant="medium" block={true} styles={textStyles}>
           {description}
         </Text>
       ) : null}
