@@ -1,10 +1,11 @@
 import React, { useMemo, useCallback, useContext } from "react";
-import { Dropdown, Text } from "@fluentui/react";
+import { Dropdown, Text, useTheme } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import {
   PortalAPIAppConfig,
+  PortalAPIFeatureConfig,
   SecondaryAuthenticationMode,
   secondaryAuthenticationModes,
   SecondaryAuthenticatorType,
@@ -28,8 +29,10 @@ import FormContainer from "../../FormContainer";
 import { useDropdown } from "../../hook/useInput";
 import WidgetDescription from "../../WidgetDescription";
 import FormTextField from "../../FormTextField";
+import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import PriorityList, { PriorityListItem } from "../../PriorityList";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
+import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import styles from "./MFAConfigurationScreen.module.css";
 
 interface AuthenticatorTypeFormState<T> {
@@ -127,10 +130,12 @@ function constructConfig(
 
 interface MFAConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
+  featureConfig?: PortalAPIFeatureConfig;
 }
 
 const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
   function MFAConfigurationContent(props) {
+    const { featureConfig } = props;
     const { state, setState } = props.form;
     const {
       mfaMode,
@@ -141,6 +146,9 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
       secondary,
     } = state;
     const { renderToString } = useContext(Context);
+    const {
+      semanticColors: { disabledText },
+    } = useTheme();
 
     const renderMFAMode = useCallback(
       (key: SecondaryAuthenticationMode) => {
@@ -161,21 +169,39 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
       renderMFAMode
     );
 
+    const featureDisabled = useMemo(() => {
+      return (
+        featureConfig?.authentication?.secondary_authenticators?.oob_otp_sms
+          ?.disabled ?? false
+      );
+    }, [featureConfig]);
+
     const secondaryItems: PriorityListItem[] = useMemo(
       () =>
-        secondary.map(({ type, isChecked, isDisabled }) => ({
-          key: type,
-          checked: isChecked,
-          disabled: isDisabled,
-          content: (
-            <div>
-              <Text variant="small">
-                <FormattedMessage id={secondaryAuthenticatorNameIds[type]} />
-              </Text>
-            </div>
-          ),
-        })),
-      [secondary]
+        secondary.map(({ type, isChecked, isDisabled }) => {
+          const disabled =
+            isDisabled || (type === "oob_otp_sms" && featureDisabled);
+          return {
+            disabled,
+            key: type,
+            checked: isChecked,
+            content: (
+              <div>
+                <Text
+                  variant="small"
+                  styles={{
+                    root: {
+                      color: disabled ? disabledText : undefined,
+                    },
+                  }}
+                >
+                  <FormattedMessage id={secondaryAuthenticatorNameIds[type]} />
+                </Text>
+              </div>
+            ),
+          };
+        }),
+      [secondary, featureDisabled, disabledText]
     );
 
     const onChangeDeviceTokenDisabled = useCallback(
@@ -276,6 +302,9 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
           <WidgetDescription>
             <FormattedMessage id="MFAConfigurationScreen.authenticator.description" />
           </WidgetDescription>
+          {featureDisabled ? (
+            <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
+          ) : null}
           <PriorityList
             items={secondaryItems}
             checkedColumnLabel={renderToString(
@@ -335,7 +364,9 @@ const MFAConfigurationScreen: React.VFC = function MFAConfigurationScreen() {
     constructConfig,
   });
 
-  if (form.isLoading) {
+  const featureConfig = useAppFeatureConfigQuery(appID);
+
+  if (form.isLoading || featureConfig.loading) {
     return <ShowLoading />;
   }
 
@@ -343,9 +374,18 @@ const MFAConfigurationScreen: React.VFC = function MFAConfigurationScreen() {
     return <ShowError error={form.loadError} onRetry={form.reload} />;
   }
 
+  if (featureConfig.error != null) {
+    return (
+      <ShowError error={featureConfig.error} onRetry={featureConfig.refetch} />
+    );
+  }
+
   return (
     <FormContainer form={form}>
-      <MFAConfigurationContent form={form} />
+      <MFAConfigurationContent
+        form={form}
+        featureConfig={featureConfig.effectiveFeatureConfig ?? undefined}
+      />
     </FormContainer>
   );
 };
