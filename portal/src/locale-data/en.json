@@ -331,7 +331,6 @@
   "AuthenticatorConfigurationScreen.columns.activate": "Activate",
   "AuthenticatorConfigurationScreen.columns.authenticator": "Authenticator",
   "AuthenticatorConfigurationScreen.primary-authenticators.title": "Primary Authenticator",
-  "AuthenticatorConfigurationScreen.secondary-authenticators.title": "2nd Factor Authentication (2FA)",
 
   "Web3ConfigurationScreen.title": "Ethereum & NFT",
   "Web3ConfigurationScreen.description": "Authenticate the user by crypto wallets and NFT ownership. Their wallet addresses and the list of NFTs owned will be available as user info.",
