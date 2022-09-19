@@ -190,6 +190,11 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             textKey: "ScreenNav.biometric",
             url: `/project/${appID}/configuration/authentication/biometric`,
           },
+          {
+            type: "link" as const,
+            textKey: "ScreenNav.mfa",
+            url: `/project/${appID}/configuration/authentication/2fa`,
+          },
           ...(web3Enabled
             ? [
                 {

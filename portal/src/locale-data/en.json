@@ -126,6 +126,7 @@
   "ScreenNav.web3": "Ethereum & NFT",
   "ScreenNav.passkey": "Passkeys",
   "ScreenNav.biometric": "Biometric",
+  "ScreenNav.mfa": "2FA",
   "ScreenNav.external-oauth": "Social / Enterprise Login",
   "ScreenNav.client-applications": "Applications",
   "ScreenNav.password-policy": "Password Policy",
@@ -1231,6 +1232,15 @@
   "PasskeyConfigurationScreen.description": "Passkeys give users a simple and secure way to sign in to your apps and websites across platforms without passwords. {DocLink, react, href{https://docs.authgear.com/strategies/passkeys} children{Learn more about passkeys}}.",
   "PasskeyConfigurationScreen.toggle.title": "Login with passkey",
   "PasskeyConfigurationScreen.toggle.description": "Let users authenticate with passkeys on compatible devices",
+
+  "MFAConfigurationScreen.title": "2-Factor Authentication",
+  "MFAConfigurationScreen.description": "Enhance your users' security during login to prevent unauthorized access.",
+  "MFAConfigurationScreen.policy.title": "Policy",
+  "MFAConfigurationScreen.policy.mode.title": "2FA Requirements",
+  "MFAConfigurationScreen.policy.mode.disabled": "Disabled, 2FA is not required to sign in, even if the user has set it up before",
+  "MFAConfigurationScreen.policy.mode.if_exists": "Optional, 2FA is required to sign in if users set it up (Recommended)",
+  "MFAConfigurationScreen.policy.mode.required": "Mandatory, 2FA is required for all users to sign in, and would be asked to set it up",
+  "MFAConfigurationScreen.policy.device-token.title": "Show \"Do not ask again on this device\" for 2FA",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",

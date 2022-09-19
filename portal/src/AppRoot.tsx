@@ -108,6 +108,9 @@ const PasskeyConfigurationScreen = lazy(
 const BiometricConfigurationScreen = lazy(
   async () => import("./graphql/portal/BiometricConfigurationScreen")
 );
+const MFAConfigurationScreen = lazy(
+  async () => import("./graphql/portal/MFAConfigurationScreen")
+);
 const SubscriptionScreen = lazy(
   async () => import("./graphql/portal/SubscriptionScreen")
 );
@@ -363,6 +366,14 @@ const AppRoot: React.VFC = function AppRoot() {
                   element={
                     <Suspense fallback={<ShowLoading />}>
                       <BiometricConfigurationScreen />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="2fa"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <MFAConfigurationScreen />
                     </Suspense>
                   }
                 />
