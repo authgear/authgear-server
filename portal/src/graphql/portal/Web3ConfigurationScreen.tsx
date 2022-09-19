@@ -420,10 +420,10 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
                   checked={state.siweChecked}
                   onChange={onChangeSIWEChecked}
                   inlineLabel={false}
+                  description={
+                    <FormattedMessage id="Web3ConfigurationScreen.siwe.description" />
+                  }
                 />
-                <Text as="p" variant="medium" block={true}>
-                  <FormattedMessage id="Web3ConfigurationScreen.siwe.description" />
-                </Text>
               </div>
               <div className={styles.networkSection}>
                 <Dropdown
