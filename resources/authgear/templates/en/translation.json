@@ -204,7 +204,7 @@
   "missing-web3-wallet-page-description": "{provider} is either missing or not supported for your browser.",
 
   "prompt-create-passkey-page-title": "Set up a passkey",
-  "prompt-create-passkey-page-description": "Your device support passkey authentication. Set up a passkey for faster and safer login. If you use biometrics, we will never see or store your biometric data.",
+  "prompt-create-passkey-page-description": "Your device supports passkey authentication. Set up a passkey for faster and safer logins. If you use biometrics, we will never see or store your biometric data.",
   "prompt-create-passkey-skip-label": "Not now",
 
   "use-passkey-page-title": "Use passkey",
