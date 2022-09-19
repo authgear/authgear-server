@@ -333,18 +333,6 @@
   "AuthenticatorConfigurationScreen.primary-authenticators.title": "Primary Authenticator",
   "AuthenticatorConfigurationScreen.secondary-authenticators.title": "2nd Factor Authentication (2FA)",
 
-  "AuthenticatorConfigurationScreen.secondary-authenticators.mode.label": "2FA Requirements",
-  "AuthenticatorConfigurationScreen.secondary-authenticators.mode.disabled": "Disabled",
-  "AuthenticatorConfigurationScreen.secondary-authenticators.mode.required": "Mandatory, all users required to setup 2FA",
-  "AuthenticatorConfigurationScreen.secondary-authenticators.mode.if-exists": "Optional, users can set up 2FA (Recommended)",
-  "AuthenticatorConfigurationScreen.secondary-authenticators.disable-device-token.label": "Show \"Do not ask again on this device\" for 2FA",
-
-  "AuthenticatorConfigurationScreen.recovery-code.title": "2FA Recovery code",
-  "AuthenticatorConfigurationScreen.recovery-code.description": "In the case of losing access to the Secondary Authenticators, the end-user can recover their account by using the Recovery Codes.",
-  "AuthenticatorConfigurationScreen.recovery-code.enable-recovery-code": "Enable Recovery Code",
-  "AuthenticatorConfigurationScreen.recovery-code.recovery-code-number": "Number of Recovery Code",
-  "AuthenticatorConfigurationScreen.recovery-code.allow-retrieve-recovery-code": "Allow user to retrieve or regenerate recovery code again",
-
   "Web3ConfigurationScreen.title": "Ethereum & NFT",
   "Web3ConfigurationScreen.description": "Authenticate the user by crypto wallets and NFT ownership. Their wallet addresses and the list of NFTs owned will be available as user info.",
   "Web3ConfigurationScreen.siwe.title": "Login with Ethereum",
