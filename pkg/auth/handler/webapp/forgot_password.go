@@ -45,7 +45,7 @@ type ForgotPasswordHandler struct {
 func (h *ForgotPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	authenticationViewModel := h.AuthenticationViewModel.NewWithGraph(graph)
+	authenticationViewModel := h.AuthenticationViewModel.NewWithGraph(graph, r.Form)
 	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, authenticationViewModel)

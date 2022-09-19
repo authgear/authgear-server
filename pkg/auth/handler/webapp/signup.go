@@ -61,7 +61,7 @@ func (h *SignupHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *
 		baseViewModel.SetTutorial(httputil.SignupLoginTutorialCookieName)
 	}
 	viewmodels.Embed(data, baseViewModel)
-	authenticationViewModel := h.AuthenticationViewModel.NewWithGraph(graph)
+	authenticationViewModel := h.AuthenticationViewModel.NewWithGraph(graph, r.Form)
 	viewmodels.Embed(data, authenticationViewModel)
 	return data, nil
 }

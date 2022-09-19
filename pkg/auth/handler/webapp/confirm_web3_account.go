@@ -62,7 +62,7 @@ func (h *ConfirmWeb3AccountHandler) GetData(r *http.Request, rw http.ResponseWri
 		Provider: provider,
 	}
 
-	authenticationViewModel := h.AuthenticationViewModel.NewWithGraph(graph)
+	authenticationViewModel := h.AuthenticationViewModel.NewWithGraph(graph, r.Form)
 	viewmodels.Embed(data, authenticationViewModel)
 	viewmodels.Embed(data, confirmWeb3AccountViewModel)
 	viewmodels.Embed(data, baseViewModel)

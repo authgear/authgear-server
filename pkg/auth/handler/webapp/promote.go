@@ -49,7 +49,7 @@ func (h *PromoteHandler) GetData(r *http.Request, rw http.ResponseWriter, graph 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
-	authenticationViewModel := h.AuthenticationViewModel.NewWithGraph(graph)
+	authenticationViewModel := h.AuthenticationViewModel.NewWithGraph(graph, r.Form)
 	viewmodels.Embed(data, authenticationViewModel)
 	return data, nil
 }

@@ -45,15 +45,30 @@ type FormPrefiller struct {
 }
 
 func (p *FormPrefiller) Prefill(form url.Values) {
+	hasEmail := false
+	hasUsername := false
+
+	for _, k := range p.LoginID.Keys {
+		switch k.Type {
+		case model.LoginIDKeyTypeEmail:
+			hasEmail = true
+		case model.LoginIDKeyTypeUsername:
+			hasUsername = true
+		}
+	}
+
+	nonPhoneLoginIDInputType := "text"
+	if hasEmail && !hasUsername {
+		nonPhoneLoginIDInputType = "email"
+	}
+
 	// Set x_login_id_input_type to the type of the first login ID.
 	if _, ok := form["x_login_id_input_type"]; !ok {
 		if len(p.LoginID.Keys) > 0 {
 			if string(p.LoginID.Keys[0].Type) == "phone" {
 				form.Set("x_login_id_input_type", "phone")
-			} else if string(p.LoginID.Keys[0].Type) == "email" {
-				form.Set("x_login_id_input_type", "email")
 			} else {
-				form.Set("x_login_id_input_type", "text")
+				form.Set("x_login_id_input_type", nonPhoneLoginIDInputType)
 			}
 		}
 	}
