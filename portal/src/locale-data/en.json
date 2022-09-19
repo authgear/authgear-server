@@ -343,8 +343,6 @@
   "AuthenticatorConfigurationScreen.recovery-code.enable-recovery-code": "Enable Recovery Code",
   "AuthenticatorConfigurationScreen.recovery-code.recovery-code-number": "Number of Recovery Code",
   "AuthenticatorConfigurationScreen.recovery-code.allow-retrieve-recovery-code": "Allow user to retrieve or regenerate recovery code again",
-  "AuthenticatorConfigurationScreen.passkey.title": "Login with passkey",
-  "AuthenticatorConfigurationScreen.passkey.description": "Passkeys give users a simple and secure way to sign in your apps and websites across platforms without passwords. {DocLink, react, href{https://docs.authgear.com/strategies/passkeys} children{Learn more about passkeys}}",
 
   "Web3ConfigurationScreen.title": "Ethereum & NFT",
   "Web3ConfigurationScreen.description": "Authenticate the user by crypto wallets and NFT ownership. Their wallet addresses and the list of NFTs owned will be available as user info.",
