@@ -8,8 +8,6 @@ import {
   PortalAPIFeatureConfig,
   PrimaryAuthenticatorType,
   primaryAuthenticatorTypes,
-  SecondaryAuthenticatorType,
-  secondaryAuthenticatorTypes,
 } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import { useParams } from "react-router-dom";
@@ -38,29 +36,10 @@ interface AuthenticatorTypeFormState<T> {
   type: T;
 }
 
-function makeAuthenticatorReasonable(state: FormState): FormState {
-  return produce(state, (state) => {
-    state.primary.forEach((primaryItem) => {
-      state.secondary.forEach((secondaryItem) => {
-        if (primaryItem.type === secondaryItem.type) {
-          if (primaryItem.isChecked) {
-            secondaryItem.isChecked = false;
-            secondaryItem.isDisabled = true;
-          } else {
-            secondaryItem.isDisabled = false;
-          }
-        }
-      });
-    });
-  });
-}
-
 interface FormState {
   primary: AuthenticatorTypeFormState<PrimaryAuthenticatorType>[];
-  secondary: AuthenticatorTypeFormState<SecondaryAuthenticatorType>[];
 }
 
-// eslint-disable-next-line complexity
 function constructFormState(config: PortalAPIAppConfig): FormState {
   let primary: AuthenticatorTypeFormState<PrimaryAuthenticatorType>[] = (
     config.authentication?.primary_authenticators ?? []
@@ -74,30 +53,13 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
       primary.push({ isChecked: false, isDisabled: false, type });
     }
   }
-  // Passkey is controlled by the toggle.
+
+  // Passkey is configured in another screen.
   // So we do not show it in the primary authenticator list.
   primary = primary.filter((a) => a.type !== "passkey");
 
-  const secondary: AuthenticatorTypeFormState<SecondaryAuthenticatorType>[] = (
-    config.authentication?.secondary_authenticators ?? []
-  ).map((t) => ({
-    isChecked: true,
-    isDisabled: false,
-    type: t,
-  }));
-  for (const type of secondaryAuthenticatorTypes) {
-    if (!secondary.some((t) => t.type === type)) {
-      secondary.push({
-        isChecked: false,
-        isDisabled: primary.find((p) => p.type === type)?.isChecked ?? false,
-        type,
-      });
-    }
-  }
-
   return {
     primary,
-    secondary,
   };
 }
 
@@ -105,24 +67,24 @@ function constructConfig(
   config: PortalAPIAppConfig,
   _initialState: FormState,
   currentState: FormState,
-  _effectiveConfig: PortalAPIAppConfig
+  effectiveConfig: PortalAPIAppConfig
 ): PortalAPIAppConfig {
-  // eslint-disable-next-line complexity
   return produce(config, (config) => {
     config.authentication ??= {};
 
-    function filterEnabled<T extends string>(
-      s: AuthenticatorTypeFormState<T>[]
+    const primary = currentState.primary
+      .filter((t) => t.isChecked)
+      .map((t) => t.type);
+
+    if (
+      effectiveConfig.authentication?.primary_authenticators?.includes(
+        "passkey"
+      ) === true
     ) {
-      return s.filter((t) => t.isChecked).map((t) => t.type);
+      primary.push("passkey");
     }
 
-    config.authentication.primary_authenticators = filterEnabled(
-      currentState.primary
-    );
-    config.authentication.secondary_authenticators = filterEnabled(
-      currentState.secondary
-    );
+    config.authentication.primary_authenticators = primary;
 
     clearEmptyObject(config);
   });
@@ -133,12 +95,6 @@ const primaryAuthenticatorNameIds = {
   oob_otp_sms: "AuthenticatorType.primary.oob-otp-phone",
   password: "AuthenticatorType.primary.password",
   passkey: "AuthenticatorType.primary.passkey",
-};
-const secondaryAuthenticatorNameIds = {
-  totp: "AuthenticatorType.secondary.totp",
-  oob_otp_email: "AuthenticatorType.secondary.oob-otp-email",
-  oob_otp_sms: "AuthenticatorType.secondary.oob-otp-phone",
-  password: "AuthenticatorType.secondary.password",
 };
 
 interface AuthenticationAuthenticatorSettingsContentProps {
@@ -181,15 +137,6 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
       return false;
     }, [featureDisabled]);
 
-    const hasSecondaryFeatureDisabled = useMemo(() => {
-      for (const key in featureDisabled["secondary"]) {
-        if (featureDisabled["secondary"][key]) {
-          return true;
-        }
-      }
-      return false;
-    }, [featureDisabled]);
-
     const isPhoneLoginIdDisabled = useMemo(
       () =>
         effectiveConfig.identity?.login_id?.keys?.find(
@@ -207,43 +154,16 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
       },
       [setState]
     );
-    const onSwapSecondaryAuthenticator = useCallback(
-      (index1: number, index2: number) => {
-        setState((prev) => ({
-          ...prev,
-          secondary: swap(prev.secondary, index1, index2),
-        }));
-      },
-      [setState]
-    );
 
     const onChangePrimaryAuthenticatorChecked = useCallback(
       (key: string, checked: boolean) => {
         setState((state) =>
-          makeAuthenticatorReasonable(
-            produce(state, (state) => {
-              const t = state.primary.find((t) => t.type === key);
-              if (t != null) {
-                t.isChecked = checked;
-              }
-            })
-          )
-        );
-      },
-      [setState]
-    );
-
-    const onChangeSecondaryAuthenticatorChecked = useCallback(
-      (key: string, checked: boolean) => {
-        setState((state) =>
-          makeAuthenticatorReasonable(
-            produce(state, (state) => {
-              const t = state.secondary.find((t) => t.type === key);
-              if (t != null) {
-                t.isChecked = checked;
-              }
-            })
-          )
+          produce(state, (state) => {
+            const t = state.primary.find((t) => t.type === key);
+            if (t != null) {
+              t.isChecked = checked;
+            }
+          })
         );
       },
       [setState]
@@ -273,23 +193,6 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
       [state.primary, featureDisabled.primary, isPhoneLoginIdDisabled, appID]
     );
 
-    const secondaryItems: PriorityListItem[] = useMemo(
-      () =>
-        state.secondary.map(({ type, isChecked, isDisabled }) => ({
-          key: type,
-          checked: isChecked,
-          disabled: isDisabled || featureDisabled.secondary[type],
-          content: (
-            <div>
-              <Text variant="small">
-                <FormattedMessage id={secondaryAuthenticatorNameIds[type]} />
-              </Text>
-            </div>
-          ),
-        })),
-      [state.secondary, featureDisabled.secondary]
-    );
-
     return (
       <ScreenContent>
         <ScreenTitle className={styles.widget}>
@@ -317,25 +220,6 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
             onSwap={onSwapPrimaryAuthenticator}
           />
         </Widget>
-        <Widget className={styles.widget}>
-          <WidgetTitle>
-            <FormattedMessage id="AuthenticatorConfigurationScreen.secondary-authenticators.title" />
-          </WidgetTitle>
-          {hasSecondaryFeatureDisabled ? (
-            <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
-          ) : null}
-          <PriorityList
-            items={secondaryItems}
-            checkedColumnLabel={renderToString(
-              "AuthenticatorConfigurationScreen.columns.activate"
-            )}
-            keyColumnLabel={renderToString(
-              "AuthenticatorConfigurationScreen.columns.authenticator"
-            )}
-            onChangeChecked={onChangeSecondaryAuthenticatorChecked}
-            onSwap={onSwapSecondaryAuthenticator}
-          />
-        </Widget>
       </ScreenContent>
     );
   };
@@ -347,7 +231,6 @@ const AuthenticatorConfigurationScreen: React.VFC =
       appID,
       constructFormState,
       constructConfig,
-      constructInitialCurrentState: makeAuthenticatorReasonable,
     });
 
     const featureConfig = useAppFeatureConfigQuery(appID);
