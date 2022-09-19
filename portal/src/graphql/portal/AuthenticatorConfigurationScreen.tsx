@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import cn from "classnames";
-import { Dropdown, Text, TooltipHost } from "@fluentui/react";
+import { Dropdown, Text } from "@fluentui/react";
 import produce from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { swap } from "../../OrderButtons";
@@ -23,7 +23,6 @@ import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
-import { useTooltipTargetElement } from "../../Tooltip";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
@@ -73,8 +72,6 @@ interface FormState {
   numRecoveryCode: number | undefined;
   allowListRecoveryCode: boolean;
   disableDeviceToken: boolean;
-  passkeyChecked: boolean;
-  passkeyDisabled: boolean;
 }
 
 // eslint-disable-next-line complexity
@@ -112,14 +109,6 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     }
   }
 
-  const passkeyIndex =
-    config.authentication?.primary_authenticators?.indexOf("passkey");
-  const passkeyChecked = passkeyIndex != null && passkeyIndex >= 0;
-
-  const passkeyDisabled = !(
-    config.authentication?.identities?.includes("login_id") ?? true
-  );
-
   return {
     primary,
     secondary,
@@ -132,8 +121,6 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     allowListRecoveryCode:
       config.authentication?.recovery_code?.list_enabled ?? false,
     disableDeviceToken: config.authentication?.device_token?.disabled ?? false,
-    passkeyChecked,
-    passkeyDisabled,
   };
 }
 
@@ -141,7 +128,7 @@ function constructConfig(
   config: PortalAPIAppConfig,
   _initialState: FormState,
   currentState: FormState,
-  effectiveConfig: PortalAPIAppConfig
+  _effectiveConfig: PortalAPIAppConfig
 ): PortalAPIAppConfig {
   // eslint-disable-next-line complexity
   return produce(config, (config) => {
@@ -155,61 +142,12 @@ function constructConfig(
       return s.filter((t) => t.isChecked).map((t) => t.type);
     }
 
-    function setEnable<T extends string>(
-      arr: T[],
-      value: T,
-      enabled: boolean
-    ): T[] {
-      const index = arr.indexOf(value);
-
-      if (enabled) {
-        if (index >= 0) {
-          return arr;
-        }
-        return [...arr, value];
-      }
-
-      if (index < 0) {
-        return arr;
-      }
-      return [...arr.slice(0, index), ...arr.slice(index + 1)];
-    }
-
     config.authentication.primary_authenticators = filterEnabled(
       currentState.primary
     );
     config.authentication.secondary_authenticators = filterEnabled(
       currentState.secondary
     );
-
-    // Construct primary_authenticators and identities
-    // We do not offer any control to modify identities in this screen,
-    // so we read from effectiveConfig.authentication?.identities
-    // On the other hand, we always write config.authentication.primary_authenticators,
-    // so we read from it.
-    if (currentState.passkeyChecked) {
-      config.authentication.primary_authenticators = setEnable(
-        config.authentication.primary_authenticators,
-        "passkey",
-        true
-      );
-      config.authentication.identities = setEnable(
-        effectiveConfig.authentication?.identities ?? [],
-        "passkey",
-        true
-      );
-    } else {
-      config.authentication.primary_authenticators = setEnable(
-        config.authentication.primary_authenticators,
-        "passkey",
-        false
-      );
-      config.authentication.identities = setEnable(
-        effectiveConfig.authentication?.identities ?? [],
-        "passkey",
-        false
-      );
-    }
 
     config.authentication.secondary_authentication_mode = currentState.mfaMode;
     config.authentication.recovery_code.disabled =
@@ -252,13 +190,6 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
     const { appID, featureConfig } = props;
 
     const { state, setState, effectiveConfig } = props.form;
-
-    const tooltipResult = useTooltipTargetElement();
-    const passkeyTooltipProps = useMemo(() => {
-      return {
-        targetElement: tooltipResult.targetElement,
-      };
-    }, [tooltipResult.targetElement]);
 
     const { renderToString } = useContext(Context);
 
@@ -376,15 +307,6 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
       }
     );
 
-    const { onChange: onChangePasskeyChecked } = useCheckbox(
-      (checked: boolean) => {
-        setState((prev) => ({
-          ...prev,
-          passkeyChecked: checked,
-        }));
-      }
-    );
-
     const onSwapPrimaryAuthenticator = useCallback(
       (index1: number, index2: number) => {
         setState((prev) => ({
@@ -492,42 +414,6 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
           {hasPrimaryFeatureDisabled ? (
             <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
           ) : null}
-          {state.passkeyDisabled ? (
-            <TooltipHost
-              content={<FormattedMessage id="errors.validation.passkey" />}
-              tooltipProps={passkeyTooltipProps}
-            >
-              <Toggle
-                id={tooltipResult.id}
-                ref={tooltipResult.setRef}
-                label={renderToString(
-                  "AuthenticatorConfigurationScreen.passkey.title"
-                )}
-                disabled={state.passkeyDisabled}
-                checked={state.passkeyChecked}
-                onChange={onChangePasskeyChecked}
-                inlineLabel={false}
-              />
-              <Text as="p" variant="medium" block={true}>
-                <FormattedMessage id="AuthenticatorConfigurationScreen.passkey.description" />
-              </Text>
-            </TooltipHost>
-          ) : (
-            <div>
-              <Toggle
-                label={renderToString(
-                  "AuthenticatorConfigurationScreen.passkey.title"
-                )}
-                disabled={state.passkeyDisabled}
-                checked={state.passkeyChecked}
-                onChange={onChangePasskeyChecked}
-                inlineLabel={false}
-              />
-              <Text as="p" variant="medium" block={true}>
-                <FormattedMessage id="AuthenticatorConfigurationScreen.passkey.description" />
-              </Text>
-            </div>
-          )}
           <PriorityList
             items={primaryItems}
             checkedColumnLabel={renderToString(
