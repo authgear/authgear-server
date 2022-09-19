@@ -76,7 +76,7 @@
 					tabindex="0"
 					autofocus
 					class="text-input primary-txt"
-					type="{{ $.TextLoginIDInputType }}"
+					type="{{ $.NonPhoneLoginIDInputType }}"
 					autocomplete="username webauthn"
 					autocapitalize="none"
 					name="x_login_id"
@@ -91,7 +91,7 @@
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if (or $.EmailLoginIDEnabled $.UsernameLoginIDEnabled) }}
-				<a class="link text-sm self-start block" href="{{ call $.MakeURL "" "x_login_id_input_type" $.TextLoginIDInputType }}" data-turbo-action="replace">{{ template "use-text-login-id-description" (dict "variant" $.LoginIDInputVariant) }}</a>
+				<a class="link text-sm self-start block" href="{{ call $.MakeURL "" "x_login_id_input_type" $.NonPhoneLoginIDInputType }}" data-turbo-action="replace">{{ template "use-text-login-id-description" (dict "variant" $.LoginIDInputVariant) }}</a>
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if $.PhoneLoginIDEnabled }}
