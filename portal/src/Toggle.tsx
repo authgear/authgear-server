@@ -1,10 +1,10 @@
-import React, { useContext, forwardRef } from "react";
+import React, { ReactNode, useContext, forwardRef } from "react";
 import { Context } from "@oursky/react-messageformat";
 // eslint-disable-next-line no-restricted-imports
 import { Toggle as FluentUIToggle, IToggleProps, Text } from "@fluentui/react";
 
 export interface ToggleProps extends IToggleProps {
-  description?: string;
+  description?: ReactNode;
   toggleClassName?: string;
 }
 
