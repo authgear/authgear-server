@@ -19,6 +19,9 @@ export default function ChoiceButton(props: ChoiceButtonProps): ReactElement {
       borderColor: originalTheme.palette.themePrimary,
       backgroundColor: originalTheme.semanticColors.buttonBackground,
     },
+    description: {
+      color: "inherit",
+    },
   };
   // @ts-expect-error
   return <CompoundButton {...props} toggle={true} styles={styles} />;
