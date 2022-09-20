@@ -90,6 +90,9 @@ const WebhookConfigurationScreen = lazy(
 const AdminAPIConfigurationScreen = lazy(
   async () => import("./graphql/portal/AdminAPIConfigurationScreen")
 );
+const LoginMethodConfigurationScreen = lazy(
+  async () => import("./graphql/portal/LoginMethodConfigurationScreen")
+);
 const LoginIDConfigurationScreen = lazy(
   async () => import("./graphql/portal/LoginIDConfigurationScreen")
 );
@@ -342,6 +345,14 @@ const AppRoot: React.VFC = function AppRoot() {
                   element={
                     <Suspense fallback={<ShowLoading />}>
                       <VerificationConfigurationScreen />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="login-methods"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <LoginMethodConfigurationScreen />
                     </Suspense>
                   }
                 />
