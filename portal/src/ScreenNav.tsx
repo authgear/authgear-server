@@ -177,6 +177,11 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
           },
           {
             type: "link" as const,
+            textKey: "ScreenNav.login-methods",
+            url: `/project/${appID}/configuration/authentication/login-methods`,
+          },
+          {
+            type: "link" as const,
             textKey: "ScreenNav.external-oauth",
             url: `/project/${appID}/configuration/authentication/external-oauth`,
           },
