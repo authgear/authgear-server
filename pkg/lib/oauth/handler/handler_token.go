@@ -633,6 +633,13 @@ func (h *TokenHandler) handleIDToken(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
+	if !client.IsFirstParty() {
+		return nil, protocol.NewError(
+			"unauthorized_client",
+			"third-party clients may not refresh id token",
+		)
+	}
+
 	s := session.GetSession(req.Context())
 	if s == nil {
 		return nil, protocol.NewErrorStatusCode("invalid_request", "valid session is required", http.StatusUnauthorized)
