@@ -1,6 +1,6 @@
 import React, { useCallback, useContext } from "react";
 import { useParams } from "react-router-dom";
-import { Toggle, MessageBar } from "@fluentui/react";
+import { MessageBar } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { produce } from "immer";
 import {
@@ -17,6 +17,7 @@ import styles from "./AccountDeletionConfigurationScreen.module.css";
 import Widget from "../../Widget";
 import WidgetTitle from "../../WidgetTitle";
 import FormTextField from "../../FormTextField";
+import Toggle from "../../Toggle";
 import { checkIntegerInput } from "../../util/input";
 
 interface FormState {

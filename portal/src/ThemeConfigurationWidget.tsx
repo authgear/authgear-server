@@ -5,13 +5,7 @@ import React, {
   useContext,
   useMemo,
 } from "react";
-import {
-  Text,
-  Label,
-  Toggle,
-  Dropdown,
-  IDropdownOption,
-} from "@fluentui/react";
+import { Text, Label, Dropdown, IDropdownOption } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import ScaleContainer from "./ScaleContainer";
 import Widget from "./Widget";
@@ -35,6 +29,7 @@ import {
 } from "./util/theme";
 import styles from "./ThemeConfigurationWidget.module.css";
 import TextField from "./TextField";
+import Toggle from "./Toggle";
 
 export interface ThemeConfigurationWidgetProps {
   className?: string;
@@ -349,7 +344,7 @@ const ThemeConfigurationWidget: React.VFC<ThemeConfigurationWidgetProps> =
           <div className={styles.titleSection}>
             {isDarkMode ? (
               <Toggle
-                className={styles.toggle}
+                toggleClassName={styles.toggle}
                 checked={darkModeEnabled}
                 onChange={onChangeChecked}
               />

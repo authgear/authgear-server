@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import produce from "immer";
-import { Checkbox, DirectionalHint, Toggle } from "@fluentui/react";
+import { Checkbox, DirectionalHint } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import Widget from "../../Widget";
 import FormTextField from "../../FormTextField";
@@ -18,6 +18,7 @@ import styles from "./SingleSignOnConfigurationWidget.module.css";
 import FormTextFieldList from "../../FormTextFieldList";
 import LabelWithTooltip from "../../LabelWithTooltip";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
+import Toggle from "../../Toggle";
 
 interface WidgetHeaderLabelProps {
   icon: React.ReactNode;

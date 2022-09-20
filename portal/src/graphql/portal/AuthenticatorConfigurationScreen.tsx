@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import cn from "classnames";
-import { Dropdown, Toggle, Text, TooltipHost } from "@fluentui/react";
+import { Dropdown, Text, TooltipHost } from "@fluentui/react";
 import produce from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { swap } from "../../OrderButtons";
@@ -36,6 +36,7 @@ import FormContainer from "../../FormContainer";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import PriorityList, { PriorityListItem } from "../../PriorityList";
 import Link from "../../Link";
+import Toggle from "../../Toggle";
 
 import styles from "./AuthenticatorConfigurationScreen.module.css";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
@@ -502,15 +503,10 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
                 label={renderToString(
                   "AuthenticatorConfigurationScreen.passkey.title"
                 )}
-                onText={renderToString(
-                  "AuthenticatorConfigurationScreen.passkey.on"
-                )}
-                offText={renderToString(
-                  "AuthenticatorConfigurationScreen.passkey.off"
-                )}
                 disabled={state.passkeyDisabled}
                 checked={state.passkeyChecked}
                 onChange={onChangePasskeyChecked}
+                inlineLabel={false}
               />
               <Text as="p" variant="medium" block={true}>
                 <FormattedMessage id="AuthenticatorConfigurationScreen.passkey.description" />
@@ -522,15 +518,10 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
                 label={renderToString(
                   "AuthenticatorConfigurationScreen.passkey.title"
                 )}
-                onText={renderToString(
-                  "AuthenticatorConfigurationScreen.passkey.on"
-                )}
-                offText={renderToString(
-                  "AuthenticatorConfigurationScreen.passkey.off"
-                )}
                 disabled={state.passkeyDisabled}
                 checked={state.passkeyChecked}
                 onChange={onChangePasskeyChecked}
+                inlineLabel={false}
               />
               <Text as="p" variant="medium" block={true}>
                 <FormattedMessage id="AuthenticatorConfigurationScreen.passkey.description" />

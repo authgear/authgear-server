@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
-import { Toggle } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { produce } from "immer";
 import { parse, Root } from "postcss";
@@ -60,6 +59,7 @@ import { useResourceForm } from "../../hook/useResourceForm";
 import FormContainer from "../../FormContainer";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import WidgetDescription from "../../WidgetDescription";
+import Toggle from "../../Toggle";
 import { ErrorParseRule, ParsedAPIError } from "../../error/parse";
 import { APIError } from "../../error/error";
 

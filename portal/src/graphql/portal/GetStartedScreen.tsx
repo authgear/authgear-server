@@ -100,7 +100,7 @@ function makeCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
   const sso: CardSpec = {
     key: "sso",
     iconSrc: iconSSO,
-    internalHref: "~/configuration/single-sign-on",
+    internalHref: "~/configuration/authentication/external-oauth",
     externalHref: undefined,
     canSkip: true,
     isDone: tutorialStatusData.progress["sso"] === true,

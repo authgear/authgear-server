@@ -6,7 +6,6 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import {
   Dropdown,
   IDropdownOption,
-  Toggle,
   Text,
   DetailsList,
   SelectionMode,
@@ -37,6 +36,7 @@ import {
 } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
 import Tooltip from "../../Tooltip";
+import Toggle from "../../Toggle";
 import styles from "./AnonymousUsersConfigurationScreen.module.css";
 
 const dropDownStyles = {
@@ -397,7 +397,7 @@ const AnonymousUserConfigurationContent: React.VFC<AnonymousUserConfigurationCon
             label={renderToString(
               "AnonymousUsersConfigurationScreen.enable.label"
             )}
-            inlineLabel={true}
+            inlineLabel={false}
           />
           <Dropdown
             styles={dropDownStyles}

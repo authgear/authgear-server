@@ -1,12 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import {
-  Checkbox,
-  Dropdown,
-  IDropdownOption,
-  Label,
-  Toggle,
-} from "@fluentui/react";
+import { Checkbox, Dropdown, IDropdownOption, Label } from "@fluentui/react";
 import produce from "immer";
 import { clearEmptyObject } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
@@ -34,6 +28,7 @@ import Widget from "../../Widget";
 import FormContainer from "../../FormContainer";
 import CustomTagPicker from "../../CustomTagPicker";
 import TextField from "../../TextField";
+import Toggle from "../../Toggle";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import { fixTagPickerStyles } from "../../bugs";
 

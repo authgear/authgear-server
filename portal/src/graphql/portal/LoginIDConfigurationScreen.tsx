@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import produce from "immer";
-import { Checkbox, Toggle } from "@fluentui/react";
+import { Checkbox } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import Widget from "../../Widget";
 import WidgetWithOrdering from "../../WidgetWithOrdering";
@@ -41,6 +41,7 @@ import {
 import { useResourceForm } from "../../hook/useResourceForm";
 import CustomTagPicker from "../../CustomTagPicker";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
+import Toggle from "../../Toggle";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
 import ALL_COUNTRIES from "../../data/country.json";

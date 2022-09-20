@@ -1,7 +1,6 @@
 import React, { useMemo, useCallback, useContext } from "react";
 import { useParams } from "react-router-dom";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
-import { Toggle } from "@fluentui/react";
 import produce from "immer";
 import {
   AppConfigFormModel,
@@ -16,6 +15,7 @@ import { PortalAPIAppConfig } from "../../types";
 import Widget from "../../Widget";
 import WidgetDescription from "../../WidgetDescription";
 import FormTextField from "../../FormTextField";
+import Toggle from "../../Toggle";
 import styles from "./GoogleTagManagerConfigurationScreen.module.css";
 import { clearEmptyObject } from "../../util/misc";
 
