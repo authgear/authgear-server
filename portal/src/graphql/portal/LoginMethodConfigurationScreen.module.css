@@ -3,3 +3,15 @@
 
   @apply tablet:col-span-full;
 }
+
+.methodGroup {
+  @apply flex flex-col;
+  @apply gap-y-3;
+}
+
+.methodGrid {
+  @apply grid grid-cols-2 auto-rows-auto;
+  @apply gap-x-4 gap-y-3;
+
+  @apply tablet:grid-cols-1;
+}
