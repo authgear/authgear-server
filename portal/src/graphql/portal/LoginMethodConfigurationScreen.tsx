@@ -26,12 +26,21 @@ import {
 } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
+import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
 import styles from "./LoginMethodConfigurationScreen.module.css";
 
 const EXCLUSIVE_PRIMARY_AUTHENTICATOR_TYPES: PrimaryAuthenticatorType[] = [
   "password",
   "oob_otp_email",
   "oob_otp_sms",
+];
+
+const ERROR_RULES = [
+  makeValidationErrorMatchUnknownKindParseRule(
+    "const",
+    /\/authentication\/identities/,
+    "errors.validation.passkey"
+  ),
 ];
 
 interface FormState {
@@ -155,10 +164,19 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
 function constructConfig(
   config: PortalAPIAppConfig,
   _initialState: FormState,
-  _currentState: FormState,
+  currentState: FormState,
   _effectiveConfig: PortalAPIAppConfig
 ): PortalAPIAppConfig {
   return produce(config, (config) => {
+    config.authentication ??= {};
+    config.identity ??= {};
+    config.identity.login_id ??= {};
+
+    config.authentication.identities = currentState.identities;
+    config.authentication.primary_authenticators =
+      currentState.primaryAuthenticators;
+    config.identity.login_id.keys = currentState.loginIDKeyConfigs;
+
     clearEmptyObject(config);
   });
 }
@@ -746,7 +764,7 @@ const LoginMethodConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer form={form}>
+      <FormContainer form={form} errorRules={ERROR_RULES}>
         <LoginMethodConfigurationContent
           appID={appID}
           form={form}
