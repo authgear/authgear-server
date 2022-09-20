@@ -15,3 +15,7 @@
 
   @apply tablet:grid-cols-1;
 }
+
+.oauthLink {
+  @apply text-sm;
+}
