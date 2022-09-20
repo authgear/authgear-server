@@ -1,12 +1,18 @@
 import React, { ReactNode, ReactElement } from "react";
-import { CompoundButton, IButtonStyles, useTheme } from "@fluentui/react";
+import {
+  CompoundButton,
+  IButtonStyles,
+  IButtonProps,
+  useTheme,
+} from "@fluentui/react";
 
 export interface ChoiceButtonProps {
   className?: string;
-  checked?: boolean;
-  disabled?: boolean;
+  checked?: IButtonProps["checked"];
+  disabled?: IButtonProps["disabled"];
   text?: ReactNode;
   secondaryText?: ReactNode;
+  onClick?: IButtonProps["onClick"];
 }
 
 export default function ChoiceButton(props: ChoiceButtonProps): ReactElement {
