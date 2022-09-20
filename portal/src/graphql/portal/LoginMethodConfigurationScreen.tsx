@@ -20,6 +20,7 @@ import ScreenDescription from "../../ScreenDescription";
 import Widget from "../../Widget";
 import WidgetTitle from "../../WidgetTitle";
 import ChoiceButton, { ChoiceButtonProps } from "../../ChoiceButton";
+import Link from "../../Link";
 import {
   AppConfigFormModel,
   useAppConfigForm,
@@ -470,6 +471,29 @@ function LinkToPasskey(props: LinkToPasskeyProps) {
   );
 }
 
+interface LinkToOAuthProps {
+  appID: string;
+  oauthOnlyChecked: boolean;
+}
+
+function LinkToOAuth(props: LinkToOAuthProps) {
+  const { appID, oauthOnlyChecked } = props;
+  if (!oauthOnlyChecked) {
+    return null;
+  }
+
+  return (
+    <Widget className={styles.widget}>
+      <Link
+        className={styles.oauthLink}
+        to={`/project/${appID}/configuration/authentication/external-oauth`}
+      >
+        <FormattedMessage id="LoginMethodConfigurationScreen.oauth" />
+      </Link>
+    </Widget>
+  );
+}
+
 interface LoginMethodConfigurationContentProps {
   appID: string;
   form: AppConfigFormModel<FormState>;
@@ -731,6 +755,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
             customChecked={customChecked}
           />
         </Widget>
+        <LinkToOAuth appID={appID} oauthOnlyChecked={oauthOnlyChecked} />
       </ScreenContent>
     );
   };

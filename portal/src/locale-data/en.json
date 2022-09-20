@@ -1265,6 +1265,7 @@
   "LoginMethodConfigurationScreen.method.other.choice.custom.title": "Custom",
   "LoginMethodConfigurationScreen.method.other.choice.custom.description": "Set up your own login flow",
   "LoginMethodConfigurationScreen.passkey": "Passkeys are configured independently at{ReactRouterLink, react, to{{to}} children{Passkey}}.",
+  "LoginMethodConfigurationScreen.oauth": "Set up Social / Enterprise identity providers >",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
