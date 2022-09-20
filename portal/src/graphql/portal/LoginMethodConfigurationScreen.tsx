@@ -1,4 +1,4 @@
-import React, { ReactNode, useMemo } from "react";
+import React, { ReactNode, useMemo, useCallback } from "react";
 import { MessageBar, MessageBarType, Text } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
@@ -100,6 +100,48 @@ function primaryAuthenticatorOf(
   }
 
   return true;
+}
+
+function setLoginIDIdentity(draft: FormState) {
+  if (draft.identities.includes("login_id")) {
+    return;
+  }
+
+  draft.identities.splice(0, 0, "login_id");
+}
+
+function setOAuthIdentity(draft: FormState) {
+  const index = draft.identities.findIndex((t) => t === "login_id");
+  if (index < 0) {
+    return;
+  }
+
+  draft.identities.splice(index, 1);
+}
+
+function setLoginID(draft: FormState, types: LoginIDKeyType[]) {
+  const out: LoginIDKeyConfig[] = [];
+
+  for (const t of types) {
+    const c = draft.loginIDKeyConfigs.find((c) => c.type === t);
+    if (c != null) {
+      out.push(c);
+    } else {
+      out.push({ type: t });
+    }
+  }
+
+  draft.loginIDKeyConfigs = out;
+}
+
+function setPrimaryAuthenticator(
+  draft: FormState,
+  types: PrimaryAuthenticatorType[]
+) {
+  const others = draft.primaryAuthenticators.filter(
+    (t) => !EXCLUSIVE_PRIMARY_AUTHENTICATOR_TYPES.includes(t)
+  );
+  draft.primaryAuthenticators = [...types, ...others];
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
@@ -286,15 +328,21 @@ function ChoiceCustom(props: ChoiceProps) {
 
 interface GroupPasswordlessProps {
   emailPasswordlessChecked: boolean;
+  onEmailPasswordlessClick: ChoiceProps["onClick"];
   phonePasswordlessChecked: boolean;
+  onPhonePasswordlessClick: ChoiceProps["onClick"];
   phoneEmailPasswordlessChecked: boolean;
+  onPhoneEmailPasswordlessClick: ChoiceProps["onClick"];
 }
 
 function GroupPasswordless(props: GroupPasswordlessProps) {
   const {
     emailPasswordlessChecked,
+    onEmailPasswordlessClick,
     phonePasswordlessChecked,
+    onPhonePasswordlessClick,
     phoneEmailPasswordlessChecked,
+    onPhoneEmailPasswordlessClick,
   } = props;
   return (
     <MethodGroup
@@ -302,26 +350,43 @@ function GroupPasswordless(props: GroupPasswordlessProps) {
         <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.title" />
       }
     >
-      <ChoiceEmailPasswordless checked={emailPasswordlessChecked} />
-      <ChoicePhonePasswordless checked={phonePasswordlessChecked} />
-      <ChoicePhoneEmailPasswordless checked={phoneEmailPasswordlessChecked} />
+      <ChoiceEmailPasswordless
+        checked={emailPasswordlessChecked}
+        onClick={onEmailPasswordlessClick}
+      />
+      <ChoicePhonePasswordless
+        checked={phonePasswordlessChecked}
+        onClick={onPhonePasswordlessClick}
+      />
+      <ChoicePhoneEmailPasswordless
+        checked={phoneEmailPasswordlessChecked}
+        onClick={onPhoneEmailPasswordlessClick}
+      />
     </MethodGroup>
   );
 }
 
 interface GroupPasswordProps {
   emailPasswordChecked: boolean;
+  onEmailPasswordClick: ChoiceProps["onClick"];
   phonePasswordChecked: boolean;
+  onPhonePasswordClick: ChoiceProps["onClick"];
   phoneEmailPasswordChecked: boolean;
+  onPhoneEmailPasswordClick: ChoiceProps["onClick"];
   usernamePasswordChecked: boolean;
+  onUsernamePasswordClick: ChoiceProps["onClick"];
 }
 
 function GroupPassword(props: GroupPasswordProps) {
   const {
     emailPasswordChecked,
+    onEmailPasswordClick,
     phonePasswordChecked,
+    onPhonePasswordClick,
     phoneEmailPasswordChecked,
+    onPhoneEmailPasswordClick,
     usernamePasswordChecked,
+    onUsernamePasswordClick,
   } = props;
   return (
     <MethodGroup
@@ -329,28 +394,41 @@ function GroupPassword(props: GroupPasswordProps) {
         <FormattedMessage id="LoginMethodConfigurationScreen.method.password.title" />
       }
     >
-      <ChoiceEmailPassword checked={emailPasswordChecked} />
-      <ChoicePhonePassword checked={phonePasswordChecked} />
-      <ChoicePhoneEmailPassword checked={phoneEmailPasswordChecked} />
-      <ChoiceUsernamePassword checked={usernamePasswordChecked} />
+      <ChoiceEmailPassword
+        checked={emailPasswordChecked}
+        onClick={onEmailPasswordClick}
+      />
+      <ChoicePhonePassword
+        checked={phonePasswordChecked}
+        onClick={onPhonePasswordClick}
+      />
+      <ChoicePhoneEmailPassword
+        checked={phoneEmailPasswordChecked}
+        onClick={onPhoneEmailPasswordClick}
+      />
+      <ChoiceUsernamePassword
+        checked={usernamePasswordChecked}
+        onClick={onUsernamePasswordClick}
+      />
     </MethodGroup>
   );
 }
 
 interface GroupOtherProps {
   oauthOnlyChecked: boolean;
+  onOAuthOnlyClick: ChoiceProps["onClick"];
   customChecked: boolean;
 }
 
 function GroupOther(props: GroupOtherProps) {
-  const { oauthOnlyChecked, customChecked } = props;
+  const { oauthOnlyChecked, onOAuthOnlyClick, customChecked } = props;
   return (
     <MethodGroup
       title={
         <FormattedMessage id="LoginMethodConfigurationScreen.method.other.title" />
       }
     >
-      <ChoiceOAuthOnly checked={oauthOnlyChecked} />
+      <ChoiceOAuthOnly checked={oauthOnlyChecked} onClick={onOAuthOnlyClick} />
       <ChoiceCustom checked={customChecked} />
     </MethodGroup>
   );
@@ -383,7 +461,7 @@ interface LoginMethodConfigurationContentProps {
 const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContentProps> =
   function LoginMethodConfigurationContent(props) {
     const { appID } = props;
-    const { state } = props.form;
+    const { state, setState } = props.form;
 
     const { identities, loginIDKeyConfigs, primaryAuthenticators } = state;
 
@@ -395,6 +473,21 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       );
     }, [identities, loginIDKeyConfigs, primaryAuthenticators]);
 
+    const onEmailPasswordlessClick = useCallback(
+      (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setState((prev) =>
+          produce(prev, (prev) => {
+            setLoginIDIdentity(prev);
+            setLoginID(prev, ["email"]);
+            setPrimaryAuthenticator(prev, ["oob_otp_email"]);
+          })
+        );
+      },
+      [setState]
+    );
+
     const phonePasswordlessChecked = useMemo(() => {
       return (
         loginIDIdentity(identities) &&
@@ -403,17 +496,47 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       );
     }, [identities, loginIDKeyConfigs, primaryAuthenticators]);
 
+    const onPhonePasswordlessClick = useCallback(
+      (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setState((prev) =>
+          produce(prev, (prev) => {
+            setLoginIDIdentity(prev);
+            setLoginID(prev, ["phone"]);
+            setPrimaryAuthenticator(prev, ["oob_otp_sms"]);
+          })
+        );
+      },
+      [setState]
+    );
+
     const phoneEmailPasswordlessChecked = useMemo(() => {
       return (
         loginIDIdentity(identities) &&
         // Order is important.
         loginIDOf(["phone", "email"], loginIDKeyConfigs) &&
         primaryAuthenticatorOf(
-          ["oob_otp_email", "oob_otp_sms"],
+          ["oob_otp_sms", "oob_otp_email"],
           primaryAuthenticators
         )
       );
     }, [identities, loginIDKeyConfigs, primaryAuthenticators]);
+
+    const onPhoneEmailPasswordlessClick = useCallback(
+      (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setState((prev) =>
+          produce(prev, (prev) => {
+            setLoginIDIdentity(prev);
+            setLoginID(prev, ["phone", "email"]);
+            setPrimaryAuthenticator(prev, ["oob_otp_sms", "oob_otp_email"]);
+          })
+        );
+      },
+      [setState]
+    );
 
     const emailPasswordChecked = useMemo(() => {
       return (
@@ -423,6 +546,21 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       );
     }, [identities, loginIDKeyConfigs, primaryAuthenticators]);
 
+    const onEmailPasswordClick = useCallback(
+      (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setState((prev) =>
+          produce(prev, (prev) => {
+            setLoginIDIdentity(prev);
+            setLoginID(prev, ["email"]);
+            setPrimaryAuthenticator(prev, ["password"]);
+          })
+        );
+      },
+      [setState]
+    );
+
     const phonePasswordChecked = useMemo(() => {
       return (
         loginIDIdentity(identities) &&
@@ -430,6 +568,21 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
         primaryAuthenticatorOf(["password"], primaryAuthenticators)
       );
     }, [identities, loginIDKeyConfigs, primaryAuthenticators]);
+
+    const onPhonePasswordClick = useCallback(
+      (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setState((prev) =>
+          produce(prev, (prev) => {
+            setLoginIDIdentity(prev);
+            setLoginID(prev, ["phone"]);
+            setPrimaryAuthenticator(prev, ["password"]);
+          })
+        );
+      },
+      [setState]
+    );
 
     const phoneEmailPasswordChecked = useMemo(() => {
       return (
@@ -440,6 +593,21 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       );
     }, [identities, loginIDKeyConfigs, primaryAuthenticators]);
 
+    const onPhoneEmailPasswordClick = useCallback(
+      (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setState((prev) =>
+          produce(prev, (prev) => {
+            setLoginIDIdentity(prev);
+            setLoginID(prev, ["phone", "email"]);
+            setPrimaryAuthenticator(prev, ["password"]);
+          })
+        );
+      },
+      [setState]
+    );
+
     const usernamePasswordChecked = useMemo(() => {
       return (
         loginIDIdentity(identities) &&
@@ -448,6 +616,21 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       );
     }, [identities, loginIDKeyConfigs, primaryAuthenticators]);
 
+    const onUsernamePasswordClick = useCallback(
+      (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setState((prev) =>
+          produce(prev, (prev) => {
+            setLoginIDIdentity(prev);
+            setLoginID(prev, ["username"]);
+            setPrimaryAuthenticator(prev, ["password"]);
+          })
+        );
+      },
+      [setState]
+    );
+
     const oauthOnlyChecked = useMemo(() => {
       return (
         oauthIdentity(identities) &&
@@ -455,6 +638,21 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
         primaryAuthenticatorOf([], primaryAuthenticators)
       );
     }, [identities, loginIDKeyConfigs, primaryAuthenticators]);
+
+    const onOAuthOnlyClick = useCallback(
+      (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setState((prev) =>
+          produce(prev, (prev) => {
+            setOAuthIdentity(prev);
+            setLoginID(prev, []);
+            setPrimaryAuthenticator(prev, []);
+          })
+        );
+      },
+      [setState]
+    );
 
     const customChecked = useMemo(() => {
       return (
@@ -492,18 +690,26 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
           </WidgetTitle>
           <GroupPasswordless
             emailPasswordlessChecked={emailPasswordlessChecked}
+            onEmailPasswordlessClick={onEmailPasswordlessClick}
             phonePasswordlessChecked={phonePasswordlessChecked}
+            onPhonePasswordlessClick={onPhonePasswordlessClick}
             phoneEmailPasswordlessChecked={phoneEmailPasswordlessChecked}
+            onPhoneEmailPasswordlessClick={onPhoneEmailPasswordlessClick}
           />
           <LinkToPasskey appID={appID} />
           <GroupPassword
             emailPasswordChecked={emailPasswordChecked}
+            onEmailPasswordClick={onEmailPasswordClick}
             phonePasswordChecked={phonePasswordChecked}
+            onPhonePasswordClick={onPhonePasswordClick}
             phoneEmailPasswordChecked={phoneEmailPasswordChecked}
+            onPhoneEmailPasswordClick={onPhoneEmailPasswordClick}
             usernamePasswordChecked={usernamePasswordChecked}
+            onUsernamePasswordClick={onUsernamePasswordClick}
           />
           <GroupOther
             oauthOnlyChecked={oauthOnlyChecked}
+            onOAuthOnlyClick={onOAuthOnlyClick}
             customChecked={customChecked}
           />
         </Widget>
