@@ -1,9 +1,16 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, useMemo } from "react";
 import { MessageBar, MessageBarType, Text } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import { FormattedMessage } from "@oursky/react-messageformat";
-import { PortalAPIAppConfig, IdentityFeatureConfig } from "../../types";
+import {
+  PortalAPIAppConfig,
+  IdentityFeatureConfig,
+  IdentityType,
+  PrimaryAuthenticatorType,
+  LoginIDKeyConfig,
+  LoginIDKeyType,
+} from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
@@ -12,7 +19,7 @@ import ScreenTitle from "../../ScreenTitle";
 import ScreenDescription from "../../ScreenDescription";
 import Widget from "../../Widget";
 import WidgetTitle from "../../WidgetTitle";
-import ChoiceButton from "../../ChoiceButton";
+import ChoiceButton, { ChoiceButtonProps } from "../../ChoiceButton";
 import {
   AppConfigFormModel,
   useAppConfigForm,
@@ -21,10 +28,86 @@ import FormContainer from "../../FormContainer";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import styles from "./LoginMethodConfigurationScreen.module.css";
 
-interface FormState {}
+const EXCLUSIVE_PRIMARY_AUTHENTICATOR_TYPES: PrimaryAuthenticatorType[] = [
+  "password",
+  "oob_otp_email",
+  "oob_otp_sms",
+];
 
-function constructFormState(_config: PortalAPIAppConfig): FormState {
-  return {};
+interface FormState {
+  identities: IdentityType[];
+  primaryAuthenticators: PrimaryAuthenticatorType[];
+  loginIDKeyConfigs: LoginIDKeyConfig[];
+}
+
+function loginIDIdentity(identities: IdentityType[]): boolean {
+  return identities.includes("login_id");
+}
+
+function oauthIdentity(identities: IdentityType[]): boolean {
+  // We intentionally do not check if "oauth" is present.
+  // It is because it could be absent.
+  return !loginIDIdentity(identities);
+}
+
+function loginIDOf(
+  types: LoginIDKeyType[],
+  loginIDKeyConfigs: LoginIDKeyConfig[]
+): boolean {
+  // We want the content and the order both be equal.
+  if (types.length !== loginIDKeyConfigs.length) {
+    return false;
+  }
+
+  for (let i = 0; i < types.length; ++i) {
+    const typ = types[i];
+    const config = loginIDKeyConfigs[i];
+    if (config.type !== typ) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function primaryAuthenticatorOf(
+  types: PrimaryAuthenticatorType[],
+  primaryAuthenticators: PrimaryAuthenticatorType[]
+): boolean {
+  const set1 = new Set(types);
+  const set2 = new Set(primaryAuthenticators);
+
+  const set3 = new Set<PrimaryAuthenticatorType>();
+  for (const t of EXCLUSIVE_PRIMARY_AUTHENTICATOR_TYPES) {
+    if (!set1.has(t)) {
+      set3.add(t);
+    }
+  }
+
+  // We want set2 >= set1 and the intersection of set2 and set3 is empty.
+
+  // set2 >= set1
+  for (const e1 of set1) {
+    if (!set2.has(e1)) {
+      return false;
+    }
+  }
+
+  for (const e3 of set3) {
+    if (set2.has(e3)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function constructFormState(config: PortalAPIAppConfig): FormState {
+  return {
+    identities: config.authentication?.identities ?? [],
+    primaryAuthenticators: config.authentication?.primary_authenticators ?? [],
+    loginIDKeyConfigs: config.identity?.login_id?.keys ?? [],
+  };
 }
 
 function constructConfig(
@@ -72,9 +155,13 @@ function MethodGroup(props: MethodGroupProps) {
   );
 }
 
-function ChoiceEmailPasswordless() {
+interface ChoiceProps
+  extends Omit<ChoiceButtonProps, "text" | "secondaryText"> {}
+
+function ChoiceEmailPasswordless(props: ChoiceProps) {
   return (
     <ChoiceButton
+      {...props}
       text={
         <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.choice.email.title" />
       }
@@ -85,9 +172,10 @@ function ChoiceEmailPasswordless() {
   );
 }
 
-function ChoicePhonePasswordless() {
+function ChoicePhonePasswordless(props: ChoiceProps) {
   return (
     <ChoiceButton
+      {...props}
       text={
         <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.choice.phone.title" />
       }
@@ -98,9 +186,10 @@ function ChoicePhonePasswordless() {
   );
 }
 
-function ChoicePhoneEmailPasswordless() {
+function ChoicePhoneEmailPasswordless(props: ChoiceProps) {
   return (
     <ChoiceButton
+      {...props}
       text={
         <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.choice.all.title" />
       }
@@ -111,9 +200,10 @@ function ChoicePhoneEmailPasswordless() {
   );
 }
 
-function ChoiceEmailPassword() {
+function ChoiceEmailPassword(props: ChoiceProps) {
   return (
     <ChoiceButton
+      {...props}
       text={
         <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.email.title" />
       }
@@ -124,9 +214,10 @@ function ChoiceEmailPassword() {
   );
 }
 
-function ChoicePhonePassword() {
+function ChoicePhonePassword(props: ChoiceProps) {
   return (
     <ChoiceButton
+      {...props}
       text={
         <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.phone.title" />
       }
@@ -137,9 +228,10 @@ function ChoicePhonePassword() {
   );
 }
 
-function ChoiceNoUsernamePassword() {
+function ChoicePhoneEmailPassword(props: ChoiceProps) {
   return (
     <ChoiceButton
+      {...props}
       text={
         <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.no-username.title" />
       }
@@ -150,9 +242,10 @@ function ChoiceNoUsernamePassword() {
   );
 }
 
-function ChoiceUsernamePassword() {
+function ChoiceUsernamePassword(props: ChoiceProps) {
   return (
     <ChoiceButton
+      {...props}
       text={
         <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.username.title" />
       }
@@ -163,9 +256,10 @@ function ChoiceUsernamePassword() {
   );
 }
 
-function ChoiceOAuthOnly() {
+function ChoiceOAuthOnly(props: ChoiceProps) {
   return (
     <ChoiceButton
+      {...props}
       text={
         <FormattedMessage id="LoginMethodConfigurationScreen.method.other.choice.oauth.title" />
       }
@@ -176,9 +270,10 @@ function ChoiceOAuthOnly() {
   );
 }
 
-function ChoiceCustom() {
+function ChoiceCustom(props: ChoiceProps) {
   return (
     <ChoiceButton
+      {...props}
       text={
         <FormattedMessage id="LoginMethodConfigurationScreen.method.other.choice.custom.title" />
       }
@@ -189,44 +284,74 @@ function ChoiceCustom() {
   );
 }
 
-function GroupPasswordless() {
+interface GroupPasswordlessProps {
+  emailPasswordlessChecked: boolean;
+  phonePasswordlessChecked: boolean;
+  phoneEmailPasswordlessChecked: boolean;
+}
+
+function GroupPasswordless(props: GroupPasswordlessProps) {
+  const {
+    emailPasswordlessChecked,
+    phonePasswordlessChecked,
+    phoneEmailPasswordlessChecked,
+  } = props;
   return (
     <MethodGroup
       title={
         <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.title" />
       }
     >
-      <ChoiceEmailPasswordless />
-      <ChoicePhonePasswordless />
-      <ChoicePhoneEmailPasswordless />
+      <ChoiceEmailPasswordless checked={emailPasswordlessChecked} />
+      <ChoicePhonePasswordless checked={phonePasswordlessChecked} />
+      <ChoicePhoneEmailPasswordless checked={phoneEmailPasswordlessChecked} />
     </MethodGroup>
   );
 }
 
-function GroupPassword() {
+interface GroupPasswordProps {
+  emailPasswordChecked: boolean;
+  phonePasswordChecked: boolean;
+  phoneEmailPasswordChecked: boolean;
+  usernamePasswordChecked: boolean;
+}
+
+function GroupPassword(props: GroupPasswordProps) {
+  const {
+    emailPasswordChecked,
+    phonePasswordChecked,
+    phoneEmailPasswordChecked,
+    usernamePasswordChecked,
+  } = props;
   return (
     <MethodGroup
       title={
         <FormattedMessage id="LoginMethodConfigurationScreen.method.password.title" />
       }
     >
-      <ChoiceEmailPassword />
-      <ChoicePhonePassword />
-      <ChoiceNoUsernamePassword />
-      <ChoiceUsernamePassword />
+      <ChoiceEmailPassword checked={emailPasswordChecked} />
+      <ChoicePhonePassword checked={phonePasswordChecked} />
+      <ChoicePhoneEmailPassword checked={phoneEmailPasswordChecked} />
+      <ChoiceUsernamePassword checked={usernamePasswordChecked} />
     </MethodGroup>
   );
 }
 
-function GroupOther() {
+interface GroupOtherProps {
+  oauthOnlyChecked: boolean;
+  customChecked: boolean;
+}
+
+function GroupOther(props: GroupOtherProps) {
+  const { oauthOnlyChecked, customChecked } = props;
   return (
     <MethodGroup
       title={
         <FormattedMessage id="LoginMethodConfigurationScreen.method.other.title" />
       }
     >
-      <ChoiceOAuthOnly />
-      <ChoiceCustom />
+      <ChoiceOAuthOnly checked={oauthOnlyChecked} />
+      <ChoiceCustom checked={customChecked} />
     </MethodGroup>
   );
 }
@@ -258,6 +383,101 @@ interface LoginMethodConfigurationContentProps {
 const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContentProps> =
   function LoginMethodConfigurationContent(props) {
     const { appID } = props;
+    const { state } = props.form;
+
+    const { identities, loginIDKeyConfigs, primaryAuthenticators } = state;
+
+    const emailPasswordlessChecked = useMemo(() => {
+      return (
+        loginIDIdentity(identities) &&
+        loginIDOf(["email"], loginIDKeyConfigs) &&
+        primaryAuthenticatorOf(["oob_otp_email"], primaryAuthenticators)
+      );
+    }, [identities, loginIDKeyConfigs, primaryAuthenticators]);
+
+    const phonePasswordlessChecked = useMemo(() => {
+      return (
+        loginIDIdentity(identities) &&
+        loginIDOf(["phone"], loginIDKeyConfigs) &&
+        primaryAuthenticatorOf(["oob_otp_sms"], primaryAuthenticators)
+      );
+    }, [identities, loginIDKeyConfigs, primaryAuthenticators]);
+
+    const phoneEmailPasswordlessChecked = useMemo(() => {
+      return (
+        loginIDIdentity(identities) &&
+        // Order is important.
+        loginIDOf(["phone", "email"], loginIDKeyConfigs) &&
+        primaryAuthenticatorOf(
+          ["oob_otp_email", "oob_otp_sms"],
+          primaryAuthenticators
+        )
+      );
+    }, [identities, loginIDKeyConfigs, primaryAuthenticators]);
+
+    const emailPasswordChecked = useMemo(() => {
+      return (
+        loginIDIdentity(identities) &&
+        loginIDOf(["email"], loginIDKeyConfigs) &&
+        primaryAuthenticatorOf(["password"], primaryAuthenticators)
+      );
+    }, [identities, loginIDKeyConfigs, primaryAuthenticators]);
+
+    const phonePasswordChecked = useMemo(() => {
+      return (
+        loginIDIdentity(identities) &&
+        loginIDOf(["phone"], loginIDKeyConfigs) &&
+        primaryAuthenticatorOf(["password"], primaryAuthenticators)
+      );
+    }, [identities, loginIDKeyConfigs, primaryAuthenticators]);
+
+    const phoneEmailPasswordChecked = useMemo(() => {
+      return (
+        loginIDIdentity(identities) &&
+        // Order is important.
+        loginIDOf(["phone", "email"], loginIDKeyConfigs) &&
+        primaryAuthenticatorOf(["password"], primaryAuthenticators)
+      );
+    }, [identities, loginIDKeyConfigs, primaryAuthenticators]);
+
+    const usernamePasswordChecked = useMemo(() => {
+      return (
+        loginIDIdentity(identities) &&
+        loginIDOf(["username"], loginIDKeyConfigs) &&
+        primaryAuthenticatorOf(["password"], primaryAuthenticators)
+      );
+    }, [identities, loginIDKeyConfigs, primaryAuthenticators]);
+
+    const oauthOnlyChecked = useMemo(() => {
+      return (
+        oauthIdentity(identities) &&
+        loginIDOf([], loginIDKeyConfigs) &&
+        primaryAuthenticatorOf([], primaryAuthenticators)
+      );
+    }, [identities, loginIDKeyConfigs, primaryAuthenticators]);
+
+    const customChecked = useMemo(() => {
+      return (
+        !emailPasswordlessChecked &&
+        !phonePasswordlessChecked &&
+        !phoneEmailPasswordlessChecked &&
+        !emailPasswordChecked &&
+        !phonePasswordChecked &&
+        !phoneEmailPasswordChecked &&
+        !usernamePasswordChecked &&
+        !oauthOnlyChecked
+      );
+    }, [
+      emailPasswordlessChecked,
+      phonePasswordlessChecked,
+      phoneEmailPasswordlessChecked,
+      emailPasswordChecked,
+      phonePasswordChecked,
+      phoneEmailPasswordChecked,
+      usernamePasswordChecked,
+      oauthOnlyChecked,
+    ]);
+
     return (
       <ScreenContent>
         <ScreenTitle className={styles.widget}>
@@ -270,10 +490,22 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
           <WidgetTitle>
             <FormattedMessage id="LoginMethodConfigurationScreen.method.title" />
           </WidgetTitle>
-          <GroupPasswordless />
+          <GroupPasswordless
+            emailPasswordlessChecked={emailPasswordlessChecked}
+            phonePasswordlessChecked={phonePasswordlessChecked}
+            phoneEmailPasswordlessChecked={phoneEmailPasswordlessChecked}
+          />
           <LinkToPasskey appID={appID} />
-          <GroupPassword />
-          <GroupOther />
+          <GroupPassword
+            emailPasswordChecked={emailPasswordChecked}
+            phonePasswordChecked={phonePasswordChecked}
+            phoneEmailPasswordChecked={phoneEmailPasswordChecked}
+            usernamePasswordChecked={usernamePasswordChecked}
+          />
+          <GroupOther
+            oauthOnlyChecked={oauthOnlyChecked}
+            customChecked={customChecked}
+          />
         </Widget>
       </ScreenContent>
     );
