@@ -12,6 +12,9 @@ export interface ChoiceButtonProps {
 export default function ChoiceButton(props: ChoiceButtonProps): ReactElement {
   const originalTheme = useTheme();
   const styles: IButtonStyles = {
+    root: {
+      maxWidth: "auto",
+    },
     rootChecked: {
       borderColor: originalTheme.palette.themePrimary,
       backgroundColor: originalTheme.semanticColors.buttonBackground,
