@@ -1,11 +1,18 @@
 import React, { useMemo, useCallback, useContext } from "react";
-import { Dropdown, Text, useTheme } from "@fluentui/react";
+import {
+  Dropdown,
+  Text,
+  useTheme,
+  MessageBar,
+  MessageBarType,
+} from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import {
   PortalAPIAppConfig,
   PortalAPIFeatureConfig,
+  PrimaryAuthenticatorType,
   SecondaryAuthenticationMode,
   secondaryAuthenticationModes,
   SecondaryAuthenticatorType,
@@ -58,6 +65,7 @@ interface FormState {
   recoveryCodeEnabled: boolean;
   numRecoveryCode: number | undefined;
   recoveryCodeListEnabled: boolean;
+  primary: PrimaryAuthenticatorType[];
   secondary: AuthenticatorTypeFormState<SecondaryAuthenticatorType>[];
 }
 
@@ -89,6 +97,7 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     numRecoveryCode: config.authentication?.recovery_code?.count,
     recoveryCodeListEnabled:
       config.authentication?.recovery_code?.list_enabled ?? false,
+    primary: config.authentication?.primary_authenticators ?? [],
     secondary,
   };
 }
@@ -128,6 +137,43 @@ function constructConfig(
   });
 }
 
+interface UnreasonableWarningProps {
+  primary: PrimaryAuthenticatorType[];
+  secondary: AuthenticatorTypeFormState<SecondaryAuthenticatorType>[];
+}
+
+function UnreasonableWarning(props: UnreasonableWarningProps) {
+  const { primary, secondary } = props;
+
+  const unreasonableTypes = useMemo(() => {
+    const out: PrimaryAuthenticatorType[] = [];
+    for (const p of primary) {
+      for (const s of secondary) {
+        if (s.type === p && s.isChecked) {
+          out.push(p);
+        }
+      }
+    }
+    return out;
+  }, [primary, secondary]);
+
+  if (unreasonableTypes.length <= 0) {
+    return null;
+  }
+
+  return (
+    <div>
+      {unreasonableTypes.map((t) => {
+        return (
+          <MessageBar key={t} messageBarType={MessageBarType.info}>
+            <FormattedMessage id={"MFAConfigurationScreen.unreasonable." + t} />
+          </MessageBar>
+        );
+      })}
+    </div>
+  );
+}
+
 interface MFAConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
   featureConfig?: PortalAPIFeatureConfig;
@@ -143,6 +189,7 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
       recoveryCodeEnabled,
       recoveryCodeListEnabled,
       numRecoveryCode,
+      primary,
       secondary,
     } = state;
     const { renderToString } = useContext(Context);
@@ -316,6 +363,7 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
             onChangeChecked={onChangeSecondaryAuthenticatorChecked}
             onSwap={onSwapSecondaryAuthenticator}
           />
+          <UnreasonableWarning primary={primary} secondary={secondary} />
         </Widget>
         <Widget className={styles.widget}>
           <WidgetTitle>
