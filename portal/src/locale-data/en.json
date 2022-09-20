@@ -1235,6 +1235,9 @@
   "MFAConfigurationScreen.recovery-code.toggle.title": "Enable Recovery Code",
   "MFAConfigurationScreen.recovery-code.input.title": "Number of Recovery Codes",
   "MFAConfigurationScreen.recovery-code.list.toggle.title": "Allow user to retrieve or regenerate recovery codes again",
+  "MFAConfigurationScreen.unreasonable.password": "Your users sign in with password. Using \"Additional Password\" as 2-factor is not recommended.",
+  "MFAConfigurationScreen.unreasonable.oob_otp_email": "Your users sign in with Email + Passwordless. Using \"OTP Code via Email\" as 2-factor is not recommended.",
+  "MFAConfigurationScreen.unreasonable.oob_otp_sms": "Your users sign in with Phone Number + Passwordless. Using \"OTP Code via Phone\" as 2-factor is not recommended.",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
