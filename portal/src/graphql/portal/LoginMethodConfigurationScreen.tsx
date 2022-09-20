@@ -1,4 +1,10 @@
-import React, { ReactNode, useMemo, useCallback } from "react";
+import React, {
+  ReactNode,
+  useMemo,
+  useCallback,
+  useState,
+  useEffect,
+} from "react";
 import { MessageBar, MessageBarType, Text } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
@@ -437,10 +443,12 @@ interface GroupOtherProps {
   oauthOnlyChecked: boolean;
   onOAuthOnlyClick: ChoiceProps["onClick"];
   customChecked: boolean;
+  onCustomClick: ChoiceProps["onClick"];
 }
 
 function GroupOther(props: GroupOtherProps) {
-  const { oauthOnlyChecked, onOAuthOnlyClick, customChecked } = props;
+  const { oauthOnlyChecked, onOAuthOnlyClick, customChecked, onCustomClick } =
+    props;
   return (
     <MethodGroup
       title={
@@ -448,7 +456,7 @@ function GroupOther(props: GroupOtherProps) {
       }
     >
       <ChoiceOAuthOnly checked={oauthOnlyChecked} onClick={onOAuthOnlyClick} />
-      <ChoiceCustom checked={customChecked} />
+      <ChoiceCustom checked={customChecked} onClick={onCustomClick} />
     </MethodGroup>
   );
 }
@@ -507,6 +515,14 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
 
     const { identities, loginIDKeyConfigs, primaryAuthenticators } = state;
 
+    const [customChecked, setCustomChecked] = useState(false);
+
+    const onCustomClick = useCallback((e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setCustomChecked(true);
+    }, []);
+
     const emailPasswordlessChecked = useMemo(() => {
       return (
         loginIDIdentity(identities) &&
@@ -519,6 +535,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       (e) => {
         e.preventDefault();
         e.stopPropagation();
+        setCustomChecked(false);
         setState((prev) =>
           produce(prev, (prev) => {
             setLoginIDIdentity(prev);
@@ -542,6 +559,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       (e) => {
         e.preventDefault();
         e.stopPropagation();
+        setCustomChecked(false);
         setState((prev) =>
           produce(prev, (prev) => {
             setLoginIDIdentity(prev);
@@ -569,6 +587,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       (e) => {
         e.preventDefault();
         e.stopPropagation();
+        setCustomChecked(false);
         setState((prev) =>
           produce(prev, (prev) => {
             setLoginIDIdentity(prev);
@@ -592,6 +611,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       (e) => {
         e.preventDefault();
         e.stopPropagation();
+        setCustomChecked(false);
         setState((prev) =>
           produce(prev, (prev) => {
             setLoginIDIdentity(prev);
@@ -615,6 +635,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       (e) => {
         e.preventDefault();
         e.stopPropagation();
+        setCustomChecked(false);
         setState((prev) =>
           produce(prev, (prev) => {
             setLoginIDIdentity(prev);
@@ -639,6 +660,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       (e) => {
         e.preventDefault();
         e.stopPropagation();
+        setCustomChecked(false);
         setState((prev) =>
           produce(prev, (prev) => {
             setLoginIDIdentity(prev);
@@ -662,6 +684,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       (e) => {
         e.preventDefault();
         e.stopPropagation();
+        setCustomChecked(false);
         setState((prev) =>
           produce(prev, (prev) => {
             setLoginIDIdentity(prev);
@@ -685,6 +708,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       (e) => {
         e.preventDefault();
         e.stopPropagation();
+        setCustomChecked(false);
         setState((prev) =>
           produce(prev, (prev) => {
             setOAuthIdentity(prev);
@@ -696,8 +720,8 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       [setState]
     );
 
-    const customChecked = useMemo(() => {
-      return (
+    useEffect(() => {
+      if (
         !emailPasswordlessChecked &&
         !phonePasswordlessChecked &&
         !phoneEmailPasswordlessChecked &&
@@ -706,17 +730,11 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
         !phoneEmailPasswordChecked &&
         !usernamePasswordChecked &&
         !oauthOnlyChecked
-      );
-    }, [
-      emailPasswordlessChecked,
-      phonePasswordlessChecked,
-      phoneEmailPasswordlessChecked,
-      emailPasswordChecked,
-      phonePasswordChecked,
-      phoneEmailPasswordChecked,
-      usernamePasswordChecked,
-      oauthOnlyChecked,
-    ]);
+      ) {
+        setCustomChecked(true);
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
       <ScreenContent>
@@ -731,31 +749,49 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
             <FormattedMessage id="LoginMethodConfigurationScreen.method.title" />
           </WidgetTitle>
           <GroupPasswordless
-            emailPasswordlessChecked={emailPasswordlessChecked}
+            emailPasswordlessChecked={Boolean(
+              !customChecked && emailPasswordlessChecked
+            )}
             onEmailPasswordlessClick={onEmailPasswordlessClick}
-            phonePasswordlessChecked={phonePasswordlessChecked}
+            phonePasswordlessChecked={Boolean(
+              !customChecked && phonePasswordlessChecked
+            )}
             onPhonePasswordlessClick={onPhonePasswordlessClick}
-            phoneEmailPasswordlessChecked={phoneEmailPasswordlessChecked}
+            phoneEmailPasswordlessChecked={Boolean(
+              !customChecked && phoneEmailPasswordlessChecked
+            )}
             onPhoneEmailPasswordlessClick={onPhoneEmailPasswordlessClick}
           />
           <LinkToPasskey appID={appID} />
           <GroupPassword
-            emailPasswordChecked={emailPasswordChecked}
+            emailPasswordChecked={Boolean(
+              !customChecked && emailPasswordChecked
+            )}
             onEmailPasswordClick={onEmailPasswordClick}
-            phonePasswordChecked={phonePasswordChecked}
+            phonePasswordChecked={Boolean(
+              !customChecked && phonePasswordChecked
+            )}
             onPhonePasswordClick={onPhonePasswordClick}
-            phoneEmailPasswordChecked={phoneEmailPasswordChecked}
+            phoneEmailPasswordChecked={Boolean(
+              !customChecked && phoneEmailPasswordChecked
+            )}
             onPhoneEmailPasswordClick={onPhoneEmailPasswordClick}
-            usernamePasswordChecked={usernamePasswordChecked}
+            usernamePasswordChecked={Boolean(
+              !customChecked && usernamePasswordChecked
+            )}
             onUsernamePasswordClick={onUsernamePasswordClick}
           />
           <GroupOther
-            oauthOnlyChecked={oauthOnlyChecked}
+            oauthOnlyChecked={Boolean(!customChecked && oauthOnlyChecked)}
             onOAuthOnlyClick={onOAuthOnlyClick}
             customChecked={customChecked}
+            onCustomClick={onCustomClick}
           />
         </Widget>
-        <LinkToOAuth appID={appID} oauthOnlyChecked={oauthOnlyChecked} />
+        <LinkToOAuth
+          appID={appID}
+          oauthOnlyChecked={Boolean(!customChecked && oauthOnlyChecked)}
+        />
       </ScreenContent>
     );
   };
