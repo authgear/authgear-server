@@ -128,6 +128,7 @@
   "ScreenNav.biometric": "Biometric",
   "ScreenNav.mfa": "2FA",
   "ScreenNav.external-oauth": "Social / Enterprise Login",
+  "ScreenNav.login-methods": "Login Methods",
   "ScreenNav.client-applications": "Applications",
   "ScreenNav.password-policy": "Password Policy",
   "ScreenNav.password-reset-code": "Password Reset Code",
@@ -1238,6 +1239,9 @@
   "MFAConfigurationScreen.unreasonable.password": "Your users sign in with password. Using \"Additional Password\" as 2-factor is not recommended.",
   "MFAConfigurationScreen.unreasonable.oob_otp_email": "Your users sign in with Email + Passwordless. Using \"OTP Code via Email\" as 2-factor is not recommended.",
   "MFAConfigurationScreen.unreasonable.oob_otp_sms": "Your users sign in with Phone Number + Passwordless. Using \"OTP Code via Phone\" as 2-factor is not recommended.",
+
+  "LoginMethodConfigurationScreen.title": "Login Methods",
+  "LoginMethodConfigurationScreen.description": "Configure the method how the users should sign in to your applications.",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
