@@ -569,6 +569,7 @@ export type SmtpSecretInput = {
 export type SecretConfig = {
   __typename?: 'SecretConfig';
   adminAPISecrets?: Maybe<Array<AdminApiSecret>>;
+  oauthClientSecrets?: Maybe<Array<OauthClientSecretItem>>;
   oauthSSOProviderClientSecrets?: Maybe<Array<OAuthSsoProviderClientSecret>>;
   smtpSecret?: Maybe<SmtpSecret>;
   webhookSecret?: Maybe<WebhookSecret>;
@@ -762,6 +763,21 @@ export type WatchNftCollectionsPayload = {
 export type WebhookSecret = {
   __typename?: 'WebhookSecret';
   secret?: Maybe<Scalars['String']>;
+};
+
+/** OAuth client secret item */
+export type OauthClientSecretItem = {
+  __typename?: 'oauthClientSecretItem';
+  clientID: Scalars['String'];
+  keys?: Maybe<Array<OauthClientSecretKey>>;
+};
+
+/** OAuth client secret key */
+export type OauthClientSecretKey = {
+  __typename?: 'oauthClientSecretKey';
+  createdAt?: Maybe<Scalars['DateTime']>;
+  key: Scalars['String'];
+  keyID: Scalars['String'];
 };
 
 export type ReconcileCheckoutSession = {
