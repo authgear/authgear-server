@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useMemo } from "react";
-import { Text } from "@fluentui/react";
+import { Text, useTheme } from "@fluentui/react";
 import produce from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { swap } from "../../OrderButtons";
@@ -109,6 +109,10 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
 
     const { state, setState, effectiveConfig } = props.form;
 
+    const {
+      semanticColors: { disabledText },
+    } = useTheme();
+
     const { renderToString } = useContext(Context);
 
     const featureDisabled: Record<
@@ -171,26 +175,45 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
 
     const primaryItems: PriorityListItem[] = useMemo(
       () =>
-        state.primary.map(({ type, isChecked, isDisabled }) => ({
-          key: type,
-          checked: isChecked,
-          disabled: isDisabled || featureDisabled.primary[type],
-          content: (
-            <div>
-              <Text variant="small" block={true}>
-                <FormattedMessage id={primaryAuthenticatorNameIds[type]} />
-              </Text>
-              {type === "oob_otp_sms" && isChecked && isPhoneLoginIdDisabled ? (
-                <Link
-                  to={`/project/${appID}/configuration/authentication/login-id`}
+        state.primary.map(({ type, isChecked, isDisabled }) => {
+          const disabled = isDisabled || featureDisabled.primary[type];
+          return {
+            key: type,
+            checked: isChecked,
+            disabled,
+            content: (
+              <div>
+                <Text
+                  variant="small"
+                  block={true}
+                  styles={{
+                    root: {
+                      color: disabled ? disabledText : undefined,
+                    },
+                  }}
                 >
-                  <FormattedMessage id="AuthenticatorHint.primary.oob-otp-phone" />
-                </Link>
-              ) : undefined}
-            </div>
-          ),
-        })),
-      [state.primary, featureDisabled.primary, isPhoneLoginIdDisabled, appID]
+                  <FormattedMessage id={primaryAuthenticatorNameIds[type]} />
+                </Text>
+                {type === "oob_otp_sms" &&
+                isChecked &&
+                isPhoneLoginIdDisabled ? (
+                  <Link
+                    to={`/project/${appID}/configuration/authentication/login-id`}
+                  >
+                    <FormattedMessage id="AuthenticatorHint.primary.oob-otp-phone" />
+                  </Link>
+                ) : undefined}
+              </div>
+            ),
+          };
+        }),
+      [
+        state.primary,
+        featureDisabled.primary,
+        isPhoneLoginIdDisabled,
+        appID,
+        disabledText,
+      ]
     );
 
     return (
