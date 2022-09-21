@@ -70,7 +70,7 @@ func TestHexCmp(t *testing.T) {
 	})
 
 	Convey("FindSmallest normal", t, func() {
-		hexStrings := []hexstring.HexString{
+		hexStrings := []hexstring.T{
 			"0x10",
 			"0x18",
 			"0x1",
@@ -82,7 +82,7 @@ func TestHexCmp(t *testing.T) {
 		So(i, ShouldEqual, 2)
 	})
 	Convey("FindSmallest failure", t, func() {
-		hexStrings := []hexstring.HexString{}
+		hexStrings := []hexstring.T{}
 		hex, i, ok := hexstring.FindSmallest(hexStrings)
 
 		So(ok, ShouldBeFalse)

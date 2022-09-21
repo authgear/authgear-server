@@ -7,42 +7,42 @@ import (
 	"strings"
 )
 
-type HexString string
+type T string
 
-func (t HexString) ToBigInt() *big.Int {
+func (t T) ToBigInt() *big.Int {
 	i := new(big.Int)
 	i.SetString(string(t[2:]), 16)
 	return i
 }
 
-func (t HexString) String() string {
+func (t T) String() string {
 	return string(t)
 }
 
-func NewFromInt64(v int64) (HexString, error) {
+func NewFromInt64(v int64) (T, error) {
 	if v < 0 {
 		return "", fmt.Errorf("value must be positive")
 	}
 
-	return HexString(fmt.Sprintf("0x%s", strconv.FormatInt(v, 16))), nil
+	return T(fmt.Sprintf("0x%s", strconv.FormatInt(v, 16))), nil
 }
 
-func NewFromBigInt(v *big.Int) (HexString, error) {
+func NewFromBigInt(v *big.Int) (T, error) {
 	if v.Cmp(big.NewInt(0)) < 0 {
 		return "", fmt.Errorf("value must be positive")
 	}
 
-	return HexString(fmt.Sprintf("0x%s", v.Text(16))), nil
+	return T(fmt.Sprintf("0x%s", v.Text(16))), nil
 }
 
-func Parse(s string) (HexString, error) {
+func Parse(s string) (T, error) {
 	if !strings.HasPrefix(s, "0x") {
 		return "", fmt.Errorf("hex string must start with 0x")
 	}
-	return HexString(s), nil
+	return T(s), nil
 }
 
-func MustParse(s string) HexString {
+func MustParse(s string) T {
 	h, err := Parse(s)
 	if err != nil {
 		panic(err)
@@ -50,7 +50,7 @@ func MustParse(s string) HexString {
 	return h
 }
 
-func FindSmallest(hexStrings []HexString) (HexString, int, bool) {
+func FindSmallest(hexStrings []T) (T, int, bool) {
 	smHex, err := NewFromInt64(0)
 	if err != nil {
 		return "", -1, false
