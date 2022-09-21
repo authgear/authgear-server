@@ -29,6 +29,7 @@ export function getApplicationTypeMessageID(key?: string): string {
     spa: "oauth-client.application-type.spa",
     traditional_webapp: "oauth-client.application-type.traditional-webapp",
     native: "oauth-client.application-type.native",
+    third_party_app: "oauth-client.application-type.third-party-app",
   };
   return key && messageIDMap[key]
     ? messageIDMap[key]
@@ -183,6 +184,8 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
         traditional_webapp:
           "EditOAuthClientForm.redirect-uris.description.traditional-webapp",
         native: "EditOAuthClientForm.redirect-uris.description.native",
+        third_party_app:
+          "EditOAuthClientForm.redirect-uris.description.third-party-app",
       };
       const messageID = clientConfig.x_application_type
         ? messageIdMap[clientConfig.x_application_type]
@@ -201,7 +204,8 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
     const showCookieSettings = useMemo(
       () =>
         !clientConfig.x_application_type ||
-        clientConfig.x_application_type === "traditional_webapp",
+        clientConfig.x_application_type === "traditional_webapp" ||
+        clientConfig.x_application_type === "third_party_app",
       [clientConfig.x_application_type]
     );
 
@@ -209,7 +213,8 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       () =>
         !clientConfig.x_application_type ||
         clientConfig.x_application_type === "spa" ||
-        clientConfig.x_application_type === "native",
+        clientConfig.x_application_type === "native" ||
+        clientConfig.x_application_type === "third_party_app",
       [clientConfig.x_application_type]
     );
 

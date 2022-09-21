@@ -534,6 +534,7 @@
   "EditOAuthClientForm.redirect-uris.description.spa": "After users login, users will be redirected to these URIs. Call the finishAuthentication() method in your code to complete the authentication.",
   "EditOAuthClientForm.redirect-uris.description.traditional-webapp": "After users login, users will be redirected to these URIs. Call the finishAuthentication() method in your code to complete the authentication.",
   "EditOAuthClientForm.redirect-uris.description.native": "After users are authenticated, users will be redirected to these URIs. This should be a page in your application.",
+  "EditOAuthClientForm.redirect-uris.description.third-party-app": "After users are authenticated, users will be redirected to these URIs. This should be a page in your application.",
   "EditOAuthClientForm.redirect-uris.description.unspecified": "After users are authenticated, users will be redirected to these URIs. This should be a page in your application.",
   "EditOAuthClientForm.post-logout-redirect-uris.label": "Post Logout Redirect URIs",
   "EditOAuthClientForm.post-logout-redirect-uris.description": "Users will be redirected to these paths after they have logged out. The URIs must be whitelisted here.",
@@ -558,6 +559,7 @@
   "oauth-client.application-type.spa": "Single Page Application",
   "oauth-client.application-type.traditional-webapp": "Traditional Web Application",
   "oauth-client.application-type.native": "Native App",
+  "oauth-client.application-type.third-party-app": "OIDC Client Application",
 
   "CustomDomainListScreen.title": "Custom Domains",
   "CustomDomainListScreen.desc": "You can add a custom domain so that users will login via, for example, “identity.yourdomain.com”. In this case, a session cookie of domain “yourdomain.com” is written so that your websites can share the session cookies under “*.yourdomain.com” for better customers experiences.",
