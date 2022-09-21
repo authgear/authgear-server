@@ -75,9 +75,19 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
 
     const { appID } = useParams() as { appID: string };
 
-    const { onChange: onClientNameChange } = useTextField((value) => {
+    const { onChange: onNameChange } = useTextField((value) => {
       onClientConfigChange(
         updateClientConfig(clientConfig, "name", ensureNonEmptyString(value))
+      );
+    });
+
+    const { onChange: onClientNameChange } = useTextField((value) => {
+      onClientConfigChange(
+        updateClientConfig(
+          clientConfig,
+          "client_name",
+          ensureNonEmptyString(value)
+        )
       );
     });
 
@@ -218,6 +228,11 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [clientConfig.x_application_type]
     );
 
+    const showConsentScreenSettings = useMemo(
+      () => clientConfig.x_application_type === "third_party_app",
+      [clientConfig.x_application_type]
+    );
+
     const refreshTokenHelpText = useMemo(() => {
       if (clientConfig.refresh_token_idle_timeout_enabled) {
         return renderToString(
@@ -255,7 +270,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             fieldName="name"
             label={renderToString("EditOAuthClientForm.name.label")}
             value={clientConfig.name ?? ""}
-            onChange={onClientNameChange}
+            onChange={onNameChange}
             required={true}
           />
           <TextFieldWithCopyButton
@@ -310,6 +325,26 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             />
           ) : null}
         </Widget>
+
+        {showConsentScreenSettings ? (
+          <Widget className={className}>
+            <WidgetTitle>
+              <FormattedMessage id="EditOAuthClientForm.consent-screen.title" />
+            </WidgetTitle>
+            <FormTextField
+              parentJSONPointer={parentJSONPointer}
+              fieldName="client_name"
+              label={renderToString("EditOAuthClientForm.client-name.label")}
+              description={renderToString(
+                "EditOAuthClientForm.client-name.description"
+              )}
+              value={clientConfig.client_name ?? ""}
+              onChange={onClientNameChange}
+              required={true}
+            />
+          </Widget>
+        ) : null}
+
         {showTokenSettings ? (
           <Widget className={className}>
             <WidgetTitle>
