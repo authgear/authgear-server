@@ -59,6 +59,35 @@ var adminAPISecret = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+var oauthClientSecretKey = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "oauthClientSecretKey",
+	Description: "OAuth client secret key",
+	Fields: graphql.Fields{
+		"keyID": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"createdAt": &graphql.Field{
+			Type: graphql.DateTime,
+		},
+		"key": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+	},
+})
+
+var oauthClientSecretItem = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "oauthClientSecretItem",
+	Description: "OAuth client secret item",
+	Fields: graphql.Fields{
+		"clientID": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"keys": &graphql.Field{
+			Type: graphql.NewList(graphql.NewNonNull(oauthClientSecretKey)),
+		},
+	},
+})
+
 var smtpSecret = graphql.NewObject(graphql.ObjectConfig{
 	Name:        "SMTPSecret",
 	Description: "SMTP secret",
@@ -93,6 +122,9 @@ var secretConfig = graphql.NewObject(graphql.ObjectConfig{
 		},
 		"smtpSecret": &graphql.Field{
 			Type: smtpSecret,
+		},
+		"oauthClientSecrets": &graphql.Field{
+			Type: graphql.NewList(graphql.NewNonNull(oauthClientSecretItem)),
 		},
 	},
 })
