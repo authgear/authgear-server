@@ -65,8 +65,18 @@ func TestHexCmp(t *testing.T) {
 
 	Convey("Parse failure", t, func() {
 		h, err := hexstring.Parse("10")
-		So(err, ShouldBeError, "hex string must start with 0x")
+		So(err, ShouldBeError, `hex string must match the regexp "^0x[0-9a-fA-F]+$"`)
 		So(h, ShouldEqual, "")
+
+		h, err = hexstring.Parse("0xg")
+		So(err, ShouldBeError, `hex string must match the regexp "^0x[0-9a-fA-F]+$"`)
+		So(h, ShouldEqual, "")
+	})
+
+	Convey("Parse normalizes to lowercase", t, func() {
+		h, err := hexstring.Parse("0xDEADBEEF")
+		So(err, ShouldBeNil)
+		So(h, ShouldEqual, "0xdeadbeef")
 	})
 
 	Convey("FindSmallest normal", t, func() {

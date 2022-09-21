@@ -3,11 +3,14 @@ package hexstring
 import (
 	"fmt"
 	"math/big"
+	"regexp"
 	"strconv"
 	"strings"
 )
 
 type T string
+
+var parseRegExp = regexp.MustCompile(`^0x[0-9a-fA-F]+$`)
 
 func (t T) ToBigInt() *big.Int {
 	i := new(big.Int)
@@ -36,10 +39,10 @@ func NewFromBigInt(v *big.Int) (T, error) {
 }
 
 func Parse(s string) (T, error) {
-	if !strings.HasPrefix(s, "0x") {
-		return "", fmt.Errorf("hex string must start with 0x")
+	if parseRegExp.MatchString(s) {
+		return T(strings.ToLower(s)), nil
 	}
-	return T(s), nil
+	return "", fmt.Errorf("hex string must match the regexp %q", parseRegExp)
 }
 
 func MustParse(s string) T {
