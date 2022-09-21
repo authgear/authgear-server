@@ -45,11 +45,23 @@ type SMTPSecret struct {
 	Password *string `json:"password,omitempty"`
 }
 
+type OAuthClientSecretKey struct {
+	KeyID     string     `json:"keyID,omitempty"`
+	CreatedAt *time.Time `json:"createdAt,omitempty"`
+	Key       string     `json:"key,omitempty"`
+}
+
+type OAuthClientSecret struct {
+	ClientID string                 `json:"clientID,omitempty"`
+	Keys     []OAuthClientSecretKey `json:"keys,omitempty"`
+}
+
 type SecretConfig struct {
 	OAuthSSOProviderClientSecrets []OAuthSSOProviderClientSecret `json:"oauthSSOProviderClientSecrets,omitempty"`
 	WebhookSecret                 *WebhookSecret                 `json:"webhookSecret,omitempty"`
 	AdminAPISecrets               []AdminAPISecret               `json:"adminAPISecrets,omitempty"`
 	SMTPSecret                    *SMTPSecret                    `json:"smtpSecret,omitempty"`
+	OAuthClientSecrets            []OAuthClientSecret            `json:"oauthClientSecrets,omitempty"`
 }
 
 func NewSecretConfig(secretConfig *config.SecretConfig, unmasked bool) (*SecretConfig, error) {
@@ -129,6 +141,41 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmasked bool) (*SecretC
 			smtpSecret.Password = &smtp.Password
 		}
 		out.SMTPSecret = smtpSecret
+	}
+
+	if oauthClientSecrets, ok := secretConfig.LookupData(config.OAuthClientCredentialsKey).(*config.OAuthClientCredentials); ok {
+		for _, item := range oauthClientSecrets.Items {
+
+			keys := []OAuthClientSecretKey{}
+
+			for i := 0; i < item.Set.Len(); i++ {
+				if jwkKey, ok := item.Set.Get(i); ok {
+					var createdAt *time.Time
+					if anyCreatedAt, ok := jwkKey.Get("created_at"); ok {
+						if fCreatedAt, ok := anyCreatedAt.(float64); ok {
+							t := time.Unix(int64(fCreatedAt), 0).UTC()
+							createdAt = &t
+						}
+					}
+					var bytes []byte
+					err := jwkKey.Raw(&bytes)
+					if err != nil {
+						return nil, err
+					}
+
+					keys = append(keys, OAuthClientSecretKey{
+						KeyID:     jwkKey.KeyID(),
+						Key:       string(bytes),
+						CreatedAt: createdAt,
+					})
+				}
+			}
+
+			out.OAuthClientSecrets = append(out.OAuthClientSecrets, OAuthClientSecret{
+				ClientID: item.ClientID,
+				Keys:     keys,
+			})
+		}
 	}
 
 	return out, nil
