@@ -19,33 +19,27 @@ const TextField: React.VFC<TextFieldProps> = function TextField(
         "::placeholder": {
           color: theme.palette.neutralTertiary,
         },
+        backgroundColor: props.readOnly
+          ? theme.palette.neutralLight
+          : undefined,
+      },
+      fieldGroup: props.readOnly
+        ? {
+            border: "none",
+          }
+        : undefined,
+      // only apply margin bottom to wrapper when there is description
+      wrapper: props.description
+        ? {
+            marginBottom: "8px",
+          }
+        : undefined,
+      description: {
+        fontSize: "14px",
+        color: theme.semanticColors.bodyText,
+        lineHeight: "20px",
       },
     };
-    if (props.description) {
-      // only apply margin bottom to wrapper when there is description
-      styles = {
-        wrapper: {
-          marginBottom: "8px",
-        },
-        description: {
-          fontSize: "14px",
-          color: theme.semanticColors.bodyText,
-          lineHeight: "20px",
-        },
-        ...styles,
-      };
-    }
-    if (props.readOnly) {
-      styles = {
-        field: {
-          backgroundColor: theme.palette.neutralLight,
-        },
-        fieldGroup: {
-          border: "none",
-        },
-        ...styles,
-      };
-    }
     styles = { ...styles, ...props.styles };
     return styles;
   }, [
