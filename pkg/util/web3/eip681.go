@@ -39,8 +39,8 @@ func ParseEIP681(uri string) (*EIP681, error) {
 		return nil, fmt.Errorf("invalid uri: %s", uri)
 	}
 
-	address := addressURI[0]
-	_, err := hexstring.Parse(address)
+	addressString := addressURI[0]
+	address, err := hexstring.Parse(addressString)
 	if err != nil {
 		return nil, fmt.Errorf("invalid address: %s", address)
 	}
@@ -56,7 +56,7 @@ func ParseEIP681(uri string) (*EIP681, error) {
 
 	return &EIP681{
 		ChainID: chainID,
-		Address: address,
+		Address: string(address),
 	}, nil
 
 }

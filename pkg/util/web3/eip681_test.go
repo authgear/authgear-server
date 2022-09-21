@@ -31,6 +31,11 @@ func TestEIP681(t *testing.T) {
 				ChainID: 23821,
 				Address: "0x71c7656ec7ab88b098defb751b7401b5f6d8976f",
 			})
+
+			test("ethereum:0x71C7656EC7AB88B098DEFB751B7401B5F6D8976F@23821", &web3.EIP681{
+				ChainID: 23821,
+				Address: "0x71c7656ec7ab88b098defb751b7401b5f6d8976f",
+			})
 		})
 
 		Convey("convert eip681 to url", func() {
