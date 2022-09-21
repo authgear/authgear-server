@@ -343,6 +343,10 @@ But we do not want to do that.
 The workaround is to add `alias` to package.json.
 See [https://github.com/parcel-bundler/parcel/issues/7697](https://github.com/parcel-bundler/parcel/issues/7697).
 
+When we allow Parcel to perform tree shaking on code-splitted third party bundle,
+refreshing a page will encounter module not found error.
+To work around this, we disallow tree shaking in codesplit.ts.
+
 ## Comment tags
 
 - `FIXME`: Should be fixed as soon as possible
