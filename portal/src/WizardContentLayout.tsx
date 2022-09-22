@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { DefaultEffects, Text, useTheme } from "@fluentui/react";
+import { DefaultEffects, Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import Link from "./Link";
 import DefaultButton from "./DefaultButton";
@@ -10,22 +10,6 @@ import {
   EventDataAttributes,
   useMakeAuthgearGTMEventDataAttributes,
 } from "./GTMProvider";
-
-export function WizardDivider(): React.ReactElement {
-  const theme = useTheme();
-  return (
-    <hr
-      style={{
-        border: "0",
-        height: "0",
-        borderTopWidth: "1px",
-        borderTopStyle: "solid",
-        borderTopColor: theme.palette.neutralTertiaryAlt,
-        backgroundColor: theme.palette.neutralTertiaryAlt,
-      }}
-    />
-  );
-}
 
 export interface WizardTitleProps {
   children?: React.ReactNode;
