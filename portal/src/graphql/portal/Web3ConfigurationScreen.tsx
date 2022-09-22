@@ -2,7 +2,6 @@ import React, { useCallback, useContext, useMemo, useState } from "react";
 import {
   Text,
   Dropdown,
-  useTheme,
   IColumn,
   SelectionMode,
   DetailsList,
@@ -52,6 +51,7 @@ import ActionButton from "../../ActionButton";
 import Toggle from "../../Toggle";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
+import HorizontalDivider from "../../HorizontalDivider";
 
 export interface CollectionItem extends NftCollection {
   status: "pending" | "active";
@@ -120,18 +120,6 @@ function constructConfig(
 
     clearEmptyObject(config);
   });
-}
-
-function Separator() {
-  const theme = useTheme();
-  return (
-    <div
-      className={styles.separator}
-      style={{
-        backgroundColor: theme.semanticColors.bodyDivider,
-      }}
-    />
-  );
 }
 
 const DuplicatedContractError: APIError = {
@@ -445,7 +433,7 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
                   <FormattedMessage id="Web3ConfigurationScreen.network-droplist.warning" />
                 </Text>
               </div>
-              <Separator />
+              <HorizontalDivider />
               <div className={styles.nftCollectionList}>
                 <Text
                   className={styles.nftCollectionTitle}
@@ -470,7 +458,7 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
                   )}
                   onClick={onEnableNewCollectionField}
                 />
-                <Separator />
+                <HorizontalDivider />
                 {showAddCollectionField && !collectionLimitReached ? (
                   <Web3ConfigurationAddCollectionForm
                     className={styles.addCollectionForm}

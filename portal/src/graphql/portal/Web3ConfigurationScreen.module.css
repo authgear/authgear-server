@@ -16,10 +16,6 @@
   @apply mb-1;
 }
 
-.separator {
-  @apply h-px;
-}
-
 .nftCollectionTitle {
   @apply font-bold mb-2;
 }
