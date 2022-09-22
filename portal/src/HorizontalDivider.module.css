@@ -1,0 +1,5 @@
+.root {
+  border: 0;
+  @apply h-0;
+  @apply border-t border-solid;
+}

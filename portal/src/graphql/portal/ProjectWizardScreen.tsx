@@ -20,7 +20,6 @@ import { FormErrorMessageBar } from "../../FormErrorMessageBar";
 import WizardContentLayout, {
   WizardDescription,
   WizardTitle,
-  WizardDivider,
 } from "../../WizardContentLayout";
 import WizardScreenLayout from "../../WizardScreenLayout";
 import {
@@ -43,6 +42,7 @@ import {
   useAuthgearGTMEventBase,
   useGTMDispatch,
 } from "../../GTMProvider";
+import HorizontalDivider from "../../HorizontalDivider";
 
 const TOOLTIP_HOST_STYLES = {
   root: {
@@ -511,7 +511,7 @@ function Step3(props: StepProps) {
         selectedKey={String(step3Answer.useRecommenededSettings)}
         onChange={onChangeQ1}
       />
-      <WizardDivider />
+      <HorizontalDivider />
       {step3Answer.useRecommenededSettings ? (
         <>
           <WizardTitle>
