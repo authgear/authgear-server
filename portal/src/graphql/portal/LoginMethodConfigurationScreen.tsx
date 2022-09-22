@@ -36,12 +36,6 @@ import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
 import styles from "./LoginMethodConfigurationScreen.module.css";
 
-const EXCLUSIVE_PRIMARY_AUTHENTICATOR_TYPES: PrimaryAuthenticatorType[] = [
-  "password",
-  "oob_otp_email",
-  "oob_otp_sms",
-];
-
 const ERROR_RULES = [
   makeValidationErrorMatchUnknownKindParseRule(
     "const",
@@ -50,121 +44,254 @@ const ERROR_RULES = [
   ),
 ];
 
+const IDENTITY_TYPES: IdentityType[] = ["login_id"];
+const PRIMARY_AUTHENTICATOR_TYPES: PrimaryAuthenticatorType[] = [
+  "password",
+  "oob_otp_email",
+  "oob_otp_sms",
+];
+const LOGIN_ID_KEY_CONFIGS: LoginIDKeyConfig[] = [
+  { type: "email" },
+  { type: "phone" },
+  { type: "username" },
+];
+
+interface ControlOf<T> {
+  isChecked: boolean;
+  isDisabled: boolean;
+  value: T;
+}
+
+// ControlList augments T with isChecked and isDisabled.
+//
+// controlListOf creates a list of ControlOf that this screen recognize.
+//
+// controlListPreserve turns a ControlList into plain list by preserving exotic values.
+// This is useful for identities and primary_authenticators because
+// "biometric", "anonymous", and "passkey" are exotic.
+// They must be preserved.
+//
+// controlListUnwrap simply turns a ControlList into plain list.
+//
+// controlListIsEqualToPlainList determines whether a ControlList is equal to a plain list.
+//
+// controlListCheckWithPlainList checks a ControlList with a plain list.
+type ControlList<T> = ControlOf<T>[];
+
+function controlListOf<T>(
+  eq: (a: T, b: T) => boolean,
+  all: T[],
+  current: T[]
+): ControlList<T> {
+  const out: ControlList<T> = [];
+
+  for (const a of current) {
+    const b = all.find((b) => eq(a, b));
+    if (b != null) {
+      out.push({
+        isChecked: true,
+        isDisabled: false,
+        value: a,
+      });
+    }
+  }
+
+  for (const a of all) {
+    const b = out.find((b) => eq(a, b.value));
+    if (b == null) {
+      out.push({
+        isChecked: false,
+        isDisabled: false,
+        value: a,
+      });
+    }
+  }
+  return out;
+}
+
+function controlListIsEqualToPlainList<U, T>(
+  eq: (u: U, t: T) => boolean,
+  us: U[],
+  ts: ControlList<T>
+): boolean {
+  const plains = ts.filter((t) => t.isChecked).map((t) => t.value);
+
+  if (plains.length !== us.length) {
+    return false;
+  }
+
+  for (let i = 0; i < us.length; i++) {
+    const u = us[i];
+    const t = plains[i];
+    if (!eq(u, t)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function controlListPreserve<T>(
+  eq: (a: T, b: T) => boolean,
+  ts: ControlList<T>,
+  plains: T[]
+): T[] {
+  const exotic = plains.filter((a) => {
+    for (const t of ts) {
+      if (eq(a, t.value)) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  return [...ts.filter((a) => a.isChecked).map((a) => a.value), ...exotic];
+}
+
+function controlListUnwrap<T>(ts: ControlList<T>): T[] {
+  return ts.filter((a) => a.isChecked).map((a) => a.value);
+}
+
+function controlListCheckWithPlainList<U, T>(
+  eq: (u: U, t: T) => boolean,
+  us: U[],
+  ts: ControlList<T>
+): ControlList<T> {
+  const checked: ControlList<T> = [];
+
+  for (const u of us) {
+    const t = ts.find((t) => eq(u, t.value));
+    if (t != null) {
+      checked.push({
+        ...t,
+        isChecked: true,
+      });
+    }
+  }
+
+  const unchecked: ControlList<T> = ts
+    .filter((t) => {
+      for (const u of us) {
+        if (eq(u, t.value)) {
+          return false;
+        }
+      }
+      return true;
+    })
+    .map((t) => ({
+      ...t,
+      isChecked: false,
+    }));
+
+  const out: ControlList<T> = [...checked, ...unchecked];
+  return out;
+}
+
 interface FormState {
-  identities: IdentityType[];
-  primaryAuthenticators: PrimaryAuthenticatorType[];
-  loginIDKeyConfigs: LoginIDKeyConfig[];
+  identitiesControl: ControlList<IdentityType>;
+  primaryAuthenticatorsControl: ControlList<PrimaryAuthenticatorType>;
+  loginIDKeyConfigsControl: ControlList<LoginIDKeyConfig>;
 }
 
-function loginIDIdentity(identities: IdentityType[]): boolean {
-  return identities.includes("login_id");
+function loginIDIdentity(identities: ControlList<IdentityType>): boolean {
+  return controlListIsEqualToPlainList(
+    (a, b) => a === b,
+    ["login_id"] as IdentityType[],
+    identities
+  );
 }
 
-function oauthIdentity(identities: IdentityType[]): boolean {
-  // We intentionally do not check if "oauth" is present.
-  // It is because it could be absent.
-  return !loginIDIdentity(identities);
+function oauthIdentity(identities: ControlList<IdentityType>): boolean {
+  return controlListIsEqualToPlainList(
+    (a, b) => a === b,
+    [] as IdentityType[],
+    identities
+  );
 }
 
 function loginIDOf(
   types: LoginIDKeyType[],
-  loginIDKeyConfigs: LoginIDKeyConfig[]
+  loginIDKeyConfigs: ControlList<LoginIDKeyConfig>
 ): boolean {
-  // We want the content and the order both be equal.
-  if (types.length !== loginIDKeyConfigs.length) {
-    return false;
-  }
-
-  for (let i = 0; i < types.length; ++i) {
-    const typ = types[i];
-    const config = loginIDKeyConfigs[i];
-    if (config.type !== typ) {
-      return false;
-    }
-  }
-
-  return true;
+  return controlListIsEqualToPlainList(
+    (u, t) => {
+      return u === t.type;
+    },
+    types,
+    loginIDKeyConfigs
+  );
 }
 
 function primaryAuthenticatorOf(
   types: PrimaryAuthenticatorType[],
-  primaryAuthenticators: PrimaryAuthenticatorType[]
+  primaryAuthenticators: ControlList<PrimaryAuthenticatorType>
 ): boolean {
-  const set1 = new Set(types);
-  const set2 = new Set(primaryAuthenticators);
-
-  const set3 = new Set<PrimaryAuthenticatorType>();
-  for (const t of EXCLUSIVE_PRIMARY_AUTHENTICATOR_TYPES) {
-    if (!set1.has(t)) {
-      set3.add(t);
-    }
-  }
-
-  // We want set2 >= set1 and the intersection of set2 and set3 is empty.
-
-  // set2 >= set1
-  for (const e1 of set1) {
-    if (!set2.has(e1)) {
-      return false;
-    }
-  }
-
-  for (const e3 of set3) {
-    if (set2.has(e3)) {
-      return false;
-    }
-  }
-
-  return true;
+  return controlListIsEqualToPlainList(
+    (u, t) => {
+      return u === t;
+    },
+    types,
+    primaryAuthenticators
+  );
 }
 
 function setLoginIDIdentity(draft: FormState) {
-  if (draft.identities.includes("login_id")) {
-    return;
-  }
-
-  draft.identities.splice(0, 0, "login_id");
+  draft.identitiesControl = controlListCheckWithPlainList(
+    (a, b) => a === b,
+    ["login_id"] as IdentityType[],
+    draft.identitiesControl
+  );
 }
 
 function setOAuthIdentity(draft: FormState) {
-  const index = draft.identities.findIndex((t) => t === "login_id");
-  if (index < 0) {
-    return;
-  }
-
-  draft.identities.splice(index, 1);
+  draft.identitiesControl = controlListCheckWithPlainList(
+    (a, b) => a === b,
+    [] as IdentityType[],
+    draft.identitiesControl
+  );
 }
 
 function setLoginID(draft: FormState, types: LoginIDKeyType[]) {
-  const out: LoginIDKeyConfig[] = [];
-
-  for (const t of types) {
-    const c = draft.loginIDKeyConfigs.find((c) => c.type === t);
-    if (c != null) {
-      out.push(c);
-    } else {
-      out.push({ type: t });
-    }
-  }
-
-  draft.loginIDKeyConfigs = out;
+  draft.loginIDKeyConfigsControl = controlListCheckWithPlainList(
+    (a, b) => a === b.type,
+    types,
+    draft.loginIDKeyConfigsControl
+  );
 }
 
 function setPrimaryAuthenticator(
   draft: FormState,
   types: PrimaryAuthenticatorType[]
 ) {
-  const others = draft.primaryAuthenticators.filter(
-    (t) => !EXCLUSIVE_PRIMARY_AUTHENTICATOR_TYPES.includes(t)
+  draft.primaryAuthenticatorsControl = controlListCheckWithPlainList(
+    (a, b) => a === b,
+    types,
+    draft.primaryAuthenticatorsControl
   );
-  draft.primaryAuthenticators = [...types, ...others];
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
+  const identities = config.authentication?.identities ?? [];
+  const primaryAuthenticators =
+    config.authentication?.primary_authenticators ?? [];
+  const loginIDKeyConfigs = config.identity?.login_id?.keys ?? [];
+
   return {
-    identities: config.authentication?.identities ?? [],
-    primaryAuthenticators: config.authentication?.primary_authenticators ?? [],
-    loginIDKeyConfigs: config.identity?.login_id?.keys ?? [],
+    identitiesControl: controlListOf(
+      (a, b) => a === b,
+      IDENTITY_TYPES,
+      identities
+    ),
+    primaryAuthenticatorsControl: controlListOf(
+      (a, b) => a === b,
+      PRIMARY_AUTHENTICATOR_TYPES,
+      primaryAuthenticators
+    ),
+    loginIDKeyConfigsControl: controlListOf(
+      (a, b) => a.type === b.type,
+      LOGIN_ID_KEY_CONFIGS,
+      loginIDKeyConfigs
+    ),
   };
 }
 
@@ -172,17 +299,26 @@ function constructConfig(
   config: PortalAPIAppConfig,
   _initialState: FormState,
   currentState: FormState,
-  _effectiveConfig: PortalAPIAppConfig
+  effectiveConfig: PortalAPIAppConfig
 ): PortalAPIAppConfig {
   return produce(config, (config) => {
     config.authentication ??= {};
     config.identity ??= {};
     config.identity.login_id ??= {};
 
-    config.authentication.identities = currentState.identities;
-    config.authentication.primary_authenticators =
-      currentState.primaryAuthenticators;
-    config.identity.login_id.keys = currentState.loginIDKeyConfigs;
+    config.authentication.identities = controlListPreserve(
+      (a, b) => a === b,
+      currentState.identitiesControl,
+      effectiveConfig.authentication?.identities ?? []
+    );
+    config.authentication.primary_authenticators = controlListPreserve(
+      (a, b) => a === b,
+      currentState.primaryAuthenticatorsControl,
+      effectiveConfig.authentication?.primary_authenticators ?? []
+    );
+    config.identity.login_id.keys = controlListUnwrap(
+      currentState.loginIDKeyConfigsControl
+    );
 
     clearEmptyObject(config);
   });
@@ -513,7 +649,11 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
     const { appID } = props;
     const { state, setState } = props.form;
 
-    const { identities, loginIDKeyConfigs, primaryAuthenticators } = state;
+    const {
+      identitiesControl,
+      primaryAuthenticatorsControl,
+      loginIDKeyConfigsControl,
+    } = state;
 
     const [customChecked, setCustomChecked] = useState(false);
 
@@ -525,11 +665,15 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
 
     const emailPasswordlessChecked = useMemo(() => {
       return (
-        loginIDIdentity(identities) &&
-        loginIDOf(["email"], loginIDKeyConfigs) &&
-        primaryAuthenticatorOf(["oob_otp_email"], primaryAuthenticators)
+        loginIDIdentity(identitiesControl) &&
+        loginIDOf(["email"], loginIDKeyConfigsControl) &&
+        primaryAuthenticatorOf(["oob_otp_email"], primaryAuthenticatorsControl)
       );
-    }, [identities, loginIDKeyConfigs, primaryAuthenticators]);
+    }, [
+      identitiesControl,
+      loginIDKeyConfigsControl,
+      primaryAuthenticatorsControl,
+    ]);
 
     const onEmailPasswordlessClick = useCallback(
       (e) => {
@@ -549,11 +693,15 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
 
     const phonePasswordlessChecked = useMemo(() => {
       return (
-        loginIDIdentity(identities) &&
-        loginIDOf(["phone"], loginIDKeyConfigs) &&
-        primaryAuthenticatorOf(["oob_otp_sms"], primaryAuthenticators)
+        loginIDIdentity(identitiesControl) &&
+        loginIDOf(["phone"], loginIDKeyConfigsControl) &&
+        primaryAuthenticatorOf(["oob_otp_sms"], primaryAuthenticatorsControl)
       );
-    }, [identities, loginIDKeyConfigs, primaryAuthenticators]);
+    }, [
+      identitiesControl,
+      loginIDKeyConfigsControl,
+      primaryAuthenticatorsControl,
+    ]);
 
     const onPhonePasswordlessClick = useCallback(
       (e) => {
@@ -573,15 +721,19 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
 
     const phoneEmailPasswordlessChecked = useMemo(() => {
       return (
-        loginIDIdentity(identities) &&
+        loginIDIdentity(identitiesControl) &&
         // Order is important.
-        loginIDOf(["phone", "email"], loginIDKeyConfigs) &&
+        loginIDOf(["phone", "email"], loginIDKeyConfigsControl) &&
         primaryAuthenticatorOf(
           ["oob_otp_sms", "oob_otp_email"],
-          primaryAuthenticators
+          primaryAuthenticatorsControl
         )
       );
-    }, [identities, loginIDKeyConfigs, primaryAuthenticators]);
+    }, [
+      identitiesControl,
+      loginIDKeyConfigsControl,
+      primaryAuthenticatorsControl,
+    ]);
 
     const onPhoneEmailPasswordlessClick = useCallback(
       (e) => {
@@ -601,11 +753,15 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
 
     const emailPasswordChecked = useMemo(() => {
       return (
-        loginIDIdentity(identities) &&
-        loginIDOf(["email"], loginIDKeyConfigs) &&
-        primaryAuthenticatorOf(["password"], primaryAuthenticators)
+        loginIDIdentity(identitiesControl) &&
+        loginIDOf(["email"], loginIDKeyConfigsControl) &&
+        primaryAuthenticatorOf(["password"], primaryAuthenticatorsControl)
       );
-    }, [identities, loginIDKeyConfigs, primaryAuthenticators]);
+    }, [
+      identitiesControl,
+      loginIDKeyConfigsControl,
+      primaryAuthenticatorsControl,
+    ]);
 
     const onEmailPasswordClick = useCallback(
       (e) => {
@@ -625,11 +781,15 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
 
     const phonePasswordChecked = useMemo(() => {
       return (
-        loginIDIdentity(identities) &&
-        loginIDOf(["phone"], loginIDKeyConfigs) &&
-        primaryAuthenticatorOf(["password"], primaryAuthenticators)
+        loginIDIdentity(identitiesControl) &&
+        loginIDOf(["phone"], loginIDKeyConfigsControl) &&
+        primaryAuthenticatorOf(["password"], primaryAuthenticatorsControl)
       );
-    }, [identities, loginIDKeyConfigs, primaryAuthenticators]);
+    }, [
+      identitiesControl,
+      loginIDKeyConfigsControl,
+      primaryAuthenticatorsControl,
+    ]);
 
     const onPhonePasswordClick = useCallback(
       (e) => {
@@ -649,12 +809,16 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
 
     const phoneEmailPasswordChecked = useMemo(() => {
       return (
-        loginIDIdentity(identities) &&
+        loginIDIdentity(identitiesControl) &&
         // Order is important.
-        loginIDOf(["phone", "email"], loginIDKeyConfigs) &&
-        primaryAuthenticatorOf(["password"], primaryAuthenticators)
+        loginIDOf(["phone", "email"], loginIDKeyConfigsControl) &&
+        primaryAuthenticatorOf(["password"], primaryAuthenticatorsControl)
       );
-    }, [identities, loginIDKeyConfigs, primaryAuthenticators]);
+    }, [
+      identitiesControl,
+      loginIDKeyConfigsControl,
+      primaryAuthenticatorsControl,
+    ]);
 
     const onPhoneEmailPasswordClick = useCallback(
       (e) => {
@@ -674,11 +838,15 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
 
     const usernamePasswordChecked = useMemo(() => {
       return (
-        loginIDIdentity(identities) &&
-        loginIDOf(["username"], loginIDKeyConfigs) &&
-        primaryAuthenticatorOf(["password"], primaryAuthenticators)
+        loginIDIdentity(identitiesControl) &&
+        loginIDOf(["username"], loginIDKeyConfigsControl) &&
+        primaryAuthenticatorOf(["password"], primaryAuthenticatorsControl)
       );
-    }, [identities, loginIDKeyConfigs, primaryAuthenticators]);
+    }, [
+      identitiesControl,
+      loginIDKeyConfigsControl,
+      primaryAuthenticatorsControl,
+    ]);
 
     const onUsernamePasswordClick = useCallback(
       (e) => {
@@ -698,11 +866,15 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
 
     const oauthOnlyChecked = useMemo(() => {
       return (
-        oauthIdentity(identities) &&
-        loginIDOf([], loginIDKeyConfigs) &&
-        primaryAuthenticatorOf([], primaryAuthenticators)
+        oauthIdentity(identitiesControl) &&
+        loginIDOf([], loginIDKeyConfigsControl) &&
+        primaryAuthenticatorOf([], primaryAuthenticatorsControl)
       );
-    }, [identities, loginIDKeyConfigs, primaryAuthenticators]);
+    }, [
+      identitiesControl,
+      loginIDKeyConfigsControl,
+      primaryAuthenticatorsControl,
+    ]);
 
     const onOAuthOnlyClick = useCallback(
       (e) => {
