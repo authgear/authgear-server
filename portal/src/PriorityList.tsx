@@ -99,8 +99,9 @@ function PriorityList(props: PriorityListProps): ReactElement {
         key: "order",
         name: renderToString("PriorityList.order"),
         className: styles.cell,
-        minWidth: 100,
-        maxWidth: 100,
+        // The intrinsic width of OrderButtons is 64px.
+        minWidth: 64,
+        maxWidth: 64,
         styles: {
           cellTitle: {
             // To align the column title with the order button visually.
