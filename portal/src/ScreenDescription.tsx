@@ -1,7 +1,5 @@
 import React from "react";
-import cn from "classnames";
-import { DefaultEffects, Text } from "@fluentui/react";
-import styles from "./ScreenDescription.module.css";
+import { Text } from "@fluentui/react";
 
 export interface ScreenDescriptionProps {
   className?: string;
@@ -12,12 +10,9 @@ const ScreenDescription: React.VFC<ScreenDescriptionProps> =
   function ScreenDescription(props: ScreenDescriptionProps) {
     const { className, children } = props;
     return (
-      <div
-        className={cn(className, styles.description)}
-        style={{ boxShadow: DefaultEffects.elevation4 }}
-      >
-        <Text>{children}</Text>
-      </div>
+      <Text block={true} className={className}>
+        {children}
+      </Text>
     );
   };
 
