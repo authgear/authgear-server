@@ -26,6 +26,7 @@ import styles from "./UserDetailsConnectedIdentities.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useIsLoading, useLoading } from "../../hook/loading";
 import { useProvideError } from "../../hook/error";
+import { createEIP681URL } from "../../util/eip681";
 
 // Always disable virtualization for List component, as it wont work properly with mobile view
 const onShouldVirtualize = () => {
@@ -237,7 +238,7 @@ function getIdentityName(
     );
   }
   if (item.type === "siwe") {
-    return item.address;
+    return createEIP681URL({ chainId: item.chainId, address: item.address });
   }
   return item.claimValue;
 }
