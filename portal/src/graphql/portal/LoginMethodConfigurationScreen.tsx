@@ -6,13 +6,13 @@ import React, {
   useEffect,
   useContext,
 } from "react";
-import { MessageBar, MessageBarType, Text } from "@fluentui/react";
+import { MessageBar, MessageBarType, Text, useTheme } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import {
   PortalAPIAppConfig,
-  IdentityFeatureConfig,
+  PortalAPIFeatureConfig,
   IdentityType,
   PrimaryAuthenticatorType,
   LoginIDKeyConfig,
@@ -39,6 +39,7 @@ import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse"
 import styles from "./LoginMethodConfigurationScreen.module.css";
 import WidgetDescription from "../../WidgetDescription";
 import HorizontalDivider from "../../HorizontalDivider";
+import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 
 const ERROR_RULES = [
   makeValidationErrorMatchUnknownKindParseRule(
@@ -528,8 +529,10 @@ interface GroupPasswordlessProps {
   emailPasswordlessChecked: boolean;
   onEmailPasswordlessClick: ChoiceProps["onClick"];
   phonePasswordlessChecked: boolean;
+  phonePasswordlessDisabled: boolean;
   onPhonePasswordlessClick: ChoiceProps["onClick"];
   phoneEmailPasswordlessChecked: boolean;
+  phoneEmailPasswordlessDisabled: boolean;
   onPhoneEmailPasswordlessClick: ChoiceProps["onClick"];
 }
 
@@ -538,8 +541,10 @@ function GroupPasswordless(props: GroupPasswordlessProps) {
     emailPasswordlessChecked,
     onEmailPasswordlessClick,
     phonePasswordlessChecked,
+    phonePasswordlessDisabled,
     onPhonePasswordlessClick,
     phoneEmailPasswordlessChecked,
+    phoneEmailPasswordlessDisabled,
     onPhoneEmailPasswordlessClick,
   } = props;
   return (
@@ -554,10 +559,12 @@ function GroupPasswordless(props: GroupPasswordlessProps) {
       />
       <ChoicePhonePasswordless
         checked={phonePasswordlessChecked}
+        disabled={phonePasswordlessDisabled}
         onClick={onPhonePasswordlessClick}
       />
       <ChoicePhoneEmailPasswordless
         checked={phoneEmailPasswordlessChecked}
+        disabled={phoneEmailPasswordlessDisabled}
         onClick={onPhoneEmailPasswordlessClick}
       />
     </MethodGroup>
@@ -568,8 +575,10 @@ interface GroupPasswordProps {
   emailPasswordChecked: boolean;
   onEmailPasswordClick: ChoiceProps["onClick"];
   phonePasswordChecked: boolean;
+  phonePasswordDisabled: boolean;
   onPhonePasswordClick: ChoiceProps["onClick"];
   phoneEmailPasswordChecked: boolean;
+  phoneEmailPasswordDisabled: boolean;
   onPhoneEmailPasswordClick: ChoiceProps["onClick"];
   usernamePasswordChecked: boolean;
   onUsernamePasswordClick: ChoiceProps["onClick"];
@@ -580,8 +589,10 @@ function GroupPassword(props: GroupPasswordProps) {
     emailPasswordChecked,
     onEmailPasswordClick,
     phonePasswordChecked,
+    phonePasswordDisabled,
     onPhonePasswordClick,
     phoneEmailPasswordChecked,
+    phoneEmailPasswordDisabled,
     onPhoneEmailPasswordClick,
     usernamePasswordChecked,
     onUsernamePasswordClick,
@@ -598,10 +609,12 @@ function GroupPassword(props: GroupPasswordProps) {
       />
       <ChoicePhonePassword
         checked={phonePasswordChecked}
+        disabled={phonePasswordDisabled}
         onClick={onPhonePasswordClick}
       />
       <ChoicePhoneEmailPassword
         checked={phoneEmailPasswordChecked}
+        disabled={phoneEmailPasswordDisabled}
         onClick={onPhoneEmailPasswordClick}
       />
       <ChoiceUsernamePassword
@@ -676,6 +689,7 @@ function LinkToOAuth(props: LinkToOAuthProps) {
 }
 
 interface CustomLoginMethodsProps {
+  phoneLoginIDDisabled: boolean;
   customChecked: boolean;
   primaryAuthenticatorsControl: ControlList<PrimaryAuthenticatorType>;
   loginIDKeyConfigsControl: ControlList<LoginIDKeyConfig>;
@@ -690,6 +704,7 @@ interface CustomLoginMethodsProps {
 
 function CustomLoginMethods(props: CustomLoginMethodsProps) {
   const {
+    phoneLoginIDDisabled,
     customChecked,
     loginIDKeyConfigsControl,
     primaryAuthenticatorsControl,
@@ -702,6 +717,10 @@ function CustomLoginMethods(props: CustomLoginMethodsProps) {
 
   const { renderToString } = useContext(Context);
 
+  const {
+    semanticColors: { disabledText },
+  } = useTheme();
+
   const [extended, setExtended] = useState(false);
   const onToggleButtonClick = useCallback(() => {
     setExtended((prev) => !prev);
@@ -710,18 +729,30 @@ function CustomLoginMethods(props: CustomLoginMethodsProps) {
   const loginIDs = useMemo(() => {
     // FIXME: handle feature disabled
     return loginIDKeyConfigsControl.map((a) => {
+      let disabled = a.isDisabled;
+      if (a.value.type === "phone") {
+        disabled = disabled || phoneLoginIDDisabled;
+      }
       return {
         key: a.value.type,
         checked: a.isChecked,
-        disabled: a.isDisabled,
+        disabled,
         content: (
-          <Text variant="small" block={true}>
+          <Text
+            variant="small"
+            block={true}
+            styles={{
+              root: {
+                color: disabled ? disabledText : undefined,
+              },
+            }}
+          >
             <FormattedMessage id={"LoginIDKeyType." + a.value.type} />
           </Text>
         ),
       };
     });
-  }, [loginIDKeyConfigsControl]);
+  }, [loginIDKeyConfigsControl, phoneLoginIDDisabled, disabledText]);
 
   const onChangeLoginIDChecked = useCallback(
     (key: string, checked: boolean) => {
@@ -739,18 +770,30 @@ function CustomLoginMethods(props: CustomLoginMethodsProps) {
 
   const authenticators = useMemo(() => {
     return primaryAuthenticatorsControl.map((a) => {
+      let disabled = a.isDisabled;
+      if (a.value === "oob_otp_sms") {
+        disabled = disabled || phoneLoginIDDisabled;
+      }
       return {
         key: a.value,
         checked: a.isChecked,
-        disabled: a.isDisabled,
+        disabled,
         content: (
-          <Text variant="small" block={true}>
+          <Text
+            variant="small"
+            block={true}
+            styles={{
+              root: {
+                color: disabled ? disabledText : undefined,
+              },
+            }}
+          >
             <FormattedMessage id={"PrimaryAuthenticatorType." + a.value} />
           </Text>
         ),
       };
     });
-  }, [primaryAuthenticatorsControl]);
+  }, [primaryAuthenticatorsControl, phoneLoginIDDisabled, disabledText]);
 
   const onChangePrimaryAuthenticatorChecked = useCallback(
     (key: string, checked: boolean) => {
@@ -783,6 +826,9 @@ function CustomLoginMethods(props: CustomLoginMethodsProps) {
       <WidgetTitle>
         <FormattedMessage id="LoginMethodConfigurationScreen.custom-login-methods.title" />
       </WidgetTitle>
+      {phoneLoginIDDisabled ? (
+        <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
+      ) : null}
       <div className={styles.methodGroup}>
         <MethodGroupTitle>
           <FormattedMessage id="LoginMethodConfigurationScreen.custom-login-methods.login-id.title" />
@@ -825,12 +871,13 @@ function CustomLoginMethods(props: CustomLoginMethodsProps) {
 interface LoginMethodConfigurationContentProps {
   appID: string;
   form: AppConfigFormModel<FormState>;
-  identityFeatureConfig?: IdentityFeatureConfig;
+  featureConfig?: PortalAPIFeatureConfig;
 }
 
 const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContentProps> =
+  // eslint-disable-next-line complexity
   function LoginMethodConfigurationContent(props) {
-    const { appID } = props;
+    const { appID, featureConfig } = props;
     const { state, setState } = props.form;
 
     const {
@@ -840,6 +887,14 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
     } = state;
 
     const [customChecked, setCustomChecked] = useState(false);
+
+    const phoneLoginIDDisabled =
+      featureConfig?.identity?.login_id?.types?.phone?.disabled ?? false;
+
+    const phonePasswordlessDisabled = phoneLoginIDDisabled;
+    const phoneEmailPasswordlessDisabled = phoneLoginIDDisabled;
+    const phonePasswordDisabled = phoneLoginIDDisabled;
+    const phoneEmailPasswordDisabled = phoneLoginIDDisabled;
 
     const onCustomClick = useCallback((e) => {
       e.preventDefault();
@@ -1166,6 +1221,9 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
           <WidgetTitle>
             <FormattedMessage id="LoginMethodConfigurationScreen.method.title" />
           </WidgetTitle>
+          {phoneLoginIDDisabled ? (
+            <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
+          ) : null}
           <GroupPasswordless
             emailPasswordlessChecked={Boolean(
               !customChecked && emailPasswordlessChecked
@@ -1174,10 +1232,12 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
             phonePasswordlessChecked={Boolean(
               !customChecked && phonePasswordlessChecked
             )}
+            phonePasswordlessDisabled={phonePasswordlessDisabled}
             onPhonePasswordlessClick={onPhonePasswordlessClick}
             phoneEmailPasswordlessChecked={Boolean(
               !customChecked && phoneEmailPasswordlessChecked
             )}
+            phoneEmailPasswordlessDisabled={phoneEmailPasswordlessDisabled}
             onPhoneEmailPasswordlessClick={onPhoneEmailPasswordlessClick}
           />
           <LinkToPasskey appID={appID} />
@@ -1189,10 +1249,12 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
             phonePasswordChecked={Boolean(
               !customChecked && phonePasswordChecked
             )}
+            phonePasswordDisabled={phonePasswordDisabled}
             onPhonePasswordClick={onPhonePasswordClick}
             phoneEmailPasswordChecked={Boolean(
               !customChecked && phoneEmailPasswordChecked
             )}
+            phoneEmailPasswordDisabled={phoneEmailPasswordDisabled}
             onPhoneEmailPasswordClick={onPhoneEmailPasswordClick}
             usernamePasswordChecked={Boolean(
               !customChecked && usernamePasswordChecked
@@ -1211,6 +1273,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
           oauthOnlyChecked={Boolean(!customChecked && oauthOnlyChecked)}
         />
         <CustomLoginMethods
+          phoneLoginIDDisabled={phoneLoginIDDisabled}
           customChecked={customChecked}
           primaryAuthenticatorsControl={primaryAuthenticatorsControl}
           loginIDKeyConfigsControl={loginIDKeyConfigsControl}
@@ -1258,7 +1321,7 @@ const LoginMethodConfigurationScreen: React.VFC =
         <LoginMethodConfigurationContent
           appID={appID}
           form={form}
-          identityFeatureConfig={featureConfig.effectiveFeatureConfig?.identity}
+          featureConfig={featureConfig.effectiveFeatureConfig}
         />
       </FormContainer>
     );
