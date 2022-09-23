@@ -231,6 +231,78 @@ interface FormState {
   loginIDKeyConfigsControl: ControlList<LoginIDKeyConfig>;
 }
 
+// eslint-disable-next-line complexity
+function correctInitialFormState(state: FormState): void {
+  // Uncheck "login_id" identity if no login ID is checked.
+  const allLoginIDUnchecked = state.loginIDKeyConfigsControl.every(
+    (a) => !a.isChecked
+  );
+  if (allLoginIDUnchecked) {
+    for (const t of state.identitiesControl) {
+      if (t.value === "login_id") {
+        t.isChecked = false;
+      }
+    }
+  }
+
+  // Disable "oob_otp_sms" or "oob_otp_email" if the corresponding login ID is unchecked.
+  // Note that we do NOT uncheck.
+  for (const loginID of state.loginIDKeyConfigsControl) {
+    for (const authenticator of state.primaryAuthenticatorsControl) {
+      if (
+        loginID.value.type === "email" &&
+        authenticator.value === "oob_otp_email"
+      ) {
+        authenticator.isDisabled = !loginID.isChecked;
+      }
+      if (
+        loginID.value.type === "phone" &&
+        authenticator.value === "oob_otp_sms"
+      ) {
+        authenticator.isDisabled = !loginID.isChecked;
+      }
+    }
+  }
+}
+
+// eslint-disable-next-line complexity
+function correctCurrentFormState(state: FormState): void {
+  // Check or uncheck "login_id" identity.
+  const allLoginIDUnchecked = state.loginIDKeyConfigsControl.every(
+    (a) => !a.isChecked
+  );
+  const someLoginIDChecked = !allLoginIDUnchecked;
+  for (const t of state.identitiesControl) {
+    if (t.value === "login_id") {
+      t.isChecked = someLoginIDChecked;
+    }
+  }
+
+  // Disable and unchecked "oob_otp_sms" or "oob_otp_email" if the corresponding login ID is unchecked.
+  for (const loginID of state.loginIDKeyConfigsControl) {
+    for (const authenticator of state.primaryAuthenticatorsControl) {
+      if (
+        loginID.value.type === "email" &&
+        authenticator.value === "oob_otp_email"
+      ) {
+        authenticator.isDisabled = !loginID.isChecked;
+        if (authenticator.isDisabled && authenticator.isChecked) {
+          authenticator.isChecked = false;
+        }
+      }
+      if (
+        loginID.value.type === "phone" &&
+        authenticator.value === "oob_otp_sms"
+      ) {
+        authenticator.isDisabled = !loginID.isChecked;
+        if (authenticator.isDisabled && authenticator.isChecked) {
+          authenticator.isChecked = false;
+        }
+      }
+    }
+  }
+}
+
 function loginIDIdentity(identities: ControlList<IdentityType>): boolean {
   return controlListIsEqualToPlainList(
     (a, b) => a === b,
@@ -314,7 +386,7 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     config.authentication?.primary_authenticators ?? [];
   const loginIDKeyConfigs = config.identity?.login_id?.keys ?? [];
 
-  return {
+  const state = {
     identitiesControl: controlListOf(
       (a, b) => a === b,
       IDENTITY_TYPES,
@@ -331,6 +403,8 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
       loginIDKeyConfigs
     ),
   };
+  correctInitialFormState(state);
+  return state;
 }
 
 function constructConfig(
@@ -1141,6 +1215,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
               checked,
               prev.loginIDKeyConfigsControl
             );
+            correctCurrentFormState(prev);
           })
         );
       },
