@@ -1,5 +1,5 @@
 import React, { useCallback, useContext } from "react";
-import { IconButton } from "@fluentui/react";
+import { IconButton, IIconProps } from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
 
 import styles from "./OrderButtons.module.css";
@@ -28,12 +28,14 @@ export function swap<T>(items: T[], index1: number, index2: number): T[] {
   return newItems;
 }
 
-const DOWN_ICON_PROPS = {
+const DOWN_ICON_PROPS: IIconProps = {
   iconName: "ChevronDown",
+  className: styles.icon,
 };
 
-const UP_ICON_PROPS = {
+const UP_ICON_PROPS: IIconProps = {
   iconName: "ChevronUp",
+  className: styles.icon,
 };
 
 const OrderButtons: React.VFC<OrderButtonsProps> = function OrderButtons(

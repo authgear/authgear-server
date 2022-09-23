@@ -1,5 +1,7 @@
 .orderButton {
-  padding: 5px;
-  margin: 2px 8px 2px 0;
   background: transparent;
+}
+
+.icon {
+  font-weight: 600;
 }
