@@ -6,7 +6,14 @@ import React, {
   useEffect,
   useContext,
 } from "react";
-import { MessageBar, MessageBarType, Text, useTheme } from "@fluentui/react";
+import cn from "classnames";
+import {
+  MessageBar,
+  MessageBarType,
+  Text,
+  useTheme,
+  IButtonProps,
+} from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
@@ -37,6 +44,8 @@ import PriorityList from "../../PriorityList";
 import WidgetDescription from "../../WidgetDescription";
 import HorizontalDivider from "../../HorizontalDivider";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
+import PrimaryButton from "../../PrimaryButton";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
 import styles from "./LoginMethodConfigurationScreen.module.css";
@@ -470,6 +479,186 @@ function MethodGroup(props: MethodGroupProps) {
   );
 }
 
+interface MethodButtonProps {
+  checked: boolean;
+  text?: ReactNode;
+  secondaryText?: ReactNode;
+  onClick?: IButtonProps["onClick"];
+}
+
+function MethodButton(props: MethodButtonProps) {
+  const { checked, text, secondaryText, onClick } = props;
+  const theme = useTheme();
+  const { themes } = useSystemConfig();
+
+  if (!checked) {
+    return null;
+  }
+
+  return (
+    <div
+      className={cn(styles.widget, styles.currentLoginMethod)}
+      style={{
+        backgroundColor: theme.palette.themePrimary,
+      }}
+    >
+      <Text
+        className={styles.currentLoginMethodTitle}
+        block={true}
+        variant="large"
+        theme={themes.inverted}
+      >
+        {text}
+      </Text>
+      <Text
+        className={styles.currentLoginMethodDescription}
+        block={true}
+        variant="medium"
+        theme={themes.inverted}
+      >
+        {secondaryText}
+      </Text>
+      <PrimaryButton
+        className={styles.currentLoginMethodButton}
+        theme={themes.inverted}
+        text={
+          <FormattedMessage id="LoginMethodConfigurationScreen.method.change-method" />
+        }
+        onClick={onClick}
+      />
+    </div>
+  );
+}
+
+interface MethodProps
+  extends Omit<MethodButtonProps, "text" | "secondaryText"> {}
+
+function MethodEmailPasswordless(props: MethodProps) {
+  return (
+    <MethodButton
+      {...props}
+      text={
+        <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.choice.email.title" />
+      }
+      secondaryText={
+        <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.choice.email.description" />
+      }
+    />
+  );
+}
+
+function MethodPhonePasswordless(props: MethodProps) {
+  return (
+    <MethodButton
+      {...props}
+      text={
+        <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.choice.phone.title" />
+      }
+      secondaryText={
+        <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.choice.phone.description" />
+      }
+    />
+  );
+}
+
+function MethodPhoneEmailPasswordless(props: MethodProps) {
+  return (
+    <MethodButton
+      {...props}
+      text={
+        <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.choice.all.title" />
+      }
+      secondaryText={
+        <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.choice.all.description" />
+      }
+    />
+  );
+}
+
+function MethodEmailPassword(props: MethodProps) {
+  return (
+    <MethodButton
+      {...props}
+      text={
+        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.email.title" />
+      }
+      secondaryText={
+        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.email.description" />
+      }
+    />
+  );
+}
+
+function MethodPhonePassword(props: MethodProps) {
+  return (
+    <MethodButton
+      {...props}
+      text={
+        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.phone.title" />
+      }
+      secondaryText={
+        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.phone.description" />
+      }
+    />
+  );
+}
+
+function MethodPhoneEmailPassword(props: MethodProps) {
+  return (
+    <MethodButton
+      {...props}
+      text={
+        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.no-username.title" />
+      }
+      secondaryText={
+        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.no-username.description" />
+      }
+    />
+  );
+}
+
+function MethodUsernamePassword(props: MethodProps) {
+  return (
+    <MethodButton
+      {...props}
+      text={
+        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.username.title" />
+      }
+      secondaryText={
+        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.username.description" />
+      }
+    />
+  );
+}
+
+function MethodOAuthOnly(props: MethodProps) {
+  return (
+    <MethodButton
+      {...props}
+      text={
+        <FormattedMessage id="LoginMethodConfigurationScreen.method.other.choice.oauth.title" />
+      }
+      secondaryText={
+        <FormattedMessage id="LoginMethodConfigurationScreen.method.other.choice.oauth.description" />
+      }
+    />
+  );
+}
+
+function MethodCustom(props: MethodProps) {
+  return (
+    <MethodButton
+      {...props}
+      text={
+        <FormattedMessage id="LoginMethodConfigurationScreen.method.other.choice.custom.title" />
+      }
+      secondaryText={
+        <FormattedMessage id="LoginMethodConfigurationScreen.method.other.choice.custom.description" />
+      }
+    />
+  );
+}
+
 interface ChoiceProps
   extends Omit<ChoiceButtonProps, "text" | "secondaryText"> {}
 
@@ -838,6 +1027,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       loginIDKeyConfigsControl,
     } = state;
 
+    const [isChoosingMethod, setIsChoosingMethod] = useState(false);
     const [customChecked, setCustomChecked] = useState(false);
 
     const phoneLoginIDDisabled =
@@ -848,9 +1038,16 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
     const phonePasswordDisabled = phoneLoginIDDisabled;
     const phoneEmailPasswordDisabled = phoneLoginIDDisabled;
 
+    const onClickChooseLoginMethod = useCallback((e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsChoosingMethod(true);
+    }, []);
+
     const onCustomClick = useCallback((e) => {
       e.preventDefault();
       e.stopPropagation();
+      setIsChoosingMethod(false);
       setCustomChecked(true);
     }, []);
 
@@ -870,6 +1067,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       (e) => {
         e.preventDefault();
         e.stopPropagation();
+        setIsChoosingMethod(false);
         setCustomChecked(false);
         setState((prev) =>
           produce(prev, (prev) => {
@@ -898,6 +1096,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       (e) => {
         e.preventDefault();
         e.stopPropagation();
+        setIsChoosingMethod(false);
         setCustomChecked(false);
         setState((prev) =>
           produce(prev, (prev) => {
@@ -930,6 +1129,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       (e) => {
         e.preventDefault();
         e.stopPropagation();
+        setIsChoosingMethod(false);
         setCustomChecked(false);
         setState((prev) =>
           produce(prev, (prev) => {
@@ -958,6 +1158,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       (e) => {
         e.preventDefault();
         e.stopPropagation();
+        setIsChoosingMethod(false);
         setCustomChecked(false);
         setState((prev) =>
           produce(prev, (prev) => {
@@ -986,6 +1187,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       (e) => {
         e.preventDefault();
         e.stopPropagation();
+        setIsChoosingMethod(false);
         setCustomChecked(false);
         setState((prev) =>
           produce(prev, (prev) => {
@@ -1015,6 +1217,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       (e) => {
         e.preventDefault();
         e.stopPropagation();
+        setIsChoosingMethod(false);
         setCustomChecked(false);
         setState((prev) =>
           produce(prev, (prev) => {
@@ -1043,6 +1246,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       (e) => {
         e.preventDefault();
         e.stopPropagation();
+        setIsChoosingMethod(false);
         setCustomChecked(false);
         setState((prev) =>
           produce(prev, (prev) => {
@@ -1071,6 +1275,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       (e) => {
         e.preventDefault();
         e.stopPropagation();
+        setIsChoosingMethod(false);
         setCustomChecked(false);
         setState((prev) =>
           produce(prev, (prev) => {
@@ -1170,70 +1375,114 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
         <ScreenDescription className={styles.widget}>
           <FormattedMessage id="LoginMethodConfigurationScreen.description" />
         </ScreenDescription>
-        <Widget className={styles.widget}>
-          <WidgetTitle>
-            <FormattedMessage id="LoginMethodConfigurationScreen.method.title" />
-          </WidgetTitle>
-          {phoneLoginIDDisabled ? (
-            <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
-          ) : null}
-          <MethodGroup
-            title={
-              <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.title" />
-            }
-          >
-            <ChoiceEmailPasswordless
+        {!isChoosingMethod ? (
+          <>
+            <MethodEmailPasswordless
               checked={Boolean(!customChecked && emailPasswordlessChecked)}
-              onClick={onEmailPasswordlessClick}
+              onClick={onClickChooseLoginMethod}
             />
-            <ChoicePhonePasswordless
+            <MethodPhonePasswordless
               checked={Boolean(!customChecked && phonePasswordlessChecked)}
-              disabled={phonePasswordlessDisabled}
-              onClick={onPhonePasswordlessClick}
+              onClick={onClickChooseLoginMethod}
             />
-            <ChoicePhoneEmailPasswordless
+            <MethodPhoneEmailPasswordless
               checked={Boolean(!customChecked && phoneEmailPasswordlessChecked)}
-              disabled={phoneEmailPasswordlessDisabled}
-              onClick={onPhoneEmailPasswordlessClick}
+              onClick={onClickChooseLoginMethod}
             />
-          </MethodGroup>
-          <LinkToPasskey appID={appID} />
-          <MethodGroup
-            title={
-              <FormattedMessage id="LoginMethodConfigurationScreen.method.password.title" />
-            }
-          >
-            <ChoiceEmailPassword
+            <MethodEmailPassword
               checked={Boolean(!customChecked && emailPasswordChecked)}
-              onClick={onEmailPasswordClick}
+              onClick={onClickChooseLoginMethod}
             />
-            <ChoicePhonePassword
+            <MethodPhonePassword
               checked={Boolean(!customChecked && phonePasswordChecked)}
-              disabled={phonePasswordDisabled}
-              onClick={onPhonePasswordClick}
+              onClick={onClickChooseLoginMethod}
             />
-            <ChoicePhoneEmailPassword
+            <MethodPhoneEmailPassword
               checked={Boolean(!customChecked && phoneEmailPasswordChecked)}
-              disabled={phoneEmailPasswordDisabled}
-              onClick={onPhoneEmailPasswordClick}
+              onClick={onClickChooseLoginMethod}
             />
-            <ChoiceUsernamePassword
+            <MethodUsernamePassword
               checked={Boolean(!customChecked && usernamePasswordChecked)}
-              onClick={onUsernamePasswordClick}
+              onClick={onClickChooseLoginMethod}
             />
-          </MethodGroup>
-          <MethodGroup
-            title={
-              <FormattedMessage id="LoginMethodConfigurationScreen.method.other.title" />
-            }
-          >
-            <ChoiceOAuthOnly
+            <MethodOAuthOnly
               checked={Boolean(!customChecked && oauthOnlyChecked)}
-              onClick={onOAuthOnlyClick}
+              onClick={onClickChooseLoginMethod}
             />
-            <ChoiceCustom checked={customChecked} onClick={onCustomClick} />
-          </MethodGroup>
-        </Widget>
+            <MethodCustom
+              checked={customChecked}
+              onClick={onClickChooseLoginMethod}
+            />
+          </>
+        ) : null}
+        {isChoosingMethod ? (
+          <Widget className={styles.widget}>
+            <WidgetTitle>
+              <FormattedMessage id="LoginMethodConfigurationScreen.method.title" />
+            </WidgetTitle>
+            {phoneLoginIDDisabled ? (
+              <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
+            ) : null}
+            <MethodGroup
+              title={
+                <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.title" />
+              }
+            >
+              <ChoiceEmailPasswordless
+                checked={Boolean(!customChecked && emailPasswordlessChecked)}
+                onClick={onEmailPasswordlessClick}
+              />
+              <ChoicePhonePasswordless
+                checked={Boolean(!customChecked && phonePasswordlessChecked)}
+                disabled={phonePasswordlessDisabled}
+                onClick={onPhonePasswordlessClick}
+              />
+              <ChoicePhoneEmailPasswordless
+                checked={Boolean(
+                  !customChecked && phoneEmailPasswordlessChecked
+                )}
+                disabled={phoneEmailPasswordlessDisabled}
+                onClick={onPhoneEmailPasswordlessClick}
+              />
+            </MethodGroup>
+            <LinkToPasskey appID={appID} />
+            <MethodGroup
+              title={
+                <FormattedMessage id="LoginMethodConfigurationScreen.method.password.title" />
+              }
+            >
+              <ChoiceEmailPassword
+                checked={Boolean(!customChecked && emailPasswordChecked)}
+                onClick={onEmailPasswordClick}
+              />
+              <ChoicePhonePassword
+                checked={Boolean(!customChecked && phonePasswordChecked)}
+                disabled={phonePasswordDisabled}
+                onClick={onPhonePasswordClick}
+              />
+              <ChoicePhoneEmailPassword
+                checked={Boolean(!customChecked && phoneEmailPasswordChecked)}
+                disabled={phoneEmailPasswordDisabled}
+                onClick={onPhoneEmailPasswordClick}
+              />
+              <ChoiceUsernamePassword
+                checked={Boolean(!customChecked && usernamePasswordChecked)}
+                onClick={onUsernamePasswordClick}
+              />
+            </MethodGroup>
+            <MethodGroup
+              title={
+                <FormattedMessage id="LoginMethodConfigurationScreen.method.other.title" />
+              }
+            >
+              <ChoiceOAuthOnly
+                checked={Boolean(!customChecked && oauthOnlyChecked)}
+                onClick={onOAuthOnlyClick}
+              />
+              <ChoiceCustom checked={customChecked} onClick={onCustomClick} />
+            </MethodGroup>
+          </Widget>
+        ) : null}
         <LinkToOAuth
           appID={appID}
           oauthOnlyChecked={Boolean(!customChecked && oauthOnlyChecked)}

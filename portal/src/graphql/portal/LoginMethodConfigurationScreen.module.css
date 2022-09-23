@@ -19,3 +19,26 @@
 .oauthLink {
   @apply text-sm;
 }
+
+.currentLoginMethod {
+  @apply grid grid-cols-[minmax(0,1fr)_auto] grid-rows-2;
+  @apply gap-y-1;
+  @apply p-4;
+}
+
+.currentLoginMethodTitle {
+  @apply col-start-1 col-end-2;
+  @apply row-start-1 row-end-2;
+  @apply font-semibold;
+}
+
+.currentLoginMethodDescription {
+  @apply col-start-1 col-end-2;
+  @apply row-start-2 row-end-3;
+}
+
+.currentLoginMethodButton {
+  @apply col-start-2 col-end-3;
+  @apply row-start-1 row-end-3;
+  @apply self-center;
+}
