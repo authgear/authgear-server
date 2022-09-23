@@ -34,12 +34,12 @@ import {
 } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
 import PriorityList from "../../PriorityList";
-import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
-import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
-import styles from "./LoginMethodConfigurationScreen.module.css";
 import WidgetDescription from "../../WidgetDescription";
 import HorizontalDivider from "../../HorizontalDivider";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
+import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
+import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
+import styles from "./LoginMethodConfigurationScreen.module.css";
 
 const ERROR_RULES = [
   makeValidationErrorMatchUnknownKindParseRule(
@@ -596,128 +596,6 @@ function ChoiceCustom(props: ChoiceProps) {
         <FormattedMessage id="LoginMethodConfigurationScreen.method.other.choice.custom.description" />
       }
     />
-  );
-}
-
-interface GroupPasswordlessProps {
-  emailPasswordlessChecked: boolean;
-  onEmailPasswordlessClick: ChoiceProps["onClick"];
-  phonePasswordlessChecked: boolean;
-  phonePasswordlessDisabled: boolean;
-  onPhonePasswordlessClick: ChoiceProps["onClick"];
-  phoneEmailPasswordlessChecked: boolean;
-  phoneEmailPasswordlessDisabled: boolean;
-  onPhoneEmailPasswordlessClick: ChoiceProps["onClick"];
-}
-
-function GroupPasswordless(props: GroupPasswordlessProps) {
-  const {
-    emailPasswordlessChecked,
-    onEmailPasswordlessClick,
-    phonePasswordlessChecked,
-    phonePasswordlessDisabled,
-    onPhonePasswordlessClick,
-    phoneEmailPasswordlessChecked,
-    phoneEmailPasswordlessDisabled,
-    onPhoneEmailPasswordlessClick,
-  } = props;
-  return (
-    <MethodGroup
-      title={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.title" />
-      }
-    >
-      <ChoiceEmailPasswordless
-        checked={emailPasswordlessChecked}
-        onClick={onEmailPasswordlessClick}
-      />
-      <ChoicePhonePasswordless
-        checked={phonePasswordlessChecked}
-        disabled={phonePasswordlessDisabled}
-        onClick={onPhonePasswordlessClick}
-      />
-      <ChoicePhoneEmailPasswordless
-        checked={phoneEmailPasswordlessChecked}
-        disabled={phoneEmailPasswordlessDisabled}
-        onClick={onPhoneEmailPasswordlessClick}
-      />
-    </MethodGroup>
-  );
-}
-
-interface GroupPasswordProps {
-  emailPasswordChecked: boolean;
-  onEmailPasswordClick: ChoiceProps["onClick"];
-  phonePasswordChecked: boolean;
-  phonePasswordDisabled: boolean;
-  onPhonePasswordClick: ChoiceProps["onClick"];
-  phoneEmailPasswordChecked: boolean;
-  phoneEmailPasswordDisabled: boolean;
-  onPhoneEmailPasswordClick: ChoiceProps["onClick"];
-  usernamePasswordChecked: boolean;
-  onUsernamePasswordClick: ChoiceProps["onClick"];
-}
-
-function GroupPassword(props: GroupPasswordProps) {
-  const {
-    emailPasswordChecked,
-    onEmailPasswordClick,
-    phonePasswordChecked,
-    phonePasswordDisabled,
-    onPhonePasswordClick,
-    phoneEmailPasswordChecked,
-    phoneEmailPasswordDisabled,
-    onPhoneEmailPasswordClick,
-    usernamePasswordChecked,
-    onUsernamePasswordClick,
-  } = props;
-  return (
-    <MethodGroup
-      title={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.title" />
-      }
-    >
-      <ChoiceEmailPassword
-        checked={emailPasswordChecked}
-        onClick={onEmailPasswordClick}
-      />
-      <ChoicePhonePassword
-        checked={phonePasswordChecked}
-        disabled={phonePasswordDisabled}
-        onClick={onPhonePasswordClick}
-      />
-      <ChoicePhoneEmailPassword
-        checked={phoneEmailPasswordChecked}
-        disabled={phoneEmailPasswordDisabled}
-        onClick={onPhoneEmailPasswordClick}
-      />
-      <ChoiceUsernamePassword
-        checked={usernamePasswordChecked}
-        onClick={onUsernamePasswordClick}
-      />
-    </MethodGroup>
-  );
-}
-
-interface GroupOtherProps {
-  oauthOnlyChecked: boolean;
-  onOAuthOnlyClick: ChoiceProps["onClick"];
-  customChecked: boolean;
-  onCustomClick: ChoiceProps["onClick"];
-}
-
-function GroupOther(props: GroupOtherProps) {
-  const { oauthOnlyChecked, onOAuthOnlyClick, customChecked, onCustomClick } =
-    props;
-  return (
-    <MethodGroup
-      title={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.other.title" />
-      }
-    >
-      <ChoiceOAuthOnly checked={oauthOnlyChecked} onClick={onOAuthOnlyClick} />
-      <ChoiceCustom checked={customChecked} onClick={onCustomClick} />
-    </MethodGroup>
   );
 }
 
@@ -1299,49 +1177,62 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
           {phoneLoginIDDisabled ? (
             <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
           ) : null}
-          <GroupPasswordless
-            emailPasswordlessChecked={Boolean(
-              !customChecked && emailPasswordlessChecked
-            )}
-            onEmailPasswordlessClick={onEmailPasswordlessClick}
-            phonePasswordlessChecked={Boolean(
-              !customChecked && phonePasswordlessChecked
-            )}
-            phonePasswordlessDisabled={phonePasswordlessDisabled}
-            onPhonePasswordlessClick={onPhonePasswordlessClick}
-            phoneEmailPasswordlessChecked={Boolean(
-              !customChecked && phoneEmailPasswordlessChecked
-            )}
-            phoneEmailPasswordlessDisabled={phoneEmailPasswordlessDisabled}
-            onPhoneEmailPasswordlessClick={onPhoneEmailPasswordlessClick}
-          />
+          <MethodGroup
+            title={
+              <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.title" />
+            }
+          >
+            <ChoiceEmailPasswordless
+              checked={Boolean(!customChecked && emailPasswordlessChecked)}
+              onClick={onEmailPasswordlessClick}
+            />
+            <ChoicePhonePasswordless
+              checked={Boolean(!customChecked && phonePasswordlessChecked)}
+              disabled={phonePasswordlessDisabled}
+              onClick={onPhonePasswordlessClick}
+            />
+            <ChoicePhoneEmailPasswordless
+              checked={Boolean(!customChecked && phoneEmailPasswordlessChecked)}
+              disabled={phoneEmailPasswordlessDisabled}
+              onClick={onPhoneEmailPasswordlessClick}
+            />
+          </MethodGroup>
           <LinkToPasskey appID={appID} />
-          <GroupPassword
-            emailPasswordChecked={Boolean(
-              !customChecked && emailPasswordChecked
-            )}
-            onEmailPasswordClick={onEmailPasswordClick}
-            phonePasswordChecked={Boolean(
-              !customChecked && phonePasswordChecked
-            )}
-            phonePasswordDisabled={phonePasswordDisabled}
-            onPhonePasswordClick={onPhonePasswordClick}
-            phoneEmailPasswordChecked={Boolean(
-              !customChecked && phoneEmailPasswordChecked
-            )}
-            phoneEmailPasswordDisabled={phoneEmailPasswordDisabled}
-            onPhoneEmailPasswordClick={onPhoneEmailPasswordClick}
-            usernamePasswordChecked={Boolean(
-              !customChecked && usernamePasswordChecked
-            )}
-            onUsernamePasswordClick={onUsernamePasswordClick}
-          />
-          <GroupOther
-            oauthOnlyChecked={Boolean(!customChecked && oauthOnlyChecked)}
-            onOAuthOnlyClick={onOAuthOnlyClick}
-            customChecked={customChecked}
-            onCustomClick={onCustomClick}
-          />
+          <MethodGroup
+            title={
+              <FormattedMessage id="LoginMethodConfigurationScreen.method.password.title" />
+            }
+          >
+            <ChoiceEmailPassword
+              checked={Boolean(!customChecked && emailPasswordChecked)}
+              onClick={onEmailPasswordClick}
+            />
+            <ChoicePhonePassword
+              checked={Boolean(!customChecked && phonePasswordChecked)}
+              disabled={phonePasswordDisabled}
+              onClick={onPhonePasswordClick}
+            />
+            <ChoicePhoneEmailPassword
+              checked={Boolean(!customChecked && phoneEmailPasswordChecked)}
+              disabled={phoneEmailPasswordDisabled}
+              onClick={onPhoneEmailPasswordClick}
+            />
+            <ChoiceUsernamePassword
+              checked={Boolean(!customChecked && usernamePasswordChecked)}
+              onClick={onUsernamePasswordClick}
+            />
+          </MethodGroup>
+          <MethodGroup
+            title={
+              <FormattedMessage id="LoginMethodConfigurationScreen.method.other.title" />
+            }
+          >
+            <ChoiceOAuthOnly
+              checked={Boolean(!customChecked && oauthOnlyChecked)}
+              onClick={onOAuthOnlyClick}
+            />
+            <ChoiceCustom checked={customChecked} onClick={onCustomClick} />
+          </MethodGroup>
         </Widget>
         <LinkToOAuth
           appID={appID}
