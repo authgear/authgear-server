@@ -72,7 +72,7 @@ interface FormState {
   recoveryCodeEnabled: boolean;
   numRecoveryCode: number | undefined;
   allowListRecoveryCode: boolean;
-  disableDeviceToken: boolean;
+  deviceTokenEnabled: boolean;
   passkeyChecked: boolean;
   passkeyDisabled: boolean;
 }
@@ -131,7 +131,9 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     ),
     allowListRecoveryCode:
       config.authentication?.recovery_code?.list_enabled ?? false,
-    disableDeviceToken: config.authentication?.device_token?.disabled ?? false,
+    deviceTokenEnabled: !(
+      config.authentication?.device_token?.disabled ?? false
+    ),
     passkeyChecked,
     passkeyDisabled,
   };
@@ -218,7 +220,7 @@ function constructConfig(
     config.authentication.recovery_code.list_enabled =
       currentState.allowListRecoveryCode;
     config.authentication.device_token.disabled =
-      currentState.disableDeviceToken;
+      !currentState.deviceTokenEnabled;
 
     clearEmptyObject(config);
   });
@@ -371,7 +373,7 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
       (checked: boolean) => {
         setState((prev) => ({
           ...prev,
-          disableDeviceToken: checked,
+          deviceTokenEnabled: checked,
         }));
       }
     );
@@ -580,7 +582,7 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
             label={
               <FormattedMessage id="AuthenticatorConfigurationScreen.secondary-authenticators.disable-device-token.label" />
             }
-            checked={state.disableDeviceToken}
+            checked={state.deviceTokenEnabled}
             onChange={onDisableDeviceTokenChange}
           />
         </Widget>
