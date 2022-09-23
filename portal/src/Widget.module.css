@@ -21,6 +21,10 @@
   @apply top-4 right-4;
 }
 
+.icon {
+  @apply font-semibold;
+}
+
 .hide {
   @apply hidden;
 }
