@@ -4,11 +4,12 @@ import React, {
   useCallback,
   useState,
   useEffect,
+  useContext,
 } from "react";
 import { MessageBar, MessageBarType, Text } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import {
   PortalAPIAppConfig,
   IdentityFeatureConfig,
@@ -32,9 +33,12 @@ import {
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
+import PriorityList from "../../PriorityList";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
 import styles from "./LoginMethodConfigurationScreen.module.css";
+import WidgetDescription from "../../WidgetDescription";
+import HorizontalDivider from "../../HorizontalDivider";
 
 const ERROR_RULES = [
   makeValidationErrorMatchUnknownKindParseRule(
@@ -185,6 +189,39 @@ function controlListCheckWithPlainList<U, T>(
 
   const out: ControlList<T> = [...checked, ...unchecked];
   return out;
+}
+
+function controlListCheckWithPlainValue<U, T>(
+  eq: (u: U, t: T) => boolean,
+  u: U,
+  isChecked: boolean,
+  ts: ControlList<T>
+): ControlList<T> {
+  return ts.map((t) => {
+    if (eq(u, t.value)) {
+      return {
+        ...t,
+        isChecked,
+      };
+    }
+    return t;
+  });
+}
+
+function controlListSwap<T>(
+  index1: number,
+  index2: number,
+  ts: ControlList<T>
+): ControlList<T> {
+  const newItems = [...ts];
+  const thisItem = newItems[index1];
+  const thatItem = newItems[index2];
+  if (index1 < 0 || index2 < 0 || index1 >= ts.length || index2 >= ts.length) {
+    return ts;
+  }
+  newItems[index1] = thatItem;
+  newItems[index2] = thisItem;
+  return newItems;
 }
 
 interface FormState {
@@ -638,6 +675,153 @@ function LinkToOAuth(props: LinkToOAuthProps) {
   );
 }
 
+interface CustomLoginMethodsProps {
+  customChecked: boolean;
+  primaryAuthenticatorsControl: ControlList<PrimaryAuthenticatorType>;
+  loginIDKeyConfigsControl: ControlList<LoginIDKeyConfig>;
+  onChangeLoginIDChecked: (key: LoginIDKeyType, checked: boolean) => void;
+  onSwapLoginID: (index1: number, index2: number) => void;
+  onChangePrimaryAuthenticatorChecked: (
+    key: PrimaryAuthenticatorType,
+    checked: boolean
+  ) => void;
+  onSwapPrimaryAuthenticator: (index1: number, index2: number) => void;
+}
+
+function CustomLoginMethods(props: CustomLoginMethodsProps) {
+  const {
+    customChecked,
+    loginIDKeyConfigsControl,
+    primaryAuthenticatorsControl,
+    onChangeLoginIDChecked: onChangeLoginIDCheckedProp,
+    onSwapLoginID: onSwapLoginIDProp,
+    onChangePrimaryAuthenticatorChecked:
+      onChangePrimaryAuthenticatorCheckedProp,
+    onSwapPrimaryAuthenticator: onSwapPrimaryAuthenticatorProp,
+  } = props;
+
+  const { renderToString } = useContext(Context);
+
+  const [extended, setExtended] = useState(false);
+  const onToggleButtonClick = useCallback(() => {
+    setExtended((prev) => !prev);
+  }, []);
+
+  const loginIDs = useMemo(() => {
+    // FIXME: handle feature disabled
+    return loginIDKeyConfigsControl.map((a) => {
+      return {
+        key: a.value.type,
+        checked: a.isChecked,
+        disabled: a.isDisabled,
+        content: (
+          <Text variant="small" block={true}>
+            <FormattedMessage id={"LoginIDKeyType." + a.value.type} />
+          </Text>
+        ),
+      };
+    });
+  }, [loginIDKeyConfigsControl]);
+
+  const onChangeLoginIDChecked = useCallback(
+    (key: string, checked: boolean) => {
+      onChangeLoginIDCheckedProp(key as LoginIDKeyType, checked);
+    },
+    [onChangeLoginIDCheckedProp]
+  );
+
+  const onSwapLoginID = useCallback(
+    (index1: number, index2: number) => {
+      onSwapLoginIDProp(index1, index2);
+    },
+    [onSwapLoginIDProp]
+  );
+
+  const authenticators = useMemo(() => {
+    return primaryAuthenticatorsControl.map((a) => {
+      return {
+        key: a.value,
+        checked: a.isChecked,
+        disabled: a.isDisabled,
+        content: (
+          <Text variant="small" block={true}>
+            <FormattedMessage id={"PrimaryAuthenticatorType." + a.value} />
+          </Text>
+        ),
+      };
+    });
+  }, [primaryAuthenticatorsControl]);
+
+  const onChangePrimaryAuthenticatorChecked = useCallback(
+    (key: string, checked: boolean) => {
+      onChangePrimaryAuthenticatorCheckedProp(
+        key as PrimaryAuthenticatorType,
+        checked
+      );
+    },
+    [onChangePrimaryAuthenticatorCheckedProp]
+  );
+
+  const onSwapPrimaryAuthenticator = useCallback(
+    (index1: number, index2: number) => {
+      onSwapPrimaryAuthenticatorProp(index1, index2);
+    },
+    [onSwapPrimaryAuthenticatorProp]
+  );
+
+  if (!customChecked) {
+    return null;
+  }
+
+  return (
+    <Widget
+      className={styles.widget}
+      showToggleButton={true}
+      extended={extended}
+      onToggleButtonClick={onToggleButtonClick}
+    >
+      <WidgetTitle>
+        <FormattedMessage id="LoginMethodConfigurationScreen.custom-login-methods.title" />
+      </WidgetTitle>
+      <div className={styles.methodGroup}>
+        <MethodGroupTitle>
+          <FormattedMessage id="LoginMethodConfigurationScreen.custom-login-methods.login-id.title" />
+        </MethodGroupTitle>
+        <WidgetDescription>
+          <FormattedMessage id="LoginMethodConfigurationScreen.custom-login-methods.login-id.description" />
+        </WidgetDescription>
+      </div>
+      <PriorityList
+        items={loginIDs}
+        checkedColumnLabel={renderToString("activate")}
+        keyColumnLabel={renderToString(
+          "LoginMethodConfigurationScreen.custom-login-methods.login-id.title"
+        )}
+        onChangeChecked={onChangeLoginIDChecked}
+        onSwap={onSwapLoginID}
+      />
+      <HorizontalDivider />
+      <div className={styles.methodGroup}>
+        <MethodGroupTitle>
+          <FormattedMessage id="LoginMethodConfigurationScreen.custom-login-methods.authenticator.title" />
+        </MethodGroupTitle>
+        <WidgetDescription>
+          <FormattedMessage id="LoginMethodConfigurationScreen.custom-login-methods.authenticator.description" />
+        </WidgetDescription>
+      </div>
+      <PriorityList
+        items={authenticators}
+        checkedColumnLabel={renderToString("activate")}
+        keyColumnLabel={renderToString(
+          "LoginMethodConfigurationScreen.custom-login-methods.authenticator.title"
+        )}
+        onChangeChecked={onChangePrimaryAuthenticatorChecked}
+        onSwap={onSwapPrimaryAuthenticator}
+      />
+    </Widget>
+  );
+}
+
 interface LoginMethodConfigurationContentProps {
   appID: string;
   form: AppConfigFormModel<FormState>;
@@ -892,6 +1076,68 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       [setState]
     );
 
+    const onChangeLoginIDChecked = useCallback(
+      (typ: LoginIDKeyType, checked: boolean) => {
+        setState((prev) =>
+          produce(prev, (prev) => {
+            prev.loginIDKeyConfigsControl = controlListCheckWithPlainValue(
+              (a, b) => a === b.type,
+              typ,
+              checked,
+              prev.loginIDKeyConfigsControl
+            );
+          })
+        );
+      },
+      [setState]
+    );
+
+    const onSwapLoginID = useCallback(
+      (index1: number, index2: number) => {
+        setState((prev) =>
+          produce(prev, (prev) => {
+            prev.loginIDKeyConfigsControl = controlListSwap(
+              index1,
+              index2,
+              prev.loginIDKeyConfigsControl
+            );
+          })
+        );
+      },
+      [setState]
+    );
+
+    const onChangePrimaryAuthenticatorChecked = useCallback(
+      (typ: PrimaryAuthenticatorType, checked: boolean) => {
+        setState((prev) =>
+          produce(prev, (prev) => {
+            prev.primaryAuthenticatorsControl = controlListCheckWithPlainValue(
+              (a, b) => a === b,
+              typ,
+              checked,
+              prev.primaryAuthenticatorsControl
+            );
+          })
+        );
+      },
+      [setState]
+    );
+
+    const onSwapPrimaryAuthenticator = useCallback(
+      (index1: number, index2: number) => {
+        setState((prev) =>
+          produce(prev, (prev) => {
+            prev.primaryAuthenticatorsControl = controlListSwap(
+              index1,
+              index2,
+              prev.primaryAuthenticatorsControl
+            );
+          })
+        );
+      },
+      [setState]
+    );
+
     useEffect(() => {
       if (
         !emailPasswordlessChecked &&
@@ -963,6 +1209,17 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
         <LinkToOAuth
           appID={appID}
           oauthOnlyChecked={Boolean(!customChecked && oauthOnlyChecked)}
+        />
+        <CustomLoginMethods
+          customChecked={customChecked}
+          primaryAuthenticatorsControl={primaryAuthenticatorsControl}
+          loginIDKeyConfigsControl={loginIDKeyConfigsControl}
+          onChangeLoginIDChecked={onChangeLoginIDChecked}
+          onSwapLoginID={onSwapLoginID}
+          onChangePrimaryAuthenticatorChecked={
+            onChangePrimaryAuthenticatorChecked
+          }
+          onSwapPrimaryAuthenticator={onSwapPrimaryAuthenticator}
         />
       </ScreenContent>
     );

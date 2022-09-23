@@ -1266,6 +1266,19 @@
   "LoginMethodConfigurationScreen.method.other.choice.custom.description": "Set up your own login flow",
   "LoginMethodConfigurationScreen.passkey": "Passkeys are configured independently at{ReactRouterLink, react, to{{to}} children{Passkey}}.",
   "LoginMethodConfigurationScreen.oauth": "Set up Social / Enterprise identity providers >",
+  "LoginMethodConfigurationScreen.custom-login-methods.title": "Custom Login Methods",
+  "LoginMethodConfigurationScreen.custom-login-methods.login-id.title": "Login ID",
+  "LoginMethodConfigurationScreen.custom-login-methods.login-id.description": "User can sign in by Login ID. The order will affect when both options are available, which one will show up first.",
+  "LoginMethodConfigurationScreen.custom-login-methods.authenticator.title": "Authenticator",
+  "LoginMethodConfigurationScreen.custom-login-methods.authenticator.description": "Configure how your users can authenticate themselves. The order will affect when both options are available, which one will show up first.",
+
+  "LoginIDKeyType.email": "Email address",
+  "LoginIDKeyType.phone": "Phone number",
+  "LoginIDKeyType.username": "Username",
+
+  "PrimaryAuthenticatorType.password": "Password",
+  "PrimaryAuthenticatorType.oob_otp_email": "Passwordless via Email",
+  "PrimaryAuthenticatorType.oob_otp_sms": "Passwordless via SMS",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
