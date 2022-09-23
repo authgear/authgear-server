@@ -19,6 +19,7 @@ const ICON_PROPS = {
 };
 
 // 16px top padding + 32px icon button height + 16px bottom padding
+// WidgetTitle's line height is related to this value.
 const COLLAPSED_HEIGHT = 64;
 
 const Widget: React.VFC<WidgetProps> = function Widget(props: WidgetProps) {
