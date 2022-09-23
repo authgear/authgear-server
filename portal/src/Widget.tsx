@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useMemo } from "react";
-import { IconButton, DefaultEffects } from "@fluentui/react";
+import { IconButton, DefaultEffects, IIconProps } from "@fluentui/react";
 import cn from "classnames";
 
 import styles from "./Widget.module.css";
@@ -14,8 +14,9 @@ interface WidgetProps {
   onToggleButtonClick?: () => void;
 }
 
-const ICON_PROPS = {
+const ICON_PROPS: IIconProps = {
   iconName: "ChevronDown",
+  className: styles.icon,
 };
 
 // 16px top padding + 32px icon button height + 16px bottom padding
