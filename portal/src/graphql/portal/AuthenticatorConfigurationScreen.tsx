@@ -369,7 +369,7 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
       }
     );
 
-    const { onChange: onDisableDeviceTokenChange } = useCheckbox(
+    const { onChange: onChangeDeviceTokenEnabled } = useCheckbox(
       (checked: boolean) => {
         setState((prev) => ({
           ...prev,
@@ -583,7 +583,7 @@ const AuthenticationAuthenticatorSettingsContent: React.VFC<AuthenticationAuthen
               <FormattedMessage id="AuthenticatorConfigurationScreen.secondary-authenticators.disable-device-token.label" />
             }
             checked={state.deviceTokenEnabled}
-            onChange={onDisableDeviceTokenChange}
+            onChange={onChangeDeviceTokenEnabled}
           />
         </Widget>
         <Widget
