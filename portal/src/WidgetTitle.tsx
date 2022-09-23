@@ -12,7 +12,18 @@ const WidgetTitle: React.VFC<WidgetTitleProps> = function WidgetTitle(
 ) {
   const { className, children, id } = props;
   const element = (
-    <Text as="h2" variant="xLarge" block={true}>
+    <Text
+      as="h2"
+      variant="xLarge"
+      block={true}
+      styles={{
+        root: {
+          // 16px padding + 28px + 20px gap = 64px
+          // Widget's collapsed height is related to this value.
+          lineHeight: "28px",
+        },
+      }}
+    >
       {children}
     </Text>
   );
