@@ -14,6 +14,11 @@ type SIWEVerificationRequest struct {
 	Signature string `json:"signature"`
 }
 
+type SIWEWallet struct {
+	Address string `json:"address"`
+	ChainID int    `json:"chain_id"`
+}
+
 type SIWEVerifiedData struct {
 	Message          string        `json:"message"`
 	Signature        string        `json:"signature"`
