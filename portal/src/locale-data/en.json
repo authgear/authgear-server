@@ -1255,6 +1255,7 @@
   "LoginMethodConfigurationScreen.title": "Login Methods",
   "LoginMethodConfigurationScreen.description": "Configure the method how the users should sign in to your applications.",
   "LoginMethodConfigurationScreen.method.title": "Choose Method",
+  "LoginMethodConfigurationScreen.method.change-method": "Change login method",
   "LoginMethodConfigurationScreen.method.passwordless.title": "Passwordless",
   "LoginMethodConfigurationScreen.method.passwordless.choice.email.title": "Email + Passwordless",
   "LoginMethodConfigurationScreen.method.passwordless.choice.email.description": "Sign in with Email OTP",
