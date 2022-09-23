@@ -5,7 +5,14 @@ import React, {
   ReactElement,
   ReactNode,
 } from "react";
-import { DetailsList, SelectionMode, Checkbox, IColumn } from "@fluentui/react";
+import {
+  DetailsList,
+  SelectionMode,
+  Checkbox,
+  IColumn,
+  IRenderFunction,
+  IDetailsHeaderProps,
+} from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
 import styles from "./PriorityList.module.css";
 import OrderButtons from "./OrderButtons";
@@ -122,12 +129,29 @@ function PriorityList(props: PriorityListProps): ReactElement {
     onSwap,
   ]);
 
+  const onRenderDetailsHeader: IRenderFunction<IDetailsHeaderProps> =
+    useCallback((props, defaultRender) => {
+      if (props == null || defaultRender == null) {
+        return null;
+      }
+      return defaultRender({
+        ...props,
+        styles: {
+          root: {
+            // By default there is unwanted 16px padding top.
+            paddingTop: "0",
+          },
+        },
+      });
+    }, []);
+
   return (
     <DetailsList
       className={className}
       items={items}
       columns={columns}
       selectionMode={SelectionMode.none}
+      onRenderDetailsHeader={onRenderDetailsHeader}
     />
   );
 }
