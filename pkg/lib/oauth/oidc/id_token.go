@@ -15,6 +15,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -24,6 +25,19 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
+
+var UserinfoScopes = []string{
+	oauth.FullAccessScope,
+	oauth.FullUserInfoScope,
+}
+
+var IDTokenStandardAttributes = []string{
+	stdattrs.Email,
+	stdattrs.EmailVerified,
+	stdattrs.PhoneNumber,
+	stdattrs.PhoneNumberVerified,
+	stdattrs.PreferredUsername,
+}
 
 type UserProvider interface {
 	Get(id string, role accesscontrol.Role) (*model.User, error)
@@ -115,11 +129,6 @@ type IssueIDTokenOptions struct {
 	Nonce              string
 	AuthenticationInfo authenticationinfo.T
 	ClientLike         *oauth.ClientLike
-}
-
-var UserinfoScopes = []string{
-	oauth.FullAccessScope,
-	oauth.FullUserInfoScope,
 }
 
 func (ti *IDTokenIssuer) IssueIDToken(opts IssueIDTokenOptions) (string, error) {
@@ -232,7 +241,9 @@ func (ti *IDTokenIssuer) PopulateUserClaims(token jwt.Token, userID string, nonP
 
 	if !nonPIIUserClaimsOnly {
 		for k, v := range user.StandardAttributes {
-			_ = token.Set(k, v)
+			if slice.ContainsString(IDTokenStandardAttributes, k) {
+				_ = token.Set(k, v)
+			}
 		}
 	}
 
