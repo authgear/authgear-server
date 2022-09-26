@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { createEIP681URL, EIP681, parseEIP681 } from "./eip681";
+import { createEIP681URL, EIP681, etherscan, parseEIP681 } from "./eip681";
 
 describe("EIP681", () => {
   it("parses eip681 success with address check", () => {
@@ -110,5 +110,42 @@ describe("EIP681", () => {
       },
       "ethereum:0x0@23821"
     );
+  });
+
+  it("create etherscan url with address check", () => {
+    function test(uri: string, expected: string) {
+      const etherscanURL = etherscan(uri);
+
+      expect(etherscanURL).toEqual(expected);
+    }
+
+    test(
+      "ethereum:0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d@1",
+      "https://etherscan.io/address/0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d"
+    );
+
+    test(
+      "ethereum:0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d@5",
+      "https://goerli.etherscan.io/address/0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d"
+    );
+
+    test(
+      "ethereum:0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d@1234",
+      "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d"
+    );
+  });
+
+  it("create etherscan url without address check", () => {
+    function test(uri: string, expected: string) {
+      const etherscanURL = etherscan(uri, true);
+
+      expect(etherscanURL).toEqual(expected);
+    }
+
+    test("ethereum:0x0@1", "https://etherscan.io/address/0x0");
+
+    test("ethereum:0x0@5", "https://goerli.etherscan.io/address/0x0");
+
+    test("ethereum:0x0@1234", "0x0");
   });
 });
