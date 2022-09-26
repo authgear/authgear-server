@@ -3511,10 +3511,12 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Users:   queries,
 		Clock:   clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	userInfoHandler := &oauth.UserInfoHandler{
 		Logger:           userInfoHandlerLogger,
 		Database:         handle,
 		UserInfoProvider: idTokenIssuer,
+		OAuth:            oAuthConfig,
 	}
 	return userInfoHandler
 }

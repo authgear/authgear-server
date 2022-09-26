@@ -239,7 +239,7 @@ func (ti *IDTokenIssuer) PopulateUserClaims(token jwt.Token, userID string, nonP
 	return nil
 }
 
-func (ti *IDTokenIssuer) GetUserInfo(userID string) (map[string]interface{}, error) {
+func (ti *IDTokenIssuer) GetUserInfo(userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error) {
 	user, err := ti.Users.Get(userID, config.RoleBearer)
 	if err != nil {
 		return nil, err
@@ -250,6 +250,25 @@ func (ti *IDTokenIssuer) GetUserInfo(userID string) (map[string]interface{}, err
 	out[string(model.ClaimUserIsAnonymous)] = user.IsAnonymous
 	out[string(model.ClaimUserIsVerified)] = user.IsVerified
 	out[string(model.ClaimUserCanReauthenticate)] = user.CanReauthenticate
+
+	nonPIIUserClaimsOnly := true
+	// When the client is first party
+	// always include userinfo for the userinfo endpoint
+	// We check the scopes only for third party client
+	if clientLike.ClientParty == config.ClientPartyFirst {
+		nonPIIUserClaimsOnly = false
+	} else {
+		for _, s := range UserinfoScopes {
+			if slice.ContainsString(clientLike.Scopes, s) {
+				nonPIIUserClaimsOnly = false
+			}
+		}
+	}
+	if nonPIIUserClaimsOnly {
+		return out, nil
+	}
+
+	// Populate userinfo claims
 	for k, v := range user.StandardAttributes {
 		out[k] = v
 	}
