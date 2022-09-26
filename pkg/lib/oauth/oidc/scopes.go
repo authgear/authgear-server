@@ -39,6 +39,7 @@ var AllowedScopes = []string{
 	"openid",
 	"offline_access",
 	oauth.FullAccessScope,
+	oauth.FullUserInfoScope,
 }
 
 func IsScopeAllowed(scope string) bool {
