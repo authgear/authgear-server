@@ -19,7 +19,12 @@ import DefaultButton from "../../DefaultButton";
 import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
 import { useSetVerifiedStatusMutation } from "./mutations/setVerifiedStatusMutation";
 import { formatDatetime } from "../../util/formatDatetime";
-import { OAuthSSOProviderType } from "../../types";
+import {
+  NFT,
+  NFTContract,
+  OAuthSSOProviderType,
+  Web3Claims,
+} from "../../types";
 import { UserQueryNodeFragment } from "./query/userQuery.generated";
 
 import styles from "./UserDetailsConnectedIdentities.module.css";
@@ -28,6 +33,8 @@ import { useIsLoading, useLoading } from "../../hook/loading";
 import { useProvideError } from "../../hook/error";
 import { createEIP681URL, etherscan } from "../../util/eip681";
 import ExternalLink from "../../ExternalLink";
+import { truncateAddress } from "../../util/hex";
+import LinkButton from "../../LinkButton";
 
 // Always disable virtualization for List component, as it wont work properly with mobile view
 const onShouldVirtualize = () => {
@@ -55,6 +62,7 @@ interface UserDetailsConnectedIdentitiesProps {
   identities: Identity[];
   verifiedClaims: VerifiedClaims;
   availableLoginIdIdentities: string[];
+  web3Claims: Web3Claims;
 }
 
 const loginIdIdentityTypes = ["email", "phone", "username"] as const;
@@ -109,6 +117,7 @@ interface SIWEIdentityListItem {
   chainId: number;
   verified: undefined;
   connectedOn: string;
+  nfts: NFT[] | undefined;
 }
 
 export interface IdentityLists {
@@ -136,6 +145,7 @@ interface IdentityListCellProps {
     verified: boolean
   ) => Promise<boolean>;
   onRemoveClicked: (identityID: string, identityName: string) => void;
+  extraArgs?: any;
 }
 
 interface VerifyButtonProps {
@@ -244,6 +254,14 @@ function getIdentityName(
   return item.claimValue;
 }
 
+function getExtraArgs(item: IdentityListItem): any {
+  if (item.type === "siwe") {
+    return item.nfts;
+  }
+
+  return undefined;
+}
+
 function checkIsClaimVerified(
   verifiedClaims: VerifiedClaims,
   claimName: string,
@@ -296,6 +314,86 @@ const VerifyButton: React.VFC<VerifyButtonProps> = function VerifyButton(
   );
 };
 
+interface NFTCollectionListCellProps {
+  contract: NFTContract;
+  balance: number;
+}
+
+const NFTCollectionListCell: React.VFC<NFTCollectionListCellProps> = (
+  props
+) => {
+  const { contract, balance } = props;
+
+  return (
+    <div className={styles.NFTListCell}>
+      <Text className={styles.cellName} variant="small">
+        <FormattedMessage
+          id="UserDetails.connected-identities.siwe.nft-collections.name"
+          values={{
+            name: contract.name,
+            address: truncateAddress(contract.address),
+          }}
+        />
+      </Text>
+      <Text variant="small">
+        <FormattedMessage
+          id="UserDetails.connected-identities.siwe.nft-collections.balance"
+          values={{ balance: balance }}
+        />
+      </Text>
+      <LinkButton className={styles.NFTListCellBtn}>
+        <Text className={styles.NFTListCellBtnLabel} variant="small">
+          <FormattedMessage
+            id="UserDetails.connected-identities.siwe.nft-collections.view-tokens"
+            values={{ balance: balance }}
+          />
+        </Text>
+      </LinkButton>
+    </div>
+  );
+};
+
+interface NFTCollectionListProps {
+  nfts: NFT[];
+}
+
+const NFTCollectionList: React.VFC<NFTCollectionListProps> = (props) => {
+  const { nfts } = props;
+
+  const onRenderCollectionCell = useCallback(
+    (item?: NFT, _index?: number): React.ReactNode => {
+      if (item == null) {
+        return null;
+      }
+
+      return (
+        <NFTCollectionListCell
+          contract={item.contract}
+          balance={item.balance}
+        />
+      );
+    },
+    []
+  );
+
+  if (nfts.length === 0) {
+    return null;
+  }
+
+  return (
+    <div>
+      <Text as="h3" className={styles.NFTListHeader}>
+        <FormattedMessage id="UserDetails.connected-identities.siwe.nft-collections.title" />
+      </Text>
+      <List
+        items={nfts}
+        onRenderCell={onRenderCollectionCell}
+        onShouldVirtualize={onShouldVirtualize}
+      />
+    </div>
+  );
+};
+
 const IdentityListCell: React.VFC<IdentityListCellProps> =
   // eslint-disable-next-line complexity
   function IdentityListCell(props: IdentityListCellProps) {
@@ -310,6 +408,7 @@ const IdentityListCell: React.VFC<IdentityListCellProps> =
       verified,
       setVerifiedStatus,
       onRemoveClicked: _onRemoveClicked,
+      extraArgs,
     } = props;
 
     const { themes } = useSystemConfig();
@@ -389,10 +488,13 @@ const IdentityListCell: React.VFC<IdentityListCellProps> =
             />
           ) : null}
           {identityType === "siwe" ? (
-            <FormattedMessage
-              id="UserDetails.connected-identities.added-on"
-              values={{ datetime: connectedOn }}
-            />
+            <div>
+              <FormattedMessage
+                id="UserDetails.connected-identities.added-on"
+                values={{ datetime: connectedOn }}
+              />
+              <NFTCollectionList nfts={extraArgs} />
+            </div>
           ) : null}
         </Text>
         <div className={styles.buttonGroup}>
@@ -425,7 +527,12 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
   function UserDetailsConnectedIdentities(
     props: UserDetailsConnectedIdentitiesProps
   ) {
-    const { identities, verifiedClaims, availableLoginIdIdentities } = props;
+    const {
+      identities,
+      verifiedClaims,
+      availableLoginIdIdentities,
+      web3Claims,
+    } = props;
     const { locale, renderToString } = useContext(Context);
 
     const { userID } = useParams() as { userID: string };
@@ -586,6 +693,10 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
             identity.claims["https://authgear.com/claims/siwe/chain_id"];
           const formattedAddress = typeof address === "string" ? address : "";
           const formattedChainId = typeof chainId === "number" ? chainId : -1;
+          const nfts = web3Claims.accounts?.find(
+            (account) =>
+              account.account_identifier?.address === formattedAddress
+          )?.nfts;
           siweIdentityList.push({
             id: identity.id,
             type: "siwe",
@@ -593,6 +704,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
             address: formattedAddress,
             chainId: formattedChainId,
             connectedOn: createdAtStr,
+            nfts: nfts,
           });
         }
       }
@@ -605,7 +717,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
         anonymous: anonymousIdentityList,
         siwe: siweIdentityList,
       };
-    }, [locale, identities, verifiedClaims]);
+    }, [identities, locale, verifiedClaims, web3Claims.accounts]);
 
     const onRemoveClicked = useCallback(
       (identityID: string, identityName: string) => {
@@ -650,6 +762,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
             connectedOn={item.connectedOn}
             onRemoveClicked={onRemoveClicked}
             setVerifiedStatus={setVerifiedStatus}
+            extraArgs={getExtraArgs(item)}
           />
         );
       },
