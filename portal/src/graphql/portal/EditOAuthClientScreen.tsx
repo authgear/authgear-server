@@ -307,6 +307,17 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
               docLink: "https://docs.authgear.com/get-started/xamarin",
             },
           ];
+        case "third_party_app":
+          return [
+            {
+              icon: <i className={cn("fab", "fa-openid")} />,
+              name: renderToString(
+                "EditOAuthClientScreen.quick-start.framework.oidc"
+              ),
+              // FIXME(third-party-app): update doc link
+              docLink: "https://docs.authgear.com/",
+            },
+          ];
         default:
           return [];
       }

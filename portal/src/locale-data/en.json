@@ -506,7 +506,7 @@
   "EditOAuthClientScreen.quick-start-screen.title": "All set! Here are the guides to help your integration.",
   "EditOAuthClientScreen.quick-start-screen.question": "What framework are you using for your {applicationType, select, spa{single page application} traditional_webapp{traditional web application} native{native app} other{application}}?",
   "EditOAuthClientScreen.quick-start-widget.title": "Quickstart guide",
-  "EditOAuthClientScreen.quick-start-widget.question": "{applicationType, select, unspecified{Select the application type to see the guides} other{What framework are you using?}}",
+  "EditOAuthClientScreen.quick-start-widget.question": "{applicationType, select, unspecified{Select the application type to see the guides} third_party_app{Configure your OpenID Connect compatible applications} other{What framework are you using?}}",
   "EditOAuthClientScreen.quick-start.open-tutorial.label": "Open tutorial",
 
   "EditOAuthClientScreen.quick-start.framework.react": "React",
@@ -519,6 +519,7 @@
   "EditOAuthClientScreen.quick-start.framework.android": "Android",
   "EditOAuthClientScreen.quick-start.framework.flutter": "Flutter",
   "EditOAuthClientScreen.quick-start.framework.xamarin": "Xamarin",
+  "EditOAuthClientScreen.quick-start.framework.oidc": "Setup OIDC Client",
 
   "EditOAuthClientScreen.delete-client.label": "Remove",
   "EditOAuthClientScreen.delete-client-dialog.title": "Delete Application",
