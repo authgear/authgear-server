@@ -20,25 +20,18 @@
   @apply text-sm;
 }
 
-.currentLoginMethod {
-  @apply grid grid-cols-[minmax(0,1fr)_auto] grid-rows-2;
-  @apply gap-y-1;
+.methodButton {
+  @apply flex flex-row;
+  @apply justify-between items-center;
+  @apply gap-x-1;
   @apply p-4;
 }
 
-.currentLoginMethodTitle {
-  @apply col-start-1 col-end-2;
-  @apply row-start-1 row-end-2;
+.methodButtonTitle {
   @apply font-semibold;
 }
 
-.currentLoginMethodDescription {
-  @apply col-start-1 col-end-2;
-  @apply row-start-2 row-end-3;
-}
-
-.currentLoginMethodButton {
-  @apply col-start-2 col-end-3;
-  @apply row-start-1 row-end-3;
-  @apply self-center;
+.methodButtonText {
+  @apply flex flex-col;
+  @apply gap-y-1;
 }
