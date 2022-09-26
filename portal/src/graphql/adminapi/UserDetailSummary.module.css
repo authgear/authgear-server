@@ -52,8 +52,8 @@
   column-gap: 26px;
 }
 
-.accountID {
-  color: #000000;
+.etherscanURL {
+  color: inherit;
 }
 
 .formattedName {

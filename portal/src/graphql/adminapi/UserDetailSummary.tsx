@@ -7,6 +7,18 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { formatDatetime } from "../../util/formatDatetime";
 
 import styles from "./UserDetailSummary.module.css";
+import { etherscan, parseEIP681 } from "../../util/eip681";
+import ExternalLink from "../../ExternalLink";
+
+function shouldRenderEtherscanURL(addressURL: string): boolean {
+  try {
+    parseEIP681(addressURL);
+  } catch {
+    return false;
+  }
+
+  return true;
+}
 
 interface UserDetailSummaryProps {
   className?: string;
@@ -59,9 +71,16 @@ const UserDetailSummary: React.VFC<UserDetailSummaryProps> =
               <FormattedMessage id="UsersList.anonymous-user" />
             </Text>
           ) : null}
-          <Text className={styles.accountID} variant="medium">
-            {endUserAccountIdentifier ?? ""}
-          </Text>
+          {endUserAccountIdentifier &&
+          shouldRenderEtherscanURL(endUserAccountIdentifier) ? (
+            <ExternalLink href={etherscan(endUserAccountIdentifier)}>
+              <Text className={styles.etherscanURL} variant="medium">
+                {endUserAccountIdentifier}
+              </Text>
+            </ExternalLink>
+          ) : (
+            <Text variant="medium">{endUserAccountIdentifier ?? ""}</Text>
+          )}
           <Text className={styles.formattedName} variant="medium">
             {formattedName ? formattedName : ""}
           </Text>
