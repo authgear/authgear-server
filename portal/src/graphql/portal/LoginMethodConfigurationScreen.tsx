@@ -785,18 +785,32 @@ function ChoiceCustom(props: ChoiceProps) {
   );
 }
 
-interface LinkToPasskeyProps {
+interface PasskeyAndOAuthHintProps {
   appID: string;
 }
 
-function LinkToPasskey(props: LinkToPasskeyProps) {
+function PasskeyAndOAuthHint(props: PasskeyAndOAuthHintProps) {
   const { appID } = props;
+  const [dismissed, setDismissed] = useState(false);
+  const onDismiss = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDismissed(true);
+  }, []);
+  if (dismissed) {
+    return null;
+  }
   return (
-    <MessageBar messageBarType={MessageBarType.info}>
+    <MessageBar
+      className={styles.widget}
+      messageBarType={MessageBarType.info}
+      onDismiss={onDismiss}
+    >
       <FormattedMessage
-        id="LoginMethodConfigurationScreen.passkey"
+        id="LoginMethodConfigurationScreen.passkey-and-oauth"
         values={{
-          to: `/project/${appID}/configuration/authentication/passkey`,
+          passkey: `/project/${appID}/configuration/authentication/passkey`,
+          oauth: `/project/${appID}/configuration/authentication/externa`,
         }}
       />
     </MessageBar>
@@ -1372,6 +1386,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
         <ScreenDescription className={styles.widget}>
           <FormattedMessage id="LoginMethodConfigurationScreen.description" />
         </ScreenDescription>
+        <PasskeyAndOAuthHint appID={appID} />
         {!isChoosingMethod ? (
           <>
             <MethodEmailPasswordless
@@ -1442,7 +1457,6 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
                 onClick={onPhoneEmailPasswordlessClick}
               />
             </MethodGroup>
-            <LinkToPasskey appID={appID} />
             <MethodGroup
               title={
                 <FormattedMessage id="LoginMethodConfigurationScreen.method.password.title" />

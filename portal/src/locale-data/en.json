@@ -1272,7 +1272,7 @@
   "LoginMethodConfigurationScreen.method.other.choice.oauth.title": "Only Social / Enterprise identity providers",
   "LoginMethodConfigurationScreen.method.other.choice.oauth.description": "Only sign in with Google, Facebook Azure AD B2C, etc",
   "LoginMethodConfigurationScreen.method.other.choice.custom.title": "Custom login flow",
-  "LoginMethodConfigurationScreen.passkey": "Passkeys are configured independently at{ReactRouterLink, react, to{{to}} children{Passkey}}.",
+  "LoginMethodConfigurationScreen.passkey-and-oauth": "Passkeys and Social / Enterprise Login are configured independently at {ReactRouterLink, react, to{{passkey}} children{Passkey}} and{ReactRouterLink, react, to{{oauth}} children{Social / Enterprise Login}}.",
   "LoginMethodConfigurationScreen.oauth": "Set up Social / Enterprise identity providers >",
   "LoginMethodConfigurationScreen.custom-login-methods.title": "Custom Login Methods",
   "LoginMethodConfigurationScreen.custom-login-methods.login-id.title": "Login ID",
