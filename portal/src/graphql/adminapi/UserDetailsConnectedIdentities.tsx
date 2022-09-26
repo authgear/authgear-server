@@ -26,7 +26,8 @@ import styles from "./UserDetailsConnectedIdentities.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useIsLoading, useLoading } from "../../hook/loading";
 import { useProvideError } from "../../hook/error";
-import { createEIP681URL } from "../../util/eip681";
+import { createEIP681URL, etherscan } from "../../util/eip681";
+import ExternalLink from "../../ExternalLink";
 
 // Always disable virtualization for List component, as it wont work properly with mobile view
 const onShouldVirtualize = () => {
@@ -337,7 +338,15 @@ const IdentityListCell: React.VFC<IdentityListCellProps> =
     return (
       <ListCellLayout className={styles.cellContainer}>
         <div className={styles.cellIcon}>{icon}</div>
-        <Text className={styles.cellName}>{identityName}</Text>
+        {identityType === "siwe" ? (
+          <ExternalLink href={etherscan(identityName)}>
+            <Text className={cn(styles.cellName, styles.siweCellName)}>
+              {identityName}
+            </Text>
+          </ExternalLink>
+        ) : (
+          <Text className={styles.cellName}>{identityName}</Text>
+        )}
         <Text className={styles.cellDesc}>
           {verified != null ? (
             <>
