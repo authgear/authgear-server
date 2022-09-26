@@ -6,7 +6,7 @@ import { NftCollection } from "./globalTypes.generated";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { getNetworkNameID } from "../../util/networkId";
 import PrimaryButton from "../../PrimaryButton";
-import { truncateAddress } from "../../util/hexAddress";
+import { truncateAddress } from "../../util/hex";
 
 interface Web3ConfigurationCollectionDeletionDialogProps {
   nftCollection: NftCollection;

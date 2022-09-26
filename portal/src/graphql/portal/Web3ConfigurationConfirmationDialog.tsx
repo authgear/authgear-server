@@ -10,7 +10,7 @@ import DefaultButton from "../../DefaultButton";
 import { NftCollection } from "./globalTypes.generated";
 import styles from "./Web3ConfigurationConfirmationDialog.module.css";
 import { getNetworkNameID } from "../../util/networkId";
-import { truncateAddress } from "../../util/hexAddress";
+import { truncateAddress } from "../../util/hex";
 
 interface Web3ConfigurationConfirmationDialogProps {
   initialState: Web3ConfigurationFormState;
