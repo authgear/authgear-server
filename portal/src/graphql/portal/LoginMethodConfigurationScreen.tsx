@@ -1494,22 +1494,26 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
             </MethodGroup>
           </Widget>
         ) : null}
-        <LinkToOAuth
-          appID={appID}
-          oauthOnlyChecked={Boolean(!customChecked && oauthOnlyChecked)}
-        />
-        <CustomLoginMethods
-          phoneLoginIDDisabled={phoneLoginIDDisabled}
-          customChecked={customChecked}
-          primaryAuthenticatorsControl={primaryAuthenticatorsControl}
-          loginIDKeyConfigsControl={loginIDKeyConfigsControl}
-          onChangeLoginIDChecked={onChangeLoginIDChecked}
-          onSwapLoginID={onSwapLoginID}
-          onChangePrimaryAuthenticatorChecked={
-            onChangePrimaryAuthenticatorChecked
-          }
-          onSwapPrimaryAuthenticator={onSwapPrimaryAuthenticator}
-        />
+        {!isChoosingMethod ? (
+          <>
+            <LinkToOAuth
+              appID={appID}
+              oauthOnlyChecked={Boolean(!customChecked && oauthOnlyChecked)}
+            />
+            <CustomLoginMethods
+              phoneLoginIDDisabled={phoneLoginIDDisabled}
+              customChecked={customChecked}
+              primaryAuthenticatorsControl={primaryAuthenticatorsControl}
+              loginIDKeyConfigsControl={loginIDKeyConfigsControl}
+              onChangeLoginIDChecked={onChangeLoginIDChecked}
+              onSwapLoginID={onSwapLoginID}
+              onChangePrimaryAuthenticatorChecked={
+                onChangePrimaryAuthenticatorChecked
+              }
+              onSwapPrimaryAuthenticator={onSwapPrimaryAuthenticator}
+            />
+          </>
+        ) : null}
       </ScreenContent>
     );
   };
