@@ -158,7 +158,7 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.O
 		if r.Code() == "" {
 			return protocol.NewError("invalid_request", "code is required")
 		}
-		if client.IsFirstParty() {
+		if client.ClientParty() == config.ClientPartyFirst {
 			if r.CodeVerifier() == "" {
 				return protocol.NewError("invalid_request", "PKCE code verifier is required")
 			}
@@ -216,7 +216,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 	}
 
 	// verify pkce
-	needVerifyPKCE := client.IsFirstParty() || codeGrant.PKCEChallenge != "" || r.CodeVerifier() != ""
+	needVerifyPKCE := client.ClientParty() == config.ClientPartyFirst || codeGrant.PKCEChallenge != "" || r.CodeVerifier() != ""
 	if needVerifyPKCE {
 		if codeGrant.PKCEChallenge == "" || r.CodeVerifier() == "" || !verifyPKCE(codeGrant.PKCEChallenge, r.CodeVerifier()) {
 			return nil, errInvalidAuthzCode
@@ -224,7 +224,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 	}
 
 	// verify client secret
-	needClientSecret := !client.IsFirstParty()
+	needClientSecret := client.ClientParty() == config.ClientPartyThird
 	if needClientSecret {
 		if r.ClientSecret() == "" {
 			return nil, protocol.NewError("invalid_request", "invalid client secret")
@@ -314,7 +314,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
-	if !client.IsFirstParty() {
+	if client.ClientParty() == config.ClientPartyThird {
 		return nil, protocol.NewError(
 			"unauthorized_client",
 			"third-party clients may not use anonymous user",
@@ -422,7 +422,7 @@ func (h *TokenHandler) handleBiometricRequest(
 		)
 	}
 
-	if !client.IsFirstParty() {
+	if client.ClientParty() == config.ClientPartyThird {
 		return nil, protocol.NewError(
 			"unauthorized_client",
 			"third-party clients may not use biometric authentication",
@@ -633,7 +633,7 @@ func (h *TokenHandler) handleIDToken(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
-	if !client.IsFirstParty() {
+	if client.ClientParty() == config.ClientPartyThird {
 		return nil, protocol.NewError(
 			"unauthorized_client",
 			"third-party clients may not refresh id token",
