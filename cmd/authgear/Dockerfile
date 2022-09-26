@@ -53,6 +53,9 @@ COPY ./migrations ./migrations
 COPY --from=stage1 /src/authgear /usr/local/bin/
 COPY ./resources/ ./resources/
 COPY --from=stage2 /usr/src/app/resources/authgear/ ./resources/authgear/
-USER nobody
+COPY ./docker-entrypoint.sh /usr/local/bin/
+ENTRYPOINT ["docker-entrypoint.sh"]
+# update-ca-certificates requires root to run.
+#USER nobody
 EXPOSE 3000
 CMD ["authgear", "start"]
