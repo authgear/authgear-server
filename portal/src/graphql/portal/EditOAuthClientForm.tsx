@@ -21,6 +21,7 @@ interface EditOAuthClientFormProps {
   publicOrigin: string;
   className?: string;
   clientConfig: OAuthClientConfig;
+  clientSecret?: string;
   onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
 }
 
@@ -67,8 +68,13 @@ const parentJSONPointer = /\/oauth\/clients\/\d+/;
 const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
   // eslint-disable-next-line complexity
   function EditOAuthClientForm(props: EditOAuthClientFormProps) {
-    const { className, clientConfig, publicOrigin, onClientConfigChange } =
-      props;
+    const {
+      className,
+      clientConfig,
+      clientSecret,
+      publicOrigin,
+      onClientConfigChange,
+    } = props;
 
     const { renderToString } = useContext(Context);
     const theme = useTheme();
@@ -233,6 +239,12 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [clientConfig.x_application_type]
     );
 
+    const showClientSecret = useMemo(
+      () =>
+        clientConfig.x_application_type === "third_party_app" && clientSecret,
+      [clientConfig.x_application_type, clientSecret]
+    );
+
     const refreshTokenHelpText = useMemo(() => {
       if (clientConfig.refresh_token_idle_timeout_enabled) {
         return renderToString(
@@ -278,6 +290,13 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             value={clientConfig.client_id}
             readOnly={true}
           />
+          {showClientSecret ? (
+            <TextFieldWithCopyButton
+              label={renderToString("EditOAuthClientForm.client-secret.label")}
+              value={clientSecret}
+              readOnly={true}
+            />
+          ) : null}
           <TextFieldWithCopyButton
             label={renderToString("EditOAuthClientForm.endpoint.label")}
             value={publicOrigin}
