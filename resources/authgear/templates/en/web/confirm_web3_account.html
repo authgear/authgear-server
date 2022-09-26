@@ -59,6 +59,12 @@
       </form>
     </div>
   </div>
+
+  <div class="text-sm break-words primary-txt text-center">
+    {{ template "confirm-web3-account-page-change-account" (dict "provider"
+    ($.Translations.RenderText (printf "web3-provider-%s" $.Provider) nil)) }}
+  </div>
+
   {{ template "__watermark.html" . }}
 </div>
 {{ end }}

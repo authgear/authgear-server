@@ -199,7 +199,7 @@
   "confirm-web3-account-page-title": "Account Connected",
   "confirm-web3-account-page-description": "Connected with {provider}",
   "confirm-web3-account-page-next": "Next",
-  "confirm-web3-account-page-change-account": "Change account",
+  "confirm-web3-account-page-change-account": "You can change the connected account by opening the MetaMask extension",
 
   "missing-web3-wallet-page-title": "Install Wallet",
   "missing-web3-wallet-page-description": "{provider} is either missing or not supported for your browser.",
