@@ -497,29 +497,32 @@ function MethodButton(props: MethodButtonProps) {
 
   return (
     <div
-      className={cn(styles.widget, styles.currentLoginMethod)}
+      className={cn(styles.widget, styles.methodButton)}
       style={{
         backgroundColor: theme.palette.themePrimary,
       }}
     >
-      <Text
-        className={styles.currentLoginMethodTitle}
-        block={true}
-        variant="large"
-        theme={themes.inverted}
-      >
-        {text}
-      </Text>
-      <Text
-        className={styles.currentLoginMethodDescription}
-        block={true}
-        variant="medium"
-        theme={themes.inverted}
-      >
-        {secondaryText}
-      </Text>
+      <div className={styles.methodButtonText}>
+        <Text
+          className={styles.methodButtonTitle}
+          block={true}
+          variant="large"
+          theme={themes.inverted}
+        >
+          {text}
+        </Text>
+        {secondaryText != null ? (
+          <Text
+            className={styles.methodButtonDescription}
+            block={true}
+            variant="medium"
+            theme={themes.inverted}
+          >
+            {secondaryText}
+          </Text>
+        ) : null}
+      </div>
       <PrimaryButton
-        className={styles.currentLoginMethodButton}
         theme={themes.inverted}
         text={
           <FormattedMessage id="LoginMethodConfigurationScreen.method.change-method" />
@@ -652,9 +655,6 @@ function MethodCustom(props: MethodProps) {
       text={
         <FormattedMessage id="LoginMethodConfigurationScreen.method.other.choice.custom.title" />
       }
-      secondaryText={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.other.choice.custom.description" />
-      }
     />
   );
 }
@@ -780,9 +780,6 @@ function ChoiceCustom(props: ChoiceProps) {
       {...props}
       text={
         <FormattedMessage id="LoginMethodConfigurationScreen.method.other.choice.custom.title" />
-      }
-      secondaryText={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.other.choice.custom.description" />
       }
     />
   );
