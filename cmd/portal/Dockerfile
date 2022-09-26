@@ -64,6 +64,9 @@ COPY --from=stage1 /src/authgear-portal /usr/local/bin/
 COPY ./resources/ ./resources/
 COPY --from=stage2 /usr/src/app/resources/authgear/ ./resources/authgear/
 COPY --from=stage3 /usr/src/app/dist/ ./resources/portal/static/
-USER nobody
+COPY ./docker-entrypoint.sh /usr/local/bin/
+ENTRYPOINT ["docker-entrypoint.sh"]
+# update-ca-certificates requires root to run.
+#USER nobody
 EXPOSE 3003
 CMD ["authgear-portal", "start"]
