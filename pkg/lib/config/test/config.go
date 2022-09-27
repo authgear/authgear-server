@@ -32,6 +32,20 @@ func FixtureSecretConfig(seed int64) *config.SecretConfig {
 	}, time.Date(2006, 1, 2, 3, 4, 5, 0, time.UTC), rand.New(rand.NewSource(seed)))
 }
 
+func FixtureUpdateSecretConfigUpdateInstruction() *config.SecretConfigUpdateInstruction {
+	return &config.SecretConfigUpdateInstruction{
+		SMTPServerCredentialsUpdateInstruction: &config.SMTPServerCredentialsUpdateInstruction{
+			Action: "set",
+			Data: &config.SMTPServerCredentialsUpdateInstructionData{
+				Host:     "127.0.0.1",
+				Port:     25,
+				Username: "username",
+				Password: "password",
+			},
+		},
+	}
+}
+
 func FixtureFeatureConfig(plan FixturePlanName) *config.FeatureConfig {
 	switch plan {
 	case FixtureLimitedPlanName:
