@@ -65,6 +65,10 @@
   text-overflow: ellipsis;
 }
 
+.siweCellName {
+  color: inherit;
+}
+
 .cellDescUnverified {
   color: #e0aa1a;
   white-space: nowrap;

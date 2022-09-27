@@ -13,7 +13,7 @@ import (
 
 // nolint: golint
 type SIWEService interface {
-	VerifyMessage(msg string, signature string) (*siwego.Message, *ecdsa.PublicKey, error)
+	VerifyMessage(msg string, signature string) (*model.SIWEWallet, *ecdsa.PublicKey, error)
 }
 
 type Provider struct {
@@ -57,7 +57,7 @@ func (p *Provider) New(
 	msg string,
 	signature string,
 ) (*identity.SIWE, error) {
-	message, pubKey, err := p.SIWE.VerifyMessage(msg, signature)
+	wallet, pubKey, err := p.SIWE.VerifyMessage(msg, signature)
 	if err != nil {
 		return nil, err
 	}
@@ -70,8 +70,8 @@ func (p *Provider) New(
 	i := &identity.SIWE{
 		ID:      uuid.New(),
 		UserID:  userID,
-		Address: message.GetAddress().Hex(),
-		ChainID: message.GetChainID(),
+		Address: wallet.Address,
+		ChainID: wallet.ChainID,
 
 		Data: &model.SIWEVerifiedData{
 			Message:          msg,

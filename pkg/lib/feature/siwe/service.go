@@ -3,7 +3,9 @@ package siwe
 import (
 	"crypto/ecdsa"
 	"net/url"
+	"strings"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -64,7 +66,7 @@ func (s *Service) CreateNewNonce() (*Nonce, error) {
 	return nonceModel, nil
 }
 
-func (s *Service) VerifyMessage(msg string, signature string) (*siwego.Message, *ecdsa.PublicKey, error) {
+func (s *Service) VerifyMessage(msg string, signature string) (*model.SIWEWallet, *ecdsa.PublicKey, error) {
 	message, err := siwego.ParseMessage(msg)
 	if err != nil {
 		return nil, nil, err
@@ -89,5 +91,10 @@ func (s *Service) VerifyMessage(msg string, signature string) (*siwego.Message, 
 		return nil, nil, err
 	}
 
-	return message, pubKey, nil
+	wallet := &model.SIWEWallet{
+		Address: strings.ToLower(message.GetAddress().Hex()),
+		ChainID: message.GetChainID(),
+	}
+
+	return wallet, pubKey, nil
 }
