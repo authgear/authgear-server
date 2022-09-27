@@ -141,7 +141,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		return nil, apierrors.NewInvalid("invalid client ID")
 	}
 
-	if !client.IsFirstParty() {
+	if client.ClientParty() == config.ClientPartyThird {
 		// unauthorized_client
 		return nil, apierrors.NewInvalid("third-party clients may not use anonymous user")
 	}

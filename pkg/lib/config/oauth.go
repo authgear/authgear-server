@@ -32,6 +32,14 @@ const (
 	OAuthClientApplicationTypeTraditionalWeb OAuthClientApplicationType = "traditional_webapp"
 	OAuthClientApplicationTypeNative         OAuthClientApplicationType = "native"
 	OAuthClientApplicationTypeThirdPartyApp  OAuthClientApplicationType = "third_party_app"
+	OAuthClientApplicationTypeUnspecified    OAuthClientApplicationType = ""
+)
+
+type ClientParty string
+
+const (
+	ClientPartyFirst ClientParty = "first_party"
+	ClientPartyThird ClientParty = "third_party"
 )
 
 var _ = Schema.Add("OAuthClientConfig", `
@@ -111,8 +119,13 @@ type OAuthClientConfig struct {
 	IssueJWTAccessToken            bool                       `json:"issue_jwt_access_token,omitempty"`
 }
 
-func (c *OAuthClientConfig) IsFirstParty() bool {
-	return c.ApplicationType != OAuthClientApplicationTypeThirdPartyApp
+func (c *OAuthClientConfig) ClientParty() ClientParty {
+	if c.ApplicationType == OAuthClientApplicationTypeThirdPartyApp {
+		return ClientPartyThird
+	}
+	// Except OAuthClientApplicationTypeThirdPartyApp
+	// All the other clients are first party client
+	return ClientPartyFirst
 }
 
 func (c *OAuthClientConfig) SetDefaults() {

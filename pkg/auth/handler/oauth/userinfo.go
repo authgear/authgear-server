@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -17,7 +19,7 @@ func ConfigureUserInfoRoute(route httproute.Route) httproute.Route {
 }
 
 type ProtocolUserInfoProvider interface {
-	GetUserInfo(userID string) (map[string]interface{}, error)
+	GetUserInfo(userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error)
 }
 
 type UserInfoHandlerLogger struct{ *log.Logger }
@@ -30,13 +32,15 @@ type UserInfoHandler struct {
 	Logger           UserInfoHandlerLogger
 	Database         *appdb.Handle
 	UserInfoProvider ProtocolUserInfoProvider
+	OAuth            *config.OAuthConfig
 }
 
 func (h *UserInfoHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	s := session.GetSession(r.Context())
+	clientLike := oauth.SessionClientLike(s, h.OAuth)
 	var userInfo map[string]interface{}
 	err := h.Database.WithTx(func() (err error) {
-		userInfo, err = h.UserInfoProvider.GetUserInfo(s.GetAuthenticationInfo().UserID)
+		userInfo, err = h.UserInfoProvider.GetUserInfo(s.GetAuthenticationInfo().UserID, clientLike)
 		return
 	})
 

@@ -15,13 +15,29 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
+
+var UserinfoScopes = []string{
+	oauth.FullAccessScope,
+	oauth.FullUserInfoScope,
+}
+
+var IDTokenStandardAttributes = []string{
+	stdattrs.Email,
+	stdattrs.EmailVerified,
+	stdattrs.PhoneNumber,
+	stdattrs.PhoneNumberVerified,
+	stdattrs.PreferredUsername,
+}
 
 type UserProvider interface {
 	Get(id string, role accesscontrol.Role) (*model.User, error)
@@ -112,6 +128,7 @@ type IssueIDTokenOptions struct {
 	SID                string
 	Nonce              string
 	AuthenticationInfo authenticationinfo.T
+	ClientLike         *oauth.ClientLike
 }
 
 func (ti *IDTokenIssuer) IssueIDToken(opts IssueIDTokenOptions) (string, error) {
@@ -119,7 +136,19 @@ func (ti *IDTokenIssuer) IssueIDToken(opts IssueIDTokenOptions) (string, error) 
 
 	info := opts.AuthenticationInfo
 
-	err := ti.PopulateNonPIIUserClaims(claims, info.UserID)
+	// For the first party client,
+	// We MUST NOT include any personal identifiable information (PII) here.
+	// The ID token may be included in the GET request in form of `id_token_hint`.
+	nonPIIUserClaimsOnly := true
+	if opts.ClientLike.ClientParty == config.ClientPartyThird {
+		for _, s := range UserinfoScopes {
+			if slice.ContainsString(opts.ClientLike.Scopes, s) {
+				nonPIIUserClaimsOnly = false
+			}
+		}
+	}
+
+	err := ti.PopulateUserClaims(claims, info.UserID, nonPIIUserClaimsOnly)
 	if err != nil {
 		return "", err
 	}
@@ -131,8 +160,6 @@ func (ti *IDTokenIssuer) IssueIDToken(opts IssueIDTokenOptions) (string, error) 
 	ti.updateTimeClaims(claims)
 
 	// Populate session specific claims
-	// Note that we MUST NOT include any personal identifiable information (PII) here.
-	// The ID token may be included in the GET request in form of `id_token_hint`.
 	if sid := opts.SID; sid != "" {
 		_ = claims.Set(string(model.ClaimSID), sid)
 	}
@@ -197,6 +224,10 @@ func (ti *IDTokenIssuer) VerifyIDTokenHint(client *config.OAuthClientConfig, idT
 }
 
 func (ti *IDTokenIssuer) PopulateNonPIIUserClaims(token jwt.Token, userID string) error {
+	return ti.PopulateUserClaims(token, userID, true)
+}
+
+func (ti *IDTokenIssuer) PopulateUserClaims(token jwt.Token, userID string, nonPIIUserClaimsOnly bool) error {
 	user, err := ti.Users.Get(userID, config.RoleBearer)
 	if err != nil {
 		return err
@@ -208,10 +239,18 @@ func (ti *IDTokenIssuer) PopulateNonPIIUserClaims(token jwt.Token, userID string
 	_ = token.Set(string(model.ClaimUserIsVerified), user.IsVerified)
 	_ = token.Set(string(model.ClaimUserCanReauthenticate), user.CanReauthenticate)
 
+	if !nonPIIUserClaimsOnly {
+		for k, v := range user.StandardAttributes {
+			if slice.ContainsString(IDTokenStandardAttributes, k) {
+				_ = token.Set(k, v)
+			}
+		}
+	}
+
 	return nil
 }
 
-func (ti *IDTokenIssuer) GetUserInfo(userID string) (map[string]interface{}, error) {
+func (ti *IDTokenIssuer) GetUserInfo(userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error) {
 	user, err := ti.Users.Get(userID, config.RoleBearer)
 	if err != nil {
 		return nil, err
@@ -222,6 +261,25 @@ func (ti *IDTokenIssuer) GetUserInfo(userID string) (map[string]interface{}, err
 	out[string(model.ClaimUserIsAnonymous)] = user.IsAnonymous
 	out[string(model.ClaimUserIsVerified)] = user.IsVerified
 	out[string(model.ClaimUserCanReauthenticate)] = user.CanReauthenticate
+
+	nonPIIUserClaimsOnly := true
+	// When the client is first party
+	// always include userinfo for the userinfo endpoint
+	// We check the scopes only for third party client
+	if clientLike.ClientParty == config.ClientPartyFirst {
+		nonPIIUserClaimsOnly = false
+	} else {
+		for _, s := range UserinfoScopes {
+			if slice.ContainsString(clientLike.Scopes, s) {
+				nonPIIUserClaimsOnly = false
+			}
+		}
+	}
+	if nonPIIUserClaimsOnly {
+		return out, nil
+	}
+
+	// Populate userinfo claims
 	for k, v := range user.StandardAttributes {
 		out[k] = v
 	}

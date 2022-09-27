@@ -158,7 +158,7 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.O
 		if r.Code() == "" {
 			return protocol.NewError("invalid_request", "code is required")
 		}
-		if client.IsFirstParty() {
+		if client.ClientParty() == config.ClientPartyFirst {
 			if r.CodeVerifier() == "" {
 				return protocol.NewError("invalid_request", "PKCE code verifier is required")
 			}
@@ -216,7 +216,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 	}
 
 	// verify pkce
-	needVerifyPKCE := client.IsFirstParty() || codeGrant.PKCEChallenge != "" || r.CodeVerifier() != ""
+	needVerifyPKCE := client.ClientParty() == config.ClientPartyFirst || codeGrant.PKCEChallenge != "" || r.CodeVerifier() != ""
 	if needVerifyPKCE {
 		if codeGrant.PKCEChallenge == "" || r.CodeVerifier() == "" || !verifyPKCE(codeGrant.PKCEChallenge, r.CodeVerifier()) {
 			return nil, errInvalidAuthzCode
@@ -224,7 +224,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 	}
 
 	// verify client secret
-	needClientSecret := !client.IsFirstParty()
+	needClientSecret := client.ClientParty() == config.ClientPartyThird
 	if needClientSecret {
 		if r.ClientSecret() == "" {
 			return nil, protocol.NewError("invalid_request", "invalid client secret")
@@ -314,7 +314,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
-	if !client.IsFirstParty() {
+	if client.ClientParty() == config.ClientPartyThird {
 		return nil, protocol.NewError(
 			"unauthorized_client",
 			"third-party clients may not use anonymous user",
@@ -422,7 +422,7 @@ func (h *TokenHandler) handleBiometricRequest(
 		)
 	}
 
-	if !client.IsFirstParty() {
+	if client.ClientParty() == config.ClientPartyThird {
 		return nil, protocol.NewError(
 			"unauthorized_client",
 			"third-party clients may not use biometric authentication",
@@ -618,6 +618,10 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		ClientID:           client.ClientID,
 		SID:                oidc.EncodeSID(offlineGrant),
 		AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
+		ClientLike: &oauth.ClientLike{
+			ClientParty: client.ClientParty(),
+			Scopes:      scopes,
+		},
 	})
 	if err != nil {
 		return nil, err
@@ -633,6 +637,13 @@ func (h *TokenHandler) handleIDToken(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
+	if client.ClientParty() == config.ClientPartyThird {
+		return nil, protocol.NewError(
+			"unauthorized_client",
+			"third-party clients may not refresh id token",
+		)
+	}
+
 	s := session.GetSession(req.Context())
 	if s == nil {
 		return nil, protocol.NewErrorStatusCode("invalid_request", "valid session is required", http.StatusUnauthorized)
@@ -641,6 +652,14 @@ func (h *TokenHandler) handleIDToken(
 		ClientID:           client.ClientID,
 		SID:                oidc.EncodeSID(s),
 		AuthenticationInfo: s.GetAuthenticationInfo(),
+		ClientLike: &oauth.ClientLike{
+			ClientParty: client.ClientParty(),
+			// scopes are used for specifying which fields should be included in the ID token
+			// those fields may include personal identifiable information
+			// Since the ID token issued here will be used in id_token_hint
+			// so no scopes are needed
+			Scopes: []string{},
+		},
 	})
 	if err != nil {
 		return nil, err
@@ -760,6 +779,10 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 			SID:                sid,
 			Nonce:              code.OIDCNonce,
 			AuthenticationInfo: info,
+			ClientLike: &oauth.ClientLike{
+				ClientParty: client.ClientParty(),
+				Scopes:      code.Scopes,
+			},
 		})
 		if err != nil {
 			return nil, err
@@ -793,6 +816,10 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 			ClientID:           client.ClientID,
 			SID:                oidc.EncodeSID(offlineGrant),
 			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
+			ClientLike: &oauth.ClientLike{
+				ClientParty: client.ClientParty(),
+				Scopes:      authz.Scopes,
+			},
 		})
 		if err != nil {
 			return nil, err

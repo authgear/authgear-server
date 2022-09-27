@@ -401,7 +401,7 @@ func (h *AuthorizationHandler) validateRequest(
 
 	switch r.ResponseType() {
 	case "code":
-		if client.IsFirstParty() {
+		if client.ClientParty() == config.ClientPartyFirst {
 			if r.CodeChallenge() == "" {
 				return protocol.NewError("invalid_request", "PKCE code challenge is required")
 			}

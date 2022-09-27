@@ -10,6 +10,7 @@ import (
 )
 
 const FullAccessScope = "https://authgear.com/scopes/full-access"
+const FullUserInfoScope = "https://authgear.com/scopes/full-userinfo"
 
 func SessionScopes(s session.Session) []string {
 	switch s := s.(type) {
