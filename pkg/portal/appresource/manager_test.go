@@ -1,6 +1,7 @@
 package appresource_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -112,8 +113,8 @@ func TestManager(t *testing.T) {
 		})
 
 		Convey("allow updating secrets", func() {
-			newSecretConfig := configtest.FixtureSecretConfig(1)
-			bytes, err := yaml.Marshal(newSecretConfig)
+			updateSecretConfigInstructions := configtest.FixtureUpdateSecretConfigUpdateInstruction()
+			bytes, err := json.Marshal(updateSecretConfigInstructions)
 			So(err, ShouldBeNil)
 
 			err = applyUpdates([]appresource.Update{{
