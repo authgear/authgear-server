@@ -26,13 +26,15 @@ import EditOAuthClientForm, {
 import {
   ApplicationType,
   OAuthClientConfig,
+  OAuthClientSecret,
   PortalAPIAppConfig,
+  PortalAPISecretConfig,
 } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import {
-  AppConfigFormModel,
-  useAppConfigForm,
-} from "../../hook/useAppConfigForm";
+  AppSecretConfigFormModel,
+  useAppSecretConfigForm,
+} from "../../hook/useAppSecretConfigForm";
 import FormContainer from "../../FormContainer";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import styles from "./EditOAuthClientScreen.module.css";
@@ -54,23 +56,40 @@ interface FormState {
   clients: OAuthClientConfig[];
   editedClient: OAuthClientConfig | null;
   removeClientByID?: string;
+  clientSecretMap: Partial<Record<string, string>>;
 }
 
-function constructFormState(config: PortalAPIAppConfig): FormState {
+function constructFormState(
+  config: PortalAPIAppConfig,
+  secrets: PortalAPISecretConfig
+): FormState {
+  const clientSecretMap: Partial<Record<string, string>> =
+    secrets.oauthClientSecrets?.reduce<Record<string, string>>(
+      (acc: Record<string, string>, currValue: OAuthClientSecret) => {
+        if (currValue.keys?.length && currValue.keys.length >= 1) {
+          acc[currValue.clientID] = currValue.keys[0].key;
+        }
+        return acc;
+      },
+      {}
+    ) ?? {};
   return {
     publicOrigin: config.http?.public_origin ?? "",
     clients: config.oauth?.clients ?? [],
     editedClient: null,
     removeClientByID: undefined,
+    clientSecretMap,
   };
 }
 
 function constructConfig(
   config: PortalAPIAppConfig,
+  secrets: PortalAPISecretConfig,
   _initialState: FormState,
-  currentState: FormState
-): PortalAPIAppConfig {
-  return produce(config, (config) => {
+  currentState: FormState,
+  _effectiveConfig: PortalAPIAppConfig
+): [PortalAPIAppConfig, PortalAPISecretConfig] {
+  const newConfig = produce(config, (config) => {
     config.oauth ??= {};
     config.oauth.clients = currentState.clients.slice();
 
@@ -100,6 +119,7 @@ function constructConfig(
     }
     clearEmptyObject(config);
   });
+  return [newConfig, secrets];
 }
 
 interface FrameworkItem {
@@ -287,6 +307,17 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
               docLink: "https://docs.authgear.com/get-started/xamarin",
             },
           ];
+        case "third_party_app":
+          return [
+            {
+              icon: <i className={cn("fab", "fa-openid")} />,
+              name: renderToString(
+                "EditOAuthClientScreen.quick-start.framework.oidc"
+              ),
+              // FIXME(third-party-app): update doc link
+              docLink: "https://docs.authgear.com/",
+            },
+          ];
         default:
           return [];
       }
@@ -336,7 +367,7 @@ const EditOAuthClientNavBreadcrumb: React.VFC<EditOAuthClientNavBreadcrumbProps>
   };
 
 interface EditOAuthClientContentProps {
-  form: AppConfigFormModel<FormState>;
+  form: AppSecretConfigFormModel<FormState>;
   clientID: string;
 }
 
@@ -350,6 +381,12 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
 
     const client =
       state.editedClient ?? state.clients.find((c) => c.client_id === clientID);
+
+    const clientSecret = useMemo(() => {
+      return client?.client_id
+        ? state.clientSecretMap[client.client_id]
+        : undefined;
+    }, [client, state.clientSecretMap]);
 
     const onClientConfigChange = useCallback(
       (editedClient: OAuthClientConfig) => {
@@ -376,6 +413,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
           <EditOAuthClientForm
             publicOrigin={state.publicOrigin}
             clientConfig={client}
+            clientSecret={clientSecret}
             onClientConfigChange={onClientConfigChange}
           />
         </div>
@@ -410,7 +448,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
   };
 
 interface OAuthQuickStartScreenContentProps {
-  form: AppConfigFormModel<FormState>;
+  form: AppSecretConfigFormModel<FormState>;
   clientID: string;
 }
 
@@ -477,7 +515,11 @@ const EditOAuthClientScreen: React.VFC = function EditOAuthClientScreen() {
     clientID: string;
   };
   const { renderToString } = useContext(Context);
-  const form = useAppConfigForm({ appID, constructFormState, constructConfig });
+  const form = useAppSecretConfigForm(
+    appID,
+    constructFormState,
+    constructConfig
+  );
   const { setState, save, isUpdating } = form;
   const navigate = useNavigate();
   const [isRemoveDialogVisible, setIsRemoveDialogVisible] = useState(false);

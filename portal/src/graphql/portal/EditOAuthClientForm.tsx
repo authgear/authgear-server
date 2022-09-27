@@ -21,6 +21,7 @@ interface EditOAuthClientFormProps {
   publicOrigin: string;
   className?: string;
   clientConfig: OAuthClientConfig;
+  clientSecret?: string;
   onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
 }
 
@@ -29,6 +30,7 @@ export function getApplicationTypeMessageID(key?: string): string {
     spa: "oauth-client.application-type.spa",
     traditional_webapp: "oauth-client.application-type.traditional-webapp",
     native: "oauth-client.application-type.native",
+    third_party_app: "oauth-client.application-type.third-party-app",
   };
   return key && messageIDMap[key]
     ? messageIDMap[key]
@@ -66,17 +68,32 @@ const parentJSONPointer = /\/oauth\/clients\/\d+/;
 const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
   // eslint-disable-next-line complexity
   function EditOAuthClientForm(props: EditOAuthClientFormProps) {
-    const { className, clientConfig, publicOrigin, onClientConfigChange } =
-      props;
+    const {
+      className,
+      clientConfig,
+      clientSecret,
+      publicOrigin,
+      onClientConfigChange,
+    } = props;
 
     const { renderToString } = useContext(Context);
     const theme = useTheme();
 
     const { appID } = useParams() as { appID: string };
 
-    const { onChange: onClientNameChange } = useTextField((value) => {
+    const { onChange: onNameChange } = useTextField((value) => {
       onClientConfigChange(
         updateClientConfig(clientConfig, "name", ensureNonEmptyString(value))
+      );
+    });
+
+    const { onChange: onClientNameChange } = useTextField((value) => {
+      onClientConfigChange(
+        updateClientConfig(
+          clientConfig,
+          "client_name",
+          ensureNonEmptyString(value)
+        )
       );
     });
 
@@ -183,6 +200,8 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
         traditional_webapp:
           "EditOAuthClientForm.redirect-uris.description.traditional-webapp",
         native: "EditOAuthClientForm.redirect-uris.description.native",
+        third_party_app:
+          "EditOAuthClientForm.redirect-uris.description.third-party-app",
       };
       const messageID = clientConfig.x_application_type
         ? messageIdMap[clientConfig.x_application_type]
@@ -201,7 +220,8 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
     const showCookieSettings = useMemo(
       () =>
         !clientConfig.x_application_type ||
-        clientConfig.x_application_type === "traditional_webapp",
+        clientConfig.x_application_type === "traditional_webapp" ||
+        clientConfig.x_application_type === "third_party_app",
       [clientConfig.x_application_type]
     );
 
@@ -209,8 +229,20 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       () =>
         !clientConfig.x_application_type ||
         clientConfig.x_application_type === "spa" ||
-        clientConfig.x_application_type === "native",
+        clientConfig.x_application_type === "native" ||
+        clientConfig.x_application_type === "third_party_app",
       [clientConfig.x_application_type]
+    );
+
+    const showConsentScreenSettings = useMemo(
+      () => clientConfig.x_application_type === "third_party_app",
+      [clientConfig.x_application_type]
+    );
+
+    const showClientSecret = useMemo(
+      () =>
+        clientConfig.x_application_type === "third_party_app" && clientSecret,
+      [clientConfig.x_application_type, clientSecret]
     );
 
     const refreshTokenHelpText = useMemo(() => {
@@ -250,7 +282,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             fieldName="name"
             label={renderToString("EditOAuthClientForm.name.label")}
             value={clientConfig.name ?? ""}
-            onChange={onClientNameChange}
+            onChange={onNameChange}
             required={true}
           />
           <TextFieldWithCopyButton
@@ -258,6 +290,13 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             value={clientConfig.client_id}
             readOnly={true}
           />
+          {showClientSecret ? (
+            <TextFieldWithCopyButton
+              label={renderToString("EditOAuthClientForm.client-secret.label")}
+              value={clientSecret}
+              readOnly={true}
+            />
+          ) : null}
           <TextFieldWithCopyButton
             label={renderToString("EditOAuthClientForm.endpoint.label")}
             value={publicOrigin}
@@ -305,6 +344,26 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             />
           ) : null}
         </Widget>
+
+        {showConsentScreenSettings ? (
+          <Widget className={className}>
+            <WidgetTitle>
+              <FormattedMessage id="EditOAuthClientForm.consent-screen.title" />
+            </WidgetTitle>
+            <FormTextField
+              parentJSONPointer={parentJSONPointer}
+              fieldName="client_name"
+              label={renderToString("EditOAuthClientForm.client-name.label")}
+              description={renderToString(
+                "EditOAuthClientForm.client-name.description"
+              )}
+              value={clientConfig.client_name ?? ""}
+              onChange={onClientNameChange}
+              required={true}
+            />
+          </Widget>
+        ) : null}
+
         {showTokenSettings ? (
           <Widget className={className}>
             <WidgetTitle>

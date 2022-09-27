@@ -634,6 +634,9 @@ type SecretConfig {
   adminAPISecrets: [AdminAPISecret!]
 
   """"""
+  oauthClientSecrets: [oauthClientSecretItem!]
+
+  """"""
   oauthSSOProviderClientSecrets: [OAuthSSOProviderClientSecret!]
 
   """"""
@@ -941,6 +944,27 @@ type WatchNFTCollectionsPayload {
 type WebhookSecret {
   """"""
   secret: String
+}
+
+"""OAuth client secret item"""
+type oauthClientSecretItem {
+  """"""
+  clientID: String!
+
+  """"""
+  keys: [oauthClientSecretKey!]
+}
+
+"""OAuth client secret key"""
+type oauthClientSecretKey {
+  """"""
+  createdAt: DateTime
+
+  """"""
+  key: String!
+
+  """"""
+  keyID: String!
 }
 
 """"""

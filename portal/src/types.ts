@@ -333,6 +333,7 @@ export const applicationTypes = [
   "spa",
   "traditional_webapp",
   "native",
+  "third_party_app",
 ] as const;
 export type ApplicationType = typeof applicationTypes[number];
 
@@ -498,11 +499,23 @@ export interface SMTPSecret {
   password?: string | null;
 }
 
+export interface OAuthClientSecretKey {
+  keyID: string;
+  createdAt?: string | null;
+  key: string;
+}
+
+export interface OAuthClientSecret {
+  clientID: string;
+  keys?: OAuthClientSecretKey[] | null;
+}
+
 export interface PortalAPISecretConfig {
   oauthSSOProviderClientSecrets?: OAuthSSOProviderClientSecret[] | null;
   webhookSecret?: WebhookSecret | null;
   adminAPISecrets?: AdminAPISecret[] | null;
   smtpSecret?: SMTPSecret | null;
+  oauthClientSecrets?: OAuthClientSecret[] | null;
 }
 
 export interface PortalAPIApp {
