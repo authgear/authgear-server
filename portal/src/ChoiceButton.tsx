@@ -28,6 +28,11 @@ export default function ChoiceButton(props: ChoiceButtonProps): ReactElement {
     description: {
       color: "inherit",
     },
+    // When ChoiceButton is taller than its intrinsic height,
+    // make sure the content is still center aligned vertically.
+    flexContainer: {
+      alignItems: "center",
+    },
   };
   // @ts-expect-error
   return <CompoundButton {...props} toggle={true} styles={styles} />;
