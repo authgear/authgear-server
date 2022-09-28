@@ -18,8 +18,7 @@ const WidgetTitle: React.VFC<WidgetTitleProps> = function WidgetTitle(
       block={true}
       styles={{
         root: {
-          // 16px padding + 28px + 20px gap = 64px
-          // Widget's collapsed height is related to this value.
+          // See Widget.
           lineHeight: "28px",
         },
       }}
