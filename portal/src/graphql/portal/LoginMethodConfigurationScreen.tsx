@@ -21,13 +21,19 @@ import { produce } from "immer";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import {
   PortalAPIAppConfig,
-  PortalAPIFeatureConfig,
   IdentityType,
   PrimaryAuthenticatorType,
   LoginIDKeyConfig,
   LoginIDKeyType,
   LoginIDEmailConfig,
 } from "../../types";
+import {
+  DEFAULT_TEMPLATE_LOCALE,
+  RESOURCE_EMAIL_DOMAIN_BLOCKLIST,
+  RESOURCE_EMAIL_DOMAIN_ALLOWLIST,
+  RESOURCE_USERNAME_EXCLUDED_KEYWORDS_TXT,
+} from "../../resources";
+import { Resource, ResourceSpecifier, specifierId } from "../../util/resource";
 import { clearEmptyObject } from "../../util/misc";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
@@ -50,6 +56,7 @@ import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import PrimaryButton from "../../PrimaryButton";
 import CheckboxWithTooltip from "../../CheckboxWithTooltip";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import { useResourceForm } from "../../hook/useResourceForm";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
 import styles from "./LoginMethodConfigurationScreen.module.css";
@@ -73,6 +80,56 @@ const LOGIN_ID_KEY_CONFIGS: LoginIDKeyConfig[] = [
   { type: "phone" },
   { type: "username" },
 ];
+
+// email domain lists are not language specific
+// so the locale in ResourceSpecifier is not important
+const emailDomainBlocklistSpecifier: ResourceSpecifier = {
+  def: RESOURCE_EMAIL_DOMAIN_BLOCKLIST,
+  locale: DEFAULT_TEMPLATE_LOCALE,
+  extension: null,
+};
+
+const emailDomainAllowlistSpecifier: ResourceSpecifier = {
+  def: RESOURCE_EMAIL_DOMAIN_ALLOWLIST,
+  locale: DEFAULT_TEMPLATE_LOCALE,
+  extension: null,
+};
+
+const usernameExcludeKeywordsTXTSpecifier: ResourceSpecifier = {
+  def: RESOURCE_USERNAME_EXCLUDED_KEYWORDS_TXT,
+  locale: DEFAULT_TEMPLATE_LOCALE,
+  extension: null,
+};
+
+const specifiers: ResourceSpecifier[] = [
+  emailDomainBlocklistSpecifier,
+  emailDomainAllowlistSpecifier,
+  usernameExcludeKeywordsTXTSpecifier,
+];
+
+interface ResourcesFormState {
+  resources: Partial<Record<string, Resource>>;
+}
+
+function constructResourcesFormState(
+  resources: Resource[]
+): ResourcesFormState {
+  const resourceMap: Partial<Record<string, Resource>> = {};
+  for (const r of resources) {
+    const id = specifierId(r.specifier);
+    // Multiple resources may use same specifier ID (images),
+    // use the first resource with non-empty values.
+    if ((resourceMap[id]?.nullableValue ?? "") === "") {
+      resourceMap[specifierId(r.specifier)] = r;
+    }
+  }
+
+  return { resources: resourceMap };
+}
+
+function constructResources(state: ResourcesFormState): Resource[] {
+  return Object.values(state.resources).filter(Boolean) as Resource[];
+}
 
 type LoginMethodPasswordlessLoginID = "email" | "phone" | "phone-email";
 type LoginMethodPasswordLoginID =
@@ -251,11 +308,33 @@ function controlListSwap<T>(
   return newItems;
 }
 
-interface FormState {
+interface ConfigFormState {
   identitiesControl: ControlList<IdentityType>;
   primaryAuthenticatorsControl: ControlList<PrimaryAuthenticatorType>;
   loginIDKeyConfigsControl: ControlList<LoginIDKeyConfig>;
   loginIDEmailConfig: Required<LoginIDEmailConfig>;
+}
+
+interface FeatureConfigFormState {
+  phoneLoginIDDisabled: boolean;
+}
+
+interface FormState
+  extends ConfigFormState,
+    ResourcesFormState,
+    FeatureConfigFormState {}
+
+interface FormModel {
+  isLoading: boolean;
+  isUpdating: boolean;
+  isDirty: boolean;
+  loadError: unknown;
+  updateError: unknown;
+  state: FormState;
+  setState: (fn: (state: FormState) => FormState) => void;
+  reload: () => void;
+  reset: () => void;
+  save: () => Promise<void>;
 }
 
 // eslint-disable-next-line complexity
@@ -390,7 +469,7 @@ function setLoginMethodToFormState(
 }
 
 // eslint-disable-next-line complexity
-function correctInitialFormState(state: FormState): void {
+function correctInitialFormState(state: ConfigFormState): void {
   // Uncheck "login_id" identity if no login ID is checked.
   const allLoginIDUnchecked = state.loginIDKeyConfigsControl.every(
     (a) => !a.isChecked
@@ -538,7 +617,7 @@ function setPrimaryAuthenticator(
   );
 }
 
-function constructFormState(config: PortalAPIAppConfig): FormState {
+function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
   const identities = config.authentication?.identities ?? [];
   const primaryAuthenticators =
     config.authentication?.primary_authenticators ?? [];
@@ -576,8 +655,8 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
 
 function constructConfig(
   config: PortalAPIAppConfig,
-  _initialState: FormState,
-  currentState: FormState,
+  _initialState: ConfigFormState,
+  currentState: ConfigFormState,
   effectiveConfig: PortalAPIAppConfig
 ): PortalAPIAppConfig {
   return produce(config, (config) => {
@@ -1364,14 +1443,13 @@ function EmailSettings(props: EmailSettingsProps) {
 
 interface LoginMethodConfigurationContentProps {
   appID: string;
-  form: AppConfigFormModel<FormState>;
-  featureConfig?: PortalAPIFeatureConfig;
+  form: FormModel;
 }
 
 const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContentProps> =
   // eslint-disable-next-line complexity
   function LoginMethodConfigurationContent(props) {
-    const { appID, featureConfig } = props;
+    const { appID } = props;
     const { state, setState } = props.form;
 
     const {
@@ -1379,6 +1457,8 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       primaryAuthenticatorsControl,
       loginIDKeyConfigsControl,
       loginIDEmailConfig,
+
+      phoneLoginIDDisabled,
     } = state;
 
     const [loginMethod, setLoginMethod] = useState(() =>
@@ -1386,9 +1466,6 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
     );
 
     const [isChoosingMethod, setIsChoosingMethod] = useState(false);
-
-    const phoneLoginIDDisabled =
-      featureConfig?.identity?.login_id?.types?.phone?.disabled ?? false;
 
     const onClickChooseLoginMethod = useCallback((e) => {
       e.preventDefault();
@@ -1531,15 +1608,68 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
 const LoginMethodConfigurationScreen: React.VFC =
   function LoginMethodConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
-    const form = useAppConfigForm({
+
+    const featureConfig = useAppFeatureConfigQuery(appID);
+
+    const configForm = useAppConfigForm({
       appID,
       constructFormState,
       constructConfig,
     });
 
-    const featureConfig = useAppFeatureConfigQuery(appID);
+    const resourceForm = useResourceForm(
+      appID,
+      specifiers,
+      constructResourcesFormState,
+      constructResources
+    );
 
-    if (form.isLoading || featureConfig.loading) {
+    const state = useMemo<FormState>(() => {
+      return {
+        resources: resourceForm.state.resources,
+        phoneLoginIDDisabled:
+          featureConfig.effectiveFeatureConfig?.identity?.login_id?.types?.phone
+            ?.disabled ?? false,
+        ...configForm.state,
+      };
+    }, [
+      resourceForm.state.resources,
+      featureConfig.effectiveFeatureConfig?.identity?.login_id?.types?.phone
+        ?.disabled,
+      configForm.state,
+    ]);
+
+    const form: FormModel = {
+      isLoading:
+        configForm.isLoading || resourceForm.isLoading || featureConfig.loading,
+      isUpdating: configForm.isUpdating || resourceForm.isUpdating,
+      isDirty: configForm.isDirty || resourceForm.isDirty,
+      loadError:
+        configForm.loadError ?? resourceForm.loadError ?? featureConfig.error,
+      updateError: configForm.updateError ?? resourceForm.updateError,
+      state,
+      setState: (fn) => {
+        const newState = fn(state);
+        const { phoneLoginIDDisabled, resources, ...rest } = newState;
+        configForm.setState(() => rest);
+        resourceForm.setState(() => ({ resources }));
+      },
+      reload: () => {
+        configForm.reload();
+        resourceForm.reload();
+        featureConfig.refetch().finally(() => {});
+      },
+      reset: () => {
+        configForm.reset();
+        resourceForm.reset();
+      },
+      save: async () => {
+        await configForm.save();
+        await resourceForm.save();
+      },
+    };
+
+    if (form.isLoading) {
       return <ShowLoading />;
     }
 
@@ -1547,22 +1677,9 @@ const LoginMethodConfigurationScreen: React.VFC =
       return <ShowError error={form.loadError} onRetry={form.reload} />;
     }
 
-    if (featureConfig.error) {
-      return (
-        <ShowError
-          error={featureConfig.error}
-          onRetry={featureConfig.refetch}
-        />
-      );
-    }
-
     return (
       <FormContainer form={form} errorRules={ERROR_RULES}>
-        <LoginMethodConfigurationContent
-          appID={appID}
-          form={form}
-          featureConfig={featureConfig.effectiveFeatureConfig}
-        />
+        <LoginMethodConfigurationContent appID={appID} form={form} />
       </FormContainer>
     );
   };
