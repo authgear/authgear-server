@@ -1,11 +1,9 @@
 package model
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/lestrrat-go/jwx/jwk"
-	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
@@ -179,102 +177,4 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmasked bool) (*SecretC
 	}
 
 	return out, nil
-}
-
-func (c *SecretConfig) updateOAuthSSOProviderCredentials() (item *config.SecretItem, err error) {
-	if len(c.OAuthSSOProviderClientSecrets) <= 0 {
-		return
-	}
-
-	// The strategy is simply use incoming one.
-	var oauthItems []config.OAuthSSOProviderCredentialsItem
-	for _, secret := range c.OAuthSSOProviderClientSecrets {
-		oauthItems = append(oauthItems, config.OAuthSSOProviderCredentialsItem{
-			Alias:        secret.Alias,
-			ClientSecret: secret.ClientSecret,
-		})
-	}
-
-	var data []byte
-	data, err = json.Marshal(&config.OAuthSSOProviderCredentials{
-		Items: oauthItems,
-	})
-	if err != nil {
-		return
-	}
-
-	item = &config.SecretItem{
-		Key:     config.OAuthSSOProviderCredentialsKey,
-		RawData: json.RawMessage(data),
-	}
-	return
-}
-
-func (c *SecretConfig) updateSMTP(currentConfig *config.SecretConfig) (item *config.SecretItem, err error) {
-	if c.SMTPSecret == nil {
-		return
-	}
-
-	_, existingItem, ok := currentConfig.Lookup(config.SMTPServerCredentialsKey)
-
-	if c.SMTPSecret.Password == nil {
-		// No change
-		if ok {
-			item = existingItem
-		}
-	} else {
-		var data []byte
-		data, err = json.Marshal(&config.SMTPServerCredentials{
-			Host:     c.SMTPSecret.Host,
-			Port:     c.SMTPSecret.Port,
-			Username: c.SMTPSecret.Username,
-			Password: *c.SMTPSecret.Password,
-		})
-		if err != nil {
-			return
-		}
-
-		item = &config.SecretItem{
-			Key:     config.SMTPServerCredentialsKey,
-			RawData: json.RawMessage(data),
-		}
-	}
-
-	return
-}
-
-func (c *SecretConfig) ToYAMLForUpdate(currentConfig *config.SecretConfig) ([]byte, error) {
-	var items []config.SecretItem
-
-	oauthItem, err := c.updateOAuthSSOProviderCredentials()
-	if err != nil {
-		return nil, err
-	}
-	if oauthItem != nil {
-		items = append(items, *oauthItem)
-	}
-
-	smtpItem, err := c.updateSMTP(currentConfig)
-	if err != nil {
-		return nil, err
-	}
-	if smtpItem != nil {
-		items = append(items, *smtpItem)
-	}
-
-	newConfig := &config.SecretConfig{
-		Secrets: items,
-	}
-
-	jsonBytes, err := json.Marshal(newConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	yamlBytes, err := yaml.JSONToYAML(jsonBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	return yamlBytes, nil
 }
