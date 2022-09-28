@@ -204,6 +204,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	managerFactory := &factory.ManagerFactory{
 		AppBaseResources: appBaseResources,
 		Tutorials:        tutorialService,
+		Clock:            clock,
 	}
 	store := &plan.Store{
 		Clock:       clock,
