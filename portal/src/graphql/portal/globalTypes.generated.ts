@@ -434,6 +434,11 @@ export type OAuthSsoProviderClientSecretInput = {
   clientSecret: Scalars['String'];
 };
 
+export type OAuthSsoProviderClientSecretsUpdateInstructionsInput = {
+  action: Scalars['String'];
+  data?: InputMaybe<Array<OAuthSsoProviderClientSecretInput>>;
+};
+
 /** Information about pagination in a connection. */
 export type PageInfo = {
   __typename?: 'PageInfo';
@@ -575,9 +580,9 @@ export type SecretConfig = {
   webhookSecret?: Maybe<WebhookSecret>;
 };
 
-export type SecretConfigInput = {
-  oauthSSOProviderClientSecrets?: InputMaybe<Array<OAuthSsoProviderClientSecretInput>>;
-  smtpSecret?: InputMaybe<SmtpSecretInput>;
+export type SecretConfigUpdateInstructionsInput = {
+  oauthSSOProviderClientSecrets?: InputMaybe<OAuthSsoProviderClientSecretsUpdateInstructionsInput>;
+  smtpSecret?: InputMaybe<SmtpSecretUpdateInstructionsInput>;
 };
 
 export type SetSubscriptionCancelledStatusInput = {
@@ -620,6 +625,11 @@ export type SkipAppTutorialProgressInput = {
 export type SkipAppTutorialProgressPayload = {
   __typename?: 'SkipAppTutorialProgressPayload';
   app: App;
+};
+
+export type SmtpSecretUpdateInstructionsInput = {
+  action: Scalars['String'];
+  data?: InputMaybe<SmtpSecretInput>;
 };
 
 export type Subscription = {
@@ -704,8 +714,8 @@ export type UpdateAppInput = {
   appConfig?: InputMaybe<Scalars['AppConfig']>;
   /** App ID to update. */
   appID: Scalars['ID'];
-  /** secrets to update. */
-  secretConfig?: InputMaybe<SecretConfigInput>;
+  /** update secret config instructions. */
+  secretConfigUpdateInstructions?: InputMaybe<SecretConfigUpdateInstructionsInput>;
   /** Resource file updates. */
   updates?: InputMaybe<Array<AppResourceUpdate>>;
 };

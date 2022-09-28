@@ -6,7 +6,7 @@ const defaultOptions = {} as const;
 export type UpdateAppAndSecretConfigMutationMutationVariables = Types.Exact<{
   appID: Types.Scalars['ID'];
   appConfig: Types.Scalars['AppConfig'];
-  secretConfig?: Types.InputMaybe<Types.SecretConfigInput>;
+  secretConfigUpdateInstructions?: Types.InputMaybe<Types.SecretConfigUpdateInstructionsInput>;
 }>;
 
 
@@ -14,9 +14,9 @@ export type UpdateAppAndSecretConfigMutationMutation = { __typename?: 'Mutation'
 
 
 export const UpdateAppAndSecretConfigMutationDocument = gql`
-    mutation updateAppAndSecretConfigMutation($appID: ID!, $appConfig: AppConfig!, $secretConfig: SecretConfigInput) {
+    mutation updateAppAndSecretConfigMutation($appID: ID!, $appConfig: AppConfig!, $secretConfigUpdateInstructions: SecretConfigUpdateInstructionsInput) {
   updateApp(
-    input: {appID: $appID, appConfig: $appConfig, secretConfig: $secretConfig}
+    input: {appID: $appID, appConfig: $appConfig, secretConfigUpdateInstructions: $secretConfigUpdateInstructions}
   ) {
     app {
       id
@@ -72,7 +72,7 @@ export type UpdateAppAndSecretConfigMutationMutationFn = Apollo.MutationFunction
  *   variables: {
  *      appID: // value for 'appID'
  *      appConfig: // value for 'appConfig'
- *      secretConfig: // value for 'secretConfig'
+ *      secretConfigUpdateInstructions: // value for 'secretConfigUpdateInstructions'
  *   },
  * });
  */
