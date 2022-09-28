@@ -1020,14 +1020,10 @@ function PasskeyAndOAuthHint(props: PasskeyAndOAuthHintProps) {
 
 interface LinkToOAuthProps {
   appID: string;
-  oauthOnlyChecked: boolean;
 }
 
 function LinkToOAuth(props: LinkToOAuthProps) {
-  const { appID, oauthOnlyChecked } = props;
-  if (!oauthOnlyChecked) {
-    return null;
-  }
+  const { appID } = props;
 
   return (
     <Widget className={styles.widget}>
@@ -1043,7 +1039,6 @@ function LinkToOAuth(props: LinkToOAuthProps) {
 
 interface CustomLoginMethodsProps {
   phoneLoginIDDisabled: boolean;
-  customChecked: boolean;
   primaryAuthenticatorsControl: ControlList<PrimaryAuthenticatorType>;
   loginIDKeyConfigsControl: ControlList<LoginIDKeyConfig>;
   onChangeLoginIDChecked: (key: LoginIDKeyType, checked: boolean) => void;
@@ -1058,7 +1053,6 @@ interface CustomLoginMethodsProps {
 function CustomLoginMethods(props: CustomLoginMethodsProps) {
   const {
     phoneLoginIDDisabled,
-    customChecked,
     loginIDKeyConfigsControl,
     primaryAuthenticatorsControl,
     onChangeLoginIDChecked: onChangeLoginIDCheckedProp,
@@ -1080,7 +1074,6 @@ function CustomLoginMethods(props: CustomLoginMethodsProps) {
   }, []);
 
   const loginIDs = useMemo(() => {
-    // FIXME: handle feature disabled
     return loginIDKeyConfigsControl.map((a) => {
       let disabled = a.isDisabled;
       if (a.value.type === "phone") {
@@ -1164,10 +1157,6 @@ function CustomLoginMethods(props: CustomLoginMethodsProps) {
     },
     [onSwapPrimaryAuthenticatorProp]
   );
-
-  if (!customChecked) {
-    return null;
-  }
 
   return (
     <Widget
@@ -1341,22 +1330,20 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
               loginMethod={loginMethod}
               onClick={onClickChooseLoginMethod}
             />
-            <LinkToOAuth
-              appID={appID}
-              oauthOnlyChecked={loginMethod === "oauth"}
-            />
-            <CustomLoginMethods
-              customChecked={loginMethod === "custom"}
-              phoneLoginIDDisabled={phoneLoginIDDisabled}
-              primaryAuthenticatorsControl={primaryAuthenticatorsControl}
-              loginIDKeyConfigsControl={loginIDKeyConfigsControl}
-              onChangeLoginIDChecked={onChangeLoginIDChecked}
-              onSwapLoginID={onSwapLoginID}
-              onChangePrimaryAuthenticatorChecked={
-                onChangePrimaryAuthenticatorChecked
-              }
-              onSwapPrimaryAuthenticator={onSwapPrimaryAuthenticator}
-            />
+            {loginMethod === "oauth" ? <LinkToOAuth appID={appID} /> : null}
+            {loginMethod === "custom" ? (
+              <CustomLoginMethods
+                phoneLoginIDDisabled={phoneLoginIDDisabled}
+                primaryAuthenticatorsControl={primaryAuthenticatorsControl}
+                loginIDKeyConfigsControl={loginIDKeyConfigsControl}
+                onChangeLoginIDChecked={onChangeLoginIDChecked}
+                onSwapLoginID={onSwapLoginID}
+                onChangePrimaryAuthenticatorChecked={
+                  onChangePrimaryAuthenticatorChecked
+                }
+                onSwapPrimaryAuthenticator={onSwapPrimaryAuthenticator}
+              />
+            ) : null}
           </>
         ) : (
           <Widget className={styles.widget}>
