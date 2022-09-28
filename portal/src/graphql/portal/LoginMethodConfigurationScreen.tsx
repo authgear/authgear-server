@@ -13,6 +13,8 @@ import {
   useTheme,
   IButtonProps,
   FontIcon,
+  Checkbox,
+  ICheckboxProps,
 } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
@@ -24,6 +26,7 @@ import {
   PrimaryAuthenticatorType,
   LoginIDKeyConfig,
   LoginIDKeyType,
+  LoginIDEmailConfig,
 } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import ShowLoading from "../../ShowLoading";
@@ -45,6 +48,7 @@ import WidgetDescription from "../../WidgetDescription";
 import HorizontalDivider from "../../HorizontalDivider";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import PrimaryButton from "../../PrimaryButton";
+import CheckboxWithTooltip from "../../CheckboxWithTooltip";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
@@ -251,6 +255,7 @@ interface FormState {
   identitiesControl: ControlList<IdentityType>;
   primaryAuthenticatorsControl: ControlList<PrimaryAuthenticatorType>;
   loginIDKeyConfigsControl: ControlList<LoginIDKeyConfig>;
+  loginIDEmailConfig: Required<LoginIDEmailConfig>;
 }
 
 // eslint-disable-next-line complexity
@@ -555,6 +560,15 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
       LOGIN_ID_KEY_CONFIGS,
       loginIDKeyConfigs
     ),
+    loginIDEmailConfig: {
+      block_plus_sign: false,
+      case_sensitive: false,
+      ignore_dot_sign: false,
+      domain_blocklist_enabled: false,
+      domain_allowlist_enabled: false,
+      block_free_email_provider_domains: false,
+      ...config.identity?.login_id?.types?.email,
+    },
   };
   correctInitialFormState(state);
   return state;
@@ -570,6 +584,7 @@ function constructConfig(
     config.authentication ??= {};
     config.identity ??= {};
     config.identity.login_id ??= {};
+    config.identity.login_id.types ??= {};
 
     config.authentication.identities = controlListPreserve(
       (a, b) => a === b,
@@ -584,6 +599,7 @@ function constructConfig(
     config.identity.login_id.keys = controlListUnwrap(
       currentState.loginIDKeyConfigsControl
     );
+    config.identity.login_id.types.email = currentState.loginIDEmailConfig;
 
     clearEmptyObject(config);
   });
@@ -1210,6 +1226,142 @@ function CustomLoginMethods(props: CustomLoginMethodsProps) {
   );
 }
 
+function useEmailConfigCheckboxOnChange(
+  setState: AppConfigFormModel<FormState>["setState"],
+  key: keyof LoginIDEmailConfig
+): ICheckboxProps["onChange"] {
+  const onChange = useCallback(
+    (_e, checked) => {
+      if (checked == null) {
+        return;
+      }
+      setState((prev) =>
+        produce(prev, (prev) => {
+          prev.loginIDEmailConfig[key] = checked;
+        })
+      );
+    },
+    [key, setState]
+  );
+  return onChange;
+}
+
+interface EmailSettingsProps {
+  loginIDKeyConfigsControl: ControlList<LoginIDKeyConfig>;
+  loginIDEmailConfig: Required<LoginIDEmailConfig>;
+  setState: AppConfigFormModel<FormState>["setState"];
+}
+
+function EmailSettings(props: EmailSettingsProps) {
+  // FIXME: support modifying resources.
+  const { loginIDEmailConfig, loginIDKeyConfigsControl, setState } = props;
+  const [extended, setExtended] = useState(false);
+  const onToggleButtonClick = useCallback(() => {
+    setExtended((prev) => !prev);
+  }, []);
+  const { renderToString } = useContext(Context);
+  const onChangeCaseSensitive = useEmailConfigCheckboxOnChange(
+    setState,
+    "case_sensitive"
+  );
+  const onChangeIgnoreDotSign = useEmailConfigCheckboxOnChange(
+    setState,
+    "ignore_dot_sign"
+  );
+  const onChangeBlockPlusSign = useEmailConfigCheckboxOnChange(
+    setState,
+    "block_plus_sign"
+  );
+  const onChangeBlockFreeEmailProviderDomains = useCallback(
+    (_e, checked) => {
+      if (checked == null) {
+        return;
+      }
+      setState((prev) =>
+        produce(prev, (prev) => {
+          prev.loginIDEmailConfig.block_free_email_provider_domains = checked;
+          if (prev.loginIDEmailConfig.block_free_email_provider_domains) {
+            prev.loginIDEmailConfig.domain_allowlist_enabled = false;
+            prev.loginIDEmailConfig.domain_blocklist_enabled = true;
+          }
+        })
+      );
+    },
+    [setState]
+  );
+  const onChangeModifyDisabled = useCallback(
+    (_e, checked) => {
+      if (checked == null) {
+        return;
+      }
+      setState((prev) =>
+        produce(prev, (prev) => {
+          const c = prev.loginIDKeyConfigsControl.find(
+            (a) => a.value.type === "email"
+          );
+          if (c != null) {
+            c.value.modify_disabled = checked;
+          }
+        })
+      );
+    },
+    [setState]
+  );
+  return (
+    <Widget
+      className={styles.widget}
+      showToggleButton={true}
+      extended={extended}
+      onToggleButtonClick={onToggleButtonClick}
+      collapsedLayout="title-description"
+    >
+      <WidgetTitle>
+        <FormattedMessage id="LoginMethodConfigurationScreen.email.title" />
+      </WidgetTitle>
+      <WidgetDescription>
+        <FormattedMessage id="LoginMethodConfigurationScreen.email.description" />
+      </WidgetDescription>
+      <Checkbox
+        label={renderToString("LoginIDConfigurationScreen.email.caseSensitive")}
+        checked={loginIDEmailConfig.case_sensitive}
+        onChange={onChangeCaseSensitive}
+      />
+      <Checkbox
+        label={renderToString(
+          "LoginIDConfigurationScreen.email.ignoreDotLocal"
+        )}
+        checked={loginIDEmailConfig.ignore_dot_sign}
+        onChange={onChangeIgnoreDotSign}
+      />
+      <CheckboxWithTooltip
+        label={renderToString("LoginIDConfigurationScreen.email.blockPlus")}
+        checked={loginIDEmailConfig.block_plus_sign}
+        tooltipMessageId="LoginIDConfigurationScreen.email.blockPlusTooltipMessage"
+        onChange={onChangeBlockPlusSign}
+      />
+      <CheckboxWithTooltip
+        label={renderToString(
+          "LoginIDConfigurationScreen.email.blockFreeEmailProviderDomains"
+        )}
+        checked={loginIDEmailConfig.block_free_email_provider_domains}
+        disabled={loginIDEmailConfig.domain_allowlist_enabled}
+        tooltipMessageId="LoginIDConfigurationScreen.email.blockFreeEmailProviderDomainsTooltipMessage"
+        onChange={onChangeBlockFreeEmailProviderDomains}
+      />
+      <Checkbox
+        label={renderToString(
+          "LoginIDConfigurationScreen.email.modify-disabled"
+        )}
+        checked={
+          loginIDKeyConfigsControl.find((a) => a.value.type === "email")?.value
+            .modify_disabled ?? false
+        }
+        onChange={onChangeModifyDisabled}
+      />
+    </Widget>
+  );
+}
+
 interface LoginMethodConfigurationContentProps {
   appID: string;
   form: AppConfigFormModel<FormState>;
@@ -1222,7 +1374,12 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
     const { appID, featureConfig } = props;
     const { state, setState } = props.form;
 
-    const { primaryAuthenticatorsControl, loginIDKeyConfigsControl } = state;
+    const {
+      identitiesControl,
+      primaryAuthenticatorsControl,
+      loginIDKeyConfigsControl,
+      loginIDEmailConfig,
+    } = state;
 
     const [loginMethod, setLoginMethod] = useState(() =>
       loginMethodFromFormState(state)
@@ -1342,6 +1499,16 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
                   onChangePrimaryAuthenticatorChecked
                 }
                 onSwapPrimaryAuthenticator={onSwapPrimaryAuthenticator}
+              />
+            ) : null}
+            {identitiesControl.find((a) => a.value === "login_id")
+              ?.isChecked === true &&
+            loginIDKeyConfigsControl.find((a) => a.value.type === "email")
+              ?.isChecked === true ? (
+              <EmailSettings
+                loginIDKeyConfigsControl={loginIDKeyConfigsControl}
+                loginIDEmailConfig={loginIDEmailConfig}
+                setState={setState}
               />
             ) : null}
           </>
