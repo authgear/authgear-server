@@ -22,7 +22,7 @@ type OAuthSSOProviderCredentialsUpdateInstruction struct {
 	Data   []OAuthSSOProviderCredentialsUpdateInstructionDataItem `json:"data,omitempty"`
 }
 
-func (i *OAuthSSOProviderCredentialsUpdateInstruction) ApplyTo(currentConfig *SecretConfig) (*SecretConfig, error) {
+func (i *OAuthSSOProviderCredentialsUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error) {
 	switch i.Action {
 	case SecretUpdateInstructionActionSet:
 		return i.set(currentConfig)
@@ -85,7 +85,7 @@ type SMTPServerCredentialsUpdateInstruction struct {
 	Data   *SMTPServerCredentialsUpdateInstructionData `json:"data,omitempty"`
 }
 
-func (i *SMTPServerCredentialsUpdateInstruction) ApplyTo(currentConfig *SecretConfig) (*SecretConfig, error) {
+func (i *SMTPServerCredentialsUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error) {
 	switch i.Action {
 	case SecretUpdateInstructionActionSet:
 		return i.set(currentConfig)
@@ -148,19 +148,19 @@ type SecretConfigUpdateInstruction struct {
 	SMTPServerCredentialsUpdateInstruction       *SMTPServerCredentialsUpdateInstruction       `json:"smtpSecret,omitempty"`
 }
 
-func (i *SecretConfigUpdateInstruction) ApplyTo(currentConfig *SecretConfig) (*SecretConfig, error) {
+func (i *SecretConfigUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error) {
 	var err error
 	newConfig := currentConfig
 
 	if i.OAuthSSOProviderCredentialsUpdateInstruction != nil {
-		newConfig, err = i.OAuthSSOProviderCredentialsUpdateInstruction.ApplyTo(newConfig)
+		newConfig, err = i.OAuthSSOProviderCredentialsUpdateInstruction.ApplyTo(ctx, newConfig)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	if i.SMTPServerCredentialsUpdateInstruction != nil {
-		newConfig, err = i.SMTPServerCredentialsUpdateInstruction.ApplyTo(newConfig)
+		newConfig, err = i.SMTPServerCredentialsUpdateInstruction.ApplyTo(ctx, newConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -168,3 +168,11 @@ func (i *SecretConfigUpdateInstruction) ApplyTo(currentConfig *SecretConfig) (*S
 
 	return newConfig, nil
 }
+
+type SecretConfigUpdateInstructionInterface interface {
+	ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error)
+}
+
+var _ SecretConfigUpdateInstructionInterface = &SecretConfigUpdateInstruction{}
+var _ SecretConfigUpdateInstructionInterface = &OAuthSSOProviderCredentialsUpdateInstruction{}
+var _ SecretConfigUpdateInstructionInterface = &SMTPServerCredentialsUpdateInstruction{}

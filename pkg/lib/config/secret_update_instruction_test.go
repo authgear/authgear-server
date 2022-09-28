@@ -51,7 +51,8 @@ func TestSecretConfigUpdateInstruction(t *testing.T) {
 				err = json.Unmarshal([]byte(testCase.UpdateInstructionJSON), &updateInstruction)
 				So(err, ShouldBeNil)
 
-				actualNewSecretConfig, err := updateInstruction.ApplyTo(currentSecretConfig)
+				updateInstructionContext := &config.SecretConfigUpdateInstructionContext{}
+				actualNewSecretConfig, err := updateInstruction.ApplyTo(updateInstructionContext, currentSecretConfig)
 				if testCase.Error != nil {
 					So(err, ShouldBeError, *testCase.Error)
 				} else {

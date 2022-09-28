@@ -401,7 +401,8 @@ func (d AuthgearSecretYAMLDescriptor) UpdateResource(_ context.Context, _ []reso
 		return nil, fmt.Errorf("failed to parse secret config update instruction: %w", err)
 	}
 
-	updatedConfig, err := updateInstruction.ApplyTo(&original)
+	updateInstructionContext := &config.SecretConfigUpdateInstructionContext{}
+	updatedConfig, err := updateInstruction.ApplyTo(updateInstructionContext, &original)
 	if err != nil {
 		return nil, err
 	}
