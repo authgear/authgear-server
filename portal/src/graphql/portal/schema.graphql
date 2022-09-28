@@ -475,6 +475,15 @@ input OAuthSSOProviderClientSecretInput {
   clientSecret: String!
 }
 
+""""""
+input OAuthSSOProviderClientSecretsUpdateInstructionsInput {
+  """"""
+  action: String!
+
+  """"""
+  data: [OAuthSSOProviderClientSecretInput!]
+}
+
 """Information about pagination in a connection."""
 type PageInfo {
   """When paginating forwards, the cursor to continue."""
@@ -647,12 +656,12 @@ type SecretConfig {
 }
 
 """"""
-input SecretConfigInput {
+input SecretConfigUpdateInstructionsInput {
   """"""
-  oauthSSOProviderClientSecrets: [OAuthSSOProviderClientSecretInput!]
+  oauthSSOProviderClientSecrets: OAuthSSOProviderClientSecretsUpdateInstructionsInput
 
   """"""
-  smtpSecret: SMTPSecretInput
+  smtpSecret: SmtpSecretUpdateInstructionsInput
 }
 
 """"""
@@ -707,6 +716,15 @@ input SkipAppTutorialProgressInput {
 type SkipAppTutorialProgressPayload {
   """"""
   app: App!
+}
+
+""""""
+input SmtpSecretUpdateInstructionsInput {
+  """"""
+  action: String!
+
+  """"""
+  data: SMTPSecretInput
 }
 
 """"""
@@ -870,8 +888,8 @@ input UpdateAppInput {
   """App ID to update."""
   appID: ID!
 
-  """secrets to update."""
-  secretConfig: SecretConfigInput
+  """update secret config instructions."""
+  secretConfigUpdateInstructions: SecretConfigUpdateInstructionsInput
 
   """Resource file updates."""
   updates: [AppResourceUpdate!]
