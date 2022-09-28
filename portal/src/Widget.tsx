@@ -12,6 +12,7 @@ interface WidgetProps {
   showToggleButton?: boolean;
   toggleButtonDisabled?: boolean;
   onToggleButtonClick?: () => void;
+  collapsedLayout?: "title-only" | "title-description";
 }
 
 const ICON_PROPS: IIconProps = {
@@ -19,9 +20,10 @@ const ICON_PROPS: IIconProps = {
   className: styles.icon,
 };
 
-// 16px top padding + 32px icon button height + 16px bottom padding
-// WidgetTitle's line height is related to this value.
-const COLLAPSED_HEIGHT = 64;
+const COLLAPSED_HEIGHT: Record<"title-only" | "title-description", number> = {
+  "title-only": 64,
+  "title-description": 100,
+};
 
 const Widget: React.VFC<WidgetProps> = function Widget(props: WidgetProps) {
   const {
@@ -32,6 +34,7 @@ const Widget: React.VFC<WidgetProps> = function Widget(props: WidgetProps) {
     showToggleButton = false,
     toggleButtonDisabled = false,
     onToggleButtonClick,
+    collapsedLayout = "title-only",
   } = props;
   const [measuredHeight, setMeasureHeight] = useState<number | null>(null);
   const divRef = useRef<HTMLDivElement | null>(null);
@@ -77,7 +80,7 @@ const Widget: React.VFC<WidgetProps> = function Widget(props: WidgetProps) {
           ? measuredHeight == null
             ? undefined
             : `${measuredHeight}px`
-          : `${COLLAPSED_HEIGHT}px`,
+          : `${COLLAPSED_HEIGHT[collapsedLayout]}px`,
       }}
     >
       {/* The height of this div is stable. It will not change during expand/collapse */}
