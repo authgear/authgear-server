@@ -4,7 +4,7 @@ import { client } from "../../portal/apollo";
 import {
   PortalAPIApp,
   PortalAPIAppConfig,
-  PortalAPISecretConfig,
+  PortalAPISecretConfigUpdateInstruction,
 } from "../../../types";
 import {
   UpdateAppAndSecretConfigMutationMutation,
@@ -13,35 +13,10 @@ import {
 } from "./updateAppAndSecretMutation.generated";
 import { useGraphqlMutation } from "../../../hook/graphql";
 
-// sanitizeSecretConfig makes sure the return value does not contain fields like __typename.
-// The GraphQL runtime will complain about unknown fields.
-function sanitizeSecretConfig(
-  secretConfig: PortalAPISecretConfig
-): PortalAPISecretConfig {
-  return {
-    oauthSSOProviderClientSecrets:
-      secretConfig.oauthSSOProviderClientSecrets?.map((clientSecret) => {
-        return {
-          alias: clientSecret.alias,
-          clientSecret: clientSecret.clientSecret,
-        };
-      }) ?? null,
-    smtpSecret:
-      secretConfig.smtpSecret != null
-        ? {
-            host: secretConfig.smtpSecret.host,
-            port: secretConfig.smtpSecret.port,
-            username: secretConfig.smtpSecret.username,
-            password: secretConfig.smtpSecret.password,
-          }
-        : null,
-  };
-}
-
 export function useUpdateAppAndSecretConfigMutation(appID: string): {
   updateAppAndSecretConfig: (
     appConfig: PortalAPIAppConfig,
-    secretConfig: PortalAPISecretConfig
+    secretConfigUpdateInstructions?: PortalAPISecretConfigUpdateInstruction
   ) => Promise<PortalAPIApp | null>;
   loading: boolean;
   error: unknown;
@@ -54,13 +29,13 @@ export function useUpdateAppAndSecretConfigMutation(appID: string): {
   const updateAppAndSecretConfig = React.useCallback(
     async (
       appConfig: PortalAPIAppConfig,
-      secretConfig: PortalAPISecretConfig
+      secretConfigUpdateInstructions?: PortalAPISecretConfigUpdateInstruction
     ) => {
       const result = await mutationFunction({
         variables: {
           appID,
           appConfig: appConfig,
-          secretConfig: sanitizeSecretConfig(secretConfig),
+          secretConfigUpdateInstructions: secretConfigUpdateInstructions,
         },
       });
       return result.data?.updateApp.app ?? null;

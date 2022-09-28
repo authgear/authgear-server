@@ -518,6 +518,33 @@ export interface PortalAPISecretConfig {
   oauthClientSecrets?: OAuthClientSecret[] | null;
 }
 
+export interface OAuthSSOProviderClientSecretUpdateInstructionDataItem {
+  alias: string;
+  clientSecret: string;
+}
+
+export interface OAuthSSOProviderClientSecretUpdateInstruction {
+  action: string;
+  data?: OAuthSSOProviderClientSecretUpdateInstructionDataItem[] | null;
+}
+
+export interface SMTPSecretUpdateInstructionData {
+  host: string;
+  port: number;
+  username: string;
+  password: string | null;
+}
+
+export interface SMTPSecretUpdateInstruction {
+  action: string;
+  data?: SMTPSecretUpdateInstructionData | null;
+}
+
+export interface PortalAPISecretConfigUpdateInstruction {
+  oauthSSOProviderClientSecrets?: OAuthSSOProviderClientSecretUpdateInstruction | null;
+  smtpSecret?: SMTPSecretUpdateInstruction | null;
+}
+
 export interface PortalAPIApp {
   id: string;
   rawAppConfig?: PortalAPIAppConfig;
