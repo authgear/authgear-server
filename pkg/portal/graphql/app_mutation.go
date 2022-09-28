@@ -64,14 +64,38 @@ var smtpSecretInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	},
 })
 
-var secretConfigInput = graphql.NewInputObject(graphql.InputObjectConfig{
-	Name: "SecretConfigInput",
+var smtpSecretUpdateInstructionsInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SmtpSecretUpdateInstructionsInput",
 	Fields: graphql.InputObjectConfigFieldMap{
-		"oauthSSOProviderClientSecrets": &graphql.InputObjectFieldConfig{
+		"action": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"data": &graphql.InputObjectFieldConfig{
+			Type: smtpSecretInput,
+		},
+	},
+})
+
+var oauthSSOProviderClientSecretsUpdateInstructionsInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "OAuthSSOProviderClientSecretsUpdateInstructionsInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"action": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"data": &graphql.InputObjectFieldConfig{
 			Type: graphql.NewList(graphql.NewNonNull(oauthSSOProviderClientSecretInput)),
 		},
+	},
+})
+
+var secretConfigUpdateInstructionsInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SecretConfigUpdateInstructionsInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"oauthSSOProviderClientSecrets": &graphql.InputObjectFieldConfig{
+			Type: oauthSSOProviderClientSecretsUpdateInstructionsInput,
+		},
 		"smtpSecret": &graphql.InputObjectFieldConfig{
-			Type: smtpSecretInput,
+			Type: smtpSecretUpdateInstructionsInput,
 		},
 	},
 })
@@ -91,9 +115,9 @@ var updateAppInput = graphql.NewInputObject(graphql.InputObjectConfig{
 			Type:        AppConfig,
 			Description: "authgear.yaml in JSON.",
 		},
-		"secretConfig": &graphql.InputObjectFieldConfig{
-			Type:        secretConfigInput,
-			Description: "secrets to update.",
+		"secretConfigUpdateInstructions": &graphql.InputObjectFieldConfig{
+			Type:        secretConfigUpdateInstructionsInput,
+			Description: "update secret config instructions.",
 		},
 	},
 })
@@ -126,7 +150,7 @@ var _ = registerMutationField(
 			appNodeID := input["appID"].(string)
 			updates, _ := input["updates"].([]interface{})
 			appConfigJSONValue := input["appConfig"]
-			secretConfigJSONValue := input["secretConfig"]
+			secretConfigUpdateInstructionsJSONValue := input["secretConfigUpdateInstructions"]
 
 			resolvedNodeID := relay.FromGlobalID(appNodeID)
 			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
@@ -190,26 +214,15 @@ var _ = registerMutationField(
 			}
 
 			// Update authgear.secrets.yaml
-			if secretConfigJSONValue != nil {
-				secretConfigJSON, err := json.Marshal(secretConfigJSONValue)
-				if err != nil {
-					return nil, err
-				}
-
-				var structured model.SecretConfig
-				err = json.Unmarshal(secretConfigJSON, &structured)
-				if err != nil {
-					return nil, err
-				}
-
-				secretConfigYAML, err := structured.ToYAMLForUpdate(app.Context.Config.SecretConfig)
+			if secretConfigUpdateInstructionsJSONValue != nil {
+				secretConfigUpdateInstructionsJSON, err := json.Marshal(secretConfigUpdateInstructionsJSONValue)
 				if err != nil {
 					return nil, err
 				}
 
 				resourceUpdates = append(resourceUpdates, appresource.Update{
 					Path: configsource.AuthgearSecretYAML,
-					Data: secretConfigYAML,
+					Data: secretConfigUpdateInstructionsJSON,
 				})
 			}
 

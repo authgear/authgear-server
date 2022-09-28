@@ -2,6 +2,7 @@ package configsource
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
@@ -394,13 +395,17 @@ func (d AuthgearSecretYAMLDescriptor) UpdateResource(_ context.Context, _ []reso
 		return nil, fmt.Errorf("failed to parse original secret config: %w", err)
 	}
 
-	var incoming config.SecretConfig
-	err = yaml.Unmarshal(data, &incoming)
+	var updateInstruction config.SecretConfigUpdateInstruction
+	err = json.Unmarshal(data, &updateInstruction)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse incoming secret config: %w", err)
+		return nil, fmt.Errorf("failed to parse secret config update instruction: %w", err)
 	}
 
-	updatedConfig := original.UpdateWith(&incoming)
+	updatedConfig, err := updateInstruction.ApplyTo(&original)
+	if err != nil {
+		return nil, err
+	}
+
 	updatedYAML, err := yaml.Marshal(updatedConfig)
 	if err != nil {
 		return nil, err
