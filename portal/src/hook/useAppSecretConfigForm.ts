@@ -1,6 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
 import deepEqual from "deep-equal";
-import { PortalAPIAppConfig, PortalAPISecretConfig } from "../types";
+import {
+  PortalAPIAppConfig,
+  PortalAPISecretConfig,
+  PortalAPISecretConfigUpdateInstruction,
+} from "../types";
 import { useAppAndSecretConfigQuery } from "../graphql/portal/query/appAndSecretConfigQuery";
 import { useUpdateAppAndSecretConfigMutation } from "../graphql/portal/mutations/updateAppAndSecretMutation";
 
@@ -28,11 +32,15 @@ export type ConfigConstructor<State> = (
   currentState: State,
   effectiveConfig: PortalAPIAppConfig
 ) => [PortalAPIAppConfig, PortalAPISecretConfig];
+export type SecretUpdateInstructionConstructor = (
+  secrets: PortalAPISecretConfig
+) => PortalAPISecretConfigUpdateInstruction | undefined;
 
 export function useAppSecretConfigForm<State>(
   appID: string,
   constructState: StateConstructor<State>,
-  constructConfig: ConfigConstructor<State>
+  constructConfig: ConfigConstructor<State>,
+  constructSecretUpdateInstruction?: SecretUpdateInstructionConstructor
 ): AppSecretConfigFormModel<State> {
   const {
     loading: isLoading,
@@ -114,8 +122,12 @@ export function useAppSecretConfigForm<State>(
       effectiveConfig
     );
 
+    const secretUpdateInstruction = constructSecretUpdateInstruction
+      ? constructSecretUpdateInstruction(newConfig[1])
+      : undefined;
+
     try {
-      await updateConfig(newConfig[0], newConfig[1]);
+      await updateConfig(newConfig[0], secretUpdateInstruction);
       setCurrentState(null);
     } finally {
     }
@@ -123,6 +135,7 @@ export function useAppSecretConfigForm<State>(
     isDirty,
     isUpdating,
     constructConfig,
+    constructSecretUpdateInstruction,
     rawAppConfig,
     secrets,
     effectiveConfig,

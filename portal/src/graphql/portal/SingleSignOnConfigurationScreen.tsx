@@ -30,6 +30,7 @@ import {
   parseOAuthSSOProviderItemKey,
   PortalAPIAppConfig,
   PortalAPISecretConfig,
+  PortalAPISecretConfigUpdateInstruction,
 } from "../../types";
 import styles from "./SingleSignOnConfigurationScreen.module.css";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
@@ -142,6 +143,23 @@ function constructConfig(
 
     clearEmptyObject(config);
   });
+}
+
+function constructSecretUpdateInstruction(
+  secretConfig: PortalAPISecretConfig
+): PortalAPISecretConfigUpdateInstruction | undefined {
+  return {
+    oauthSSOProviderClientSecrets: {
+      action: "set",
+      data:
+        secretConfig.oauthSSOProviderClientSecrets?.map((s) => {
+          return {
+            alias: s.alias,
+            clientSecret: s.clientSecret,
+          };
+        }) ?? [],
+    },
+  };
 }
 
 function defaultAlias(
@@ -330,7 +348,8 @@ const SingleSignOnConfigurationScreen: React.VFC =
     const config = useAppSecretConfigForm(
       appID,
       constructFormState,
-      constructConfig
+      constructConfig,
+      constructSecretUpdateInstruction
     );
 
     const featureConfig = useAppFeatureConfigQuery(appID);

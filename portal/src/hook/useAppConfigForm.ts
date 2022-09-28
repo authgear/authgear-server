@@ -128,7 +128,7 @@ export function useAppConfigForm<State>(
     setIsUpdating(true);
     setUpdateError(null);
     try {
-      await updateConfig(newConfig, secretConfig);
+      await updateConfig(newConfig, undefined);
       setCurrentState(null);
       setIsSubmitted(true);
     } catch (e: unknown) {

@@ -30,7 +30,11 @@ import Widget from "../../Widget";
 import TextField from "../../TextField";
 import Toggle from "../../Toggle";
 import { startReauthentication } from "./Authenticated";
-import { PortalAPIAppConfig, PortalAPISecretConfig } from "../../types";
+import {
+  PortalAPIAppConfig,
+  PortalAPISecretConfig,
+  PortalAPISecretConfigUpdateInstruction,
+} from "../../types";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useViewerQuery } from "./query/viewerQuery";
 import {
@@ -107,6 +111,35 @@ function constructConfig(
     }
   });
   return [config, newSecrets];
+}
+
+function constructSecretUpdateInstruction(
+  secrets: PortalAPISecretConfig
+): PortalAPISecretConfigUpdateInstruction | undefined {
+  if (!secrets.smtpSecret) {
+    return {
+      smtpSecret: {
+        action: "unset",
+      },
+    };
+  }
+
+  // the password is masked, no change
+  if (!secrets.smtpSecret.password) {
+    return undefined;
+  }
+
+  return {
+    smtpSecret: {
+      action: "set",
+      data: {
+        host: secrets.smtpSecret.host,
+        port: secrets.smtpSecret.port,
+        username: secrets.smtpSecret.username,
+        password: secrets.smtpSecret.password,
+      },
+    },
+  };
 }
 
 interface ProviderCardProps {
@@ -614,7 +647,8 @@ const SMTPConfigurationScreen: React.VFC = function SMTPConfigurationScreen() {
   const form = useAppSecretConfigForm(
     appID,
     constructFormState,
-    constructConfig
+    constructConfig,
+    constructSecretUpdateInstruction
   );
 
   const sendTestEmailHandle = useSendTestEmailMutation(appID);
