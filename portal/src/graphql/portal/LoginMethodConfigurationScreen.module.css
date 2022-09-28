@@ -4,16 +4,9 @@
   @apply tablet:col-span-full;
 }
 
-.methodGroup {
+.widgetSubsection {
   @apply flex flex-col;
   @apply gap-y-3;
-}
-
-.methodGrid {
-  @apply grid grid-cols-2 auto-rows-auto;
-  @apply gap-x-4 gap-y-3;
-
-  @apply tablet:grid-cols-1;
 }
 
 .oauthLink {
@@ -34,4 +27,51 @@
 .methodButtonText {
   @apply flex flex-col;
   @apply gap-y-1;
+}
+
+.matrix {
+  @apply flex flex-col;
+  @apply gap-3;
+}
+
+.matrixColumns {
+  @apply flex flex-row;
+  @apply gap-4;
+  /* 308px is an observed height when there are 4 ChoiceButtons */
+  min-height: 308px;
+}
+
+.matrixColumn {
+  @apply flex flex-col;
+  @apply flex-1 min-w-0;
+  @apply gap-4;
+}
+
+.matrixAdd {
+  @apply self-center;
+}
+
+.matrixChoice {
+  @apply flex-1 min-h-0;
+}
+
+.matrixColumnNoChoice {
+  @apply flex flex-col;
+  @apply flex-1 min-w-0;
+  @apply items-center justify-center;
+}
+
+.matrixOrContainer {
+  @apply flex flex-row;
+  @apply items-center;
+  @apply gap-3;
+}
+
+.matrixOrDivider {
+  @apply flex-1 min-w-0;
+}
+
+.matrixConfirmButton {
+  @apply self-end;
+  @apply mt-3 mb-1;
 }
