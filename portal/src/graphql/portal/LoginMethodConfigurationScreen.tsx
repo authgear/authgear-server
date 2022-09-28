@@ -3,7 +3,6 @@ import React, {
   useMemo,
   useCallback,
   useState,
-  useEffect,
   useContext,
 } from "react";
 import cn from "classnames";
@@ -13,6 +12,7 @@ import {
   Text,
   useTheme,
   IButtonProps,
+  FontIcon,
 } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
@@ -33,7 +33,7 @@ import ScreenTitle from "../../ScreenTitle";
 import ScreenDescription from "../../ScreenDescription";
 import Widget from "../../Widget";
 import WidgetTitle from "../../WidgetTitle";
-import ChoiceButton, { ChoiceButtonProps } from "../../ChoiceButton";
+import ChoiceButton from "../../ChoiceButton";
 import Link from "../../Link";
 import {
   AppConfigFormModel,
@@ -69,6 +69,19 @@ const LOGIN_ID_KEY_CONFIGS: LoginIDKeyConfig[] = [
   { type: "phone" },
   { type: "username" },
 ];
+
+type LoginMethodPasswordlessLoginID = "email" | "phone" | "phone-email";
+type LoginMethodPasswordLoginID =
+  | "email"
+  | "phone"
+  | "phone-email"
+  | "username";
+
+type LoginMethod =
+  | `passwordless-${LoginMethodPasswordlessLoginID}`
+  | `password-${LoginMethodPasswordLoginID}`
+  | "oauth"
+  | "custom";
 
 interface ControlOf<T> {
   isChecked: boolean;
@@ -238,6 +251,137 @@ interface FormState {
   identitiesControl: ControlList<IdentityType>;
   primaryAuthenticatorsControl: ControlList<PrimaryAuthenticatorType>;
   loginIDKeyConfigsControl: ControlList<LoginIDKeyConfig>;
+}
+
+// eslint-disable-next-line complexity
+function loginMethodFromFormState(formState: FormState): LoginMethod {
+  const {
+    identitiesControl,
+    loginIDKeyConfigsControl,
+    primaryAuthenticatorsControl,
+  } = formState;
+
+  if (
+    loginIDIdentity(identitiesControl) &&
+    loginIDOf(["email"], loginIDKeyConfigsControl) &&
+    primaryAuthenticatorOf(["oob_otp_email"], primaryAuthenticatorsControl)
+  ) {
+    return "passwordless-email";
+  }
+
+  if (
+    loginIDIdentity(identitiesControl) &&
+    loginIDOf(["phone"], loginIDKeyConfigsControl) &&
+    primaryAuthenticatorOf(["oob_otp_sms"], primaryAuthenticatorsControl)
+  ) {
+    return "passwordless-phone";
+  }
+
+  if (
+    loginIDIdentity(identitiesControl) &&
+    // Order is important.
+    loginIDOf(["phone", "email"], loginIDKeyConfigsControl) &&
+    primaryAuthenticatorOf(
+      ["oob_otp_sms", "oob_otp_email"],
+      primaryAuthenticatorsControl
+    )
+  ) {
+    return "passwordless-phone-email";
+  }
+
+  if (
+    loginIDIdentity(identitiesControl) &&
+    loginIDOf(["email"], loginIDKeyConfigsControl) &&
+    primaryAuthenticatorOf(["password"], primaryAuthenticatorsControl)
+  ) {
+    return "password-email";
+  }
+
+  if (
+    loginIDIdentity(identitiesControl) &&
+    loginIDOf(["phone"], loginIDKeyConfigsControl) &&
+    primaryAuthenticatorOf(["password"], primaryAuthenticatorsControl)
+  ) {
+    return "password-phone";
+  }
+
+  if (
+    loginIDIdentity(identitiesControl) &&
+    // Order is important.
+    loginIDOf(["phone", "email"], loginIDKeyConfigsControl) &&
+    primaryAuthenticatorOf(["password"], primaryAuthenticatorsControl)
+  ) {
+    return "password-phone-email";
+  }
+
+  if (
+    loginIDIdentity(identitiesControl) &&
+    loginIDOf(["username"], loginIDKeyConfigsControl) &&
+    primaryAuthenticatorOf(["password"], primaryAuthenticatorsControl)
+  ) {
+    return "password-username";
+  }
+
+  if (
+    oauthIdentity(identitiesControl) &&
+    loginIDOf([], loginIDKeyConfigsControl) &&
+    primaryAuthenticatorOf([], primaryAuthenticatorsControl)
+  ) {
+    return "oauth";
+  }
+
+  return "custom";
+}
+
+function setLoginMethodToFormState(
+  formState: FormState,
+  loginMethod: LoginMethod
+) {
+  switch (loginMethod) {
+    case "passwordless-email":
+      setLoginIDIdentity(formState);
+      setLoginID(formState, ["email"]);
+      setPrimaryAuthenticator(formState, ["oob_otp_email"]);
+      break;
+    case "passwordless-phone":
+      setLoginIDIdentity(formState);
+      setLoginID(formState, ["phone"]);
+      setPrimaryAuthenticator(formState, ["oob_otp_sms"]);
+      break;
+    case "passwordless-phone-email":
+      setLoginIDIdentity(formState);
+      setLoginID(formState, ["phone", "email"]);
+      setPrimaryAuthenticator(formState, ["oob_otp_sms", "oob_otp_email"]);
+      break;
+    case "password-email":
+      setLoginIDIdentity(formState);
+      setLoginID(formState, ["email"]);
+      setPrimaryAuthenticator(formState, ["password"]);
+      break;
+    case "password-phone":
+      setLoginIDIdentity(formState);
+      setLoginID(formState, ["phone"]);
+      setPrimaryAuthenticator(formState, ["password"]);
+      break;
+    case "password-phone-email":
+      setLoginIDIdentity(formState);
+      setLoginID(formState, ["phone", "email"]);
+      setPrimaryAuthenticator(formState, ["password"]);
+      break;
+    case "password-username":
+      setLoginIDIdentity(formState);
+      setLoginID(formState, ["username"]);
+      setPrimaryAuthenticator(formState, ["password"]);
+      break;
+    case "oauth":
+      setOAuthIdentity(formState);
+      setLoginID(formState, []);
+      setPrimaryAuthenticator(formState, []);
+      break;
+    case "custom":
+      // No changes.
+      break;
+  }
 }
 
 // eslint-disable-next-line complexity
@@ -445,7 +589,7 @@ function constructConfig(
   });
 }
 
-interface MethodGroupTitleProps {
+interface WidgetSubtitleProps {
   children?: ReactNode;
 }
 
@@ -455,7 +599,7 @@ const FIELD_TITLE_STYLES = {
   },
 };
 
-function MethodGroupTitle(props: MethodGroupTitleProps) {
+function WidgetSubtitle(props: WidgetSubtitleProps) {
   const { children } = props;
   return (
     <Text as="h3" block={true} variant="medium" styles={FIELD_TITLE_STYLES}>
@@ -464,36 +608,25 @@ function MethodGroupTitle(props: MethodGroupTitleProps) {
   );
 }
 
-interface MethodGroupProps {
-  title?: ReactNode;
+interface WidgetSubsectionProps {
   children?: ReactNode;
 }
 
-function MethodGroup(props: MethodGroupProps) {
-  const { title, children } = props;
-  return (
-    <div className={styles.methodGroup}>
-      <MethodGroupTitle>{title}</MethodGroupTitle>
-      <div className={styles.methodGrid}>{children}</div>
-    </div>
-  );
+function WidgetSubsection(props: WidgetSubsectionProps) {
+  const { children } = props;
+  return <div className={styles.widgetSubsection}>{children}</div>;
 }
 
 interface MethodButtonProps {
-  checked: boolean;
   text?: ReactNode;
   secondaryText?: ReactNode;
   onClick?: IButtonProps["onClick"];
 }
 
 function MethodButton(props: MethodButtonProps) {
-  const { checked, text, secondaryText, onClick } = props;
+  const { text, secondaryText, onClick } = props;
   const theme = useTheme();
   const { themes } = useSystemConfig();
-
-  if (!checked) {
-    return null;
-  }
 
   return (
     <div
@@ -525,7 +658,7 @@ function MethodButton(props: MethodButtonProps) {
       <PrimaryButton
         theme={themes.inverted}
         text={
-          <FormattedMessage id="LoginMethodConfigurationScreen.method.change-method" />
+          <FormattedMessage id="LoginMethodConfigurationScreen.change-method" />
         }
         onClick={onClick}
       />
@@ -533,255 +666,336 @@ function MethodButton(props: MethodButtonProps) {
   );
 }
 
-interface MethodProps
-  extends Omit<MethodButtonProps, "text" | "secondaryText"> {}
+interface ChosenMethodProps {
+  loginMethod: LoginMethod;
+  onClick: MethodButtonProps["onClick"];
+}
 
-function MethodEmailPasswordless(props: MethodProps) {
+function ChosenMethod(props: ChosenMethodProps) {
+  const { loginMethod, onClick } = props;
+  const title = `LoginMethodConfigurationScreen.login-method.title.${loginMethod}`;
+  const description =
+    loginMethod === "custom"
+      ? undefined
+      : `LoginMethodConfigurationScreen.login-method.description.${loginMethod}`;
   return (
     <MethodButton
-      {...props}
-      text={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.choice.email.title" />
-      }
+      text={<FormattedMessage id={title} />}
       secondaryText={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.choice.email.description" />
+        description == null ? undefined : <FormattedMessage id={description} />
       }
+      onClick={onClick}
     />
   );
 }
 
-function MethodPhonePasswordless(props: MethodProps) {
+function MatrixAdd() {
+  return <FontIcon className={styles.matrixAdd} iconName="Add" />;
+}
+
+function MatrixOr() {
   return (
-    <MethodButton
-      {...props}
-      text={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.choice.phone.title" />
-      }
-      secondaryText={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.choice.phone.description" />
-      }
-    />
+    <div className={styles.matrixOrContainer}>
+      <HorizontalDivider className={styles.matrixOrDivider} />
+      <Text variant="medium">
+        <FormattedMessage id="LoginMethodConfigurationScreen.matrix.or" />
+      </Text>
+      <HorizontalDivider className={styles.matrixOrDivider} />
+    </div>
   );
 }
 
-function MethodPhoneEmailPasswordless(props: MethodProps) {
+function MatrixColumnNoChoice() {
+  const theme = useTheme();
   return (
-    <MethodButton
-      {...props}
-      text={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.choice.all.title" />
-      }
-      secondaryText={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.choice.all.description" />
-      }
-    />
+    <div className={styles.matrixColumnNoChoice}>
+      <Text
+        block={true}
+        variant="medium"
+        styles={{
+          root: {
+            color: theme.semanticColors.disabledBodyText,
+            fontWeight: "600",
+          },
+        }}
+      >
+        <FormattedMessage id="LoginMethodConfigurationScreen.matrix.no-login-id-choices" />
+      </Text>
+    </div>
   );
 }
 
-function MethodEmailPassword(props: MethodProps) {
+function MatrixColumnInapplicableChoice() {
+  const theme = useTheme();
   return (
-    <MethodButton
-      {...props}
-      text={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.email.title" />
-      }
-      secondaryText={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.email.description" />
-      }
-    />
+    <div
+      className={styles.matrixColumnNoChoice}
+      style={{
+        backgroundColor: theme.semanticColors.infoBackground,
+      }}
+    >
+      <Text
+        block={true}
+        variant="medium"
+        styles={{
+          root: {
+            color: theme.semanticColors.disabledBodyText,
+            fontWeight: "600",
+          },
+        }}
+      >
+        <FormattedMessage id="LoginMethodConfigurationScreen.matrix.inapplicable-login-id-choices" />
+      </Text>
+    </div>
   );
 }
 
-function MethodPhonePassword(props: MethodProps) {
-  return (
-    <MethodButton
-      {...props}
-      text={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.phone.title" />
-      }
-      secondaryText={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.phone.description" />
-      }
-    />
-  );
+interface MatrixColumnsProps {
+  children?: ReactNode;
 }
 
-function MethodPhoneEmailPassword(props: MethodProps) {
-  return (
-    <MethodButton
-      {...props}
-      text={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.no-username.title" />
-      }
-      secondaryText={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.no-username.description" />
-      }
-    />
-  );
+function MatrixColumns(props: MatrixColumnsProps) {
+  const { children } = props;
+  return <div className={styles.matrixColumns}>{children}</div>;
 }
 
-function MethodUsernamePassword(props: MethodProps) {
-  return (
-    <MethodButton
-      {...props}
-      text={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.username.title" />
-      }
-      secondaryText={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.username.description" />
-      }
-    />
-  );
+interface MatrixColumnProps {
+  children?: ReactNode;
 }
 
-function MethodOAuthOnly(props: MethodProps) {
-  return (
-    <MethodButton
-      {...props}
-      text={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.other.choice.oauth.title" />
-      }
-      secondaryText={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.other.choice.oauth.description" />
-      }
-    />
-  );
+function MatrixColumn(props: MatrixColumnProps) {
+  const { children } = props;
+  return <div className={styles.matrixColumn}>{children}</div>;
 }
 
-function MethodCustom(props: MethodProps) {
-  return (
-    <MethodButton
-      {...props}
-      text={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.other.choice.custom.title" />
-      }
-    />
-  );
+interface MatrixFirstLevelChoiceProps {
+  checked: boolean;
+  loginMethod: LoginMethod;
+  text: ReactNode;
+  secondaryText: ReactNode;
+  onClick?: (loginMethod: LoginMethod) => void;
 }
 
-interface ChoiceProps
-  extends Omit<ChoiceButtonProps, "text" | "secondaryText"> {}
-
-function ChoiceEmailPasswordless(props: ChoiceProps) {
+function MatrixFirstLevelChoice(props: MatrixFirstLevelChoiceProps) {
+  const {
+    checked,
+    loginMethod,
+    onClick: onClickProp,
+    text,
+    secondaryText,
+  } = props;
+  const onClick = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!checked) {
+        onClickProp?.(loginMethod);
+      }
+    },
+    [checked, onClickProp, loginMethod]
+  );
   return (
     <ChoiceButton
-      {...props}
-      text={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.choice.email.title" />
-      }
-      secondaryText={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.choice.email.description" />
-      }
+      className={styles.matrixChoice}
+      checked={checked}
+      text={text}
+      secondaryText={secondaryText}
+      onClick={onClick}
     />
   );
 }
 
-function ChoicePhonePasswordless(props: ChoiceProps) {
+interface MatrixSecondLevelChoiceProps {
+  className?: string;
+  currentValue: LoginMethod;
+  choiceValue: LoginMethod;
+  disabled?: boolean;
+  onClick?: (loginMethod: LoginMethod) => void;
+}
+
+function MatrixSecondLevelChoice(props: MatrixSecondLevelChoiceProps) {
+  const {
+    className,
+    currentValue,
+    choiceValue,
+    disabled,
+    onClick: onClickProp,
+  } = props;
+  const checked = currentValue === choiceValue;
+  const onClick = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (currentValue !== choiceValue) {
+        onClickProp?.(choiceValue);
+      }
+    },
+    [currentValue, choiceValue, onClickProp]
+  );
   return (
     <ChoiceButton
-      {...props}
+      className={className}
+      checked={checked}
+      disabled={disabled}
       text={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.choice.phone.title" />
+        <FormattedMessage
+          id={
+            "LoginMethodConfigurationScreen.matrix.login-method.title." +
+            choiceValue
+          }
+        />
       }
       secondaryText={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.choice.phone.description" />
+        choiceValue === "custom" ? undefined : (
+          <FormattedMessage
+            id={
+              "LoginMethodConfigurationScreen.login-method.description." +
+              choiceValue
+            }
+          />
+        )
       }
+      onClick={onClick}
     />
   );
 }
 
-function ChoicePhoneEmailPasswordless(props: ChoiceProps) {
-  return (
-    <ChoiceButton
-      {...props}
-      text={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.choice.all.title" />
-      }
-      secondaryText={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.choice.all.description" />
-      }
-    />
-  );
+interface MatrixProps {
+  loginMethod: LoginMethod;
+  phoneLoginIDDisabled: boolean;
+  onChangeLoginMethod: (loginMethod: LoginMethod) => void;
 }
 
-function ChoiceEmailPassword(props: ChoiceProps) {
-  return (
-    <ChoiceButton
-      {...props}
-      text={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.email.title" />
-      }
-      secondaryText={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.email.description" />
-      }
-    />
+function Matrix(props: MatrixProps) {
+  const { phoneLoginIDDisabled, onChangeLoginMethod } = props;
+  const [loginMethod, setLoginMethod] = useState(props.loginMethod);
+  const passwordlessChecked = useMemo(
+    () => loginMethod.startsWith("passwordless-"),
+    [loginMethod]
   );
-}
-
-function ChoicePhonePassword(props: ChoiceProps) {
-  return (
-    <ChoiceButton
-      {...props}
-      text={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.phone.title" />
-      }
-      secondaryText={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.phone.description" />
-      }
-    />
+  const passwordChecked = useMemo(
+    () => loginMethod.startsWith("password-"),
+    [loginMethod]
   );
-}
-
-function ChoicePhoneEmailPassword(props: ChoiceProps) {
-  return (
-    <ChoiceButton
-      {...props}
-      text={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.no-username.title" />
-      }
-      secondaryText={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.no-username.description" />
-      }
-    />
+  const oauthChecked = loginMethod === "oauth";
+  const onClick = useCallback((loginMethod) => {
+    setLoginMethod(loginMethod);
+  }, []);
+  const onClickConfirm = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onChangeLoginMethod(loginMethod);
+    },
+    [loginMethod, onChangeLoginMethod]
   );
-}
-
-function ChoiceUsernamePassword(props: ChoiceProps) {
   return (
-    <ChoiceButton
-      {...props}
-      text={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.username.title" />
-      }
-      secondaryText={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.password.choice.username.description" />
-      }
-    />
-  );
-}
-
-function ChoiceOAuthOnly(props: ChoiceProps) {
-  return (
-    <ChoiceButton
-      {...props}
-      text={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.other.choice.oauth.title" />
-      }
-      secondaryText={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.other.choice.oauth.description" />
-      }
-    />
-  );
-}
-
-function ChoiceCustom(props: ChoiceProps) {
-  return (
-    <ChoiceButton
-      {...props}
-      text={
-        <FormattedMessage id="LoginMethodConfigurationScreen.method.other.choice.custom.title" />
-      }
-    />
+    <div className={styles.matrix}>
+      <WidgetDescription>
+        <FormattedMessage id="LoginMethodConfigurationScreen.matrix.description" />
+      </WidgetDescription>
+      <MatrixColumns>
+        <MatrixColumn>
+          <MatrixFirstLevelChoice
+            checked={passwordlessChecked}
+            loginMethod="passwordless-email"
+            text={
+              <FormattedMessage id="LoginMethodConfigurationScreen.matrix.authenticator.title.passwordless" />
+            }
+            secondaryText={
+              <FormattedMessage id="LoginMethodConfigurationScreen.matrix.authenticator.description.passwordless" />
+            }
+            onClick={onClick}
+          />
+          <MatrixFirstLevelChoice
+            checked={passwordChecked}
+            loginMethod="password-email"
+            text={
+              <FormattedMessage id="LoginMethodConfigurationScreen.matrix.authenticator.title.password" />
+            }
+            secondaryText={
+              <FormattedMessage id="LoginMethodConfigurationScreen.matrix.authenticator.description.password" />
+            }
+            onClick={onClick}
+          />
+          <MatrixSecondLevelChoice
+            className={styles.matrixChoice}
+            currentValue={loginMethod}
+            choiceValue="oauth"
+            onClick={onClick}
+          />
+        </MatrixColumn>
+        <MatrixAdd />
+        {passwordlessChecked ? (
+          <MatrixColumn>
+            <MatrixSecondLevelChoice
+              className={styles.matrixChoice}
+              currentValue={loginMethod}
+              choiceValue={"passwordless-email"}
+              onClick={onClick}
+            />
+            <MatrixSecondLevelChoice
+              className={styles.matrixChoice}
+              currentValue={loginMethod}
+              choiceValue={"passwordless-phone"}
+              disabled={phoneLoginIDDisabled}
+              onClick={onClick}
+            />
+            <MatrixSecondLevelChoice
+              className={styles.matrixChoice}
+              currentValue={loginMethod}
+              choiceValue={"passwordless-phone-email"}
+              disabled={phoneLoginIDDisabled}
+              onClick={onClick}
+            />
+          </MatrixColumn>
+        ) : passwordChecked ? (
+          <MatrixColumn>
+            <MatrixSecondLevelChoice
+              className={styles.matrixChoice}
+              currentValue={loginMethod}
+              choiceValue={"password-email"}
+              onClick={onClick}
+            />
+            <MatrixSecondLevelChoice
+              className={styles.matrixChoice}
+              currentValue={loginMethod}
+              choiceValue={"password-phone"}
+              disabled={phoneLoginIDDisabled}
+              onClick={onClick}
+            />
+            <MatrixSecondLevelChoice
+              className={styles.matrixChoice}
+              currentValue={loginMethod}
+              choiceValue={"password-phone-email"}
+              disabled={phoneLoginIDDisabled}
+              onClick={onClick}
+            />
+            <MatrixSecondLevelChoice
+              className={styles.matrixChoice}
+              currentValue={loginMethod}
+              choiceValue={"password-username"}
+              onClick={onClick}
+            />
+          </MatrixColumn>
+        ) : oauthChecked ? (
+          <MatrixColumnNoChoice />
+        ) : (
+          <MatrixColumnInapplicableChoice />
+        )}
+      </MatrixColumns>
+      <MatrixOr />
+      <MatrixSecondLevelChoice
+        currentValue={loginMethod}
+        choiceValue="custom"
+        onClick={onClick}
+      />
+      <PrimaryButton
+        className={styles.matrixConfirmButton}
+        text={<FormattedMessage id="next" />}
+        onClick={onClickConfirm}
+      />
+    </div>
   );
 }
 
@@ -968,14 +1182,14 @@ function CustomLoginMethods(props: CustomLoginMethodsProps) {
       {phoneLoginIDDisabled ? (
         <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
       ) : null}
-      <div className={styles.methodGroup}>
-        <MethodGroupTitle>
+      <WidgetSubsection>
+        <WidgetSubtitle>
           <FormattedMessage id="LoginMethodConfigurationScreen.custom-login-methods.login-id.title" />
-        </MethodGroupTitle>
+        </WidgetSubtitle>
         <WidgetDescription>
           <FormattedMessage id="LoginMethodConfigurationScreen.custom-login-methods.login-id.description" />
         </WidgetDescription>
-      </div>
+      </WidgetSubsection>
       <PriorityList
         items={loginIDs}
         checkedColumnLabel={renderToString("activate")}
@@ -986,14 +1200,14 @@ function CustomLoginMethods(props: CustomLoginMethodsProps) {
         onSwap={onSwapLoginID}
       />
       <HorizontalDivider />
-      <div className={styles.methodGroup}>
-        <MethodGroupTitle>
+      <WidgetSubsection>
+        <WidgetSubtitle>
           <FormattedMessage id="LoginMethodConfigurationScreen.custom-login-methods.authenticator.title" />
-        </MethodGroupTitle>
+        </WidgetSubtitle>
         <WidgetDescription>
           <FormattedMessage id="LoginMethodConfigurationScreen.custom-login-methods.authenticator.description" />
         </WidgetDescription>
-      </div>
+      </WidgetSubsection>
       <PriorityList
         items={authenticators}
         checkedColumnLabel={renderToString("activate")}
@@ -1019,22 +1233,16 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
     const { appID, featureConfig } = props;
     const { state, setState } = props.form;
 
-    const {
-      identitiesControl,
-      primaryAuthenticatorsControl,
-      loginIDKeyConfigsControl,
-    } = state;
+    const { primaryAuthenticatorsControl, loginIDKeyConfigsControl } = state;
+
+    const [loginMethod, setLoginMethod] = useState(() =>
+      loginMethodFromFormState(state)
+    );
 
     const [isChoosingMethod, setIsChoosingMethod] = useState(false);
-    const [customChecked, setCustomChecked] = useState(false);
 
     const phoneLoginIDDisabled =
       featureConfig?.identity?.login_id?.types?.phone?.disabled ?? false;
-
-    const phonePasswordlessDisabled = phoneLoginIDDisabled;
-    const phoneEmailPasswordlessDisabled = phoneLoginIDDisabled;
-    const phonePasswordDisabled = phoneLoginIDDisabled;
-    const phoneEmailPasswordDisabled = phoneLoginIDDisabled;
 
     const onClickChooseLoginMethod = useCallback((e) => {
       e.preventDefault();
@@ -1042,244 +1250,13 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       setIsChoosingMethod(true);
     }, []);
 
-    const onCustomClick = useCallback((e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsChoosingMethod(false);
-      setCustomChecked(true);
-    }, []);
-
-    const emailPasswordlessChecked = useMemo(() => {
-      return (
-        loginIDIdentity(identitiesControl) &&
-        loginIDOf(["email"], loginIDKeyConfigsControl) &&
-        primaryAuthenticatorOf(["oob_otp_email"], primaryAuthenticatorsControl)
-      );
-    }, [
-      identitiesControl,
-      loginIDKeyConfigsControl,
-      primaryAuthenticatorsControl,
-    ]);
-
-    const onEmailPasswordlessClick = useCallback(
-      (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+    const onChangeLoginMethod = useCallback(
+      (loginMethod: LoginMethod) => {
         setIsChoosingMethod(false);
-        setCustomChecked(false);
+        setLoginMethod(loginMethod);
         setState((prev) =>
           produce(prev, (prev) => {
-            setLoginIDIdentity(prev);
-            setLoginID(prev, ["email"]);
-            setPrimaryAuthenticator(prev, ["oob_otp_email"]);
-          })
-        );
-      },
-      [setState]
-    );
-
-    const phonePasswordlessChecked = useMemo(() => {
-      return (
-        loginIDIdentity(identitiesControl) &&
-        loginIDOf(["phone"], loginIDKeyConfigsControl) &&
-        primaryAuthenticatorOf(["oob_otp_sms"], primaryAuthenticatorsControl)
-      );
-    }, [
-      identitiesControl,
-      loginIDKeyConfigsControl,
-      primaryAuthenticatorsControl,
-    ]);
-
-    const onPhonePasswordlessClick = useCallback(
-      (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsChoosingMethod(false);
-        setCustomChecked(false);
-        setState((prev) =>
-          produce(prev, (prev) => {
-            setLoginIDIdentity(prev);
-            setLoginID(prev, ["phone"]);
-            setPrimaryAuthenticator(prev, ["oob_otp_sms"]);
-          })
-        );
-      },
-      [setState]
-    );
-
-    const phoneEmailPasswordlessChecked = useMemo(() => {
-      return (
-        loginIDIdentity(identitiesControl) &&
-        // Order is important.
-        loginIDOf(["phone", "email"], loginIDKeyConfigsControl) &&
-        primaryAuthenticatorOf(
-          ["oob_otp_sms", "oob_otp_email"],
-          primaryAuthenticatorsControl
-        )
-      );
-    }, [
-      identitiesControl,
-      loginIDKeyConfigsControl,
-      primaryAuthenticatorsControl,
-    ]);
-
-    const onPhoneEmailPasswordlessClick = useCallback(
-      (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsChoosingMethod(false);
-        setCustomChecked(false);
-        setState((prev) =>
-          produce(prev, (prev) => {
-            setLoginIDIdentity(prev);
-            setLoginID(prev, ["phone", "email"]);
-            setPrimaryAuthenticator(prev, ["oob_otp_sms", "oob_otp_email"]);
-          })
-        );
-      },
-      [setState]
-    );
-
-    const emailPasswordChecked = useMemo(() => {
-      return (
-        loginIDIdentity(identitiesControl) &&
-        loginIDOf(["email"], loginIDKeyConfigsControl) &&
-        primaryAuthenticatorOf(["password"], primaryAuthenticatorsControl)
-      );
-    }, [
-      identitiesControl,
-      loginIDKeyConfigsControl,
-      primaryAuthenticatorsControl,
-    ]);
-
-    const onEmailPasswordClick = useCallback(
-      (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsChoosingMethod(false);
-        setCustomChecked(false);
-        setState((prev) =>
-          produce(prev, (prev) => {
-            setLoginIDIdentity(prev);
-            setLoginID(prev, ["email"]);
-            setPrimaryAuthenticator(prev, ["password"]);
-          })
-        );
-      },
-      [setState]
-    );
-
-    const phonePasswordChecked = useMemo(() => {
-      return (
-        loginIDIdentity(identitiesControl) &&
-        loginIDOf(["phone"], loginIDKeyConfigsControl) &&
-        primaryAuthenticatorOf(["password"], primaryAuthenticatorsControl)
-      );
-    }, [
-      identitiesControl,
-      loginIDKeyConfigsControl,
-      primaryAuthenticatorsControl,
-    ]);
-
-    const onPhonePasswordClick = useCallback(
-      (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsChoosingMethod(false);
-        setCustomChecked(false);
-        setState((prev) =>
-          produce(prev, (prev) => {
-            setLoginIDIdentity(prev);
-            setLoginID(prev, ["phone"]);
-            setPrimaryAuthenticator(prev, ["password"]);
-          })
-        );
-      },
-      [setState]
-    );
-
-    const phoneEmailPasswordChecked = useMemo(() => {
-      return (
-        loginIDIdentity(identitiesControl) &&
-        // Order is important.
-        loginIDOf(["phone", "email"], loginIDKeyConfigsControl) &&
-        primaryAuthenticatorOf(["password"], primaryAuthenticatorsControl)
-      );
-    }, [
-      identitiesControl,
-      loginIDKeyConfigsControl,
-      primaryAuthenticatorsControl,
-    ]);
-
-    const onPhoneEmailPasswordClick = useCallback(
-      (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsChoosingMethod(false);
-        setCustomChecked(false);
-        setState((prev) =>
-          produce(prev, (prev) => {
-            setLoginIDIdentity(prev);
-            setLoginID(prev, ["phone", "email"]);
-            setPrimaryAuthenticator(prev, ["password"]);
-          })
-        );
-      },
-      [setState]
-    );
-
-    const usernamePasswordChecked = useMemo(() => {
-      return (
-        loginIDIdentity(identitiesControl) &&
-        loginIDOf(["username"], loginIDKeyConfigsControl) &&
-        primaryAuthenticatorOf(["password"], primaryAuthenticatorsControl)
-      );
-    }, [
-      identitiesControl,
-      loginIDKeyConfigsControl,
-      primaryAuthenticatorsControl,
-    ]);
-
-    const onUsernamePasswordClick = useCallback(
-      (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsChoosingMethod(false);
-        setCustomChecked(false);
-        setState((prev) =>
-          produce(prev, (prev) => {
-            setLoginIDIdentity(prev);
-            setLoginID(prev, ["username"]);
-            setPrimaryAuthenticator(prev, ["password"]);
-          })
-        );
-      },
-      [setState]
-    );
-
-    const oauthOnlyChecked = useMemo(() => {
-      return (
-        oauthIdentity(identitiesControl) &&
-        loginIDOf([], loginIDKeyConfigsControl) &&
-        primaryAuthenticatorOf([], primaryAuthenticatorsControl)
-      );
-    }, [
-      identitiesControl,
-      loginIDKeyConfigsControl,
-      primaryAuthenticatorsControl,
-    ]);
-
-    const onOAuthOnlyClick = useCallback(
-      (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsChoosingMethod(false);
-        setCustomChecked(false);
-        setState((prev) =>
-          produce(prev, (prev) => {
-            setOAuthIdentity(prev);
-            setLoginID(prev, []);
-            setPrimaryAuthenticator(prev, []);
+            setLoginMethodToFormState(prev, loginMethod);
           })
         );
       },
@@ -1349,22 +1326,6 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       [setState]
     );
 
-    useEffect(() => {
-      if (
-        !emailPasswordlessChecked &&
-        !phonePasswordlessChecked &&
-        !phoneEmailPasswordlessChecked &&
-        !emailPasswordChecked &&
-        !phonePasswordChecked &&
-        !phoneEmailPasswordChecked &&
-        !usernamePasswordChecked &&
-        !oauthOnlyChecked
-      ) {
-        setCustomChecked(true);
-      }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
     return (
       <ScreenContent>
         <ScreenTitle className={styles.widget}>
@@ -1376,120 +1337,17 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
         <PasskeyAndOAuthHint appID={appID} />
         {!isChoosingMethod ? (
           <>
-            <MethodEmailPasswordless
-              checked={Boolean(!customChecked && emailPasswordlessChecked)}
+            <ChosenMethod
+              loginMethod={loginMethod}
               onClick={onClickChooseLoginMethod}
             />
-            <MethodPhonePasswordless
-              checked={Boolean(!customChecked && phonePasswordlessChecked)}
-              onClick={onClickChooseLoginMethod}
-            />
-            <MethodPhoneEmailPasswordless
-              checked={Boolean(!customChecked && phoneEmailPasswordlessChecked)}
-              onClick={onClickChooseLoginMethod}
-            />
-            <MethodEmailPassword
-              checked={Boolean(!customChecked && emailPasswordChecked)}
-              onClick={onClickChooseLoginMethod}
-            />
-            <MethodPhonePassword
-              checked={Boolean(!customChecked && phonePasswordChecked)}
-              onClick={onClickChooseLoginMethod}
-            />
-            <MethodPhoneEmailPassword
-              checked={Boolean(!customChecked && phoneEmailPasswordChecked)}
-              onClick={onClickChooseLoginMethod}
-            />
-            <MethodUsernamePassword
-              checked={Boolean(!customChecked && usernamePasswordChecked)}
-              onClick={onClickChooseLoginMethod}
-            />
-            <MethodOAuthOnly
-              checked={Boolean(!customChecked && oauthOnlyChecked)}
-              onClick={onClickChooseLoginMethod}
-            />
-            <MethodCustom
-              checked={customChecked}
-              onClick={onClickChooseLoginMethod}
-            />
-          </>
-        ) : null}
-        {isChoosingMethod ? (
-          <Widget className={styles.widget}>
-            <WidgetTitle>
-              <FormattedMessage id="LoginMethodConfigurationScreen.method.title" />
-            </WidgetTitle>
-            {phoneLoginIDDisabled ? (
-              <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
-            ) : null}
-            <MethodGroup
-              title={
-                <FormattedMessage id="LoginMethodConfigurationScreen.method.passwordless.title" />
-              }
-            >
-              <ChoiceEmailPasswordless
-                checked={Boolean(!customChecked && emailPasswordlessChecked)}
-                onClick={onEmailPasswordlessClick}
-              />
-              <ChoicePhonePasswordless
-                checked={Boolean(!customChecked && phonePasswordlessChecked)}
-                disabled={phonePasswordlessDisabled}
-                onClick={onPhonePasswordlessClick}
-              />
-              <ChoicePhoneEmailPasswordless
-                checked={Boolean(
-                  !customChecked && phoneEmailPasswordlessChecked
-                )}
-                disabled={phoneEmailPasswordlessDisabled}
-                onClick={onPhoneEmailPasswordlessClick}
-              />
-            </MethodGroup>
-            <MethodGroup
-              title={
-                <FormattedMessage id="LoginMethodConfigurationScreen.method.password.title" />
-              }
-            >
-              <ChoiceEmailPassword
-                checked={Boolean(!customChecked && emailPasswordChecked)}
-                onClick={onEmailPasswordClick}
-              />
-              <ChoicePhonePassword
-                checked={Boolean(!customChecked && phonePasswordChecked)}
-                disabled={phonePasswordDisabled}
-                onClick={onPhonePasswordClick}
-              />
-              <ChoicePhoneEmailPassword
-                checked={Boolean(!customChecked && phoneEmailPasswordChecked)}
-                disabled={phoneEmailPasswordDisabled}
-                onClick={onPhoneEmailPasswordClick}
-              />
-              <ChoiceUsernamePassword
-                checked={Boolean(!customChecked && usernamePasswordChecked)}
-                onClick={onUsernamePasswordClick}
-              />
-            </MethodGroup>
-            <MethodGroup
-              title={
-                <FormattedMessage id="LoginMethodConfigurationScreen.method.other.title" />
-              }
-            >
-              <ChoiceOAuthOnly
-                checked={Boolean(!customChecked && oauthOnlyChecked)}
-                onClick={onOAuthOnlyClick}
-              />
-              <ChoiceCustom checked={customChecked} onClick={onCustomClick} />
-            </MethodGroup>
-          </Widget>
-        ) : null}
-        {!isChoosingMethod ? (
-          <>
             <LinkToOAuth
               appID={appID}
-              oauthOnlyChecked={Boolean(!customChecked && oauthOnlyChecked)}
+              oauthOnlyChecked={loginMethod === "oauth"}
             />
             <CustomLoginMethods
+              customChecked={loginMethod === "custom"}
               phoneLoginIDDisabled={phoneLoginIDDisabled}
-              customChecked={customChecked}
               primaryAuthenticatorsControl={primaryAuthenticatorsControl}
               loginIDKeyConfigsControl={loginIDKeyConfigsControl}
               onChangeLoginIDChecked={onChangeLoginIDChecked}
@@ -1500,7 +1358,18 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
               onSwapPrimaryAuthenticator={onSwapPrimaryAuthenticator}
             />
           </>
-        ) : null}
+        ) : (
+          <Widget className={styles.widget}>
+            {phoneLoginIDDisabled ? (
+              <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
+            ) : null}
+            <Matrix
+              loginMethod={loginMethod}
+              onChangeLoginMethod={onChangeLoginMethod}
+              phoneLoginIDDisabled={phoneLoginIDDisabled}
+            />
+          </Widget>
+        )}
       </ScreenContent>
     );
   };
