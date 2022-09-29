@@ -25,6 +25,13 @@ export default function ChoiceButton(props: ChoiceButtonProps): ReactElement {
       minHeight: "0",
     },
     rootChecked: {
+      // Double the border width VISUALLY to make checked ChoiceButton more prominent.
+      // Note that we cannot simply double border-width because border-width is part of
+      // the border-box so it affects layout.
+      outlineColor: originalTheme.palette.themePrimary,
+      outlineStyle: "solid",
+      outlineWidth: "1px",
+
       borderColor: originalTheme.palette.themePrimary,
       backgroundColor: originalTheme.semanticColors.buttonBackground,
     },
