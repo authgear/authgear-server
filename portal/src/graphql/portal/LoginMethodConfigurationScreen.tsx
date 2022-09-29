@@ -26,6 +26,7 @@ import {
   LoginIDKeyConfig,
   LoginIDKeyType,
   LoginIDEmailConfig,
+  LoginIDUsernameConfig,
   PhoneInputConfig,
 } from "../../types";
 import {
@@ -335,6 +336,7 @@ interface ConfigFormState {
   primaryAuthenticatorsControl: ControlList<PrimaryAuthenticatorType>;
   loginIDKeyConfigsControl: ControlList<LoginIDKeyConfig>;
   loginIDEmailConfig: Required<LoginIDEmailConfig>;
+  loginIDUsernameConfig: Required<LoginIDUsernameConfig>;
   phoneInputConfig: Required<PhoneInputConfig>;
 }
 
@@ -671,6 +673,13 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
       block_free_email_provider_domains: false,
       ...config.identity?.login_id?.types?.email,
     },
+    loginIDUsernameConfig: {
+      block_reserved_usernames: true,
+      exclude_keywords_enabled: false,
+      ascii_only: true,
+      case_sensitive: false,
+      ...config.identity?.login_id?.types?.username,
+    },
     phoneInputConfig: {
       allowlist: [],
       pinned_list: [],
@@ -710,6 +719,8 @@ function constructConfig(
     );
     config.identity.login_id.types.email = currentState.loginIDEmailConfig;
     config.ui.phone_input = currentState.phoneInputConfig;
+    config.identity.login_id.types.username =
+      currentState.loginIDUsernameConfig;
 
     clearEmptyObject(config);
   });
@@ -1393,6 +1404,30 @@ function useUpdateLinesValue(
   );
 }
 
+function useOnChangeModifyDisabled(
+  setState: FormModel["setState"],
+  typ: LoginIDKeyType
+) {
+  return useCallback(
+    (_e, checked) => {
+      if (checked == null) {
+        return;
+      }
+      setState((prev) =>
+        produce(prev, (prev) => {
+          const c = prev.loginIDKeyConfigsControl.find(
+            (a) => a.value.type === typ
+          );
+          if (c != null) {
+            c.value.modify_disabled = checked;
+          }
+        })
+      );
+    },
+    [setState, typ]
+  );
+}
+
 interface EmailSettingsProps {
   resources: Partial<Record<string, Resource>>;
   loginIDKeyConfigsControl: ControlList<LoginIDKeyConfig>;
@@ -1495,24 +1530,7 @@ function EmailSettings(props: EmailSettingsProps) {
     [setState]
   );
 
-  const onChangeModifyDisabled = useCallback(
-    (_e, checked) => {
-      if (checked == null) {
-        return;
-      }
-      setState((prev) =>
-        produce(prev, (prev) => {
-          const c = prev.loginIDKeyConfigsControl.find(
-            (a) => a.value.type === "email"
-          );
-          if (c != null) {
-            c.value.modify_disabled = checked;
-          }
-        })
-      );
-    },
-    [setState]
-  );
+  const onChangeModifyDisabled = useOnChangeModifyDisabled(setState, "email");
 
   return (
     <Widget
@@ -1563,7 +1581,6 @@ function EmailSettings(props: EmailSettingsProps) {
               "LoginIDConfigurationScreen.email.domainBlocklist"
             ),
           }}
-          className={styles.widgetInputField}
           disabled={!loginIDEmailConfig.domain_blocklist_enabled}
           selectedItems={blocklist}
           onChange={onChangeBlocklist}
@@ -1597,7 +1614,6 @@ function EmailSettings(props: EmailSettingsProps) {
               "LoginIDConfigurationScreen.email.domainAllowlist"
             ),
           }}
-          className={styles.widgetInputField}
           disabled={!loginIDEmailConfig.domain_allowlist_enabled}
           selectedItems={allowlist}
           onChange={onChangeAllowlist}
@@ -1659,24 +1675,7 @@ function PhoneSettings(props: PhoneSettingsProps) {
     [setState]
   );
 
-  const onChangeModifyDisabled = useCallback(
-    (_e, checked) => {
-      if (checked == null) {
-        return;
-      }
-      setState((prev) =>
-        produce(prev, (prev) => {
-          const c = prev.loginIDKeyConfigsControl.find(
-            (a) => a.value.type === "phone"
-          );
-          if (c != null) {
-            c.value.modify_disabled = checked;
-          }
-        })
-      );
-    },
-    [setState]
-  );
+  const onChangeModifyDisabled = useOnChangeModifyDisabled(setState, "phone");
 
   return (
     <Widget
@@ -1719,6 +1718,150 @@ function PhoneSettings(props: PhoneSettingsProps) {
   );
 }
 
+function useUsernameConfigCheckboxOnChange(
+  setState: AppConfigFormModel<FormState>["setState"],
+  key: keyof LoginIDUsernameConfig
+): ICheckboxProps["onChange"] {
+  const onChange = useCallback(
+    (_e, checked) => {
+      if (checked == null) {
+        return;
+      }
+      setState((prev) =>
+        produce(prev, (prev) => {
+          prev.loginIDUsernameConfig[key] = checked;
+        })
+      );
+    },
+    [key, setState]
+  );
+  return onChange;
+}
+
+interface UsernameSettingsProps {
+  resources: Partial<Record<string, Resource>>;
+  loginIDKeyConfigsControl: ControlList<LoginIDKeyConfig>;
+  loginIDUsernameConfig: Required<LoginIDUsernameConfig>;
+  setState: AppConfigFormModel<FormState>["setState"];
+}
+
+function UsernameSettings(props: UsernameSettingsProps) {
+  const {
+    loginIDUsernameConfig,
+    loginIDKeyConfigsControl,
+    resources,
+    setState,
+  } = props;
+  const [extended, setExtended] = useState(false);
+  const onToggleButtonClick = useCallback(() => {
+    setExtended((prev) => !prev);
+  }, []);
+  const { renderToString } = useContext(Context);
+
+  const onChangeBlockReservedUsernames = useUsernameConfigCheckboxOnChange(
+    setState,
+    "block_reserved_usernames"
+  );
+
+  const onChangeExcludeKeywordsEnabled = useUsernameConfigCheckboxOnChange(
+    setState,
+    "exclude_keywords_enabled"
+  );
+  const {
+    selectedItems: excludedKeywords,
+    onChange: onChangeExcludedKeywords,
+    onResolveSuggestions: onResolveSuggestionsExcludedKeywords,
+    onAdd: onAddExcludedKeywords,
+  } = useTagPickerWithNewTags(
+    useLinesValue(resources, usernameExcludeKeywordsTXTSpecifier),
+    useUpdateLinesValue(setState, usernameExcludeKeywordsTXTSpecifier)
+  );
+
+  const onChangeCaseSensitive = useUsernameConfigCheckboxOnChange(
+    setState,
+    "case_sensitive"
+  );
+
+  const onChangeASCIIOnly = useUsernameConfigCheckboxOnChange(
+    setState,
+    "ascii_only"
+  );
+
+  const onChangeModifyDisabled = useOnChangeModifyDisabled(
+    setState,
+    "username"
+  );
+
+  return (
+    <Widget
+      className={styles.widget}
+      showToggleButton={true}
+      extended={extended}
+      onToggleButtonClick={onToggleButtonClick}
+      collapsedLayout="title-description"
+    >
+      <WidgetTitle>
+        <FormattedMessage id="LoginMethodConfigurationScreen.username.title" />
+      </WidgetTitle>
+      <WidgetDescription>
+        <FormattedMessage id="LoginMethodConfigurationScreen.username.description" />
+      </WidgetDescription>
+      <Checkbox
+        label={renderToString(
+          "LoginIDConfigurationScreen.username.blockReservedUsername"
+        )}
+        checked={loginIDUsernameConfig.block_reserved_usernames}
+        onChange={onChangeBlockReservedUsernames}
+      />
+      <CheckboxWithContentLayout>
+        <CheckboxWithTooltip
+          label={renderToString(
+            "LoginIDConfigurationScreen.username.excludeKeywords"
+          )}
+          checked={loginIDUsernameConfig.exclude_keywords_enabled}
+          onChange={onChangeExcludeKeywordsEnabled}
+          tooltipMessageId="LoginIDConfigurationScreen.username.excludeKeywordsTooltipMessage"
+        />
+        <CustomTagPicker
+          styles={fixTagPickerStyles}
+          inputProps={{
+            "aria-label": renderToString(
+              "LoginIDConfigurationScreen.username.excludeKeywords"
+            ),
+          }}
+          disabled={!loginIDUsernameConfig.exclude_keywords_enabled}
+          selectedItems={excludedKeywords}
+          onChange={onChangeExcludedKeywords}
+          onResolveSuggestions={onResolveSuggestionsExcludedKeywords}
+          onAdd={onAddExcludedKeywords}
+        />
+      </CheckboxWithContentLayout>
+      <Checkbox
+        label={renderToString(
+          "LoginIDConfigurationScreen.username.caseSensitive"
+        )}
+        checked={loginIDUsernameConfig.case_sensitive}
+        onChange={onChangeCaseSensitive}
+      />
+      <Checkbox
+        label={renderToString("LoginIDConfigurationScreen.username.asciiOnly")}
+        checked={loginIDUsernameConfig.ascii_only}
+        onChange={onChangeASCIIOnly}
+      />
+      <Checkbox
+        label={renderToString(
+          "LoginIDConfigurationScreen.username.modify-disabled"
+        )}
+        checked={
+          loginIDKeyConfigsControl.find((a) => a.value.type === "username")
+            ?.value.modify_disabled ?? false
+        }
+        onChange={onChangeModifyDisabled}
+      />
+    </Widget>
+  );
+}
+
 interface LoginMethodConfigurationContentProps {
   appID: string;
   form: FormModel;
@@ -1735,6 +1878,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       primaryAuthenticatorsControl,
       loginIDKeyConfigsControl,
       loginIDEmailConfig,
+      loginIDUsernameConfig,
       phoneInputConfig,
 
       phoneLoginIDDisabled,
@@ -1761,6 +1905,14 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
         identitiesControl.find((a) => a.value === "login_id")?.isChecked ===
           true &&
         loginIDKeyConfigsControl.find((a) => a.value.type === "phone")
+          ?.isChecked === true,
+      [identitiesControl, loginIDKeyConfigsControl]
+    );
+    const showUsernameSettings = useMemo(
+      () =>
+        identitiesControl.find((a) => a.value === "login_id")?.isChecked ===
+          true &&
+        loginIDKeyConfigsControl.find((a) => a.value.type === "username")
           ?.isChecked === true,
       [identitiesControl, loginIDKeyConfigsControl]
     );
@@ -1888,6 +2040,14 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
               <PhoneSettings
                 loginIDKeyConfigsControl={loginIDKeyConfigsControl}
                 phoneInputConfig={phoneInputConfig}
+                setState={setState}
+              />
+            ) : null}
+            {showUsernameSettings ? (
+              <UsernameSettings
+                resources={resources}
+                loginIDKeyConfigsControl={loginIDKeyConfigsControl}
+                loginIDUsernameConfig={loginIDUsernameConfig}
                 setState={setState}
               />
             ) : null}
