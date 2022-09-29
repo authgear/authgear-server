@@ -1298,6 +1298,8 @@
   "LoginMethodConfigurationScreen.phone.description": "Set the rules of phone number format.",
   "LoginMethodConfigurationScreen.username.title": "Username Settings",
   "LoginMethodConfigurationScreen.username.description": "Set the rules of username format.",
+  "LoginMethodConfigurationScreen.verification.title": "Verification and OTP Settings",
+  "LoginMethodConfigurationScreen.verification.description": "Configure how a user should be verified",
 
   "LoginIDKeyType.email": "Email address",
   "LoginIDKeyType.phone": "Phone number",

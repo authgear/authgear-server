@@ -28,6 +28,7 @@ import {
   LoginIDEmailConfig,
   LoginIDUsernameConfig,
   PhoneInputConfig,
+  VerificationConfig,
 } from "../../types";
 import {
   DEFAULT_TEMPLATE_LOCALE,
@@ -64,6 +65,7 @@ import PrimaryButton from "../../PrimaryButton";
 import CheckboxWithTooltip from "../../CheckboxWithTooltip";
 import CheckboxWithContentLayout from "../../CheckboxWithContentLayout";
 import CustomTagPicker from "../../CustomTagPicker";
+import TextField from "../../TextField";
 import PhoneInputListWidget from "./PhoneInputListWidget";
 import { useTagPickerWithNewTags } from "../../hook/useInput";
 import { fixTagPickerStyles } from "../../bugs";
@@ -72,6 +74,7 @@ import { useResourceForm } from "../../hook/useResourceForm";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
 import styles from "./LoginMethodConfigurationScreen.module.css";
+import { parseIntegerAllowLeadingZeros } from "../../util/input";
 
 function splitByNewline(text: string): string[] {
   return text
@@ -338,6 +341,7 @@ interface ConfigFormState {
   loginIDEmailConfig: Required<LoginIDEmailConfig>;
   loginIDUsernameConfig: Required<LoginIDUsernameConfig>;
   phoneInputConfig: Required<PhoneInputConfig>;
+  verificationConfig: VerificationConfig;
 }
 
 interface FeatureConfigFormState {
@@ -686,6 +690,9 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
       preselect_by_ip_disabled: false,
       ...config.ui?.phone_input,
     },
+    verificationConfig: {
+      ...config.verification,
+    },
   };
   correctInitialFormState(state);
   return state;
@@ -721,6 +728,7 @@ function constructConfig(
     config.ui.phone_input = currentState.phoneInputConfig;
     config.identity.login_id.types.username =
       currentState.loginIDUsernameConfig;
+    config.verification = currentState.verificationConfig;
 
     clearEmptyObject(config);
   });
@@ -1862,6 +1870,57 @@ function UsernameSettings(props: UsernameSettingsProps) {
   );
 }
 
+interface VerificationSettingsProps {
+  verificationConfig: VerificationConfig;
+  setState: FormModel["setState"];
+}
+
+function VerificationSettings(props: VerificationSettingsProps) {
+  const { verificationConfig, setState } = props;
+  const [extended, setExtended] = useState(false);
+  const onToggleButtonClick = useCallback(() => {
+    setExtended((prev) => !prev);
+  }, []);
+
+  const onChangeCodeExpirySeconds = useCallback(
+    (_, value) => {
+      setState((prev) =>
+        produce(prev, (prev) => {
+          prev.verificationConfig.code_expiry_seconds =
+            parseIntegerAllowLeadingZeros(value);
+        })
+      );
+    },
+    [setState]
+  );
+
+  const { renderToString } = useContext(Context);
+  return (
+    <Widget
+      className={styles.widget}
+      showToggleButton={true}
+      extended={extended}
+      onToggleButtonClick={onToggleButtonClick}
+      collapsedLayout="title-description"
+    >
+      <WidgetTitle>
+        <FormattedMessage id="LoginMethodConfigurationScreen.verification.title" />
+      </WidgetTitle>
+      <WidgetDescription>
+        <FormattedMessage id="LoginMethodConfigurationScreen.verification.description" />
+      </WidgetDescription>
+      <TextField
+        type="text"
+        label={renderToString(
+          "VerificationConfigurationScreen.code-expiry-seconds.label"
+        )}
+        value={verificationConfig.code_expiry_seconds?.toFixed(0) ?? ""}
+        onChange={onChangeCodeExpirySeconds}
+      />
+    </Widget>
+  );
+}
+
 interface LoginMethodConfigurationContentProps {
   appID: string;
   form: FormModel;
@@ -1880,6 +1939,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       loginIDEmailConfig,
       loginIDUsernameConfig,
       phoneInputConfig,
+      verificationConfig,
 
       phoneLoginIDDisabled,
 
@@ -1916,6 +1976,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
           ?.isChecked === true,
       [identitiesControl, loginIDKeyConfigsControl]
     );
+    const showVerificationSettings = showEmailSettings || showPhoneSettings;
 
     const onClickChooseLoginMethod = useCallback((e) => {
       e.preventDefault();
@@ -2048,6 +2109,12 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
                 resources={resources}
                 loginIDKeyConfigsControl={loginIDKeyConfigsControl}
                 loginIDUsernameConfig={loginIDUsernameConfig}
+                setState={setState}
+              />
+            ) : null}
+            {showVerificationSettings ? (
+              <VerificationSettings
+                verificationConfig={verificationConfig}
                 setState={setState}
               />
             ) : null}
