@@ -18,8 +18,8 @@ export default function HorizontalDivider(
     <hr
       className={cn(styles.root, className)}
       style={{
-        borderTopColor: theme.palette.neutralTertiaryAlt,
-        backgroundColor: theme.palette.neutralTertiaryAlt,
+        borderTopColor: theme.palette.neutralLight,
+        backgroundColor: theme.palette.neutralLight,
       }}
     />
   );
