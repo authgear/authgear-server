@@ -1330,6 +1330,8 @@
   "LoginMethodConfigurationScreen.custom-login-methods.authenticator.description": "Configure how your users can authenticate themselves. The order will affect when both options are available, which one will show up first.",
   "LoginMethodConfigurationScreen.email.title": "Email Address Settings",
   "LoginMethodConfigurationScreen.email.description": "Set the rules of email address format.",
+  "LoginMethodConfigurationScreen.phone.title": "Phone Number Settings",
+  "LoginMethodConfigurationScreen.phone.description": "Set the rules of phone number format.",
 
   "LoginIDKeyType.email": "Email address",
   "LoginIDKeyType.phone": "Phone number",

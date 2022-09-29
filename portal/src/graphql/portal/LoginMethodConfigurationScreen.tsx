@@ -26,6 +26,7 @@ import {
   LoginIDKeyConfig,
   LoginIDKeyType,
   LoginIDEmailConfig,
+  PhoneInputConfig,
 } from "../../types";
 import {
   DEFAULT_TEMPLATE_LOCALE,
@@ -62,6 +63,7 @@ import PrimaryButton from "../../PrimaryButton";
 import CheckboxWithTooltip from "../../CheckboxWithTooltip";
 import CheckboxWithContentLayout from "../../CheckboxWithContentLayout";
 import CustomTagPicker from "../../CustomTagPicker";
+import PhoneInputListWidget from "./PhoneInputListWidget";
 import { useTagPickerWithNewTags } from "../../hook/useInput";
 import { fixTagPickerStyles } from "../../bugs";
 import { useSystemConfig } from "../../context/SystemConfigContext";
@@ -333,6 +335,7 @@ interface ConfigFormState {
   primaryAuthenticatorsControl: ControlList<PrimaryAuthenticatorType>;
   loginIDKeyConfigsControl: ControlList<LoginIDKeyConfig>;
   loginIDEmailConfig: Required<LoginIDEmailConfig>;
+  phoneInputConfig: Required<PhoneInputConfig>;
 }
 
 interface FeatureConfigFormState {
@@ -668,6 +671,12 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
       block_free_email_provider_domains: false,
       ...config.identity?.login_id?.types?.email,
     },
+    phoneInputConfig: {
+      allowlist: [],
+      pinned_list: [],
+      preselect_by_ip_disabled: false,
+      ...config.ui?.phone_input,
+    },
   };
   correctInitialFormState(state);
   return state;
@@ -684,6 +693,7 @@ function constructConfig(
     config.identity ??= {};
     config.identity.login_id ??= {};
     config.identity.login_id.types ??= {};
+    config.ui ??= {};
 
     config.authentication.identities = controlListPreserve(
       (a, b) => a === b,
@@ -699,6 +709,7 @@ function constructConfig(
       currentState.loginIDKeyConfigsControl
     );
     config.identity.login_id.types.email = currentState.loginIDEmailConfig;
+    config.ui.phone_input = currentState.phoneInputConfig;
 
     clearEmptyObject(config);
   });
@@ -1390,7 +1401,6 @@ interface EmailSettingsProps {
 }
 
 function EmailSettings(props: EmailSettingsProps) {
-  // FIXME: support modifying resources.
   const { resources, loginIDEmailConfig, loginIDKeyConfigsControl, setState } =
     props;
   const [extended, setExtended] = useState(false);
@@ -1609,6 +1619,106 @@ function EmailSettings(props: EmailSettingsProps) {
   );
 }
 
+interface PhoneSettingsProps {
+  loginIDKeyConfigsControl: ControlList<LoginIDKeyConfig>;
+  phoneInputConfig: Required<PhoneInputConfig>;
+  setState: AppConfigFormModel<FormState>["setState"];
+}
+
+function PhoneSettings(props: PhoneSettingsProps) {
+  const { phoneInputConfig, loginIDKeyConfigsControl, setState } = props;
+  const [extended, setExtended] = useState(false);
+  const onToggleButtonClick = useCallback(() => {
+    setExtended((prev) => !prev);
+  }, []);
+  const { renderToString } = useContext(Context);
+
+  const onChangePhoneList = useCallback(
+    (allowlist: string[], pinnedList: string[]) => {
+      setState((prev) =>
+        produce(prev, (prev) => {
+          prev.phoneInputConfig.allowlist = allowlist;
+          prev.phoneInputConfig.pinned_list = pinnedList;
+        })
+      );
+    },
+    [setState]
+  );
+
+  const onChangePreselectByIP = useCallback(
+    (_e, checked?: boolean) => {
+      if (checked == null) {
+        return;
+      }
+      setState((prev) =>
+        produce(prev, (prev) => {
+          prev.phoneInputConfig.preselect_by_ip_disabled = !checked;
+        })
+      );
+    },
+    [setState]
+  );
+
+  const onChangeModifyDisabled = useCallback(
+    (_e, checked) => {
+      if (checked == null) {
+        return;
+      }
+      setState((prev) =>
+        produce(prev, (prev) => {
+          const c = prev.loginIDKeyConfigsControl.find(
+            (a) => a.value.type === "phone"
+          );
+          if (c != null) {
+            c.value.modify_disabled = checked;
+          }
+        })
+      );
+    },
+    [setState]
+  );
+
+  return (
+    <Widget
+      className={styles.widget}
+      showToggleButton={true}
+      extended={extended}
+      onToggleButtonClick={onToggleButtonClick}
+      collapsedLayout="title-description"
+    >
+      <WidgetTitle>
+        <FormattedMessage id="LoginMethodConfigurationScreen.phone.title" />
+      </WidgetTitle>
+      <WidgetDescription>
+        <FormattedMessage id="LoginMethodConfigurationScreen.phone.description" />
+      </WidgetDescription>
+      <PhoneInputListWidget
+        disabled={false}
+        allowedAlpha2={phoneInputConfig.allowlist}
+        pinnedAlpha2={phoneInputConfig.pinned_list}
+        onChange={onChangePhoneList}
+      />
+      <Checkbox
+        label={renderToString(
+          "LoginIDConfigurationScreen.phone.preselect-by-ip"
+        )}
+        checked={phoneInputConfig.preselect_by_ip_disabled !== true}
+        onChange={onChangePreselectByIP}
+      />
+      <Checkbox
+        label={renderToString(
+          "LoginIDConfigurationScreen.phone.modify-disabled"
+        )}
+        checked={
+          loginIDKeyConfigsControl.find((a) => a.value.type === "phone")?.value
+            .modify_disabled ?? false
+        }
+        onChange={onChangeModifyDisabled}
+      />
+    </Widget>
+  );
+}
+
 interface LoginMethodConfigurationContentProps {
   appID: string;
   form: FormModel;
@@ -1625,6 +1735,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       primaryAuthenticatorsControl,
       loginIDKeyConfigsControl,
       loginIDEmailConfig,
+      phoneInputConfig,
 
       phoneLoginIDDisabled,
 
@@ -1636,6 +1747,23 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
     );
 
     const [isChoosingMethod, setIsChoosingMethod] = useState(false);
+
+    const showEmailSettings = useMemo(
+      () =>
+        identitiesControl.find((a) => a.value === "login_id")?.isChecked ===
+          true &&
+        loginIDKeyConfigsControl.find((a) => a.value.type === "email")
+          ?.isChecked === true,
+      [identitiesControl, loginIDKeyConfigsControl]
+    );
+    const showPhoneSettings = useMemo(
+      () =>
+        identitiesControl.find((a) => a.value === "login_id")?.isChecked ===
+          true &&
+        loginIDKeyConfigsControl.find((a) => a.value.type === "phone")
+          ?.isChecked === true,
+      [identitiesControl, loginIDKeyConfigsControl]
+    );
 
     const onClickChooseLoginMethod = useCallback((e) => {
       e.preventDefault();
@@ -1748,14 +1876,18 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
                 onSwapPrimaryAuthenticator={onSwapPrimaryAuthenticator}
               />
             ) : null}
-            {identitiesControl.find((a) => a.value === "login_id")
-              ?.isChecked === true &&
-            loginIDKeyConfigsControl.find((a) => a.value.type === "email")
-              ?.isChecked === true ? (
+            {showEmailSettings ? (
               <EmailSettings
                 resources={resources}
                 loginIDKeyConfigsControl={loginIDKeyConfigsControl}
                 loginIDEmailConfig={loginIDEmailConfig}
+                setState={setState}
+              />
+            ) : null}
+            {showPhoneSettings ? (
+              <PhoneSettings
+                loginIDKeyConfigsControl={loginIDKeyConfigsControl}
+                phoneInputConfig={phoneInputConfig}
                 setState={setState}
               />
             ) : null}
