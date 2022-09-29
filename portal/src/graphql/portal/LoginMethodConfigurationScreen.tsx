@@ -791,21 +791,8 @@ interface PasskeyAndOAuthHintProps {
 
 function PasskeyAndOAuthHint(props: PasskeyAndOAuthHintProps) {
   const { appID } = props;
-  const [dismissed, setDismissed] = useState(false);
-  const onDismiss = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDismissed(true);
-  }, []);
-  if (dismissed) {
-    return null;
-  }
   return (
-    <MessageBar
-      className={styles.widget}
-      messageBarType={MessageBarType.info}
-      onDismiss={onDismiss}
-    >
+    <MessageBar className={styles.widget} messageBarType={MessageBarType.info}>
       <FormattedMessage
         id="LoginMethodConfigurationScreen.passkey-and-oauth"
         values={{
