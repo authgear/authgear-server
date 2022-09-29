@@ -8,6 +8,7 @@ import (
 	"github.com/lestrrat-go/jwx/jwk"
 
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
 
 type SecretUpdateInstructionAction string
@@ -16,6 +17,7 @@ const (
 	SecretUpdateInstructionActionSet      SecretUpdateInstructionAction = "set"
 	SecretUpdateInstructionActionUnset    SecretUpdateInstructionAction = "unset"
 	SecretUpdateInstructionActionGenerate SecretUpdateInstructionAction = "generate"
+	SecretUpdateInstructionActionCleanup  SecretUpdateInstructionAction = "cleanup"
 )
 
 type SecretConfigUpdateInstruction struct {
@@ -191,16 +193,23 @@ type OAuthClientSecretsUpdateInstructionGenerateData struct {
 	ClientID string `json:"clientID,omitempty"`
 }
 
+type OAuthClientSecretsUpdateInstructionCleanupData struct {
+	KeepClientIDs []string `json:"keepClientIDs,omitempty"`
+}
+
 type OAuthClientSecretsUpdateInstruction struct {
 	Action SecretUpdateInstructionAction `json:"action,omitempty"`
 
 	GenerateData *OAuthClientSecretsUpdateInstructionGenerateData `json:"generateData,omitempty"`
+	CleanupData  *OAuthClientSecretsUpdateInstructionCleanupData  `json:"cleanupData,omitempty"`
 }
 
 func (i *OAuthClientSecretsUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error) {
 	switch i.Action {
 	case SecretUpdateInstructionActionGenerate:
 		return i.generate(ctx, currentConfig)
+	case SecretUpdateInstructionActionCleanup:
+		return i.cleanup(currentConfig)
 	default:
 		return nil, fmt.Errorf("config: unexpected action for OAuthClientSecretsUpdateInstruction: %s", i.Action)
 	}
@@ -267,6 +276,51 @@ func (i *OAuthClientSecretsUpdateInstruction) generate(ctx *SecretConfigUpdateIn
 		out.Secrets[idx] = newSecretItem
 	} else {
 		out.Secrets = append(out.Secrets, newSecretItem)
+	}
+
+	return out, nil
+}
+
+func (i *OAuthClientSecretsUpdateInstruction) cleanup(currentConfig *SecretConfig) (*SecretConfig, error) {
+	out := &SecretConfig{}
+	out.Secrets = make([]SecretItem, len(currentConfig.Secrets))
+	copy(out.Secrets, currentConfig.Secrets)
+
+	if i.CleanupData == nil || i.CleanupData.KeepClientIDs == nil {
+		return nil, fmt.Errorf("config: missing keepClientIDs for OAuthClientSecretsUpdateInstruction")
+	}
+
+	idx, item, found := out.Lookup(OAuthClientCredentialsKey)
+	if !found {
+		return out, nil
+	}
+	oauth, err := i.decodeOAuthClientCredentials(item.RawData)
+	if err != nil {
+		return nil, err
+	}
+
+	keepClientIDSet := setutil.NewSetFromSlice(i.CleanupData.KeepClientIDs, setutil.Identity[string])
+	newOAuthClientCredentials := &OAuthClientCredentials{}
+	for _, item := range oauth.Items {
+		if _, ok := keepClientIDSet[item.ClientID]; ok {
+			newOAuthClientCredentials.Items = append(newOAuthClientCredentials.Items, item)
+		}
+	}
+
+	if len(newOAuthClientCredentials.Items) == 0 {
+		// remove oauth.client_secrets from secrets
+		out.Secrets = append(out.Secrets[:idx], out.Secrets[idx+1:]...)
+	} else {
+		var jsonData []byte
+		jsonData, err := json.Marshal(newOAuthClientCredentials)
+		if err != nil {
+			return nil, err
+		}
+		newSecretItem := SecretItem{
+			Key:     OAuthClientCredentialsKey,
+			RawData: json.RawMessage(jsonData),
+		}
+		out.Secrets[idx] = newSecretItem
 	}
 
 	return out, nil
