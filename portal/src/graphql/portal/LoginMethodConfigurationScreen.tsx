@@ -33,7 +33,12 @@ import {
   RESOURCE_EMAIL_DOMAIN_ALLOWLIST,
   RESOURCE_USERNAME_EXCLUDED_KEYWORDS_TXT,
 } from "../../resources";
-import { Resource, ResourceSpecifier, specifierId } from "../../util/resource";
+import {
+  Resource,
+  ResourceSpecifier,
+  specifierId,
+  expandSpecifier,
+} from "../../util/resource";
 import { clearEmptyObject } from "../../util/misc";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
@@ -55,11 +60,26 @@ import HorizontalDivider from "../../HorizontalDivider";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import PrimaryButton from "../../PrimaryButton";
 import CheckboxWithTooltip from "../../CheckboxWithTooltip";
+import CheckboxWithContentLayout from "../../CheckboxWithContentLayout";
+import CustomTagPicker from "../../CustomTagPicker";
+import { useTagPickerWithNewTags } from "../../hook/useInput";
+import { fixTagPickerStyles } from "../../bugs";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useResourceForm } from "../../hook/useResourceForm";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
 import styles from "./LoginMethodConfigurationScreen.module.css";
+
+function splitByNewline(text: string): string[] {
+  return text
+    .split(/\r?\n/)
+    .map((x) => x.trim())
+    .filter(Boolean);
+}
+
+function joinByNewline(list: string[]): string {
+  return list.join("\n");
+}
 
 const ERROR_RULES = [
   makeValidationErrorMatchUnknownKindParseRule(
@@ -1325,7 +1345,45 @@ function useEmailConfigCheckboxOnChange(
   return onChange;
 }
 
+function useLinesValue(
+  resources: Partial<Record<string, Resource>>,
+  specifier: ResourceSpecifier
+) {
+  return useMemo(() => {
+    const value = resources[specifierId(specifier)]?.nullableValue;
+    if (value == null) {
+      return [];
+    }
+    return splitByNewline(value);
+  }, [resources, specifier]);
+}
+
+function useUpdateLinesValue(
+  setState: FormModel["setState"],
+  specifier: ResourceSpecifier
+) {
+  return useCallback(
+    (value: string[]) => {
+      setState((prev) => {
+        const updatedResources = { ...prev.resources };
+        const newResource: Resource = {
+          specifier,
+          path: expandSpecifier(specifier),
+          nullableValue: joinByNewline(value),
+        };
+        updatedResources[specifierId(newResource.specifier)] = newResource;
+        return {
+          ...prev,
+          resources: updatedResources,
+        };
+      });
+    },
+    [setState, specifier]
+  );
+}
+
 interface EmailSettingsProps {
+  resources: Partial<Record<string, Resource>>;
   loginIDKeyConfigsControl: ControlList<LoginIDKeyConfig>;
   loginIDEmailConfig: Required<LoginIDEmailConfig>;
   setState: AppConfigFormModel<FormState>["setState"];
@@ -1333,12 +1391,14 @@ interface EmailSettingsProps {
 
 function EmailSettings(props: EmailSettingsProps) {
   // FIXME: support modifying resources.
-  const { loginIDEmailConfig, loginIDKeyConfigsControl, setState } = props;
+  const { resources, loginIDEmailConfig, loginIDKeyConfigsControl, setState } =
+    props;
   const [extended, setExtended] = useState(false);
   const onToggleButtonClick = useCallback(() => {
     setExtended((prev) => !prev);
   }, []);
   const { renderToString } = useContext(Context);
+
   const onChangeCaseSensitive = useEmailConfigCheckboxOnChange(
     setState,
     "case_sensitive"
@@ -1351,6 +1411,62 @@ function EmailSettings(props: EmailSettingsProps) {
     setState,
     "block_plus_sign"
   );
+
+  const onChangeBlocklistEnabled = useCallback(
+    (_e, checked) => {
+      if (checked == null) {
+        return;
+      }
+      setState((prev) =>
+        produce(prev, (prev) => {
+          prev.loginIDEmailConfig.domain_blocklist_enabled = checked;
+          if (prev.loginIDEmailConfig.domain_blocklist_enabled) {
+            prev.loginIDEmailConfig.domain_allowlist_enabled = false;
+          } else {
+            prev.loginIDEmailConfig.block_free_email_provider_domains = false;
+          }
+        })
+      );
+    },
+    [setState]
+  );
+  const {
+    selectedItems: blocklist,
+    onChange: onChangeBlocklist,
+    onResolveSuggestions: onResolveSuggestionsBlocklist,
+    onAdd: onAddBlocklist,
+  } = useTagPickerWithNewTags(
+    useLinesValue(resources, emailDomainBlocklistSpecifier),
+    useUpdateLinesValue(setState, emailDomainBlocklistSpecifier)
+  );
+
+  const onChangeAllowlistEnabled = useCallback(
+    (_e, checked) => {
+      if (checked == null) {
+        return;
+      }
+      setState((prev) =>
+        produce(prev, (prev) => {
+          prev.loginIDEmailConfig.domain_allowlist_enabled = checked;
+          if (prev.loginIDEmailConfig.domain_allowlist_enabled) {
+            prev.loginIDEmailConfig.domain_blocklist_enabled = false;
+            prev.loginIDEmailConfig.block_free_email_provider_domains = false;
+          }
+        })
+      );
+    },
+    [setState]
+  );
+  const {
+    selectedItems: allowlist,
+    onChange: onChangeAllowlist,
+    onResolveSuggestions: onResolveSuggestionsAllowlist,
+    onAdd: onAddAllowlist,
+  } = useTagPickerWithNewTags(
+    useLinesValue(resources, emailDomainAllowlistSpecifier),
+    useUpdateLinesValue(setState, emailDomainAllowlistSpecifier)
+  );
+
   const onChangeBlockFreeEmailProviderDomains = useCallback(
     (_e, checked) => {
       if (checked == null) {
@@ -1368,6 +1484,7 @@ function EmailSettings(props: EmailSettingsProps) {
     },
     [setState]
   );
+
   const onChangeModifyDisabled = useCallback(
     (_e, checked) => {
       if (checked == null) {
@@ -1386,6 +1503,7 @@ function EmailSettings(props: EmailSettingsProps) {
     },
     [setState]
   );
+
   return (
     <Widget
       className={styles.widget}
@@ -1418,6 +1536,31 @@ function EmailSettings(props: EmailSettingsProps) {
         tooltipMessageId="LoginIDConfigurationScreen.email.blockPlusTooltipMessage"
         onChange={onChangeBlockPlusSign}
       />
+      <CheckboxWithContentLayout>
+        <CheckboxWithTooltip
+          label={renderToString(
+            "LoginIDConfigurationScreen.email.domainBlocklist"
+          )}
+          checked={loginIDEmailConfig.domain_blocklist_enabled}
+          onChange={onChangeBlocklistEnabled}
+          disabled={loginIDEmailConfig.domain_allowlist_enabled}
+          tooltipMessageId="LoginIDConfigurationScreen.email.domainBlocklistTooltipMessage"
+        />
+        <CustomTagPicker
+          styles={fixTagPickerStyles}
+          inputProps={{
+            "aria-label": renderToString(
+              "LoginIDConfigurationScreen.email.domainBlocklist"
+            ),
+          }}
+          className={styles.widgetInputField}
+          disabled={!loginIDEmailConfig.domain_blocklist_enabled}
+          selectedItems={blocklist}
+          onChange={onChangeBlocklist}
+          onResolveSuggestions={onResolveSuggestionsBlocklist}
+          onAdd={onAddBlocklist}
+        />
+      </CheckboxWithContentLayout>
       <CheckboxWithTooltip
         label={renderToString(
           "LoginIDConfigurationScreen.email.blockFreeEmailProviderDomains"
@@ -1427,6 +1570,31 @@ function EmailSettings(props: EmailSettingsProps) {
         tooltipMessageId="LoginIDConfigurationScreen.email.blockFreeEmailProviderDomainsTooltipMessage"
         onChange={onChangeBlockFreeEmailProviderDomains}
       />
+      <CheckboxWithContentLayout>
+        <CheckboxWithTooltip
+          label={renderToString(
+            "LoginIDConfigurationScreen.email.domainAllowlist"
+          )}
+          checked={loginIDEmailConfig.domain_allowlist_enabled}
+          onChange={onChangeAllowlistEnabled}
+          disabled={loginIDEmailConfig.domain_blocklist_enabled}
+          tooltipMessageId="LoginIDConfigurationScreen.email.domainAllowlistTooltipMessage"
+        />
+        <CustomTagPicker
+          styles={fixTagPickerStyles}
+          inputProps={{
+            "aria-label": renderToString(
+              "LoginIDConfigurationScreen.email.domainAllowlist"
+            ),
+          }}
+          className={styles.widgetInputField}
+          disabled={!loginIDEmailConfig.domain_allowlist_enabled}
+          selectedItems={allowlist}
+          onChange={onChangeAllowlist}
+          onResolveSuggestions={onResolveSuggestionsAllowlist}
+          onAdd={onAddAllowlist}
+        />
+      </CheckboxWithContentLayout>
       <Checkbox
         label={renderToString(
           "LoginIDConfigurationScreen.email.modify-disabled"
@@ -1459,6 +1627,8 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       loginIDEmailConfig,
 
       phoneLoginIDDisabled,
+
+      resources,
     } = state;
 
     const [loginMethod, setLoginMethod] = useState(() =>
@@ -1583,6 +1753,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
             loginIDKeyConfigsControl.find((a) => a.value.type === "email")
               ?.isChecked === true ? (
               <EmailSettings
+                resources={resources}
                 loginIDKeyConfigsControl={loginIDKeyConfigsControl}
                 loginIDEmailConfig={loginIDEmailConfig}
                 setState={setState}
