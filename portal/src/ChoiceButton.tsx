@@ -23,6 +23,7 @@ export default function ChoiceButton(props: ChoiceButtonProps): ReactElement {
       // Remove minHeight so that ChoiceButton looks nice if it does not have secondaryText,
       // otherwise, it is too tall.
       minHeight: "0",
+      borderColor: originalTheme.palette.neutralLight,
     },
     rootChecked: {
       // Double the border width VISUALLY to make checked ChoiceButton more prominent.
