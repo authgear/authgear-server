@@ -18,6 +18,7 @@ import {
   OAuthClientConfig,
   PortalAPIAppConfig,
   PortalAPISecretConfig,
+  PortalAPISecretConfigUpdateInstruction,
 } from "../../types";
 import { clearEmptyObject, ensureNonEmptyString } from "../../util/misc";
 import { genRandomHexadecimalString } from "../../util/random";
@@ -87,10 +88,32 @@ function constructConfig(
     } else if (draft.x_application_type === "native") {
       draft.redirect_uris = ["com.example.myapp://host/path"];
       draft.post_logout_redirect_uris = undefined;
+    } else if (draft.x_application_type === "third_party_app") {
+      draft.client_name = draft.name;
+      draft.redirect_uris = ["http://localhost/after-authentication"];
+      draft.post_logout_redirect_uris = undefined;
     }
     config.oauth.clients.push(draft);
     clearEmptyObject(config);
   });
+}
+
+function constructSecretUpdateInstruction(
+  _config: PortalAPIAppConfig,
+  _secrets: PortalAPISecretConfig,
+  currentState: FormState
+): PortalAPISecretConfigUpdateInstruction | undefined {
+  if (currentState.newClient.x_application_type === "third_party_app") {
+    return {
+      oauthClientSecrets: {
+        action: "generate",
+        generateData: {
+          clientID: currentState.newClient.client_id,
+        },
+      },
+    };
+  }
+  return undefined;
 }
 
 function constructInitialCurrentState(state: FormState): FormState {
@@ -185,6 +208,15 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
           onRenderLabel: onRenderLabel(
             renderToString(
               "CreateOAuthClientScreen.application-type.description.native"
+            )
+          ),
+        },
+        {
+          key: "third_party_app",
+          text: renderToString("oauth-client.application-type.third-party-app"),
+          onRenderLabel: onRenderLabel(
+            renderToString(
+              "CreateOAuthClientScreen.application-type.description.third-party-app"
             )
           ),
         },
@@ -283,6 +315,7 @@ const CreateOAuthClientScreen: React.VFC = function CreateOAuthClientScreen() {
     constructFormState,
     constructConfig,
     constructInitialCurrentState,
+    constructSecretUpdateInstruction,
   });
 
   const { isLoading, loadError, reload, updateError, isUpdating } = form;

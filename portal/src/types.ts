@@ -540,9 +540,24 @@ export interface SMTPSecretUpdateInstruction {
   data?: SMTPSecretUpdateInstructionData | null;
 }
 
+export interface OAuthClientSecretsUpdateInstructionGenerateData {
+  clientID: string;
+}
+
+export interface OAuthClientSecretsUpdateInstructionCleanupData {
+  keepClientIDs: string[];
+}
+
+export interface OAuthClientSecretsUpdateInstruction {
+  action: string;
+  generateData?: OAuthClientSecretsUpdateInstructionGenerateData | null;
+  cleanupData?: OAuthClientSecretsUpdateInstructionCleanupData | null;
+}
+
 export interface PortalAPISecretConfigUpdateInstruction {
   oauthSSOProviderClientSecrets?: OAuthSSOProviderClientSecretUpdateInstruction | null;
   smtpSecret?: SMTPSecretUpdateInstruction | null;
+  oauthClientSecrets?: OAuthClientSecretsUpdateInstruction | null;
 }
 
 export interface PortalAPIApp {
