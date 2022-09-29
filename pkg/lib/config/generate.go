@@ -70,12 +70,12 @@ func GenerateSecretConfigFromOptions(opts *GenerateSecretConfigOptions, createdA
 
 	items = append(items, SecretItem{
 		Key:  CSRFKeyMaterialsKey,
-		Data: &CSRFKeyMaterials{Set: wrapInSet(secrets.GenerateOctetKey(createdAt, rng))},
+		Data: &CSRFKeyMaterials{Set: wrapInSet(secrets.GenerateOctetKeyForSig(createdAt, rng))},
 	})
 
 	items = append(items, SecretItem{
 		Key:  WebhookKeyMaterialsKey,
-		Data: &WebhookKeyMaterials{Set: wrapInSet(secrets.GenerateOctetKey(createdAt, rng))},
+		Data: &WebhookKeyMaterials{Set: wrapInSet(secrets.GenerateOctetKeyForSig(createdAt, rng))},
 	})
 
 	items = append(items, SecretItem{
@@ -85,7 +85,7 @@ func GenerateSecretConfigFromOptions(opts *GenerateSecretConfigOptions, createdA
 
 	items = append(items, SecretItem{
 		Key:  ImagesKeyMaterialsKey,
-		Data: &ImagesKeyMaterials{Set: wrapInSet(secrets.GenerateOctetKey(createdAt, rng))},
+		Data: &ImagesKeyMaterials{Set: wrapInSet(secrets.GenerateOctetKeyForSig(createdAt, rng))},
 	})
 
 	marshalSecretData(items)

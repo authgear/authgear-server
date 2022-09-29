@@ -29,8 +29,14 @@ func GenerateOctetKey(createdAt time.Time, rng *mathrand.Rand) jwk.Key {
 	}
 
 	_ = jwkKey.Set(jwk.KeyIDKey, uuid.New())
-	_ = jwkKey.Set(jwk.KeyUsageKey, jwk.ForSignature)
 	_ = jwkKey.Set(jwkutil.KeyCreatedAt, float64(createdAt.Unix()))
+
+	return jwkKey
+}
+
+func GenerateOctetKeyForSig(createdAt time.Time, rng *mathrand.Rand) jwk.Key {
+	jwkKey := GenerateOctetKey(createdAt, rng)
+	_ = jwkKey.Set(jwk.KeyUsageKey, jwk.ForSignature)
 	_ = jwkKey.Set(jwk.AlgorithmKey, "HS256")
 
 	return jwkKey
