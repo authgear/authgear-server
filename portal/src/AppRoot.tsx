@@ -93,9 +93,6 @@ const AdminAPIConfigurationScreen = lazy(
 const LoginMethodConfigurationScreen = lazy(
   async () => import("./graphql/portal/LoginMethodConfigurationScreen")
 );
-const VerificationConfigurationScreen = lazy(
-  async () => import("./graphql/portal/VerificationConfigurationScreen")
-);
 const Web3ConfigurationScreen = lazy(
   async () => import("./graphql/portal/Web3ConfigurationScreen")
 );
@@ -317,14 +314,6 @@ const AppRoot: React.VFC = function AppRoot() {
                 <Route
                   index={true}
                   element={<Navigate to="login-id" replace={true} />}
-                />
-                <Route
-                  path="verification"
-                  element={
-                    <Suspense fallback={<ShowLoading />}>
-                      <VerificationConfigurationScreen />
-                    </Suspense>
-                  }
                 />
                 <Route
                   path="login-methods"
