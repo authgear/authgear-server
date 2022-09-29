@@ -119,7 +119,6 @@
   "ScreenNav.analytics": "Analytics",
   "ScreenNav.users": "User Management",
   "ScreenNav.authentication": "Authentication",
-  "ScreenNav.authenticators": "Authenticators",
   "ScreenNav.anonymous-users": "Anonymous Users",
   "ScreenNav.verification": "Verifications",
   "ScreenNav.web3": "Ethereum & NFT",
@@ -326,11 +325,8 @@
   "calling-code-area.gmss": "Global Mobile Satellite System",
   "calling-code-area.international": "International Networks",
 
-  "AuthenticatorConfigurationScreen.title": "Authenticators",
-  "AuthenticatorConfigurationScreen.description": "Configure how your users can authenticate themselves (such as Password), and any MFA requirements; The order will affect when both options are available, which one will show up first.",
   "AuthenticatorConfigurationScreen.columns.activate": "Activate",
   "AuthenticatorConfigurationScreen.columns.authenticator": "Authenticator",
-  "AuthenticatorConfigurationScreen.primary-authenticators.title": "Primary Authenticator",
 
   "Web3ConfigurationScreen.title": "Ethereum & NFT",
   "Web3ConfigurationScreen.description": "Authenticate the user by crypto wallets and NFT ownership. Their wallet addresses and the list of NFTs owned will be available as user info.",

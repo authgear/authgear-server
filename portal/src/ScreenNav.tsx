@@ -162,11 +162,6 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         children: [
           {
             type: "link" as const,
-            textKey: "ScreenNav.authenticators",
-            url: `/project/${appID}/configuration/authentication/authenticators`,
-          },
-          {
-            type: "link" as const,
             textKey: "ScreenNav.verification",
             url: `/project/${appID}/configuration/authentication/verification`,
           },
