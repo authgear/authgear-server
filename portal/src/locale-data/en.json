@@ -120,7 +120,6 @@
   "ScreenNav.users": "User Management",
   "ScreenNav.authentication": "Authentication",
   "ScreenNav.anonymous-users": "Anonymous Users",
-  "ScreenNav.verification": "Verifications",
   "ScreenNav.web3": "Ethereum & NFT",
   "ScreenNav.passkey": "Passkeys",
   "ScreenNav.biometric": "Biometric",
@@ -379,10 +378,6 @@
   "Web3ConfigurationScreen.deletion-dialog.title": "Remove collection",
   "Web3ConfigurationScreen.deletion-dialog.description": "Are you sure you want to remove {collection} from your project?",
 
-  "VerificationConfigurationScreen.title": "User Verification",
-  "VerificationConfigurationScreen.description": "Configure if the email or phone number of your users could be verified and if it is required",
-  "VerificationConfigurationScreen.basic-settings": "Basic Settings",
-  "VerificationConfigurationScreen.title.nav": "User Verification",
   "VerificationConfigurationScreen.code-expiry-seconds.label": "Verification code valid duration (seconds)",
   "VerificationConfigurationScreen.criteria.label": "{code, react, children{isVerified}} is true when ...",
   "VerificationConfigurationScreen.criteria.tooltip": "More info in the {DocLink, react, href{https://docs.authgear.com/integrate/user-profile#userinfo-endpoint} children{UserInfo endpoint}}",
@@ -395,9 +390,6 @@
   "VerificationConfigurationScreen.verification.phone.required.label": "Phone verification is required to complete sign up",
   "VerificationConfigurationScreen.verification.phone.allowed.label": "Allow users to verify their phone number from the setting page",
   "VerificationConfigurationScreen.verification.phoneNumber.verify-by.label": "Verify phone number by",
-  "VerificationConfigurationScreen.verification.phoneNumber.verify-by.whatsapp-or-sms": "WhatsApp or SMS",
-  "VerificationConfigurationScreen.verification.phoneNumber.verify-by.whatsapp-only": "WhatsApp only",
-  "VerificationConfigurationScreen.verification.phoneNumber.verify-by.sms-only": "SMS only",
 
   "AnonymousUsersConfigurationScreen.title": "Anonymous Users",
   "AnonymousUsersConfigurationScreen.description": "Enable or disable anonymous users. Anonymous users do not have identity. They can be promoted to normal users.",
