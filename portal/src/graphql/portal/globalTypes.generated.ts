@@ -422,6 +422,20 @@ export type Node = {
   id: Scalars['ID'];
 };
 
+export type OAuthClientSecretsCleanupDataInput = {
+  keepClientIDs: Array<Scalars['String']>;
+};
+
+export type OAuthClientSecretsGenerateDataInput = {
+  clientID: Scalars['String'];
+};
+
+export type OAuthClientSecretsUpdateInstructionsInput = {
+  action: Scalars['String'];
+  cleanupData?: InputMaybe<OAuthClientSecretsCleanupDataInput>;
+  generateData?: InputMaybe<OAuthClientSecretsGenerateDataInput>;
+};
+
 /** OAuth client secret */
 export type OAuthSsoProviderClientSecret = {
   __typename?: 'OAuthSSOProviderClientSecret';
@@ -581,6 +595,7 @@ export type SecretConfig = {
 };
 
 export type SecretConfigUpdateInstructionsInput = {
+  oauthClientSecrets?: InputMaybe<OAuthClientSecretsUpdateInstructionsInput>;
   oauthSSOProviderClientSecrets?: InputMaybe<OAuthSsoProviderClientSecretsUpdateInstructionsInput>;
   smtpSecret?: InputMaybe<SmtpSecretUpdateInstructionsInput>;
 };

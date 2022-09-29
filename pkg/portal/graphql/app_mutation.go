@@ -64,6 +64,24 @@ var smtpSecretInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	},
 })
 
+var oauthClientSecretsGenerateDataInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "OAuthClientSecretsGenerateDataInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"clientID": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+	},
+})
+
+var oauthClientSecretsCleanupDataInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "OAuthClientSecretsCleanupDataInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"keepClientIDs": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(graphql.String))),
+		},
+	},
+})
+
 var smtpSecretUpdateInstructionsInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "SmtpSecretUpdateInstructionsInput",
 	Fields: graphql.InputObjectConfigFieldMap{
@@ -88,6 +106,21 @@ var oauthSSOProviderClientSecretsUpdateInstructionsInput = graphql.NewInputObjec
 	},
 })
 
+var oauthClientSecretsUpdateInstructionsInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "OAuthClientSecretsUpdateInstructionsInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"action": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"generateData": &graphql.InputObjectFieldConfig{
+			Type: oauthClientSecretsGenerateDataInput,
+		},
+		"cleanupData": &graphql.InputObjectFieldConfig{
+			Type: oauthClientSecretsCleanupDataInput,
+		},
+	},
+})
+
 var secretConfigUpdateInstructionsInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "SecretConfigUpdateInstructionsInput",
 	Fields: graphql.InputObjectConfigFieldMap{
@@ -96,6 +129,9 @@ var secretConfigUpdateInstructionsInput = graphql.NewInputObject(graphql.InputOb
 		},
 		"smtpSecret": &graphql.InputObjectFieldConfig{
 			Type: smtpSecretUpdateInstructionsInput,
+		},
+		"oauthClientSecrets": &graphql.InputObjectFieldConfig{
+			Type: oauthClientSecretsUpdateInstructionsInput,
 		},
 	},
 })
