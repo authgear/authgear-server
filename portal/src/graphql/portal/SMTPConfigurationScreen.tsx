@@ -114,7 +114,9 @@ function constructConfig(
 }
 
 function constructSecretUpdateInstruction(
-  secrets: PortalAPISecretConfig
+  _config: PortalAPIAppConfig,
+  secrets: PortalAPISecretConfig,
+  _currentState: FormState
 ): PortalAPISecretConfigUpdateInstruction | undefined {
   if (!secrets.smtpSecret) {
     return {

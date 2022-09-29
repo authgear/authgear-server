@@ -146,7 +146,9 @@ function constructConfig(
 }
 
 function constructSecretUpdateInstruction(
-  secretConfig: PortalAPISecretConfig
+  _config: PortalAPIAppConfig,
+  secretConfig: PortalAPISecretConfig,
+  _currentState: FormState
 ): PortalAPISecretConfigUpdateInstruction | undefined {
   return {
     oauthSSOProviderClientSecrets: {

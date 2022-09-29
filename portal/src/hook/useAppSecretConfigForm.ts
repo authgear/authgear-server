@@ -32,8 +32,10 @@ export type ConfigConstructor<State> = (
   currentState: State,
   effectiveConfig: PortalAPIAppConfig
 ) => [PortalAPIAppConfig, PortalAPISecretConfig];
-export type SecretUpdateInstructionConstructor = (
-  secrets: PortalAPISecretConfig
+export type SecretUpdateInstructionConstructor<State> = (
+  config: PortalAPIAppConfig,
+  secrets: PortalAPISecretConfig,
+  currentState: State
 ) => PortalAPISecretConfigUpdateInstruction | undefined;
 export type InitialCurrentStateConstructor<State> = (state: State) => State;
 
@@ -41,7 +43,7 @@ interface UseAppSecretConfigFormOptions<State> {
   appID: string;
   constructFormState: StateConstructor<State>;
   constructConfig: ConfigConstructor<State>;
-  constructSecretUpdateInstruction?: SecretUpdateInstructionConstructor;
+  constructSecretUpdateInstruction?: SecretUpdateInstructionConstructor<State>;
   constructInitialCurrentState?: InitialCurrentStateConstructor<State>;
 }
 
@@ -140,8 +142,14 @@ export function useAppSecretConfigForm<State>(
       effectiveConfig
     );
 
+    // The app and secret config that pass to constructSecretUpdateInstruction
+    // are the updated config that we are going to send to the server
     const secretUpdateInstruction = constructSecretUpdateInstruction
-      ? constructSecretUpdateInstruction(newConfig[1])
+      ? constructSecretUpdateInstruction(
+          newConfig[0],
+          newConfig[1],
+          currentState
+        )
       : undefined;
 
     try {
