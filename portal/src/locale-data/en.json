@@ -1301,6 +1301,8 @@
   "LoginMethodConfigurationScreen.email.description": "Set the rules of email address format.",
   "LoginMethodConfigurationScreen.phone.title": "Phone Number Settings",
   "LoginMethodConfigurationScreen.phone.description": "Set the rules of phone number format.",
+  "LoginMethodConfigurationScreen.username.title": "Username Settings",
+  "LoginMethodConfigurationScreen.username.description": "Set the rules of username format.",
 
   "LoginIDKeyType.email": "Email address",
   "LoginIDKeyType.phone": "Phone number",
