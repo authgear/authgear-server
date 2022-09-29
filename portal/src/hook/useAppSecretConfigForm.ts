@@ -35,12 +35,14 @@ export type ConfigConstructor<State> = (
 export type SecretUpdateInstructionConstructor = (
   secrets: PortalAPISecretConfig
 ) => PortalAPISecretConfigUpdateInstruction | undefined;
+export type InitialCurrentStateConstructor<State> = (state: State) => State;
 
 interface UseAppSecretConfigFormOptions<State> {
   appID: string;
   constructFormState: StateConstructor<State>;
   constructConfig: ConfigConstructor<State>;
   constructSecretUpdateInstruction?: SecretUpdateInstructionConstructor;
+  constructInitialCurrentState?: InitialCurrentStateConstructor<State>;
 }
 
 export function useAppSecretConfigForm<State>(
@@ -51,6 +53,7 @@ export function useAppSecretConfigForm<State>(
     constructFormState,
     constructConfig,
     constructSecretUpdateInstruction,
+    constructInitialCurrentState,
   } = options;
 
   const {
@@ -78,7 +81,11 @@ export function useAppSecretConfigForm<State>(
     () => constructFormState(effectiveConfig, secrets),
     [effectiveConfig, secrets, constructFormState]
   );
-  const [currentState, setCurrentState] = useState<State | null>(null);
+  const [currentState, setCurrentState] = useState<State | null>(
+    constructInitialCurrentState != null
+      ? constructInitialCurrentState(initialState)
+      : null
+  );
 
   const isDirty = useMemo(() => {
     if (!rawAppConfig || !currentState) {
