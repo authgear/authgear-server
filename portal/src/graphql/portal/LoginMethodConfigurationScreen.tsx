@@ -15,6 +15,8 @@ import {
   FontIcon,
   Checkbox,
   ICheckboxProps,
+  Dropdown,
+  DirectionalHint,
 } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
@@ -29,6 +31,12 @@ import {
   LoginIDUsernameConfig,
   PhoneInputConfig,
   VerificationConfig,
+  AuthenticatorOOBSMSConfig,
+  AuthenticatorPhoneOTPMode,
+  authenticatorPhoneOTPModeList,
+  verificationCriteriaList,
+  VerificationCriteria,
+  VerificationClaimsConfig,
 } from "../../types";
 import {
   DEFAULT_TEMPLATE_LOCALE,
@@ -66,6 +74,7 @@ import CheckboxWithTooltip from "../../CheckboxWithTooltip";
 import CheckboxWithContentLayout from "../../CheckboxWithContentLayout";
 import CustomTagPicker from "../../CustomTagPicker";
 import TextField from "../../TextField";
+import LabelWithTooltip from "../../LabelWithTooltip";
 import PhoneInputListWidget from "./PhoneInputListWidget";
 import { useTagPickerWithNewTags } from "../../hook/useInput";
 import { fixTagPickerStyles } from "../../bugs";
@@ -86,6 +95,8 @@ function splitByNewline(text: string): string[] {
 function joinByNewline(list: string[]): string {
   return list.join("\n");
 }
+
+const DEFAULT_PHONE_OTP_MODE: AuthenticatorPhoneOTPMode = "whatsapp_sms";
 
 const ERROR_RULES = [
   makeValidationErrorMatchUnknownKindParseRule(
@@ -342,6 +353,7 @@ interface ConfigFormState {
   loginIDUsernameConfig: Required<LoginIDUsernameConfig>;
   phoneInputConfig: Required<PhoneInputConfig>;
   verificationConfig: VerificationConfig;
+  authenticatorOOBSMSConfig: AuthenticatorOOBSMSConfig;
 }
 
 interface FeatureConfigFormState {
@@ -693,6 +705,10 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     verificationConfig: {
       ...config.verification,
     },
+    authenticatorOOBSMSConfig: {
+      phone_otp_mode: DEFAULT_PHONE_OTP_MODE,
+      ...config.authenticator?.oob_otp?.sms,
+    },
   };
   correctInitialFormState(state);
   return state;
@@ -710,6 +726,8 @@ function constructConfig(
     config.identity.login_id ??= {};
     config.identity.login_id.types ??= {};
     config.ui ??= {};
+    config.authenticator ??= {};
+    config.authenticator.oob_otp ??= {};
 
     config.authentication.identities = controlListPreserve(
       (a, b) => a === b,
@@ -729,6 +747,7 @@ function constructConfig(
     config.identity.login_id.types.username =
       currentState.loginIDUsernameConfig;
     config.verification = currentState.verificationConfig;
+    config.authenticator.oob_otp.sms = currentState.authenticatorOOBSMSConfig;
 
     clearEmptyObject(config);
   });
@@ -1870,17 +1889,87 @@ function UsernameSettings(props: UsernameSettingsProps) {
   );
 }
 
+function onRenderCriteriaLabel() {
+  return (
+    <LabelWithTooltip
+      labelId="VerificationConfigurationScreen.criteria.label"
+      tooltipMessageId="VerificationConfigurationScreen.criteria.tooltip"
+      directionalHint={DirectionalHint.topCenter}
+    />
+  );
+}
+
+function useVerificationOnChangeRequired(
+  setState: FormModel["setState"],
+  key1: keyof VerificationClaimsConfig
+) {
+  return useCallback(
+    (_, value) => {
+      if (value == null) {
+        return;
+      }
+      setState((prev) =>
+        produce(prev, (prev) => {
+          prev.verificationConfig.claims ??= {};
+          prev.verificationConfig.claims[key1] ??= {};
+          // @ts-expect-error
+          prev.verificationConfig.claims[key1].required = value;
+          if (value) {
+            // @ts-expect-error
+            prev.verificationConfig.claims[key1].enabled = true;
+          }
+        })
+      );
+    },
+    [setState, key1]
+  );
+}
+
+function useVerificationOnChangeEnabled(
+  setState: FormModel["setState"],
+  key1: keyof VerificationClaimsConfig
+) {
+  return useCallback(
+    (_, value) => {
+      if (value == null) {
+        return;
+      }
+      setState((prev) =>
+        produce(prev, (prev) => {
+          prev.verificationConfig.claims ??= {};
+          prev.verificationConfig.claims[key1] ??= {};
+          // @ts-expect-error
+          prev.verificationConfig.claims[key1].enabled = value;
+        })
+      );
+    },
+    [setState, key1]
+  );
+}
+
 interface VerificationSettingsProps {
+  showEmailSettings: boolean;
+  showPhoneSettings: boolean;
   verificationConfig: VerificationConfig;
+  authenticatorOOBSMSConfig: AuthenticatorOOBSMSConfig;
   setState: FormModel["setState"];
 }
 
+// eslint-disable-next-line complexity
 function VerificationSettings(props: VerificationSettingsProps) {
-  const { verificationConfig, setState } = props;
+  const {
+    showEmailSettings,
+    showPhoneSettings,
+    verificationConfig,
+    setState,
+    authenticatorOOBSMSConfig,
+  } = props;
   const [extended, setExtended] = useState(false);
   const onToggleButtonClick = useCallback(() => {
     setExtended((prev) => !prev);
   }, []);
+
+  const { renderToString } = useContext(Context);
 
   const onChangeCodeExpirySeconds = useCallback(
     (_, value) => {
@@ -1894,7 +1983,69 @@ function VerificationSettings(props: VerificationSettingsProps) {
     [setState]
   );
 
-  const { renderToString } = useContext(Context);
+  const phoneOTPModes = useMemo(
+    () =>
+      authenticatorPhoneOTPModeList.map((mode) => ({
+        key: mode,
+        text: renderToString("AuthenticatorPhoneOTPMode." + mode),
+      })),
+    [renderToString]
+  );
+  const onChangePhoneOTPMode = useCallback(
+    (_, option) => {
+      const key = option.key as AuthenticatorPhoneOTPMode | undefined;
+      if (key != null) {
+        setState((prev) =>
+          produce(prev, (prev) => {
+            prev.authenticatorOOBSMSConfig.phone_otp_mode = key;
+          })
+        );
+      }
+    },
+    [setState]
+  );
+
+  const criteriaOptions = useMemo(
+    () =>
+      verificationCriteriaList.map((criteria) => ({
+        key: criteria,
+        text: renderToString(
+          "VerificationConfigurationScreen.criteria." + criteria
+        ),
+      })),
+    [renderToString]
+  );
+  const onChangeCriteria = useCallback(
+    (_, option) => {
+      const key = option.key as VerificationCriteria | undefined;
+      if (key != null) {
+        setState((prev) =>
+          produce(prev, (prev) => {
+            prev.verificationConfig.criteria = key;
+          })
+        );
+      }
+    },
+    [setState]
+  );
+
+  const onChangeEmailRequired = useVerificationOnChangeRequired(
+    setState,
+    "email"
+  );
+  const onChangeEmailEnabled = useVerificationOnChangeEnabled(
+    setState,
+    "email"
+  );
+  const onChangePhoneRequired = useVerificationOnChangeRequired(
+    setState,
+    "phone_number"
+  );
+  const onChangePhoneEnabled = useVerificationOnChangeEnabled(
+    setState,
+    "phone_number"
+  );
+
   return (
     <Widget
       className={styles.widget}
@@ -1917,6 +2068,60 @@ function VerificationSettings(props: VerificationSettingsProps) {
         value={verificationConfig.code_expiry_seconds?.toFixed(0) ?? ""}
         onChange={onChangeCodeExpirySeconds}
       />
+      {showEmailSettings && showPhoneSettings ? (
+        <Dropdown
+          options={criteriaOptions}
+          selectedKey={verificationConfig.criteria}
+          onChange={onChangeCriteria}
+          onRenderLabel={onRenderCriteriaLabel}
+        />
+      ) : null}
+      {showEmailSettings ? (
+        <>
+          <Checkbox
+            checked={verificationConfig.claims?.email?.required ?? true}
+            onChange={onChangeEmailRequired}
+            label={renderToString(
+              "VerificationConfigurationScreen.verification.email.required.label"
+            )}
+          />
+          <Checkbox
+            disabled={verificationConfig.claims?.email?.required ?? true}
+            checked={verificationConfig.claims?.email?.enabled ?? true}
+            onChange={onChangeEmailEnabled}
+            label={renderToString(
+              "VerificationConfigurationScreen.verification.email.allowed.label"
+            )}
+          />
+        </>
+      ) : null}
+      {showPhoneSettings ? (
+        <>
+          <Checkbox
+            checked={verificationConfig.claims?.phone_number?.required ?? true}
+            onChange={onChangePhoneRequired}
+            label={renderToString(
+              "VerificationConfigurationScreen.verification.phone.required.label"
+            )}
+          />
+          <Checkbox
+            disabled={verificationConfig.claims?.phone_number?.required ?? true}
+            checked={verificationConfig.claims?.phone_number?.enabled ?? true}
+            onChange={onChangePhoneEnabled}
+            label={renderToString(
+              "VerificationConfigurationScreen.verification.phone.allowed.label"
+            )}
+          />
+          <Dropdown
+            label={renderToString(
+              "VerificationConfigurationScreen.verification.phoneNumber.verify-by.label"
+            )}
+            options={phoneOTPModes}
+            selectedKey={authenticatorOOBSMSConfig.phone_otp_mode}
+            onChange={onChangePhoneOTPMode}
+          />
+        </>
+      ) : null}
     </Widget>
   );
 }
@@ -1940,6 +2145,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       loginIDUsernameConfig,
       phoneInputConfig,
       verificationConfig,
+      authenticatorOOBSMSConfig,
 
       phoneLoginIDDisabled,
 
@@ -2114,7 +2320,10 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
             ) : null}
             {showVerificationSettings ? (
               <VerificationSettings
+                showEmailSettings={showEmailSettings}
+                showPhoneSettings={showPhoneSettings}
                 verificationConfig={verificationConfig}
+                authenticatorOOBSMSConfig={authenticatorOOBSMSConfig}
                 setState={setState}
               />
             ) : null}
