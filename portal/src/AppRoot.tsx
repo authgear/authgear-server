@@ -93,9 +93,6 @@ const AdminAPIConfigurationScreen = lazy(
 const LoginMethodConfigurationScreen = lazy(
   async () => import("./graphql/portal/LoginMethodConfigurationScreen")
 );
-const LoginIDConfigurationScreen = lazy(
-  async () => import("./graphql/portal/LoginIDConfigurationScreen")
-);
 const AuthenticatorConfigurationScreen = lazy(
   async () => import("./graphql/portal/AuthenticatorConfigurationScreen")
 );
@@ -323,14 +320,6 @@ const AppRoot: React.VFC = function AppRoot() {
                 <Route
                   index={true}
                   element={<Navigate to="login-id" replace={true} />}
-                />
-                <Route
-                  path="login-id"
-                  element={
-                    <Suspense fallback={<ShowLoading />}>
-                      <LoginIDConfigurationScreen />
-                    </Suspense>
-                  }
                 />
                 <Route
                   path="authenticators"
