@@ -515,11 +515,11 @@ const EditOAuthClientScreen: React.VFC = function EditOAuthClientScreen() {
     clientID: string;
   };
   const { renderToString } = useContext(Context);
-  const form = useAppSecretConfigForm(
+  const form = useAppSecretConfigForm({
     appID,
     constructFormState,
-    constructConfig
-  );
+    constructConfig,
+  });
   const { setState, save, isUpdating } = form;
   const navigate = useNavigate();
   const [isRemoveDialogVisible, setIsRemoveDialogVisible] = useState(false);

@@ -344,13 +344,12 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
 const SingleSignOnConfigurationScreen: React.VFC =
   function SingleSignOnConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
-
-    const config = useAppSecretConfigForm(
+    const config = useAppSecretConfigForm({
       appID,
       constructFormState,
       constructConfig,
-      constructSecretUpdateInstruction
-    );
+      constructSecretUpdateInstruction,
+    });
 
     const featureConfig = useAppFeatureConfigQuery(appID);
 

@@ -644,12 +644,12 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
 
 const SMTPConfigurationScreen: React.VFC = function SMTPConfigurationScreen() {
   const { appID } = useParams() as { appID: string };
-  const form = useAppSecretConfigForm(
+  const form = useAppSecretConfigForm({
     appID,
     constructFormState,
     constructConfig,
-    constructSecretUpdateInstruction
-  );
+    constructSecretUpdateInstruction,
+  });
 
   const sendTestEmailHandle = useSendTestEmailMutation(appID);
 

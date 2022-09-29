@@ -36,12 +36,23 @@ export type SecretUpdateInstructionConstructor = (
   secrets: PortalAPISecretConfig
 ) => PortalAPISecretConfigUpdateInstruction | undefined;
 
+interface UseAppSecretConfigFormOptions<State> {
+  appID: string;
+  constructFormState: StateConstructor<State>;
+  constructConfig: ConfigConstructor<State>;
+  constructSecretUpdateInstruction?: SecretUpdateInstructionConstructor;
+}
+
 export function useAppSecretConfigForm<State>(
-  appID: string,
-  constructState: StateConstructor<State>,
-  constructConfig: ConfigConstructor<State>,
-  constructSecretUpdateInstruction?: SecretUpdateInstructionConstructor
+  options: UseAppSecretConfigFormOptions<State>
 ): AppSecretConfigFormModel<State> {
+  const {
+    appID,
+    constructFormState,
+    constructConfig,
+    constructSecretUpdateInstruction,
+  } = options;
+
   const {
     loading: isLoading,
     error: loadError,
@@ -64,8 +75,8 @@ export function useAppSecretConfigForm<State>(
   const secrets = useMemo(() => secretConfig ?? {}, [secretConfig]);
 
   const initialState = useMemo(
-    () => constructState(effectiveConfig, secrets),
-    [effectiveConfig, secrets, constructState]
+    () => constructFormState(effectiveConfig, secrets),
+    [effectiveConfig, secrets, constructFormState]
   );
   const [currentState, setCurrentState] = useState<State | null>(null);
 
