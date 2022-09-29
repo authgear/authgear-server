@@ -18,6 +18,44 @@ const (
 	SecretUpdateInstructionActionGenerate SecretUpdateInstructionAction = "generate"
 )
 
+type SecretConfigUpdateInstruction struct {
+	OAuthSSOProviderCredentialsUpdateInstruction *OAuthSSOProviderCredentialsUpdateInstruction `json:"oauthSSOProviderClientSecrets,omitempty"`
+	SMTPServerCredentialsUpdateInstruction       *SMTPServerCredentialsUpdateInstruction       `json:"smtpSecret,omitempty"`
+	OAuthClientSecretsUpdateInstruction          *OAuthClientSecretsUpdateInstruction          `json:"oauthClientSecrets,omitempty"`
+}
+
+func (i *SecretConfigUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error) {
+	var err error
+	newConfig := currentConfig
+
+	if i.OAuthSSOProviderCredentialsUpdateInstruction != nil {
+		newConfig, err = i.OAuthSSOProviderCredentialsUpdateInstruction.ApplyTo(ctx, newConfig)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if i.SMTPServerCredentialsUpdateInstruction != nil {
+		newConfig, err = i.SMTPServerCredentialsUpdateInstruction.ApplyTo(ctx, newConfig)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if i.OAuthClientSecretsUpdateInstruction != nil {
+		newConfig, err = i.OAuthClientSecretsUpdateInstruction.ApplyTo(ctx, newConfig)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return newConfig, nil
+}
+
+type SecretConfigUpdateInstructionInterface interface {
+	ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error)
+}
+
 type OAuthSSOProviderCredentialsUpdateInstructionDataItem struct {
 	Alias        string `json:"alias,omitempty"`
 	ClientSecret string `json:"clientSecret,omitempty"`
@@ -232,44 +270,6 @@ func (i *OAuthClientSecretsUpdateInstruction) generate(ctx *SecretConfigUpdateIn
 	}
 
 	return out, nil
-}
-
-type SecretConfigUpdateInstruction struct {
-	OAuthSSOProviderCredentialsUpdateInstruction *OAuthSSOProviderCredentialsUpdateInstruction `json:"oauthSSOProviderClientSecrets,omitempty"`
-	SMTPServerCredentialsUpdateInstruction       *SMTPServerCredentialsUpdateInstruction       `json:"smtpSecret,omitempty"`
-	OAuthClientSecretsUpdateInstruction          *OAuthClientSecretsUpdateInstruction          `json:"oauthClientSecrets,omitempty"`
-}
-
-func (i *SecretConfigUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error) {
-	var err error
-	newConfig := currentConfig
-
-	if i.OAuthSSOProviderCredentialsUpdateInstruction != nil {
-		newConfig, err = i.OAuthSSOProviderCredentialsUpdateInstruction.ApplyTo(ctx, newConfig)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if i.SMTPServerCredentialsUpdateInstruction != nil {
-		newConfig, err = i.SMTPServerCredentialsUpdateInstruction.ApplyTo(ctx, newConfig)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if i.OAuthClientSecretsUpdateInstruction != nil {
-		newConfig, err = i.OAuthClientSecretsUpdateInstruction.ApplyTo(ctx, newConfig)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return newConfig, nil
-}
-
-type SecretConfigUpdateInstructionInterface interface {
-	ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error)
 }
 
 var _ SecretConfigUpdateInstructionInterface = &SecretConfigUpdateInstruction{}
