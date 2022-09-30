@@ -37,7 +37,6 @@ import {
   AuthenticatorPhoneOTPMode,
   VerificationCriteria,
   VerificationClaimsConfig,
-  SecondaryAuthenticatorType,
   ForgotPasswordConfig,
   PasswordPolicyFeatureConfig,
   PasswordPolicyConfig,
@@ -365,7 +364,6 @@ interface ConfigFormState {
   authenticatorOOBSMSConfig: AuthenticatorOOBSMSConfig;
   authenticatorPasswordConfig: AuthenticatorPasswordConfig;
   forgotPasswordConfig: ForgotPasswordConfig;
-  secondaryAuthenticators: SecondaryAuthenticatorType[];
 }
 
 interface FeatureConfigFormState {
@@ -740,8 +738,6 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     forgotPasswordConfig: {
       ...config.forgot_password,
     },
-    secondaryAuthenticators:
-      config.authentication?.secondary_authenticators ?? [],
   };
   correctInitialFormState(state);
   return state;
@@ -2472,7 +2468,6 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       verificationConfig,
       authenticatorOOBSMSConfig,
       authenticatorPasswordConfig,
-      secondaryAuthenticators,
       forgotPasswordConfig,
 
       phoneLoginIDDisabled,
@@ -2516,9 +2511,8 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
     const showPasswordSettings = useMemo(
       () =>
         primaryAuthenticatorsControl.find((a) => a.value === "password")
-          ?.isChecked === true ||
-        secondaryAuthenticators.find((a) => a === "password"),
-      [primaryAuthenticatorsControl, secondaryAuthenticators]
+          ?.isChecked === true,
+      [primaryAuthenticatorsControl]
     );
 
     const onClickChooseLoginMethod = useCallback((e) => {
