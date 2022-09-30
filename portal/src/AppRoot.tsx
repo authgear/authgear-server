@@ -51,9 +51,6 @@ const AnonymousUsersConfigurationScreen = lazy(
 const SingleSignOnConfigurationScreen = lazy(
   async () => import("./graphql/portal/SingleSignOnConfigurationScreen")
 );
-const ForgotPasswordConfigurationScreen = lazy(
-  async () => import("./graphql/portal/ForgotPasswordConfigurationScreen")
-);
 const ApplicationsConfigurationScreen = lazy(
   async () => import("./graphql/portal/ApplicationsConfigurationScreen")
 );
@@ -518,14 +515,6 @@ const AppRoot: React.VFC = function AppRoot() {
               <Route
                 index={true}
                 element={<Navigate to="password-reset-code" replace={true} />}
-              />
-              <Route
-                path="password-reset-code"
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <ForgotPasswordConfigurationScreen />
-                  </Suspense>
-                }
               />
               <Route
                 path="webhooks"
