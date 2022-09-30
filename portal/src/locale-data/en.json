@@ -127,7 +127,6 @@
   "ScreenNav.external-oauth": "Social / Enterprise Login",
   "ScreenNav.login-methods": "Login Methods",
   "ScreenNav.client-applications": "Applications",
-  "ScreenNav.password-policy": "Password Policy",
   "ScreenNav.password-reset-code": "Password Reset Code",
   "ScreenNav.ui-settings": "UI Settings",
   "ScreenNav.localization": "Localization",
@@ -439,10 +438,6 @@
   "OAuthBranding.wechat.web": "Sign in with WeChat (Web/网站应用)",
   "OAuthBranding.wechat.mobile": "Sign in with WeChat (Mobile/移动应用)",
 
-  "PasswordPolicyConfigurationScreen.title": "Password Policy",
-  "PasswordPolicyConfigurationScreen.description": "Configure the password policy for Password and Additional Password in MFA.",
-  "PasswordPolicyConfigurationScreen.basic-policies": "Basic Policies",
-  "PasswordPolicyConfigurationScreen.advanced-policies": "Advanced Policies",
   "PasswordPolicyConfigurationScreen.force-change.label": "Force password change on next login if it does not meet the policy requirements",
   "PasswordPolicyConfigurationScreen.min-length.label": "Minimum password length",
   "PasswordPolicyConfigurationScreen.require-digit.label": "Requires at least 1 digit",

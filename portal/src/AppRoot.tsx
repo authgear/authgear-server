@@ -51,9 +51,6 @@ const AnonymousUsersConfigurationScreen = lazy(
 const SingleSignOnConfigurationScreen = lazy(
   async () => import("./graphql/portal/SingleSignOnConfigurationScreen")
 );
-const PasswordPolicyConfigurationScreen = lazy(
-  async () => import("./graphql/portal/PasswordPolicyConfigurationScreen")
-);
 const ForgotPasswordConfigurationScreen = lazy(
   async () => import("./graphql/portal/ForgotPasswordConfigurationScreen")
 );
@@ -372,14 +369,6 @@ const AppRoot: React.VFC = function AppRoot() {
                   }
                 />
               </Route>
-              <Route
-                path="password-policy"
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <PasswordPolicyConfigurationScreen />
-                  </Suspense>
-                }
-              />
               <Route path="apps">
                 <Route
                   index={true}
