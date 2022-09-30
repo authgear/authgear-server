@@ -1267,11 +1267,6 @@ function CustomLoginMethods(props: CustomLoginMethodsProps) {
     semanticColors: { disabledText },
   } = useTheme();
 
-  const [extended, setExtended] = useState(false);
-  const onToggleButtonClick = useCallback(() => {
-    setExtended((prev) => !prev);
-  }, []);
-
   const loginIDs = useMemo(() => {
     return loginIDKeyConfigsControl.map((a) => {
       let disabled = a.isDisabled;
@@ -1358,12 +1353,7 @@ function CustomLoginMethods(props: CustomLoginMethodsProps) {
   );
 
   return (
-    <Widget
-      className={styles.widget}
-      showToggleButton={true}
-      extended={extended}
-      onToggleButtonClick={onToggleButtonClick}
-    >
+    <Widget className={styles.widget}>
       <WidgetTitle>
         <FormattedMessage id="LoginMethodConfigurationScreen.custom-login-methods.title" />
       </WidgetTitle>
@@ -1500,10 +1490,6 @@ interface EmailSettingsProps {
 function EmailSettings(props: EmailSettingsProps) {
   const { resources, loginIDEmailConfig, loginIDKeyConfigsControl, setState } =
     props;
-  const [extended, setExtended] = useState(false);
-  const onToggleButtonClick = useCallback(() => {
-    setExtended((prev) => !prev);
-  }, []);
   const { renderToString } = useContext(Context);
 
   const onChangeCaseSensitive = useEmailConfigCheckboxOnChange(
@@ -1595,13 +1581,7 @@ function EmailSettings(props: EmailSettingsProps) {
   const onChangeModifyDisabled = useOnChangeModifyDisabled(setState, "email");
 
   return (
-    <Widget
-      className={styles.widget}
-      showToggleButton={true}
-      extended={extended}
-      onToggleButtonClick={onToggleButtonClick}
-      collapsedLayout="title-description"
-    >
+    <Widget className={styles.widget}>
       <WidgetTitle>
         <FormattedMessage id="LoginMethodConfigurationScreen.email.title" />
       </WidgetTitle>
@@ -1705,10 +1685,6 @@ interface PhoneSettingsProps {
 
 function PhoneSettings(props: PhoneSettingsProps) {
   const { phoneInputConfig, loginIDKeyConfigsControl, setState } = props;
-  const [extended, setExtended] = useState(false);
-  const onToggleButtonClick = useCallback(() => {
-    setExtended((prev) => !prev);
-  }, []);
   const { renderToString } = useContext(Context);
 
   const onChangePhoneList = useCallback(
@@ -1740,13 +1716,7 @@ function PhoneSettings(props: PhoneSettingsProps) {
   const onChangeModifyDisabled = useOnChangeModifyDisabled(setState, "phone");
 
   return (
-    <Widget
-      className={styles.widget}
-      showToggleButton={true}
-      extended={extended}
-      onToggleButtonClick={onToggleButtonClick}
-      collapsedLayout="title-description"
-    >
+    <Widget className={styles.widget}>
       <WidgetTitle>
         <FormattedMessage id="LoginMethodConfigurationScreen.phone.title" />
       </WidgetTitle>
@@ -1814,10 +1784,6 @@ function UsernameSettings(props: UsernameSettingsProps) {
     resources,
     setState,
   } = props;
-  const [extended, setExtended] = useState(false);
-  const onToggleButtonClick = useCallback(() => {
-    setExtended((prev) => !prev);
-  }, []);
   const { renderToString } = useContext(Context);
 
   const onChangeBlockReservedUsernames = useUsernameConfigCheckboxOnChange(
@@ -1855,13 +1821,7 @@ function UsernameSettings(props: UsernameSettingsProps) {
   );
 
   return (
-    <Widget
-      className={styles.widget}
-      showToggleButton={true}
-      extended={extended}
-      onToggleButtonClick={onToggleButtonClick}
-      collapsedLayout="title-description"
-    >
+    <Widget className={styles.widget}>
       <WidgetTitle>
         <FormattedMessage id="LoginMethodConfigurationScreen.username.title" />
       </WidgetTitle>
@@ -1999,10 +1959,6 @@ function VerificationSettings(props: VerificationSettingsProps) {
     setState,
     authenticatorOOBSMSConfig,
   } = props;
-  const [extended, setExtended] = useState(false);
-  const onToggleButtonClick = useCallback(() => {
-    setExtended((prev) => !prev);
-  }, []);
 
   const { renderToString } = useContext(Context);
 
@@ -2082,13 +2038,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
   );
 
   return (
-    <Widget
-      className={styles.widget}
-      showToggleButton={true}
-      extended={extended}
-      onToggleButtonClick={onToggleButtonClick}
-      collapsedLayout="title-description"
-    >
+    <Widget className={styles.widget}>
       <WidgetTitle>
         <FormattedMessage id="LoginMethodConfigurationScreen.verification.title" />
       </WidgetTitle>
@@ -2217,10 +2167,6 @@ function PasswordSettings(props: PasswordSettingsProps) {
     passwordPolicyFeatureConfig,
     setState,
   } = props;
-  const [extended, setExtended] = useState(false);
-  const onToggleButtonClick = useCallback(() => {
-    setExtended((prev) => !prev);
-  }, []);
 
   const { renderToString } = useContext(Context);
 
@@ -2357,13 +2303,7 @@ function PasswordSettings(props: PasswordSettingsProps) {
   } = useTagPickerWithNewTags(valueForExcludedKeywords, updateExcludedKeywords);
 
   return (
-    <Widget
-      className={styles.widget}
-      showToggleButton={true}
-      extended={extended}
-      onToggleButtonClick={onToggleButtonClick}
-      collapsedLayout="title-description"
-    >
+    <Widget className={styles.widget}>
       <WidgetTitle>
         <FormattedMessage id="LoginMethodConfigurationScreen.password.title" />
       </WidgetTitle>
