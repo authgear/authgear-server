@@ -11,12 +11,12 @@ import { produce } from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import {
   PortalAPIAppConfig,
-  PortalAPIFeatureConfig,
   PrimaryAuthenticatorType,
   SecondaryAuthenticationMode,
   secondaryAuthenticationModes,
   SecondaryAuthenticatorType,
   secondaryAuthenticatorTypes,
+  PortalAPIFeatureConfig,
 } from "../../types";
 import { swap } from "../../OrderButtons";
 import { clearEmptyObject } from "../../util/misc";
@@ -28,10 +28,7 @@ import ScreenDescription from "../../ScreenDescription";
 import Widget from "../../Widget";
 import WidgetTitle from "../../WidgetTitle";
 import Toggle from "../../Toggle";
-import {
-  AppConfigFormModel,
-  useAppConfigForm,
-} from "../../hook/useAppConfigForm";
+import { useAppConfigForm } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
 import { useDropdown } from "../../hook/useInput";
 import WidgetDescription from "../../WidgetDescription";
@@ -59,7 +56,7 @@ const secondaryAuthenticatorNameIds = {
   password: "AuthenticatorType.secondary.password",
 };
 
-interface FormState {
+interface ConfigFormState {
   mfaMode: SecondaryAuthenticationMode;
   deviceTokenEnabled: boolean;
   recoveryCodeEnabled: boolean;
@@ -69,7 +66,26 @@ interface FormState {
   secondary: AuthenticatorTypeFormState<SecondaryAuthenticatorType>[];
 }
 
-function constructFormState(config: PortalAPIAppConfig): FormState {
+interface FeatureConfigFormState {
+  featureConfig?: PortalAPIFeatureConfig;
+}
+
+interface FormState extends ConfigFormState, FeatureConfigFormState {}
+
+interface FormModel {
+  isLoading: boolean;
+  isUpdating: boolean;
+  isDirty: boolean;
+  loadError: unknown;
+  updateError: unknown;
+  state: FormState;
+  setState: (fn: (state: FormState) => FormState) => void;
+  reload: () => void;
+  reset: () => void;
+  save: () => Promise<void>;
+}
+
+function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
   const secondary: AuthenticatorTypeFormState<SecondaryAuthenticatorType>[] = (
     config.authentication?.secondary_authenticators ?? []
   ).map((t) => ({
@@ -106,8 +122,8 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
 
 function constructConfig(
   config: PortalAPIAppConfig,
-  _initialState: FormState,
-  currentState: FormState,
+  _initialState: ConfigFormState,
+  currentState: ConfigFormState,
   _effectiveConfig: PortalAPIAppConfig
 ): PortalAPIAppConfig {
   return produce(config, (config) => {
@@ -177,13 +193,11 @@ function UnreasonableWarning(props: UnreasonableWarningProps) {
 }
 
 interface MFAConfigurationContentProps {
-  form: AppConfigFormModel<FormState>;
-  featureConfig?: PortalAPIFeatureConfig;
+  form: FormModel;
 }
 
 const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
   function MFAConfigurationContent(props) {
-    const { featureConfig } = props;
     const { state, setState } = props.form;
     const {
       mfaMode,
@@ -193,6 +207,7 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
       numRecoveryCode,
       primary,
       secondary,
+      featureConfig,
     } = state;
     const { renderToString } = useContext(Context);
     const {
@@ -408,15 +423,44 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
 
 const MFAConfigurationScreen: React.VFC = function MFAConfigurationScreen() {
   const { appID } = useParams() as { appID: string };
-  const form = useAppConfigForm({
+  const featureConfig = useAppFeatureConfigQuery(appID);
+  const configForm = useAppConfigForm({
     appID,
     constructFormState,
     constructConfig,
   });
 
-  const featureConfig = useAppFeatureConfigQuery(appID);
+  const state = useMemo<FormState>(() => {
+    return {
+      featureConfig: featureConfig.effectiveFeatureConfig,
+      ...configForm.state,
+    };
+  }, [featureConfig.effectiveFeatureConfig, configForm.state]);
 
-  if (form.isLoading || featureConfig.loading) {
+  const form: FormModel = {
+    isLoading: configForm.isLoading || featureConfig.loading,
+    isUpdating: configForm.isUpdating,
+    isDirty: configForm.isDirty,
+    loadError: configForm.loadError ?? featureConfig.error,
+    updateError: configForm.updateError,
+    state,
+    setState: (fn) => {
+      const newState = fn(state);
+      configForm.setState(() => newState);
+    },
+    reload: () => {
+      configForm.reload();
+      featureConfig.refetch().finally(() => {});
+    },
+    reset: () => {
+      configForm.reset();
+    },
+    save: async () => {
+      await configForm.save();
+    },
+  };
+
+  if (form.isLoading) {
     return <ShowLoading />;
   }
 
@@ -424,18 +468,9 @@ const MFAConfigurationScreen: React.VFC = function MFAConfigurationScreen() {
     return <ShowError error={form.loadError} onRetry={form.reload} />;
   }
 
-  if (featureConfig.error != null) {
-    return (
-      <ShowError error={featureConfig.error} onRetry={featureConfig.refetch} />
-    );
-  }
-
   return (
     <FormContainer form={form}>
-      <MFAConfigurationContent
-        form={form}
-        featureConfig={featureConfig.effectiveFeatureConfig ?? undefined}
-      />
+      <MFAConfigurationContent form={form} />
     </FormContainer>
   );
 };
