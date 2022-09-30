@@ -17,6 +17,8 @@ import {
   SecondaryAuthenticatorType,
   secondaryAuthenticatorTypes,
   PortalAPIFeatureConfig,
+  ForgotPasswordConfig,
+  AuthenticatorPasswordConfig,
 } from "../../types";
 import { swap } from "../../OrderButtons";
 import { clearEmptyObject } from "../../util/misc";
@@ -38,6 +40,7 @@ import PriorityList, { PriorityListItem } from "../../PriorityList";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import styles from "./MFAConfigurationScreen.module.css";
+import PasswordSettings from "./PasswordSettings";
 
 interface AuthenticatorTypeFormState<T> {
   isChecked: boolean;
@@ -64,6 +67,9 @@ interface ConfigFormState {
   recoveryCodeListEnabled: boolean;
   primary: PrimaryAuthenticatorType[];
   secondary: AuthenticatorTypeFormState<SecondaryAuthenticatorType>[];
+
+  forgotPasswordConfig: ForgotPasswordConfig;
+  authenticatorPasswordConfig: AuthenticatorPasswordConfig;
 }
 
 interface FeatureConfigFormState {
@@ -117,6 +123,24 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
       config.authentication?.recovery_code?.list_enabled ?? false,
     primary: config.authentication?.primary_authenticators ?? [],
     secondary,
+    authenticatorPasswordConfig: {
+      ...config.authenticator?.password,
+      policy: {
+        min_length: 8,
+        uppercase_required: false,
+        lowercase_required: false,
+        digit_required: false,
+        symbol_required: false,
+        minimum_guessable_level: 0 as const,
+        excluded_keywords: [],
+        history_size: 0,
+        history_days: 0,
+        ...config.authenticator?.password?.policy,
+      },
+    },
+    forgotPasswordConfig: {
+      ...config.forgot_password,
+    },
   };
 }
 
@@ -136,6 +160,7 @@ function constructConfig(
     config.authentication ??= {};
     config.authentication.device_token ??= {};
     config.authentication.recovery_code ??= {};
+    config.authenticator ??= {};
 
     config.authentication.secondary_authenticators = filterEnabled(
       currentState.secondary
@@ -150,6 +175,8 @@ function constructConfig(
     config.authentication.recovery_code.count = currentState.numRecoveryCode;
     config.authentication.recovery_code.list_enabled =
       currentState.recoveryCodeListEnabled;
+    config.authenticator.password = currentState.authenticatorPasswordConfig;
+    config.forgot_password = currentState.forgotPasswordConfig;
 
     clearEmptyObject(config);
   });
@@ -208,6 +235,8 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
       primary,
       secondary,
       featureConfig,
+      forgotPasswordConfig,
+      authenticatorPasswordConfig,
     } = state;
     const { renderToString } = useContext(Context);
     const {
@@ -239,6 +268,10 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
           ?.disabled ?? false
       );
     }, [featureConfig]);
+
+    const showPasswordSettings = useMemo(() => {
+      return secondary.some((a) => a.type === "password" && a.isChecked);
+    }, [secondary]);
 
     const secondaryItems: PriorityListItem[] = useMemo(
       () =>
@@ -382,6 +415,17 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
           />
           <UnreasonableWarning primary={primary} secondary={secondary} />
         </Widget>
+        {showPasswordSettings ? (
+          <PasswordSettings
+            className={styles.widget}
+            forgotPasswordConfig={forgotPasswordConfig}
+            authenticatorPasswordConfig={authenticatorPasswordConfig}
+            passwordPolicyFeatureConfig={
+              featureConfig?.authenticator?.password?.policy
+            }
+            setState={setState}
+          />
+        ) : null}
         <Widget className={styles.widget}>
           <WidgetTitle>
             <FormattedMessage id="MFAConfigurationScreen.recovery-code.title" />
