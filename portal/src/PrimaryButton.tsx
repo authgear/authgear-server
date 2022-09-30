@@ -1,10 +1,11 @@
-import React, { useMemo } from "react";
+import React from "react";
 import {
   IButtonProps,
   // eslint-disable-next-line no-restricted-imports
   PrimaryButton as FluentUIPrimaryButton,
   useTheme,
 } from "@fluentui/react";
+import { useMergedStylesPlain } from "./util/mergeStyles";
 
 export interface PrimaryButtonProps
   extends Omit<IButtonProps, "children" | "text"> {
@@ -14,18 +15,19 @@ export interface PrimaryButtonProps
 const PrimaryButton: React.VFC<PrimaryButtonProps> = function PrimaryButton(
   props: PrimaryButtonProps
 ) {
+  const { styles: stylesProp, ...rest } = props;
   const theme = useTheme();
-  const styles = useMemo(() => {
-    return {
+  const styles = useMergedStylesPlain(
+    {
       rootDisabled: {
         color: theme.palette.neutralTertiary,
       },
-      ...props.styles,
-    };
-  }, [props.styles, theme.palette.neutralTertiary]);
+    },
+    stylesProp
+  );
 
   // @ts-expect-error
-  return <FluentUIPrimaryButton {...props} styles={styles} />;
+  return <FluentUIPrimaryButton {...rest} styles={styles} />;
 };
 
 export default PrimaryButton;
