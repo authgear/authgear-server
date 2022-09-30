@@ -32,6 +32,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
+const DefaultTermsOfServiceLink string = "https://www.authgear.com/terms"
+const DefaultPrivacyPolicyLink string = "https://www.authgear.com/data-privacy"
+
 var ErrAppIDReserved = apierrors.Forbidden.WithReason("AppIDReserved").
 	New("requested app ID is reserved")
 var ErrAppIDInvalid = apierrors.Invalid.WithReason("InvalidAppID").
@@ -320,7 +323,9 @@ func (s *AppService) generateResources(appHost string, appID string, featureConf
 		"templates", intl.BuiltinBaseLanguage, template.TranslationJSONName,
 	)
 	translationJSONObj := map[string]string{
-		"app.name": appID,
+		"app.name":              appID,
+		"terms-of-service-link": DefaultTermsOfServiceLink,
+		"privacy-policy-link":   DefaultPrivacyPolicyLink,
 	}
 	translationJSON, err := json.Marshal(translationJSONObj)
 	if err != nil {
