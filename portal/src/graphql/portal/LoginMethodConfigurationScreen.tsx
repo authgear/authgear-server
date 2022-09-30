@@ -65,6 +65,7 @@ import ScreenTitle from "../../ScreenTitle";
 import ScreenDescription from "../../ScreenDescription";
 import Widget from "../../Widget";
 import WidgetTitle from "../../WidgetTitle";
+import WidgetSubtitle from "../../WidgetSubtitle";
 import ChoiceButton from "../../ChoiceButton";
 import Link from "../../Link";
 import {
@@ -782,25 +783,6 @@ function constructConfig(
 
     clearEmptyObject(config);
   });
-}
-
-interface WidgetSubtitleProps {
-  children?: ReactNode;
-}
-
-const FIELD_TITLE_STYLES = {
-  root: {
-    fontWeight: "600",
-  },
-};
-
-function WidgetSubtitle(props: WidgetSubtitleProps) {
-  const { children } = props;
-  return (
-    <Text as="h3" block={true} variant="medium" styles={FIELD_TITLE_STYLES}>
-      {children}
-    </Text>
-  );
 }
 
 interface WidgetSubsectionProps {
