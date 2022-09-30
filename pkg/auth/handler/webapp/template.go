@@ -22,6 +22,7 @@ var TemplateWebRecoveryCodeHTML = template.RegisterHTML("web/__recovery_code.htm
 var TemplateWebPasswordInputHTML = template.RegisterHTML("web/__password_input.html")
 var TemplateWebPasswordStrengthMeterHTML = template.RegisterHTML("web/__password_strength_meter.html")
 var TemplateWebTutorialHTML = template.RegisterHTML("web/__tutorial.html")
+var TemplateWebTermsOfServiceAndPrivacyPolicyFooterHTML = template.RegisterHTML("web/__toc_pp_footer.html")
 
 var components = []*template.HTML{
 	TemplateWebHTMLHeadHTML,
@@ -42,6 +43,7 @@ var components = []*template.HTML{
 	TemplateWebPasswordInputHTML,
 	TemplateWebPasswordStrengthMeterHTML,
 	TemplateWebTutorialHTML,
+	TemplateWebTermsOfServiceAndPrivacyPolicyFooterHTML,
 }
 
 var TemplateWebRecoveryCodeTXT = template.RegisterPlainText("web/__recovery_code.txt")

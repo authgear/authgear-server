@@ -1,0 +1,7 @@
+{{ define "__toc_pp_footer.html" -}}
+{{ if ($.Translations.HasKey "toc-pp-footer") }}
+<p class="text-sm primary-txt m-0">
+{{ template "toc-pp-footer" (dict "termsOfService" (.Translations.RenderText "terms-of-service-link" nil) "privacyPolicy" (.Translations.RenderText "privacy-policy-link" nil)) }}
+</p>
+{{ end }}
+{{ end }}
