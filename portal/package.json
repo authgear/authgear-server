@@ -53,6 +53,7 @@
     "@apollo/client": "3.6.9",
     "@authgear/web": "1.0.1",
     "@elgorditosalsero/react-gtm-hook": "2.5.0",
+    "@fluentui/merge-styles": "8.5.3",
     "@fluentui/react": "8.94.1",
     "@fluentui/react-hooks": "8.6.11",
     "@monaco-editor/react": "4.4.5",
