@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -30,6 +31,7 @@ type Manager struct {
 	AppFS              resource.Fs
 	AppFeatureConfig   *config.FeatureConfig
 	Tutorials          TutorialService
+	Clock              clock.Clock
 }
 
 func (m *Manager) List() ([]string, error) {
@@ -224,6 +226,7 @@ func (m *Manager) applyUpdates(appID string, appFs resource.Fs, updates []Update
 
 		ctx := context.Background()
 		ctx = context.WithValue(ctx, configsource.ContextKeyFeatureConfig, m.AppFeatureConfig)
+		ctx = context.WithValue(ctx, configsource.ContextKeyClock, m.Clock)
 
 		err = m.Tutorials.OnUpdateResource(ctx, appID, all, resrc, u.Data)
 		if err != nil {

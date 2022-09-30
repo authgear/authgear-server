@@ -78,7 +78,7 @@ func migrateImagesSecret(appID string, configSourceData map[string]string, dryRu
 
 	// generate new images key
 	createdAt := time.Now().UTC()
-	jwkKey := utilsecrets.GenerateOctetKey(createdAt, rand.SecureRand)
+	jwkKey := utilsecrets.GenerateOctetKeyForSig(createdAt, rand.SecureRand)
 	keySet := jwk.NewSet()
 	_ = keySet.Add(jwkKey)
 	imagesKeySet := &config.ImagesKeyMaterials{Set: keySet}

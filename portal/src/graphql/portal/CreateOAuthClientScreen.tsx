@@ -14,13 +14,14 @@ import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import { updateClientConfig } from "./EditOAuthClientForm";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
-import { OAuthClientConfig, PortalAPIAppConfig } from "../../types";
+import {
+  OAuthClientConfig,
+  PortalAPIAppConfig,
+  PortalAPISecretConfig,
+  PortalAPISecretConfigUpdateInstruction,
+} from "../../types";
 import { clearEmptyObject, ensureNonEmptyString } from "../../util/misc";
 import { genRandomHexadecimalString } from "../../util/random";
-import {
-  AppConfigFormModel,
-  useAppConfigForm,
-} from "../../hook/useAppConfigForm";
 import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
 import styles from "./CreateOAuthClientScreen.module.css";
 import { FormProvider } from "../../form";
@@ -36,13 +37,20 @@ import {
   useAuthgearGTMEventBase,
   useGTMDispatch,
 } from "../../GTMProvider";
+import {
+  AppSecretConfigFormModel,
+  useAppSecretConfigForm,
+} from "../../hook/useAppSecretConfigForm";
 
 interface FormState {
   clients: OAuthClientConfig[];
   newClient: OAuthClientConfig;
 }
 
-function constructFormState(config: PortalAPIAppConfig): FormState {
+function constructFormState(
+  config: PortalAPIAppConfig,
+  _secretConfig: PortalAPISecretConfig
+): FormState {
   return {
     clients: config.oauth?.clients ?? [],
     newClient: {
@@ -62,10 +70,12 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
 
 function constructConfig(
   config: PortalAPIAppConfig,
+  secretConfig: PortalAPISecretConfig,
   _initialState: FormState,
-  currentState: FormState
-): PortalAPIAppConfig {
-  return produce(config, (config) => {
+  currentState: FormState,
+  _effectiveConfig: PortalAPIAppConfig
+): [PortalAPIAppConfig, PortalAPISecretConfig] {
+  return produce([config, secretConfig], ([config, _secretConfig]) => {
     config.oauth ??= {};
     config.oauth.clients = currentState.clients.slice();
     const draft = createDraft(currentState.newClient);
@@ -78,10 +88,32 @@ function constructConfig(
     } else if (draft.x_application_type === "native") {
       draft.redirect_uris = ["com.example.myapp://host/path"];
       draft.post_logout_redirect_uris = undefined;
+    } else if (draft.x_application_type === "third_party_app") {
+      draft.client_name = draft.name;
+      draft.redirect_uris = ["http://localhost/after-authentication"];
+      draft.post_logout_redirect_uris = undefined;
     }
     config.oauth.clients.push(draft);
     clearEmptyObject(config);
   });
+}
+
+function constructSecretUpdateInstruction(
+  _config: PortalAPIAppConfig,
+  _secrets: PortalAPISecretConfig,
+  currentState: FormState
+): PortalAPISecretConfigUpdateInstruction | undefined {
+  if (currentState.newClient.x_application_type === "third_party_app") {
+    return {
+      oauthClientSecrets: {
+        action: "generate",
+        generateData: {
+          clientID: currentState.newClient.client_id,
+        },
+      },
+    };
+  }
+  return undefined;
 }
 
 function constructInitialCurrentState(state: FormState): FormState {
@@ -91,7 +123,7 @@ function constructInitialCurrentState(state: FormState): FormState {
 }
 
 interface CreateOAuthClientContentProps {
-  form: AppConfigFormModel<FormState>;
+  form: AppSecretConfigFormModel<FormState>;
 }
 
 const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
@@ -176,6 +208,15 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
           onRenderLabel: onRenderLabel(
             renderToString(
               "CreateOAuthClientScreen.application-type.description.native"
+            )
+          ),
+        },
+        {
+          key: "third_party_app",
+          text: renderToString("oauth-client.application-type.third-party-app"),
+          onRenderLabel: onRenderLabel(
+            renderToString(
+              "CreateOAuthClientScreen.application-type.description.third-party-app"
             )
           ),
         },
@@ -269,11 +310,12 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
 
 const CreateOAuthClientScreen: React.VFC = function CreateOAuthClientScreen() {
   const { appID } = useParams() as { appID: string };
-  const form = useAppConfigForm({
+  const form = useAppSecretConfigForm({
     appID,
     constructFormState,
     constructConfig,
     constructInitialCurrentState,
+    constructSecretUpdateInstruction,
   });
 
   const { isLoading, loadError, reload, updateError, isUpdating } = form;

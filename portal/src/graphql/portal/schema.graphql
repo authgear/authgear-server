@@ -457,6 +457,30 @@ interface Node {
   id: ID!
 }
 
+""""""
+input OAuthClientSecretsCleanupDataInput {
+  """"""
+  keepClientIDs: [String!]!
+}
+
+""""""
+input OAuthClientSecretsGenerateDataInput {
+  """"""
+  clientID: String!
+}
+
+""""""
+input OAuthClientSecretsUpdateInstructionsInput {
+  """"""
+  action: String!
+
+  """"""
+  cleanupData: OAuthClientSecretsCleanupDataInput
+
+  """"""
+  generateData: OAuthClientSecretsGenerateDataInput
+}
+
 """OAuth client secret"""
 type OAuthSSOProviderClientSecret {
   """"""
@@ -657,6 +681,9 @@ type SecretConfig {
 
 """"""
 input SecretConfigUpdateInstructionsInput {
+  """"""
+  oauthClientSecrets: OAuthClientSecretsUpdateInstructionsInput
+
   """"""
   oauthSSOProviderClientSecrets: OAuthSSOProviderClientSecretsUpdateInstructionsInput
 

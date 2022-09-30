@@ -12,7 +12,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/resource"
+	"github.com/authgear/authgear-server/pkg/util/secrets"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -27,6 +29,10 @@ var ErrEffectiveSecretConfig = apierrors.NewForbidden("cannot view effective sec
 type contextKeyFeatureConfigType string
 
 const ContextKeyFeatureConfig = contextKeyFeatureConfigType(AuthgearFeatureYAML)
+
+type clockContextKeyType struct{}
+
+var ContextKeyClock = clockContextKeyType{}
 
 type AuthgearYAMLDescriptor struct{}
 
@@ -384,7 +390,7 @@ func (d AuthgearSecretYAMLDescriptor) viewEffectiveResource(resources []resource
 	return secretConfig, nil
 }
 
-func (d AuthgearSecretYAMLDescriptor) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
+func (d AuthgearSecretYAMLDescriptor) UpdateResource(ctx context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
 	if data == nil {
 		return nil, fmt.Errorf("cannot delete '%v'", AuthgearSecretYAML)
 	}
@@ -401,7 +407,18 @@ func (d AuthgearSecretYAMLDescriptor) UpdateResource(_ context.Context, _ []reso
 		return nil, fmt.Errorf("failed to parse secret config update instruction: %w", err)
 	}
 
-	updatedConfig, err := updateInstruction.ApplyTo(&original)
+	c, ok := ctx.Value(ContextKeyClock).(clock.Clock)
+	if !ok || c == nil {
+		return nil, fmt.Errorf("missing clock in context")
+	}
+
+	updateInstructionContext := &config.SecretConfigUpdateInstructionContext{
+		Clock: c,
+		// The key generated for client secret doesn't have use usage key
+		// Since the key neither use for sig nor enc
+		GenerateClientSecretOctetKeyFunc: secrets.GenerateOctetKey,
+	}
+	updatedConfig, err := updateInstruction.ApplyTo(updateInstructionContext, &original)
 	if err != nil {
 		return nil, err
 	}

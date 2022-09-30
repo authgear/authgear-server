@@ -32,16 +32,32 @@ export type ConfigConstructor<State> = (
   currentState: State,
   effectiveConfig: PortalAPIAppConfig
 ) => [PortalAPIAppConfig, PortalAPISecretConfig];
-export type SecretUpdateInstructionConstructor = (
-  secrets: PortalAPISecretConfig
+export type SecretUpdateInstructionConstructor<State> = (
+  config: PortalAPIAppConfig,
+  secrets: PortalAPISecretConfig,
+  currentState: State
 ) => PortalAPISecretConfigUpdateInstruction | undefined;
+export type InitialCurrentStateConstructor<State> = (state: State) => State;
+
+interface UseAppSecretConfigFormOptions<State> {
+  appID: string;
+  constructFormState: StateConstructor<State>;
+  constructConfig: ConfigConstructor<State>;
+  constructSecretUpdateInstruction?: SecretUpdateInstructionConstructor<State>;
+  constructInitialCurrentState?: InitialCurrentStateConstructor<State>;
+}
 
 export function useAppSecretConfigForm<State>(
-  appID: string,
-  constructState: StateConstructor<State>,
-  constructConfig: ConfigConstructor<State>,
-  constructSecretUpdateInstruction?: SecretUpdateInstructionConstructor
+  options: UseAppSecretConfigFormOptions<State>
 ): AppSecretConfigFormModel<State> {
+  const {
+    appID,
+    constructFormState,
+    constructConfig,
+    constructSecretUpdateInstruction,
+    constructInitialCurrentState,
+  } = options;
+
   const {
     loading: isLoading,
     error: loadError,
@@ -64,10 +80,14 @@ export function useAppSecretConfigForm<State>(
   const secrets = useMemo(() => secretConfig ?? {}, [secretConfig]);
 
   const initialState = useMemo(
-    () => constructState(effectiveConfig, secrets),
-    [effectiveConfig, secrets, constructState]
+    () => constructFormState(effectiveConfig, secrets),
+    [effectiveConfig, secrets, constructFormState]
   );
-  const [currentState, setCurrentState] = useState<State | null>(null);
+  const [currentState, setCurrentState] = useState<State | null>(
+    constructInitialCurrentState != null
+      ? constructInitialCurrentState(initialState)
+      : null
+  );
 
   const isDirty = useMemo(() => {
     if (!rawAppConfig || !currentState) {
@@ -122,8 +142,14 @@ export function useAppSecretConfigForm<State>(
       effectiveConfig
     );
 
+    // The app and secret config that pass to constructSecretUpdateInstruction
+    // are the updated config that we are going to send to the server
     const secretUpdateInstruction = constructSecretUpdateInstruction
-      ? constructSecretUpdateInstruction(newConfig[1])
+      ? constructSecretUpdateInstruction(
+          newConfig[0],
+          newConfig[1],
+          currentState
+        )
       : undefined;
 
     try {

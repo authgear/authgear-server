@@ -528,11 +528,11 @@ const WebhookConfigurationScreenContent: React.VFC<WebhookConfigurationScreenCon
 const WebhookConfigurationScreen: React.VFC =
   function WebhookConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
-    const form = useAppSecretConfigForm(
+    const form = useAppSecretConfigForm({
       appID,
       constructFormState,
-      constructConfig
-    );
+      constructConfig,
+    });
     const featureConfig = useAppFeatureConfigQuery(appID);
 
     if (form.isLoading || featureConfig.loading) {

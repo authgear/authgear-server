@@ -29,6 +29,7 @@ import {
   OAuthClientSecret,
   PortalAPIAppConfig,
   PortalAPISecretConfig,
+  PortalAPISecretConfigUpdateInstruction,
 } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import {
@@ -120,6 +121,27 @@ function constructConfig(
     clearEmptyObject(config);
   });
   return [newConfig, secrets];
+}
+
+function constructSecretUpdateInstruction(
+  _config: PortalAPIAppConfig,
+  _secrets: PortalAPISecretConfig,
+  currentState: FormState
+): PortalAPISecretConfigUpdateInstruction | undefined {
+  if (currentState.removeClientByID) {
+    return {
+      oauthClientSecrets: {
+        action: "cleanup",
+        cleanupData: {
+          keepClientIDs: currentState.clients
+            .filter((c) => c.client_id !== currentState.removeClientByID)
+            .map((c) => c.client_id),
+        },
+      },
+    };
+  }
+
+  return undefined;
 }
 
 interface FrameworkItem {
@@ -515,11 +537,12 @@ const EditOAuthClientScreen: React.VFC = function EditOAuthClientScreen() {
     clientID: string;
   };
   const { renderToString } = useContext(Context);
-  const form = useAppSecretConfigForm(
+  const form = useAppSecretConfigForm({
     appID,
     constructFormState,
-    constructConfig
-  );
+    constructConfig,
+    constructSecretUpdateInstruction,
+  });
   const { setState, save, isUpdating } = form;
   const navigate = useNavigate();
   const [isRemoveDialogVisible, setIsRemoveDialogVisible] = useState(false);

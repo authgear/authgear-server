@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	configtest "github.com/authgear/authgear-server/pkg/lib/config/test"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -44,6 +45,7 @@ func TestManager(t *testing.T) {
 			AppFS:              appResourceFs,
 			AppFeatureConfig:   cfg.FeatureConfig,
 			Tutorials:          tutorialService,
+			Clock:              clock.NewMockClock(),
 		}
 
 		applyUpdates := func(updates []appresource.Update) error {

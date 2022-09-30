@@ -5,12 +5,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
 type ManagerFactory struct {
 	AppBaseResources deps.AppBaseResources
 	Tutorials        *tutorial.Service
+	Clock            clock.Clock
 }
 
 func (f *ManagerFactory) NewManagerWithAppContext(appContext *config.AppContext) *appresource.Manager {
@@ -19,6 +21,7 @@ func (f *ManagerFactory) NewManagerWithAppContext(appContext *config.AppContext)
 		AppFS:              appContext.AppFs,
 		AppFeatureConfig:   appContext.Config.FeatureConfig,
 		Tutorials:          f.Tutorials,
+		Clock:              f.Clock,
 	}
 }
 
@@ -31,5 +34,6 @@ func (f *ManagerFactory) NewManagerWithNewAppFS(appFs resource.Fs) *appresource.
 		// use default unlimited feature config for the app creation
 		AppFeatureConfig: config.NewEffectiveDefaultFeatureConfig(),
 		Tutorials:        f.Tutorials,
+		Clock:            f.Clock,
 	}
 }

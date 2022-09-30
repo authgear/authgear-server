@@ -501,10 +501,11 @@
   "CreateOAuthClientScreen.application-type.description.spa": "Front-end frameworks that use access tokens to access APIs, e.g. React, Vue, Angular",
   "CreateOAuthClientScreen.application-type.description.traditional-webapp": "Websites that use cookie to authenticate requests, e.g. Express, PHP, Go",
   "CreateOAuthClientScreen.application-type.description.native": "Mobile and desktop apps, e.g. iOS, Android, Electron",
+  "CreateOAuthClientScreen.application-type.description.third-party-app": "Allow users to login with Authgear on to access any other OIDC compatible applications. e.g. WordPress, Craftcms, Magento",
 
   "EditOAuthClientScreen.client-not-found": "Client ID {clientID} is not found",
   "EditOAuthClientScreen.quick-start-screen.title": "All set! Here are the guides to help your integration.",
-  "EditOAuthClientScreen.quick-start-screen.question": "What framework are you using for your {applicationType, select, spa{single page application} traditional_webapp{traditional web application} native{native app} other{application}}?",
+  "EditOAuthClientScreen.quick-start-screen.question": "{applicationType, select, third_party_app{Configure your OpenID Connect compatible applications} other{What framework are you using for your {applicationType, select, spa{single page application} traditional_webapp{traditional web application} native{native app} other{application}}?}}",
   "EditOAuthClientScreen.quick-start-widget.title": "Quickstart guide",
   "EditOAuthClientScreen.quick-start-widget.question": "{applicationType, select, unspecified{Select the application type to see the guides} third_party_app{Configure your OpenID Connect compatible applications} other{What framework are you using?}}",
   "EditOAuthClientScreen.quick-start.open-tutorial.label": "Open tutorial",
