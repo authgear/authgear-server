@@ -31,7 +31,7 @@ import styles from "./UserDetailsConnectedIdentities.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useIsLoading, useLoading } from "../../hook/loading";
 import { useProvideError } from "../../hook/error";
-import { createEIP681URL, etherscan } from "../../util/eip681";
+import { createEIP681URL, etherscanAddress } from "../../util/eip681";
 import ExternalLink from "../../ExternalLink";
 import { truncateAddress } from "../../util/hex";
 import LinkButton from "../../LinkButton";
@@ -438,7 +438,7 @@ const IdentityListCell: React.VFC<IdentityListCellProps> =
       <ListCellLayout className={styles.cellContainer}>
         <div className={styles.cellIcon}>{icon}</div>
         {identityType === "siwe" ? (
-          <ExternalLink href={etherscan(identityName)}>
+          <ExternalLink href={etherscanAddress(identityName)}>
             <Text className={cn(styles.cellName, styles.siweCellName)}>
               {identityName}
             </Text>

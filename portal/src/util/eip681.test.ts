@@ -1,5 +1,11 @@
 import { describe, it, expect } from "@jest/globals";
-import { createEIP681URL, EIP681, etherscan, parseEIP681 } from "./eip681";
+import {
+  createEIP681URL,
+  EIP681,
+  etherscanAddress,
+  etherscanURL,
+  parseEIP681,
+} from "./eip681";
 
 describe("EIP681", () => {
   it("parses eip681 success with address check", () => {
@@ -114,9 +120,43 @@ describe("EIP681", () => {
 
   it("create etherscan url with address check", () => {
     function test(uri: string, expected: string) {
-      const etherscanURL = etherscan(uri);
+      const url = etherscanURL(uri);
 
-      expect(etherscanURL).toEqual(expected);
+      expect(url).toEqual(expected);
+    }
+
+    test(
+      "ethereum:0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d@1",
+      "https://etherscan.io/"
+    );
+
+    test(
+      "ethereum:0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d@5",
+      "https://goerli.etherscan.io/"
+    );
+
+    test("ethereum:0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d@1234", "");
+  });
+
+  it("create etherscan url without address check", () => {
+    function test(uri: string, expected: string) {
+      const url = etherscanURL(uri, true);
+
+      expect(url).toEqual(expected);
+    }
+
+    test("ethereum:0x0@1", "https://etherscan.io/");
+
+    test("ethereum:0x0@5", "https://goerli.etherscan.io/");
+
+    test("ethereum:0x0@1234", "");
+  });
+
+  it("create etherscan address url with address check", () => {
+    function test(uri: string, expected: string) {
+      const url = etherscanAddress(uri);
+
+      expect(url).toEqual(expected);
     }
 
     test(
@@ -131,21 +171,21 @@ describe("EIP681", () => {
 
     test(
       "ethereum:0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d@1234",
-      "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d"
+      "address/0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d"
     );
   });
 
-  it("create etherscan url without address check", () => {
+  it("create etherscan address url without address check", () => {
     function test(uri: string, expected: string) {
-      const etherscanURL = etherscan(uri, true);
+      const url = etherscanAddress(uri, true);
 
-      expect(etherscanURL).toEqual(expected);
+      expect(url).toEqual(expected);
     }
 
     test("ethereum:0x0@1", "https://etherscan.io/address/0x0");
 
     test("ethereum:0x0@5", "https://goerli.etherscan.io/address/0x0");
 
-    test("ethereum:0x0@1234", "0x0");
+    test("ethereum:0x0@1234", "address/0x0");
   });
 });

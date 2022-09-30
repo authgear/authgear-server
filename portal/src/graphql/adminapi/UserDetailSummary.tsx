@@ -7,7 +7,7 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { formatDatetime } from "../../util/formatDatetime";
 
 import styles from "./UserDetailSummary.module.css";
-import { etherscan, parseEIP681 } from "../../util/eip681";
+import { etherscanAddress, parseEIP681 } from "../../util/eip681";
 import ExternalLink from "../../ExternalLink";
 
 function shouldRenderEtherscanURL(addressURL: string): boolean {
@@ -73,7 +73,7 @@ const UserDetailSummary: React.VFC<UserDetailSummaryProps> =
           ) : null}
           {endUserAccountIdentifier &&
           shouldRenderEtherscanURL(endUserAccountIdentifier) ? (
-            <ExternalLink href={etherscan(endUserAccountIdentifier)}>
+            <ExternalLink href={etherscanAddress(endUserAccountIdentifier)}>
               <Text className={styles.etherscanURL} variant="medium">
                 {endUserAccountIdentifier}
               </Text>

@@ -51,7 +51,7 @@ export function createEIP681URL(
   return url;
 }
 
-export function etherscan(
+export function etherscanURL(
   eip681String: string,
   skipAddressCheck: boolean = false
 ): string {
@@ -60,14 +60,24 @@ export function etherscan(
   let prefix: string;
   switch (eip681.chainId) {
     case 1:
-      prefix = "https://etherscan.io/address/";
+      prefix = "https://etherscan.io/";
       break;
     case 5:
-      prefix = "https://goerli.etherscan.io/address/";
+      prefix = "https://goerli.etherscan.io/";
       break;
     default:
       prefix = "";
   }
+
+  return prefix;
+}
+
+export function etherscanAddress(
+  eip681String: string,
+  skipAddressCheck: boolean = false
+): string {
+  const eip681 = parseEIP681(eip681String, skipAddressCheck);
+  const prefix = etherscanURL(eip681String, skipAddressCheck) + "address/";
 
   return prefix + eip681.address;
 }
