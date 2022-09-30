@@ -2063,14 +2063,16 @@ function VerificationSettings(props: VerificationSettingsProps) {
       ) : null}
       {showEmailSettings ? (
         <>
-          <Checkbox
+          <Toggle
+            inlineLabel={true}
             checked={verificationConfig.claims?.email?.required ?? true}
             onChange={onChangeEmailRequired}
             label={renderToString(
               "VerificationConfigurationScreen.verification.email.required.label"
             )}
           />
-          <Checkbox
+          <Toggle
+            inlineLabel={true}
             disabled={verificationConfig.claims?.email?.required ?? true}
             checked={verificationConfig.claims?.email?.enabled ?? true}
             onChange={onChangeEmailEnabled}
@@ -2082,14 +2084,16 @@ function VerificationSettings(props: VerificationSettingsProps) {
       ) : null}
       {showPhoneSettings ? (
         <>
-          <Checkbox
+          <Toggle
+            inlineLabel={true}
             checked={verificationConfig.claims?.phone_number?.required ?? true}
             onChange={onChangePhoneRequired}
             label={renderToString(
               "VerificationConfigurationScreen.verification.phone.required.label"
             )}
           />
-          <Checkbox
+          <Toggle
+            inlineLabel={true}
             disabled={verificationConfig.claims?.phone_number?.required ?? true}
             checked={verificationConfig.claims?.phone_number?.enabled ?? true}
             onChange={onChangePhoneEnabled}
