@@ -336,8 +336,19 @@ func (h *AuthorizationHandler) doHandle(
 	}
 
 	authenticationInfo := idpSession.GetAuthenticationInfo()
+	autoGrantAuthz := client.ClientParty() == config.ClientPartyFirst
 
-	return h.finish(redirectURI, r, idpSession.SessionID(), authenticationInfo, idTokenHintSID, nil)
+	result, err := h.finish(redirectURI, r, idpSession.SessionID(), authenticationInfo, idTokenHintSID, nil, autoGrantAuthz)
+	if err != nil {
+		if errors.Is(err, oauth.ErrAuthorizationNotFound) {
+			return nil, protocol.NewError("access_denied", "authorization required")
+		}
+		if errors.Is(err, oauth.ErrAuthorizationScopesNotGranted) {
+			return nil, protocol.NewError("access_denied", "requested scopes are not granted")
+		}
+		return nil, err
+	}
+	return result, nil
 }
 
 func (h *AuthorizationHandler) finish(
@@ -347,15 +358,27 @@ func (h *AuthorizationHandler) finish(
 	authenticationInfo authenticationinfo.T,
 	idTokenHintSID string,
 	cookies []*http.Cookie,
+	grantAuthz bool,
 ) (httputil.Result, error) {
-	authz, err := checkAndGrantAuthorization(
-		h.Authorizations,
-		h.Clock.NowUTC(),
-		h.AppID,
-		r.ClientID(),
-		authenticationInfo.UserID,
-		r.Scope(),
-	)
+	var authz *oauth.Authorization
+	var err error
+	if grantAuthz {
+		authz, err = checkAndGrantAuthorization(
+			h.Authorizations,
+			h.Clock.NowUTC(),
+			h.AppID,
+			r.ClientID(),
+			authenticationInfo.UserID,
+			r.Scope(),
+		)
+	} else {
+		authz, err = checkAuthorization(
+			h.Authorizations,
+			r.ClientID(),
+			authenticationInfo.UserID,
+			r.Scope(),
+		)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -433,7 +456,8 @@ func (h *AuthorizationHandler) doHandleFromWebApp(
 
 	authenticationInfo := entry.T
 
-	return h.finish(redirectURI, r, idpSessionID, authenticationInfo, idTokenHintSID, []*http.Cookie{h.Cookies.ClearCookie(oauthsession.CookieDef)})
+	// fixme: update autoGrantAuthz for webapp handler
+	return h.finish(redirectURI, r, idpSessionID, authenticationInfo, idTokenHintSID, []*http.Cookie{h.Cookies.ClearCookie(oauthsession.CookieDef)}, true)
 }
 
 func (h *AuthorizationHandler) validateRequest(

@@ -51,3 +51,22 @@ func checkAndGrantAuthorization(
 
 	return authz, nil
 }
+
+func checkAuthorization(
+	authzs oauth.AuthorizationStore,
+	clientID string,
+	userID string,
+	scopes []string,
+) (*oauth.Authorization, error) {
+	authz, err := authzs.Get(userID, clientID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !authz.IsAuthorized(scopes) {
+		return nil, oauth.ErrAuthorizationScopesNotGranted
+	}
+
+	return authz, nil
+}
