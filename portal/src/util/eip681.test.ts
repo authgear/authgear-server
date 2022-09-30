@@ -3,6 +3,7 @@ import {
   createEIP681URL,
   EIP681,
   etherscanAddress,
+  etherscanBlock,
   etherscanTx,
   etherscanURL,
   parseEIP681,
@@ -240,5 +241,45 @@ describe("EIP681", () => {
       "0x13aec95326ee5d0ba5d09d814746a7580a7d2a8bf5fb907b6fa398112353abd3",
       "tx/0x13aec95326ee5d0ba5d09d814746a7580a7d2a8bf5fb907b6fa398112353abd3"
     );
+  });
+
+  it("create etherscan block url with address check", () => {
+    function test(uri: string, block: string, expected: string) {
+      const url = etherscanBlock(uri, block);
+
+      expect(url).toEqual(expected);
+    }
+
+    test(
+      "ethereum:0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d@1",
+      "1234",
+      "https://etherscan.io/block/1234"
+    );
+
+    test(
+      "ethereum:0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d@5",
+      "1234",
+      "https://goerli.etherscan.io/block/1234"
+    );
+
+    test(
+      "ethereum:0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d@1234",
+      "1234",
+      "block/1234"
+    );
+  });
+
+  it("create etherscan block url without address check", () => {
+    function test(uri: string, block: string, expected: string) {
+      const url = etherscanBlock(uri, block, true);
+
+      expect(url).toEqual(expected);
+    }
+
+    test("ethereum:0x0@1", "1234", "https://etherscan.io/block/1234");
+
+    test("ethereum:0x0@5", "1234", "https://goerli.etherscan.io/block/1234");
+
+    test("ethereum:0x0@1234", "1234", "block/1234");
   });
 });
