@@ -707,7 +707,7 @@ export interface BlockIdentifier {
 }
 
 export interface NFTToken {
-  tokenId: string;
+  token_id: string;
   transaction_identifier: TransactionIdentifier;
   block_identifier: BlockIdentifier;
 }
