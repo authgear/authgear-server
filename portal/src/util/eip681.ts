@@ -81,3 +81,13 @@ export function etherscanAddress(
 
   return prefix + eip681.address;
 }
+
+export function etherscanTx(
+  eip681String: string,
+  tx: string,
+  skipAddressCheck: boolean = false
+): string {
+  const prefix = etherscanURL(eip681String, skipAddressCheck) + "tx/";
+
+  return prefix + tx;
+}

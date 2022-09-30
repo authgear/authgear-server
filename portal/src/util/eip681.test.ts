@@ -3,6 +3,7 @@ import {
   createEIP681URL,
   EIP681,
   etherscanAddress,
+  etherscanTx,
   etherscanURL,
   parseEIP681,
 } from "./eip681";
@@ -187,5 +188,57 @@ describe("EIP681", () => {
     test("ethereum:0x0@5", "https://goerli.etherscan.io/address/0x0");
 
     test("ethereum:0x0@1234", "address/0x0");
+  });
+
+  it("create etherscan transaction hash url with address check", () => {
+    function test(uri: string, tx: string, expected: string) {
+      const url = etherscanTx(uri, tx);
+
+      expect(url).toEqual(expected);
+    }
+
+    test(
+      "ethereum:0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d@1",
+      "0x13aec95326ee5d0ba5d09d814746a7580a7d2a8bf5fb907b6fa398112353abd3",
+      "https://etherscan.io/tx/0x13aec95326ee5d0ba5d09d814746a7580a7d2a8bf5fb907b6fa398112353abd3"
+    );
+
+    test(
+      "ethereum:0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d@5",
+      "0x13aec95326ee5d0ba5d09d814746a7580a7d2a8bf5fb907b6fa398112353abd3",
+      "https://goerli.etherscan.io/tx/0x13aec95326ee5d0ba5d09d814746a7580a7d2a8bf5fb907b6fa398112353abd3"
+    );
+
+    test(
+      "ethereum:0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d@1234",
+      "0x13aec95326ee5d0ba5d09d814746a7580a7d2a8bf5fb907b6fa398112353abd3",
+      "tx/0x13aec95326ee5d0ba5d09d814746a7580a7d2a8bf5fb907b6fa398112353abd3"
+    );
+  });
+
+  it("create etherscan transaction hash url without address check", () => {
+    function test(uri: string, tx: string, expected: string) {
+      const url = etherscanTx(uri, tx, true);
+
+      expect(url).toEqual(expected);
+    }
+
+    test(
+      "ethereum:0x0@1",
+      "0x13aec95326ee5d0ba5d09d814746a7580a7d2a8bf5fb907b6fa398112353abd3",
+      "https://etherscan.io/tx/0x13aec95326ee5d0ba5d09d814746a7580a7d2a8bf5fb907b6fa398112353abd3"
+    );
+
+    test(
+      "ethereum:0x0@5",
+      "0x13aec95326ee5d0ba5d09d814746a7580a7d2a8bf5fb907b6fa398112353abd3",
+      "https://goerli.etherscan.io/tx/0x13aec95326ee5d0ba5d09d814746a7580a7d2a8bf5fb907b6fa398112353abd3"
+    );
+
+    test(
+      "ethereum:0x0@1234",
+      "0x13aec95326ee5d0ba5d09d814746a7580a7d2a8bf5fb907b6fa398112353abd3",
+      "tx/0x13aec95326ee5d0ba5d09d814746a7580a7d2a8bf5fb907b6fa398112353abd3"
+    );
   });
 });
