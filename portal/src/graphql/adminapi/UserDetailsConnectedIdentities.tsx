@@ -22,6 +22,7 @@ import { formatDatetime } from "../../util/formatDatetime";
 import {
   NFT,
   NFTContract,
+  NFTToken,
   OAuthSSOProviderType,
   Web3Claims,
 } from "../../types";
@@ -35,6 +36,7 @@ import { createEIP681URL, etherscanAddress } from "../../util/eip681";
 import ExternalLink from "../../ExternalLink";
 import { truncateAddress } from "../../util/hex";
 import LinkButton from "../../LinkButton";
+import NFTCollectionDetailDialog from "./NFTCollectionDetailDialog";
 
 // Always disable virtualization for List component, as it wont work properly with mobile view
 const onShouldVirtualize = () => {
@@ -317,12 +319,23 @@ const VerifyButton: React.VFC<VerifyButtonProps> = function VerifyButton(
 interface NFTCollectionListCellProps {
   contract: NFTContract;
   balance: number;
+  tokens: NFTToken[];
+  eip681String: string;
 }
 
 const NFTCollectionListCell: React.VFC<NFTCollectionListCellProps> = (
   props
 ) => {
-  const { contract, balance } = props;
+  const { contract, balance, tokens, eip681String } = props;
+  const [isDetailDialogVisible, setIsDetailDialogVisible] = useState(false);
+
+  const openDetailDialog = useCallback(() => {
+    setIsDetailDialogVisible(true);
+  }, []);
+
+  const onDismissDetailDialog = useCallback(() => {
+    setIsDetailDialogVisible(false);
+  }, []);
 
   return (
     <div className={styles.NFTListCell}>
@@ -341,7 +354,7 @@ const NFTCollectionListCell: React.VFC<NFTCollectionListCellProps> = (
           values={{ balance: balance }}
         />
       </Text>
-      <LinkButton className={styles.NFTListCellBtn}>
+      <LinkButton className={styles.NFTListCellBtn} onClick={openDetailDialog}>
         <Text className={styles.NFTListCellBtnLabel} variant="small">
           <FormattedMessage
             id="UserDetails.connected-identities.siwe.nft-collections.view-tokens"
@@ -349,16 +362,25 @@ const NFTCollectionListCell: React.VFC<NFTCollectionListCellProps> = (
           />
         </Text>
       </LinkButton>
+      <NFTCollectionDetailDialog
+        contract={contract}
+        balance={balance}
+        tokens={tokens}
+        isVisible={isDetailDialogVisible}
+        onDismiss={onDismissDetailDialog}
+        eip681String={eip681String}
+      />
     </div>
   );
 };
 
 interface NFTCollectionListProps {
   nfts: NFT[];
+  eip681String: string;
 }
 
 const NFTCollectionList: React.VFC<NFTCollectionListProps> = (props) => {
-  const { nfts } = props;
+  const { nfts, eip681String } = props;
 
   const onRenderCollectionCell = useCallback(
     (item?: NFT, _index?: number): React.ReactNode => {
@@ -370,10 +392,12 @@ const NFTCollectionList: React.VFC<NFTCollectionListProps> = (props) => {
         <NFTCollectionListCell
           contract={item.contract}
           balance={item.balance}
+          tokens={item.tokens}
+          eip681String={eip681String}
         />
       );
     },
-    []
+    [eip681String]
   );
 
   if (nfts.length === 0) {
@@ -493,7 +517,7 @@ const IdentityListCell: React.VFC<IdentityListCellProps> =
                 id="UserDetails.connected-identities.added-on"
                 values={{ datetime: connectedOn }}
               />
-              <NFTCollectionList nfts={extraArgs} />
+              <NFTCollectionList nfts={extraArgs} eip681String={identityName} />
             </div>
           ) : null}
         </Text>
