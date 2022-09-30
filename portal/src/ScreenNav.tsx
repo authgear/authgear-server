@@ -203,11 +203,6 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
       },
       {
         type: "link" as const,
-        textKey: "ScreenNav.password-policy",
-        url: `/project/${appID}/configuration/password-policy`,
-      },
-      {
-        type: "link" as const,
         textKey: "ScreenNav.client-applications",
         url: `/project/${appID}/configuration/apps`,
       },
