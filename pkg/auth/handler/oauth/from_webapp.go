@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
-	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -24,7 +23,7 @@ func NewFromWebAppHandlerLogger(lf *log.Factory) FromWebAppHandlerLogger {
 }
 
 type ProtocolFromWebAppHandler interface {
-	HandleFromWebApp(r protocol.AuthorizationRequest, req *http.Request) httputil.Result
+	HandleFromWebApp(req *http.Request) httputil.Result
 }
 
 type FromWebAppHandler struct {
@@ -34,20 +33,9 @@ type FromWebAppHandler struct {
 }
 
 func (h *FromWebAppHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(rw, err.Error(), 400)
-		return
-	}
-
-	req := protocol.AuthorizationRequest{}
-	for name, values := range r.Form {
-		req[name] = values[0]
-	}
-
 	var result httputil.Result
-	err = h.Database.WithTx(func() error {
-		result = h.Handler.HandleFromWebApp(req, r)
+	err := h.Database.WithTx(func() error {
+		result = h.Handler.HandleFromWebApp(r)
 		if result.IsInternalError() {
 			return errAuthzInternalError
 		}

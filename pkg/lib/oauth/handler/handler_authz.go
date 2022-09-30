@@ -137,7 +137,42 @@ func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.
 	return result
 }
 
-func (h *AuthorizationHandler) HandleFromWebApp(r protocol.AuthorizationRequest, req *http.Request) httputil.Result {
+func (h *AuthorizationHandler) HandleFromWebApp(req *http.Request) httputil.Result {
+	cookie, err := h.Cookies.GetCookie(req, oauthsession.CookieDef)
+	if err != nil {
+		return authorizationResultError{
+			// failed to obtain authz request, use default response mode and empty redirect uri
+			// the error will be rendered on the browser without redirection
+			ResponseMode: "",
+			Response:     protocol.NewErrorResponse("invalid_request", "missing oauth session cookie"),
+			RedirectURI:  nil,
+		}
+	}
+
+	entry, err := h.OAuthSessionService.Get(cookie.Value)
+	if err != nil {
+		if errors.Is(err, oauthsession.ErrNotFound) {
+			// failed to obtain authz request, use default response mode and empty redirect uri
+			// the error will be rendered on the browser without redirection
+			return authorizationResultError{
+				ResponseMode: "",
+				Response:     protocol.NewErrorResponse("invalid_request", "oauth session expired"),
+				RedirectURI:  nil,
+			}
+		}
+		h.Logger.WithError(err).Error("failed to obtain oauth session")
+		return authorizationResultError{
+			// failed to obtain authz request, use default response mode and empty redirect uri
+			// the error will be rendered on the browser without redirection
+			ResponseMode:  "",
+			Response:      protocol.NewErrorResponse("server_error", "internal server error"),
+			InternalError: true,
+			RedirectURI:   nil,
+		}
+	}
+
+	r := entry.T.AuthorizationRequest
+
 	client := resolveClient(h.Config, r)
 	if client == nil {
 		return authorizationResultError{
@@ -172,6 +207,13 @@ func (h *AuthorizationHandler) HandleFromWebApp(r protocol.AuthorizationRequest,
 			resultErr.Response.State(r.State())
 		}
 		result = resultErr
+	} else {
+		// delete oauth session with best effort
+		// don't block the user in case of failure
+		err = h.OAuthSessionService.Delete(entry.ID)
+		if err != nil {
+			h.Logger.WithError(err).Error("failed to consume oauth session")
+		}
 	}
 
 	return result
@@ -295,7 +337,7 @@ func (h *AuthorizationHandler) doHandle(
 
 	authenticationInfo := idpSession.GetAuthenticationInfo()
 
-	return h.finish(redirectURI, r, idpSession.SessionID(), authenticationInfo, idTokenHintSID)
+	return h.finish(redirectURI, r, idpSession.SessionID(), authenticationInfo, idTokenHintSID, nil)
 }
 
 func (h *AuthorizationHandler) finish(
@@ -304,6 +346,7 @@ func (h *AuthorizationHandler) finish(
 	idpSessionID string,
 	authenticationInfo authenticationinfo.T,
 	idTokenHintSID string,
+	cookies []*http.Cookie,
 ) (httputil.Result, error) {
 	authz, err := checkAuthorization(
 		h.Authorizations,
@@ -341,7 +384,10 @@ func (h *AuthorizationHandler) finish(
 		RedirectURI:  redirectURI,
 		ResponseMode: r.ResponseMode(),
 		Response:     resp,
-		Cookies:      []*http.Cookie{h.Cookies.ClearCookie(authenticationinfo.CookieDef)},
+		Cookies: append(
+			[]*http.Cookie{h.Cookies.ClearCookie(authenticationinfo.CookieDef)},
+			cookies...,
+		),
 	}, nil
 }
 
@@ -386,7 +432,8 @@ func (h *AuthorizationHandler) doHandleFromWebApp(
 	}
 
 	authenticationInfo := entry.T
-	return h.finish(redirectURI, r, idpSessionID, authenticationInfo, idTokenHintSID)
+
+	return h.finish(redirectURI, r, idpSessionID, authenticationInfo, idTokenHintSID, []*http.Cookie{h.Cookies.ClearCookie(oauthsession.CookieDef)})
 }
 
 func (h *AuthorizationHandler) validateRequest(
