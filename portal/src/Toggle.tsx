@@ -1,4 +1,5 @@
 import React, { ReactNode, useContext, useMemo, forwardRef } from "react";
+import cn from "classnames";
 import { Context } from "@oursky/react-messageformat";
 import {
   // eslint-disable-next-line no-restricted-imports
@@ -7,6 +8,8 @@ import {
   Text,
   useTheme,
 } from "@fluentui/react";
+import { useMergedStyles } from "./util/mergeStyles";
+import styles from "./Toggle.module.css";
 
 export interface ToggleProps extends IToggleProps {
   description?: ReactNode;
@@ -23,6 +26,7 @@ export default forwardRef<HTMLDivElement, ToggleProps>(function Toggle(
     toggleClassName,
     inlineLabel,
     disabled,
+    styles: stylesProp,
     ...rest
   } = props;
   const { renderToString } = useContext(Context);
@@ -35,6 +39,15 @@ export default forwardRef<HTMLDivElement, ToggleProps>(function Toggle(
         }
       : undefined;
 
+  const toggleStyles = useMergedStyles(
+    {
+      root: {
+        marginBottom: "0",
+      },
+    },
+    stylesProp
+  );
+
   const textStyles = useMemo(() => {
     return {
       root: {
@@ -46,10 +59,11 @@ export default forwardRef<HTMLDivElement, ToggleProps>(function Toggle(
   }, [disabled, theme.semanticColors.disabledText]);
 
   return (
-    <div className={className} ref={ref}>
+    <div className={cn(className, styles.root)} ref={ref}>
       <FluentUIToggle
         {...ownProps}
         {...rest}
+        styles={toggleStyles}
         inlineLabel={inlineLabel}
         className={toggleClassName}
         disabled={disabled}
