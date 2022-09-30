@@ -61,7 +61,7 @@ const secondaryAuthenticatorNameIds = {
 
 interface FormState {
   mfaMode: SecondaryAuthenticationMode;
-  deviceTokenDisabled: boolean;
+  deviceTokenEnabled: boolean;
   recoveryCodeEnabled: boolean;
   numRecoveryCode: number | undefined;
   recoveryCodeListEnabled: boolean;
@@ -90,7 +90,9 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
     mfaMode:
       config.authentication?.secondary_authentication_mode ?? "if_exists",
-    deviceTokenDisabled: config.authentication?.device_token?.disabled ?? false,
+    deviceTokenEnabled: !(
+      config.authentication?.device_token?.disabled ?? false
+    ),
     recoveryCodeEnabled: !(
       config.authentication?.recovery_code?.disabled ?? false
     ),
@@ -125,7 +127,7 @@ function constructConfig(
 
     config.authentication.secondary_authentication_mode = currentState.mfaMode;
     config.authentication.device_token.disabled =
-      currentState.deviceTokenDisabled;
+      !currentState.deviceTokenEnabled;
 
     config.authentication.recovery_code.disabled =
       !currentState.recoveryCodeEnabled;
@@ -185,7 +187,7 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
     const { state, setState } = props.form;
     const {
       mfaMode,
-      deviceTokenDisabled,
+      deviceTokenEnabled,
       recoveryCodeEnabled,
       recoveryCodeListEnabled,
       numRecoveryCode,
@@ -251,11 +253,11 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
       [secondary, featureDisabled, disabledText]
     );
 
-    const onChangeDeviceTokenDisabled = useCallback(
+    const onChangeDeviceTokenEnabled = useCallback(
       (_e, checked?: boolean) => {
         setState((prev) => ({
           ...prev,
-          deviceTokenDisabled: checked ?? false,
+          deviceTokenEnabled: checked ?? false,
         }));
       },
       [setState]
@@ -338,8 +340,8 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
               <FormattedMessage id="MFAConfigurationScreen.policy.device-token.title" />
             }
             inlineLabel={false}
-            checked={deviceTokenDisabled}
-            onChange={onChangeDeviceTokenDisabled}
+            checked={deviceTokenEnabled}
+            onChange={onChangeDeviceTokenEnabled}
           />
         </Widget>
         <Widget className={styles.widget}>
