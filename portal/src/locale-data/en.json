@@ -127,7 +127,6 @@
   "ScreenNav.external-oauth": "Social / Enterprise Login",
   "ScreenNav.login-methods": "Login Methods",
   "ScreenNav.client-applications": "Applications",
-  "ScreenNav.password-reset-code": "Password Reset Code",
   "ScreenNav.ui-settings": "UI Settings",
   "ScreenNav.localization": "Localization",
   "ScreenNav.user-profile": "User Profile",
@@ -452,9 +451,6 @@
   "PasswordPolicyConfigurationScreen.history-size.label": "No. of password history to keep",
   "PasswordPolicyConfigurationScreen.excluded-keywords.label": "Keywords to be excluded",
 
-  "ForgotPasswordConfigurationScreen.title": "Password Reset Code",
-  "ForgotPasswordConfigurationScreen.description": "Configure password reset code lifetime.",
-  "ForgotPasswordConfigurationScreen.code-settings": "Code Settings",
   "ForgotPasswordConfigurationScreen.reset-code-valid-duration.label": "Reset code valid duration (seconds)",
 
   "ApplicationsConfigurationScreen.title": "Applications",
