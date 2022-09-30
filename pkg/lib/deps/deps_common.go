@@ -43,6 +43,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	oidchandler "github.com/authgear/authgear-server/pkg/lib/oauth/oidc/handler"
 	oauthpq "github.com/authgear/authgear-server/pkg/lib/oauth/pq"
@@ -73,6 +74,11 @@ var CommonDependencySet = wire.NewSet(
 		authenticationinfo.DependencySet,
 		wire.Bind(new(interaction.AuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 		wire.Bind(new(oauthhandler.AuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
+	),
+
+	wire.NewSet(
+		oauthsession.DependencySet,
+		wire.Bind(new(oauthhandler.OAuthSessionService), new(*oauthsession.StoreRedis)),
 	),
 
 	wire.NewSet(

@@ -18,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -53,11 +54,18 @@ type AuthenticationInfoService interface {
 
 type CookieManager interface {
 	GetCookie(r *http.Request, def *httputil.CookieDef) (*http.Cookie, error)
+	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
 	ClearCookie(def *httputil.CookieDef) *http.Cookie
 }
 
 type SessionProvider interface {
 	Get(id string) (*idpsession.IDPSession, error)
+}
+
+type OAuthSessionService interface {
+	Save(entry *oauthsession.Entry) (err error)
+	Get(entryID string) (*oauthsession.Entry, error)
+	Delete(entryID string) error
 }
 
 type AuthorizationHandlerLogger struct{ *log.Logger }
@@ -86,6 +94,7 @@ type AuthorizationHandler struct {
 	AuthenticationInfoService AuthenticationInfoService
 	Clock                     clock.Clock
 	Cookies                   CookieManager
+	OAuthSessionService       OAuthSessionService
 }
 
 func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.Result {
@@ -228,6 +237,18 @@ func (h *AuthorizationHandler) doHandle(
 		}
 	}
 
+	// create oauth session and redirect to the web app
+	oauthSessionEntry := oauthsession.NewEntry(oauthsession.T{
+		AuthorizationRequest: r,
+	})
+	err = h.OAuthSessionService.Save(oauthSessionEntry)
+	if err != nil {
+		return nil, err
+	}
+	oauthSessionEntryCookies := []*http.Cookie{
+		h.Cookies.ValueCookie(oauthsession.CookieDef, oauthSessionEntry.ID),
+	}
+
 	// Handle login_hint
 	// We must return here.
 	if loginHint, ok := r.LoginHint(); ok {
@@ -237,6 +258,7 @@ func (h *AuthorizationHandler) doHandle(
 			UILocales:           uiLocales,
 			ColorScheme:         colorScheme,
 			OriginalRedirectURI: redirectURI.String(),
+			OAuthSessionCookies: oauthSessionEntryCookies,
 		})
 		if err != nil {
 			return nil, protocol.NewError("invalid_request", err.Error())
@@ -251,6 +273,7 @@ func (h *AuthorizationHandler) doHandle(
 			SessionOptions: sessionOptions,
 			UILocales:      uiLocales,
 			ColorScheme:    colorScheme,
+			Cookies:        oauthSessionEntryCookies,
 		})
 		if apierrors.IsKind(err, interaction.InvalidCredentials) {
 			return nil, protocol.NewError("invalid_request", err.Error())

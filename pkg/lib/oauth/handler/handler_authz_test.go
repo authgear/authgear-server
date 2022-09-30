@@ -53,6 +53,7 @@ func TestAuthorizationHandler(t *testing.T) {
 		codeGrantStore := &mockCodeGrantStore{}
 		authenticationInfoService := &mockAuthenticationInfoService{}
 		cookieManager := &mockCookieManager{}
+		oauthSessionService := &mockOAuthSessionService{}
 
 		h := &handler.AuthorizationHandler{
 			Context: context.Background(),
@@ -71,6 +72,7 @@ func TestAuthorizationHandler(t *testing.T) {
 			Clock:                     clock,
 			AuthenticationInfoService: authenticationInfoService,
 			Cookies:                   cookieManager,
+			OAuthSessionService:       oauthSessionService,
 		}
 		handle := func(r protocol.AuthorizationRequest) *httptest.ResponseRecorder {
 			result := h.Handle(r)

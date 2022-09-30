@@ -65,6 +65,7 @@ type HandleLoginHintOptions struct {
 	UILocales           string
 	ColorScheme         string
 	OriginalRedirectURI string
+	OAuthSessionCookies []*http.Cookie
 }
 
 func (r *LoginHintHandler) HandleLoginHint(options HandleLoginHintOptions) (httputil.Result, error) {
@@ -98,6 +99,7 @@ func (r *LoginHintHandler) HandleLoginHint(options HandleLoginHintOptions) (http
 			if result != nil {
 				result.UILocales = options.UILocales
 				result.ColorScheme = options.ColorScheme
+				result.Cookies = append(result.Cookies, options.OAuthSessionCookies...)
 			}
 			return result, nil
 		}

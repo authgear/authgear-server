@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"net/http"
 	"net/url"
 	"path"
 
@@ -65,6 +66,7 @@ type AuthenticateURLOptions struct {
 	SessionOptions SessionOptions
 	UILocales      string
 	ColorScheme    string
+	Cookies        []*http.Cookie
 }
 
 func (p *AuthenticateURLProvider) AuthenticateURL(options AuthenticateURLOptions) (httputil.Result, error) {
@@ -81,6 +83,10 @@ func (p *AuthenticateURLProvider) AuthenticateURL(options AuthenticateURLOptions
 	if result != nil {
 		result.UILocales = options.UILocales
 		result.ColorScheme = options.ColorScheme
+	}
+
+	if options.Cookies != nil {
+		result.Cookies = append(result.Cookies, options.Cookies...)
 	}
 	return result, nil
 }
