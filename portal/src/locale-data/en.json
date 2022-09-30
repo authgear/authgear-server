@@ -1289,7 +1289,7 @@
   "LoginMethodConfigurationScreen.phone.description": "Set the rules of phone number format.",
   "LoginMethodConfigurationScreen.username.title": "Username Settings",
   "LoginMethodConfigurationScreen.username.description": "Set the rules of username format.",
-  "LoginMethodConfigurationScreen.verification.title": "Verification and OTP Settings",
+  "LoginMethodConfigurationScreen.verification.title": "Verification and Passwordless Settings",
   "LoginMethodConfigurationScreen.verification.description": "Configure how a user should be verified",
   "LoginMethodConfigurationScreen.password.title": "Password Policy",
   "LoginMethodConfigurationScreen.password.description": "Configure the password policy for Password and Additional Password in MFA.",
