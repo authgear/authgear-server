@@ -375,7 +375,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 	// TODO(oauth): allow specifying scopes
 	scopes := []string{"openid", oauth.FullAccessScope}
 
-	authz, err := checkAuthorization(
+	authz, err := checkAndGrantAuthorization(
 		h.Authorizations,
 		h.Clock.NowUTC(),
 		h.AppID,
@@ -565,7 +565,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	// TODO(oauth): allow specifying scopes
 	scopes := []string{"openid", oauth.FullAccessScope}
 
-	authz, err := checkAuthorization(
+	authz, err := checkAndGrantAuthorization(
 		h.Authorizations,
 		h.Clock.NowUTC(),
 		h.AppID,

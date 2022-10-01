@@ -9,7 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-func checkAuthorization(
+func checkAndGrantAuthorization(
 	authzs oauth.AuthorizationStore,
 	timestamp time.Time,
 	appID config.AppID,

@@ -348,7 +348,7 @@ func (h *AuthorizationHandler) finish(
 	idTokenHintSID string,
 	cookies []*http.Cookie,
 ) (httputil.Result, error) {
-	authz, err := checkAuthorization(
+	authz, err := checkAndGrantAuthorization(
 		h.Authorizations,
 		h.Clock.NowUTC(),
 		h.AppID,
