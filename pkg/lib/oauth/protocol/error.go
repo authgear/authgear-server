@@ -55,4 +55,10 @@ func NewErrorStatusCode(err, description string, statusCode int) error {
 	}
 }
 
+func NewErrorWithErrorResponse(resp ErrorResponse) error {
+	return &OAuthProtocolError{
+		Response: resp,
+	}
+}
+
 func (e *OAuthProtocolError) Error() string { return e.Response["error_description"] }

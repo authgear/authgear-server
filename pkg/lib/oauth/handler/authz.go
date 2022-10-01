@@ -70,3 +70,7 @@ func checkAuthorization(
 
 	return authz, nil
 }
+
+func IsConsentRequiredError(err error) bool {
+	return errors.Is(err, oauth.ErrAuthorizationScopesNotGranted) || errors.Is(err, oauth.ErrAuthorizationNotFound)
+}

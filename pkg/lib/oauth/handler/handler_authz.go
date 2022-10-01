@@ -137,6 +137,113 @@ func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.
 	return result
 }
 
+func (h *AuthorizationHandler) HandleConsentWithoutUserConsent(req *http.Request) (httputil.Result, *ConsentRequired) {
+	result, consentRequired := h.doHandleConsent(req, false)
+	return result, consentRequired
+}
+
+func (h *AuthorizationHandler) HandleConsentWithUserConsent(req *http.Request) httputil.Result {
+	result, _ := h.doHandleConsent(req, true)
+	return result
+}
+
+type ConsentRequired struct {
+	Scopes []string
+}
+
+func (h *AuthorizationHandler) doHandleConsent(req *http.Request, withUserConsent bool) (httputil.Result, *ConsentRequired) {
+	oauthSessionEntry, redirectURI, client, err := h.prepareConsentRequest(req)
+	if err != nil {
+		var oauthError *protocol.OAuthProtocolError
+		resultErr := authorizationResultError{
+			// Don't redirect for those unexpected errors
+			// e.g. oauth session expire or invalid client_id, redirect_uri
+			RedirectURI: nil,
+		}
+		if errors.As(err, &oauthError) {
+			resultErr.Response = oauthError.Response
+		} else {
+			h.Logger.WithError(err).Error("authz handler failed")
+			resultErr.Response = protocol.NewErrorResponse("server_error", "internal server error")
+			resultErr.InternalError = true
+		}
+		return resultErr, nil
+	}
+
+	authzReq := oauthSessionEntry.T.AuthorizationRequest
+
+	autoGrantAuthz := client.ClientParty() == config.ClientPartyFirst
+	grantAuthz := autoGrantAuthz || withUserConsent
+
+	result, err := h.doHandleConsentRequest(redirectURI, client, authzReq, req, grantAuthz)
+	if err != nil {
+		if !grantAuthz && IsConsentRequiredError(err) {
+			return nil, &ConsentRequired{
+				Scopes: authzReq.Scope(),
+			}
+		}
+
+		var oauthError *protocol.OAuthProtocolError
+		resultErr := authorizationResultError{
+			RedirectURI:  redirectURI,
+			ResponseMode: authzReq.ResponseMode(),
+		}
+		if errors.As(err, &oauthError) {
+			resultErr.Response = oauthError.Response
+		} else {
+			h.Logger.WithError(err).Error("authz handler failed")
+			resultErr.Response = protocol.NewErrorResponse("server_error", "internal server error")
+			resultErr.InternalError = true
+		}
+		state := authzReq.State()
+		if state != "" {
+			resultErr.Response.State(authzReq.State())
+		}
+		result = resultErr
+	} else {
+		// delete oauth session with best effort
+		// don't block the user in case of failure
+		err = h.OAuthSessionService.Delete(oauthSessionEntry.ID)
+		if err != nil {
+			h.Logger.WithError(err).Error("failed to consume oauth session")
+		}
+	}
+
+	return result, nil
+}
+
+func (h *AuthorizationHandler) prepareConsentRequest(req *http.Request) (entry *oauthsession.Entry, redirectURI *url.URL, client *config.OAuthClientConfig, err error) {
+	cookie, err := h.Cookies.GetCookie(req, oauthsession.CookieDef)
+	if err != nil {
+		err = protocol.NewError("invalid_request", "missing oauth session")
+		return
+	}
+
+	entry, err = h.OAuthSessionService.Get(cookie.Value)
+	if err != nil {
+		if errors.Is(err, oauthsession.ErrNotFound) {
+			err = protocol.NewError("invalid_request", "oauth session expired")
+		}
+		return
+	}
+
+	r := entry.T.AuthorizationRequest
+
+	client = resolveClient(h.Config, r)
+	if client == nil {
+		err = protocol.NewError("unauthorized_client", "invalid client ID")
+		return
+	}
+
+	redirectURI, errResp := parseRedirectURI(client, h.HTTPConfig, r)
+	if errResp != nil {
+		err = protocol.NewErrorWithErrorResponse(errResp)
+		return
+	}
+
+	return entry, redirectURI, client, nil
+}
+
 func (h *AuthorizationHandler) HandleFromWebApp(req *http.Request) httputil.Result {
 	cookie, err := h.Cookies.GetCookie(req, oauthsession.CookieDef)
 	if err != nil {
@@ -188,7 +295,7 @@ func (h *AuthorizationHandler) HandleFromWebApp(req *http.Request) httputil.Resu
 		}
 	}
 
-	result, err := h.doHandleFromWebApp(redirectURI, client, r, req)
+	result, err := h.doHandleConsentRequest(redirectURI, client, r, req, true)
 	if err != nil {
 		var oauthError *protocol.OAuthProtocolError
 		resultErr := authorizationResultError{
@@ -414,11 +521,12 @@ func (h *AuthorizationHandler) finish(
 	}, nil
 }
 
-func (h *AuthorizationHandler) doHandleFromWebApp(
+func (h *AuthorizationHandler) doHandleConsentRequest(
 	redirectURI *url.URL,
 	client *config.OAuthClientConfig,
 	r protocol.AuthorizationRequest,
 	req *http.Request,
+	grantAuthz bool,
 ) (httputil.Result, error) {
 	if err := h.validateRequest(client, r); err != nil {
 		return nil, err
@@ -456,8 +564,7 @@ func (h *AuthorizationHandler) doHandleFromWebApp(
 
 	authenticationInfo := entry.T
 
-	// fixme: update autoGrantAuthz for webapp handler
-	return h.finish(redirectURI, r, idpSessionID, authenticationInfo, idTokenHintSID, []*http.Cookie{h.Cookies.ClearCookie(oauthsession.CookieDef)}, true)
+	return h.finish(redirectURI, r, idpSessionID, authenticationInfo, idTokenHintSID, []*http.Cookie{h.Cookies.ClearCookie(oauthsession.CookieDef)}, grantAuthz)
 }
 
 func (h *AuthorizationHandler) validateRequest(
