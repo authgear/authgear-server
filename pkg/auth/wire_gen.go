@@ -1638,10 +1638,39 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                   cookieManager,
 		OAuthSessionService:       oauthsessionStoreRedis,
 	}
+	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
+	flashMessage := &httputil.FlashMessage{
+		Cookies: cookieManager,
+	}
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
 	fromWebAppHandler := &oauth.FromWebAppHandler{
-		Logger:   fromWebAppHandlerLogger,
-		Database: handle,
-		Handler:  authorizationHandler,
+		Logger:        fromWebAppHandlerLogger,
+		Database:      handle,
+		Handler:       authorizationHandler,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
 	}
 	return fromWebAppHandler
 }

@@ -256,6 +256,12 @@
   "logout-button-hint": "Click the button to log out",
   "logout-button-label": "Log out",
 
+  "consent-title": "Continue to {clientName}",
+  "consent-scopes-label": "{clientName} would like to:",
+  "consent-scopes-full-userinfo": "Access full information in your profile such as email address, phone number, name.",
+  "consent-allow-button-label": "Allow",
+  "consent-cancel-button-label": "Cancel",
+
   "settings-page-security-section-title": "Security",
   "settings-page-security-section-description": "These can be used to make sure that it''s really you signing in.",
   "settings-page-mfa-section-title": "2-step verification",

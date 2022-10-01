@@ -1,0 +1,49 @@
+{{ template "__page_frame.html" . }}
+
+{{ define "page-content" }}
+<div class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
+  <h1 class="m-0 primary-txt text-center text-xl font-bold">
+    {{ template "consent-title" (dict "clientName" $.ClientName) }}
+  </h1>
+
+  {{ $isRequestingScope := $.IsRequestingFullUserInfo }}
+  {{ if $isRequestingScope }}
+    <div class="text-sm break-words primary-txt text-center">
+      {{ template "consent-scopes-label" (dict "clientName" $.ClientName) }}
+    </div>
+  {{ end }}
+
+  {{ if $.IsRequestingFullUserInfo }}
+    <div class="text-sm break-words primary-txt text-center">
+      {{ template "consent-scopes-full-userinfo" }}
+    </div>
+  {{ end }}
+
+  <div class="mt-5 grid gap-4 grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-2">
+    <form method="post" novalidate>
+      {{ $.CSRFField }}
+      <button
+        class="btn primary-btn w-full"
+        type="submit"
+        name="x_action"
+        value="consent"
+        data-turbo="false"
+        data-authgear-event="authgear.button.consent_allow"
+      >{{ template "consent-allow-button-label" }}</button>
+    </form>
+
+    <form method="post" novalidate>
+      {{ $.CSRFField }}
+      <button
+        class="btn primary-btn outline w-full"
+        type="submit"
+        name="x_action"
+        value="cancel"
+        data-turbo="false"
+        data-authgear-event="authgear.button.consent_cancel"
+      >{{ template "consent-cancel-button-label" }}</button>
+    </form>
+  </div>
+  {{ template "__watermark.html" . }}
+</div>
+{{ end }}
