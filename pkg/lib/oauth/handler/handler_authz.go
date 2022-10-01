@@ -148,6 +148,57 @@ func (h *AuthorizationHandler) HandleConsentWithUserConsent(req *http.Request) h
 	return result
 }
 
+func (h *AuthorizationHandler) HandleConsentWithUserCancel(req *http.Request) httputil.Result {
+	consentRequest, err := h.prepareConsentRequest(req)
+	if err != nil {
+		var oauthError *protocol.OAuthProtocolError
+		resultErr := authorizationResultError{
+			// Don't redirect for those unexpected errors
+			// e.g. oauth session expire or invalid client_id, redirect_uri
+			RedirectURI: nil,
+		}
+		if errors.As(err, &oauthError) {
+			resultErr.Response = oauthError.Response
+		} else {
+			h.Logger.WithError(err).Error("authz handler failed")
+			resultErr.Response = protocol.NewErrorResponse("server_error", "internal server error")
+			resultErr.InternalError = true
+		}
+		return resultErr
+	}
+
+	oauthSessionEntry := consentRequest.OAuthSessionEntry
+	authInfoEntry := consentRequest.AuthInfoEntry
+	authzReq := oauthSessionEntry.T.AuthorizationRequest
+	redirectURI := consentRequest.RedirectURI
+
+	// delete oauth session and auth info with best effort
+	// don't block the user in case of failure
+	err = h.OAuthSessionService.Delete(oauthSessionEntry.ID)
+	if err != nil {
+		h.Logger.WithError(err).Error("failed to consume oauth session")
+	}
+	err = h.AuthenticationInfoService.Delete(authInfoEntry.ID)
+	if err != nil {
+		h.Logger.WithError(err).Error("failed to consume authentication info")
+	}
+
+	resultErr := authorizationResultError{
+		ResponseMode: authzReq.ResponseMode(),
+		RedirectURI:  redirectURI,
+		Response:     protocol.NewErrorResponse("access_denied", "authorization denied"),
+		Cookies: []*http.Cookie{
+			h.Cookies.ClearCookie(authenticationinfo.CookieDef),
+			h.Cookies.ClearCookie(oauthsession.CookieDef),
+		},
+	}
+	state := authzReq.State()
+	if state != "" {
+		resultErr.Response.State(authzReq.State())
+	}
+	return resultErr
+}
+
 type ConsentRequired struct {
 	Scopes []string
 	Client *config.OAuthClientConfig

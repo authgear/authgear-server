@@ -35,6 +35,7 @@ func NewFromWebAppHandlerLogger(lf *log.Factory) FromWebAppHandlerLogger {
 type ProtocolFromWebAppHandler interface {
 	HandleConsentWithoutUserConsent(req *http.Request) (httputil.Result, *oauthhandler.ConsentRequired)
 	HandleConsentWithUserConsent(req *http.Request) httputil.Result
+	HandleConsentWithUserCancel(req *http.Request) httputil.Result
 }
 
 type FromWebAppViewModel struct {
@@ -90,7 +91,14 @@ func (h *FromWebAppHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 			})
 			break
 		} else if r.Form.Get("x_action") == "cancel" {
-			// fixme(consent): handle cancel
+			err = h.Database.WithTx(func() error {
+				result = h.Handler.HandleConsentWithUserCancel(r)
+				if result.IsInternalError() {
+					return errAuthzInternalError
+				}
+				return nil
+			})
+			break
 		}
 		http.Error(rw, "Unknown action", http.StatusBadRequest)
 		return
