@@ -37,7 +37,7 @@ type IDTokenVerifier interface {
 }
 
 type OAuthURLProvider interface {
-	FromWebAppURL(r protocol.AuthorizationRequest) *url.URL
+	ConsentURL(r protocol.AuthorizationRequest) *url.URL
 }
 
 type WebAppAuthenticateURLProvider interface {
@@ -339,95 +339,6 @@ func (h *AuthorizationHandler) prepareConsentRequest(req *http.Request) (*consen
 	}, nil
 }
 
-func (h *AuthorizationHandler) HandleFromWebApp(req *http.Request) httputil.Result {
-	cookie, err := h.Cookies.GetCookie(req, oauthsession.CookieDef)
-	if err != nil {
-		return authorizationResultError{
-			// failed to obtain authz request, use default response mode and empty redirect uri
-			// the error will be rendered on the browser without redirection
-			ResponseMode: "",
-			Response:     protocol.NewErrorResponse("invalid_request", "missing oauth session cookie"),
-			RedirectURI:  nil,
-		}
-	}
-
-	entry, err := h.OAuthSessionService.Get(cookie.Value)
-	if err != nil {
-		if errors.Is(err, oauthsession.ErrNotFound) {
-			// failed to obtain authz request, use default response mode and empty redirect uri
-			// the error will be rendered on the browser without redirection
-			return authorizationResultError{
-				ResponseMode: "",
-				Response:     protocol.NewErrorResponse("invalid_request", "oauth session expired"),
-				RedirectURI:  nil,
-			}
-		}
-		h.Logger.WithError(err).Error("failed to obtain oauth session")
-		return authorizationResultError{
-			// failed to obtain authz request, use default response mode and empty redirect uri
-			// the error will be rendered on the browser without redirection
-			ResponseMode:  "",
-			Response:      protocol.NewErrorResponse("server_error", "internal server error"),
-			InternalError: true,
-			RedirectURI:   nil,
-		}
-	}
-
-	r := entry.T.AuthorizationRequest
-
-	client := resolveClient(h.Config, r)
-	if client == nil {
-		return authorizationResultError{
-			ResponseMode: r.ResponseMode(),
-			Response:     protocol.NewErrorResponse("unauthorized_client", "invalid client ID"),
-		}
-	}
-	redirectURI, errResp := parseRedirectURI(client, h.HTTPConfig, r)
-	if errResp != nil {
-		return authorizationResultError{
-			ResponseMode: r.ResponseMode(),
-			Response:     errResp,
-		}
-	}
-
-	authInfoEntry, err := h.getAuthenticationInfoEntry(req)
-	if err != nil {
-		return authorizationResultError{
-			ResponseMode: r.ResponseMode(),
-			Response:     protocol.NewErrorResponse("login_required", "authentication required"),
-		}
-	}
-	result, err := h.doHandleConsentRequest(redirectURI, client, r, authInfoEntry.T, req, true)
-	if err != nil {
-		var oauthError *protocol.OAuthProtocolError
-		resultErr := authorizationResultError{
-			RedirectURI:  redirectURI,
-			ResponseMode: r.ResponseMode(),
-		}
-		if errors.As(err, &oauthError) {
-			resultErr.Response = oauthError.Response
-		} else {
-			h.Logger.WithError(err).Error("authz handler failed")
-			resultErr.Response = protocol.NewErrorResponse("server_error", "internal server error")
-			resultErr.InternalError = true
-		}
-		state := r.State()
-		if state != "" {
-			resultErr.Response.State(r.State())
-		}
-		result = resultErr
-	} else {
-		// delete oauth session with best effort
-		// don't block the user in case of failure
-		err = h.OAuthSessionService.Delete(entry.ID)
-		if err != nil {
-			h.Logger.WithError(err).Error("failed to consume oauth session")
-		}
-	}
-
-	return result
-}
-
 func (h *AuthorizationHandler) doHandle(
 	redirectURI *url.URL,
 	client *config.OAuthClientConfig,
@@ -456,7 +367,7 @@ func (h *AuthorizationHandler) doHandle(
 		ClientID:                 r.ClientID(),
 		WebhookState:             r.State(),
 		Page:                     r.Page(),
-		RedirectURI:              h.OAuthURLs.FromWebAppURL(r).String(),
+		RedirectURI:              h.OAuthURLs.ConsentURL(r).String(),
 		Prompt:                   h.handleMaxAgeAndPrompt(r, sidSession),
 		SuppressIDPSessionCookie: r.SuppressIDPSessionCookie(),
 		OAuthProviderAlias:       r.OAuthProviderAlias(),

@@ -881,10 +881,10 @@ var (
 	_wireTokenGeneratorValue  = handler.TokenGenerator(oauth2.GenerateToken)
 )
 
-func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
+func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	fromWebAppHandlerLogger := oauth.NewFromWebAppHandlerLogger(factory)
+	consentHandlerLogger := oauth.NewConsentHandlerLogger(factory)
 	handle := appProvider.AppDatabase
 	request := p.Request
 	contextContext := deps.ProvideRequestContext(request)
@@ -1665,15 +1665,15 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	fromWebAppHandler := &oauth.FromWebAppHandler{
-		Logger:        fromWebAppHandlerLogger,
+	consentHandler := &oauth.ConsentHandler{
+		Logger:        consentHandlerLogger,
 		Database:      handle,
 		Handler:       authorizationHandler,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Identities:    serviceService,
 	}
-	return fromWebAppHandler
+	return consentHandler
 }
 
 func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {

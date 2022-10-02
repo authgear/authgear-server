@@ -19,8 +19,8 @@ func (mockURLsProvider) AuthorizeURL(r protocol.AuthorizationRequest) *url.URL {
 	return u
 }
 
-func (mockURLsProvider) FromWebAppURL(r protocol.AuthorizationRequest) *url.URL {
-	u, _ := url.Parse("https://auth/from_webapp")
+func (mockURLsProvider) ConsentURL(r protocol.AuthorizationRequest) *url.URL {
+	u, _ := url.Parse("https://auth/consent")
 	return u
 }
 

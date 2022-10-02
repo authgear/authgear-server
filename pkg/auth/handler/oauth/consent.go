@@ -23,19 +23,19 @@ type Renderer interface {
 	RenderHTML(w http.ResponseWriter, r *http.Request, tpl *template.HTML, data interface{})
 }
 
-func ConfigureFromWebAppRoute(route httproute.Route) httproute.Route {
+func ConfigureConsentRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("GET", "POST").
-		WithPathPattern("/oauth2/_from_webapp")
+		WithPathPattern("/oauth2/consent")
 }
 
-type FromWebAppHandlerLogger struct{ *log.Logger }
+type ConsentHandlerLogger struct{ *log.Logger }
 
-func NewFromWebAppHandlerLogger(lf *log.Factory) FromWebAppHandlerLogger {
-	return FromWebAppHandlerLogger{lf.New("handler-from-webapp")}
+func NewConsentHandlerLogger(lf *log.Factory) ConsentHandlerLogger {
+	return ConsentHandlerLogger{lf.New("handler-from-webapp")}
 }
 
-type ProtocolFromWebAppHandler interface {
+type ProtocolConsentHandler interface {
 	HandleConsentWithoutUserConsent(req *http.Request) (httputil.Result, *oauthhandler.ConsentRequired)
 	HandleConsentWithUserConsent(req *http.Request) httputil.Result
 	HandleConsentWithUserCancel(req *http.Request) httputil.Result
@@ -45,22 +45,22 @@ type ProtocolIdentityService interface {
 	ListByUser(userID string) ([]*identity.Info, error)
 }
 
-type FromWebAppViewModel struct {
+type ConsentViewModel struct {
 	ClientName               string
 	IsRequestingFullUserInfo bool
 	IdentityDisplayName      string
 }
 
-type FromWebAppHandler struct {
-	Logger        FromWebAppHandlerLogger
+type ConsentHandler struct {
+	Logger        ConsentHandlerLogger
 	Database      *appdb.Handle
-	Handler       ProtocolFromWebAppHandler
+	Handler       ProtocolConsentHandler
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
 	Identities    ProtocolIdentityService
 }
 
-func (h *FromWebAppHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+func (h *ConsentHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	var result httputil.Result
 	var err error
 
@@ -123,7 +123,7 @@ func (h *FromWebAppHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *FromWebAppHandler) renderConsentPage(rw http.ResponseWriter, r *http.Request, consentRequired *oauthhandler.ConsentRequired) error {
+func (h *ConsentHandler) renderConsentPage(rw http.ResponseWriter, r *http.Request, consentRequired *oauthhandler.ConsentRequired) error {
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	data := map[string]interface{}{}
 	viewmodels.Embed(data, baseViewModel)
@@ -134,7 +134,7 @@ func (h *FromWebAppHandler) renderConsentPage(rw http.ResponseWriter, r *http.Re
 	}
 	displayID := webapp.IdentitiesDisplayName(identities)
 
-	viewModel := FromWebAppViewModel{}
+	viewModel := ConsentViewModel{}
 	viewModel.IsRequestingFullUserInfo = slice.ContainsString(consentRequired.Scopes, oauth.FullUserInfoScope)
 	viewModel.ClientName = consentRequired.Client.ClientName
 	viewModel.IdentityDisplayName = displayID

@@ -10,6 +10,6 @@ type URLProvider struct {
 	Endpoints EndpointsProvider
 }
 
-func (p *URLProvider) FromWebAppURL(r protocol.AuthorizationRequest) *url.URL {
-	return p.Endpoints.FromWebAppEndpointURL()
+func (p *URLProvider) ConsentURL(r protocol.AuthorizationRequest) *url.URL {
+	return p.Endpoints.ConsentEndpointURL()
 }

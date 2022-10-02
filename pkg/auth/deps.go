@@ -97,7 +97,7 @@ var DependencySet = wire.NewSet(
 
 	handleroauth.DependencySet,
 	wire.Bind(new(handleroauth.ProtocolAuthorizeHandler), new(*oauthhandler.AuthorizationHandler)),
-	wire.Bind(new(handleroauth.ProtocolFromWebAppHandler), new(*oauthhandler.AuthorizationHandler)),
+	wire.Bind(new(handleroauth.ProtocolConsentHandler), new(*oauthhandler.AuthorizationHandler)),
 	wire.Bind(new(handleroauth.ProtocolTokenHandler), new(*oauthhandler.TokenHandler)),
 	wire.Bind(new(handleroauth.ProtocolRevokeHandler), new(*oauthhandler.RevokeHandler)),
 	wire.Bind(new(handleroauth.ProtocolEndSessionHandler), new(*oidchandler.EndSessionHandler)),
