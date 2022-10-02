@@ -13,7 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
 
-const ttl = duration.Short
+const ttl = duration.Consent
 
 type StoreRedis struct {
 	Context context.Context

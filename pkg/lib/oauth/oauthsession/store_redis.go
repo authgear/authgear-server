@@ -13,7 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
 
-const ttl = duration.UserInteraction
+const ttl = duration.UserInteraction + duration.Consent
 
 type StoreRedis struct {
 	Context context.Context
