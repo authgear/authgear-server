@@ -200,6 +200,7 @@ func (h *AuthorizationHandler) HandleConsentWithUserCancel(req *http.Request) ht
 }
 
 type ConsentRequired struct {
+	UserID string
 	Scopes []string
 	Client *config.OAuthClientConfig
 }
@@ -236,6 +237,7 @@ func (h *AuthorizationHandler) doHandleConsent(req *http.Request, withUserConsen
 	if err != nil {
 		if !grantAuthz && IsConsentRequiredError(err) {
 			return nil, &ConsentRequired{
+				UserID: authInfoEntry.T.UserID,
 				Scopes: authzReq.Scope(),
 				Client: client,
 			}

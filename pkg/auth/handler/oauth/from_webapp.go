@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
@@ -15,6 +16,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
+
+var errConsentRequiredError = errors.New("consent required")
 
 type Renderer interface {
 	RenderHTML(w http.ResponseWriter, r *http.Request, tpl *template.HTML, data interface{})
@@ -38,18 +41,23 @@ type ProtocolFromWebAppHandler interface {
 	HandleConsentWithUserCancel(req *http.Request) httputil.Result
 }
 
+type ProtocolIdentityService interface {
+	ListByUser(userID string) ([]*identity.Info, error)
+}
+
 type FromWebAppViewModel struct {
 	ClientName               string
 	IsRequestingFullUserInfo bool
+	IdentityDisplayName      string
 }
 
 type FromWebAppHandler struct {
-	Logger   FromWebAppHandlerLogger
-	Database *appdb.Handle
-	Handler  ProtocolFromWebAppHandler
-
+	Logger        FromWebAppHandlerLogger
+	Database      *appdb.Handle
+	Handler       ProtocolFromWebAppHandler
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
+	Identities    ProtocolIdentityService
 }
 
 func (h *FromWebAppHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
@@ -68,16 +76,19 @@ func (h *FromWebAppHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		err = h.Database.WithTx(func() error {
 			result, consentRequired = h.Handler.HandleConsentWithoutUserConsent(r)
 			if consentRequired != nil {
+				err = h.renderConsentPage(rw, r, consentRequired)
+				if err != nil {
+					return err
+				}
 				// return error to rollback transaction
-				return errors.New("consent required")
+				return errConsentRequiredError
 			}
 			if result.IsInternalError() {
 				return errAuthzInternalError
 			}
 			return nil
 		})
-		if consentRequired != nil {
-			h.renderConsentPage(rw, r, consentRequired)
+		if err != nil && errors.Is(err, errConsentRequiredError) {
 			return
 		}
 	case http.MethodPost:
@@ -112,16 +123,23 @@ func (h *FromWebAppHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *FromWebAppHandler) renderConsentPage(rw http.ResponseWriter, r *http.Request, consentRequired *oauthhandler.ConsentRequired) {
+func (h *FromWebAppHandler) renderConsentPage(rw http.ResponseWriter, r *http.Request, consentRequired *oauthhandler.ConsentRequired) error {
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	data := map[string]interface{}{}
 	viewmodels.Embed(data, baseViewModel)
 
-	// fixme(consent): show current user email
+	identities, err := h.Identities.ListByUser(consentRequired.UserID)
+	if err != nil {
+		return err
+	}
+	displayID := webapp.IdentitiesDisplayName(identities)
+
 	viewModel := FromWebAppViewModel{}
 	viewModel.IsRequestingFullUserInfo = slice.ContainsString(consentRequired.Scopes, oauth.FullUserInfoScope)
 	viewModel.ClientName = consentRequired.Client.ClientName
+	viewModel.IdentityDisplayName = displayID
 	viewmodels.Embed(data, viewModel)
 
 	h.Renderer.RenderHTML(rw, r, webapp.TemplateWebConsentHTML, data)
+	return nil
 }

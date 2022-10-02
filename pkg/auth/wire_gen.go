@@ -1671,6 +1671,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Handler:       authorizationHandler,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
+		Identities:    serviceService,
 	}
 	return fromWebAppHandler
 }

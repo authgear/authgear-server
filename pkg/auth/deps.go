@@ -107,6 +107,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handleroauth.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
 	wire.Bind(new(handleroauth.AppSessionTokenIssuer), new(*oauthhandler.TokenHandler)),
 	wire.Bind(new(handleroauth.Renderer), new(*handlerwebapp.ResponseRenderer)),
+	wire.Bind(new(handleroauth.ProtocolIdentityService), new(*identityservice.Service)),
 	ProvideOAuthMetadataProviders,
 
 	handlerapi.DependencySet,
