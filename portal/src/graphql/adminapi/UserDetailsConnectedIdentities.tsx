@@ -33,7 +33,7 @@ import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useIsLoading, useLoading } from "../../hook/loading";
 import { useProvideError } from "../../hook/error";
 import { createEIP681URL, etherscanAddress } from "../../util/eip681";
-import ExternalLink from "../../ExternalLink";
+import ExternalLink, { ExternalLinkProps } from "../../ExternalLink";
 import { truncateAddress } from "../../util/hex";
 import LinkButton from "../../LinkButton";
 import NFTCollectionDetailDialog from "./NFTCollectionDetailDialog";
@@ -132,24 +132,6 @@ export interface IdentityLists {
   siwe: SIWEIdentityListItem[];
 }
 
-interface IdentityListCellProps {
-  identityID: string;
-  identityType: IdentityType;
-  icon: React.ReactNode;
-  claimName?: string;
-  claimValue?: string;
-  identityName: string;
-  connectedOn: string;
-  verified?: boolean;
-  setVerifiedStatus?: (
-    claimName: string,
-    claimValue: string,
-    verified: boolean
-  ) => Promise<boolean>;
-  onRemoveClicked: (identityID: string, identityName: string) => void;
-  extraArgs?: any;
-}
-
 interface VerifyButtonProps {
   disabled?: boolean;
   verified: boolean;
@@ -192,48 +174,6 @@ const removeButtonTextId: Record<IdentityType, "remove" | "disconnect" | ""> = {
   siwe: "",
 };
 
-function getIcon(item: IdentityListItem) {
-  if (item.type === "oauth") {
-    return oauthIconMap[item.providerType];
-  }
-  if (item.type === "biometric") {
-    return biometricIcon;
-  }
-  if (item.type === "anonymous") {
-    return anonymousIcon;
-  }
-  if (item.type === "siwe") {
-    return siweIcon;
-  }
-  return loginIdIconMap[item.loginIDKey];
-}
-
-function getClaimName(item: IdentityListItem): string | undefined {
-  if (item.type === "biometric") {
-    return undefined;
-  }
-  if (item.type === "anonymous") {
-    return undefined;
-  }
-  if (item.type === "siwe") {
-    return undefined;
-  }
-  return item.claimName;
-}
-
-function getClaimValue(item: IdentityListItem): string | undefined {
-  if (item.type === "biometric") {
-    return undefined;
-  }
-  if (item.type === "anonymous") {
-    return undefined;
-  }
-  if (item.type === "siwe") {
-    return undefined;
-  }
-  return item.claimValue;
-}
-
 function getIdentityName(
   item: IdentityListItem,
   renderToString: (id: string) => string
@@ -254,14 +194,6 @@ function getIdentityName(
     return createEIP681URL({ chainId: item.chainId, address: item.address });
   }
   return item.claimValue;
-}
-
-function getExtraArgs(item: IdentityListItem): any {
-  if (item.type === "siwe") {
-    return item.nfts;
-  }
-
-  return undefined;
 }
 
 function checkIsClaimVerified(
@@ -375,7 +307,7 @@ const NFTCollectionListCell: React.VFC<NFTCollectionListCellProps> = (
 };
 
 interface NFTCollectionListProps {
-  nfts: NFT[];
+  nfts?: NFT[];
   eip681String: string;
 }
 
@@ -400,7 +332,7 @@ const NFTCollectionList: React.VFC<NFTCollectionListProps> = (props) => {
     [eip681String]
   );
 
-  if (nfts.length === 0) {
+  if (nfts == null || nfts.length === 0) {
     return null;
   }
 
@@ -418,134 +350,300 @@ const NFTCollectionList: React.VFC<NFTCollectionListProps> = (props) => {
   );
 };
 
-const IdentityListCell: React.VFC<IdentityListCellProps> =
-  // eslint-disable-next-line complexity
-  function IdentityListCell(props: IdentityListCellProps) {
-    const {
-      identityID,
-      identityType,
-      icon,
-      claimName,
-      claimValue,
-      identityName,
-      connectedOn,
-      verified,
-      setVerifiedStatus,
-      onRemoveClicked: _onRemoveClicked,
-      extraArgs,
-    } = props;
+interface BaseIdentityListCellTitleProps {
+  icon?: React.ReactNode;
+  as?: "ExternalLink" | "Text";
+  externalLinkProps?: ExternalLinkProps;
+  children?: React.ReactNode;
+}
 
-    const { themes } = useSystemConfig();
-    const loading = useIsLoading();
-    const [verifying, setVerifying] = useState(false);
-    const onRemoveClicked = useCallback(() => {
-      _onRemoveClicked(identityID, identityName);
-    }, [identityID, identityName, _onRemoveClicked]);
+const BaseIdentityListCellTitle: React.VFC<BaseIdentityListCellTitleProps> = (
+  props
+) => {
+  const { icon, externalLinkProps, children, as = "Text" } = props;
 
-    const onVerifyClicked = useCallback(
-      (verified: boolean) => {
-        if (claimName === undefined || claimValue === undefined) {
-          return;
-        }
-        setVerifying(true);
-        setVerifiedStatus?.(claimName, claimValue, verified).finally(() => {
-          setVerifying(false);
-        });
-      },
-      [setVerifiedStatus, claimName, claimValue]
-    );
+  return (
+    <>
+      <div className={styles.cellIcon}>{icon}</div>
+      {as === "ExternalLink" ? (
+        <ExternalLink {...externalLinkProps}>
+          <Text className={cn(styles.cellName, styles.cellNameExternalLink)}>
+            {children}
+          </Text>
+        </ExternalLink>
+      ) : (
+        <Text className={styles.cellName}>{children}</Text>
+      )}
+    </>
+  );
+};
 
-    const shouldShowVerifyButton =
-      verified != null && setVerifiedStatus != null;
+interface BaseIdentityListCellDescriptionProps {
+  verified?: boolean;
+  children: React.ReactNode;
+}
 
-    return (
-      <ListCellLayout className={styles.cellContainer}>
-        <div className={styles.cellIcon}>{icon}</div>
-        {identityType === "siwe" ? (
-          <ExternalLink href={etherscanAddress(identityName)}>
-            <Text className={cn(styles.cellName, styles.siweCellName)}>
-              {identityName}
+const BaseIdentityListCellDescription: React.VFC<
+  BaseIdentityListCellDescriptionProps
+> = (props) => {
+  const { verified, children } = props;
+
+  return (
+    <Text className={styles.cellDesc}>
+      {verified != null ? (
+        <>
+          {verified ? (
+            <Text className={styles.cellDescVerified}>
+              <FormattedMessage id="verified" />
             </Text>
-          </ExternalLink>
-        ) : (
-          <Text className={styles.cellName}>{identityName}</Text>
-        )}
-        <Text className={styles.cellDesc}>
-          {verified != null ? (
-            <>
-              {verified ? (
-                <Text className={styles.cellDescVerified}>
-                  <FormattedMessage id="verified" />
-                </Text>
-              ) : (
-                <Text className={styles.cellDescUnverified}>
-                  <FormattedMessage id="unverified" />
-                </Text>
-              )}
-              <Text block={true} className={styles.cellDescSeparator}>
-                {" | "}
-              </Text>
-            </>
-          ) : null}
-          {identityType === "oauth" ? (
-            <FormattedMessage
-              id="UserDetails.connected-identities.connected-on"
-              values={{ datetime: connectedOn }}
-            />
-          ) : null}
-          {identityType === "login_id" ? (
-            <FormattedMessage
-              id="UserDetails.connected-identities.added-on"
-              values={{ datetime: connectedOn }}
-            />
-          ) : null}
-          {identityType === "biometric" ? (
-            <FormattedMessage
-              id="UserDetails.connected-identities.added-on"
-              values={{ datetime: connectedOn }}
-            />
-          ) : null}
-          {identityType === "anonymous" ? (
-            <FormattedMessage
-              id="UserDetails.connected-identities.added-on"
-              values={{ datetime: connectedOn }}
-            />
-          ) : null}
-          {identityType === "siwe" ? (
-            <div>
-              <FormattedMessage
-                id="UserDetails.connected-identities.added-on"
-                values={{ datetime: connectedOn }}
-              />
-              <NFTCollectionList nfts={extraArgs} eip681String={identityName} />
-            </div>
-          ) : null}
-        </Text>
-        <div className={styles.buttonGroup}>
-          {shouldShowVerifyButton ? (
-            <VerifyButton
-              verified={verified}
-              verifying={verifying}
-              toggleVerified={onVerifyClicked}
-            />
-          ) : null}
-          {removeButtonTextId[identityType] !== "" ? (
-            <DefaultButton
-              className={cn(
-                styles.controlButton,
-                styles.removeButton,
-                shouldShowVerifyButton ? "" : styles.removeButtonFull
-              )}
-              disabled={loading}
-              theme={themes.destructive}
-              onClick={onRemoveClicked}
-              text={<FormattedMessage id={removeButtonTextId[identityType]} />}
-            />
-          ) : null}
+          ) : (
+            <Text className={styles.cellDescUnverified}>
+              <FormattedMessage id="unverified" />
+            </Text>
+          )}
+          <Text block={true} className={styles.cellDescSeparator}>
+            {" | "}
+          </Text>
+        </>
+      ) : null}
+      {children}
+    </Text>
+  );
+};
+
+interface BaseIdentityListCellButtonGroupProps {
+  identityID?: string;
+  identityType: IdentityType;
+  identityName?: string;
+  claimName?: string;
+  claimValue?: string;
+  verified?: boolean;
+  setVerifiedStatus?: (
+    claimName: string,
+    claimValue: string,
+    verified: boolean
+  ) => Promise<boolean>;
+  onRemoveClicked?: (identityID: string, identityName: string) => void;
+}
+
+const BaseIdentityListCellButtonGroup: React.VFC<
+  BaseIdentityListCellButtonGroupProps
+> = (props) => {
+  const {
+    identityID,
+    identityType,
+    identityName,
+    claimName,
+    claimValue,
+    verified,
+    setVerifiedStatus,
+    onRemoveClicked: _onRemoveClicked,
+  } = props;
+
+  const { themes } = useSystemConfig();
+  const loading = useIsLoading();
+  const [verifying, setVerifying] = useState(false);
+  const onRemoveClicked = useCallback(() => {
+    if (identityID == null || identityName == null) {
+      return;
+    }
+
+    _onRemoveClicked?.(identityID, identityName);
+  }, [identityID, identityName, _onRemoveClicked]);
+
+  const onVerifyClicked = useCallback(
+    (verified: boolean) => {
+      if (claimName === undefined || claimValue === undefined) {
+        return;
+      }
+      setVerifying(true);
+      setVerifiedStatus?.(claimName, claimValue, verified).finally(() => {
+        setVerifying(false);
+      });
+    },
+    [setVerifiedStatus, claimName, claimValue]
+  );
+
+  const shouldShowVerifyButton = verified != null && setVerifiedStatus != null;
+
+  return (
+    <div className={styles.buttonGroup}>
+      {shouldShowVerifyButton ? (
+        <VerifyButton
+          verified={verified}
+          verifying={verifying}
+          toggleVerified={onVerifyClicked}
+        />
+      ) : null}
+      {removeButtonTextId[identityType] !== "" ? (
+        <DefaultButton
+          className={cn(
+            styles.controlButton,
+            styles.removeButton,
+            shouldShowVerifyButton ? "" : styles.removeButtonFull
+          )}
+          disabled={loading}
+          theme={themes.destructive}
+          onClick={onRemoveClicked}
+          text={<FormattedMessage id={removeButtonTextId[identityType]} />}
+        />
+      ) : null}
+    </div>
+  );
+};
+
+interface BaseIdentityListCellProps {
+  icon: React.ReactNode;
+  identityID: string;
+  identityType: IdentityType;
+  identityName: string;
+  verified?: boolean;
+  connectedOn: string;
+  claimName?: string;
+  claimValue?: string;
+
+  setVerifiedStatus: (
+    claimName: string,
+    claimValue: string,
+    verified: boolean
+  ) => Promise<boolean>;
+  onRemoveClicked: (identityID: string, identityName: string) => void;
+}
+
+const BaseIdentityListCell: React.VFC<BaseIdentityListCellProps> = (props) => {
+  const {
+    icon,
+    identityID,
+    identityType,
+    identityName,
+    claimName,
+    claimValue,
+    verified,
+    connectedOn,
+    setVerifiedStatus,
+    onRemoveClicked,
+  } = props;
+
+  return (
+    <ListCellLayout className={styles.cellContainer}>
+      <BaseIdentityListCellTitle as="Text" icon={icon}>
+        {identityName}
+      </BaseIdentityListCellTitle>
+      <BaseIdentityListCellDescription verified={verified}>
+        <FormattedMessage
+          id="UserDetails.connected-identities.added-on"
+          values={{ datetime: connectedOn }}
+        />
+      </BaseIdentityListCellDescription>
+      <BaseIdentityListCellButtonGroup
+        verified={verified}
+        identityID={identityID}
+        identityName={identityName}
+        identityType={identityType}
+        claimName={claimName}
+        claimValue={claimValue}
+        setVerifiedStatus={setVerifiedStatus}
+        onRemoveClicked={onRemoveClicked}
+      />
+    </ListCellLayout>
+  );
+};
+
+interface OAuthIdentityListCellProps extends BaseIdentityListCellProps {}
+
+const OAuthIdentityListCell: React.VFC<OAuthIdentityListCellProps> = (
+  props
+) => {
+  const {
+    icon,
+    identityID,
+    identityType,
+    identityName,
+    claimName,
+    claimValue,
+    verified,
+    connectedOn,
+    setVerifiedStatus,
+    onRemoveClicked,
+  } = props;
+
+  return (
+    <ListCellLayout className={styles.cellContainer}>
+      <BaseIdentityListCellTitle as="Text" icon={icon}>
+        {identityName}
+      </BaseIdentityListCellTitle>
+      <BaseIdentityListCellDescription verified={verified}>
+        <FormattedMessage
+          id="UserDetails.connected-identities.connected-on"
+          values={{ datetime: connectedOn }}
+        />
+      </BaseIdentityListCellDescription>
+      <BaseIdentityListCellButtonGroup
+        verified={verified}
+        identityID={identityID}
+        identityName={identityName}
+        identityType={identityType}
+        claimName={claimName}
+        claimValue={claimValue}
+        setVerifiedStatus={setVerifiedStatus}
+        onRemoveClicked={onRemoveClicked}
+      />
+    </ListCellLayout>
+  );
+};
+
+interface SIWEIdentityListCellProps extends BaseIdentityListCellProps {
+  nfts?: NFT[];
+}
+
+const SIWEIdentityListCell: React.VFC<SIWEIdentityListCellProps> = (props) => {
+  const {
+    icon,
+    identityID,
+    identityType,
+    identityName,
+    verified,
+    connectedOn,
+    nfts,
+    setVerifiedStatus,
+    onRemoveClicked,
+  } = props;
+
+  const externalLinkProps: ExternalLinkProps = useMemo(() => {
+    return {
+      href: etherscanAddress(identityName),
+    };
+  }, [identityName]);
+
+  return (
+    <ListCellLayout className={styles.cellContainer}>
+      <BaseIdentityListCellTitle
+        as="ExternalLink"
+        icon={icon}
+        externalLinkProps={externalLinkProps}
+      >
+        {identityName}
+      </BaseIdentityListCellTitle>
+      <BaseIdentityListCellDescription verified={verified}>
+        <div>
+          <FormattedMessage
+            id="UserDetails.connected-identities.added-on"
+            values={{ datetime: connectedOn }}
+          />
+          <NFTCollectionList nfts={nfts} eip681String={identityName} />
         </div>
-      </ListCellLayout>
-    );
-  };
+      </BaseIdentityListCellDescription>
+      <BaseIdentityListCellButtonGroup
+        verified={verified}
+        identityID={identityID}
+        identityName={identityName}
+        identityType={identityType}
+        setVerifiedStatus={setVerifiedStatus}
+        onRemoveClicked={onRemoveClicked}
+      />
+    </ListCellLayout>
+  );
+};
 
 const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesProps> =
   function UserDetailsConnectedIdentities(
@@ -773,22 +871,86 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
           return null;
         }
 
-        const icon = getIcon(item);
-        return (
-          <IdentityListCell
-            identityID={item.id}
-            identityType={item.type}
-            icon={icon}
-            claimName={getClaimName(item)}
-            claimValue={getClaimValue(item)}
-            identityName={getIdentityName(item, renderToString)}
-            verified={item.verified}
-            connectedOn={item.connectedOn}
-            onRemoveClicked={onRemoveClicked}
-            setVerifiedStatus={setVerifiedStatus}
-            extraArgs={getExtraArgs(item)}
-          />
-        );
+        const identityID = item.id;
+        const identityType = item.type;
+        const identityName = getIdentityName(item, renderToString);
+        const verified = item.verified;
+        const connectedOn = item.connectedOn;
+
+        switch (item.type) {
+          case "login_id":
+            return (
+              <BaseIdentityListCell
+                icon={loginIdIconMap[item.loginIDKey]}
+                identityID={identityID}
+                identityType={identityType}
+                identityName={identityName}
+                claimName={item.claimName}
+                claimValue={item.claimValue}
+                verified={verified}
+                connectedOn={connectedOn}
+                setVerifiedStatus={setVerifiedStatus}
+                onRemoveClicked={onRemoveClicked}
+              />
+            );
+          case "oauth":
+            return (
+              <OAuthIdentityListCell
+                icon={oauthIconMap[item.providerType]}
+                identityID={identityID}
+                identityType={identityType}
+                identityName={identityName}
+                claimName={item.claimName}
+                claimValue={item.claimValue}
+                verified={verified}
+                connectedOn={connectedOn}
+                setVerifiedStatus={setVerifiedStatus}
+                onRemoveClicked={onRemoveClicked}
+              />
+            );
+          case "biometric":
+            return (
+              <BaseIdentityListCell
+                icon={biometricIcon}
+                identityID={identityID}
+                identityType={identityType}
+                identityName={identityName}
+                verified={verified}
+                connectedOn={connectedOn}
+                setVerifiedStatus={setVerifiedStatus}
+                onRemoveClicked={onRemoveClicked}
+              />
+            );
+          case "anonymous":
+            return (
+              <BaseIdentityListCell
+                icon={anonymousIcon}
+                identityID={identityID}
+                identityType={identityType}
+                identityName={identityName}
+                verified={verified}
+                connectedOn={connectedOn}
+                setVerifiedStatus={setVerifiedStatus}
+                onRemoveClicked={onRemoveClicked}
+              />
+            );
+          case "siwe":
+            return (
+              <SIWEIdentityListCell
+                icon={siweIcon}
+                identityID={identityID}
+                identityType={identityType}
+                identityName={identityName}
+                verified={verified}
+                connectedOn={connectedOn}
+                nfts={item.nfts}
+                setVerifiedStatus={setVerifiedStatus}
+                onRemoveClicked={onRemoveClicked}
+              />
+            );
+          default:
+            return null;
+        }
       },
       [onRemoveClicked, setVerifiedStatus, renderToString]
     );
