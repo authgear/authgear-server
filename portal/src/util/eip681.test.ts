@@ -2,10 +2,10 @@ import { describe, it, expect } from "@jest/globals";
 import {
   createEIP681URL,
   EIP681,
-  etherscanAddress,
-  etherscanBlock,
-  etherscanTx,
-  etherscanURL,
+  explorerAddress,
+  explorerBlock,
+  explorerTx,
+  explorerURL,
   parseEIP681,
 } from "./eip681";
 
@@ -122,7 +122,7 @@ describe("EIP681", () => {
 
   it("create etherscan url with address check", () => {
     function test(uri: string, expected: string) {
-      const url = etherscanURL(uri);
+      const url = explorerURL(uri);
 
       expect(url).toEqual(expected);
     }
@@ -142,7 +142,7 @@ describe("EIP681", () => {
 
   it("create etherscan url without address check", () => {
     function test(uri: string, expected: string) {
-      const url = etherscanURL(uri, true);
+      const url = explorerURL(uri, true);
 
       expect(url).toEqual(expected);
     }
@@ -156,7 +156,7 @@ describe("EIP681", () => {
 
   it("create etherscan address url with address check", () => {
     function test(uri: string, expected: string) {
-      const url = etherscanAddress(uri);
+      const url = explorerAddress(uri);
 
       expect(url).toEqual(expected);
     }
@@ -179,7 +179,7 @@ describe("EIP681", () => {
 
   it("create etherscan address url without address check", () => {
     function test(uri: string, expected: string) {
-      const url = etherscanAddress(uri, true);
+      const url = explorerAddress(uri, true);
 
       expect(url).toEqual(expected);
     }
@@ -193,7 +193,7 @@ describe("EIP681", () => {
 
   it("create etherscan transaction hash url with address check", () => {
     function test(uri: string, tx: string, expected: string) {
-      const url = etherscanTx(uri, tx);
+      const url = explorerTx(uri, tx);
 
       expect(url).toEqual(expected);
     }
@@ -219,7 +219,7 @@ describe("EIP681", () => {
 
   it("create etherscan transaction hash url without address check", () => {
     function test(uri: string, tx: string, expected: string) {
-      const url = etherscanTx(uri, tx, true);
+      const url = explorerTx(uri, tx, true);
 
       expect(url).toEqual(expected);
     }
@@ -245,7 +245,7 @@ describe("EIP681", () => {
 
   it("create etherscan block url with address check", () => {
     function test(uri: string, block: string, expected: string) {
-      const url = etherscanBlock(uri, block);
+      const url = explorerBlock(uri, block);
 
       expect(url).toEqual(expected);
     }
@@ -271,7 +271,7 @@ describe("EIP681", () => {
 
   it("create etherscan block url without address check", () => {
     function test(uri: string, block: string, expected: string) {
-      const url = etherscanBlock(uri, block, true);
+      const url = explorerBlock(uri, block, true);
 
       expect(url).toEqual(expected);
     }
