@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -127,6 +128,28 @@ func (m *mockAuthenticationInfoService) Consume(entryID string) (*authentication
 	return m.Entry, nil
 }
 
+type mockOAuthSessionService struct {
+	Entry *oauthsession.Entry
+}
+
+func (m *mockOAuthSessionService) Save(entry *oauthsession.Entry) (err error) {
+	m.Entry = entry
+	return nil
+}
+
+func (m *mockOAuthSessionService) Get(entryID string) (*oauthsession.Entry, error) {
+	if m.Entry == nil {
+		return nil, oauthsession.ErrNotFound
+	}
+
+	return m.Entry, nil
+}
+
+func (m *mockOAuthSessionService) Delete(entryID string) error {
+	m.Entry = nil
+	return nil
+}
+
 type mockCookieManager struct{}
 
 func (m *mockCookieManager) GetCookie(r *http.Request, def *httputil.CookieDef) (*http.Cookie, error) {
@@ -134,5 +157,9 @@ func (m *mockCookieManager) GetCookie(r *http.Request, def *httputil.CookieDef) 
 }
 
 func (m *mockCookieManager) ClearCookie(def *httputil.CookieDef) *http.Cookie {
+	return &http.Cookie{}
+}
+
+func (m *mockCookieManager) ValueCookie(def *httputil.CookieDef, value string) *http.Cookie {
 	return &http.Cookie{}
 }

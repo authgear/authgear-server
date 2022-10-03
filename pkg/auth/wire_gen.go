@@ -59,6 +59,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	handler2 "github.com/authgear/authgear-server/pkg/lib/oauth/oidc/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
@@ -839,6 +840,11 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Users:   queries,
 		Clock:   clock,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	authorizationHandler := &handler.AuthorizationHandler{
 		Context:                   contextContext,
 		AppID:                     appID,
@@ -858,6 +864,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Clock:                     clock,
 		Cookies:                   cookieManager,
+		OAuthSessionService:       oauthsessionStoreRedis,
 	}
 	authorizeHandler := &oauth.AuthorizeHandler{
 		Logger:       authorizeHandlerLogger,
@@ -1605,6 +1612,11 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Users:   queries,
 		Clock:   clockClock,
 	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	authorizationHandler := &handler.AuthorizationHandler{
 		Context:                   contextContext,
 		AppID:                     appID,
@@ -1624,6 +1636,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Clock:                     clockClock,
 		Cookies:                   cookieManager,
+		OAuthSessionService:       oauthsessionStoreRedis,
 	}
 	fromWebAppHandler := &oauth.FromWebAppHandler{
 		Logger:   fromWebAppHandlerLogger,
