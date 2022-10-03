@@ -420,7 +420,7 @@
   "wechat-open-app": "Open WeChat app to login",
   "wechat-proceed": "Proceed WeChat login",
 
-  "toc-pp-footer": "By registering, you agree to our <a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a> and <a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>",
+  "toc-pp-footer": "By registering, you agree to our {variant, select, both{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a> and <a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>} termsOnly{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a>} privacyOnly{<a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>} other{}}",
   "terms-of-service-link": "",
   "privacy-policy-link": "",
 

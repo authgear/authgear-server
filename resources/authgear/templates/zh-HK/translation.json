@@ -420,7 +420,7 @@
   "wechat-open-app": "打開 WeChat 以登入",
   "wechat-proceed": "繼續 WeChat 登入",
 
-  "toc-pp-footer": "註冊即表示我已同意 <a target=\"_blank\" href=\"{termsOfService}\">條款和細則</a> 及 <a target=\"_blank\" href=\"{privacyPolicy}\">隱私政策</a>.",
+  "toc-pp-footer": "註冊即表示我已同意 {variant, select, both{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">條款和細則</a> 及 <a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">隱私政策</a>} termsOnly{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">條款和細則</a>} privacyOnly{<a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">隱私政策</a>} other{}}。",
   "terms-of-service-link": "",
   "privacy-policy-link": "",
 
