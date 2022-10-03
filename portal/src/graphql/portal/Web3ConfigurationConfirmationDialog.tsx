@@ -9,7 +9,11 @@ import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import { NftCollection } from "./globalTypes.generated";
 import styles from "./Web3ConfigurationConfirmationDialog.module.css";
-import { getNetworkNameID } from "../../util/networkId";
+import {
+  getNetworkNameID,
+  NetworkID,
+  sameNetworkID,
+} from "../../util/networkId";
 import { truncateAddress } from "../../util/hex";
 
 interface Web3ConfigurationConfirmationDialogProps {
@@ -23,6 +27,10 @@ interface Web3ConfigurationConfirmationDialogProps {
 
 interface FormChanges {
   siweEnabled: boolean | null;
+  networkChange: {
+    from: NetworkID;
+    to: NetworkID;
+  } | null;
 
   collectionAdded: NftCollection[];
   collectionRemoved: NftCollection[];
@@ -46,12 +54,20 @@ const Web3ConfigurationConfirmationDialog: React.VFC<Web3ConfigurationConfirmati
     const formChanges: FormChanges = useMemo(() => {
       const changes: FormChanges = {
         siweEnabled: null,
+        networkChange: null,
         collectionAdded: [],
         collectionRemoved: [],
       };
 
       if (initialState.siweChecked !== currentState.siweChecked) {
         changes.siweEnabled = currentState.siweChecked;
+      }
+
+      if (!sameNetworkID(initialState.network, currentState.network)) {
+        changes.networkChange = {
+          from: initialState.network,
+          to: currentState.network,
+        };
       }
 
       // We remove all collections if siwe is disabled
@@ -108,6 +124,28 @@ const Web3ConfigurationConfirmationDialog: React.VFC<Web3ConfigurationConfirmati
                       ? "Web3ConfigurationScreen.confirmation-dialog.siwe-enabled.description"
                       : "Web3ConfigurationScreen.confirmation-dialog.siwe-disabled.description"
                   }
+                />
+              </Text>
+            </div>
+          ) : null}
+
+          {formChanges.siweEnabled !== false &&
+          formChanges.networkChange !== null ? (
+            <div className={styles.changesSectionContainer}>
+              <Text className={styles.changesSectionTitle}>
+                <FormattedMessage id="Web3ConfigurationScreen.confirmation-dialog.network-changed.title" />
+              </Text>
+              <Text>
+                <FormattedMessage
+                  id="Web3ConfigurationScreen.confirmation-dialog.network-changed.description"
+                  values={{
+                    old: renderToString(
+                      getNetworkNameID(formChanges.networkChange.from)
+                    ),
+                    new: renderToString(
+                      getNetworkNameID(formChanges.networkChange.to)
+                    ),
+                  }}
                 />
               </Text>
             </div>

@@ -23,6 +23,10 @@ export interface NetworkID {
   network: string;
 }
 
+export function sameNetworkID(a: NetworkID, b: NetworkID): boolean {
+  return a.blockchain === b.blockchain && a.network === b.network;
+}
+
 export function parseNetworkID(url: string): NetworkID {
   const curl = new URL(url);
 
