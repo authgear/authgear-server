@@ -111,7 +111,7 @@ func (p *Provider) SendCode(loginID string) error {
 	}
 
 	for _, info := range emailIdentities {
-		standardClaims := info.StandardClaims()
+		standardClaims := info.IdentityAwareStandardClaims()
 		email := standardClaims[model.ClaimEmail]
 		code, codeStr := p.newCode(info.UserID)
 
@@ -126,7 +126,7 @@ func (p *Provider) SendCode(loginID string) error {
 	}
 
 	for _, info := range phoneIdentities {
-		standardClaims := info.StandardClaims()
+		standardClaims := info.IdentityAwareStandardClaims()
 		phone := standardClaims[model.ClaimPhoneNumber]
 		code, codeStr := p.newCode(info.UserID)
 

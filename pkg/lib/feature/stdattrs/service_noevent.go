@@ -45,7 +45,7 @@ func (s *ServiceNoEvent) PopulateIdentityAwareStandardAttributes(userID string) 
 	var phoneNumbers []string
 	var preferredUsernames []string
 	for _, iden := range identities {
-		standardClaims := iden.StandardClaims()
+		standardClaims := iden.IdentityAwareStandardClaims()
 		if email, ok := standardClaims[model.ClaimEmail]; ok && email != "" {
 			emails = append(emails, email)
 		}
@@ -142,7 +142,7 @@ func (s *ServiceNoEvent) UpdateStandardAttributes(role accesscontrol.Role, userI
 	ownedPhoneNumbers := make(map[string]struct{})
 	ownedPreferredUsernames := make(map[string]struct{})
 	for _, iden := range identities {
-		standardClaims := iden.StandardClaims()
+		standardClaims := iden.IdentityAwareStandardClaims()
 		if email, ok := standardClaims[model.ClaimEmail]; ok && email != "" {
 			ownedEmails[email] = struct{}{}
 		}

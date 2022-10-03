@@ -453,7 +453,7 @@ func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
 		}
 	}
 
-	standardClaims := info.StandardClaims()
+	standardClaims := info.IdentityAwareStandardClaims()
 
 	email, ok := standardClaims[model.ClaimEmail]
 	if ok && cfg != nil && *cfg.Claims.Email.AssumeVerified {

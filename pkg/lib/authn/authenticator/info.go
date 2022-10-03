@@ -194,7 +194,7 @@ func (i *Info) IsIndependent() bool {
 func (i *Info) IsDependentOf(iden *identity.Info) bool {
 	// Primary OOB OTP authenticator is the dependent of Login ID identity.
 	if i.Kind == KindPrimary && (i.Type == model.AuthenticatorTypeOOBEmail || i.Type == model.AuthenticatorTypeOOBSMS) {
-		identityClaims := iden.StandardClaims()
+		identityClaims := iden.IdentityAwareStandardClaims()
 		for k, v := range i.StandardClaims() {
 			if identityClaims[k] == v {
 				return true

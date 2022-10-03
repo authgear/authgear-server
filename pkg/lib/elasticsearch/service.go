@@ -79,11 +79,11 @@ func (s *Service) ReindexUser(userID string, isDelete bool) (err error) {
 
 	var arrClaims []map[model.ClaimName]string
 	for _, oauthI := range oauthIdentities {
-		arrClaims = append(arrClaims, oauthI.ToInfo().StandardClaims())
+		arrClaims = append(arrClaims, oauthI.ToInfo().IdentityAwareStandardClaims())
 		raw.OAuthSubjectID = append(raw.OAuthSubjectID, oauthI.ProviderSubjectID)
 	}
 	for _, loginIDI := range loginIDIdentities {
-		arrClaims = append(arrClaims, loginIDI.ToInfo().StandardClaims())
+		arrClaims = append(arrClaims, loginIDI.ToInfo().IdentityAwareStandardClaims())
 	}
 
 	for _, claims := range arrClaims {
