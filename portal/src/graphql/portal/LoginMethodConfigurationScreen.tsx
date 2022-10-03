@@ -17,6 +17,8 @@ import {
   ICheckboxProps,
   Dropdown,
   DirectionalHint,
+  Pivot,
+  PivotItem,
 } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
@@ -101,6 +103,12 @@ function splitByNewline(text: string): string[] {
 function joinByNewline(list: string[]): string {
   return list.join("\n");
 }
+
+const PIVOT_STYLES = {
+  itemContainer: {
+    paddingTop: "24px",
+  },
+};
 
 const DEFAULT_PHONE_OTP_MODE: AuthenticatorPhoneOTPMode = "whatsapp_sms";
 
@@ -1328,7 +1336,7 @@ function CustomLoginMethods(props: CustomLoginMethodsProps) {
   );
 
   return (
-    <Widget className={styles.widget}>
+    <Widget>
       <WidgetTitle>
         <FormattedMessage id="LoginMethodConfigurationScreen.custom-login-methods.title" />
       </WidgetTitle>
@@ -1556,7 +1564,7 @@ function EmailSettings(props: EmailSettingsProps) {
   const onChangeModifyDisabled = useOnChangeModifyDisabled(setState, "email");
 
   return (
-    <Widget className={styles.widget}>
+    <Widget>
       <WidgetTitle>
         <FormattedMessage id="LoginMethodConfigurationScreen.email.title" />
       </WidgetTitle>
@@ -1691,7 +1699,7 @@ function PhoneSettings(props: PhoneSettingsProps) {
   const onChangeModifyDisabled = useOnChangeModifyDisabled(setState, "phone");
 
   return (
-    <Widget className={styles.widget}>
+    <Widget>
       <WidgetTitle>
         <FormattedMessage id="LoginMethodConfigurationScreen.phone.title" />
       </WidgetTitle>
@@ -1796,7 +1804,7 @@ function UsernameSettings(props: UsernameSettingsProps) {
   );
 
   return (
-    <Widget className={styles.widget}>
+    <Widget>
       <WidgetTitle>
         <FormattedMessage id="LoginMethodConfigurationScreen.username.title" />
       </WidgetTitle>
@@ -2013,7 +2021,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
   );
 
   return (
-    <Widget className={styles.widget}>
+    <Widget>
       <WidgetTitle>
         <FormattedMessage id="LoginMethodConfigurationScreen.verification.title" />
       </WidgetTitle>
@@ -2100,6 +2108,8 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
   function LoginMethodConfigurationContent(props) {
     const { appID } = props;
     const { state, setState } = props.form;
+
+    const { renderToString } = useContext(Context);
 
     const {
       identitiesControl,
@@ -2256,60 +2266,110 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
               onClick={onClickChooseLoginMethod}
             />
             {loginMethod === "oauth" ? <LinkToOAuth appID={appID} /> : null}
-            {loginMethod === "custom" ? (
-              <CustomLoginMethods
-                phoneLoginIDDisabled={phoneLoginIDDisabled}
-                primaryAuthenticatorsControl={primaryAuthenticatorsControl}
-                loginIDKeyConfigsControl={loginIDKeyConfigsControl}
-                onChangeLoginIDChecked={onChangeLoginIDChecked}
-                onSwapLoginID={onSwapLoginID}
-                onChangePrimaryAuthenticatorChecked={
-                  onChangePrimaryAuthenticatorChecked
-                }
-                onSwapPrimaryAuthenticator={onSwapPrimaryAuthenticator}
-              />
-            ) : null}
-            {showEmailSettings ? (
-              <EmailSettings
-                resources={resources}
-                loginIDKeyConfigsControl={loginIDKeyConfigsControl}
-                loginIDEmailConfig={loginIDEmailConfig}
-                setState={setState}
-              />
-            ) : null}
-            {showPhoneSettings ? (
-              <PhoneSettings
-                loginIDKeyConfigsControl={loginIDKeyConfigsControl}
-                phoneInputConfig={phoneInputConfig}
-                setState={setState}
-              />
-            ) : null}
-            {showUsernameSettings ? (
-              <UsernameSettings
-                resources={resources}
-                loginIDKeyConfigsControl={loginIDKeyConfigsControl}
-                loginIDUsernameConfig={loginIDUsernameConfig}
-                setState={setState}
-              />
-            ) : null}
-            {showVerificationSettings ? (
-              <VerificationSettings
-                showEmailSettings={showEmailSettings}
-                showPhoneSettings={showPhoneSettings}
-                verificationConfig={verificationConfig}
-                authenticatorOOBSMSConfig={authenticatorOOBSMSConfig}
-                setState={setState}
-              />
-            ) : null}
-            {showPasswordSettings ? (
-              <PasswordSettings
-                className={styles.widget}
-                forgotPasswordConfig={forgotPasswordConfig}
-                authenticatorPasswordConfig={authenticatorPasswordConfig}
-                passwordPolicyFeatureConfig={passwordPolicyFeatureConfig}
-                setState={setState}
-              />
-            ) : null}
+            {/* Pivot is intentionally uncontrolled */}
+            {/* It is because it is troublesome to keep track of the selected key */}
+            {/* And making it controlled does not bring any benefits */}
+            <Pivot
+              className={styles.widget}
+              styles={PIVOT_STYLES}
+              overflowBehavior="menu"
+            >
+              {loginMethod === "custom" ? (
+                <PivotItem
+                  headerText={renderToString(
+                    "LoginMethodConfigurationScreen.pivot.custom.title"
+                  )}
+                  itemKey="custom"
+                >
+                  <CustomLoginMethods
+                    phoneLoginIDDisabled={phoneLoginIDDisabled}
+                    primaryAuthenticatorsControl={primaryAuthenticatorsControl}
+                    loginIDKeyConfigsControl={loginIDKeyConfigsControl}
+                    onChangeLoginIDChecked={onChangeLoginIDChecked}
+                    onSwapLoginID={onSwapLoginID}
+                    onChangePrimaryAuthenticatorChecked={
+                      onChangePrimaryAuthenticatorChecked
+                    }
+                    onSwapPrimaryAuthenticator={onSwapPrimaryAuthenticator}
+                  />
+                </PivotItem>
+              ) : null}
+              {showEmailSettings ? (
+                <PivotItem
+                  headerText={renderToString(
+                    "LoginMethodConfigurationScreen.pivot.email.title"
+                  )}
+                  itemKey="email"
+                >
+                  <EmailSettings
+                    resources={resources}
+                    loginIDKeyConfigsControl={loginIDKeyConfigsControl}
+                    loginIDEmailConfig={loginIDEmailConfig}
+                    setState={setState}
+                  />
+                </PivotItem>
+              ) : null}
+              {showPhoneSettings ? (
+                <PivotItem
+                  headerText={renderToString(
+                    "LoginMethodConfigurationScreen.pivot.phone.title"
+                  )}
+                  itemKey="phone"
+                >
+                  <PhoneSettings
+                    loginIDKeyConfigsControl={loginIDKeyConfigsControl}
+                    phoneInputConfig={phoneInputConfig}
+                    setState={setState}
+                  />
+                </PivotItem>
+              ) : null}
+              {showUsernameSettings ? (
+                <PivotItem
+                  headerText={renderToString(
+                    "LoginMethodConfigurationScreen.pivot.username.title"
+                  )}
+                  itemKey="username"
+                >
+                  <UsernameSettings
+                    resources={resources}
+                    loginIDKeyConfigsControl={loginIDKeyConfigsControl}
+                    loginIDUsernameConfig={loginIDUsernameConfig}
+                    setState={setState}
+                  />
+                </PivotItem>
+              ) : null}
+              {showVerificationSettings ? (
+                <PivotItem
+                  headerText={renderToString(
+                    "LoginMethodConfigurationScreen.pivot.verification.title"
+                  )}
+                  itemKey="verification"
+                >
+                  <VerificationSettings
+                    showEmailSettings={showEmailSettings}
+                    showPhoneSettings={showPhoneSettings}
+                    verificationConfig={verificationConfig}
+                    authenticatorOOBSMSConfig={authenticatorOOBSMSConfig}
+                    setState={setState}
+                  />
+                </PivotItem>
+              ) : null}
+              {showPasswordSettings ? (
+                <PivotItem
+                  headerText={renderToString(
+                    "LoginMethodConfigurationScreen.password.title"
+                  )}
+                  itemKey="password"
+                >
+                  <PasswordSettings
+                    forgotPasswordConfig={forgotPasswordConfig}
+                    authenticatorPasswordConfig={authenticatorPasswordConfig}
+                    passwordPolicyFeatureConfig={passwordPolicyFeatureConfig}
+                    setState={setState}
+                  />
+                </PivotItem>
+              ) : null}
+            </Pivot>
           </>
         ) : (
           <Widget className={styles.widget}>
