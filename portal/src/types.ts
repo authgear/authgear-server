@@ -749,29 +749,29 @@ export interface StandardAttributesAddress {
 }
 
 export interface NFTContract {
-  name?: string;
-  address?: string;
+  name: string;
+  address: string;
 }
 
 export interface TransactionIdentifier {
-  hash?: string;
+  hash: string;
 }
 
 export interface BlockIdentifier {
-  index?: number;
-  timestamp?: Date;
+  index: number;
+  timestamp: Date;
 }
 
 export interface NFTToken {
-  tokenId?: string;
-  transaction_identifier?: TransactionIdentifier;
-  block_identifier?: BlockIdentifier;
+  token_id: string;
+  transaction_identifier: TransactionIdentifier;
+  block_identifier: BlockIdentifier;
 }
 
 export interface NFT {
-  contract?: NFTContract;
-  balance?: number;
-  tokens?: NFTToken[];
+  contract: NFTContract;
+  balance: number;
+  tokens: NFTToken[];
 }
 
 export interface AccountIdentifier {

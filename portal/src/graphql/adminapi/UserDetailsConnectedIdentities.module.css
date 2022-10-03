@@ -65,7 +65,7 @@
   text-overflow: ellipsis;
 }
 
-.siweCellName {
+.cellNameExternalLink {
   color: inherit;
 }
 
@@ -88,6 +88,26 @@
   grid-area: desc;
   display: flex;
   flex-direction: row;
+}
+
+.NFTListCell {
+  display: flex;
+  flex-direction: column;
+  margin: 4px 0;
+}
+
+.NFTListCellBtn {
+  margin-top: -2px;
+}
+
+.NFTListCellBtnLabel {
+  color: inherit;
+}
+
+.NFTListHeader {
+  display: flex;
+  margin-top: 12px;
+  font-weight: 600;
 }
 
 .buttonGroup {

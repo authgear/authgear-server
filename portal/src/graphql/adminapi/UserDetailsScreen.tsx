@@ -276,6 +276,8 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     [setState]
   );
 
+  const web3Claims = data?.web3;
+
   const verifiedClaims = data?.verifiedClaims ?? [];
 
   const identities =
@@ -343,6 +345,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
             identities={identities}
             verifiedClaims={verifiedClaims}
             availableLoginIdIdentities={availableLoginIdIdentities}
+            web3Claims={web3Claims}
           />
         </PivotItem>
         <PivotItem
