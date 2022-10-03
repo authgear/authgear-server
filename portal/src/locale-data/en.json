@@ -1295,6 +1295,12 @@
   "LoginMethodConfigurationScreen.password.description": "Configure the password policy for Password and Additional Password in MFA.",
   "LoginMethodConfigurationScreen.password.basic": "Basic",
   "LoginMethodConfigurationScreen.password.advanced": "Advanced",
+  "LoginMethodConfigurationScreen.pivot.custom.title": "Custom Login Methods",
+  "LoginMethodConfigurationScreen.pivot.email.title": "Email",
+  "LoginMethodConfigurationScreen.pivot.phone.title": "Phone",
+  "LoginMethodConfigurationScreen.pivot.username.title": "Username",
+  "LoginMethodConfigurationScreen.pivot.verification.title": "Verification and OTP",
+  "LoginMethodConfigurationScreen.pivot.password.title": "Password Policy",
 
   "LoginIDKeyType.email": "Email address",
   "LoginIDKeyType.phone": "Phone number",
