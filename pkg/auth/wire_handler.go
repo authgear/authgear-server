@@ -42,10 +42,10 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
+func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(http.Handler), new(*handleroauth.FromWebAppHandler)),
+		wire.Bind(new(http.Handler), new(*handleroauth.ConsentHandler)),
 	))
 }
 

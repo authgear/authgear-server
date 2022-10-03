@@ -881,10 +881,10 @@ var (
 	_wireTokenGeneratorValue  = handler.TokenGenerator(oauth2.GenerateToken)
 )
 
-func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
+func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	fromWebAppHandlerLogger := oauth.NewFromWebAppHandlerLogger(factory)
+	consentHandlerLogger := oauth.NewConsentHandlerLogger(factory)
 	handle := appProvider.AppDatabase
 	request := p.Request
 	contextContext := deps.ProvideRequestContext(request)
@@ -1638,12 +1638,42 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                   cookieManager,
 		OAuthSessionService:       oauthsessionStoreRedis,
 	}
-	fromWebAppHandler := &oauth.FromWebAppHandler{
-		Logger:   fromWebAppHandlerLogger,
-		Database: handle,
-		Handler:  authorizationHandler,
+	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
+	googleTagManagerConfig := appConfig.GoogleTagManager
+	flashMessage := &httputil.FlashMessage{
+		Cookies: cookieManager,
 	}
-	return fromWebAppHandler
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	consentHandler := &oauth.ConsentHandler{
+		Logger:        consentHandlerLogger,
+		Database:      handle,
+		Handler:       authorizationHandler,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		Identities:    serviceService,
+	}
+	return consentHandler
 }
 
 func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {

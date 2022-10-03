@@ -187,7 +187,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		AuthenticatedAt: h.Clock.NowUTC(),
 	}
 
-	authz, err := checkAuthorization(
+	authz, err := checkAndGrantAuthorization(
 		h.Authorizations,
 		h.Clock.NowUTC(),
 		h.AppID,

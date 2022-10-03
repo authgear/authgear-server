@@ -19,8 +19,8 @@ func (mockURLsProvider) AuthorizeURL(r protocol.AuthorizationRequest) *url.URL {
 	return u
 }
 
-func (mockURLsProvider) FromWebAppURL(r protocol.AuthorizationRequest) *url.URL {
-	u, _ := url.Parse("https://auth/from_webapp")
+func (mockURLsProvider) ConsentURL(r protocol.AuthorizationRequest) *url.URL {
+	u, _ := url.Parse("https://auth/consent")
 	return u
 }
 
@@ -124,8 +124,17 @@ type mockAuthenticationInfoService struct {
 	Entry *authenticationinfo.Entry
 }
 
-func (m *mockAuthenticationInfoService) Consume(entryID string) (*authenticationinfo.Entry, error) {
+func (m *mockAuthenticationInfoService) Get(entryID string) (*authenticationinfo.Entry, error) {
+	if m.Entry == nil {
+		return nil, authenticationinfo.ErrNotFound
+	}
+
 	return m.Entry, nil
+}
+
+func (m *mockAuthenticationInfoService) Delete(entryID string) error {
+	m.Entry = nil
+	return nil
 }
 
 type mockOAuthSessionService struct {

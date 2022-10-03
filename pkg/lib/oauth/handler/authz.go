@@ -9,7 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-func checkAuthorization(
+func checkAndGrantAuthorization(
 	authzs oauth.AuthorizationStore,
 	timestamp time.Time,
 	appID config.AppID,
@@ -50,4 +50,27 @@ func checkAuthorization(
 	}
 
 	return authz, nil
+}
+
+func checkAuthorization(
+	authzs oauth.AuthorizationStore,
+	clientID string,
+	userID string,
+	scopes []string,
+) (*oauth.Authorization, error) {
+	authz, err := authzs.Get(userID, clientID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !authz.IsAuthorized(scopes) {
+		return nil, oauth.ErrAuthorizationScopesNotGranted
+	}
+
+	return authz, nil
+}
+
+func IsConsentRequiredError(err error) bool {
+	return errors.Is(err, oauth.ErrAuthorizationScopesNotGranted) || errors.Is(err, oauth.ErrAuthorizationNotFound)
 }

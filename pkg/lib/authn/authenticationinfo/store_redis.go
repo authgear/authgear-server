@@ -13,7 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
 
-const ttl = duration.Short
+const ttl = duration.Consent
 
 type StoreRedis struct {
 	Context context.Context
@@ -40,46 +40,35 @@ func (s *StoreRedis) Save(entry *Entry) (err error) {
 	return
 }
 
-func (s *StoreRedis) Consume(entryID string) (entry *Entry, err error) {
+func (s *StoreRedis) Get(entryID string) (entry *Entry, err error) {
 	key := authenticationInfoEntryKey(s.AppID, entryID)
-
 	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
-		pipeline := conn.TxPipeline()
-		get := pipeline.Get(s.Context, key)
-		del := pipeline.Del(s.Context, key)
-
-		_, err := pipeline.Exec(s.Context)
-		if err != nil {
-			return err
-		}
-
-		data, err := get.Bytes()
+		data, err := conn.Get(s.Context, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrNotFound
 		} else if err != nil {
 			return err
 		}
-
-		_, err = del.Result()
-		if err != nil {
-			return err
-		}
-
 		var out Entry
 		err = json.Unmarshal(data, &out)
 		if err != nil {
 			return err
 		}
-
 		entry = &out
-
 		return nil
 	})
-	if err != nil {
-		return
-	}
-
 	return
+}
+
+func (s *StoreRedis) Delete(entryID string) (err error) {
+	key := authenticationInfoEntryKey(s.AppID, entryID)
+	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+		_, err := conn.Del(s.Context, key).Result()
+		if err != nil {
+			return err
+		}
+		return err
+	})
 }
 
 func authenticationInfoEntryKey(appID config.AppID, entryID string) string {

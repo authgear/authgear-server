@@ -23,6 +23,7 @@ type (
 		ResponseMode  string
 		InternalError bool
 		Response      protocol.ErrorResponse
+		Cookies       []*http.Cookie
 	}
 )
 
@@ -38,6 +39,9 @@ func (a authorizationResultCode) IsInternalError() bool {
 }
 
 func (a authorizationResultError) WriteResponse(rw http.ResponseWriter, r *http.Request) {
+	for _, cookie := range a.Cookies {
+		httputil.UpdateCookie(rw, cookie)
+	}
 	if a.RedirectURI != nil {
 		oauth.WriteResponse(rw, r, a.RedirectURI, a.ResponseMode, a.Response)
 	} else {
