@@ -32,7 +32,11 @@ import styles from "./UserDetailsConnectedIdentities.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useIsLoading, useLoading } from "../../hook/loading";
 import { useProvideError } from "../../hook/error";
-import { createEIP681URL, etherscanAddress } from "../../util/eip681";
+import {
+  createEIP681URL,
+  etherscanAddress,
+  parseEIP681,
+} from "../../util/eip681";
 import ExternalLink, { ExternalLinkProps } from "../../ExternalLink";
 import { truncateAddress } from "../../util/hex";
 import LinkButton from "../../LinkButton";
@@ -261,6 +265,14 @@ const NFTCollectionListCell: React.VFC<NFTCollectionListCellProps> = (
   const { contract, balance, tokens, eip681String } = props;
   const [isDetailDialogVisible, setIsDetailDialogVisible] = useState(false);
 
+  const eip681 = useMemo(() => parseEIP681(eip681String), [eip681String]);
+
+  const contractEIP681 = useMemo(
+    () =>
+      createEIP681URL({ address: contract.address, chainId: eip681.chainId }),
+    [contract.address, eip681.chainId]
+  );
+
   const openDetailDialog = useCallback(() => {
     setIsDetailDialogVisible(true);
   }, []);
@@ -271,15 +283,20 @@ const NFTCollectionListCell: React.VFC<NFTCollectionListCellProps> = (
 
   return (
     <div className={styles.NFTListCell}>
-      <Text className={styles.cellName} variant="small">
-        <FormattedMessage
-          id="UserDetails.connected-identities.siwe.nft-collections.name"
-          values={{
-            name: contract.name,
-            address: truncateAddress(contract.address),
-          }}
-        />
-      </Text>
+      <ExternalLink href={etherscanAddress(contractEIP681)}>
+        <Text
+          className={cn(styles.cellName, styles.cellNameExternalLink)}
+          variant="small"
+        >
+          <FormattedMessage
+            id="UserDetails.connected-identities.siwe.nft-collections.name"
+            values={{
+              name: contract.name,
+              address: truncateAddress(contract.address),
+            }}
+          />
+        </Text>
+      </ExternalLink>
       <Text variant="small">
         <FormattedMessage
           id="UserDetails.connected-identities.siwe.nft-collections.balance"
