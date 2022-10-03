@@ -210,7 +210,7 @@ func (i *Info) DisplayID() string {
 	}
 }
 
-func (i *Info) StandardClaims() map[model.ClaimName]string {
+func (i *Info) IdentityAwareStandardClaims() map[model.ClaimName]string {
 	claims := map[model.ClaimName]string{}
 	switch i.Type {
 	case model.IdentityTypeLoginID:
@@ -235,6 +235,25 @@ func (i *Info) StandardClaims() map[model.ClaimName]string {
 	case model.IdentityTypePasskey:
 		break
 	case model.IdentityTypeSIWE:
+		break
+	default:
+		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
+	}
+	return claims
+}
+
+func (i *Info) AllStandardClaims() map[string]interface{} {
+	claims := make(map[string]interface{})
+	switch i.Type {
+	case model.IdentityTypeLoginID:
+		return i.LoginID.Claims
+	case model.IdentityTypeOAuth:
+		return i.OAuth.Claims
+	case model.IdentityTypeAnonymous:
+		break
+	case model.IdentityTypeBiometric:
+		break
+	case model.IdentityTypePasskey:
 		break
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))

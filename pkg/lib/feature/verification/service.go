@@ -65,7 +65,7 @@ func (s *Service) claimVerificationConfig(claimName model.ClaimName) *config.Ver
 
 func (s *Service) getVerificationStatus(i *identity.Info, verifiedClaims map[claim]struct{}) []ClaimStatus {
 	var statuses []ClaimStatus
-	standardClaims := i.StandardClaims()
+	standardClaims := i.IdentityAwareStandardClaims()
 	for claimName, claimValue := range standardClaims {
 		c := s.claimVerificationConfig(claimName)
 		if c == nil {
@@ -306,7 +306,7 @@ func (s *Service) RemoveOrphanedClaims(identities []*identity.Info, authenticato
 		if i.UserID != userID {
 			panic("verification: expect all user ID is same")
 		}
-		for name, value := range i.StandardClaims() {
+		for name, value := range i.IdentityAwareStandardClaims() {
 			delete(orphans, claim{Name: string(name), Value: value})
 		}
 	}

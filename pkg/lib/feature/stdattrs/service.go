@@ -45,7 +45,7 @@ func (s *Service) PopulateStandardAttributes(userID string, iden *identity.Info)
 		return err
 	}
 
-	stdAttrsFromIden := stdattrs.FromIdentityStandardClaims(iden.StandardClaims()).NonIdentityAware()
+	stdAttrsFromIden := stdattrs.T(iden.AllStandardClaims()).NonIdentityAware()
 	originalStdAttrs := stdattrs.T(user.StandardAttributes)
 	stdAttrs := originalStdAttrs.MergedWith(stdAttrsFromIden)
 

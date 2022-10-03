@@ -98,7 +98,7 @@ func (p *Provider) send(emails []string) error {
 func (p *Provider) SendToIdentityInfos(infos []*identity.Info) (err error) {
 	var emails []string
 	for _, info := range infos {
-		standardClaims := info.StandardClaims()
+		standardClaims := info.IdentityAwareStandardClaims()
 		if email, ok := standardClaims[model.ClaimEmail]; ok {
 			emails = append(emails, email)
 		}

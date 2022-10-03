@@ -100,7 +100,7 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 	}
 
 	for _, iden := range identities {
-		standardClaims := iden.StandardClaims()
+		standardClaims := iden.IdentityAwareStandardClaims()
 		if email, ok := standardClaims[model.ClaimEmail]; ok && email != "" {
 			emails = append(emails, email)
 		}

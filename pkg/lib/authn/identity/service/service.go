@@ -651,7 +651,7 @@ func (s *Service) CheckDuplicated(is *identity.Info) (dupeIdentity *identity.Inf
 	}
 
 	// extract standard claims
-	claims := is.StandardClaims()
+	claims := is.IdentityAwareStandardClaims()
 
 	li, err := s.LoginID.CheckDuplicated(loginIDUniqueKey, claims, is.UserID)
 	if errors.Is(err, identity.ErrIdentityAlreadyExists) {
