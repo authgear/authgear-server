@@ -1235,8 +1235,10 @@
   "GetStartedScreen.card.action-label.invite": "Invite members",
   "GetStartedScreen.card.skip-button.label": "Skip this",
 
-  "NetworkId.ethereum-mainnet": "Ethereum mainnet",
+  "NetworkId.ethereum-mainnet": "Ethereum Mainnet",
   "NetworkId.ethereum-goerli": "Goerli Test Network",
+  "NetworkId.polygon-mainnet": "Polygon Mainnet",
+  "NetworkId.polygon-mumbai": "Polygon Mumbai",
 
   "NftCollection.item.identifier": "{name} ({network}: {address})",
 
