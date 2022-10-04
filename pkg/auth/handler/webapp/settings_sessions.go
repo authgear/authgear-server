@@ -201,4 +201,25 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		result.WriteResponse(w, r)
 		return nil
 	})
+
+	ctrl.PostAction("remove_authorization", func() error {
+		authorizationID := r.Form.Get("x_authorization_id")
+		authz, err := h.Authorizations.GetByID(authorizationID)
+		if err != nil {
+			return err
+		}
+
+		if authz.UserID != currentSession.GetAuthenticationInfo().UserID {
+			return apierrors.NewForbidden("cannot remove authorization")
+		}
+
+		err = h.Authorizations.Delete(authz)
+		if err != nil {
+			return err
+		}
+
+		result := webapp.Result{RedirectURI: redirectURI}
+		result.WriteResponse(w, r)
+		return nil
+	})
 }

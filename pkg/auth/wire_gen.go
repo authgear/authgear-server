@@ -35476,7 +35476,8 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	authorizationService := &oauth2.AuthorizationService{
-		Store: authorizationStore,
+		Store:               authorizationStore,
+		OAuthSessionManager: sessionManager,
 	}
 	settingsSessionsHandler := &webapp.SettingsSessionsHandler{
 		ControllerFactory: controllerFactory,

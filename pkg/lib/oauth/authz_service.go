@@ -1,7 +1,17 @@
 package oauth
 
+import (
+	"github.com/authgear/authgear-server/pkg/lib/session"
+)
+
+type OfflineGrantSessionManager interface {
+	List(userID string) ([]session.Session, error)
+	Delete(session session.Session) error
+}
+
 type AuthorizationService struct {
-	Store AuthorizationStore
+	Store               AuthorizationStore
+	OAuthSessionManager OfflineGrantSessionManager
 }
 
 func (s *AuthorizationService) GetByID(id string) (*Authorization, error) {
@@ -32,5 +42,22 @@ func (s *AuthorizationService) ListByUser(userID string, filters ...Filter) ([]*
 }
 
 func (s *AuthorizationService) Delete(a *Authorization) error {
+	sessions, err := s.OAuthSessionManager.List(a.UserID)
+	if err != nil {
+		return err
+	}
+
+	// delete the offline grants that belong to the authorization
+	for _, sess := range sessions {
+		if offlineGrant, ok := sess.(*OfflineGrant); ok {
+			if offlineGrant.AuthorizationID == a.ID {
+				err := s.OAuthSessionManager.Delete(sess)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
 	return s.Store.Delete(a)
 }
