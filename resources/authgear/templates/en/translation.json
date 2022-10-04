@@ -336,6 +336,17 @@
   "settings-sessions-confirmation-action-label": "Terminate",
   "settings-sessions-confirmation-cancel-label": "Cancel",
 
+  "settings-sessions-authorized-apps-title": "Authorized Apps",
+  "settings-sessions-authorized-apps-description": "You used your account to sign in to these sites and apps.",
+  "settings-sessions-authorized-apps-full-userinfo-access-description": "Has access to full profile",
+  "settings-sessions-authorized-apps-item-description": "Added at <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span> {hasFullUserInfoAccess, select, true{ · Has access to full profile} other{}}",
+  "settings-sessions-authorized-apps-remove-label": "Remove",
+  "settings-sessions-authorized-apps-remove-confirmation-title": "Remove authorized app",
+  "settings-sessions-authorized-apps-remove-confirmation-desc": "Are you sure to remove the authorized app {clientName}?",
+  "settings-sessions-authorized-apps-remove-action-label": "Remove",
+  "settings-sessions-authorized-apps-remove-cancel-label": "Cancel",
+  "settings-sessions-authorized-apps-empty-desc": "No authorized apps",
+
   "settings-oob-otp-email-title": "Channels for verification via email",
   "settings-oob-otp-phone-title": "Channels for verification via phone",
   "settings-oob-otp-item-description": "Added at <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",

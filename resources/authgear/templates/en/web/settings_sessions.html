@@ -116,5 +116,57 @@
   </form>
 </div>
 
+<div class="p-5 row-sep grid grid-cols-1 auto-rows-auto gap-y-1">
+  <h2 class="m-0 primary-txt text-base font-semibold">
+    {{ template "settings-sessions-authorized-apps-title" }}
+  </h2>
+  <p class="m-0 text-sm secondary-txt">
+    {{ template "settings-sessions-authorized-apps-description" }}
+  </p>
+</div>
+
+<div class="twc-container-vertical row-sep py-2">
+  {{ if ne (len .Authorizations) 0 }}
+  <div class="px-5 flex flex-col divide-y">
+  {{ range $.Authorizations }}
+  <div class="py-3 grid grid-cols-[minmax(0,_1fr)_auto]">
+    <div class="col-start-1 flex flex-row">
+      <i class="twc-title-icon ti ti-box primary-txt text-sm" aria-hidden="true"></i>
+      <h2 class="flex-1 primary-txt text-base m-0 truncate text-sm font-normal">{{ .ClientName }}</h2>
+    </div>
+    <p class="col-start-1 row-start-2 text-sm leading-normal m-0 secondary-txt">
+      {{ template "settings-sessions-authorized-apps-item-description" (dict "time" .CreatedAt "rfc3339" (rfc3339 .CreatedAt) "hasFullUserInfoAccess" .HasFullUserInfoAccess) }}
+    </p>
+    <form class="col-start-2 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate>
+      {{ $.CSRFField }}
+      <input type="hidden" name="x_authorization_id" value="{{ .ID }}">
+      <button
+        class="btn primary-txt flex-1 flex flex-col items-end justify-center"
+        type="submit"
+        name="x_action"
+        value="remove_authorization"
+        aria-label="{{ template "settings-sessions-authorized-apps-remove-label" }}"
+        data-modal-title="{{ template "settings-sessions-authorized-apps-remove-confirmation-title" }}"
+        data-modal-body="{{ template "settings-sessions-authorized-apps-remove-confirmation-desc" (dict "clientName" .ClientName ) }}"
+        data-modal-action-label="{{ template "settings-sessions-authorized-apps-remove-action-label" }}"
+        data-modal-cancel-label="{{ template "settings-sessions-authorized-apps-remove-cancel-label" }}"
+        data-authgear-event="authgear.button.revoke_session"
+        {{/* confirmFormSubmit requires data-turbo="false" to work */}}
+        data-turbo="false"
+        data-action="click->modal#confirmFormSubmit"
+      >
+        <i class="ti ti-x"></i>
+      </button>
+    </form>
+  </div>
+  {{ end }}
+  </div>
+  {{ else }}
+  <p class="px-5 py-3 text-sm leading-normal m-0 primary-txt">
+    {{ template "settings-sessions-authorized-apps-empty-desc" }}
+  </p>
+  {{ end }}
+</div>
+
 </div>
 {{ end }}

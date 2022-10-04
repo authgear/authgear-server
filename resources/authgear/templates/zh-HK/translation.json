@@ -336,6 +336,17 @@
   "settings-sessions-confirmation-action-label": "登出",
   "settings-sessions-confirmation-cancel-label": "取消",
 
+  "settings-sessions-authorized-apps-title": "授權應用程式",
+  "settings-sessions-authorized-apps-description": "您已使用自己的帳戶登錄這些網站和應用",
+  "settings-sessions-authorized-apps-full-userinfo-access-description": "可以訪問完整的個人資料",
+  "settings-sessions-authorized-apps-item-description": "新增時間：<span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span> {hasFullUserInfoAccess, select, true{ · 可以訪問完整的個人資料} other{}}",
+  "settings-sessions-authorized-apps-remove-label": "移除",
+  "settings-sessions-authorized-apps-remove-confirmation-title": "移除授權應用程式",
+  "settings-sessions-authorized-apps-remove-confirmation-desc": "確定移除授權應用程式 {clientName}?",
+  "settings-sessions-authorized-apps-remove-action-label": "移除",
+  "settings-sessions-authorized-apps-remove-cancel-label": "取消",
+  "settings-sessions-authorized-apps-empty-desc": "沒有授權的應用程式",
+
   "settings-oob-otp-email-title": "以電郵作為驗證的渠道",
   "settings-oob-otp-phone-title": "以電話作為驗證的渠道",
   "settings-oob-otp-item-description": "新增時間：<span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",

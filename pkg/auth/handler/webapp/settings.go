@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -51,6 +52,12 @@ type SettingsSessionManager interface {
 	List(userID string) ([]session.Session, error)
 	Get(id string) (session.Session, error)
 	Revoke(s session.Session, isAdminAPI bool) error
+}
+
+type SettingsAuthorizationService interface {
+	GetByID(id string) (*oauth.Authorization, error)
+	ListByUser(userID string, filters ...oauth.Filter) ([]*oauth.Authorization, error)
+	Delete(a *oauth.Authorization) error
 }
 
 type SettingsHandler struct {
