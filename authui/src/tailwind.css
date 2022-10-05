@@ -96,6 +96,11 @@
   h6 {
     @apply font-semibold;
   }
+
+  b,
+  strong {
+    @apply font-semibold;
+  }
 }
 
 @layer components {
