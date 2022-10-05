@@ -69,28 +69,26 @@ func (h *SettingsSessionsHandler) GetData(r *http.Request, rw http.ResponseWrite
 	}
 
 	// Get third party app authorization
-	thirdPartyClientNameMap := map[string]string{}
+	clientNameMap := map[string]string{}
 	for _, c := range h.OAuthConfig.Clients {
-		if c.ClientParty() == config.ClientPartyThird {
-			thirdPartyClientNameMap[c.ClientID] = c.ClientName
-		}
+		clientNameMap[c.ClientID] = c.ClientName
 	}
-	authorizations, err := h.Authorizations.ListByUser(userID)
+	filter := oauth.NewKeepThirdPartyAuthorizationFilter(h.OAuthConfig)
+	authorizations, err := h.Authorizations.ListByUser(userID, filter)
 	if err != nil {
 		return nil, err
 	}
 	authzs := []Authorization{}
 	for _, authz := range authorizations {
-		if clientName, ok := thirdPartyClientNameMap[authz.ClientID]; ok {
-			authzs = append(authzs, Authorization{
-				ID:                    authz.ID,
-				ClientID:              authz.ClientID,
-				ClientName:            clientName,
-				Scope:                 authz.Scopes,
-				CreatedAt:             authz.CreatedAt,
-				HasFullUserInfoAccess: authz.IsAuthorized([]string{oauth.FullUserInfoScope}),
-			})
-		}
+		clientName := clientNameMap[authz.ClientID]
+		authzs = append(authzs, Authorization{
+			ID:                    authz.ID,
+			ClientID:              authz.ClientID,
+			ClientName:            clientName,
+			Scope:                 authz.Scopes,
+			CreatedAt:             authz.CreatedAt,
+			HasFullUserInfoAccess: authz.IsAuthorized([]string{oauth.FullUserInfoScope}),
+		})
 	}
 	viewModel.Authorizations = authzs
 
