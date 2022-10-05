@@ -1,6 +1,10 @@
 package oauth
 
-import "time"
+import (
+	"time"
+
+	"github.com/authgear/authgear-server/pkg/api/model"
+)
 
 type Authorization struct {
 	ID        string
@@ -36,4 +40,16 @@ func (z Authorization) WithScopesAdded(scopes []string) *Authorization {
 	}
 	z.Scopes = newScopes
 	return &z
+}
+
+func (z Authorization) ToAPIModel() *model.Authorization {
+	return &model.Authorization{
+		Meta: model.Meta{
+			ID:        z.ID,
+			CreatedAt: z.CreatedAt,
+			UpdatedAt: z.UpdatedAt,
+		},
+		ClientID: z.ClientID,
+		Scopes:   z.Scopes,
+	}
 }

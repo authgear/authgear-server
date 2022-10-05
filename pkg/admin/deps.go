@@ -26,6 +26,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -58,6 +59,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(facade.SessionManager), new(*session.Manager)),
 	wire.Bind(new(facade.AuditLogQuery), new(*audit.Query)),
 	wire.Bind(new(facade.EventService), new(*event.Service)),
+	wire.Bind(new(facade.AuthorizationService), new(*oauth.AuthorizationService)),
 
 	graphql.DependencySet,
 	wire.Bind(new(graphql.UserLoader), new(*loader.UserLoader)),
@@ -71,6 +73,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.SessionFacade), new(*facade.SessionFacade)),
 	wire.Bind(new(graphql.AuditLogFacade), new(*facade.AuditLogFacade)),
 	wire.Bind(new(graphql.UserProfileFacade), new(*facade.UserProfileFacade)),
+	wire.Bind(new(graphql.AuthorizationFacade), new(*facade.AuthorizationFacade)),
 
 	service.DependencySet,
 	wire.Bind(new(service.InteractionGraphService), new(*interaction.Service)),

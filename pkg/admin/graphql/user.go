@@ -98,6 +98,25 @@ var nodeUser = node(
 					return graphqlutil.NewConnectionFromArray(sessions, args), nil
 				},
 			},
+			"authorizations": &graphql.Field{
+				Type: connAuthorization.ConnectionType,
+				Args: relay.ConnectionArgs,
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					source := p.Source.(*model.User)
+					gqlCtx := GQLContext(p.Context)
+					as, err := gqlCtx.AuthorizationFacade.List(source.ID)
+					if err != nil {
+						return nil, err
+					}
+
+					var authzs []interface{}
+					for _, i := range as {
+						authzs = append(authzs, i.ToAPIModel())
+					}
+					args := relay.NewConnectionArguments(p.Args)
+					return graphqlutil.NewConnectionFromArray(authzs, args), nil
+				},
+			},
 			"isDisabled": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.Boolean),
 			},

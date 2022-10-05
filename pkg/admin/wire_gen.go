@@ -871,6 +871,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Events:             eventService,
 	}
+	authorizationService := &oauth2.AuthorizationService{
+		Store:               authorizationStore,
+		OAuthSessionManager: sessionManager,
+	}
+	authorizationFacade := &facade2.AuthorizationFacade{
+		Authorizations: authorizationService,
+	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:           logger,
 		Users:               userLoader,
@@ -884,6 +891,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		VerificationFacade:  verificationFacade,
 		SessionFacade:       sessionFacade,
 		UserProfileFacade:   userProfileFacade,
+		AuthorizationFacade: authorizationFacade,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: graphqlContext,

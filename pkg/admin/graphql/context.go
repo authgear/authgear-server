@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -83,6 +84,11 @@ type SessionFacade interface {
 	RevokeAll(userID string) error
 }
 
+type AuthorizationFacade interface {
+	Get(id string) (*oauth.Authorization, error)
+	List(userID string, filters ...oauth.AuthorizationFilter) ([]*oauth.Authorization, error)
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("admin-graphql")} }
@@ -102,6 +108,7 @@ type Context struct {
 	VerificationFacade  VerificationFacade
 	SessionFacade       SessionFacade
 	UserProfileFacade   UserProfileFacade
+	AuthorizationFacade AuthorizationFacade
 }
 
 func (c *Context) Logger() *log.Logger {
