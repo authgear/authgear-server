@@ -377,6 +377,7 @@
   "Web3ConfigurationScreen.detail-dialog.view-on-explorer": "View on Explorer",
   "Web3ConfigurationScreen.detail-dialog.network": "Network",
   "Web3ConfigurationScreen.detail-dialog.block-height": "Block Height",
+  "Web3ConfigurationScreen.detail-dialog.block-height.description": "{currentHeight} / {DocLink, react, href{{explorerUrl}} children{Latest Block Height}}",
   "Web3ConfigurationScreen.detail-dialog.tokens": "Tokens",
   "Web3ConfigurationScreen.detail-dialog.remove-collection": "Remove Collection",
   "Web3ConfigurationScreen.deletion-dialog.remove": "Remove Immediately",

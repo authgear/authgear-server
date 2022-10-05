@@ -107,3 +107,12 @@ export function explorerBlock(
 
   return prefix + block;
 }
+
+export function explorerBlocks(
+  eip681String: string,
+  skipAddressCheck: boolean = false
+): string {
+  const prefix = explorerURL(eip681String, skipAddressCheck) + "blocks/";
+
+  return prefix;
+}

@@ -14,7 +14,7 @@ import { useSystemConfig } from "../../context/SystemConfigContext";
 import { getNetworkNameID } from "../../util/networkId";
 import ActionButton from "../../ActionButton";
 import { DateTime } from "luxon";
-import { explorerAddress } from "../../util/eip681";
+import { explorerAddress, explorerBlocks } from "../../util/eip681";
 import ExternalLink from "../../ExternalLink";
 import { createContractIDURL } from "../../util/contractId";
 
@@ -95,7 +95,13 @@ const Web3ConfigurationDetailDialog: React.VFC<Web3ConfigurationDetailDialogProp
               <FormattedMessage id="Web3ConfigurationScreen.detail-dialog.block-height" />
             </Text>
             <Text as="p" block={true}>
-              {nftCollection.blockHeight}
+              <FormattedMessage
+                id="Web3ConfigurationScreen.detail-dialog.block-height.description"
+                values={{
+                  currentHeight: nftCollection.blockHeight,
+                  explorerUrl: explorerBlocks(contractID),
+                }}
+              />
             </Text>
 
             {isRecentlyAdded ? (

@@ -4,6 +4,7 @@ import {
   EIP681,
   explorerAddress,
   explorerBlock,
+  explorerBlocks,
   explorerTx,
   explorerURL,
   parseEIP681,
@@ -281,5 +282,25 @@ describe("EIP681", () => {
     test("ethereum:0x0@5", "1234", "https://goerli.etherscan.io/block/1234");
 
     test("ethereum:0x0@1234", "1234", "block/1234");
+  });
+
+  it("create etherscan blocks url with address check", () => {
+    function test(uri: string, expected: string) {
+      const url = explorerBlocks(uri);
+
+      expect(url).toEqual(expected);
+    }
+
+    test(
+      "ethereum:0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d@1",
+      "https://etherscan.io/blocks/"
+    );
+
+    test(
+      "ethereum:0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d@5",
+      "https://goerli.etherscan.io/blocks/"
+    );
+
+    test("ethereum:0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d@1234", "blocks/");
   });
 });
