@@ -225,6 +225,16 @@ export type DeleteAuthenticatorPayload = {
   user: User;
 };
 
+export type DeleteAuthorizationInput = {
+  /** Target authorization ID. */
+  authorizationID: Scalars['ID'];
+};
+
+export type DeleteAuthorizationPayload = {
+  __typename?: 'DeleteAuthorizationPayload';
+  user: User;
+};
+
 export type DeleteIdentityInput = {
   /** Target identity ID. */
   identityID: Scalars['ID'];
@@ -321,6 +331,8 @@ export type Mutation = {
   createUser: CreateUserPayload;
   /** Delete authenticator of user */
   deleteAuthenticator: DeleteAuthenticatorPayload;
+  /** Delete authorization */
+  deleteAuthorization: DeleteAuthorizationPayload;
   /** Delete identity of user */
   deleteIdentity: DeleteIdentityPayload;
   /** Delete specified user */
@@ -356,6 +368,11 @@ export type MutationCreateUserArgs = {
 
 export type MutationDeleteAuthenticatorArgs = {
   input: DeleteAuthenticatorInput;
+};
+
+
+export type MutationDeleteAuthorizationArgs = {
+  input: DeleteAuthorizationInput;
 };
 
 

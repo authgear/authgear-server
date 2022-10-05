@@ -19,6 +19,7 @@ import ErrorDialog from "../../error/ErrorDialog";
 import { Authorization, OAuthClientConfig } from "../../types";
 import DefaultButton from "../../DefaultButton";
 import ActionButton from "../../ActionButton";
+import { useDeleteAuthorizationMutation } from "./mutations/deleteAuthorizationMutation";
 
 function getDisplayNameForClient(
   oauthConfig: OAuthClientConfig[],
@@ -112,8 +113,14 @@ const UserDetailsAuthorization: React.VFC<Props> =
     const { themes } = useSystemConfig();
     const { authorizations, oauthClientConfig } = props;
 
-    const isLoading = false;
-    const error = null;
+    const {
+      deleteAuthorization,
+      error: deleteAuthorizationError,
+      loading: isDeletingAuthorization,
+    } = useDeleteAuthorizationMutation();
+
+    const isLoading = isDeletingAuthorization;
+    const error = deleteAuthorizationError;
 
     interface ConfirmDialogProps {
       title: string;
@@ -195,15 +202,22 @@ const UserDetailsAuthorization: React.VFC<Props> =
                 "UserDetails.authorization.confirm-dialog.remove.message"
               ),
               onConfirm: () => {
-                // fixme
-                // remove authz
+                deleteAuthorization(authz.id).finally(() =>
+                  setIsConfirmDialogHidden(true)
+                );
               },
             });
             setIsConfirmDialogHidden(false);
           },
         })
       );
-    }, [authorizations, locale, renderToString, oauthClientConfig]);
+    }, [
+      authorizations,
+      locale,
+      renderToString,
+      oauthClientConfig,
+      deleteAuthorization,
+    ]);
 
     return (
       <div className={styles.root}>
