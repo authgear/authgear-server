@@ -5,14 +5,9 @@ import React, {
   useState,
   useContext,
 } from "react";
-import cn from "classnames";
 import {
-  MessageBar,
-  MessageBarType,
   Text,
   useTheme,
-  IButtonProps,
-  FontIcon,
   Checkbox,
   ICheckboxProps,
   Dropdown,
@@ -60,11 +55,9 @@ import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
-import ScreenDescription from "../../ScreenDescription";
 import Widget from "../../Widget";
 import WidgetTitle from "../../WidgetTitle";
 import WidgetSubtitle from "../../WidgetSubtitle";
-import ChoiceButton from "../../ChoiceButton";
 import Link from "../../Link";
 import {
   AppConfigFormModel,
@@ -75,7 +68,6 @@ import PriorityList from "../../PriorityList";
 import WidgetDescription from "../../WidgetDescription";
 import HorizontalDivider from "../../HorizontalDivider";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
-import PrimaryButton from "../../PrimaryButton";
 import CheckboxWithTooltip from "../../CheckboxWithTooltip";
 import CheckboxWithContentLayout from "../../CheckboxWithContentLayout";
 import CustomTagPicker from "../../CustomTagPicker";
@@ -86,7 +78,6 @@ import PhoneInputListWidget from "./PhoneInputListWidget";
 import PasswordSettings from "./PasswordSettings";
 import { useTagPickerWithNewTags } from "../../hook/useInput";
 import { fixTagPickerStyles } from "../../bugs";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useResourceForm } from "../../hook/useResourceForm";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
@@ -797,407 +788,6 @@ interface WidgetSubsectionProps {
 function WidgetSubsection(props: WidgetSubsectionProps) {
   const { children } = props;
   return <div className={styles.widgetSubsection}>{children}</div>;
-}
-
-interface MethodButtonProps {
-  text?: ReactNode;
-  secondaryText?: ReactNode;
-  onClick?: IButtonProps["onClick"];
-}
-
-function MethodButton(props: MethodButtonProps) {
-  const { text, secondaryText, onClick } = props;
-  const theme = useTheme();
-  const { themes } = useSystemConfig();
-
-  return (
-    <div
-      className={cn(styles.widget, styles.methodButton)}
-      style={{
-        backgroundColor: theme.palette.themePrimary,
-      }}
-    >
-      <div className={styles.methodButtonText}>
-        <Text
-          className={styles.methodButtonTitle}
-          block={true}
-          variant="large"
-          theme={themes.inverted}
-        >
-          {text}
-        </Text>
-        {secondaryText != null ? (
-          <Text
-            className={styles.methodButtonDescription}
-            block={true}
-            variant="medium"
-            theme={themes.inverted}
-          >
-            {secondaryText}
-          </Text>
-        ) : null}
-      </div>
-      <PrimaryButton
-        theme={themes.inverted}
-        text={
-          <FormattedMessage id="LoginMethodConfigurationScreen.change-method" />
-        }
-        onClick={onClick}
-      />
-    </div>
-  );
-}
-
-interface ChosenMethodProps {
-  loginMethod: LoginMethod;
-  onClick: MethodButtonProps["onClick"];
-}
-
-function ChosenMethod(props: ChosenMethodProps) {
-  const { loginMethod, onClick } = props;
-  const title = `LoginMethodConfigurationScreen.login-method.title.${loginMethod}`;
-  const description =
-    loginMethod === "custom"
-      ? undefined
-      : `LoginMethodConfigurationScreen.login-method.description.${loginMethod}`;
-  return (
-    <MethodButton
-      text={<FormattedMessage id={title} />}
-      secondaryText={
-        description == null ? undefined : <FormattedMessage id={description} />
-      }
-      onClick={onClick}
-    />
-  );
-}
-
-function MatrixAdd() {
-  return <FontIcon className={styles.matrixAdd} iconName="Add" />;
-}
-
-function MatrixOr() {
-  return (
-    <div className={styles.matrixOrContainer}>
-      <HorizontalDivider className={styles.matrixOrDivider} />
-      <Text variant="medium">
-        <FormattedMessage id="LoginMethodConfigurationScreen.matrix.or" />
-      </Text>
-      <HorizontalDivider className={styles.matrixOrDivider} />
-    </div>
-  );
-}
-
-function MatrixColumnNoChoice() {
-  const theme = useTheme();
-  return (
-    <div className={styles.matrixColumnNoChoice}>
-      <Text
-        block={true}
-        variant="medium"
-        styles={{
-          root: {
-            color: theme.semanticColors.disabledBodyText,
-            fontWeight: "600",
-          },
-        }}
-      >
-        <FormattedMessage id="LoginMethodConfigurationScreen.matrix.no-login-id-choices" />
-      </Text>
-    </div>
-  );
-}
-
-function MatrixColumnInapplicableChoice() {
-  const theme = useTheme();
-  return (
-    <div
-      className={styles.matrixColumnNoChoice}
-      style={{
-        backgroundColor: theme.semanticColors.infoBackground,
-      }}
-    >
-      <Text
-        block={true}
-        variant="medium"
-        styles={{
-          root: {
-            color: theme.semanticColors.disabledBodyText,
-            fontWeight: "600",
-          },
-        }}
-      >
-        <FormattedMessage id="LoginMethodConfigurationScreen.matrix.inapplicable-login-id-choices" />
-      </Text>
-    </div>
-  );
-}
-
-interface MatrixColumnsProps {
-  children?: ReactNode;
-}
-
-function MatrixColumns(props: MatrixColumnsProps) {
-  const { children } = props;
-  return <div className={styles.matrixColumns}>{children}</div>;
-}
-
-interface MatrixColumnProps {
-  children?: ReactNode;
-}
-
-function MatrixColumn(props: MatrixColumnProps) {
-  const { children } = props;
-  return <div className={styles.matrixColumn}>{children}</div>;
-}
-
-interface MatrixFirstLevelChoiceProps {
-  checked: boolean;
-  loginMethod: LoginMethod;
-  text: ReactNode;
-  secondaryText: ReactNode;
-  onClick?: (loginMethod: LoginMethod) => void;
-}
-
-function MatrixFirstLevelChoice(props: MatrixFirstLevelChoiceProps) {
-  const {
-    checked,
-    loginMethod,
-    onClick: onClickProp,
-    text,
-    secondaryText,
-  } = props;
-  const onClick = useCallback(
-    (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (!checked) {
-        onClickProp?.(loginMethod);
-      }
-    },
-    [checked, onClickProp, loginMethod]
-  );
-  return (
-    <ChoiceButton
-      className={styles.matrixChoice}
-      checked={checked}
-      text={text}
-      secondaryText={secondaryText}
-      onClick={onClick}
-    />
-  );
-}
-
-interface MatrixSecondLevelChoiceProps {
-  className?: string;
-  currentValue: LoginMethod;
-  choiceValue: LoginMethod;
-  disabled?: boolean;
-  onClick?: (loginMethod: LoginMethod) => void;
-}
-
-function MatrixSecondLevelChoice(props: MatrixSecondLevelChoiceProps) {
-  const {
-    className,
-    currentValue,
-    choiceValue,
-    disabled,
-    onClick: onClickProp,
-  } = props;
-  const checked = currentValue === choiceValue;
-  const onClick = useCallback(
-    (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (currentValue !== choiceValue) {
-        onClickProp?.(choiceValue);
-      }
-    },
-    [currentValue, choiceValue, onClickProp]
-  );
-  return (
-    <ChoiceButton
-      className={className}
-      checked={checked}
-      disabled={disabled}
-      text={
-        <FormattedMessage
-          id={
-            "LoginMethodConfigurationScreen.matrix.login-method.title." +
-            choiceValue
-          }
-        />
-      }
-      secondaryText={
-        choiceValue === "custom" ? undefined : (
-          <FormattedMessage
-            id={
-              "LoginMethodConfigurationScreen.login-method.description." +
-              choiceValue
-            }
-          />
-        )
-      }
-      onClick={onClick}
-    />
-  );
-}
-
-interface MatrixProps {
-  loginMethod: LoginMethod;
-  phoneLoginIDDisabled: boolean;
-  onChangeLoginMethod: (loginMethod: LoginMethod) => void;
-}
-
-function Matrix(props: MatrixProps) {
-  const { phoneLoginIDDisabled, onChangeLoginMethod } = props;
-  const [loginMethod, setLoginMethod] = useState(props.loginMethod);
-  const passwordlessChecked = useMemo(
-    () => loginMethod.startsWith("passwordless-"),
-    [loginMethod]
-  );
-  const passwordChecked = useMemo(
-    () => loginMethod.startsWith("password-"),
-    [loginMethod]
-  );
-  const oauthChecked = loginMethod === "oauth";
-  const onClick = useCallback((loginMethod) => {
-    setLoginMethod(loginMethod);
-  }, []);
-  const onClickConfirm = useCallback(
-    (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      onChangeLoginMethod(loginMethod);
-    },
-    [loginMethod, onChangeLoginMethod]
-  );
-  return (
-    <div className={styles.matrix}>
-      <WidgetDescription>
-        <FormattedMessage id="LoginMethodConfigurationScreen.matrix.description" />
-      </WidgetDescription>
-      <MatrixColumns>
-        <MatrixColumn>
-          <MatrixFirstLevelChoice
-            checked={passwordlessChecked}
-            loginMethod="passwordless-email"
-            text={
-              <FormattedMessage id="LoginMethodConfigurationScreen.matrix.authenticator.title.passwordless" />
-            }
-            secondaryText={
-              <FormattedMessage id="LoginMethodConfigurationScreen.matrix.authenticator.description.passwordless" />
-            }
-            onClick={onClick}
-          />
-          <MatrixFirstLevelChoice
-            checked={passwordChecked}
-            loginMethod="password-email"
-            text={
-              <FormattedMessage id="LoginMethodConfigurationScreen.matrix.authenticator.title.password" />
-            }
-            secondaryText={
-              <FormattedMessage id="LoginMethodConfigurationScreen.matrix.authenticator.description.password" />
-            }
-            onClick={onClick}
-          />
-          <MatrixSecondLevelChoice
-            className={styles.matrixChoice}
-            currentValue={loginMethod}
-            choiceValue="oauth"
-            onClick={onClick}
-          />
-        </MatrixColumn>
-        <MatrixAdd />
-        {passwordlessChecked ? (
-          <MatrixColumn>
-            <MatrixSecondLevelChoice
-              className={styles.matrixChoice}
-              currentValue={loginMethod}
-              choiceValue={"passwordless-email"}
-              onClick={onClick}
-            />
-            <MatrixSecondLevelChoice
-              className={styles.matrixChoice}
-              currentValue={loginMethod}
-              choiceValue={"passwordless-phone"}
-              disabled={phoneLoginIDDisabled}
-              onClick={onClick}
-            />
-            <MatrixSecondLevelChoice
-              className={styles.matrixChoice}
-              currentValue={loginMethod}
-              choiceValue={"passwordless-phone-email"}
-              disabled={phoneLoginIDDisabled}
-              onClick={onClick}
-            />
-          </MatrixColumn>
-        ) : passwordChecked ? (
-          <MatrixColumn>
-            <MatrixSecondLevelChoice
-              className={styles.matrixChoice}
-              currentValue={loginMethod}
-              choiceValue={"password-email"}
-              onClick={onClick}
-            />
-            <MatrixSecondLevelChoice
-              className={styles.matrixChoice}
-              currentValue={loginMethod}
-              choiceValue={"password-phone"}
-              disabled={phoneLoginIDDisabled}
-              onClick={onClick}
-            />
-            <MatrixSecondLevelChoice
-              className={styles.matrixChoice}
-              currentValue={loginMethod}
-              choiceValue={"password-phone-email"}
-              disabled={phoneLoginIDDisabled}
-              onClick={onClick}
-            />
-            <MatrixSecondLevelChoice
-              className={styles.matrixChoice}
-              currentValue={loginMethod}
-              choiceValue={"password-username"}
-              onClick={onClick}
-            />
-          </MatrixColumn>
-        ) : oauthChecked ? (
-          <MatrixColumnNoChoice />
-        ) : (
-          <MatrixColumnInapplicableChoice />
-        )}
-      </MatrixColumns>
-      <MatrixOr />
-      <MatrixSecondLevelChoice
-        currentValue={loginMethod}
-        choiceValue="custom"
-        onClick={onClick}
-      />
-      <PrimaryButton
-        className={styles.matrixConfirmButton}
-        text={<FormattedMessage id="next" />}
-        onClick={onClickConfirm}
-      />
-    </div>
-  );
-}
-
-interface PasskeyAndOAuthHintProps {
-  appID: string;
-}
-
-function PasskeyAndOAuthHint(props: PasskeyAndOAuthHintProps) {
-  const { appID } = props;
-  return (
-    <MessageBar className={styles.widget} messageBarType={MessageBarType.info}>
-      <FormattedMessage
-        id="LoginMethodConfigurationScreen.passkey-and-oauth"
-        values={{
-          passkey: `/project/${appID}/configuration/authentication/passkey`,
-          oauth: `/project/${appID}/configuration/authentication/externa`,
-        }}
-      />
-    </MessageBar>
-  );
 }
 
 interface LinkToOAuthProps {
@@ -2133,8 +1723,6 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       loginMethodFromFormState(state)
     );
 
-    const [isChoosingMethod, setIsChoosingMethod] = useState(false);
-
     const showEmailSettings = useMemo(
       () =>
         identitiesControl.find((a) => a.value === "login_id")?.isChecked ===
@@ -2168,15 +1756,8 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       [primaryAuthenticatorsControl]
     );
 
-    const onClickChooseLoginMethod = useCallback((e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsChoosingMethod(true);
-    }, []);
-
-    const onChangeLoginMethod = useCallback(
+    const _onChangeLoginMethod = useCallback(
       (loginMethod: LoginMethod) => {
-        setIsChoosingMethod(false);
         setLoginMethod(loginMethod);
         setState((prev) =>
           produce(prev, (prev) => {
@@ -2255,134 +1836,114 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
         <ScreenTitle className={styles.widget}>
           <FormattedMessage id="LoginMethodConfigurationScreen.title" />
         </ScreenTitle>
-        <ScreenDescription className={styles.widget}>
-          <FormattedMessage id="LoginMethodConfigurationScreen.description" />
-        </ScreenDescription>
-        <PasskeyAndOAuthHint appID={appID} />
-        {!isChoosingMethod ? (
-          <>
-            <ChosenMethod
-              loginMethod={loginMethod}
-              onClick={onClickChooseLoginMethod}
-            />
-            {loginMethod === "oauth" ? <LinkToOAuth appID={appID} /> : null}
-            {/* Pivot is intentionally uncontrolled */}
-            {/* It is because it is troublesome to keep track of the selected key */}
-            {/* And making it controlled does not bring any benefits */}
-            <Pivot
-              className={styles.widget}
-              styles={PIVOT_STYLES}
-              overflowBehavior="menu"
+        {phoneLoginIDDisabled ? (
+          <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
+        ) : null}
+        {loginMethod === "oauth" ? <LinkToOAuth appID={appID} /> : null}
+        {/* Pivot is intentionally uncontrolled */}
+        {/* It is because it is troublesome to keep track of the selected key */}
+        {/* And making it controlled does not bring any benefits */}
+        <Pivot
+          className={styles.widget}
+          styles={PIVOT_STYLES}
+          overflowBehavior="menu"
+        >
+          {loginMethod === "custom" ? (
+            <PivotItem
+              headerText={renderToString(
+                "LoginMethodConfigurationScreen.pivot.custom.title"
+              )}
+              itemKey="custom"
             >
-              {loginMethod === "custom" ? (
-                <PivotItem
-                  headerText={renderToString(
-                    "LoginMethodConfigurationScreen.pivot.custom.title"
-                  )}
-                  itemKey="custom"
-                >
-                  <CustomLoginMethods
-                    phoneLoginIDDisabled={phoneLoginIDDisabled}
-                    primaryAuthenticatorsControl={primaryAuthenticatorsControl}
-                    loginIDKeyConfigsControl={loginIDKeyConfigsControl}
-                    onChangeLoginIDChecked={onChangeLoginIDChecked}
-                    onSwapLoginID={onSwapLoginID}
-                    onChangePrimaryAuthenticatorChecked={
-                      onChangePrimaryAuthenticatorChecked
-                    }
-                    onSwapPrimaryAuthenticator={onSwapPrimaryAuthenticator}
-                  />
-                </PivotItem>
-              ) : null}
-              {showEmailSettings ? (
-                <PivotItem
-                  headerText={renderToString(
-                    "LoginMethodConfigurationScreen.pivot.email.title"
-                  )}
-                  itemKey="email"
-                >
-                  <EmailSettings
-                    resources={resources}
-                    loginIDKeyConfigsControl={loginIDKeyConfigsControl}
-                    loginIDEmailConfig={loginIDEmailConfig}
-                    setState={setState}
-                  />
-                </PivotItem>
-              ) : null}
-              {showPhoneSettings ? (
-                <PivotItem
-                  headerText={renderToString(
-                    "LoginMethodConfigurationScreen.pivot.phone.title"
-                  )}
-                  itemKey="phone"
-                >
-                  <PhoneSettings
-                    loginIDKeyConfigsControl={loginIDKeyConfigsControl}
-                    phoneInputConfig={phoneInputConfig}
-                    setState={setState}
-                  />
-                </PivotItem>
-              ) : null}
-              {showUsernameSettings ? (
-                <PivotItem
-                  headerText={renderToString(
-                    "LoginMethodConfigurationScreen.pivot.username.title"
-                  )}
-                  itemKey="username"
-                >
-                  <UsernameSettings
-                    resources={resources}
-                    loginIDKeyConfigsControl={loginIDKeyConfigsControl}
-                    loginIDUsernameConfig={loginIDUsernameConfig}
-                    setState={setState}
-                  />
-                </PivotItem>
-              ) : null}
-              {showVerificationSettings ? (
-                <PivotItem
-                  headerText={renderToString(
-                    "LoginMethodConfigurationScreen.pivot.verification.title"
-                  )}
-                  itemKey="verification"
-                >
-                  <VerificationSettings
-                    showEmailSettings={showEmailSettings}
-                    showPhoneSettings={showPhoneSettings}
-                    verificationConfig={verificationConfig}
-                    authenticatorOOBSMSConfig={authenticatorOOBSMSConfig}
-                    setState={setState}
-                  />
-                </PivotItem>
-              ) : null}
-              {showPasswordSettings ? (
-                <PivotItem
-                  headerText={renderToString(
-                    "LoginMethodConfigurationScreen.password.title"
-                  )}
-                  itemKey="password"
-                >
-                  <PasswordSettings
-                    forgotPasswordConfig={forgotPasswordConfig}
-                    authenticatorPasswordConfig={authenticatorPasswordConfig}
-                    passwordPolicyFeatureConfig={passwordPolicyFeatureConfig}
-                    setState={setState}
-                  />
-                </PivotItem>
-              ) : null}
-            </Pivot>
-          </>
-        ) : (
-          <Widget className={styles.widget}>
-            {phoneLoginIDDisabled ? (
-              <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
-            ) : null}
-            <Matrix
-              loginMethod={loginMethod}
-              onChangeLoginMethod={onChangeLoginMethod}
-              phoneLoginIDDisabled={phoneLoginIDDisabled}
-            />
-          </Widget>
-        )}
+              <CustomLoginMethods
+                phoneLoginIDDisabled={phoneLoginIDDisabled}
+                primaryAuthenticatorsControl={primaryAuthenticatorsControl}
+                loginIDKeyConfigsControl={loginIDKeyConfigsControl}
+                onChangeLoginIDChecked={onChangeLoginIDChecked}
+                onSwapLoginID={onSwapLoginID}
+                onChangePrimaryAuthenticatorChecked={
+                  onChangePrimaryAuthenticatorChecked
+                }
+                onSwapPrimaryAuthenticator={onSwapPrimaryAuthenticator}
+              />
+            </PivotItem>
+          ) : null}
+          {showEmailSettings ? (
+            <PivotItem
+              headerText={renderToString(
+                "LoginMethodConfigurationScreen.pivot.email.title"
+              )}
+              itemKey="email"
+            >
+              <EmailSettings
+                resources={resources}
+                loginIDKeyConfigsControl={loginIDKeyConfigsControl}
+                loginIDEmailConfig={loginIDEmailConfig}
+                setState={setState}
+              />
+            </PivotItem>
+          ) : null}
+          {showPhoneSettings ? (
+            <PivotItem
+              headerText={renderToString(
+                "LoginMethodConfigurationScreen.pivot.phone.title"
+              )}
+              itemKey="phone"
+            >
+              <PhoneSettings
+                loginIDKeyConfigsControl={loginIDKeyConfigsControl}
+                phoneInputConfig={phoneInputConfig}
+                setState={setState}
+              />
+            </PivotItem>
+          ) : null}
+          {showUsernameSettings ? (
+            <PivotItem
+              headerText={renderToString(
+                "LoginMethodConfigurationScreen.pivot.username.title"
+              )}
+              itemKey="username"
+            >
+              <UsernameSettings
+                resources={resources}
+                loginIDKeyConfigsControl={loginIDKeyConfigsControl}
+                loginIDUsernameConfig={loginIDUsernameConfig}
+                setState={setState}
+              />
+            </PivotItem>
+          ) : null}
+          {showVerificationSettings ? (
+            <PivotItem
+              headerText={renderToString(
+                "LoginMethodConfigurationScreen.pivot.verification.title"
+              )}
+              itemKey="verification"
+            >
+              <VerificationSettings
+                showEmailSettings={showEmailSettings}
+                showPhoneSettings={showPhoneSettings}
+                verificationConfig={verificationConfig}
+                authenticatorOOBSMSConfig={authenticatorOOBSMSConfig}
+                setState={setState}
+              />
+            </PivotItem>
+          ) : null}
+          {showPasswordSettings ? (
+            <PivotItem
+              headerText={renderToString(
+                "LoginMethodConfigurationScreen.password.title"
+              )}
+              itemKey="password"
+            >
+              <PasswordSettings
+                forgotPasswordConfig={forgotPasswordConfig}
+                authenticatorPasswordConfig={authenticatorPasswordConfig}
+                passwordPolicyFeatureConfig={passwordPolicyFeatureConfig}
+                setState={setState}
+              />
+            </PivotItem>
+          ) : null}
+        </Pivot>
       </ScreenContent>
     );
   };
