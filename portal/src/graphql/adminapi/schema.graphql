@@ -336,6 +336,18 @@ type DeleteAuthenticatorPayload {
 }
 
 """"""
+input DeleteAuthorizationInput {
+  """Target authorization ID."""
+  authorizationID: ID!
+}
+
+""""""
+type DeleteAuthorizationPayload {
+  """"""
+  user: User!
+}
+
+""""""
 input DeleteIdentityInput {
   """Target identity ID."""
   identityID: ID!
@@ -463,6 +475,9 @@ type Mutation {
 
   """Delete authenticator of user"""
   deleteAuthenticator(input: DeleteAuthenticatorInput!): DeleteAuthenticatorPayload!
+
+  """Delete authorization"""
+  deleteAuthorization(input: DeleteAuthorizationInput!): DeleteAuthorizationPayload!
 
   """Delete identity of user"""
   deleteIdentity(input: DeleteIdentityInput!): DeleteIdentityPayload!

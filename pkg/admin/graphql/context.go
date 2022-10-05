@@ -88,6 +88,7 @@ type SessionFacade interface {
 type AuthorizationFacade interface {
 	Get(id string) (*oauth.Authorization, error)
 	List(userID string, filters ...oauth.AuthorizationFilter) ([]*oauth.Authorization, error)
+	Delete(a *oauth.Authorization) error
 }
 
 type Logger struct{ *log.Logger }

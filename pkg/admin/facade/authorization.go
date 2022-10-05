@@ -7,6 +7,7 @@ import (
 type AuthorizationService interface {
 	GetByID(id string) (*oauth.Authorization, error)
 	ListByUser(userID string, filters ...oauth.AuthorizationFilter) ([]*oauth.Authorization, error)
+	Delete(a *oauth.Authorization) error
 }
 
 type AuthorizationFacade struct {
@@ -19,4 +20,8 @@ func (f *AuthorizationFacade) Get(id string) (*oauth.Authorization, error) {
 
 func (f *AuthorizationFacade) List(userID string, filters ...oauth.AuthorizationFilter) ([]*oauth.Authorization, error) {
 	return f.Authorizations.ListByUser(userID, filters...)
+}
+
+func (f *AuthorizationFacade) Delete(a *oauth.Authorization) error {
+	return f.Authorizations.Delete(a)
 }
