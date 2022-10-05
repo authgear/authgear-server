@@ -56,7 +56,7 @@ type SettingsSessionManager interface {
 
 type SettingsAuthorizationService interface {
 	GetByID(id string) (*oauth.Authorization, error)
-	ListByUser(userID string, filters ...oauth.Filter) ([]*oauth.Authorization, error)
+	ListByUser(userID string, filters ...oauth.AuthorizationFilter) ([]*oauth.Authorization, error)
 	Delete(a *oauth.Authorization) error
 }
 

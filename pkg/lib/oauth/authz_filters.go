@@ -1,11 +1,11 @@
 package oauth
 
-type Filter interface {
+type AuthorizationFilter interface {
 	Keep(authz *Authorization) bool
 }
 
-type FilterFunc func(a *Authorization) bool
+type AuthorizationFilterFunc func(a *Authorization) bool
 
-func (f FilterFunc) Keep(a *Authorization) bool {
+func (f AuthorizationFilterFunc) Keep(a *Authorization) bool {
 	return f(a)
 }

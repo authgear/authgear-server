@@ -18,7 +18,7 @@ func (s *AuthorizationService) GetByID(id string) (*Authorization, error) {
 	return s.Store.GetByID(id)
 }
 
-func (s *AuthorizationService) ListByUser(userID string, filters ...Filter) ([]*Authorization, error) {
+func (s *AuthorizationService) ListByUser(userID string, filters ...AuthorizationFilter) ([]*Authorization, error) {
 	as, err := s.Store.ListByUserID(userID)
 	if err != nil {
 		return nil, err
