@@ -62,6 +62,8 @@ type BaseViewModel struct {
 	IsSupportedMobilePlatform   bool
 	GoogleTagManagerContainerID string
 	TutorialMessageType         string
+	// HasThirdPartyApp indicates whether the project has third-party client
+	HasThirdPartyClient bool
 
 	FirstNonPasskeyPrimaryAuthenticatorType string
 }
@@ -142,6 +144,12 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	clientName := ""
 	if client != nil {
 		clientName = client.Name
+	}
+	hasThirdPartyApp := false
+	for _, c := range m.OAuth.Clients {
+		if c.ClientParty() == config.ClientPartyThird {
+			hasThirdPartyApp = true
+		}
 	}
 
 	cspNonce := web.GetCSPNonce(r.Context())
@@ -225,6 +233,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		FlashMessageType:            m.FlashMessage.Pop(r, rw),
 		ResolvedLanguageTag:         resolvedLanguageTag,
 		GoogleTagManagerContainerID: m.GoogleTagManager.ContainerID,
+		HasThirdPartyClient:         hasThirdPartyApp,
 	}
 
 	if errorState, ok := m.ErrorCookie.GetError(r); ok {

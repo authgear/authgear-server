@@ -7,16 +7,22 @@
   {{ template "__nav_bar.html" "/settings" }}
 </div>
 
-<div class="px-5 pt-4 pb-5 row-sep grid grid-cols-1 auto-rows-auto gap-y-1">
+<div class="px-5 pt-4 pb-3 grid grid-cols-1 auto-rows-auto gap-y-1">
   <h1 class="m-0 primary-txt text-xl font-bold">
-    {{ template "settings-sessions-title" }}
+    {{ template "settings-sessions-title" (dict "hasThirdPartyClient" .HasThirdPartyClient) }}
   </h1>
-  <p class="m-0 secondary-txt text-sm">
-    {{ template "settings-sessions-description" }}
+</div>
+
+<div class="p-5 row-sep grid grid-cols-1 auto-rows-auto gap-y-1">
+  <h2 class="m-0 primary-txt text-base font-semibold">
+    {{ template "settings-sessions-authorized-devices-title" }}
+  </h2>
+  <p class="m-0 text-sm secondary-txt">
+    {{ template "settings-sessions-authorized-devices-description" }}
   </p>
 </div>
 
-<div class="twc-container-vertical row-sep py-5">
+<div class="twc-container-vertical pt-5">
 {{ range $.SessionGroups }}
 <div class="px-5 flex flex-col divide-y">
   <div class="flex flex-row space-x-2 py-1.5 items-center">
@@ -116,6 +122,8 @@
   </form>
 </div>
 
+
+{{ if .HasThirdPartyClient }}
 <div class="p-5 row-sep grid grid-cols-1 auto-rows-auto gap-y-1">
   <h2 class="m-0 primary-txt text-base font-semibold">
     {{ template "settings-sessions-authorized-apps-title" }}
@@ -167,6 +175,7 @@
   </p>
   {{ end }}
 </div>
+{{ end }}
 
 </div>
 {{ end }}
