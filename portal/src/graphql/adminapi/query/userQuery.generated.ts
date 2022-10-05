@@ -3,14 +3,14 @@ import * as Types from '../globalTypes.generated';
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
-export type UserQueryNodeFragment = { __typename?: 'User', id: string, standardAttributes: any, customAttributes: any, web3: any, formattedName?: string | null, endUserAccountID?: string | null, isAnonymous: boolean, isDisabled: boolean, disableReason?: string | null, isDeactivated: boolean, deleteAt?: any | null, lastLoginAt?: any | null, createdAt: any, updatedAt: any, authenticators?: { __typename?: 'AuthenticatorConnection', edges?: Array<{ __typename?: 'AuthenticatorEdge', node?: { __typename?: 'Authenticator', id: string, type: Types.AuthenticatorType, kind: Types.AuthenticatorKind, isDefault: boolean, claims: any, createdAt: any, updatedAt: any } | null } | null> | null } | null, identities?: { __typename?: 'IdentityConnection', edges?: Array<{ __typename?: 'IdentityEdge', node?: { __typename?: 'Identity', id: string, type: Types.IdentityType, claims: any, createdAt: any, updatedAt: any } | null } | null> | null } | null, verifiedClaims: Array<{ __typename?: 'Claim', name: string, value: string }>, sessions?: { __typename?: 'SessionConnection', edges?: Array<{ __typename?: 'SessionEdge', node?: { __typename?: 'Session', id: string, type: Types.SessionType, lastAccessedAt: any, lastAccessedByIP: string, displayName: string } | null } | null> | null } | null };
+export type UserQueryNodeFragment = { __typename?: 'User', id: string, standardAttributes: any, customAttributes: any, web3: any, formattedName?: string | null, endUserAccountID?: string | null, isAnonymous: boolean, isDisabled: boolean, disableReason?: string | null, isDeactivated: boolean, deleteAt?: any | null, lastLoginAt?: any | null, createdAt: any, updatedAt: any, authenticators?: { __typename?: 'AuthenticatorConnection', edges?: Array<{ __typename?: 'AuthenticatorEdge', node?: { __typename?: 'Authenticator', id: string, type: Types.AuthenticatorType, kind: Types.AuthenticatorKind, isDefault: boolean, claims: any, createdAt: any, updatedAt: any } | null } | null> | null } | null, identities?: { __typename?: 'IdentityConnection', edges?: Array<{ __typename?: 'IdentityEdge', node?: { __typename?: 'Identity', id: string, type: Types.IdentityType, claims: any, createdAt: any, updatedAt: any } | null } | null> | null } | null, verifiedClaims: Array<{ __typename?: 'Claim', name: string, value: string }>, sessions?: { __typename?: 'SessionConnection', edges?: Array<{ __typename?: 'SessionEdge', node?: { __typename?: 'Session', id: string, type: Types.SessionType, lastAccessedAt: any, lastAccessedByIP: string, displayName: string } | null } | null> | null } | null, authorizations?: { __typename?: 'AuthorizationConnection', edges?: Array<{ __typename?: 'AuthorizationEdge', node?: { __typename?: 'Authorization', id: string, clientID: string, scopes: Array<string>, createdAt: any } | null } | null> | null } | null };
 
 export type UserQueryQueryVariables = Types.Exact<{
   userID: Types.Scalars['ID'];
 }>;
 
 
-export type UserQueryQuery = { __typename?: 'Query', node?: { __typename: 'AuditLog' } | { __typename: 'Authenticator' } | { __typename: 'Identity' } | { __typename: 'Session' } | { __typename: 'User', id: string, standardAttributes: any, customAttributes: any, web3: any, formattedName?: string | null, endUserAccountID?: string | null, isAnonymous: boolean, isDisabled: boolean, disableReason?: string | null, isDeactivated: boolean, deleteAt?: any | null, lastLoginAt?: any | null, createdAt: any, updatedAt: any, authenticators?: { __typename?: 'AuthenticatorConnection', edges?: Array<{ __typename?: 'AuthenticatorEdge', node?: { __typename?: 'Authenticator', id: string, type: Types.AuthenticatorType, kind: Types.AuthenticatorKind, isDefault: boolean, claims: any, createdAt: any, updatedAt: any } | null } | null> | null } | null, identities?: { __typename?: 'IdentityConnection', edges?: Array<{ __typename?: 'IdentityEdge', node?: { __typename?: 'Identity', id: string, type: Types.IdentityType, claims: any, createdAt: any, updatedAt: any } | null } | null> | null } | null, verifiedClaims: Array<{ __typename?: 'Claim', name: string, value: string }>, sessions?: { __typename?: 'SessionConnection', edges?: Array<{ __typename?: 'SessionEdge', node?: { __typename?: 'Session', id: string, type: Types.SessionType, lastAccessedAt: any, lastAccessedByIP: string, displayName: string } | null } | null> | null } | null } | null };
+export type UserQueryQuery = { __typename?: 'Query', node?: { __typename: 'AuditLog' } | { __typename: 'Authenticator' } | { __typename: 'Authorization' } | { __typename: 'Identity' } | { __typename: 'Session' } | { __typename: 'User', id: string, standardAttributes: any, customAttributes: any, web3: any, formattedName?: string | null, endUserAccountID?: string | null, isAnonymous: boolean, isDisabled: boolean, disableReason?: string | null, isDeactivated: boolean, deleteAt?: any | null, lastLoginAt?: any | null, createdAt: any, updatedAt: any, authenticators?: { __typename?: 'AuthenticatorConnection', edges?: Array<{ __typename?: 'AuthenticatorEdge', node?: { __typename?: 'Authenticator', id: string, type: Types.AuthenticatorType, kind: Types.AuthenticatorKind, isDefault: boolean, claims: any, createdAt: any, updatedAt: any } | null } | null> | null } | null, identities?: { __typename?: 'IdentityConnection', edges?: Array<{ __typename?: 'IdentityEdge', node?: { __typename?: 'Identity', id: string, type: Types.IdentityType, claims: any, createdAt: any, updatedAt: any } | null } | null> | null } | null, verifiedClaims: Array<{ __typename?: 'Claim', name: string, value: string }>, sessions?: { __typename?: 'SessionConnection', edges?: Array<{ __typename?: 'SessionEdge', node?: { __typename?: 'Session', id: string, type: Types.SessionType, lastAccessedAt: any, lastAccessedByIP: string, displayName: string } | null } | null> | null } | null, authorizations?: { __typename?: 'AuthorizationConnection', edges?: Array<{ __typename?: 'AuthorizationEdge', node?: { __typename?: 'Authorization', id: string, clientID: string, scopes: Array<string>, createdAt: any } | null } | null> | null } | null } | null };
 
 export const UserQueryNodeFragmentDoc = gql`
     fragment UserQueryNode on User {
@@ -54,6 +54,16 @@ export const UserQueryNodeFragmentDoc = gql`
         lastAccessedAt
         lastAccessedByIP
         displayName
+      }
+    }
+  }
+  authorizations {
+    edges {
+      node {
+        id
+        clientID
+        scopes
+        createdAt
       }
     }
   }

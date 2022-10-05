@@ -29,6 +29,7 @@ import UserProfileForm, {
 import UserDetailsAccountSecurity from "./UserDetailsAccountSecurity";
 import UserDetailsConnectedIdentities from "./UserDetailsConnectedIdentities";
 import UserDetailsSession from "./UserDetailsSession";
+import UserDetailsAuthorization from "./UserDetailsAuthorization";
 
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useUpdateUserMutation } from "./mutations/updateUserMutation";
@@ -43,6 +44,7 @@ import {
   CustomAttributes,
   AccessControlLevelString,
   CustomAttributesAttributeConfig,
+  OAuthClientConfig,
 } from "../../types";
 import { jsonPointerToString, parseJSONPointer } from "../../util/jsonpointer";
 import { formatDatetime } from "../../util/formatDatetime";
@@ -213,6 +215,7 @@ function makeCustomAttributesFromState(
   return out;
 }
 
+// eslint-disable-next-line complexity
 const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
 ) {
@@ -251,6 +254,10 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     useMemo(() => {
       return appConfig?.user_profile?.custom_attributes?.attributes ?? [];
     }, [appConfig]);
+
+  const oauthClientConfig: OAuthClientConfig[] = useMemo(() => {
+    return appConfig?.oauth?.clients ?? [];
+  }, [appConfig]);
 
   const onChangeStandardAttributes = useCallback(
     (attrs: StandardAttributesState) => {
@@ -291,6 +298,11 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
 
   const sessions =
     data?.sessions?.edges?.map((edge) => edge?.node).filter(nonNullable) ?? [];
+
+  const authorizations =
+    data?.authorizations?.edges
+      ?.map((edge) => edge?.node)
+      .filter(nonNullable) ?? [];
 
   const profileImageEditable = useMemo(() => {
     const ptr = jsonPointerToString(["picture"]);
@@ -353,6 +365,10 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           headerText={renderToString("UserDetails.session.header")}
         >
           <UserDetailsSession sessions={sessions} />
+          <UserDetailsAuthorization
+            authorizations={authorizations}
+            oauthClientConfig={oauthClientConfig}
+          />
         </PivotItem>
       </Pivot>
     </div>

@@ -228,15 +228,15 @@ const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
 
   return (
     <div className={styles.root}>
+      <Text as="h2" className={styles.header}>
+        <FormattedMessage id="UserDetails.session.header" />
+      </Text>
       {sessionListItems.length === 0 ? (
-        <MessageBar>
+        <MessageBar className={styles.emptyMessageBar}>
           <FormattedMessage id="UserDetails.session.empty" />
         </MessageBar>
       ) : (
         <>
-          <Text as="h2" className={styles.header}>
-            <FormattedMessage id="UserDetails.session.header" />
-          </Text>
           <DetailsList
             items={sessionListItems}
             columns={sessionColumns}
