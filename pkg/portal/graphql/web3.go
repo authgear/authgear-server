@@ -26,10 +26,24 @@ var nftCollection = graphql.NewObject(graphql.ObjectConfig{
 			Type: graphql.NewNonNull(graphql.String),
 		},
 		"blockHeight": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.Int),
+			Type: graphql.NewNonNull(graphql.String),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				source := p.Source.(model.NFTCollection)
+
+				return source.BlockHeight.String(), nil
+			},
 		},
 		"totalSupply": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.Int),
+			Type: graphql.String,
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				source := p.Source.(model.NFTCollection)
+
+				if source.TotalSupply == nil {
+					return nil, nil
+				}
+
+				return source.TotalSupply.String(), nil
+			},
 		},
 		"tokenType": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.String),
@@ -64,7 +78,7 @@ var nftContractMetadata = graphql.NewObject(graphql.ObjectConfig{
 			},
 		},
 		"totalSupply": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.String),
+			Type: graphql.String,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				source := p.Source.(*model.ContractMetadata)
 
