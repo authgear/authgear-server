@@ -60,7 +60,7 @@ func (h *SettingsSessionsHandler) GetData(r *http.Request, rw http.ResponseWrite
 
 	userID := s.GetAuthenticationInfo().UserID
 	viewModel := SettingsSessionsViewModel{}
-	ss, err := h.Sessions.List(userID)
+	ss, err := h.listSessions(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	})
 
 	ctrl.PostAction("revoke_all", func() error {
-		ss, err := h.Sessions.List(currentSession.GetAuthenticationInfo().UserID)
+		ss, err := h.listSessions(currentSession.GetAuthenticationInfo().UserID)
 		if err != nil {
 			return err
 		}
@@ -166,7 +166,7 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	ctrl.PostAction("revoke_group", func() error {
 		sessionID := r.Form.Get("x_session_id")
 
-		ss, err := h.Sessions.List(currentSession.GetAuthenticationInfo().UserID)
+		ss, err := h.listSessions(currentSession.GetAuthenticationInfo().UserID)
 		if err != nil {
 			return err
 		}
@@ -222,4 +222,16 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		result.WriteResponse(w, r)
 		return nil
 	})
+}
+
+func (h *SettingsSessionsHandler) listSessions(userID string) ([]session.Session, error) {
+	ss, err := h.Sessions.List(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	removeThirdPartySessionFilter := oauth.NewRemoveThirdPartySessionFilter(h.OAuthConfig)
+	ss = oauth.ApplySessionFilters(ss, removeThirdPartySessionFilter)
+
+	return ss, nil
 }
