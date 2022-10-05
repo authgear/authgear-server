@@ -80,11 +80,6 @@ func (h *ConfirmWeb3AccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		return
 	}
 	identities := h.AuthenticationConfig.Identities
-	if identities == nil {
-		http.Error(w, "Failed to parse identity config", http.StatusInternalServerError)
-		return
-	}
-
 	isSIWEEnabled := false
 	for _, i := range identities {
 		if i == model.IdentityTypeSIWE {
@@ -94,7 +89,7 @@ func (h *ConfirmWeb3AccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 	}
 
 	if !isSIWEEnabled {
-		http.Error(w, "404 page not found", http.StatusNotFound)
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 	defer ctrl.Serve()
