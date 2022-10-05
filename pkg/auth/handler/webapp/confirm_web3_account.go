@@ -3,8 +3,10 @@ package webapp
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -44,6 +46,7 @@ type ConfirmWeb3AccountHandler struct {
 	AuthenticationViewModel   *viewmodels.AuthenticationViewModeler
 	AlternativeStepsViewModel *viewmodels.AlternativeStepsViewModeler
 	Renderer                  Renderer
+	AuthenticationConfig      *config.AuthenticationConfig
 }
 
 func (h *ConfirmWeb3AccountHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -74,6 +77,19 @@ func (h *ConfirmWeb3AccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 	ctrl, err := h.ControllerFactory.New(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	identities := h.AuthenticationConfig.Identities
+	isSIWEEnabled := false
+	for _, i := range identities {
+		if i == model.IdentityTypeSIWE {
+			isSIWEEnabled = true
+			break
+		}
+	}
+
+	if !isSIWEEnabled {
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 	defer ctrl.Serve()

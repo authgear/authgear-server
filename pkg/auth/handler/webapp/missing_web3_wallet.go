@@ -3,7 +3,9 @@ package webapp
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -24,9 +26,10 @@ type MissingWeb3WalletViewModel struct {
 }
 
 type MissingWeb3WalletHandler struct {
-	ControllerFactory ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	Renderer          Renderer
+	ControllerFactory    ControllerFactory
+	BaseViewModel        *viewmodels.BaseViewModeler
+	Renderer             Renderer
+	AuthenticationConfig *config.AuthenticationConfig
 }
 
 func (h *MissingWeb3WalletHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -55,6 +58,20 @@ func (h *MissingWeb3WalletHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	ctrl, err := h.ControllerFactory.New(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	identities := h.AuthenticationConfig.Identities
+	isSIWEEnabled := false
+	for _, i := range identities {
+		if i == model.IdentityTypeSIWE {
+			isSIWEEnabled = true
+			break
+		}
+	}
+
+	if !isSIWEEnabled {
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 	defer ctrl.Serve()

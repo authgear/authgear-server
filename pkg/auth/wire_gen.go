@@ -45194,6 +45194,7 @@ func newWebAppConfirmWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		AuthenticationViewModel:   authenticationViewModeler,
 		AlternativeStepsViewModel: alternativeStepsViewModeler,
 		Renderer:                  responseRenderer,
+		AuthenticationConfig:      authenticationConfig,
 	}
 	return confirmWeb3AccountHandler
 }
@@ -45939,9 +45940,10 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		ControllerDeps: controllerDeps,
 	}
 	missingWeb3WalletHandler := &webapp.MissingWeb3WalletHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
+		ControllerFactory:    controllerFactory,
+		BaseViewModel:        baseViewModeler,
+		Renderer:             responseRenderer,
+		AuthenticationConfig: authenticationConfig,
 	}
 	return missingWeb3WalletHandler
 }
