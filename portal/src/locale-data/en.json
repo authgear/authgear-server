@@ -1238,7 +1238,7 @@
   "GetStartedScreen.card.skip-button.label": "Skip this",
 
   "NetworkId.ethereum-mainnet": "Ethereum Mainnet",
-  "NetworkId.ethereum-goerli": "Goerli Test Network",
+  "NetworkId.ethereum-goerli": "Ethereum Goerli",
   "NetworkId.polygon-mainnet": "Polygon Mainnet",
   "NetworkId.polygon-mumbai": "Polygon Mumbai",
 
