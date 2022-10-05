@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
@@ -95,6 +96,8 @@ func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("admin-graphql")} 
 
 type Context struct {
 	GQLLogger Logger
+
+	OAuthConfig *config.OAuthConfig
 
 	Users          UserLoader
 	Identities     IdentityLoader

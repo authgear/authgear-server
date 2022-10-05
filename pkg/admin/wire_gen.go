@@ -150,9 +150,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	factory := appProvider.LoggerFactory
 	logger := graphql.NewLogger(factory)
 	configConfig := appProvider.Config
+	appConfig := configConfig.AppConfig
+	oAuthConfig := appConfig.OAuth
 	secretConfig := configConfig.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	appConfig := configConfig.AppConfig
 	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	request := p.Request
@@ -647,7 +648,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -880,6 +880,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:           logger,
+		OAuthConfig:         oAuthConfig,
 		Users:               userLoader,
 		Identities:          identityLoader,
 		Authenticators:      authenticatorLoader,

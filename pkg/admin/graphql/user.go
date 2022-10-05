@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -104,7 +105,10 @@ var nodeUser = node(
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					source := p.Source.(*model.User)
 					gqlCtx := GQLContext(p.Context)
-					as, err := gqlCtx.AuthorizationFacade.List(source.ID)
+
+					// return third party client authorizations only in admin api
+					filter := oauth.NewKeepThirdPartyAuthorizationFilter(gqlCtx.OAuthConfig)
+					as, err := gqlCtx.AuthorizationFacade.List(source.ID, filter)
 					if err != nil {
 						return nil, err
 					}
