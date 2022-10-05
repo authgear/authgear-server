@@ -257,7 +257,7 @@
   "logout-button-label": "Log out",
 
   "consent-title": "Continue to {clientName}",
-  "consent-scopes-label": "{clientName} would like to:",
+  "consent-scopes-label": "<b>{clientName}</b> would like to:",
   "consent-scopes-full-userinfo": "Access full information in your profile such as email address, phone number, name.",
   "consent-allow-button-label": "Allow",
   "consent-cancel-button-label": "Cancel",
