@@ -91,6 +91,9 @@ var nodeUser = node(
 						return nil, err
 					}
 
+					filter := oauth.NewRemoveThirdPartySessionFilter(gqlCtx.OAuthConfig)
+					ss = oauth.ApplySessionFilters(ss, filter)
+
 					var sessions []interface{}
 					for _, i := range ss {
 						sessions = append(sessions, i.ToAPIModel())
