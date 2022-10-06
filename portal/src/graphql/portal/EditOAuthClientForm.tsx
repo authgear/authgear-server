@@ -255,6 +255,11 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [clientConfig.x_application_type]
     );
 
+    const showEndpoint = useMemo(
+      () => clientConfig.x_application_type !== "third_party_app",
+      [clientConfig.x_application_type]
+    );
+
     const refreshTokenHelpText = useMemo(() => {
       if (clientConfig.refresh_token_idle_timeout_enabled) {
         return renderToString(
@@ -280,6 +285,44 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       clientConfig.refresh_token_idle_timeout_seconds,
       renderToString,
     ]);
+
+    const showEndpointsSection = useMemo(
+      () => clientConfig.x_application_type === "third_party_app",
+      [clientConfig.x_application_type]
+    );
+
+    const endpoints = useMemo(() => {
+      const list: {
+        labelMessageID: string;
+        endpoint: string;
+      }[] = showEndpointsSection
+        ? [
+            {
+              labelMessageID:
+                "EditOAuthClientForm.openid-configuration-endpoint.label",
+              endpoint: `${publicOrigin}/.well-known/openid-configuration`,
+            },
+            {
+              labelMessageID:
+                "EditOAuthClientForm.authorization-endpoint.label",
+              endpoint: `${publicOrigin}/oauth2/authorize`,
+            },
+            {
+              labelMessageID: "EditOAuthClientForm.token-endpoint.label",
+              endpoint: `${publicOrigin}/oauth2/token`,
+            },
+            {
+              labelMessageID: "EditOAuthClientForm.userinfo-endpoint.label",
+              endpoint: `${publicOrigin}/oauth2/userinfo`,
+            },
+            {
+              labelMessageID: "EditOAuthClientForm.jwks-uri.label",
+              endpoint: `${publicOrigin}/oauth2/jwks`,
+            },
+          ]
+        : [];
+      return list;
+    }, [showEndpointsSection, publicOrigin]);
 
     return (
       <>
@@ -321,11 +364,13 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
               />
             )
           ) : null}
-          <TextFieldWithCopyButton
-            label={renderToString("EditOAuthClientForm.endpoint.label")}
-            value={publicOrigin}
-            readOnly={true}
-          />
+          {showEndpoint ? (
+            <TextFieldWithCopyButton
+              label={renderToString("EditOAuthClientForm.endpoint.label")}
+              value={publicOrigin}
+              readOnly={true}
+            />
+          ) : null}
           <TextField
             label={renderToString("EditOAuthClientForm.application-type.label")}
             value={applicationTypeLabel}
@@ -385,6 +430,22 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
               onChange={onClientNameChange}
               required={true}
             />
+          </Widget>
+        ) : null}
+
+        {showEndpointsSection ? (
+          <Widget className={className}>
+            <WidgetTitle>
+              <FormattedMessage id="EditOAuthClientForm.endpoints.title" />
+            </WidgetTitle>
+            {endpoints.map((item, i) => (
+              <TextFieldWithCopyButton
+                key={i}
+                label={renderToString(item.labelMessageID)}
+                value={item.endpoint}
+                readOnly={true}
+              />
+            ))}
           </Widget>
         ) : null}
 
