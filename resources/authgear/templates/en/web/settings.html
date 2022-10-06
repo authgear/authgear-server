@@ -326,10 +326,10 @@
   <a class="settings-security-item not-a" href="/settings/sessions">
     <i class="ti ti-shield-check text-3xl block primary-txt" aria-hidden="true"></i>
     <p class="m-0 primary-txt text-base">
-      {{ template "settings-page-session-section-title" }}
+      {{ template "settings-page-session-section-title" (dict "hasThirdPartyClient" .HasThirdPartyClient) }}
     </p>
     <p class="m-0 secondary-txt text-xs">
-      {{ template "settings-page-session-section-description" }}
+      {{ template "settings-page-session-section-description" (dict "hasThirdPartyClient" .HasThirdPartyClient) }}
     </p>
   </a>
 </div>

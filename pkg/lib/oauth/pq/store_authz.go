@@ -54,6 +54,27 @@ func (s *AuthorizationStore) GetByID(id string) (*oauth.Authorization, error) {
 	return s.scanAuthz(scanner)
 }
 
+func (s *AuthorizationStore) ListByUserID(userID string) ([]*oauth.Authorization, error) {
+	builder := s.selectQuery().
+		Where("user_id = ?", userID)
+
+	rows, err := s.SQLExecutor.QueryWith(builder)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var as []*oauth.Authorization
+	for rows.Next() {
+		a, err := s.scanAuthz(rows)
+		if err != nil {
+			return nil, err
+		}
+		as = append(as, a)
+	}
+	return as, nil
+}
+
 func (s *AuthorizationStore) scanAuthz(scn sqlx.ColScanner) (*oauth.Authorization, error) {
 	authz := &oauth.Authorization{}
 

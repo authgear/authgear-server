@@ -90,6 +90,16 @@ func (m *mockAuthzStore) UpdateScopes(authz *oauth.Authorization) error {
 	return nil
 }
 
+func (m *mockAuthzStore) ListByUserID(userID string) ([]*oauth.Authorization, error) {
+	result := []*oauth.Authorization{}
+	for i, a := range m.authzs {
+		if a.UserID == userID {
+			result = append(result, &m.authzs[i])
+		}
+	}
+	return result, nil
+}
+
 type mockCodeGrantStore struct {
 	grants []oauth.CodeGrant
 }
