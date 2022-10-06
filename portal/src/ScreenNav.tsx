@@ -172,11 +172,6 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
           },
           {
             type: "link" as const,
-            textKey: "ScreenNav.passkey",
-            url: `/project/${appID}/configuration/authentication/passkey`,
-          },
-          {
-            type: "link" as const,
             textKey: "ScreenNav.biometric",
             url: `/project/${appID}/configuration/authentication/biometric`,
           },

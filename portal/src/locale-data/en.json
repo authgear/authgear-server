@@ -84,7 +84,6 @@
   "errors.validation.maxLength": "Expect string with length less than or equal to {expected, plural, one{1 character} other{# characters}}",
   "errors.validation.noPrimaryAuthenticator": "Can't save the config. At least one authenticator for type {login_id_type, select, email {email} username {username} phone {phone} other {}} is needed.",
   "errors.validation.noSecondaryAuthenticator": "Can't save the config. At least one secondary authenticator is needed.",
-  "errors.validation.passkey": "You must enable at least 1 Login ID to use passkey",
   "errors.validation.blocked": "{reason, select, EmailDomainBlocklist{Email} EmailDomainAllowlist{Email} UsernameReserved{Username} UsernameExcludedKeywords{Username} other {}} is not allowed",
   "errors.password-mismatch": "New password does not match with confirm password, please double check",
   "errors.password-policy.password-reused": "Password cannot be reused, please check password policies below",
@@ -121,7 +120,6 @@
   "ScreenNav.authentication": "Authentication",
   "ScreenNav.anonymous-users": "Anonymous Users",
   "ScreenNav.web3": "Ethereum & NFT",
-  "ScreenNav.passkey": "Passkeys",
   "ScreenNav.biometric": "Biometric",
   "ScreenNav.mfa": "2FA",
   "ScreenNav.external-oauth": "Social / Enterprise Login",
@@ -1236,11 +1234,6 @@
   "NetworkId.polygon-mumbai": "Polygon Mumbai",
 
   "NftCollection.item.identifier": "{name} ({network}: {address})",
-
-  "PasskeyConfigurationScreen.title": "Passkeys",
-  "PasskeyConfigurationScreen.description": "Passkeys give users a simple and secure way to sign in to your apps and websites across platforms without passwords. {DocLink, react, href{https://docs.authgear.com/strategies/passkeys} children{Learn more about passkeys}}.",
-  "PasskeyConfigurationScreen.toggle.title": "Login with passkey",
-  "PasskeyConfigurationScreen.toggle.description": "Let users authenticate with passkeys on compatible devices",
 
   "MFAConfigurationScreen.title": "2-Factor Authentication",
   "MFAConfigurationScreen.description": "Enhance your users' security during login to prevent unauthorized access.",
