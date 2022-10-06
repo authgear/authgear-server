@@ -255,6 +255,8 @@ func (i *Info) AllStandardClaims() map[string]interface{} {
 		break
 	case model.IdentityTypePasskey:
 		break
+	case model.IdentityTypeSIWE:
+		break
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
 	}
