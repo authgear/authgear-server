@@ -7,7 +7,7 @@
   flex-grow: 1;
 }
 
-.copyButton {
-  margin-left: 5px;
+.button {
   align-self: end;
+  margin-left: 5px;
 }

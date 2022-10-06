@@ -16,6 +16,10 @@ import Toggle from "../../Toggle";
 import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 import { useParams } from "react-router-dom";
 import TextField from "../../TextField";
+import TextFieldWithButton from "../../TextFieldWithButton";
+import { startReauthentication } from "./Authenticated";
+
+const MASKED_SECRET = "***************";
 
 interface EditOAuthClientFormProps {
   publicOrigin: string;
@@ -187,6 +191,13 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [onClientConfigChange, clientConfig]
     );
 
+    const onClickReveal = useCallback(() => {
+      startReauthentication().catch((e) => {
+        // Normally there should not be any error.
+        console.error(e);
+      });
+    }, []);
+
     const applicationTypeLabel = useMemo(() => {
       const messageID = getApplicationTypeMessageID(
         clientConfig.x_application_type
@@ -240,9 +251,8 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
     );
 
     const showClientSecret = useMemo(
-      () =>
-        clientConfig.x_application_type === "third_party_app" && clientSecret,
-      [clientConfig.x_application_type, clientSecret]
+      () => clientConfig.x_application_type === "third_party_app",
+      [clientConfig.x_application_type]
     );
 
     const refreshTokenHelpText = useMemo(() => {
@@ -291,11 +301,25 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             readOnly={true}
           />
           {showClientSecret ? (
-            <TextFieldWithCopyButton
-              label={renderToString("EditOAuthClientForm.client-secret.label")}
-              value={clientSecret}
-              readOnly={true}
-            />
+            clientSecret ? (
+              <TextFieldWithCopyButton
+                label={renderToString(
+                  "EditOAuthClientForm.client-secret.label"
+                )}
+                value={clientSecret}
+                readOnly={true}
+              />
+            ) : (
+              <TextFieldWithButton
+                label={renderToString(
+                  "EditOAuthClientForm.client-secret.label"
+                )}
+                value={MASKED_SECRET}
+                readOnly={true}
+                buttonText={renderToString("reveal")}
+                onButtonClick={onClickReveal}
+              />
+            )
           ) : null}
           <TextFieldWithCopyButton
             label={renderToString("EditOAuthClientForm.endpoint.label")}

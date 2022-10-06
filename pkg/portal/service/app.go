@@ -183,7 +183,7 @@ func (s *AppService) LoadAppSecretConfig(app *model.App, sessionInfo *apimodel.S
 		unmasked = true
 	}
 
-	secretConfig, err := model.NewSecretConfig(cfg, unmasked)
+	secretConfig, err := model.NewSecretConfig(cfg, unmasked, now)
 	if err != nil {
 		return nil, err
 	}
