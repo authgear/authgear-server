@@ -13,7 +13,7 @@ import { truncateAddress } from "../../util/hex";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import ExternalLink from "../../ExternalLink";
-import { etherscanBlock, etherscanTx } from "../../util/eip681";
+import { explorerBlock, explorerTx } from "../../util/eip681";
 import DefaultButton from "../../DefaultButton";
 
 const DIALOG_MAX_WIDTH = "80%";
@@ -86,7 +86,7 @@ const NFTCollectionDetailDialog: React.VFC<NFTCollectionDetailDialogProps> = (
         case "transcation-hash":
           return (
             <ExternalLink
-              href={etherscanTx(eip681String, item.transaction_identifier.hash)}
+              href={explorerTx(eip681String, item.transaction_identifier.hash)}
             >
               {truncateAddress(item.transaction_identifier.hash)}
             </ExternalLink>
@@ -94,7 +94,7 @@ const NFTCollectionDetailDialog: React.VFC<NFTCollectionDetailDialogProps> = (
         case "block-index":
           return (
             <ExternalLink
-              href={etherscanBlock(
+              href={explorerBlock(
                 eip681String,
                 item.block_identifier.index.toString()
               )}

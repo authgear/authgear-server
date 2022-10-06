@@ -51,7 +51,7 @@ export function createEIP681URL(
   return url;
 }
 
-export function etherscanURL(
+export function explorerURL(
   eip681String: string,
   skipAddressCheck: boolean = false
 ): string {
@@ -65,6 +65,12 @@ export function etherscanURL(
     case 5:
       prefix = "https://goerli.etherscan.io/";
       break;
+    case 137:
+      prefix = "https://polygonscan.com/";
+      break;
+    case 80001:
+      prefix = "https://mumbai.polygonscan.com/";
+      break;
     default:
       prefix = "";
   }
@@ -72,32 +78,41 @@ export function etherscanURL(
   return prefix;
 }
 
-export function etherscanAddress(
+export function explorerAddress(
   eip681String: string,
   skipAddressCheck: boolean = false
 ): string {
   const eip681 = parseEIP681(eip681String, skipAddressCheck);
-  const prefix = etherscanURL(eip681String, skipAddressCheck) + "address/";
+  const prefix = explorerURL(eip681String, skipAddressCheck) + "address/";
 
   return prefix + eip681.address;
 }
 
-export function etherscanTx(
+export function explorerTx(
   eip681String: string,
   tx: string,
   skipAddressCheck: boolean = false
 ): string {
-  const prefix = etherscanURL(eip681String, skipAddressCheck) + "tx/";
+  const prefix = explorerURL(eip681String, skipAddressCheck) + "tx/";
 
   return prefix + tx;
 }
 
-export function etherscanBlock(
+export function explorerBlock(
   eip681String: string,
   block: string,
   skipAddressCheck: boolean = false
 ): string {
-  const prefix = etherscanURL(eip681String, skipAddressCheck) + "block/";
+  const prefix = explorerURL(eip681String, skipAddressCheck) + "block/";
 
   return prefix + block;
+}
+
+export function explorerBlocks(
+  eip681String: string,
+  skipAddressCheck: boolean = false
+): string {
+  const prefix = explorerURL(eip681String, skipAddressCheck) + "blocks/";
+
+  return prefix;
 }

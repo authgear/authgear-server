@@ -14,6 +14,9 @@ import { useSystemConfig } from "../../context/SystemConfigContext";
 import { getNetworkNameID } from "../../util/networkId";
 import ActionButton from "../../ActionButton";
 import { DateTime } from "luxon";
+import { explorerAddress, explorerBlocks } from "../../util/eip681";
+import ExternalLink from "../../ExternalLink";
+import { createContractIDURL } from "../../util/contractId";
 
 interface Web3ConfigurationDetailDialogProps {
   nftCollection: NftCollection;
@@ -46,6 +49,16 @@ const Web3ConfigurationDetailDialog: React.VFC<Web3ConfigurationDetailDialogProp
       return createdAt.plus({ minutes: 5 }) > now;
     }, [nftCollection]);
 
+    const contractID = useMemo(
+      () =>
+        createContractIDURL({
+          address: nftCollection.contractAddress,
+          blockchain: nftCollection.blockchain,
+          network: nftCollection.network,
+        }),
+      [nftCollection]
+    );
+
     return (
       <Dialog
         hidden={!isVisible}
@@ -64,14 +77,9 @@ const Web3ConfigurationDetailDialog: React.VFC<Web3ConfigurationDetailDialogProp
             >
               {nftCollection.contractAddress}
             </Text>
-            <Text>
-              <FormattedMessage
-                id="Web3ConfigurationScreen.detail-dialog.view-on-etherscan"
-                values={{
-                  address: nftCollection.contractAddress,
-                }}
-              />
-            </Text>
+            <ExternalLink href={explorerAddress(contractID)}>
+              <FormattedMessage id="Web3ConfigurationScreen.detail-dialog.view-on-explorer" />
+            </ExternalLink>
           </div>
 
           <div className={styles.fieldContainer}>
@@ -87,7 +95,13 @@ const Web3ConfigurationDetailDialog: React.VFC<Web3ConfigurationDetailDialogProp
               <FormattedMessage id="Web3ConfigurationScreen.detail-dialog.block-height" />
             </Text>
             <Text as="p" block={true}>
-              {nftCollection.blockHeight}
+              <FormattedMessage
+                id="Web3ConfigurationScreen.detail-dialog.block-height.description"
+                values={{
+                  currentHeight: nftCollection.blockHeight,
+                  explorerUrl: explorerBlocks(contractID),
+                }}
+              />
             </Text>
 
             {isRecentlyAdded ? (

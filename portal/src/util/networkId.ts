@@ -9,10 +9,22 @@ export const ALL_SUPPORTED_NETWORKS: NetworkID[] = [
     blockchain: "ethereum",
     network: "5",
   },
+  {
+    blockchain: "ethereum",
+    network: "137",
+  },
+  {
+    blockchain: "ethereum",
+    network: "80001",
+  },
 ];
 export interface NetworkID {
   blockchain: string;
   network: string;
+}
+
+export function sameNetworkID(a: NetworkID, b: NetworkID): boolean {
+  return a.blockchain === b.blockchain && a.network === b.network;
 }
 
 export function parseNetworkID(url: string): NetworkID {
@@ -62,6 +74,10 @@ export function getNetworkNameID(networkID: NetworkID): string {
           return "NetworkId.ethereum-mainnet";
         case "5":
           return "NetworkId.ethereum-goerli";
+        case "137":
+          return "NetworkId.polygon-mainnet";
+        case "80001":
+          return "NetworkId.polygon-mumbai";
         default:
           throw new Error(`Unsupported chain id: ${networkID.network}`);
       }

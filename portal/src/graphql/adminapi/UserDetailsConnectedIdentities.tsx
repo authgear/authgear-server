@@ -34,7 +34,7 @@ import { useIsLoading, useLoading } from "../../hook/loading";
 import { useProvideError } from "../../hook/error";
 import {
   createEIP681URL,
-  etherscanAddress,
+  explorerAddress,
   parseEIP681,
 } from "../../util/eip681";
 import ExternalLink, { ExternalLinkProps } from "../../ExternalLink";
@@ -283,7 +283,7 @@ const NFTCollectionListCell: React.VFC<NFTCollectionListCellProps> = (
 
   return (
     <div className={styles.NFTListCell}>
-      <ExternalLink href={etherscanAddress(contractEIP681)}>
+      <ExternalLink href={explorerAddress(contractEIP681)}>
         <Text
           className={cn(styles.cellName, styles.cellNameExternalLink)}
           variant="small"
@@ -628,7 +628,7 @@ const SIWEIdentityListCell: React.VFC<SIWEIdentityListCellProps> = (props) => {
 
   const externalLinkProps: ExternalLinkProps = useMemo(() => {
     return {
-      href: etherscanAddress(identityName),
+      href: explorerAddress(identityName),
     };
   }, [identityName]);
 
