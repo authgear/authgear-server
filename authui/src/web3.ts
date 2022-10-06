@@ -192,6 +192,7 @@ export class WalletConfirmationController extends Controller {
   }
 
   connect() {
+    this.displayedTarget.textContent = "-";
     getProvider(this.providerValue)
       .then((provider) => {
         if (!provider) {
