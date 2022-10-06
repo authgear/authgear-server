@@ -14,6 +14,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
+func newUnsafeDynamicCSPMiddleware(deps *deps.RequestProvider) httproute.Middleware {
+	return newDynamicCSPMiddleware(deps, true)
+}
+
+func newSafeDynamicCSPMiddleware(deps *deps.RequestProvider) httproute.Middleware {
+	return newDynamicCSPMiddleware(deps, false)
+}
+
 func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *httproute.Router {
 	router := httproute.NewRouter()
 
@@ -123,7 +131,12 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		// Turbo no longer requires us to tell the redirected location.
 		// It can now determine redirection from the response.
 		// https://github.com/hotwired/turbo/blob/daabebb0575fffbae1b2582dc458967cd638e899/src/core/drive/visit.ts#L316
-		p.Middleware(newDynamicCSPMiddleware),
+		p.Middleware(newSafeDynamicCSPMiddleware),
+	)
+	webappSIWEChain := httproute.Chain(
+		webappChain,
+		p.Middleware(newCSRFMiddleware),
+		p.Middleware(newUnsafeDynamicCSPMiddleware),
 	)
 	webappAuthEntrypointChain := httproute.Chain(
 		webappPageChain,
@@ -159,6 +172,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	apiAuthenticatedRoute := httproute.Route{Middleware: apiAuthenticatedChain}
 	scopedRoute := httproute.Route{Middleware: scopedChain}
 	webappPageRoute := httproute.Route{Middleware: webappPageChain}
+	webappSIWERoute := httproute.Route{Middleware: webappSIWEChain}
 	webappAuthEntrypointRoute := httproute.Route{Middleware: webappAuthEntrypointChain}
 	webappAuthenticatedRoute := httproute.Route{Middleware: webappAuthenticatedChain}
 	webappSuccessPageRoute := httproute.Route{Middleware: webappSuccessPageChain}
@@ -197,7 +211,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandler.ConfigureErrorRoute(webappPageRoute), p.Handler(newWebAppErrorHandler))
 	router.Add(webapphandler.ConfigureForceChangePasswordRoute(webappPageRoute), p.Handler(newWebAppForceChangePasswordHandler))
 	router.Add(webapphandler.ConfigureForceChangeSecondaryPasswordRoute(webappPageRoute), p.Handler(newWebAppForceChangeSecondaryPasswordHandler))
-	router.Add(webapphandler.ConfigureConnectWeb3AccountRoute(webappPageRoute), p.Handler(newWebAppConnectWeb3AccountHandler))
+	router.Add(webapphandler.ConfigureConnectWeb3AccountRoute(webappSIWERoute), p.Handler(newWebAppConnectWeb3AccountHandler))
 	router.Add(webapphandler.ConfigureMissingWeb3WalletRoute(webappPageRoute), p.Handler(newWebAppMissingWeb3WalletHandler))
 
 	router.Add(webapphandler.ConfigureForgotPasswordSuccessRoute(webappSuccessPageRoute), p.Handler(newWebAppForgotPasswordSuccessHandler))
