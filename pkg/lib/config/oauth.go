@@ -65,6 +65,8 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"refresh_token_idle_timeout_enabled": { "type": "boolean" },
 		"refresh_token_idle_timeout_seconds": { "$ref": "#/$defs/DurationSeconds" },
 		"issue_jwt_access_token": { "type": "boolean" },
+		"policy_uri": { "type": "string", "format": "uri" },
+		"tos_uri": { "type": "string", "format": "uri"  },
 		"is_first_party": { "type": "boolean" }
 	},
 	"required": ["name", "client_id", "redirect_uris"],
@@ -117,6 +119,8 @@ type OAuthClientConfig struct {
 	RefreshTokenIdleTimeoutEnabled *bool                      `json:"refresh_token_idle_timeout_enabled,omitempty"`
 	RefreshTokenIdleTimeout        DurationSeconds            `json:"refresh_token_idle_timeout_seconds,omitempty"`
 	IssueJWTAccessToken            bool                       `json:"issue_jwt_access_token,omitempty"`
+	PolicyURI                      string                     `json:"policy_uri,omitempty"`
+	TOSURI                         string                     `json:"tos_uri,omitempty"`
 }
 
 func (c *OAuthClientConfig) ClientParty() ClientParty {
