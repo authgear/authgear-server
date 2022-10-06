@@ -90,9 +90,6 @@ const LoginMethodConfigurationScreen = lazy(
 const Web3ConfigurationScreen = lazy(
   async () => import("./graphql/portal/Web3ConfigurationScreen")
 );
-const PasskeyConfigurationScreen = lazy(
-  async () => import("./graphql/portal/PasskeyConfigurationScreen")
-);
 const BiometricConfigurationScreen = lazy(
   async () => import("./graphql/portal/BiometricConfigurationScreen")
 );
@@ -322,14 +319,6 @@ const AppRoot: React.VFC = function AppRoot() {
                   element={
                     <Suspense fallback={<ShowLoading />}>
                       <SingleSignOnConfigurationScreen />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="passkey"
-                  element={
-                    <Suspense fallback={<ShowLoading />}>
-                      <PasskeyConfigurationScreen />
                     </Suspense>
                   }
                 />
