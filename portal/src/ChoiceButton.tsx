@@ -1,10 +1,20 @@
-import React, { ReactNode, ReactElement } from "react";
+import React, {
+  useCallback,
+  ReactNode,
+  ReactElement,
+  ComponentType,
+} from "react";
 import {
   CompoundButton,
   IButtonStyles,
   IButtonProps,
   useTheme,
+  IRenderFunction,
 } from "@fluentui/react";
+
+export interface IconComponentProps {
+  disabledColor?: string;
+}
 
 export interface ChoiceButtonProps {
   className?: string;
@@ -13,9 +23,11 @@ export interface ChoiceButtonProps {
   text?: ReactNode;
   secondaryText?: ReactNode;
   onClick?: IButtonProps["onClick"];
+  IconComponent?: ComponentType<IconComponentProps>;
 }
 
 export default function ChoiceButton(props: ChoiceButtonProps): ReactElement {
+  const { IconComponent, ...rest } = props;
   const originalTheme = useTheme();
   const styles: IButtonStyles = {
     root: {
@@ -49,6 +61,30 @@ export default function ChoiceButton(props: ChoiceButtonProps): ReactElement {
       alignItems: "center",
     },
   };
-  // @ts-expect-error
-  return <CompoundButton {...props} toggle={true} styles={styles} />;
+
+  const onRenderIcon: IRenderFunction<IButtonProps> = useCallback(
+    (props?: IButtonProps) => {
+      // @ts-expect-error
+      const disabledColor = props?.styles?.iconDisabled?.color;
+      if (typeof disabledColor !== "string") {
+        return null;
+      }
+      if (IconComponent == null) {
+        return null;
+      }
+
+      return <IconComponent disabledColor={disabledColor} />;
+    },
+    [IconComponent]
+  );
+
+  return (
+    // @ts-expect-error
+    <CompoundButton
+      {...rest}
+      toggle={true}
+      styles={styles}
+      onRenderIcon={IconComponent == null ? undefined : onRenderIcon}
+    />
+  );
 }
