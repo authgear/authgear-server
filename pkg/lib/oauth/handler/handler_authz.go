@@ -328,6 +328,9 @@ func (h *AuthorizationHandler) prepareConsentRequest(req *http.Request) (*consen
 
 	authInfoEntry, err := h.getAuthenticationInfoEntry(req)
 	if err != nil {
+		if errors.Is(err, authenticationinfo.ErrNotFound) {
+			err = protocol.NewError("invalid_request", "authentication expired")
+		}
 		return nil, err
 	}
 
