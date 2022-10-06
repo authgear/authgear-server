@@ -96,6 +96,11 @@
   h6 {
     @apply font-semibold;
   }
+
+  b,
+  strong {
+    @apply font-semibold;
+  }
 }
 
 @layer components {
@@ -115,6 +120,10 @@
   .btn.light-btn,
   .btn.destructive-btn {
     @apply rounded-sm px-5 py-1.5 text-center border border-solid border-transparent;
+  }
+
+  .primary-btn.outline {
+    @apply border outline-none;
   }
 
   .btn.action-btn {
