@@ -271,7 +271,7 @@
   "EditPictureScreen.remove-picture.label": "Remove Picture",
   "EditPictureScreen.remove-picture.dialog.description": "Are you sure you want to remove the profile picture?",
 
-  "UserDetails.session.header": "Sessions",
+  "UserDetails.session.header": "Sessions and apps",
   "UserDetails.session.devices": "Devices",
   "UserDetails.session.kind": "Kind",
   "UserDetails.session.kind.idp": "Login",
