@@ -5,6 +5,7 @@ import React, {
   useState,
   useContext,
 } from "react";
+import cn from "classnames";
 import {
   Text,
   useTheme,
@@ -14,6 +15,8 @@ import {
   DirectionalHint,
   Pivot,
   PivotItem,
+  // eslint-disable-next-line no-restricted-imports
+  ActionButton,
 } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
@@ -83,6 +86,7 @@ import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import styles from "./LoginMethodConfigurationScreen.module.css";
+import ChoiceButton from "../../ChoiceButton";
 
 function splitByNewline(text: string): string[] {
   return text
@@ -179,6 +183,42 @@ type LoginMethodPasswordLoginID =
   | "phone"
   | "phone-email"
   | "username";
+
+type LoginMethodFirstLevelOption =
+  | "email"
+  | "phone"
+  | "phone-email"
+  | "username"
+  | "oauth"
+  | "custom";
+
+type LoginMethodSecondLevelOption = "passwordless" | "password";
+
+function loginMethodToFirstLevelOption(
+  loginMethod: LoginMethod
+): LoginMethodFirstLevelOption {
+  if (loginMethod.startsWith("passwordless-")) {
+    return loginMethod.slice(
+      "passwordless-".length
+    ) as LoginMethodFirstLevelOption;
+  }
+  if (loginMethod.startsWith("password-")) {
+    return loginMethod.slice("password-".length) as LoginMethodFirstLevelOption;
+  }
+  return loginMethod as LoginMethodFirstLevelOption;
+}
+
+function loginMethodToSecondLevelOption(
+  loginMethod: LoginMethod
+): LoginMethodSecondLevelOption | null {
+  if (loginMethod.startsWith("passwordless-")) {
+    return "passwordless";
+  }
+  if (loginMethod.startsWith("password-")) {
+    return "password";
+  }
+  return null;
+}
 
 type LoginMethod =
   | `passwordless-${LoginMethodPasswordlessLoginID}`
@@ -790,6 +830,431 @@ function WidgetSubsection(props: WidgetSubsectionProps) {
   return <div className={styles.widgetSubsection}>{children}</div>;
 }
 
+const LOGIN_METHOD_ICON: Record<LoginMethodFirstLevelOption, string> = {
+  email: "mail",
+  phone: "device-tablet",
+  "phone-email": "mixed",
+  username: "user",
+  oauth: "atom",
+  custom: "puzzle",
+};
+
+interface LoginMethodIconProps {
+  className?: string;
+  size: "60px" | "48px";
+  variant: LoginMethodFirstLevelOption;
+  checked?: boolean;
+  disabled?: boolean;
+}
+
+function LoginMethodIcon(props: LoginMethodIconProps) {
+  const { className, size, variant, checked, disabled } = props;
+  const theme = useTheme();
+  const iconName = LOGIN_METHOD_ICON[variant];
+
+  const backgroundColor = checked
+    ? theme.palette.themePrimary
+    : disabled
+    ? theme.palette.neutralLighter
+    : theme.palette.neutralLight;
+  const color = checked
+    ? theme.palette.white
+    : disabled
+    ? theme.palette.neutralTertiaryAlt
+    : theme.palette.neutralTertiary;
+
+  if (iconName === "mixed") {
+    return (
+      <div
+        className={cn(className, styles.loginMethodIcon)}
+        style={{
+          backgroundColor,
+          width: size,
+          height: size,
+        }}
+      >
+        <i
+          className={cn(styles.loginMethodIconIcon, "ti", "ti-device-tablet")}
+          style={{
+            color,
+            marginTop: "-8px",
+            marginRight: "-4px",
+          }}
+        ></i>
+        <i
+          className={cn(styles.loginMethodIconIcon, "ti", "ti-mail")}
+          style={{
+            color,
+            marginBottom: "-8px",
+            marginLeft: "-4px",
+          }}
+        ></i>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={cn(className, styles.loginMethodIcon)}
+      style={{
+        backgroundColor,
+        width: size,
+        height: size,
+      }}
+    >
+      <i
+        className={cn(styles.loginMethodIconIcon, "ti", `ti-${iconName}`)}
+        style={{
+          color,
+        }}
+      ></i>
+    </div>
+  );
+}
+
+interface ChosenLoginMethodProps {
+  loginMethod: LoginMethod;
+  passkeyEnabled: boolean;
+}
+
+function ChosenLoginMethod(props: ChosenLoginMethodProps) {
+  const { loginMethod, passkeyEnabled } = props;
+  const variant = useMemo(() => {
+    return loginMethodToFirstLevelOption(loginMethod);
+  }, [loginMethod]);
+  return (
+    <div className={styles.widget}>
+      <div className={styles.chosenLoginMethodRoot}>
+        <LoginMethodIcon size="48px" variant={variant} checked={true} />
+        <div
+          className={
+            passkeyEnabled
+              ? styles.chosenLoginMethodTitleDescription
+              : styles.chosenLoginMethodTitleOnly
+          }
+        >
+          <Text
+            variant="large"
+            block={true}
+            className={styles.chosenLoginMethodTitle}
+          >
+            <FormattedMessage
+              id={
+                "LoginMethodConfigurationScreen.login-method.title." +
+                loginMethod
+              }
+            />
+          </Text>
+          {passkeyEnabled ? (
+            <Text variant="medium" block={true}>
+              <FormattedMessage id="LoginMethodConfigurationScreen.with-passkey" />
+            </Text>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface LoginMethodButtonProps {
+  targetValue: LoginMethodFirstLevelOption;
+  currentValue: LoginMethodFirstLevelOption;
+  disabled?: boolean;
+  onClick?: (firstLevelOption: LoginMethodFirstLevelOption) => void;
+}
+
+function LoginMethodButton(props: LoginMethodButtonProps) {
+  const { targetValue, currentValue, disabled, onClick: onClickProp } = props;
+  const checked = targetValue === currentValue;
+
+  const onRenderIcon = useCallback(() => {
+    return (
+      <LoginMethodIcon
+        variant={targetValue}
+        size="60px"
+        checked={checked}
+        disabled={disabled}
+      />
+    );
+  }, [targetValue, checked, disabled]);
+
+  const onClick = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onClickProp?.(targetValue);
+    },
+    [onClickProp, targetValue]
+  );
+
+  return (
+    <ActionButton
+      disabled={disabled}
+      checked={checked}
+      styles={{
+        root: {
+          height: "auto",
+        },
+        flexContainer: {
+          flexDirection: "column",
+          rowGap: "4px",
+        },
+      }}
+      onRenderIcon={onRenderIcon}
+      onClick={onClick}
+      toggle={true}
+    >
+      <Text
+        block={true}
+        styles={{
+          root: {
+            fontWeight: "600",
+          },
+        }}
+      >
+        <FormattedMessage
+          id={`LoginMethodConfigurationScreen.first-level.${targetValue}.title`}
+        />
+      </Text>
+      <Text block={true}>
+        <FormattedMessage
+          id={`LoginMethodConfigurationScreen.first-level.${targetValue}.description`}
+        />
+      </Text>
+    </ActionButton>
+  );
+}
+
+const AUTHENTICATION_BUTTON_ICON: Record<LoginMethodSecondLevelOption, string> =
+  {
+    passwordless: "mailbox",
+    password: "forms",
+  };
+
+interface AuthenticationButtonProps {
+  targetValue: LoginMethodSecondLevelOption;
+  currentValue: LoginMethodSecondLevelOption;
+  disabled?: boolean;
+  onClick?: (secondLevelOption: LoginMethodSecondLevelOption) => void;
+}
+
+function AuthenticationButton(props: AuthenticationButtonProps) {
+  const { targetValue, currentValue, disabled, onClick: onClickProp } = props;
+  const checked = targetValue === currentValue;
+  const iconName = AUTHENTICATION_BUTTON_ICON[targetValue];
+
+  const IconComponent = useCallback(
+    (props) => {
+      return (
+        <i
+          className={cn(
+            styles.authenticationButtonIcon,
+            "ti",
+            `ti-${iconName}`
+          )}
+          style={{
+            color: disabled === true ? props.disabledColor : undefined,
+          }}
+        ></i>
+      );
+    },
+    [disabled, iconName]
+  );
+
+  const onClick = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onClickProp?.(targetValue);
+    },
+    [onClickProp, targetValue]
+  );
+
+  const buttonStyles = useMemo(() => {
+    return {
+      flexContainer: {
+        columnGap: "16px",
+      },
+    };
+  }, []);
+
+  return (
+    <ChoiceButton
+      className={styles.authenticationButton}
+      styles={buttonStyles}
+      disabled={disabled}
+      checked={checked}
+      text={
+        <FormattedMessage
+          id={`LoginMethodConfigurationScreen.second-level.${targetValue}.title`}
+        />
+      }
+      secondaryText={
+        <FormattedMessage
+          id={`LoginMethodConfigurationScreen.second-level.${targetValue}.description`}
+        />
+      }
+      IconComponent={IconComponent}
+      onClick={onClick}
+    />
+  );
+}
+
+interface LoginMethodChooserProps {
+  loginMethod: LoginMethod;
+  phoneLoginIDDisabled: boolean;
+  appID: string;
+  onChangeLoginMethod: (loginMethod: LoginMethod) => void;
+}
+
+function LoginMethodChooser(props: LoginMethodChooserProps) {
+  const { loginMethod, phoneLoginIDDisabled, appID, onChangeLoginMethod } =
+    props;
+  const disabled = phoneLoginIDDisabled;
+
+  const firstLevelOption = useMemo(
+    () => loginMethodToFirstLevelOption(loginMethod),
+    [loginMethod]
+  );
+  const secondLevelOption = useMemo(
+    () => loginMethodToSecondLevelOption(loginMethod),
+    [loginMethod]
+  );
+
+  const onChangeFirstLevelOption = useCallback(
+    (firstLevelOption: LoginMethodFirstLevelOption) => {
+      if (firstLevelOption === "oauth" || firstLevelOption === "custom") {
+        onChangeLoginMethod(firstLevelOption);
+      } else {
+        // Reset to password.
+        onChangeLoginMethod(`password-${firstLevelOption}` as LoginMethod);
+      }
+    },
+    [onChangeLoginMethod]
+  );
+
+  const onChangeSecondLevelOption = useCallback(
+    (secondLevelOption: LoginMethodSecondLevelOption) => {
+      if (
+        firstLevelOption !== "oauth" &&
+        firstLevelOption !== "custom" &&
+        firstLevelOption !== "username"
+      ) {
+        onChangeLoginMethod(`${secondLevelOption}-${firstLevelOption}`);
+      }
+    },
+    [firstLevelOption, onChangeLoginMethod]
+  );
+
+  const firstLevel = [
+    <LoginMethodButton
+      key="email"
+      targetValue="email"
+      currentValue={firstLevelOption}
+      onClick={onChangeFirstLevelOption}
+    />,
+  ];
+  if (!disabled) {
+    firstLevel.push(
+      <LoginMethodButton
+        key="phone"
+        targetValue="phone"
+        currentValue={firstLevelOption}
+        disabled={disabled}
+        onClick={onChangeFirstLevelOption}
+      />
+    );
+    firstLevel.push(
+      <LoginMethodButton
+        key="phone-email"
+        targetValue="phone-email"
+        currentValue={firstLevelOption}
+        disabled={disabled}
+        onClick={onChangeFirstLevelOption}
+      />
+    );
+  }
+  firstLevel.push(
+    <LoginMethodButton
+      key="username"
+      targetValue="username"
+      currentValue={firstLevelOption}
+      onClick={onChangeFirstLevelOption}
+    />
+  );
+  firstLevel.push(
+    <LoginMethodButton
+      key="oauth"
+      targetValue="oauth"
+      currentValue={firstLevelOption}
+      onClick={onChangeFirstLevelOption}
+    />
+  );
+  firstLevel.push(
+    <LoginMethodButton
+      key="custom"
+      targetValue="custom"
+      currentValue={firstLevelOption}
+      onClick={onChangeFirstLevelOption}
+    />
+  );
+  if (disabled) {
+    firstLevel.push(
+      <LoginMethodButton
+        key="phone"
+        targetValue="phone"
+        currentValue={firstLevelOption}
+        disabled={disabled}
+        onClick={onChangeFirstLevelOption}
+      />
+    );
+    firstLevel.push(
+      <LoginMethodButton
+        key="phone-email"
+        targetValue="phone-email"
+        currentValue={firstLevelOption}
+        disabled={disabled}
+        onClick={onChangeFirstLevelOption}
+      />
+    );
+  }
+
+  return (
+    <Widget className={styles.widget}>
+      <WidgetTitle>
+        <FormattedMessage id="LoginMethodConfigurationScreen.chooser.title" />
+      </WidgetTitle>
+      {phoneLoginIDDisabled ? (
+        <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
+      ) : null}
+      <div className={styles.chooserGrid}>{firstLevel}</div>
+      {secondLevelOption != null ? (
+        <>
+          <WidgetSubtitle>
+            <FormattedMessage id="LoginMethodConfigurationScreen.chooser.subtitle" />
+          </WidgetSubtitle>
+          <div className={styles.chooserFlex}>
+            <AuthenticationButton
+              targetValue="passwordless"
+              currentValue={secondLevelOption}
+              disabled={
+                !["email", "phone", "phone-email"].includes(firstLevelOption)
+              }
+              onClick={onChangeSecondLevelOption}
+            />
+            <AuthenticationButton
+              targetValue="password"
+              currentValue={secondLevelOption}
+              onClick={onChangeSecondLevelOption}
+            />
+          </div>
+        </>
+      ) : null}
+      {loginMethod === "oauth" ? <LinkToOAuth appID={appID} /> : null}
+    </Widget>
+  );
+}
+
 interface LinkToOAuthProps {
   appID: string;
 }
@@ -798,14 +1263,12 @@ function LinkToOAuth(props: LinkToOAuthProps) {
   const { appID } = props;
 
   return (
-    <Widget className={styles.widget}>
-      <Link
-        className={styles.oauthLink}
-        to={`/project/${appID}/configuration/authentication/external-oauth`}
-      >
-        <FormattedMessage id="LoginMethodConfigurationScreen.oauth" />
-      </Link>
-    </Widget>
+    <Link
+      className={styles.oauthLink}
+      to={`/project/${appID}/configuration/authentication/external-oauth`}
+    >
+      <FormattedMessage id="LoginMethodConfigurationScreen.oauth" />
+    </Link>
   );
 }
 
@@ -1756,7 +2219,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       [primaryAuthenticatorsControl]
     );
 
-    const _onChangeLoginMethod = useCallback(
+    const onChangeLoginMethod = useCallback(
       (loginMethod: LoginMethod) => {
         setLoginMethod(loginMethod);
         setState((prev) =>
@@ -1836,10 +2299,14 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
         <ScreenTitle className={styles.widget}>
           <FormattedMessage id="LoginMethodConfigurationScreen.title" />
         </ScreenTitle>
-        {phoneLoginIDDisabled ? (
-          <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
-        ) : null}
-        {loginMethod === "oauth" ? <LinkToOAuth appID={appID} /> : null}
+        {/* FIXME: set passkeyEnabled */}
+        <ChosenLoginMethod loginMethod={loginMethod} passkeyEnabled={false} />
+        <LoginMethodChooser
+          loginMethod={loginMethod}
+          phoneLoginIDDisabled={phoneLoginIDDisabled}
+          appID={appID}
+          onChangeLoginMethod={onChangeLoginMethod}
+        />
         {/* Pivot is intentionally uncontrolled */}
         {/* It is because it is troublesome to keep track of the selected key */}
         {/* And making it controlled does not bring any benefits */}
