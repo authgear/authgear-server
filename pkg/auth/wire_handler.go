@@ -518,10 +518,10 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	))
 }
 
-func newWebAppConfirmWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.ConfirmWeb3AccountHandler)),
+		wire.Bind(new(http.Handler), new(*handlerwebapp.ConnectWeb3AccountHandler)),
 	))
 }
 

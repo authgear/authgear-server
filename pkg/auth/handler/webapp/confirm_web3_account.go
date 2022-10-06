@@ -14,8 +14,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-var TemplateWebConfirmWeb3AccountHTML = template.RegisterHTML(
-	"web/confirm_web3_account.html",
+var TemplateWebConnectWeb3AccountHTML = template.RegisterHTML(
+	"web/connect_web3_account.html",
 	components...,
 )
 
@@ -30,17 +30,17 @@ var Web3AccountConfirmationSchema = validation.NewSimpleSchema(`
 	}
 `)
 
-func ConfigureConfirmWeb3AccountRoute(route httproute.Route) httproute.Route {
+func ConfigureConnectWeb3AccountRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
 		WithPathPattern("/confirm_web3_account")
 }
 
-type ConfirmWeb3AccountViewModel struct {
+type ConnectWeb3AccountViewModel struct {
 	Provider string
 }
 
-type ConfirmWeb3AccountHandler struct {
+type ConnectWeb3AccountHandler struct {
 	ControllerFactory         ControllerFactory
 	BaseViewModel             *viewmodels.BaseViewModeler
 	AuthenticationViewModel   *viewmodels.AuthenticationViewModeler
@@ -49,7 +49,7 @@ type ConfirmWeb3AccountHandler struct {
 	AuthenticationConfig      *config.AuthenticationConfig
 }
 
-func (h *ConfirmWeb3AccountHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *ConnectWeb3AccountHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
@@ -61,7 +61,7 @@ func (h *ConfirmWeb3AccountHandler) GetData(r *http.Request, rw http.ResponseWri
 		provider = p
 	}
 
-	confirmWeb3AccountViewModel := ConfirmWeb3AccountViewModel{
+	confirmWeb3AccountViewModel := ConnectWeb3AccountViewModel{
 		Provider: provider,
 	}
 
@@ -73,7 +73,7 @@ func (h *ConfirmWeb3AccountHandler) GetData(r *http.Request, rw http.ResponseWri
 	return data, nil
 }
 
-func (h *ConfirmWeb3AccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *ConnectWeb3AccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctrl, err := h.ControllerFactory.New(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -124,7 +124,7 @@ func (h *ConfirmWeb3AccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 			return err
 		}
 
-		h.Renderer.RenderHTML(w, r, TemplateWebConfirmWeb3AccountHTML, data)
+		h.Renderer.RenderHTML(w, r, TemplateWebConnectWeb3AccountHTML, data)
 		return nil
 	})
 

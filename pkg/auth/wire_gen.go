@@ -44447,7 +44447,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	return passkeyRequestOptionsHandler
 }
 
-func newWebAppConfirmWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
@@ -45194,7 +45194,7 @@ func newWebAppConfirmWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
 		AuthenticationConfig: authenticationConfig,
 	}
-	confirmWeb3AccountHandler := &webapp.ConfirmWeb3AccountHandler{
+	connectWeb3AccountHandler := &webapp.ConnectWeb3AccountHandler{
 		ControllerFactory:         controllerFactory,
 		BaseViewModel:             baseViewModeler,
 		AuthenticationViewModel:   authenticationViewModeler,
@@ -45202,7 +45202,7 @@ func newWebAppConfirmWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Renderer:                  responseRenderer,
 		AuthenticationConfig:      authenticationConfig,
 	}
-	return confirmWeb3AccountHandler
+	return connectWeb3AccountHandler
 }
 
 func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
