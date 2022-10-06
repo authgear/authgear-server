@@ -58,6 +58,7 @@
     "@fluentui/react-hooks": "8.6.11",
     "@monaco-editor/react": "4.4.5",
     "@oursky/react-messageformat": "2.0.2",
+    "@tabler/icons": "1.92.0",
     "axios": "0.27.2",
     "base64-js": "1.5.1",
     "chart.js": "3.9.1",
