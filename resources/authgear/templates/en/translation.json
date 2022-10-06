@@ -261,6 +261,9 @@
   "consent-scopes-full-userinfo": "Access full information in your profile such as email address, phone number, name.",
   "consent-allow-button-label": "Allow",
   "consent-cancel-button-label": "Cancel",
+  "consent-policy-and-tos-link-desc": "See {clientName}’s <a class=\"link\" target=\"_blank\" href={policyURI}>privacy policy</a> and <a class=\"link\" target=\"_blank\" href={tosURI}>terms of service</a>.",
+  "consent-policy-link-desc": "See {clientName}’s <a class=\"link\" target=\"_blank\" href={policyURI}>privacy policy</a>.",
+  "consent-tos-link-desc": "See {clientName}’s <a class=\"link\" target=\"_blank\" href={tosURI}>terms of service</a>.",
 
   "settings-page-security-section-title": "Security",
   "settings-page-security-section-description": "These can be used to make sure that it''s really you signing in.",

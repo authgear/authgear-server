@@ -24,6 +24,20 @@
     </div>
   {{ end }}
 
+  {{ if (and $.ClientPolicyURI $.ClientTOSURI) }}
+    <div class="text-sm primary-txt">
+      {{ template "consent-policy-and-tos-link-desc" (dict "clientName" $.ClientName "policyURI" $.ClientPolicyURI "tosURI" $.ClientTOSURI) }}
+    </div>
+  {{ else if $.ClientPolicyURI }}
+    <div class="text-sm primary-txt">
+      {{ template "consent-policy-link-desc" (dict "clientName" $.ClientName "policyURI" $.ClientPolicyURI) }}
+    </div>
+  {{ else if $.ClientTOSURI }}
+    <div class="text-sm primary-txt">
+      {{ template "consent-tos-link-desc" (dict "clientName" $.ClientName "tosURI" $.ClientTOSURI) }}
+    </div>
+  {{ end }}
+
   <form method="post" novalidate>
     {{ $.CSRFField }}
     <button

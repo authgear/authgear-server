@@ -261,6 +261,9 @@
   "consent-scopes-full-userinfo": "存取您個人資料中，例如電子郵件地址、電話號碼、姓名。",
   "consent-allow-button-label": "允許",
   "consent-cancel-button-label": "取消",
+  "consent-policy-and-tos-link-desc": "請參閱 {clientName} 的<a class=\"link\" target=\"_blank\" href={policyURI}>隱私政策</a>及<a class=\"link\" target=\"_blank\" href={tosURI}>條款和細則</a>",
+  "consent-policy-link-desc": "請參閱 {clientName} 的<a class=\"link\" target=\"_blank\" href={policyURI}>隱私政策</a>",
+  "consent-tos-link-desc": "請參閱 {clientName} 的<a class=\"link\" target=\"_blank\" href={tosURI}>條款和細則</a>",
 
   "settings-page-security-section-title": "安全",
   "settings-page-security-section-description": "用於確保登入的是你本人",

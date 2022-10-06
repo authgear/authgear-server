@@ -47,6 +47,8 @@ type ProtocolIdentityService interface {
 
 type ConsentViewModel struct {
 	ClientName               string
+	ClientPolicyURI          string
+	ClientTOSURI             string
 	IsRequestingFullUserInfo bool
 	IdentityDisplayName      string
 }
@@ -137,6 +139,8 @@ func (h *ConsentHandler) renderConsentPage(rw http.ResponseWriter, r *http.Reque
 	viewModel := ConsentViewModel{}
 	viewModel.IsRequestingFullUserInfo = slice.ContainsString(consentRequired.Scopes, oauth.FullUserInfoScope)
 	viewModel.ClientName = consentRequired.Client.ClientName
+	viewModel.ClientPolicyURI = consentRequired.Client.PolicyURI
+	viewModel.ClientTOSURI = consentRequired.Client.TOSURI
 	viewModel.IdentityDisplayName = displayID
 	viewmodels.Embed(data, viewModel)
 
