@@ -1297,6 +1297,7 @@
   "LoginMethodConfigurationScreen.second-level.passwordless.description": "One-time password (OTP)",
   "LoginMethodConfigurationScreen.second-level.password.title": "Enter password",
   "LoginMethodConfigurationScreen.second-level.password.description": "Enter password to authenticate",
+  "LoginMethodConfigurationScreen.passkey.title": "Enable passkey support for compatible devices. {DocLink, react, href{https://docs.authgear.com/strategies/passkeys} children{Learn more about passkey}}",
 
   "LoginIDKeyType.email": "Email address",
   "LoginIDKeyType.phone": "Phone number",

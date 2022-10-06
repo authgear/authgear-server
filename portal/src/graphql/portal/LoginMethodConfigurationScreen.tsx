@@ -17,6 +17,7 @@ import {
   PivotItem,
   // eslint-disable-next-line no-restricted-imports
   ActionButton,
+  IToggleProps,
 } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
@@ -401,6 +402,7 @@ interface ConfigFormState {
   authenticatorOOBSMSConfig: AuthenticatorOOBSMSConfig;
   authenticatorPasswordConfig: AuthenticatorPasswordConfig;
   forgotPasswordConfig: ForgotPasswordConfig;
+  passkeyChecked: boolean;
 }
 
 interface FeatureConfigFormState {
@@ -712,6 +714,9 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     config.authentication?.primary_authenticators ?? [];
   const loginIDKeyConfigs = config.identity?.login_id?.keys ?? [];
 
+  const passkeyIndex =
+    config.authentication?.primary_authenticators?.indexOf("passkey");
+
   const state = {
     identitiesControl: controlListOf(
       (a, b) => a === b,
@@ -775,9 +780,30 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     forgotPasswordConfig: {
       ...config.forgot_password,
     },
+    passkeyChecked: passkeyIndex != null && passkeyIndex >= 0,
   };
   correctInitialFormState(state);
   return state;
+}
+
+function setEnable<T extends string>(
+  arr: T[],
+  value: T,
+  enabled: boolean
+): T[] {
+  const index = arr.indexOf(value);
+
+  if (enabled) {
+    if (index >= 0) {
+      return arr;
+    }
+    return [...arr, value];
+  }
+
+  if (index < 0) {
+    return arr;
+  }
+  return [...arr.slice(0, index), ...arr.slice(index + 1)];
 }
 
 function constructConfig(
@@ -786,6 +812,7 @@ function constructConfig(
   currentState: ConfigFormState,
   effectiveConfig: PortalAPIAppConfig
 ): PortalAPIAppConfig {
+  // eslint-disable-next-line complexity
   return produce(config, (config) => {
     config.authentication ??= {};
     config.identity ??= {};
@@ -805,6 +832,30 @@ function constructConfig(
       currentState.primaryAuthenticatorsControl,
       effectiveConfig.authentication?.primary_authenticators ?? []
     );
+    if (currentState.passkeyChecked) {
+      config.authentication.primary_authenticators = setEnable(
+        config.authentication.primary_authenticators,
+        "passkey",
+        true
+      );
+      config.authentication.identities = setEnable(
+        config.authentication.identities,
+        "passkey",
+        true
+      );
+    } else {
+      config.authentication.primary_authenticators = setEnable(
+        config.authentication.primary_authenticators,
+        "passkey",
+        false
+      );
+      config.authentication.identities = setEnable(
+        config.authentication.identities,
+        "passkey",
+        false
+      );
+    }
+
     config.identity.login_id.keys = controlListUnwrap(
       currentState.loginIDKeyConfigsControl
     );
@@ -914,11 +965,11 @@ function LoginMethodIcon(props: LoginMethodIconProps) {
 
 interface ChosenLoginMethodProps {
   loginMethod: LoginMethod;
-  passkeyEnabled: boolean;
+  passkeyChecked: boolean;
 }
 
 function ChosenLoginMethod(props: ChosenLoginMethodProps) {
-  const { loginMethod, passkeyEnabled } = props;
+  const { loginMethod, passkeyChecked } = props;
   const variant = useMemo(() => {
     return loginMethodToFirstLevelOption(loginMethod);
   }, [loginMethod]);
@@ -928,7 +979,7 @@ function ChosenLoginMethod(props: ChosenLoginMethodProps) {
         <LoginMethodIcon size="48px" variant={variant} checked={true} />
         <div
           className={
-            passkeyEnabled
+            passkeyChecked
               ? styles.chosenLoginMethodTitleDescription
               : styles.chosenLoginMethodTitleOnly
           }
@@ -945,7 +996,7 @@ function ChosenLoginMethod(props: ChosenLoginMethodProps) {
               }
             />
           </Text>
-          {passkeyEnabled ? (
+          {passkeyChecked ? (
             <Text variant="medium" block={true}>
               <FormattedMessage id="LoginMethodConfigurationScreen.with-passkey" />
             </Text>
@@ -1103,13 +1154,21 @@ function AuthenticationButton(props: AuthenticationButtonProps) {
 interface LoginMethodChooserProps {
   loginMethod: LoginMethod;
   phoneLoginIDDisabled: boolean;
+  passkeyChecked: boolean;
   appID: string;
   onChangeLoginMethod: (loginMethod: LoginMethod) => void;
+  onChangePasskeyChecked?: IToggleProps["onChange"];
 }
 
 function LoginMethodChooser(props: LoginMethodChooserProps) {
-  const { loginMethod, phoneLoginIDDisabled, appID, onChangeLoginMethod } =
-    props;
+  const {
+    loginMethod,
+    phoneLoginIDDisabled,
+    appID,
+    onChangeLoginMethod,
+    passkeyChecked,
+    onChangePasskeyChecked,
+  } = props;
   const disabled = phoneLoginIDDisabled;
 
   const firstLevelOption = useMemo(
@@ -1250,7 +1309,18 @@ function LoginMethodChooser(props: LoginMethodChooserProps) {
           </div>
         </>
       ) : null}
-      {loginMethod === "oauth" ? <LinkToOAuth appID={appID} /> : null}
+      {loginMethod === "oauth" ? (
+        <LinkToOAuth appID={appID} />
+      ) : (
+        <Toggle
+          inlineLabel={true}
+          label={
+            <FormattedMessage id="LoginMethodConfigurationScreen.passkey.title" />
+          }
+          checked={passkeyChecked}
+          onChange={onChangePasskeyChecked}
+        />
+      )}
     </Widget>
   );
 }
@@ -2175,6 +2245,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       authenticatorOOBSMSConfig,
       authenticatorPasswordConfig,
       forgotPasswordConfig,
+      passkeyChecked,
 
       phoneLoginIDDisabled,
       passwordPolicyFeatureConfig,
@@ -2225,6 +2296,20 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
         setState((prev) =>
           produce(prev, (prev) => {
             setLoginMethodToFormState(prev, loginMethod);
+          })
+        );
+      },
+      [setState]
+    );
+
+    const onChangePasskeyChecked = useCallback(
+      (_e, checked) => {
+        if (checked == null) {
+          return;
+        }
+        setState((prev) =>
+          produce(prev, (prev) => {
+            prev.passkeyChecked = checked;
           })
         );
       },
@@ -2299,11 +2384,15 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
         <ScreenTitle className={styles.widget}>
           <FormattedMessage id="LoginMethodConfigurationScreen.title" />
         </ScreenTitle>
-        {/* FIXME: set passkeyEnabled */}
-        <ChosenLoginMethod loginMethod={loginMethod} passkeyEnabled={false} />
+        <ChosenLoginMethod
+          loginMethod={loginMethod}
+          passkeyChecked={passkeyChecked}
+        />
         <LoginMethodChooser
           loginMethod={loginMethod}
           phoneLoginIDDisabled={phoneLoginIDDisabled}
+          passkeyChecked={passkeyChecked}
+          onChangePasskeyChecked={onChangePasskeyChecked}
           appID={appID}
           onChangeLoginMethod={onChangeLoginMethod}
         />
