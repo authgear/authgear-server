@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import produce from "immer";
-import { Checkbox } from "@fluentui/react";
+import { Checkbox, MessageBar, MessageBarType, Text } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import Widget from "../../Widget";
 import WidgetWithOrdering from "../../WidgetWithOrdering";
@@ -340,6 +340,7 @@ interface LoginIDTypeEditProps {
   swapPosition: (index1: number, index2: number) => void;
   featureDisabled: boolean;
   isEnabled: boolean;
+  disabled?: boolean;
   children?: React.ReactNode;
 }
 
@@ -352,6 +353,7 @@ const LoginIDTypeEdit: React.VFC<LoginIDTypeEditProps> =
       swapPosition,
       featureDisabled,
       isEnabled,
+      disabled = false,
     } = props;
 
     const onToggleIsEnabled = useCallback(
@@ -374,10 +376,10 @@ const LoginIDTypeEdit: React.VFC<LoginIDTypeEditProps> =
           styles={switchStyle}
           checked={isEnabled}
           onChange={onToggleIsEnabled}
-          disabled={featureDisabled}
+          disabled={featureDisabled || disabled}
         />
       ),
-      [titleId, isEnabled, onToggleIsEnabled, featureDisabled]
+      [titleId, isEnabled, onToggleIsEnabled, featureDisabled, disabled]
     );
 
     const widgetMessageHeader = useMemo(
@@ -391,7 +393,7 @@ const LoginIDTypeEdit: React.VFC<LoginIDTypeEditProps> =
     return (
       <WidgetWithOrdering
         className={styles.widget}
-        disabled={!isEnabled || featureDisabled}
+        disabled={!isEnabled || featureDisabled || disabled}
         index={index}
         itemCount={loginIDKeyTypes.length}
         onSwapClicked={swapPosition}
@@ -405,11 +407,13 @@ const LoginIDTypeEdit: React.VFC<LoginIDTypeEditProps> =
 
 interface AuthenticationLoginIDSettingsContentProps {
   form: FormModel;
+  disabled?: boolean;
 }
 
 const AuthenticationLoginIDSettingsContent: React.VFC<AuthenticationLoginIDSettingsContentProps> =
   // eslint-disable-next-line complexity
   function AuthenticationLoginIDSettingsContent(props) {
+    const { disabled = false } = props;
     const { state, setState } = props.form;
 
     const emailIsEnabled =
@@ -914,6 +918,7 @@ const AuthenticationLoginIDSettingsContent: React.VFC<AuthenticationLoginIDSetti
             toggleLoginIDType={toggleLoginIDType}
             swapPosition={swapPosition}
             isEnabled={isEnabled}
+            disabled={disabled}
             featureDisabled={Boolean(
               type === "phone" && state.loginIDPhoneDisabled
             )}
@@ -926,6 +931,7 @@ const AuthenticationLoginIDSettingsContent: React.VFC<AuthenticationLoginIDSetti
   };
 
 const LoginIDConfigurationScreen: React.VFC =
+  // eslint-disable-next-line complexity
   function LoginIDConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
 
@@ -965,6 +971,13 @@ const LoginIDConfigurationScreen: React.VFC =
           ?.disabled,
       ]
     );
+
+    const isSIWEEnabled = useMemo(() => {
+      return (
+        config.effectiveConfig.authentication?.identities?.includes("siwe") ??
+        false
+      );
+    }, [config.effectiveConfig.authentication?.identities]);
 
     const form: FormModel = {
       isLoading:
@@ -1009,7 +1022,20 @@ const LoginIDConfigurationScreen: React.VFC =
 
     return (
       <FormContainer form={form} errorRules={errorRules}>
-        <AuthenticationLoginIDSettingsContent form={form} />
+        {isSIWEEnabled ? (
+          <MessageBar
+            messageBarType={MessageBarType.warning}
+            className={styles.widget}
+          >
+            <Text>
+              <FormattedMessage id="LoginIDConfigurationScreen.siwe-enabled-warning.description" />
+            </Text>
+          </MessageBar>
+        ) : null}
+        <AuthenticationLoginIDSettingsContent
+          form={form}
+          disabled={isSIWEEnabled}
+        />
       </FormContainer>
     );
   };

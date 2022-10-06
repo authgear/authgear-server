@@ -20,6 +20,7 @@ import FormContainer from "../../FormContainer";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import styles from "./BiometricConfigurationScreen.module.css";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
+import { MessageBar, MessageBarType, Text } from "@fluentui/react";
 
 interface FormState {
   enabled: boolean;
@@ -67,13 +68,14 @@ function constructConfig(
 interface BiometricConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
   identityFeatureConfig?: IdentityFeatureConfig;
+  disabled?: boolean;
 }
 
 const BiometricConfigurationContent: React.VFC<BiometricConfigurationContentProps> =
   function BiometricConfigurationContent(props) {
     const { state, setState } = props.form;
 
-    const { identityFeatureConfig } = props;
+    const { identityFeatureConfig, disabled = false } = props;
 
     const { renderToString } = useContext(Context);
 
@@ -115,14 +117,14 @@ const BiometricConfigurationContent: React.VFC<BiometricConfigurationContentProp
             <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
           ) : null}
           <Toggle
-            disabled={biometricDisabled}
+            disabled={biometricDisabled || disabled}
             checked={state.enabled}
             onChange={onEnableChange}
             label={renderToString("BiometricConfigurationScreen.enable.label")}
             inlineLabel={true}
           />
           <Toggle
-            disabled={!state.enabled || biometricDisabled}
+            disabled={!state.enabled || biometricDisabled || disabled}
             checked={state.list_enabled ?? false}
             onChange={onListEnabledChange}
             label={renderToString(
@@ -146,6 +148,13 @@ const BiometricConfigurationScreen: React.VFC =
 
     const featureConfig = useAppFeatureConfigQuery(appID);
 
+    const isSIWEEnabled = useMemo(() => {
+      return (
+        form.effectiveConfig.authentication?.identities?.includes("siwe") ??
+        false
+      );
+    }, [form.effectiveConfig]);
+
     if (form.isLoading || featureConfig.loading) {
       return <ShowLoading />;
     }
@@ -165,9 +174,20 @@ const BiometricConfigurationScreen: React.VFC =
 
     return (
       <FormContainer form={form}>
+        {isSIWEEnabled ? (
+          <MessageBar
+            messageBarType={MessageBarType.warning}
+            className={styles.widget}
+          >
+            <Text>
+              <FormattedMessage id="BiometricConfigurationScreen.siwe-enabled-warning.description" />
+            </Text>
+          </MessageBar>
+        ) : null}
         <BiometricConfigurationContent
           form={form}
           identityFeatureConfig={featureConfig.effectiveFeatureConfig?.identity}
+          disabled={isSIWEEnabled}
         />
       </FormContainer>
     );

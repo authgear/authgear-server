@@ -14,6 +14,8 @@ import {
   DetailsHeader,
   IRenderFunction,
   IDetailsColumnRenderTooltipProps,
+  MessageBar,
+  MessageBarType,
 } from "@fluentui/react";
 import {
   isPromotionConflictBehaviour,
@@ -336,11 +338,13 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
 
 interface AnonymousUserConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
+  disabled?: boolean;
 }
 
 const AnonymousUserConfigurationContent: React.VFC<AnonymousUserConfigurationContentProps> =
   function AnonymousUserConfigurationContent(props) {
     const { state, setState } = props.form;
+    const { disabled = false } = props;
 
     const { renderToString } = useContext(Context);
 
@@ -393,6 +397,7 @@ const AnonymousUserConfigurationContent: React.VFC<AnonymousUserConfigurationCon
           </WidgetTitle>
           <Toggle
             checked={state.enabled}
+            disabled={disabled}
             onChange={onEnableChange}
             label={renderToString(
               "AnonymousUsersConfigurationScreen.enable.label"
@@ -424,6 +429,13 @@ const AnonymousUserConfigurationScreen: React.VFC =
       constructConfig,
     });
 
+    const isSIWEEnabled = useMemo(() => {
+      return (
+        form.effectiveConfig.authentication?.identities?.includes("siwe") ??
+        false
+      );
+    }, [form.effectiveConfig]);
+
     if (form.isLoading) {
       return <ShowLoading />;
     }
@@ -434,7 +446,20 @@ const AnonymousUserConfigurationScreen: React.VFC =
 
     return (
       <FormContainer form={form}>
-        <AnonymousUserConfigurationContent form={form} />
+        {isSIWEEnabled ? (
+          <MessageBar
+            messageBarType={MessageBarType.warning}
+            className={styles.widget}
+          >
+            <Text>
+              <FormattedMessage id="AnonymousUsersConfigurationScreen.siwe-enabled-warning.description" />
+            </Text>
+          </MessageBar>
+        ) : null}
+        <AnonymousUserConfigurationContent
+          form={form}
+          disabled={isSIWEEnabled}
+        />
       </FormContainer>
     );
   };

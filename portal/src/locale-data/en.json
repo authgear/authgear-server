@@ -320,6 +320,7 @@
   "LoginIDConfigurationScreen.phone.columns.order": "Order",
   "LoginIDConfigurationScreen.phone.columns.pinned": "Pinned for Selection",
   "LoginIDConfigurationScreen.phone.default-order": "Default (ascending)",
+  "LoginIDConfigurationScreen.siwe-enabled-warning.description": "To use this feature, please disable Sign in With Ethereum.",
 
   "calling-code-area.gmss": "Global Mobile Satellite System",
   "calling-code-area.international": "International Networks",
@@ -423,6 +424,7 @@
   "AnonymousUsersConfigurationScreen.user-lifetime.applications-list.tooltip.refresh-token-idle-timeout": "Users will be logged out after Idle Timeout",
   "AnonymousUsersConfigurationScreen.user-lifetime.applications-list.tooltip.refresh-token-lifetime": "Users will be logged out after Lifetime regardless of their activity",
   "AnonymousUsersConfigurationScreen.user-lifetime.go-to-applications.description": "Change the timeout settings in the {ReactRouterLink, react, to{{applicationsPath}} children{Applications}} page.",
+  "AnonymousUsersConfigurationScreen.siwe-enabled-warning.description": "To use this feature, please disable Sign in With Ethereum.",
 
   "AnonymousIdentityConflictBehaviour.login": "Proceed to Login",
   "AnonymousIdentityConflictBehaviour.error": "Show Error",
@@ -431,6 +433,7 @@
   "BiometricConfigurationScreen.description": "Enable or disable biometric authentication for mobile apps. Enable biometric authentication allows existing user using fingerprint or face recognition to login on iOS and Android devices.",
   "BiometricConfigurationScreen.enable.label": "Enable biometric authentication",
   "BiometricConfigurationScreen.list-enabled.label": "Show biometric logins list in setting page",
+  "BiometricConfigurationScreen.siwe-enabled-warning.description": "To use this feature, please disable Sign in With Ethereum.",
 
   "SingleSignOnConfigurationScreen.title": "Social / Enterprise Login",
   "SingleSignOnConfigurationScreen.description": "Add social or enterprise identity providers to enable frictionless sign-in for your users. Read the {DocLink, react, href{} children{integration guide}} if you need help.",
