@@ -36,6 +36,7 @@ import { useDropdown } from "../../hook/useInput";
 import WidgetDescription from "../../WidgetDescription";
 import FormTextField from "../../FormTextField";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
+import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 import PriorityList, { PriorityListItem } from "../../PriorityList";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
@@ -370,97 +371,99 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
         <ScreenTitle className={styles.widget}>
           <FormattedMessage id="MFAConfigurationScreen.title" />
         </ScreenTitle>
-        <ScreenDescription className={styles.widget}>
-          <FormattedMessage id="MFAConfigurationScreen.description" />
-        </ScreenDescription>
-        <Widget className={styles.widget}>
-          <WidgetTitle>
-            <FormattedMessage id="MFAConfigurationScreen.policy.title" />
-          </WidgetTitle>
-          <Dropdown
-            label={renderToString("MFAConfigurationScreen.policy.mode.title")}
-            options={mfaModeOptions}
-            selectedKey={mfaMode}
-            onChange={onChangeMFAMode}
-          />
-          <Toggle
-            label={
-              <FormattedMessage id="MFAConfigurationScreen.policy.device-token.title" />
-            }
-            inlineLabel={false}
-            checked={deviceTokenEnabled}
-            onChange={onChangeDeviceTokenEnabled}
-          />
-        </Widget>
-        <Widget className={styles.widget}>
-          <WidgetTitle>
-            <FormattedMessage id="MFAConfigurationScreen.authenticator.title" />
-          </WidgetTitle>
-          <WidgetDescription>
-            <FormattedMessage id="MFAConfigurationScreen.authenticator.description" />
-          </WidgetDescription>
-          {featureDisabled ? (
-            <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
+        <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
+          <ScreenDescription className={styles.widget}>
+            <FormattedMessage id="MFAConfigurationScreen.description" />
+          </ScreenDescription>
+          <Widget className={styles.widget}>
+            <WidgetTitle>
+              <FormattedMessage id="MFAConfigurationScreen.policy.title" />
+            </WidgetTitle>
+            <Dropdown
+              label={renderToString("MFAConfigurationScreen.policy.mode.title")}
+              options={mfaModeOptions}
+              selectedKey={mfaMode}
+              onChange={onChangeMFAMode}
+            />
+            <Toggle
+              label={
+                <FormattedMessage id="MFAConfigurationScreen.policy.device-token.title" />
+              }
+              inlineLabel={false}
+              checked={deviceTokenEnabled}
+              onChange={onChangeDeviceTokenEnabled}
+            />
+          </Widget>
+          <Widget className={styles.widget}>
+            <WidgetTitle>
+              <FormattedMessage id="MFAConfigurationScreen.authenticator.title" />
+            </WidgetTitle>
+            <WidgetDescription>
+              <FormattedMessage id="MFAConfigurationScreen.authenticator.description" />
+            </WidgetDescription>
+            {featureDisabled ? (
+              <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
+            ) : null}
+            <PriorityList
+              items={secondaryItems}
+              checkedColumnLabel={renderToString(
+                "AuthenticatorConfigurationScreen.columns.activate"
+              )}
+              keyColumnLabel={renderToString(
+                "AuthenticatorConfigurationScreen.columns.authenticator"
+              )}
+              onChangeChecked={onChangeSecondaryAuthenticatorChecked}
+              onSwap={onSwapSecondaryAuthenticator}
+            />
+            <UnreasonableWarning primary={primary} secondary={secondary} />
+          </Widget>
+          {showPasswordSettings ? (
+            <PasswordSettings
+              className={styles.widget}
+              forgotPasswordConfig={forgotPasswordConfig}
+              authenticatorPasswordConfig={authenticatorPasswordConfig}
+              passwordPolicyFeatureConfig={
+                featureConfig?.authenticator?.password?.policy
+              }
+              setState={setState}
+            />
           ) : null}
-          <PriorityList
-            items={secondaryItems}
-            checkedColumnLabel={renderToString(
-              "AuthenticatorConfigurationScreen.columns.activate"
-            )}
-            keyColumnLabel={renderToString(
-              "AuthenticatorConfigurationScreen.columns.authenticator"
-            )}
-            onChangeChecked={onChangeSecondaryAuthenticatorChecked}
-            onSwap={onSwapSecondaryAuthenticator}
-          />
-          <UnreasonableWarning primary={primary} secondary={secondary} />
-        </Widget>
-        {showPasswordSettings ? (
-          <PasswordSettings
-            className={styles.widget}
-            forgotPasswordConfig={forgotPasswordConfig}
-            authenticatorPasswordConfig={authenticatorPasswordConfig}
-            passwordPolicyFeatureConfig={
-              featureConfig?.authenticator?.password?.policy
-            }
-            setState={setState}
-          />
-        ) : null}
-        <Widget className={styles.widget}>
-          <WidgetTitle>
-            <FormattedMessage id="MFAConfigurationScreen.recovery-code.title" />
-          </WidgetTitle>
-          <WidgetDescription>
-            <FormattedMessage id="MFAConfigurationScreen.recovery-code.description" />
-          </WidgetDescription>
-          <Toggle
-            label={
-              <FormattedMessage id="MFAConfigurationScreen.recovery-code.toggle.title" />
-            }
-            inlineLabel={false}
-            checked={recoveryCodeEnabled}
-            onChange={onChangeRecoveryCodeEnabled}
-          />
-          <FormTextField
-            disabled={!recoveryCodeEnabled}
-            parentJSONPointer="/authentication/recovery_code"
-            fieldName="count"
-            label={renderToString(
-              "MFAConfigurationScreen.recovery-code.input.title"
-            )}
-            value={numRecoveryCode?.toFixed(0) ?? ""}
-            onChange={onChangeNumRecoveryCode}
-          />
-          <Toggle
-            disabled={!recoveryCodeEnabled}
-            label={
-              <FormattedMessage id="MFAConfigurationScreen.recovery-code.list.toggle.title" />
-            }
-            inlineLabel={false}
-            checked={recoveryCodeListEnabled}
-            onChange={onChangeRecoveryCodeListEnabled}
-          />
-        </Widget>
+          <Widget className={styles.widget}>
+            <WidgetTitle>
+              <FormattedMessage id="MFAConfigurationScreen.recovery-code.title" />
+            </WidgetTitle>
+            <WidgetDescription>
+              <FormattedMessage id="MFAConfigurationScreen.recovery-code.description" />
+            </WidgetDescription>
+            <Toggle
+              label={
+                <FormattedMessage id="MFAConfigurationScreen.recovery-code.toggle.title" />
+              }
+              inlineLabel={false}
+              checked={recoveryCodeEnabled}
+              onChange={onChangeRecoveryCodeEnabled}
+            />
+            <FormTextField
+              disabled={!recoveryCodeEnabled}
+              parentJSONPointer="/authentication/recovery_code"
+              fieldName="count"
+              label={renderToString(
+                "MFAConfigurationScreen.recovery-code.input.title"
+              )}
+              value={numRecoveryCode?.toFixed(0) ?? ""}
+              onChange={onChangeNumRecoveryCode}
+            />
+            <Toggle
+              disabled={!recoveryCodeEnabled}
+              label={
+                <FormattedMessage id="MFAConfigurationScreen.recovery-code.list.toggle.title" />
+              }
+              inlineLabel={false}
+              checked={recoveryCodeListEnabled}
+              onChange={onChangeRecoveryCodeListEnabled}
+            />
+          </Widget>
+        </ShowOnlyIfSIWEIsDisabled>
       </ScreenContent>
     );
   };

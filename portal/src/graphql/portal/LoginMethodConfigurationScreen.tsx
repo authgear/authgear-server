@@ -80,6 +80,7 @@ import Toggle from "../../Toggle";
 import LabelWithTooltip from "../../LabelWithTooltip";
 import PhoneInputListWidget from "./PhoneInputListWidget";
 import PasswordSettings from "./PasswordSettings";
+import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 import { useTagPickerWithNewTags } from "../../hook/useInput";
 import { fixTagPickerStyles } from "../../bugs";
 import { useResourceForm } from "../../hook/useResourceForm";
@@ -2373,122 +2374,124 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
         <ScreenTitle className={styles.widget}>
           <FormattedMessage id="LoginMethodConfigurationScreen.title" />
         </ScreenTitle>
-        <ChosenLoginMethod
-          loginMethod={loginMethod}
-          passkeyChecked={passkeyChecked}
-        />
-        <LoginMethodChooser
-          loginMethod={loginMethod}
-          phoneLoginIDDisabled={phoneLoginIDDisabled}
-          passkeyChecked={passkeyChecked}
-          onChangePasskeyChecked={onChangePasskeyChecked}
-          appID={appID}
-          onChangeLoginMethod={onChangeLoginMethod}
-        />
-        {/* Pivot is intentionally uncontrolled */}
-        {/* It is because it is troublesome to keep track of the selected key */}
-        {/* And making it controlled does not bring any benefits */}
-        <Pivot
-          className={styles.widget}
-          styles={PIVOT_STYLES}
-          overflowBehavior="menu"
-        >
-          {loginMethod === "custom" ? (
-            <PivotItem
-              headerText={renderToString(
-                "LoginMethodConfigurationScreen.pivot.custom.title"
-              )}
-              itemKey="custom"
-            >
-              <CustomLoginMethods
-                phoneLoginIDDisabled={phoneLoginIDDisabled}
-                primaryAuthenticatorsControl={primaryAuthenticatorsControl}
-                loginIDKeyConfigsControl={loginIDKeyConfigsControl}
-                onChangeLoginIDChecked={onChangeLoginIDChecked}
-                onSwapLoginID={onSwapLoginID}
-                onChangePrimaryAuthenticatorChecked={
-                  onChangePrimaryAuthenticatorChecked
-                }
-                onSwapPrimaryAuthenticator={onSwapPrimaryAuthenticator}
-              />
-            </PivotItem>
-          ) : null}
-          {showEmailSettings ? (
-            <PivotItem
-              headerText={renderToString(
-                "LoginMethodConfigurationScreen.pivot.email.title"
-              )}
-              itemKey="email"
-            >
-              <EmailSettings
-                resources={resources}
-                loginIDKeyConfigsControl={loginIDKeyConfigsControl}
-                loginIDEmailConfig={loginIDEmailConfig}
-                setState={setState}
-              />
-            </PivotItem>
-          ) : null}
-          {showPhoneSettings ? (
-            <PivotItem
-              headerText={renderToString(
-                "LoginMethodConfigurationScreen.pivot.phone.title"
-              )}
-              itemKey="phone"
-            >
-              <PhoneSettings
-                loginIDKeyConfigsControl={loginIDKeyConfigsControl}
-                phoneInputConfig={phoneInputConfig}
-                setState={setState}
-              />
-            </PivotItem>
-          ) : null}
-          {showUsernameSettings ? (
-            <PivotItem
-              headerText={renderToString(
-                "LoginMethodConfigurationScreen.pivot.username.title"
-              )}
-              itemKey="username"
-            >
-              <UsernameSettings
-                resources={resources}
-                loginIDKeyConfigsControl={loginIDKeyConfigsControl}
-                loginIDUsernameConfig={loginIDUsernameConfig}
-                setState={setState}
-              />
-            </PivotItem>
-          ) : null}
-          {showVerificationSettings ? (
-            <PivotItem
-              headerText={renderToString(
-                "LoginMethodConfigurationScreen.pivot.verification.title"
-              )}
-              itemKey="verification"
-            >
-              <VerificationSettings
-                showEmailSettings={showEmailSettings}
-                showPhoneSettings={showPhoneSettings}
-                verificationConfig={verificationConfig}
-                authenticatorOOBSMSConfig={authenticatorOOBSMSConfig}
-                setState={setState}
-              />
-            </PivotItem>
-          ) : null}
-          {showPasswordSettings ? (
-            <PivotItem
-              headerText={renderToString(
-                "LoginMethodConfigurationScreen.password.title"
-              )}
-              itemKey="password"
-            >
-              <PasswordSettings
-                forgotPasswordConfig={forgotPasswordConfig}
-                authenticatorPasswordConfig={authenticatorPasswordConfig}
-                passwordPolicyFeatureConfig={passwordPolicyFeatureConfig}
-                setState={setState}
-              />
-            </PivotItem>
-          ) : null}
-        </Pivot>
+        <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
+          <ChosenLoginMethod
+            loginMethod={loginMethod}
+            passkeyChecked={passkeyChecked}
+          />
+          <LoginMethodChooser
+            loginMethod={loginMethod}
+            phoneLoginIDDisabled={phoneLoginIDDisabled}
+            passkeyChecked={passkeyChecked}
+            onChangePasskeyChecked={onChangePasskeyChecked}
+            appID={appID}
+            onChangeLoginMethod={onChangeLoginMethod}
+          />
+          {/* Pivot is intentionally uncontrolled */}
+          {/* It is because it is troublesome to keep track of the selected key */}
+          {/* And making it controlled does not bring any benefits */}
+          <Pivot
+            className={styles.widget}
+            styles={PIVOT_STYLES}
+            overflowBehavior="menu"
+          >
+            {loginMethod === "custom" ? (
+              <PivotItem
+                headerText={renderToString(
+                  "LoginMethodConfigurationScreen.pivot.custom.title"
+                )}
+                itemKey="custom"
+              >
+                <CustomLoginMethods
+                  phoneLoginIDDisabled={phoneLoginIDDisabled}
+                  primaryAuthenticatorsControl={primaryAuthenticatorsControl}
+                  loginIDKeyConfigsControl={loginIDKeyConfigsControl}
+                  onChangeLoginIDChecked={onChangeLoginIDChecked}
+                  onSwapLoginID={onSwapLoginID}
+                  onChangePrimaryAuthenticatorChecked={
+                    onChangePrimaryAuthenticatorChecked
+                  }
+                  onSwapPrimaryAuthenticator={onSwapPrimaryAuthenticator}
+                />
+              </PivotItem>
+            ) : null}
+            {showEmailSettings ? (
+              <PivotItem
+                headerText={renderToString(
+                  "LoginMethodConfigurationScreen.pivot.email.title"
+                )}
+                itemKey="email"
+              >
+                <EmailSettings
+                  resources={resources}
+                  loginIDKeyConfigsControl={loginIDKeyConfigsControl}
+                  loginIDEmailConfig={loginIDEmailConfig}
+                  setState={setState}
+                />
+              </PivotItem>
+            ) : null}
+            {showPhoneSettings ? (
+              <PivotItem
+                headerText={renderToString(
+                  "LoginMethodConfigurationScreen.pivot.phone.title"
+                )}
+                itemKey="phone"
+              >
+                <PhoneSettings
+                  loginIDKeyConfigsControl={loginIDKeyConfigsControl}
+                  phoneInputConfig={phoneInputConfig}
+                  setState={setState}
+                />
+              </PivotItem>
+            ) : null}
+            {showUsernameSettings ? (
+              <PivotItem
+                headerText={renderToString(
+                  "LoginMethodConfigurationScreen.pivot.username.title"
+                )}
+                itemKey="username"
+              >
+                <UsernameSettings
+                  resources={resources}
+                  loginIDKeyConfigsControl={loginIDKeyConfigsControl}
+                  loginIDUsernameConfig={loginIDUsernameConfig}
+                  setState={setState}
+                />
+              </PivotItem>
+            ) : null}
+            {showVerificationSettings ? (
+              <PivotItem
+                headerText={renderToString(
+                  "LoginMethodConfigurationScreen.pivot.verification.title"
+                )}
+                itemKey="verification"
+              >
+                <VerificationSettings
+                  showEmailSettings={showEmailSettings}
+                  showPhoneSettings={showPhoneSettings}
+                  verificationConfig={verificationConfig}
+                  authenticatorOOBSMSConfig={authenticatorOOBSMSConfig}
+                  setState={setState}
+                />
+              </PivotItem>
+            ) : null}
+            {showPasswordSettings ? (
+              <PivotItem
+                headerText={renderToString(
+                  "LoginMethodConfigurationScreen.password.title"
+                )}
+                itemKey="password"
+              >
+                <PasswordSettings
+                  forgotPasswordConfig={forgotPasswordConfig}
+                  authenticatorPasswordConfig={authenticatorPasswordConfig}
+                  passwordPolicyFeatureConfig={passwordPolicyFeatureConfig}
+                  setState={setState}
+                />
+              </PivotItem>
+            ) : null}
+          </Pivot>
+        </ShowOnlyIfSIWEIsDisabled>
       </ScreenContent>
     );
   };
