@@ -37,6 +37,7 @@ import {
 import FormContainer from "../../FormContainer";
 import Tooltip from "../../Tooltip";
 import Toggle from "../../Toggle";
+import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 import styles from "./AnonymousUsersConfigurationScreen.module.css";
 
 const dropDownStyles = {
@@ -384,33 +385,35 @@ const AnonymousUserConfigurationContent: React.VFC<AnonymousUserConfigurationCon
         <ScreenTitle className={styles.widget}>
           <FormattedMessage id="AnonymousUsersConfigurationScreen.title" />
         </ScreenTitle>
-        <ScreenDescription className={styles.widget}>
-          <FormattedMessage id="AnonymousUsersConfigurationScreen.description" />
-        </ScreenDescription>
-        <Widget className={styles.widget}>
-          <WidgetTitle>
-            <FormattedMessage id="AnonymousUsersConfigurationScreen.title" />
-          </WidgetTitle>
-          <Toggle
-            checked={state.enabled}
-            onChange={onEnableChange}
-            label={renderToString(
-              "AnonymousUsersConfigurationScreen.enable.label"
-            )}
-            inlineLabel={false}
-          />
-          <Dropdown
-            styles={dropDownStyles}
-            label={renderToString(
-              "AnonymousUsersConfigurationScreen.conflict-droplist.label"
-            )}
-            disabled={!state.enabled}
-            options={conflictBehaviourOptions}
-            selectedKey={state.promotionConflictBehaviour}
-            onChange={onConflictOptionChange}
-          />
-        </Widget>
-        <AnonymousUserLifeTimeDescription form={props.form} />
+        <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
+          <ScreenDescription className={styles.widget}>
+            <FormattedMessage id="AnonymousUsersConfigurationScreen.description" />
+          </ScreenDescription>
+          <Widget className={styles.widget}>
+            <WidgetTitle>
+              <FormattedMessage id="AnonymousUsersConfigurationScreen.title" />
+            </WidgetTitle>
+            <Toggle
+              checked={state.enabled}
+              onChange={onEnableChange}
+              label={renderToString(
+                "AnonymousUsersConfigurationScreen.enable.label"
+              )}
+              inlineLabel={false}
+            />
+            <Dropdown
+              styles={dropDownStyles}
+              label={renderToString(
+                "AnonymousUsersConfigurationScreen.conflict-droplist.label"
+              )}
+              disabled={!state.enabled}
+              options={conflictBehaviourOptions}
+              selectedKey={state.promotionConflictBehaviour}
+              onChange={onConflictOptionChange}
+            />
+          </Widget>
+          <AnonymousUserLifeTimeDescription form={props.form} />
+        </ShowOnlyIfSIWEIsDisabled>
       </ScreenContent>
     );
   };

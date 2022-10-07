@@ -10,6 +10,7 @@ import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import ScreenDescription from "../../ScreenDescription";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
+import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 import { clearEmptyObject } from "../../util/misc";
 import FormContainer from "../../FormContainer";
 import {
@@ -311,34 +312,36 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
         <ScreenTitle className={styles.widget}>
           <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
         </ScreenTitle>
-        <ScreenDescription className={styles.widget}>
-          <Text className={styles.description} block={true}>
-            <FormattedMessage id="SingleSignOnConfigurationScreen.description" />
-          </Text>
-          {oauthClientsMaximum < 99 ? (
-            <FeatureDisabledMessageBar
-              messageID="FeatureConfig.sso.maximum"
-              messageValues={{
-                maximum: oauthClientsMaximum,
-              }}
+        <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
+          <ScreenDescription className={styles.widget}>
+            <Text className={styles.description} block={true}>
+              <FormattedMessage id="SingleSignOnConfigurationScreen.description" />
+            </Text>
+            {oauthClientsMaximum < 99 ? (
+              <FeatureDisabledMessageBar
+                messageID="FeatureConfig.sso.maximum"
+                messageValues={{
+                  maximum: oauthClientsMaximum,
+                }}
+              />
+            ) : null}
+          </ScreenDescription>
+          {oauthSSOProviderItemKeys.map((providerItemKey) => (
+            <OAuthClientItem
+              key={providerItemKey}
+              providerItemKey={providerItemKey}
+              form={props.form}
+              oauthSSOFeatureConfig={props.oauthSSOFeatureConfig}
+              limitReached={limitReached}
             />
-          ) : null}
-        </ScreenDescription>
-        {oauthSSOProviderItemKeys.map((providerItemKey) => (
-          <OAuthClientItem
-            key={providerItemKey}
-            providerItemKey={providerItemKey}
-            form={props.form}
-            oauthSSOFeatureConfig={props.oauthSSOFeatureConfig}
-            limitReached={limitReached}
-          />
-        ))}
-        <MessageBar
-          messageBarType={MessageBarType.info}
-          className={styles.widget}
-        >
-          <FormattedMessage id="SingleSignOnConfigurationScreen.whatsapp-otp-doc.message" />
-        </MessageBar>
+          ))}
+          <MessageBar
+            messageBarType={MessageBarType.info}
+            className={styles.widget}
+          >
+            <FormattedMessage id="SingleSignOnConfigurationScreen.whatsapp-otp-doc.message" />
+          </MessageBar>
+        </ShowOnlyIfSIWEIsDisabled>
       </ScreenContent>
     );
   };
