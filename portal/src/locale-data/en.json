@@ -374,6 +374,8 @@
   "Web3ConfigurationScreen.deletion-dialog.title": "Remove collection",
   "Web3ConfigurationScreen.deletion-dialog.description": "Are you sure you want to remove {collection} from your project?",
 
+  "SIWE.disable-first": "Your project has enabled Sign in with Ethereum. Disable it{ReactRouterLink, react, to{{href}} children{here}} beforing choosing other login methods.",
+
   "VerificationConfigurationScreen.code-expiry-seconds.label": "Verification code valid duration (seconds)",
   "VerificationConfigurationScreen.criteria.label": "{code, react, children{isVerified}} is true when ...",
   "VerificationConfigurationScreen.criteria.tooltip": "More info in the {DocLink, react, href{https://docs.authgear.com/integrate/user-profile#userinfo-endpoint} children{UserInfo endpoint}}",
