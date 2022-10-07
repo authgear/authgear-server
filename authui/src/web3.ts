@@ -236,6 +236,9 @@ export class WalletConfirmationController extends Controller {
       return;
     }
 
+    // Ensure at least one account is connected if user has rejected the initial request
+    await this._getAccount();
+
     try {
       const nonceResp = await axios("/siwe/nonce", {
         method: "get",
