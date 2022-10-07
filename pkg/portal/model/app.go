@@ -62,7 +62,7 @@ type SecretConfig struct {
 	OAuthClientSecrets            []OAuthClientSecret            `json:"oauthClientSecrets,omitempty"`
 }
 
-func NewSecretConfig(secretConfig *config.SecretConfig, unmasked bool) (*SecretConfig, error) {
+func NewSecretConfig(secretConfig *config.SecretConfig, unmasked bool, now time.Time) (*SecretConfig, error) {
 	out := &SecretConfig{}
 
 	if oauthSSOProviderCredentials, ok := secretConfig.LookupData(config.OAuthSSOProviderCredentialsKey).(*config.OAuthSSOProviderCredentials); ok {
@@ -148,11 +148,14 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmasked bool) (*SecretC
 
 			for i := 0; i < item.Set.Len(); i++ {
 				if jwkKey, ok := item.Set.Get(i); ok {
+					newlyCreated := false
 					var createdAt *time.Time
 					if anyCreatedAt, ok := jwkKey.Get("created_at"); ok {
 						if fCreatedAt, ok := anyCreatedAt.(float64); ok {
 							t := time.Unix(int64(fCreatedAt), 0).UTC()
 							createdAt = &t
+							elapsed := now.Sub(*createdAt)
+							newlyCreated = elapsed < 5*time.Minute
 						}
 					}
 					var bytes []byte
@@ -161,9 +164,14 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmasked bool) (*SecretC
 						return nil, err
 					}
 
+					clientSecret := ""
+					if unmasked || newlyCreated {
+						clientSecret = string(bytes)
+					}
+
 					keys = append(keys, OAuthClientSecretKey{
 						KeyID:     jwkKey.KeyID(),
-						Key:       string(bytes),
+						Key:       clientSecret,
 						CreatedAt: createdAt,
 					})
 				}
