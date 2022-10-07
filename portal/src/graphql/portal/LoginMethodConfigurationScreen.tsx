@@ -895,24 +895,17 @@ interface LoginMethodIconProps {
   size: "60px" | "48px";
   variant: LoginMethodFirstLevelOption;
   checked?: boolean;
-  disabled?: boolean;
 }
 
 function LoginMethodIcon(props: LoginMethodIconProps) {
-  const { className, size, variant, checked, disabled } = props;
+  const { className, size, variant, checked } = props;
   const theme = useTheme();
   const iconName = LOGIN_METHOD_ICON[variant];
 
   const backgroundColor = checked
     ? theme.palette.themePrimary
-    : disabled
-    ? theme.palette.neutralLighter
     : theme.palette.neutralLight;
-  const color = checked
-    ? theme.palette.white
-    : disabled
-    ? theme.palette.neutralTertiaryAlt
-    : theme.palette.neutralTertiary;
+  const color = checked ? theme.palette.white : theme.palette.neutralTertiary;
 
   if (iconName === "mixed") {
     return (
@@ -1020,14 +1013,9 @@ function LoginMethodButton(props: LoginMethodButtonProps) {
 
   const onRenderIcon = useCallback(() => {
     return (
-      <LoginMethodIcon
-        variant={targetValue}
-        size="60px"
-        checked={checked}
-        disabled={disabled}
-      />
+      <LoginMethodIcon variant={targetValue} size="60px" checked={checked} />
     );
-  }, [targetValue, checked, disabled]);
+  }, [targetValue, checked]);
 
   const onClick = useCallback(
     (e) => {
@@ -1045,6 +1033,7 @@ function LoginMethodButton(props: LoginMethodButtonProps) {
       styles={{
         root: {
           height: "auto",
+          opacity: disabled === true ? "0.5" : undefined,
         },
         flexContainer: {
           flexDirection: "column",
