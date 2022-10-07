@@ -396,14 +396,14 @@ export type MutationWatchNftCollectionsArgs = {
 /** Web3 NFT Collection */
 export type NftCollection = {
   __typename?: 'NFTCollection';
-  blockHeight: Scalars['Int'];
+  blockHeight: Scalars['String'];
   blockchain: Scalars['String'];
   contractAddress: Scalars['String'];
   createdAt: Scalars['DateTime'];
   name: Scalars['String'];
   network: Scalars['String'];
   tokenType: Scalars['String'];
-  totalSupply: Scalars['Int'];
+  totalSupply?: Maybe<Scalars['String']>;
 };
 
 /** Web3 NFT ContractMetadata */
@@ -413,7 +413,7 @@ export type NftContractMetadata = {
   name: Scalars['String'];
   symbol: Scalars['String'];
   tokenType: Scalars['String'];
-  totalSupply: Scalars['String'];
+  totalSupply?: Maybe<Scalars['String']>;
 };
 
 /** An object with an ID */

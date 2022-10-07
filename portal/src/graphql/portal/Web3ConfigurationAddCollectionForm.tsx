@@ -94,9 +94,9 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionFormProps> =
           network: contractId.network,
           contractAddress: metadata.address,
           name: metadata.name,
-          blockHeight: 0,
+          blockHeight: "0",
           createdAt: DateTime.now().toISO(),
-          totalSupply: parseInt(metadata.totalSupply, 10),
+          totalSupply: metadata.totalSupply,
           tokenType: metadata.tokenType,
           status: "pending",
         });

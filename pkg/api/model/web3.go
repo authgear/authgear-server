@@ -70,18 +70,18 @@ type NFTCollection struct {
 	Blockchain      string    `json:"blockchain"`
 	Network         string    `json:"network"`
 	Name            string    `json:"name"`
-	BlockHeight     int       `json:"block_height"`
+	BlockHeight     big.Int   `json:"block_height"`
 	ContractAddress string    `json:"contract_address"`
-	TotalSupply     int       `json:"total_supply"`
+	TotalSupply     *big.Int  `json:"total_supply"`
 	TokenType       string    `json:"type"`
 	CreatedAt       time.Time `json:"created_at"`
 }
 
 type ContractMetadataMetadata struct {
-	Name        string `json:"name"`
-	Symbol      string `json:"symbol"`
-	TotalSupply string `json:"total_supply"`
-	TokenType   string `json:"token_type"`
+	Name        string  `json:"name"`
+	Symbol      string  `json:"symbol"`
+	TotalSupply *string `json:"total_supply"`
+	TokenType   string  `json:"token_type"`
 }
 
 type WatchCollectionRequest struct {

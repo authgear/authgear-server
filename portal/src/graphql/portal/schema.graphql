@@ -409,7 +409,7 @@ type Mutation {
 """Web3 NFT Collection"""
 type NFTCollection {
   """"""
-  blockHeight: Int!
+  blockHeight: String!
 
   """"""
   blockchain: String!
@@ -430,7 +430,7 @@ type NFTCollection {
   tokenType: String!
 
   """"""
-  totalSupply: Int!
+  totalSupply: String
 }
 
 """Web3 NFT ContractMetadata"""
@@ -448,7 +448,7 @@ type NFTContractMetadata {
   tokenType: String!
 
   """"""
-  totalSupply: String!
+  totalSupply: String
 }
 
 """An object with an ID"""

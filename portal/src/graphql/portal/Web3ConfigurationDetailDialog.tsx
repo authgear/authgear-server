@@ -59,6 +59,10 @@ const Web3ConfigurationDetailDialog: React.VFC<Web3ConfigurationDetailDialogProp
       [nftCollection]
     );
 
+    const totalSupply = useMemo(() => {
+      return nftCollection.totalSupply ?? "-";
+    }, [nftCollection]);
+
     return (
       <Dialog
         hidden={!isVisible}
@@ -119,7 +123,7 @@ const Web3ConfigurationDetailDialog: React.VFC<Web3ConfigurationDetailDialogProp
               <FormattedMessage id="Web3ConfigurationScreen.detail-dialog.tokens" />
             </Text>
             <Text as="p" block={true}>
-              {nftCollection.totalSupply}
+              {totalSupply}
             </Text>
           </div>
 

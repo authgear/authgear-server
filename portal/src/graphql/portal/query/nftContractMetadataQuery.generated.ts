@@ -9,7 +9,7 @@ export type NftContractMetadataQueryQueryVariables = Types.Exact<{
 }>;
 
 
-export type NftContractMetadataQueryQuery = { __typename?: 'Query', nftContractMetadata?: { __typename?: 'NFTContractMetadata', address: string, name: string, symbol: string, totalSupply: string, tokenType: string } | null };
+export type NftContractMetadataQueryQuery = { __typename?: 'Query', nftContractMetadata?: { __typename?: 'NFTContractMetadata', address: string, name: string, symbol: string, totalSupply?: string | null, tokenType: string } | null };
 
 
 export const NftContractMetadataQueryDocument = gql`
