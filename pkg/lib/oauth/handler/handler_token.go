@@ -728,14 +728,14 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 	var accessTokenSessionKind oauth.GrantSessionKind
 	var sid string
 
+	opts := IssueOfflineGrantOptions{
+		Scopes:             code.Scopes,
+		AuthorizationID:    authz.ID,
+		AuthenticationInfo: info,
+		IDPSessionID:       code.IDPSessionID,
+		DeviceInfo:         deviceInfo,
+	}
 	if issueRefreshToken {
-		opts := IssueOfflineGrantOptions{
-			Scopes:             code.Scopes,
-			AuthorizationID:    authz.ID,
-			AuthenticationInfo: info,
-			IDPSessionID:       code.IDPSessionID,
-			DeviceInfo:         deviceInfo,
-		}
 		offlineGrant, err := h.TokenService.IssueOfflineGrant(client, opts, resp)
 		if err != nil {
 			return nil, err
@@ -756,6 +756,16 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 				panic(fmt.Errorf("unknown session type: %v", typ))
 			}
 		}
+	} else if client.ClientParty() == config.ClientPartyThird {
+		// allow issuing access tokens if scopes don't contain offline_access and the client is third-party
+		// fill the response with nil for not returning the refresh token
+		offlineGrant, err := h.TokenService.IssueOfflineGrant(client, opts, nil)
+		if err != nil {
+			return nil, err
+		}
+		sid = oidc.EncodeSID(offlineGrant)
+		accessTokenSessionID = offlineGrant.ID
+		accessTokenSessionKind = oauth.GrantSessionKindOffline
 	}
 
 	if accessTokenSessionID == "" || accessTokenSessionKind == "" {

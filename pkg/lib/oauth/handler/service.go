@@ -75,7 +75,9 @@ func (s *TokenService) IssueOfflineGrant(
 		return nil, err
 	}
 
-	resp.RefreshToken(oauth.EncodeRefreshToken(token, offlineGrant.ID))
+	if resp != nil {
+		resp.RefreshToken(oauth.EncodeRefreshToken(token, offlineGrant.ID))
+	}
 	return offlineGrant, nil
 }
 
