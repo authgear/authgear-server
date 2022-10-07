@@ -235,6 +235,45 @@ enum AuthenticatorType {
 }
 
 """"""
+type Authorization implements Entity & Node {
+  """"""
+  clientID: String!
+
+  """The creation time of entity"""
+  createdAt: DateTime!
+
+  """The ID of an object"""
+  id: ID!
+
+  """"""
+  scopes: [String!]!
+
+  """The update time of entity"""
+  updatedAt: DateTime!
+}
+
+"""A connection to a list of items."""
+type AuthorizationConnection {
+  """Information to aid in pagination."""
+  edges: [AuthorizationEdge]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Total number of nodes in the connection."""
+  totalCount: Int
+}
+
+"""An edge in a connection"""
+type AuthorizationEdge {
+  """ cursor for use in pagination"""
+  cursor: String!
+
+  """The item at the end of the edge"""
+  node: Authorization
+}
+
+""""""
 type Claim {
   """"""
   name: String!
@@ -292,6 +331,18 @@ input DeleteAuthenticatorInput {
 
 """"""
 type DeleteAuthenticatorPayload {
+  """"""
+  user: User!
+}
+
+""""""
+input DeleteAuthorizationInput {
+  """Target authorization ID."""
+  authorizationID: ID!
+}
+
+""""""
+type DeleteAuthorizationPayload {
   """"""
   user: User!
 }
@@ -424,6 +475,9 @@ type Mutation {
 
   """Delete authenticator of user"""
   deleteAuthenticator(input: DeleteAuthenticatorInput!): DeleteAuthenticatorPayload!
+
+  """Delete authorization"""
+  deleteAuthorization(input: DeleteAuthorizationInput!): DeleteAuthorizationPayload!
 
   """Delete identity of user"""
   deleteIdentity(input: DeleteIdentityInput!): DeleteIdentityPayload!
@@ -696,6 +750,9 @@ type UpdateUserPayload {
 type User implements Entity & Node {
   """"""
   authenticators(after: String, before: String, first: Int, last: Int): AuthenticatorConnection
+
+  """"""
+  authorizations(after: String, before: String, first: Int, last: Int): AuthorizationConnection
 
   """The creation time of entity"""
   createdAt: DateTime!

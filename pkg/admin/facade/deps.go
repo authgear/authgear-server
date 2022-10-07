@@ -10,4 +10,5 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(SessionFacade), "*"),
 	wire.Struct(new(AuditLogFacade), "*"),
 	wire.Struct(new(UserProfileFacade), "*"),
+	wire.Struct(new(AuthorizationFacade), "*"),
 )

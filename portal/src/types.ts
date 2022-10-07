@@ -813,6 +813,13 @@ export interface Session {
   displayName: string;
 }
 
+export interface Authorization {
+  id: string;
+  clientID: string;
+  createdAt: string;
+  scopes: string[];
+}
+
 export interface TutorialStatusData {
   skipped?: boolean;
   progress: {

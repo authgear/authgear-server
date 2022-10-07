@@ -150,9 +150,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	factory := appProvider.LoggerFactory
 	logger := graphql.NewLogger(factory)
 	configConfig := appProvider.Config
+	appConfig := configConfig.AppConfig
+	oAuthConfig := appConfig.OAuth
 	secretConfig := configConfig.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	appConfig := configConfig.AppConfig
 	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	request := p.Request
@@ -647,7 +648,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -871,8 +871,16 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Events:             eventService,
 	}
+	authorizationService := &oauth2.AuthorizationService{
+		Store:               authorizationStore,
+		OAuthSessionManager: sessionManager,
+	}
+	authorizationFacade := &facade2.AuthorizationFacade{
+		Authorizations: authorizationService,
+	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:           logger,
+		OAuthConfig:         oAuthConfig,
 		Users:               userLoader,
 		Identities:          identityLoader,
 		Authenticators:      authenticatorLoader,
@@ -884,6 +892,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		VerificationFacade:  verificationFacade,
 		SessionFacade:       sessionFacade,
 		UserProfileFacade:   userProfileFacade,
+		AuthorizationFacade: authorizationFacade,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: graphqlContext,

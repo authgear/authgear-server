@@ -150,6 +150,38 @@ export enum AuthenticatorType {
   Totp = 'TOTP'
 }
 
+export type Authorization = Entity & Node & {
+  __typename?: 'Authorization';
+  clientID: Scalars['String'];
+  /** The creation time of entity */
+  createdAt: Scalars['DateTime'];
+  /** The ID of an object */
+  id: Scalars['ID'];
+  scopes: Array<Scalars['String']>;
+  /** The update time of entity */
+  updatedAt: Scalars['DateTime'];
+};
+
+/** A connection to a list of items. */
+export type AuthorizationConnection = {
+  __typename?: 'AuthorizationConnection';
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<AuthorizationEdge>>>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+  /** Total number of nodes in the connection. */
+  totalCount?: Maybe<Scalars['Int']>;
+};
+
+/** An edge in a connection */
+export type AuthorizationEdge = {
+  __typename?: 'AuthorizationEdge';
+  /**  cursor for use in pagination */
+  cursor: Scalars['String'];
+  /** The item at the end of the edge */
+  node?: Maybe<Authorization>;
+};
+
 export type Claim = {
   __typename?: 'Claim';
   name: Scalars['String'];
@@ -190,6 +222,16 @@ export type DeleteAuthenticatorInput = {
 
 export type DeleteAuthenticatorPayload = {
   __typename?: 'DeleteAuthenticatorPayload';
+  user: User;
+};
+
+export type DeleteAuthorizationInput = {
+  /** Target authorization ID. */
+  authorizationID: Scalars['ID'];
+};
+
+export type DeleteAuthorizationPayload = {
+  __typename?: 'DeleteAuthorizationPayload';
   user: User;
 };
 
@@ -289,6 +331,8 @@ export type Mutation = {
   createUser: CreateUserPayload;
   /** Delete authenticator of user */
   deleteAuthenticator: DeleteAuthenticatorPayload;
+  /** Delete authorization */
+  deleteAuthorization: DeleteAuthorizationPayload;
   /** Delete identity of user */
   deleteIdentity: DeleteIdentityPayload;
   /** Delete specified user */
@@ -324,6 +368,11 @@ export type MutationCreateUserArgs = {
 
 export type MutationDeleteAuthenticatorArgs = {
   input: DeleteAuthenticatorInput;
+};
+
+
+export type MutationDeleteAuthorizationArgs = {
+  input: DeleteAuthorizationInput;
 };
 
 
@@ -587,6 +636,7 @@ export type UpdateUserPayload = {
 export type User = Entity & Node & {
   __typename?: 'User';
   authenticators?: Maybe<AuthenticatorConnection>;
+  authorizations?: Maybe<AuthorizationConnection>;
   /** The creation time of entity */
   createdAt: Scalars['DateTime'];
   customAttributes: Scalars['UserCustomAttributes'];
@@ -614,6 +664,15 @@ export type User = Entity & Node & {
 
 /** Authgear user */
 export type UserAuthenticatorsArgs = {
+  after?: InputMaybe<Scalars['String']>;
+  before?: InputMaybe<Scalars['String']>;
+  first?: InputMaybe<Scalars['Int']>;
+  last?: InputMaybe<Scalars['Int']>;
+};
+
+
+/** Authgear user */
+export type UserAuthorizationsArgs = {
   after?: InputMaybe<Scalars['String']>;
   before?: InputMaybe<Scalars['String']>;
   first?: InputMaybe<Scalars['Int']>;

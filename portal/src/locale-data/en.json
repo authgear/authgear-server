@@ -271,7 +271,7 @@
   "EditPictureScreen.remove-picture.label": "Remove Picture",
   "EditPictureScreen.remove-picture.dialog.description": "Are you sure you want to remove the profile picture?",
 
-  "UserDetails.session.header": "Sessions",
+  "UserDetails.session.header": "Sessions and apps",
   "UserDetails.session.devices": "Devices",
   "UserDetails.session.kind": "Kind",
   "UserDetails.session.kind.idp": "Login",
@@ -287,6 +287,18 @@
   "UserDetails.session.confirm-dialog.revoke-all.message": "Are you sure to terminate all sessions of the user?",
   "UserDetails.session.revoke-error.generic": "Failed to terminate session.",
   "UserDetails.session.empty": "No sessions yet.",
+
+  "UserDetails.authorization.header": "Authorized apps",
+  "UserDetails.authorization.client-name": "App name",
+  "UserDetails.authorization.scopes": "Permission",
+  "UserDetails.authorization.scopes.full-userinfo": "Has access to full profile",
+  "UserDetails.authorization.created-at": "Created at",
+  "UserDetails.authorization.action": "Action",
+  "UserDetails.authorization.action.remove": "Remove",
+  "UserDetails.authorization.remove-error.generic": "Failed to remove authorized app.",
+  "UserDetails.authorization.confirm-dialog.remove.title": "Remove authorized app",
+  "UserDetails.authorization.confirm-dialog.remove.message": "Are you sure to remove the authorized app?",
+  "UserDetails.authorization.empty": "No authorized apps yet.",
 
   "LoginIDConfigurationScreen.title": "Login IDs",
   "LoginIDConfigurationScreen.columns.order": "Order",

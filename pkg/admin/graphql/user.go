@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -90,12 +91,37 @@ var nodeUser = node(
 						return nil, err
 					}
 
+					filter := oauth.NewRemoveThirdPartySessionFilter(gqlCtx.OAuthConfig)
+					ss = oauth.ApplySessionFilters(ss, filter)
+
 					var sessions []interface{}
 					for _, i := range ss {
 						sessions = append(sessions, i.ToAPIModel())
 					}
 					args := relay.NewConnectionArguments(p.Args)
 					return graphqlutil.NewConnectionFromArray(sessions, args), nil
+				},
+			},
+			"authorizations": &graphql.Field{
+				Type: connAuthorization.ConnectionType,
+				Args: relay.ConnectionArgs,
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					source := p.Source.(*model.User)
+					gqlCtx := GQLContext(p.Context)
+
+					// return third party client authorizations only in admin api
+					filter := oauth.NewKeepThirdPartyAuthorizationFilter(gqlCtx.OAuthConfig)
+					as, err := gqlCtx.AuthorizationFacade.List(source.ID, filter)
+					if err != nil {
+						return nil, err
+					}
+
+					var authzs []interface{}
+					for _, i := range as {
+						authzs = append(authzs, i.ToAPIModel())
+					}
+					args := relay.NewConnectionArguments(p.Args)
+					return graphqlutil.NewConnectionFromArray(authzs, args), nil
 				},
 			},
 			"isDisabled": &graphql.Field{

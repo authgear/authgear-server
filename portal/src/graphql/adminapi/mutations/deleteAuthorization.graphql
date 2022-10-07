@@ -1,0 +1,21 @@
+mutation deleteAuthorizationMutation($authorizationID: ID!) {
+  deleteAuthorization(input: { authorizationID: $authorizationID }) {
+    user {
+      id
+      authorizations {
+        edges {
+          node {
+            id
+          }
+        }
+      }
+      sessions {
+        edges {
+          node {
+            id
+          }
+        }
+      }
+    }
+  }
+}
