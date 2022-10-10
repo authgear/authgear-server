@@ -48,7 +48,7 @@ func (s *Service) GetWeb3Info(identities []*identity.Info) (*model.UserWeb3Info,
 		switch identity.Type {
 		case model.IdentityTypeSIWE:
 			// SIWE means blockchain has to be ethereum
-			id, err := web3.NewContractID("ethereum", strconv.Itoa(identity.SIWE.ChainID), identity.SIWE.Address)
+			id, err := web3.NewContractID("ethereum", strconv.Itoa(identity.SIWE.ChainID), identity.SIWE.Address, nil)
 			if err != nil {
 				return nil, err
 			}

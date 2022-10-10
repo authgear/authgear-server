@@ -4,6 +4,7 @@ export interface ContractID {
   blockchain: string;
   network: string;
   address: string;
+  query?: URLSearchParams;
 }
 
 export function parseContractID(
@@ -22,6 +23,7 @@ export function parseContractID(
         blockchain: "ethereum",
         network: eip681.chainId.toString(),
         address: eip681.address,
+        query: eip681.query,
       };
     }
 
@@ -36,6 +38,7 @@ export function createContractIDURL(contractId: ContractID): string {
       return createEIP681URL({
         chainId: parseInt(contractId.network, 10),
         address: contractId.address,
+        query: contractId.query,
       });
     default:
       throw new Error(`Unknown blockchain: ${contractId.blockchain}`);

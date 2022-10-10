@@ -32,6 +32,18 @@ describe("EIP681", () => {
       chainId: 23821,
       address: "0x71c7656ec7ab88b098defb751b7401b5f6d8976f",
     });
+
+    test(
+      "ethereum:0x71c7656ec7ab88b098defb751b7401b5f6d8976f@23821?token_ids=0x1&token_ids=0x2",
+      {
+        chainId: 23821,
+        address: "0x71c7656ec7ab88b098defb751b7401b5f6d8976f",
+        query: new URLSearchParams([
+          ["token_ids", "0x1"],
+          ["token_ids", "0x2"],
+        ]),
+      }
+    );
   });
 
   it("parses eip681 without address check", () => {
