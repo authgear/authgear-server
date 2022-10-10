@@ -1,20 +1,21 @@
-import React, { useMemo } from "react";
+import React from "react";
 import {
   // eslint-disable-next-line no-restricted-imports
   TextField as FluentUITextField,
   ITextFieldProps,
   useTheme,
 } from "@fluentui/react";
+import { useMergedStyles } from "./util/mergeStyles";
 
 export interface TextFieldProps extends ITextFieldProps {}
 
 const TextField: React.VFC<TextFieldProps> = function TextField(
   props: TextFieldProps
 ) {
-  const { ...rest } = props;
+  const { styles: stylesProp, ...rest } = props;
   const theme = useTheme();
-  const styles = useMemo(() => {
-    let styles: TextFieldProps["styles"] = {
+  const styles = useMergedStyles(
+    {
       field: {
         "::placeholder": {
           color: theme.palette.neutralTertiary,
@@ -39,18 +40,9 @@ const TextField: React.VFC<TextFieldProps> = function TextField(
         color: theme.semanticColors.bodyText,
         lineHeight: "20px",
       },
-    };
-    styles = { ...styles, ...props.styles };
-    return styles;
-  }, [
-    props.description,
-    props.readOnly,
-    props.styles,
-    theme.semanticColors.bodyText,
-    theme.palette.neutralLight,
-    theme.palette.neutralTertiary,
-  ]);
-
+    },
+    stylesProp
+  );
   return <FluentUITextField styles={styles} {...rest} />;
 };
 

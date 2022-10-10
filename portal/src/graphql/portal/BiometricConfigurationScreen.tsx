@@ -20,6 +20,7 @@ import FormContainer from "../../FormContainer";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import styles from "./BiometricConfigurationScreen.module.css";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
+import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 
 interface FormState {
   enabled: boolean;
@@ -104,33 +105,37 @@ const BiometricConfigurationContent: React.VFC<BiometricConfigurationContentProp
         <ScreenTitle className={styles.widget}>
           <FormattedMessage id="BiometricConfigurationScreen.title" />
         </ScreenTitle>
-        <ScreenDescription className={styles.widget}>
-          <FormattedMessage id="BiometricConfigurationScreen.description" />
-        </ScreenDescription>
-        <Widget className={styles.widget}>
-          <WidgetTitle>
-            <FormattedMessage id="BiometricConfigurationScreen.title" />
-          </WidgetTitle>
-          {biometricDisabled ? (
-            <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
-          ) : null}
-          <Toggle
-            disabled={biometricDisabled}
-            checked={state.enabled}
-            onChange={onEnableChange}
-            label={renderToString("BiometricConfigurationScreen.enable.label")}
-            inlineLabel={true}
-          />
-          <Toggle
-            disabled={!state.enabled || biometricDisabled}
-            checked={state.list_enabled ?? false}
-            onChange={onListEnabledChange}
-            label={renderToString(
-              "BiometricConfigurationScreen.list-enabled.label"
-            )}
-            inlineLabel={true}
-          />
-        </Widget>
+        <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
+          <ScreenDescription className={styles.widget}>
+            <FormattedMessage id="BiometricConfigurationScreen.description" />
+          </ScreenDescription>
+          <Widget className={styles.widget}>
+            <WidgetTitle>
+              <FormattedMessage id="BiometricConfigurationScreen.title" />
+            </WidgetTitle>
+            {biometricDisabled ? (
+              <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
+            ) : null}
+            <Toggle
+              disabled={biometricDisabled}
+              checked={state.enabled}
+              onChange={onEnableChange}
+              label={renderToString(
+                "BiometricConfigurationScreen.enable.label"
+              )}
+              inlineLabel={true}
+            />
+            <Toggle
+              disabled={!state.enabled || biometricDisabled}
+              checked={state.list_enabled ?? false}
+              onChange={onListEnabledChange}
+              label={renderToString(
+                "BiometricConfigurationScreen.list-enabled.label"
+              )}
+              inlineLabel={true}
+            />
+          </Widget>
+        </ShowOnlyIfSIWEIsDisabled>
       </ScreenContent>
     );
   };

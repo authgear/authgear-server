@@ -51,12 +51,6 @@ const AnonymousUsersConfigurationScreen = lazy(
 const SingleSignOnConfigurationScreen = lazy(
   async () => import("./graphql/portal/SingleSignOnConfigurationScreen")
 );
-const PasswordPolicyConfigurationScreen = lazy(
-  async () => import("./graphql/portal/PasswordPolicyConfigurationScreen")
-);
-const ForgotPasswordConfigurationScreen = lazy(
-  async () => import("./graphql/portal/ForgotPasswordConfigurationScreen")
-);
 const ApplicationsConfigurationScreen = lazy(
   async () => import("./graphql/portal/ApplicationsConfigurationScreen")
 );
@@ -90,20 +84,17 @@ const WebhookConfigurationScreen = lazy(
 const AdminAPIConfigurationScreen = lazy(
   async () => import("./graphql/portal/AdminAPIConfigurationScreen")
 );
-const LoginIDConfigurationScreen = lazy(
-  async () => import("./graphql/portal/LoginIDConfigurationScreen")
-);
-const AuthenticatorConfigurationScreen = lazy(
-  async () => import("./graphql/portal/AuthenticatorConfigurationScreen")
-);
-const VerificationConfigurationScreen = lazy(
-  async () => import("./graphql/portal/VerificationConfigurationScreen")
+const LoginMethodConfigurationScreen = lazy(
+  async () => import("./graphql/portal/LoginMethodConfigurationScreen")
 );
 const Web3ConfigurationScreen = lazy(
   async () => import("./graphql/portal/Web3ConfigurationScreen")
 );
 const BiometricConfigurationScreen = lazy(
   async () => import("./graphql/portal/BiometricConfigurationScreen")
+);
+const MFAConfigurationScreen = lazy(
+  async () => import("./graphql/portal/MFAConfigurationScreen")
 );
 const SubscriptionScreen = lazy(
   async () => import("./graphql/portal/SubscriptionScreen")
@@ -316,26 +307,10 @@ const AppRoot: React.VFC = function AppRoot() {
                   element={<Navigate to="login-id" replace={true} />}
                 />
                 <Route
-                  path="login-id"
+                  path="login-methods"
                   element={
                     <Suspense fallback={<ShowLoading />}>
-                      <LoginIDConfigurationScreen />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="authenticators"
-                  element={
-                    <Suspense fallback={<ShowLoading />}>
-                      <AuthenticatorConfigurationScreen />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="verification"
-                  element={
-                    <Suspense fallback={<ShowLoading />}>
-                      <VerificationConfigurationScreen />
+                      <LoginMethodConfigurationScreen />
                     </Suspense>
                   }
                 />
@@ -356,6 +331,14 @@ const AppRoot: React.VFC = function AppRoot() {
                   }
                 />
                 <Route
+                  path="2fa"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <MFAConfigurationScreen />
+                    </Suspense>
+                  }
+                />
+                <Route
                   path="web3"
                   element={
                     <Suspense fallback={<ShowLoading />}>
@@ -372,14 +355,6 @@ const AppRoot: React.VFC = function AppRoot() {
                   }
                 />
               </Route>
-              <Route
-                path="password-policy"
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <PasswordPolicyConfigurationScreen />
-                  </Suspense>
-                }
-              />
               <Route path="apps">
                 <Route
                   index={true}
@@ -529,14 +504,6 @@ const AppRoot: React.VFC = function AppRoot() {
               <Route
                 index={true}
                 element={<Navigate to="password-reset-code" replace={true} />}
-              />
-              <Route
-                path="password-reset-code"
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <ForgotPasswordConfigurationScreen />
-                  </Suspense>
-                }
               />
               <Route
                 path="webhooks"

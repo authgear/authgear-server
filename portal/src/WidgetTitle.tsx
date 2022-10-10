@@ -12,7 +12,17 @@ const WidgetTitle: React.VFC<WidgetTitleProps> = function WidgetTitle(
 ) {
   const { className, children, id } = props;
   const element = (
-    <Text as="h2" variant="xLarge" block={true}>
+    <Text
+      as="h2"
+      variant="xLarge"
+      block={true}
+      styles={{
+        root: {
+          // See Widget.
+          lineHeight: "28px",
+        },
+      }}
+    >
       {children}
     </Text>
   );

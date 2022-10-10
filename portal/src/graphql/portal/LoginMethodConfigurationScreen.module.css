@@ -1,0 +1,62 @@
+.widget {
+  grid-column: 1 / span 8;
+
+  @apply tablet:col-span-full;
+}
+
+.widgetSubsection {
+  @apply flex flex-col;
+  @apply gap-y-3;
+}
+
+.oauthLink {
+  @apply text-sm;
+}
+
+.loginMethodIcon {
+  @apply rounded-full;
+  @apply flex justify-center items-center;
+}
+
+.loginMethodIconIcon {
+  @apply block;
+  @apply text-xl;
+}
+
+.chosenLoginMethodRoot {
+  @apply flex flex-row;
+  @apply gap-x-2.5;
+}
+
+.chosenLoginMethodTitleOnly {
+  @apply flex flex-col;
+  @apply justify-center;
+}
+
+.chosenLoginMethodTitleDescription {
+  @apply flex flex-col;
+  @apply justify-between;
+}
+
+.chosenLoginMethodTitle {
+  @apply font-semibold;
+}
+
+.chooserGrid {
+  @apply grid;
+  @apply gap-y-3;
+  @apply tablet:grid-cols-3 tablet:grid-rows-2 grid-cols-6 grid-rows-1;
+}
+
+.chooserFlex {
+  @apply flex flex-row;
+  @apply gap-x-4;
+}
+
+.authenticationButton {
+  @apply flex-1 min-w-0;
+}
+
+.authenticationButtonIcon {
+  @apply text-xl;
+}

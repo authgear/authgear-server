@@ -1,22 +1,95 @@
-import React, { ReactNode, ReactElement } from "react";
-import { CompoundButton, IButtonStyles, useTheme } from "@fluentui/react";
+import React, {
+  useCallback,
+  ReactNode,
+  ReactElement,
+  ComponentType,
+} from "react";
+import {
+  CompoundButton,
+  IButtonStyles,
+  IButtonProps,
+  useTheme,
+  IRenderFunction,
+} from "@fluentui/react";
+import { useMergedStylesPlain } from "./util/mergeStyles";
+
+export interface IconComponentProps {
+  disabledColor?: string;
+}
 
 export interface ChoiceButtonProps {
   className?: string;
-  checked?: boolean;
-  disabled?: boolean;
+  styles?: IButtonStyles;
+  checked?: IButtonProps["checked"];
+  disabled?: IButtonProps["disabled"];
   text?: ReactNode;
   secondaryText?: ReactNode;
+  onClick?: IButtonProps["onClick"];
+  IconComponent?: ComponentType<IconComponentProps>;
 }
 
 export default function ChoiceButton(props: ChoiceButtonProps): ReactElement {
+  const { IconComponent, styles: stylesProp, ...rest } = props;
   const originalTheme = useTheme();
-  const styles: IButtonStyles = {
-    rootChecked: {
-      borderColor: originalTheme.palette.themePrimary,
-      backgroundColor: originalTheme.semanticColors.buttonBackground,
+  const styles = useMergedStylesPlain(
+    {
+      root: {
+        maxWidth: "auto",
+        // Remove minHeight so that ChoiceButton looks nice if it does not have secondaryText,
+        // otherwise, it is too tall.
+        minHeight: "0",
+        borderColor: originalTheme.palette.neutralLight,
+      },
+      rootChecked: {
+        // Double the border width VISUALLY to make checked ChoiceButton more prominent.
+        // Note that we cannot simply double border-width because border-width is part of
+        // the border-box so it affects layout.
+        outlineColor: originalTheme.palette.themePrimary,
+        outlineStyle: "solid",
+        outlineWidth: "1px",
+
+        borderColor: originalTheme.palette.themePrimary,
+        backgroundColor: originalTheme.semanticColors.buttonBackground,
+      },
+      description: {
+        color: "inherit",
+      },
+      label: {
+        // Make the label center aligned when there is no secondaryText.
+        margin: props.secondaryText == null ? "0" : undefined,
+      },
+      // When ChoiceButton is taller than its intrinsic height,
+      // make sure the content is still center aligned vertically.
+      flexContainer: {
+        alignItems: "center",
+      },
     },
-  };
-  // @ts-expect-error
-  return <CompoundButton {...props} toggle={true} styles={styles} />;
+    stylesProp
+  );
+
+  const onRenderIcon: IRenderFunction<IButtonProps> = useCallback(
+    (props?: IButtonProps) => {
+      // @ts-expect-error
+      const disabledColor = props?.styles?.iconDisabled?.color;
+      if (typeof disabledColor !== "string") {
+        return null;
+      }
+      if (IconComponent == null) {
+        return null;
+      }
+
+      return <IconComponent disabledColor={disabledColor} />;
+    },
+    [IconComponent]
+  );
+
+  return (
+    // @ts-expect-error
+    <CompoundButton
+      {...rest}
+      toggle={true}
+      styles={styles}
+      onRenderIcon={IconComponent == null ? undefined : onRenderIcon}
+    />
+  );
 }

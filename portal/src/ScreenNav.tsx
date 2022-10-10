@@ -162,18 +162,8 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         children: [
           {
             type: "link" as const,
-            textKey: "ScreenNav.login-id",
-            url: `/project/${appID}/configuration/authentication/login-id`,
-          },
-          {
-            type: "link" as const,
-            textKey: "ScreenNav.authenticators",
-            url: `/project/${appID}/configuration/authentication/authenticators`,
-          },
-          {
-            type: "link" as const,
-            textKey: "ScreenNav.verification",
-            url: `/project/${appID}/configuration/authentication/verification`,
+            textKey: "ScreenNav.login-methods",
+            url: `/project/${appID}/configuration/authentication/login-methods`,
           },
           {
             type: "link" as const,
@@ -184,6 +174,11 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             type: "link" as const,
             textKey: "ScreenNav.biometric",
             url: `/project/${appID}/configuration/authentication/biometric`,
+          },
+          {
+            type: "link" as const,
+            textKey: "ScreenNav.mfa",
+            url: `/project/${appID}/configuration/authentication/2fa`,
           },
           ...(web3Enabled
             ? [
@@ -200,11 +195,6 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             url: `/project/${appID}/configuration/authentication/anonymous-users`,
           },
         ],
-      },
-      {
-        type: "link" as const,
-        textKey: "ScreenNav.password-policy",
-        url: `/project/${appID}/configuration/password-policy`,
       },
       {
         type: "link" as const,
@@ -267,11 +257,6 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         textKey: "ScreenNav.advanced",
         urlPrefix: `/project/${appID}/advanced`,
         children: [
-          {
-            type: "link" as const,
-            textKey: "ScreenNav.password-reset-code",
-            url: `/project/${appID}/advanced/password-reset-code`,
-          },
           {
             type: "link" as const,
             textKey: "ScreenNav.webhooks",

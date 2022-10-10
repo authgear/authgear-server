@@ -13,10 +13,12 @@ import {
   ICommandBarItemProps,
   IconButton,
   IDetailsRowProps,
+  IDetailsRowStyleProps,
   MessageBar,
   SelectionMode,
   Text,
 } from "@fluentui/react";
+import { concatStyleSetsWithProps } from "@fluentui/merge-styles";
 import cn from "classnames";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -228,22 +230,30 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
           return null;
         }
 
+        const { styles: stylesProp, ...rest } = props;
+
         const clientID = "client_id" in props.item && props.item.client_id;
         const targetPath =
           typeof clientID === "string"
             ? `/project/${appID}/configuration/apps/${clientID}/edit`
             : ".";
-        props.styles = {
-          ...props.styles,
-          // Reduce the cell height after adding copy button to the list
-          cell: {
-            paddingTop: 4,
-            paddingBottom: 4,
-          },
-        };
+
+        const styles = (props: IDetailsRowStyleProps) =>
+          concatStyleSetsWithProps(
+            props,
+            {
+              // Reduce the cell height after adding copy button to the list
+              cell: {
+                paddingTop: 4,
+                paddingBottom: 4,
+              },
+            },
+            stylesProp
+          );
+
         return (
           <Link to={targetPath}>
-            <DetailsRow {...props} />
+            <DetailsRow styles={styles} {...rest} />
           </Link>
         );
       },
