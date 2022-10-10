@@ -402,12 +402,12 @@ var nodeApp = node(
 						contractIDs = append(contractIDs, *contractID)
 					}
 
-					collections, err := ctx.NFTService.GetNFTCollections(contractIDs)
+					collections, err := ctx.NFTService.GetContractMetadata(contractIDs)
 					if err != nil {
 						return nil, err
 					}
 
-					return collections.Items, nil
+					return collections, nil
 				},
 			},
 		},
