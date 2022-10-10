@@ -14,11 +14,6 @@ func MarshalConfigYAML(cfg interface{}, outputFolderPath string, fileName string
 		return err
 	}
 
-	if outputFolderPath == "-" {
-		_, err = os.Stdout.Write(yaml)
-		return err
-	}
-
 	outputPath := filepath.Join(outputFolderPath, fileName)
 
 	file, err := os.OpenFile(outputPath, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0666)
