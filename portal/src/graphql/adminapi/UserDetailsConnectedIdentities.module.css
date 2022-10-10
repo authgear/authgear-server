@@ -31,16 +31,16 @@
   /* grid-template:
     "       icon           name          .           button-group"
     "       .              desc          .           button-group"
-    /       min-content    auto         1fr          auto; */
+    /       min-content    auto         1fr          330px; */
 
   /* Tablet */
   /* grid-template:
     "        icon           name           name        "
     "        .              desc           desc        "
     "        button-group   button-group   button-group"
-    /        min-content     1fr            1fr; */
+    /        min-content    auto           auto; */
 
-  @apply grid-cols-[min-content_auto_1fr_auto]
+  @apply grid-cols-[min-content_auto_1fr_330px]
           grid-areas-[icon_name_._button-group,._desc_._button-group]
           tablet:grid-cols-[min-content_auto_auto]
           tablet:grid-areas-[icon_name_name,._desc_desc,button-group_button-group_button-group];
@@ -124,11 +124,7 @@
 }
 
 .removeButton {
-  grid-column: span 1 / span 1;
-}
-
-.removeButtonFull {
-  grid-column: 1 / -1;
+  grid-column: 2 / span 1;
 }
 
 .verifyButton {
