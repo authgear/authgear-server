@@ -173,6 +173,7 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionFormProps> =
         onAdd({
           ...metadata,
           createdAt: DateTime.now().toISO(),
+          tokenIDs: [],
           status: "pending",
         });
       },

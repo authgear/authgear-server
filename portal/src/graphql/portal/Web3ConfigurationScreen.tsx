@@ -29,7 +29,11 @@ import styles from "./Web3ConfigurationScreen.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useNftCollectionsQuery } from "./query/nftCollectionsQuery";
 import { NftCollection } from "./globalTypes.generated";
-import { createContractIDURL } from "../../util/contractId";
+import {
+  ContractID,
+  createContractIDURL,
+  parseContractID,
+} from "../../util/contractId";
 import { useNftContractMetadataLazyQuery } from "./query/nftContractMetadataQuery";
 import { LazyQueryResult, OperationVariables } from "@apollo/client";
 import { NftContractMetadataQueryQuery } from "./query/nftContractMetadataQuery.generated";
@@ -55,6 +59,7 @@ import { useProbeNFTCollectionMutation } from "./mutations/probeNFTCollectionMut
 
 export interface CollectionItem extends NftCollection {
   status: "pending" | "active";
+  tokenIDs: string[];
 }
 
 export function isNFTCollectionEqual(
@@ -120,6 +125,10 @@ function constructConfig(
         blockchain: c.blockchain,
         network: c.network,
         address: c.contractAddress,
+        query:
+          c.tokenIDs.length !== 0
+            ? new URLSearchParams(c.tokenIDs.map((t) => ["token_ids", t]))
+            : undefined,
       });
     });
 
@@ -563,20 +572,42 @@ const Web3ConfigurationScreen: React.VFC = function Web3ConfigurationScreen() {
 
       const contractIDs = config.web3?.nft?.collections ?? [];
 
-      const existingCollections = nftCollections.collections
-        .filter((c) => {
-          const contractIdUrl = createContractIDURL({
+      const collectionMap = new Map<string, NftCollection>();
+      nftCollections.collections.forEach((c) => {
+        collectionMap.set(
+          createContractIDURL({
             blockchain: c.blockchain,
             network: c.network,
             address: c.contractAddress,
-          });
+          }),
+          c
+        );
+      });
 
-          return contractIDs.includes(contractIdUrl);
+      const existingCollections = contractIDs
+        .map((c) => parseContractID(c))
+        .map<CollectionItem | null>((cid) => {
+          const collection = collectionMap.get(
+            createContractIDURL({
+              blockchain: cid.blockchain,
+              network: cid.network,
+              address: cid.address,
+            })
+          );
+
+          const tokens = cid.query?.getAll("token_ids") ?? [];
+
+          if (!collection) {
+            return null;
+          }
+
+          return {
+            ...collection,
+            tokenIDs: tokens,
+            status: "active",
+          };
         })
-        .map<CollectionItem>((c) => ({
-          ...c,
-          status: "active",
-        }));
+        .filter((c): c is CollectionItem => c !== null);
 
       return {
         siweChecked,
