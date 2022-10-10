@@ -25,13 +25,6 @@ var ArgDatabaseSchema = &cobraviper.StringArgument{
 	Usage:        "Database schema",
 }
 
-var ArgOutput = &cobraviper.StringArgument{
-	ArgumentName: "output",
-	EnvName:      "OUTPUT",
-	Short:        "o",
-	Usage:        "Path to output",
-}
-
 var ArgElasticsearchURL = &cobraviper.StringArgument{
 	ArgumentName: "elasticsearch-url",
 	EnvName:      "ELASTICSEARCH_URL",
@@ -42,4 +35,10 @@ var ArgAppID = &cobraviper.StringArgument{
 	ArgumentName: "app-id",
 	EnvName:      "APP_ID",
 	Usage:        "App ID",
+}
+
+var ArgOutputFolder = &cobraviper.StringArgument{
+	ArgumentName: "output-folder",
+	EnvName:      "OUTPUT_FOLDER",
+	Usage:        "Path to output folder",
 }
