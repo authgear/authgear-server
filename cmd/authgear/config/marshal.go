@@ -29,7 +29,7 @@ func MarshalConfigYAML(cfg interface{}, outputFolderPath string, fileName string
 		}.Prompt()
 		if !overwrite {
 			fmt.Println("cancelled")
-			return nil
+			return ErrUserCancel
 		}
 		file, err = os.Create(outputPath)
 	}

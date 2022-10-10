@@ -1,6 +1,7 @@
 package cmdinit
 
 import (
+	"errors"
 	"log"
 	"time"
 
@@ -15,11 +16,6 @@ import (
 var cmdInit = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize configuration",
-}
-
-var cmdInitConfig = &cobra.Command{
-	Use:   "authgear.yaml",
-	Short: "Initialize app configuration",
 	Run: func(cmd *cobra.Command, args []string) {
 		binder := authgearcmd.GetBinder()
 		outputFolderPath := binder.GetString(cmd, authgearcmd.ArgOutputFolder)
@@ -27,31 +23,33 @@ var cmdInitConfig = &cobra.Command{
 			outputFolderPath = "./"
 		}
 
-		opts := config.ReadAppConfigOptionsFromConsole()
-		cfg := libconfig.GenerateAppConfigFromOptions(opts)
-		err := config.MarshalConfigYAML(cfg, outputFolderPath, "authgear.yaml")
-		if err != nil {
-			log.Fatalf("cannot write file: %s", err.Error())
-		}
-	},
-}
+		// obtain options
+		appConfigOpts := config.ReadAppConfigOptionsFromConsole()
+		appSecretsOpts := config.ReadSecretConfigOptionsFromConsole()
 
-var cmdInitSecrets = &cobra.Command{
-	Use:   "authgear.secrets.yaml",
-	Short: "Initialize app secrets",
-	Run: func(cmd *cobra.Command, args []string) {
-		binder := authgearcmd.GetBinder()
-		outputFolderPath := binder.GetString(cmd, authgearcmd.ArgOutputFolder)
-		if outputFolderPath == "" {
-			outputFolderPath = "./"
-		}
+		// generate authgear.yaml
+		appConfig := libconfig.GenerateAppConfigFromOptions(appConfigOpts)
 
-		opts := config.ReadSecretConfigOptionsFromConsole()
+		// generate authgear.secrets.yaml
 		createdAt := time.Now().UTC()
-		cfg := libconfig.GenerateSecretConfigFromOptions(opts, createdAt, rand.SecureRand)
-		err := config.MarshalConfigYAML(cfg, outputFolderPath, "authgear.secrets.yaml")
+		appSecretConfig := libconfig.GenerateSecretConfigFromOptions(appSecretsOpts, createdAt, rand.SecureRand)
+
+		// write authgear.yaml
+		err := config.MarshalConfigYAML(appConfig, outputFolderPath, "authgear.yaml")
 		if err != nil {
-			log.Fatalf("cannot write file: %s", err.Error())
+			if errors.Is(err, config.ErrUserCancel) {
+				return
+			}
+			log.Fatalf("cannot write authgear.yaml: %s", err.Error())
+		}
+
+		// write authgear.secrets.yaml
+		err = config.MarshalConfigYAML(appSecretConfig, outputFolderPath, "authgear.secrets.yaml")
+		if err != nil {
+			if errors.Is(err, config.ErrUserCancel) {
+				return
+			}
+			log.Fatalf("cannot write authgear.secrets.yaml: %s", err.Error())
 		}
 	},
 }
@@ -59,9 +57,5 @@ var cmdInitSecrets = &cobra.Command{
 func init() {
 	binder := authgearcmd.GetBinder()
 	binder.BindString(cmdInit.PersistentFlags(), authgearcmd.ArgOutputFolder)
-
-	cmdInit.AddCommand(cmdInitConfig)
-	cmdInit.AddCommand(cmdInitSecrets)
-
 	authgearcmd.Root.AddCommand(cmdInit)
 }
