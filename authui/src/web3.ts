@@ -192,7 +192,6 @@ export class WalletConfirmationController extends Controller {
   }
 
   connect() {
-    this.displayedTarget.textContent = "-";
     getProvider(this.providerValue)
       .then((provider) => {
         if (!provider) {
@@ -219,6 +218,7 @@ export class WalletConfirmationController extends Controller {
     if (!this.provider) {
       return;
     }
+    this.displayedTarget.textContent = "-";
 
     await this.provider.send("eth_requestAccounts", []);
 
