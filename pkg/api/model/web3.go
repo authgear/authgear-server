@@ -33,14 +33,14 @@ type BlockIdentifier struct {
 }
 
 type Token struct {
-	TokenID               big.Int               `json:"token_id"`
+	TokenID               string                `json:"token_id"`
 	TransactionIdentifier TransactionIdentifier `json:"transaction_identifier"`
 	BlockIdentifier       BlockIdentifier       `json:"block_identifier"`
+	Balance               string                `json:"balance"`
 }
 
 type NFT struct {
 	Contract Contract `json:"contract"`
-	Balance  int      `json:"balance"`
 	Tokens   []Token  `json:"tokens"`
 }
 
@@ -71,32 +71,31 @@ type NFTCollection struct {
 	Blockchain      string    `json:"blockchain"`
 	Network         string    `json:"network"`
 	Name            string    `json:"name"`
-	BlockHeight     big.Int   `json:"block_height"`
 	ContractAddress string    `json:"contract_address"`
 	TotalSupply     *big.Int  `json:"total_supply"`
 	TokenType       string    `json:"type"`
 	CreatedAt       time.Time `json:"created_at"`
 }
 
-type ContractMetadataMetadata struct {
-	Name        string  `json:"name"`
-	Symbol      string  `json:"symbol"`
-	TotalSupply *string `json:"total_supply"`
-	TokenType   string  `json:"token_type"`
-}
-
-type WatchCollectionRequest struct {
+type ProbeCollectionRequest struct {
 	ContractID string `json:"contract_id"`
-	Name       string `json:"name,omitempty"`
 }
 
-type GetCollectionsResult struct {
-	Items []NFTCollection `json:"items"`
+type ProbeCollectionResult struct {
+	IsLargeCollection bool `json:"is_large_collection"`
 }
 
-type ContractMetadata struct {
-	Address  string                   `json:"address"`
-	Metadata ContractMetadataMetadata `json:"contract_metadata"`
+type GetContractMetadataRequest struct {
+	ContractIDs []string `json:"contract_ids"`
+}
+
+type GetContractMetadataResult struct {
+	Collections []NFTCollection `json:"collections"`
+}
+
+type ListOwnerNFTsRequest struct {
+	OwnerAddress string   `json:"owner_address"`
+	ContractIDs  []string `json:"contract_ids"`
 }
 
 type UserWeb3Info struct {

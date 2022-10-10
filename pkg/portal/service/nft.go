@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
-	"path"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -14,43 +13,34 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/web3"
 )
 
-type WatchColletionResponse struct {
-	Result apimodel.NFTCollection `json:"result"`
-	Error  *apierrors.APIError    `json:"error"`
+type ProbeColletionResponse struct {
+	Result apimodel.ProbeCollectionResult `json:"result"`
+	Error  *apierrors.APIError            `json:"error"`
 }
 
 type GetContractMetadataResponse struct {
-	Result apimodel.ContractMetadata `json:"result"`
-	Error  *apierrors.APIError       `json:"error"`
-}
-
-type GetCollectionsResponse struct {
-	Result apimodel.GetCollectionsResult `json:"result"`
-	Error  *apierrors.APIError           `json:"error"`
+	Result apimodel.GetContractMetadataResult `json:"result"`
+	Error  *apierrors.APIError                `json:"error"`
 }
 
 type NFTService struct {
 	APIEndpoint config.NFTIndexerAPIEndpoint
 }
 
-func (s *NFTService) WatchNFTCollection(contractID web3.ContractID) (*apimodel.NFTCollection, error) {
-	if s.APIEndpoint == "" {
-		return nil, nil
-	}
-
+func (s *NFTService) ProbeNFTCollection(contractID web3.ContractID) (*apimodel.ProbeCollectionResult, error) {
 	endpoint, err := url.Parse(string(s.APIEndpoint))
 	if err != nil {
 		return nil, err
 	}
 
-	endpoint.Path = path.Join("watch")
+	endpoint.Path = "probe"
 
 	contractURL, err := contractID.URL()
 	if err != nil {
 		return nil, err
 	}
 
-	request := model.WatchCollectionRequest{
+	request := model.ProbeCollectionRequest{
 		ContractID: contractURL.String(),
 	}
 
@@ -65,7 +55,7 @@ func (s *NFTService) WatchNFTCollection(contractID web3.ContractID) (*apimodel.N
 	}
 	defer res.Body.Close()
 
-	var response WatchColletionResponse
+	var response ProbeColletionResponse
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, err
@@ -78,67 +68,33 @@ func (s *NFTService) WatchNFTCollection(contractID web3.ContractID) (*apimodel.N
 	return &response.Result, nil
 }
 
-func (s *NFTService) GetNFTCollections(contracts []web3.ContractID) (*apimodel.GetCollectionsResult, error) {
+func (s *NFTService) GetContractMetadata(contracts []web3.ContractID) ([]apimodel.NFTCollection, error) {
 	endpoint, err := url.Parse(string(s.APIEndpoint))
 	if err != nil {
 		return nil, err
 	}
 
-	endpoint.Path = path.Join("collections")
+	endpoint.Path = "metadata"
 
-	query := endpoint.Query()
-	if len(contracts) > 0 {
-		urls := make([]string, 0, len(contracts))
-		for _, contract := range contracts {
-			url, err := contract.URL()
-			if err != nil {
-				return nil, err
-			}
-			urls = append(urls, url.String())
+	contractURLs := make([]string, 0, len(contracts))
+	for _, contract := range contracts {
+		contractURL, err := contract.URL()
+		if err != nil {
+			return nil, err
 		}
-		query["contract_id"] = urls
+		contractURLs = append(contractURLs, contractURL.String())
 	}
 
-	endpoint.RawQuery = query.Encode()
-
-	res, err := http.Get(endpoint.String())
-	if err != nil {
-		return nil, err
+	request := model.GetContractMetadataRequest{
+		ContractIDs: contractURLs,
 	}
-	defer res.Body.Close()
 
-	var response GetCollectionsResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
+	data, err := json.Marshal(request)
 	if err != nil {
 		return nil, err
 	}
 
-	if response.Error != nil {
-		return nil, response.Error
-	}
-
-	return &response.Result, nil
-}
-
-func (s *NFTService) GetContractMetadata(appID string, contract web3.ContractID) (*apimodel.ContractMetadata, error) {
-	endpoint, err := url.Parse(string(s.APIEndpoint))
-	if err != nil {
-		return nil, err
-	}
-
-	contractURL, err := contract.URL()
-	if err != nil {
-		return nil, err
-	}
-
-	endpoint.Path = path.Join("metadata", contractURL.String())
-
-	query := endpoint.Query()
-	query.Set("app_id", appID)
-
-	endpoint.RawQuery = query.Encode()
-
-	res, err := http.Get(endpoint.String())
+	res, err := http.Post(endpoint.String(), "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		return nil, err
 	}
@@ -154,5 +110,5 @@ func (s *NFTService) GetContractMetadata(appID string, contract web3.ContractID)
 		return nil, response.Error
 	}
 
-	return &response.Result, nil
+	return response.Result.Collections, nil
 }
