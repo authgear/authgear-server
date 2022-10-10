@@ -198,6 +198,22 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       });
     }, []);
 
+    const { onChange: onPolicyURIChange } = useTextField((value) => {
+      onClientConfigChange(
+        updateClientConfig(
+          clientConfig,
+          "policy_uri",
+          ensureNonEmptyString(value)
+        )
+      );
+    });
+
+    const { onChange: onTOSURIChange } = useTextField((value) => {
+      onClientConfigChange(
+        updateClientConfig(clientConfig, "tos_uri", ensureNonEmptyString(value))
+      );
+    });
+
     const applicationTypeLabel = useMemo(() => {
       const messageID = getApplicationTypeMessageID(
         clientConfig.x_application_type
@@ -384,6 +400,26 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
               value={clientConfig.client_name ?? ""}
               onChange={onClientNameChange}
               required={true}
+            />
+            <FormTextField
+              parentJSONPointer={parentJSONPointer}
+              fieldName="policy_uri"
+              label={renderToString("EditOAuthClientForm.policy-uri.label")}
+              description={renderToString(
+                "EditOAuthClientForm.policy-uri.description"
+              )}
+              value={clientConfig.policy_uri ?? ""}
+              onChange={onPolicyURIChange}
+            />
+            <FormTextField
+              parentJSONPointer={parentJSONPointer}
+              fieldName="tos_uri"
+              label={renderToString("EditOAuthClientForm.tos-uri.label")}
+              description={renderToString(
+                "EditOAuthClientForm.tos-uri.description"
+              )}
+              value={clientConfig.tos_uri ?? ""}
+              onChange={onTOSURIChange}
             />
           </Widget>
         ) : null}
