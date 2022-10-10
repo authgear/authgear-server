@@ -10,7 +10,7 @@ import (
 
 type T string
 
-var parseRegExp = regexp.MustCompile(`^0x[0-9a-fA-F]+$`)
+var parseRegExp = regexp.MustCompile(`^(0x)0*([0-9a-fA-F]+)$`)
 
 func (t T) ToBigInt() *big.Int {
 	i := new(big.Int)
@@ -39,8 +39,9 @@ func NewFromBigInt(v *big.Int) (T, error) {
 }
 
 func Parse(s string) (T, error) {
-	if parseRegExp.MatchString(s) {
-		return T(strings.ToLower(s)), nil
+	m := parseRegExp.FindStringSubmatch(s)
+	if len(m) == 3 {
+		return T(strings.ToLower(strings.Join(m[1:], ""))), nil
 	}
 	return "", fmt.Errorf("hex string must match the regexp %q", parseRegExp)
 }
