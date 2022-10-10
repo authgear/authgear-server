@@ -529,7 +529,7 @@ const Web3ConfigurationScreen: React.VFC = function Web3ConfigurationScreen() {
   const featureConfig = useAppFeatureConfigQuery(appID);
 
   const { fetch: fetchMetadata, error: fetchMetadataError } =
-    useNftContractMetadataLazyQuery(appID);
+    useNftContractMetadataLazyQuery();
 
   const { watchNFTCollections, error: watchNFTCollectionsError } =
     useWatchNFTCollectionsMutation(appID);

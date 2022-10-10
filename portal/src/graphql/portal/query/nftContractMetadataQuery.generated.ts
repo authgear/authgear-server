@@ -4,22 +4,23 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type NftContractMetadataQueryQueryVariables = Types.Exact<{
-  appID: Types.Scalars['ID'];
   contractID: Types.Scalars['String'];
 }>;
 
 
-export type NftContractMetadataQueryQuery = { __typename?: 'Query', nftContractMetadata?: { __typename?: 'NFTContractMetadata', address: string, name: string, symbol: string, totalSupply?: string | null, tokenType: string } | null };
+export type NftContractMetadataQueryQuery = { __typename?: 'Query', nftContractMetadata?: { __typename?: 'NFTCollection', name: string, blockchain: string, network: string, contractAddress: string, totalSupply?: string | null, tokenType: string, createdAt: any } | null };
 
 
 export const NftContractMetadataQueryDocument = gql`
-    query nftContractMetadataQuery($appID: ID!, $contractID: String!) {
-  nftContractMetadata(appID: $appID, contractID: $contractID) {
-    address
+    query nftContractMetadataQuery($contractID: String!) {
+  nftContractMetadata(contractID: $contractID) {
     name
-    symbol
+    blockchain
+    network
+    contractAddress
     totalSupply
     tokenType
+    createdAt
   }
 }
     `;
@@ -36,7 +37,6 @@ export const NftContractMetadataQueryDocument = gql`
  * @example
  * const { data, loading, error } = useNftContractMetadataQueryQuery({
  *   variables: {
- *      appID: // value for 'appID'
  *      contractID: // value for 'contractID'
  *   },
  * });

@@ -8,7 +8,6 @@ query nftCollectionsQuery($appID: ID!) {
         blockchain
         network
         contractAddress
-        blockHeight
         totalSupply
         tokenType
         createdAt
