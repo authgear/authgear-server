@@ -41,7 +41,6 @@ import {
   NetworkID,
   parseNetworkID,
 } from "../../util/networkId";
-import { useWatchNFTCollectionsMutation } from "./mutations/watchNFTCollectionsMutation";
 import Web3ConfigurationConfirmationDialog from "./Web3ConfigurationConfirmationDialog";
 import Web3ConfigurationDetailDialog from "./Web3ConfigurationDetailDialog";
 import Web3ConfigurationCollectionDeletionDialog from "./Web3ConfigurationCollectionDeletionDialog";
@@ -531,9 +530,6 @@ const Web3ConfigurationScreen: React.VFC = function Web3ConfigurationScreen() {
   const { fetch: fetchMetadata, error: fetchMetadataError } =
     useNftContractMetadataLazyQuery();
 
-  const { watchNFTCollections, error: watchNFTCollectionsError } =
-    useWatchNFTCollectionsMutation(appID);
-
   const constructFormState = useCallback(
     (config: PortalAPIAppConfig) => {
       const siweIndex = config.authentication?.identities?.indexOf("siwe");
@@ -611,19 +607,6 @@ const Web3ConfigurationScreen: React.VFC = function Web3ConfigurationScreen() {
     save: onFormSave,
   };
 
-  const beforeFormSaved = useCallback(async () => {
-    const contractURLs = form.state.collections.map((c) =>
-      createContractIDURL({
-        blockchain: c.blockchain,
-        network: c.network,
-        address: c.contractAddress,
-      })
-    );
-
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    watchNFTCollections(contractURLs);
-  }, [form.state.collections, watchNFTCollections]);
-
   const errorRules: ErrorParseRule[] = useMemo(() => {
     return [
       makeReasonErrorParseRule("TooManyRequest", "errors.rate-limited"),
@@ -663,8 +646,7 @@ const Web3ConfigurationScreen: React.VFC = function Web3ConfigurationScreen() {
     <FormContainer
       form={formModel}
       errorRules={errorRules}
-      localError={fetchMetadataError || watchNFTCollectionsError}
-      beforeSave={beforeFormSaved}
+      localError={fetchMetadataError}
     >
       <Web3ConfigurationContent
         form={form}

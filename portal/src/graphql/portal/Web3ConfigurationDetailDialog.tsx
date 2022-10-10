@@ -1,11 +1,5 @@
 import React, { useCallback, useMemo } from "react";
-import {
-  Dialog,
-  DialogFooter,
-  MessageBar,
-  MessageBarType,
-  Text,
-} from "@fluentui/react";
+import { Dialog, DialogFooter, Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import DefaultButton from "../../DefaultButton";
 import { NftCollection } from "./globalTypes.generated";
@@ -13,8 +7,7 @@ import styles from "./Web3ConfigurationDetailDialog.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { getNetworkNameID } from "../../util/networkId";
 import ActionButton from "../../ActionButton";
-import { DateTime } from "luxon";
-import { explorerAddress, explorerBlocks } from "../../util/eip681";
+import { explorerAddress } from "../../util/eip681";
 import ExternalLink from "../../ExternalLink";
 import { createContractIDURL } from "../../util/contractId";
 
@@ -41,13 +34,6 @@ const Web3ConfigurationDetailDialog: React.VFC<Web3ConfigurationDetailDialogProp
     const onRemoveCollection = useCallback(() => {
       onDelete(nftCollection);
     }, [nftCollection, onDelete]);
-
-    const isRecentlyAdded = useMemo(() => {
-      const createdAt = DateTime.fromISO(nftCollection.createdAt);
-      const now = DateTime.now();
-
-      return createdAt.plus({ minutes: 5 }) > now;
-    }, [nftCollection]);
 
     const contractID = useMemo(
       () =>
@@ -93,29 +79,6 @@ const Web3ConfigurationDetailDialog: React.VFC<Web3ConfigurationDetailDialogProp
             <Text as="p" block={true}>
               <FormattedMessage id={getNetworkNameID(nftCollection)} />
             </Text>
-          </div>
-          <div className={styles.fieldContainer}>
-            <Text className={styles.fieldTitle} block={true}>
-              <FormattedMessage id="Web3ConfigurationScreen.detail-dialog.block-height" />
-            </Text>
-            <Text as="p" block={true}>
-              <FormattedMessage
-                id="Web3ConfigurationScreen.detail-dialog.block-height.description"
-                values={{
-                  currentHeight: nftCollection.blockHeight,
-                  explorerUrl: explorerBlocks(contractID),
-                }}
-              />
-            </Text>
-
-            {isRecentlyAdded ? (
-              <MessageBar
-                className={styles.messageBar}
-                messageBarType={MessageBarType.info}
-              >
-                <FormattedMessage id="Web3ConfigurationScreen.detail-dialog.recent-added-info" />
-              </MessageBar>
-            ) : null}
           </div>
 
           <div className={styles.fieldContainer}>

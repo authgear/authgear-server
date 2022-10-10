@@ -90,14 +90,8 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionFormProps> =
         }
 
         onAdd({
-          blockchain: contractId.blockchain,
-          network: contractId.network,
-          contractAddress: metadata.address,
-          name: metadata.name,
-          blockHeight: "0",
+          ...metadata,
           createdAt: DateTime.now().toISO(),
-          totalSupply: metadata.totalSupply,
-          tokenType: metadata.tokenType,
           status: "pending",
         });
       },

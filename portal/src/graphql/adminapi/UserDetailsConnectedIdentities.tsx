@@ -254,7 +254,6 @@ const VerifyButton: React.VFC<VerifyButtonProps> = function VerifyButton(
 
 interface NFTCollectionListCellProps {
   contract: NFTContract;
-  balance: number;
   tokens: NFTToken[];
   eip681String: string;
 }
@@ -262,7 +261,7 @@ interface NFTCollectionListCellProps {
 const NFTCollectionListCell: React.VFC<NFTCollectionListCellProps> = (
   props
 ) => {
-  const { contract, balance, tokens, eip681String } = props;
+  const { contract, tokens, eip681String } = props;
   const [isDetailDialogVisible, setIsDetailDialogVisible] = useState(false);
 
   const eip681 = useMemo(() => parseEIP681(eip681String), [eip681String]);
@@ -297,23 +296,13 @@ const NFTCollectionListCell: React.VFC<NFTCollectionListCellProps> = (
           />
         </Text>
       </ExternalLink>
-      <Text variant="small">
-        <FormattedMessage
-          id="UserDetails.connected-identities.siwe.nft-collections.balance"
-          values={{ balance: balance }}
-        />
-      </Text>
       <LinkButton className={styles.NFTListCellBtn} onClick={openDetailDialog}>
         <Text className={styles.NFTListCellBtnLabel} variant="small">
-          <FormattedMessage
-            id="UserDetails.connected-identities.siwe.nft-collections.view-tokens"
-            values={{ balance: balance }}
-          />
+          <FormattedMessage id="UserDetails.connected-identities.siwe.nft-collections.view-tokens" />
         </Text>
       </LinkButton>
       <NFTCollectionDetailDialog
         contract={contract}
-        balance={balance}
         tokens={tokens}
         isVisible={isDetailDialogVisible}
         onDismiss={onDismissDetailDialog}
@@ -340,7 +329,6 @@ const NFTCollectionList: React.VFC<NFTCollectionListProps> = (props) => {
       return (
         <NFTCollectionListCell
           contract={item.contract}
-          balance={item.balance}
           tokens={item.tokens}
           eip681String={eip681String}
         />
