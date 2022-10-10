@@ -336,8 +336,7 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
               name: renderToString(
                 "EditOAuthClientScreen.quick-start.framework.oidc"
               ),
-              // FIXME(third-party-app): update doc link
-              docLink: "https://docs.authgear.com/",
+              docLink: "https://docs.authgear.com/integrate/oidc-provider",
             },
           ];
         default:

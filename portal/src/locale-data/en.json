@@ -583,6 +583,12 @@
   "EditOAuthClientForm.access-token.label": "Access Token Lifetime (seconds)",
   "EditOAuthClientForm.access-token.description": "How frequent the access token should be refreshed. This will affect the timeliness of the information held in the JWT token.",
   "EditOAuthClientForm.issue-jwt-access-token.label": "Issue JWT as access token",
+  "EditOAuthClientForm.endpoints.title": "Endpoints",
+  "EditOAuthClientForm.authorization-endpoint.label": "Authorization Endpoint",
+  "EditOAuthClientForm.token-endpoint.label": "Token Endpoint",
+  "EditOAuthClientForm.userinfo-endpoint.label": "Userinfo Endpoint",
+  "EditOAuthClientForm.openid-configuration-endpoint.label": "OpenID Configuration Endpoint",
+  "EditOAuthClientForm.jwks-uri.label": "JSON Web Key (JWK) Set",
 
   "oauth-client.application-type.unspecified": "Unspecified (Legacy)",
   "oauth-client.application-type.spa": "Single Page Application",
