@@ -64,8 +64,7 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"refresh_token_idle_timeout_seconds": { "$ref": "#/$defs/DurationSeconds" },
 		"issue_jwt_access_token": { "type": "boolean" },
 		"policy_uri": { "type": "string", "format": "uri" },
-		"tos_uri": { "type": "string", "format": "uri"  },
-		"is_first_party": { "type": "boolean" }
+		"tos_uri": { "type": "string", "format": "uri"  }
 	},
 	"required": ["name", "client_id", "redirect_uris"],
 	"allOf": [
