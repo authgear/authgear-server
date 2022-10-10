@@ -427,7 +427,7 @@ func (FormatNetworkID) CheckFormat(value interface{}) error {
 		return fmt.Errorf("invalid network ID: %#v", str)
 	}
 
-	if contractID.ContractAddress != "0x0" {
+	if contractID.Address != "0x0" {
 		return fmt.Errorf("invalid network ID: %#v", str)
 	}
 

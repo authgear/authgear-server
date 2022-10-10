@@ -18,9 +18,9 @@ func TestNew(t *testing.T) {
 			}
 
 			test("ethereum:0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d@1", &web3.ContractID{
-				Blockchain:      "ethereum",
-				Network:         "1",
-				ContractAddress: "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
+				Blockchain: "ethereum",
+				Network:    "1",
+				Address:    "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
 			})
 		})
 
@@ -32,12 +32,26 @@ func TestNew(t *testing.T) {
 			}
 
 			test(&web3.ContractID{
-				Blockchain:      "ethereum",
-				Network:         "1",
-				ContractAddress: "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
+				Blockchain: "ethereum",
+				Network:    "1",
+				Address:    "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
 			}, &url.URL{
 				Scheme: "ethereum",
 				Opaque: "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d@1",
+			})
+		})
+
+		Convey("create new contract_id", func() {
+			test := func(blockchain string, network string, address string, expected *web3.ContractID) {
+				cid, err := web3.NewContractID(blockchain, network, address)
+				So(err, ShouldBeNil)
+				So(cid, ShouldResemble, expected)
+			}
+
+			test("ethereum", "1", "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d", &web3.ContractID{
+				Blockchain: "ethereum",
+				Network:    "1",
+				Address:    "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
 			})
 		})
 	})
