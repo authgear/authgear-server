@@ -111,51 +111,6 @@ function handleError(err: unknown) {
   }
   return;
 }
-
-export class WalletConnectionController extends Controller {
-  static targets = ["button"];
-  static values = {
-    provider: String,
-  };
-
-  declare buttonTarget: HTMLButtonElement;
-
-  declare providerValue: string;
-  declare provider: ethers.providers.Web3Provider | null;
-
-  connect() {
-    getProvider(this.providerValue)
-      .then((provider) => {
-        this.provider = provider;
-      })
-      .catch((err) => {
-        handleError(err);
-      });
-  }
-
-  connectWallet(e: MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    this._connectWallet();
-  }
-
-  async _connectWallet() {
-    if (!this.provider) {
-      visit(`/missing_web3_wallet?provider=${this.providerValue}`);
-      return;
-    }
-
-    try {
-      // Ensure wallet is connected
-      await this.provider.send("eth_requestAccounts", []);
-      visit(`/confirm_web3_account?provider=${this.providerValue}`);
-    } catch (err) {
-      handleError(err);
-    }
-  }
-}
-
 export class WalletIconController extends Controller {
   static targets = ["iconContainer"];
   static values = {
@@ -263,6 +218,7 @@ export class WalletConfirmationController extends Controller {
     if (!this.provider) {
       return;
     }
+    this.displayedTarget.textContent = "-";
 
     await this.provider.send("eth_requestAccounts", []);
 
@@ -279,6 +235,9 @@ export class WalletConfirmationController extends Controller {
     if (!this.provider) {
       return;
     }
+
+    // Ensure at least one account is connected if user has rejected the initial request
+    await this._getAccount();
 
     try {
       const nonceResp = await axios("/siwe/nonce", {

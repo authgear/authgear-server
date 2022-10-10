@@ -19,7 +19,7 @@ func GetCSPNonce(ctx context.Context) string {
 	return nonce
 }
 
-func CSPDirectives(publicOrigin string, nonce string, cdnHost string) ([]string, error) {
+func CSPDirectives(publicOrigin string, nonce string, cdnHost string, allowInlineScript bool) ([]string, error) {
 	u, err := url.Parse(publicOrigin)
 	if err != nil {
 		return nil, err
@@ -30,9 +30,18 @@ func CSPDirectives(publicOrigin string, nonce string, cdnHost string) ([]string,
 		selfSrc = fmt.Sprintf("'self' %v", cdnHost)
 	}
 
+	scriptSrc := ""
+	// Unsafe-inline gets ignored if nonce is provided
+	// https://w3c.github.io/webappsec-csp/#allow-all-inline
+	if allowInlineScript {
+		scriptSrc = "'unsafe-inline'"
+	} else {
+		scriptSrc = fmt.Sprintf("'nonce-%v'", nonce)
+	}
+
 	return []string{
 		"default-src 'self'",
-		fmt.Sprintf("script-src %v 'nonce-%v' www.googletagmanager.com", selfSrc, nonce),
+		fmt.Sprintf("script-src %v %v www.googletagmanager.com", selfSrc, scriptSrc),
 		"frame-src 'self' www.googletagmanager.com",
 		fmt.Sprintf("font-src %v cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com", selfSrc),
 		fmt.Sprintf("style-src %v 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com", selfSrc),

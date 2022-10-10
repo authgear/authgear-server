@@ -44447,7 +44447,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	return passkeyRequestOptionsHandler
 }
 
-func newWebAppConfirmWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
@@ -45194,7 +45194,7 @@ func newWebAppConfirmWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
 		AuthenticationConfig: authenticationConfig,
 	}
-	confirmWeb3AccountHandler := &webapp.ConfirmWeb3AccountHandler{
+	connectWeb3AccountHandler := &webapp.ConnectWeb3AccountHandler{
 		ControllerFactory:         controllerFactory,
 		BaseViewModel:             baseViewModeler,
 		AuthenticationViewModel:   authenticationViewModeler,
@@ -45202,7 +45202,7 @@ func newWebAppConfirmWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Renderer:                  responseRenderer,
 		AuthenticationConfig:      authenticationConfig,
 	}
-	return confirmWeb3AccountHandler
+	return connectWeb3AccountHandler
 }
 
 func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
@@ -46106,7 +46106,7 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	return corsMiddleware
 }
 
-func newDynamicCSPMiddleware(p *deps.RequestProvider) httproute.Middleware {
+func newDynamicCSPMiddleware(p *deps.RequestProvider, allowInlineScript bool) httproute.Middleware {
 	request := p.Request
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
@@ -46118,9 +46118,10 @@ func newDynamicCSPMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	dynamicCSPMiddleware := &webapp2.DynamicCSPMiddleware{
-		Cookies:       cookieManager,
-		HTTPConfig:    httpConfig,
-		WebAppCDNHost: webAppCDNHost,
+		Cookies:           cookieManager,
+		HTTPConfig:        httpConfig,
+		WebAppCDNHost:     webAppCDNHost,
+		AllowInlineScript: allowInlineScript,
 	}
 	return dynamicCSPMiddleware
 }

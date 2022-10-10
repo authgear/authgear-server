@@ -3,11 +3,11 @@
   class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8"
 >
   <h1 class="m-0 primary-txt text-center text-xl font-bold">
-    {{ template "confirm-web3-account-page-title" }}
+    {{ template "connect-web3-account-page-title" }}
   </h1>
 
   <div class="text-sm break-words primary-txt text-center">
-    {{ template "confirm-web3-account-page-description" (dict "provider"
+    {{ template "connect-web3-account-page-description" (dict "provider"
     ($.Translations.RenderText (printf "web3-provider-%s" $.Provider) nil)) }}
   </div>
 
@@ -27,7 +27,8 @@
         <span
           class="text-xl leading-6 font-semibold primary-txt"
           data-web3-wallet-confirmation-target="displayed"
-        ></span>
+          >-</span
+        >
       </div>
       <form class="flex flex-col items-center w-full" method="post" novalidate>
         {{ $.CSRFField }}
@@ -54,14 +55,14 @@
           type="button"
           data-action="click->web3-wallet-confirmation#performSIWE"
         >
-          {{ template "confirm-web3-account-page-next" }}
+          {{ template "connect-web3-account-page-next" }}
         </button>
       </form>
     </div>
   </div>
 
   <div class="text-sm break-words primary-txt text-center">
-    {{ template "confirm-web3-account-page-change-account" (dict "provider"
+    {{ template "connect-web3-account-page-change-account" (dict "provider"
     ($.Translations.RenderText (printf "web3-provider-%s" $.Provider) nil)) }}
   </div>
 

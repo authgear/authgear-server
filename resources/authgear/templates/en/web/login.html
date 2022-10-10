@@ -118,19 +118,18 @@
 			</form>
 
 			{{ if $has_siwe }}
-			<div data-controller="web3-wallet-connection" data-web3-wallet-connection-provider-value="metamask">
-				<button
-				class="btn wallet-btn metamask"
-				type="button"
-				data-action="click->web3-wallet-connection#connectWallet"
-				data-web3-wallet-connection-target="button"
+			<div class="twc-container-vertical">
+				<a
+				class="not-a btn wallet-btn metamask"
+				href="/confirm_web3_account?provider=metamask"
+				data-turbo="false"
 				data-authgear-event="authgear.button.connect_wallet"
 				>
 					<div class="wallet-btn-content">
 						<div class="wallet-btn-icon metamask-icon"></div>
 						<span class="text-base leading-5 font-semibold">{{ template "web3-provider-metamask" }}</span>
 					</div>
-				</button>
+				</a>
 			</div>
 			{{ end }}
 

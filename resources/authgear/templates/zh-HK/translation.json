@@ -196,10 +196,10 @@
   "web3-provider-metamask": "MetaMask",
   "web3-provider-metamask-install": "安裝 MetaMask",
 
-  "confirm-web3-account-page-title": "帳號已連接",
-  "confirm-web3-account-page-description": "已連接到 {provider}",
-  "confirm-web3-account-page-next": "下一步",
-  "confirm-web3-account-page-change-account": "打開 {provider} 擴充功能來更改已連接的帳戶",
+  "connect-web3-account-page-title": "帳號已連接",
+  "connect-web3-account-page-description": "已連接到 {provider}",
+  "connect-web3-account-page-next": "下一步",
+  "connect-web3-account-page-change-account": "打開 {provider} 擴充功能來更改已連接的帳戶",
 
   "missing-web3-wallet-page-title": "安裝密碼貨幣錢包",
   "missing-web3-wallet-page-description": "您的瀏覽器中沒有找到或尚未支援 {provider} 密碼貨幣錢包",
