@@ -354,6 +354,11 @@
   "Web3ConfigurationScreen.collection-list.add-collection": "Add Collection",
   "Web3ConfigurationScreen.collection-list.add-collection.contract-address": "Contract Address",
   "Web3ConfigurationScreen.collection-list.add-collection.placeholder": "e.g. 0x06012c8cf97bead5deae237070f9587f8e7a266d",
+  "Web3ConfigurationScreen.collection-list.add-collection.token-type-button.erc721.title": "ERC-721",
+  "Web3ConfigurationScreen.collection-list.add-collection.token-type-button.erc721.description": "Non-fungible Token standard",
+  "Web3ConfigurationScreen.collection-list.add-collection.token-type-button.erc1155.title": "ERC-1155",
+  "Web3ConfigurationScreen.collection-list.add-collection.token-type-button.erc1155.description": "Multiple Token Standard",
+
   "Web3ConfigurationScreen.confirmation-dialog.title": "Confirm Changes?",
   "Web3ConfigurationScreen.confirmation-dialog.siwe-enabled.title": "Enabling Login with Ethereum",
   "Web3ConfigurationScreen.confirmation-dialog.siwe-enabled.description": "This will replace all other login methods. Users cannot login with email, phone, username or social / enterprise connections. All your current authentication settings will be lost.",

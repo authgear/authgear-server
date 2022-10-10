@@ -1,12 +1,24 @@
 .addCollection {
-  @apply flex flex-row gap-x-2 items-start;
-}
-
-.addCollectionAddButton {
-  /* Workaround to align the button with the text field */
-  margin-top: 29.5px;
+  @apply flex flex-col gap-y-2 items-start;
 }
 
 .addCollectionField {
   @apply w-full;
+}
+
+.addCollectionButtonContainer {
+  @apply flex flex-row gap-x-2 self-end;
+}
+
+.tokenTypeChoiceButtonContainer {
+  @apply w-full flex flex-row gap-x-2;
+}
+
+.tokenTypeChoiceButton {
+  @apply flex-1 px-6;
+}
+
+.tokenTypeChoiceButtonText {
+  font-weight: inherit;
+  @apply text-sm leading-5;
 }

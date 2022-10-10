@@ -216,6 +216,10 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
       []
     );
 
+    const onDisableNewCollectionField = useCallback(() => {
+      setShowAddCollectionField(false);
+    }, []);
+
     const openDetailDialog = useCallback(() => {
       setActiveDialog("detail");
     }, [setActiveDialog]);
@@ -468,6 +472,7 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
                     className={styles.addCollectionForm}
                     selectedNetwork={state.network}
                     onAdd={onAddNewCollection}
+                    onCancel={onDisableNewCollectionField}
                     fetchMetadata={props.fetchMetadata}
                   />
                 ) : null}

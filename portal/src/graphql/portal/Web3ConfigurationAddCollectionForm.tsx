@@ -3,6 +3,7 @@ import cn from "classnames";
 import { APIError } from "../../error/error";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
+import { Text } from "@fluentui/react";
 import styles from "./Web3ConfigurationAddCollectionForm.module.css";
 import { createContractIDURL } from "../../util/contractId";
 import { FormProvider } from "../../form";
@@ -15,6 +16,9 @@ import { CollectionItem } from "./Web3ConfigurationScreen";
 import { DateTime } from "luxon";
 import { parseRawError } from "../../error/parse";
 import PrimaryButton from "../../PrimaryButton";
+import DefaultButton from "../../DefaultButton";
+import ChoiceButton from "../../ChoiceButton";
+import { NFTTokenType } from "../../types";
 
 const InvalidAddressError: APIError = {
   errorName: "InvalidAddressError",
@@ -34,6 +38,69 @@ const InvalidAddressError: APIError = {
   },
 };
 
+interface TokenTypeButtonsProps {
+  disabled?: boolean;
+  selectedType: NFTTokenType;
+  onSelect: (type: NFTTokenType) => void;
+}
+
+const TokenTypeButtons: React.VFC<TokenTypeButtonsProps> = (props) => {
+  const { selectedType, disabled, onSelect } = props;
+
+  const onSelectERC721 = useCallback(() => {
+    onSelect("erc721");
+  }, [onSelect]);
+
+  const onSelectERC1155 = useCallback(() => {
+    onSelect("erc1155");
+  }, [onSelect]);
+
+  return (
+    <div className={styles.tokenTypeChoiceButtonContainer}>
+      <ChoiceButton
+        className={styles.tokenTypeChoiceButton}
+        disabled={disabled}
+        checked={selectedType === "erc721"}
+        onClick={onSelectERC721}
+        text={
+          <Text className={styles.tokenTypeChoiceButtonText}>
+            <FormattedMessage
+              id={`Web3ConfigurationScreen.collection-list.add-collection.token-type-button.erc721.title`}
+            />
+          </Text>
+        }
+        secondaryText={
+          <Text className={styles.tokenTypeChoiceButtonText}>
+            <FormattedMessage
+              id={`Web3ConfigurationScreen.collection-list.add-collection.token-type-button.erc721.description`}
+            />
+          </Text>
+        }
+      />
+      <ChoiceButton
+        className={styles.tokenTypeChoiceButton}
+        disabled={disabled}
+        checked={selectedType === "erc1155"}
+        onClick={onSelectERC1155}
+        text={
+          <Text className={styles.tokenTypeChoiceButtonText}>
+            <FormattedMessage
+              id={`Web3ConfigurationScreen.collection-list.add-collection.token-type-button.erc1155.title`}
+            />
+          </Text>
+        }
+        secondaryText={
+          <Text className={styles.tokenTypeChoiceButtonText}>
+            <FormattedMessage
+              id={`Web3ConfigurationScreen.collection-list.add-collection.token-type-button.erc1155.description`}
+            />
+          </Text>
+        }
+      />
+    </div>
+  );
+};
+
 interface AddCollectionFormProps {
   className?: string;
   selectedNetwork: NetworkID;
@@ -43,15 +110,18 @@ interface AddCollectionFormProps {
     LazyQueryResult<NftContractMetadataQueryQuery, OperationVariables>
   >;
   onAdd: (collection: CollectionItem) => void;
+  onCancel: () => void;
 }
 
 interface AddCollectionSectionFormState {
   contractAddress: string;
+  tokenType: NFTTokenType;
 }
 
 function makeDefaultAddCollectionSectionFormState(): AddCollectionSectionFormState {
   return {
     contractAddress: "",
+    tokenType: "erc721",
   };
 }
 
@@ -59,7 +129,8 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionFormProps> =
   function Web3ConfigurationAddCollectionForm(props) {
     const { renderToString } = useContext(Context);
 
-    const { onAdd, fetchMetadata, className, selectedNetwork } = props;
+    const { onAdd, onCancel, fetchMetadata, className, selectedNetwork } =
+      props;
 
     const onSubmit = useCallback(
       async (state: AddCollectionSectionFormState) => {
@@ -109,7 +180,7 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionFormProps> =
       updateError,
       save,
       isUpdating,
-      state: { contractAddress },
+      state: { contractAddress, tokenType },
       setState,
     } = form;
 
@@ -118,6 +189,13 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionFormProps> =
         if (newValue != null) {
           setState((prev) => ({ ...prev, contractAddress: newValue }));
         }
+      },
+      [setState]
+    );
+
+    const onChangeTokenType = useCallback(
+      (type: NFTTokenType) => {
+        setState((prev) => ({ ...prev, tokenType: type }));
       },
       [setState]
     );
@@ -133,6 +211,15 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionFormProps> =
         save().catch(() => {});
       },
       [save]
+    );
+
+    const onCancelForm = useCallback(
+      (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onCancel();
+      },
+      [onCancel]
     );
 
     return (
@@ -151,19 +238,32 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionFormProps> =
             parentJSONPointer=""
             fieldName="contract_address"
           />
-          <PrimaryButton
-            type="submit"
-            className={styles.addCollectionAddButton}
-            disabled={!isModified || isUpdating}
-            onClick={onSubmitForm}
-            text={
-              isUpdating ? (
-                <FormattedMessage id={"adding"} />
-              ) : (
-                <FormattedMessage id={"add"} />
-              )
-            }
+          <TokenTypeButtons
+            disabled={isUpdating}
+            selectedType={tokenType}
+            onSelect={onChangeTokenType}
           />
+          <div className={styles.addCollectionButtonContainer}>
+            <PrimaryButton
+              type="submit"
+              className={styles.addCollectionAddButton}
+              disabled={!isModified || isUpdating}
+              onClick={onSubmitForm}
+              text={
+                isUpdating ? (
+                  <FormattedMessage id={"adding"} />
+                ) : (
+                  <FormattedMessage id={"add"} />
+                )
+              }
+            />
+            <DefaultButton
+              type="reset"
+              disabled={isUpdating}
+              onClick={onCancelForm}
+              text={<FormattedMessage id={"cancel"} />}
+            />
+          </div>
         </div>
       </FormProvider>
     );
