@@ -65,11 +65,11 @@ func TestHexCmp(t *testing.T) {
 
 	Convey("Parse failure", t, func() {
 		h, err := hexstring.Parse("10")
-		So(err, ShouldBeError, `hex string must match the regexp "^0x[0-9a-fA-F]+$"`)
+		So(err, ShouldBeError, `hex string must match the regexp "^(0x)0*([0-9a-fA-F]+)$"`)
 		So(h, ShouldEqual, "")
 
 		h, err = hexstring.Parse("0xg")
-		So(err, ShouldBeError, `hex string must match the regexp "^0x[0-9a-fA-F]+$"`)
+		So(err, ShouldBeError, `hex string must match the regexp "^(0x)0*([0-9a-fA-F]+)$"`)
 		So(h, ShouldEqual, "")
 	})
 
@@ -98,5 +98,10 @@ func TestHexCmp(t *testing.T) {
 		So(ok, ShouldBeFalse)
 		So(hex, ShouldEqual, "")
 		So(i, ShouldEqual, -1)
+	})
+	Convey("Parse remove leading zeros", t, func() {
+		h, err := hexstring.Parse("0x000000000000000000000DEADBEEF")
+		So(err, ShouldBeNil)
+		So(h, ShouldEqual, "0xdeadbeef")
 	})
 }
