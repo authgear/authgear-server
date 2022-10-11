@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"mime"
 	"net/http"
+	"strings"
 
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
@@ -27,7 +28,14 @@ func CheckContentType(raws []string) httproute.MiddlewareFunc {
 				return
 			}
 
-			requestContentType := r.Header.Get("Content-Type")
+			raw := r.Header.Get("Content-Type")
+
+			requestContentType, params, err := mime.ParseMediaType(raw)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("invalid content type: %v", raw), http.StatusUnsupportedMediaType)
+				return
+			}
+
 			isAllowed := false
 			for _, allowedMediaType := range allowedMediaTypes {
 				if allowedMediaType == requestContentType {
@@ -39,6 +47,16 @@ func CheckContentType(raws []string) httproute.MiddlewareFunc {
 				http.Error(w, fmt.Sprintf("invalid content type: %v", requestContentType), http.StatusUnsupportedMediaType)
 				return
 			}
+
+			// In case charset is specified, ensure it is utf-8.
+			if charset, ok := params["charset"]; ok {
+				charset = strings.ToLower(charset)
+				if charset != "utf-8" && charset != "utf8" {
+					http.Error(w, fmt.Sprintf("invalid content type: %v", requestContentType), http.StatusUnsupportedMediaType)
+					return
+				}
+			}
+			// Allow params to contain something we do not understand.
 
 			next.ServeHTTP(w, r)
 		})
