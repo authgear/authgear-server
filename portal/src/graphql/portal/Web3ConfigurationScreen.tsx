@@ -29,11 +29,7 @@ import styles from "./Web3ConfigurationScreen.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useNftCollectionsQuery } from "./query/nftCollectionsQuery";
 import { NftCollection } from "./globalTypes.generated";
-import {
-  ContractID,
-  createContractIDURL,
-  parseContractID,
-} from "../../util/contractId";
+import { createContractIDURL, parseContractID } from "../../util/contractId";
 import { useNftContractMetadataLazyQuery } from "./query/nftContractMetadataQuery";
 import { LazyQueryResult, OperationVariables } from "@apollo/client";
 import { NftContractMetadataQueryQuery } from "./query/nftContractMetadataQuery.generated";
@@ -498,7 +494,7 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
                     />
                   ) : null}
                   <DetailsList
-                    className={styles.list}
+                    className={styles.nftCollectionList}
                     selectionMode={SelectionMode.none}
                     onRenderItemColumn={onRenderItemColumn}
                     isHeaderVisible={false}
