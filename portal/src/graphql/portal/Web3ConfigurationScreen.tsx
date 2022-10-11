@@ -38,6 +38,7 @@ import {
   getNetworkNameID,
   NetworkID,
   parseNetworkID,
+  sameNetworkID,
 } from "../../util/networkId";
 import Web3ConfigurationConfirmationDialog from "./Web3ConfigurationConfirmationDialog";
 import Web3ConfigurationDetailDialog from "./Web3ConfigurationDetailDialog";
@@ -104,12 +105,14 @@ function constructConfig(
 
     let collections: CollectionItem[] = [];
 
-    if (
-      !config.web3.siwe.networks?.includes(selectedNetwork) ||
-      !currentState.siweChecked
-    ) {
-      // Clear collection list if network is changed or when SIWE is disabled
+    if (!currentState.siweChecked) {
+      // Clear collection list if SIWE is disabled
       collections = [];
+    } else if (!config.web3.siwe.networks?.includes(selectedNetwork)) {
+      // Clear unrelated collections if network is changed
+      collections = currentState.collections.filter((c) =>
+        sameNetworkID(c, currentState.network)
+      );
     } else {
       // Proceed with changes
       collections = currentState.collections;
