@@ -31,8 +31,6 @@ import { useNftCollectionsQuery } from "./query/nftCollectionsQuery";
 import { NftCollection } from "./globalTypes.generated";
 import { createContractIDURL, parseContractID } from "../../util/contractId";
 import { useNftContractMetadataLazyQuery } from "./query/nftContractMetadataQuery";
-import { LazyQueryResult, OperationVariables } from "@apollo/client";
-import { NftContractMetadataQueryQuery } from "./query/nftContractMetadataQuery.generated";
 import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 import {
   ALL_SUPPORTED_NETWORKS,
@@ -44,7 +42,7 @@ import {
 import Web3ConfigurationConfirmationDialog from "./Web3ConfigurationConfirmationDialog";
 import Web3ConfigurationDetailDialog from "./Web3ConfigurationDetailDialog";
 import Web3ConfigurationCollectionDeletionDialog from "./Web3ConfigurationCollectionDeletionDialog";
-import Web3ConfigurationAddCollectionForm from "./Web3ConfigurationAddCollectionForm";
+import Web3ConfigurationAddCollectionSection from "./Web3ConfigurationAddCollectionSection";
 import CommandBarButton from "../../CommandBarButton";
 import ActionButton from "../../ActionButton";
 import Toggle from "../../Toggle";
@@ -156,12 +154,12 @@ const ALL_NETWORK_OPTIONS: string[] = ALL_SUPPORTED_NETWORKS.map((n) =>
 
 interface Web3ConfigurationContentProps {
   nftCollections: NftCollection[];
+  isAddCollectionFieldVisible: boolean;
+  showAddCollectionField: () => void;
+  hideAddCollectionField: () => void;
+
   maximumCollections: number;
-  fetchMetadata: (
-    contractId: string
-  ) => Promise<
-    LazyQueryResult<NftContractMetadataQueryQuery, OperationVariables>
-  >;
+  fetchMetadata: (contractId: string) => Promise<NftCollection | null>;
   probeCollection: (contractId: string) => Promise<boolean>;
   form: AppConfigFormModel<FormState>;
 }
@@ -172,9 +170,6 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
   function Web3ConfigurationContent(props) {
     const { state, setState } = props.form;
     const { themes } = useSystemConfig();
-
-    const [showAddCollectionField, setShowAddCollectionField] =
-      useState<boolean>(false);
 
     const [activeDialog, setActiveDialog] =
       useState<Web3ConfigurationContentDialogs>(null);
@@ -212,20 +207,6 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
         createNetworkIDURL(state.network),
         renderBlockchainNetwork
       );
-
-    const onEnableNewCollectionField = useCallback(
-      (e: React.MouseEvent<unknown>) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        setShowAddCollectionField(true);
-      },
-      []
-    );
-
-    const onDisableNewCollectionField = useCallback(() => {
-      setShowAddCollectionField(false);
-    }, []);
 
     const openDetailDialog = useCallback(() => {
       setActiveDialog("detail");
@@ -471,15 +452,16 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
                   text={renderToString(
                     "Web3ConfigurationScreen.collection-list.add-collection"
                   )}
-                  onClick={onEnableNewCollectionField}
+                  onClick={props.showAddCollectionField}
                 />
                 <HorizontalDivider />
-                {showAddCollectionField && !collectionLimitReached ? (
-                  <Web3ConfigurationAddCollectionForm
+                {props.isAddCollectionFieldVisible &&
+                !collectionLimitReached ? (
+                  <Web3ConfigurationAddCollectionSection
                     className={styles.addCollectionForm}
                     selectedNetwork={state.network}
                     onAdd={onAddNewCollection}
-                    onCancel={onDisableNewCollectionField}
+                    onDismiss={props.hideAddCollectionField}
                     fetchMetadata={props.fetchMetadata}
                     probeCollection={props.probeCollection}
                   />
@@ -534,6 +516,9 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
 const Web3ConfigurationScreen: React.VFC = function Web3ConfigurationScreen() {
   const { appID } = useParams() as { appID: string };
   const [isConfirmationDialogVisible, setIsConfirmationDialogVisible] =
+    useState<boolean>(false);
+
+  const [isAddCollectionFieldVisible, setIsAddCollectionFieldVisible] =
     useState<boolean>(false);
 
   const nftCollections = useNftCollectionsQuery(appID);
@@ -628,13 +613,22 @@ const Web3ConfigurationScreen: React.VFC = function Web3ConfigurationScreen() {
     setIsConfirmationDialogVisible(false);
   }, [setIsConfirmationDialogVisible]);
 
+  const showAddCollectionField = useCallback(() => {
+    setIsAddCollectionFieldVisible(true);
+  }, []);
+
+  const hideAddCollectionField = useCallback(() => {
+    setIsAddCollectionFieldVisible(false);
+  }, []);
+
   const saveForm = useCallback(async () => {
     dismissConfirmationDialog();
+    hideAddCollectionField();
 
     await form.save();
 
     await nftCollections.refetch();
-  }, [form, nftCollections, dismissConfirmationDialog]);
+  }, [form, nftCollections, dismissConfirmationDialog, hideAddCollectionField]);
 
   const onFormSave = useCallback(async () => {
     openConfirmationDialog();
@@ -688,10 +682,13 @@ const Web3ConfigurationScreen: React.VFC = function Web3ConfigurationScreen() {
     >
       <Web3ConfigurationContent
         form={form}
-        fetchMetadata={fetchMetadata}
-        probeCollection={probeNFTCollection}
+        isAddCollectionFieldVisible={isAddCollectionFieldVisible}
         maximumCollections={collectionsMaximum}
         nftCollections={nftCollections.collections}
+        fetchMetadata={fetchMetadata}
+        probeCollection={probeNFTCollection}
+        showAddCollectionField={showAddCollectionField}
+        hideAddCollectionField={hideAddCollectionField}
       />
 
       <Web3ConfigurationConfirmationDialog

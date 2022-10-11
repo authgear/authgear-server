@@ -106,7 +106,7 @@
   "errors.invalid-token-id": "Please input a valid token ID.",
   "errors.duplicated-contract": "Duplicated contract address.",
   "errors.rate-limited": "You have exceeded the rate limit. Please Try again later.",
-  "errors.bad-nft-collection": "This NFT collection is not yet supported.",
+  "errors.bad-nft-collection": "This NFT collection is either not supported or is from another network.",
 
   "TodoButtonWrapper.dialog-title": "Feature Not Ready",
   "TodoButtonWrapper.dialog-message": "This feature is not yet implemented",
@@ -356,6 +356,7 @@
   "Web3ConfigurationScreen.collection-list.add-collection": "Add Collection",
   "Web3ConfigurationScreen.collection-list.add-collection.contract-address": "Contract Address",
   "Web3ConfigurationScreen.collection-list.add-collection.placeholder": "e.g. 0x06012c8cf97bead5deae237070f9587f8e7a266d",
+  "Web3ConfigurationScreen.collection-list.add-collection.metadata-error": "Failed to fetch metadata for contract",
   "Web3ConfigurationScreen.collection-list.add-collection.token-type-button.erc721.title": "ERC-721",
   "Web3ConfigurationScreen.collection-list.add-collection.token-type-button.erc721.description": "Non-fungible Token standard",
   "Web3ConfigurationScreen.collection-list.add-collection.token-type-button.erc1155.title": "ERC-1155",
