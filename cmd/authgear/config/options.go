@@ -60,6 +60,16 @@ func ReadSecretConfigOptionsFromConsole() *config.GenerateSecretConfigOptions {
 		DefaultValue: "public",
 	}.Prompt()
 
+	opts.AuditDatabaseURL = promptURL{
+		Title:        "Audit Database URL",
+		DefaultValue: "postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable",
+	}.Prompt()
+
+	opts.AuditDatabaseSchema = promptURL{
+		Title:        "Audit Database schema",
+		DefaultValue: "public",
+	}.Prompt()
+
 	opts.ElasticsearchURL = promptString{
 		Title:        "Elasticsearch URL",
 		DefaultValue: "http://localhost:9200",
@@ -68,6 +78,11 @@ func ReadSecretConfigOptionsFromConsole() *config.GenerateSecretConfigOptions {
 	opts.RedisURL = promptURL{
 		Title:        "Redis URL",
 		DefaultValue: "redis://localhost",
+	}.Prompt()
+
+	opts.AnalyticRedisURL = promptURL{
+		Title:        "Redis URL for analytic",
+		DefaultValue: "redis://localhost/1",
 	}.Prompt()
 
 	return opts
