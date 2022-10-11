@@ -51,6 +51,7 @@ import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import HorizontalDivider from "../../HorizontalDivider";
 import { useProbeNFTCollectionMutation } from "./mutations/probeNFTCollectionMutation";
 import Web3ConfigurationTokenTrackingDialog from "./Web3ConfigurationTokenTrackingDialog";
+import { truncateAddress } from "../../util/hex";
 
 export interface CollectionItem extends NftCollection {
   status: "pending" | "active";
@@ -359,14 +360,14 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
               </span>
             );
           case "contract-address":
-            return item.contractAddress;
+            return truncateAddress(item.contractAddress);
           case "status":
             if (item.status === "pending") {
               return renderToString(
                 "Web3ConfigurationScreen.collection-list.status.pending"
               );
             }
-            return null;
+            return "";
           case "action": {
             const theme =
               item.status === "pending"
@@ -403,27 +404,29 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
         {
           key: "name",
           name: "",
-          minWidth: 113,
-          maxWidth: 113,
+          minWidth: 179,
+          maxWidth: 179,
           isMultiline: true,
         },
         {
           key: "contract-address",
           name: "",
-          minWidth: 113,
-          maxWidth: 113,
+          flexGrow: 1,
+          minWidth: 103,
+          maxWidth: 103,
         },
         {
           key: "status",
           name: "",
-          minWidth: 113,
-          maxWidth: 113,
+          minWidth: 103,
+          maxWidth: 103,
         },
         {
           key: "action",
           name: "",
-          minWidth: 113,
-          maxWidth: 113,
+          minWidth: 103,
+          maxWidth: 103,
+          targetWidthProportion: 1,
         },
       ],
       []
