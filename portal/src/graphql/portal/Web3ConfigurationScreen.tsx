@@ -79,18 +79,23 @@ function constructConfig(
   _initialState: FormState,
   currentState: FormState
 ): PortalAPIAppConfig {
+  // eslint-disable-next-line complexity
   return produce(config, (config) => {
     config.authentication ??= {};
     config.authentication.primary_authenticators ??= [];
+    config.identity ??= {};
+    config.identity.login_id ??= {};
     config.web3 ??= {};
     config.web3.nft ??= {};
     config.web3.siwe ??= {};
 
     if (currentState.siweChecked) {
       config.authentication.identities = ["siwe"];
+      config.identity.login_id.keys = [];
       config.authentication.primary_authenticators = [];
     } else {
       config.authentication.identities = ["login_id", "oauth"];
+      config.identity.login_id.keys = [{ type: "email" }];
       config.authentication.primary_authenticators = ["password"];
     }
 
