@@ -42,18 +42,12 @@
 {{/* Identity */}}
 <div class="pane flex flex-col">
 
-  <div class="px-5 mt-4 mb-1">
+  <div class="px-5 py-4 row-sep grid grid-cols-1 auto-rows-auto gap-y-1">
     <h1 class="m-0 primary-txt text-xl font-bold">
       {{ template "settings-my-account-title" }}
     </h1>
-  </div>
-
-  <div class="p-5 row-sep grid grid-cols-1 auto-rows-auto gap-y-1">
-    <h2 class="m-0 primary-txt text-base font-semibold">
-      {{ template "settings-identity-title" }}
-    </h2>
     <p class="m-0 text-sm secondary-txt">
-      {{ template "settings-identity-description" }}
+      {{ template "settings-identity-description" (dict "count" $.IdentityCount ) }}
     </p>
   </div>
 

@@ -297,7 +297,7 @@
   "settings-my-profile-empty-label": "Add personal information to complete your profile",
   "settings-my-account-title": "My account",
   "settings-identity-title": "Login info",
-  "settings-identity-description": "There are the methods to sign in your account",
+  "settings-identity-description": "{count, plural, one{This is the method to sign in to your account} other{These are the methods to sign in to your account}}",
   "settings-identity-oauth-google": "Google",
   "settings-identity-oauth-apple": "Apple",
   "settings-identity-oauth-facebook": "Facebook",
