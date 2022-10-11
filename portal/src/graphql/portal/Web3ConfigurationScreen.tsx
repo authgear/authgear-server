@@ -50,6 +50,7 @@ import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import HorizontalDivider from "../../HorizontalDivider";
 import { useProbeNFTCollectionMutation } from "./mutations/probeNFTCollectionMutation";
+import Web3ConfigurationTokenTrackingDialog from "./Web3ConfigurationTokenTrackingDialog";
 
 export interface CollectionItem extends NftCollection {
   status: "pending" | "active";
@@ -173,8 +174,10 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
 
     const [activeDialog, setActiveDialog] =
       useState<Web3ConfigurationContentDialogs>(null);
-    const [selectedCollection, setSelectedCollection] =
-      useState<CollectionItem | null>(null);
+    const [selectedCollectionIdx, setSelectedCollectionIdx] =
+      useState<number>(-1);
+    const [isTokenTrackingDialogVisible, setIsTokenTrackingDialogVisible] =
+      useState<boolean>(false);
 
     const { renderToString } = useContext(Context);
 
@@ -220,6 +223,17 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
       setActiveDialog(null);
     }, [setActiveDialog]);
 
+    const onSelectCollection = useCallback(
+      (collection: CollectionItem) => {
+        const idx = state.collections.findIndex((c) =>
+          isNFTCollectionEqual(collection, c)
+        );
+
+        setSelectedCollectionIdx(idx);
+      },
+      [state.collections]
+    );
+
     const onAddNewCollection = useCallback(
       (collection: CollectionItem) => {
         if (
@@ -248,15 +262,16 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
 
     const onRequireConfirmRemoveCollection = useCallback(
       (collection: CollectionItem) => {
-        setSelectedCollection(collection);
+        onSelectCollection(collection);
 
         openDeleteConfirmationDialog();
       },
-      [setSelectedCollection, openDeleteConfirmationDialog]
+      [onSelectCollection, openDeleteConfirmationDialog]
     );
 
     const onRemoveCollection = useCallback(
       (collection: NftCollection) => {
+        setSelectedCollectionIdx(-1);
         setState((prev) => {
           const collections = prev.collections;
           const index = collections.findIndex((c) =>
@@ -291,13 +306,44 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
             onRemoveCollection(collection);
             break;
           case "active":
-            setSelectedCollection(collection);
+            onSelectCollection(collection);
 
             openDetailDialog();
             break;
         }
       },
-      [onRemoveCollection, openDetailDialog]
+      [onRemoveCollection, onSelectCollection, openDetailDialog]
+    );
+
+    const showTokenTrackingDialog = useCallback(() => {
+      setIsTokenTrackingDialogVisible(true);
+    }, []);
+
+    const dismissTokenTrackingDialog = useCallback(() => {
+      setIsTokenTrackingDialogVisible(false);
+    }, []);
+
+    const onEditSelectedCollectionTokenIds = useCallback(
+      (tokenIDs: string[]) => {
+        if (selectedCollectionIdx === -1) {
+          return;
+        }
+
+        setState((prev) => {
+          const collections = prev.collections;
+          const updatedCollection = {
+            ...prev.collections[selectedCollectionIdx],
+            tokenIDs: tokenIDs,
+          };
+          collections.splice(selectedCollectionIdx, 1, updatedCollection);
+          return {
+            ...prev,
+            collections,
+          };
+        });
+        dismissTokenTrackingDialog();
+      },
+      [selectedCollectionIdx, setState, dismissTokenTrackingDialog]
     );
 
     const onRenderItemColumn = useCallback(
@@ -386,6 +432,14 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
     const collectionLimitReached = useMemo(() => {
       return state.collections.length >= props.maximumCollections;
     }, [props.maximumCollections, state.collections.length]);
+
+    const selectedCollection = useMemo(() => {
+      if (selectedCollectionIdx === -1) {
+        return null;
+      }
+
+      return state.collections[selectedCollectionIdx] ?? null;
+    }, [state, selectedCollectionIdx]);
 
     return (
       <>
@@ -497,6 +551,7 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
           <Web3ConfigurationDetailDialog
             nftCollection={selectedCollection}
             isVisible={activeDialog === "detail"}
+            onEditTrackedTokens={showTokenTrackingDialog}
             onDismiss={dismissAllDialogs}
             onDelete={onRequireConfirmRemoveCollection}
           />
@@ -507,6 +562,14 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
             isVisible={activeDialog === "deletionConfirmation"}
             onDismiss={dismissAllDialogs}
             onConfirm={onRemoveCollection}
+          />
+        ) : null}
+        {selectedCollection !== null ? (
+          <Web3ConfigurationTokenTrackingDialog
+            isVisible={isTokenTrackingDialogVisible}
+            initialValue={selectedCollection.tokenIDs}
+            onContinue={onEditSelectedCollectionTokenIds}
+            onDismiss={dismissTokenTrackingDialog}
           />
         ) : null}
       </>

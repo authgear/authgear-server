@@ -1,5 +1,5 @@
 .contentContainer {
-  @apply flex flex-col gap-y-5;
+  @apply flex flex-col;
 }
 
 .contractAddressContainer {
@@ -7,17 +7,25 @@
 }
 
 .fieldContainer {
-  @apply flex flex-col gap-y-1;
+  @apply flex flex-col gap-y-1 mt-5;
 }
 
 .fieldTitle {
   @apply font-bold;
 }
 
-.removeCollectionButton {
-  @apply p-0;
+.actionButton {
+  @apply p-0 h-auto;
 }
 
-.removeCollectionButtonContainer {
+.actionButtonContainer {
   @apply -mx-1;
+}
+
+.deleteCollectionButtonContainer {
+  @apply mt-4;
+}
+
+.footer {
+  @apply pt-3;
 }

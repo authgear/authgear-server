@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from "react";
+import cn from "classnames";
 import { Dialog, DialogFooter, Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import DefaultButton from "../../DefaultButton";
@@ -15,13 +16,20 @@ interface Web3ConfigurationDetailDialogProps {
   nftCollection: CollectionItem;
 
   isVisible: boolean;
+  onEditTrackedTokens: () => void;
   onDelete: (nftCollection: CollectionItem) => void;
   onDismiss: () => void;
 }
 
 const Web3ConfigurationDetailDialog: React.VFC<Web3ConfigurationDetailDialogProps> =
   function Web3ConfigurationDetailDialog(props) {
-    const { nftCollection, isVisible, onDelete, onDismiss } = props;
+    const {
+      nftCollection,
+      isVisible,
+      onDelete,
+      onDismiss,
+      onEditTrackedTokens,
+    } = props;
 
     const { themes } = useSystemConfig();
 
@@ -108,11 +116,32 @@ const Web3ConfigurationDetailDialog: React.VFC<Web3ConfigurationDetailDialogProp
             <Text as="p" block={true}>
               {displayedTokens}
             </Text>
+            {nftCollection.tokenType === "erc1155" ? (
+              <div className={styles.actionButtonContainer}>
+                <ActionButton
+                  className={styles.actionButton}
+                  theme={themes.actionButton}
+                  onClick={onEditTrackedTokens}
+                  text={
+                    <FormattedMessage
+                      id={
+                        "Web3ConfigurationScreen.detail-dialog.edit-tracked-tokens"
+                      }
+                    />
+                  }
+                />
+              </div>
+            ) : null}
           </div>
 
-          <div className={styles.removeCollectionButtonContainer}>
+          <div
+            className={cn(
+              styles.actionButtonContainer,
+              styles.deleteCollectionButtonContainer
+            )}
+          >
             <ActionButton
-              className={styles.removeCollectionButton}
+              className={styles.actionButton}
               theme={themes.destructive}
               onClick={onRemoveCollection}
               text={
@@ -124,7 +153,7 @@ const Web3ConfigurationDetailDialog: React.VFC<Web3ConfigurationDetailDialogProp
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className={styles.footer}>
           <DefaultButton
             onClick={onDismiss}
             theme={themes.inverted}
