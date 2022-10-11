@@ -7,24 +7,18 @@ export interface EIP681 {
 }
 
 export function parseEIP681(
-  url: string,
+  uri: string,
   skipAddressCheck: boolean = false
 ): EIP681 {
-  const queryURI = url.split("?");
-  const protocolURI = queryURI[0].split(":");
-
-  if (protocolURI.length !== 2) {
-    throw new Error(`Invalid URI: ${url}`);
+  const url = new URL(uri);
+  if (url.protocol !== "ethereum:") {
+    throw new Error(`Invalid protocol: ${url.protocol}`);
   }
 
-  if (protocolURI[0] !== "ethereum") {
-    throw new Error(`Invalid protocol: ${protocolURI[0]}`);
-  }
-
-  const addressURI = protocolURI[1].split("@");
+  const addressURI = url.pathname.split("@");
 
   if (addressURI.length !== 2) {
-    throw new Error(`Invalid URI: ${url}`);
+    throw new Error(`Invalid URI: ${url.pathname}`);
   }
 
   const address = addressURI[0];
@@ -38,7 +32,7 @@ export function parseEIP681(
   }
 
   const query =
-    queryURI.length > 1 ? new URLSearchParams(queryURI[1]) : undefined;
+    url.searchParams.toString() !== "" ? url.searchParams : undefined;
 
   return {
     chainId,
@@ -51,9 +45,9 @@ export function createEIP681URL(
   eip681: EIP681,
   skipAddressCheck: boolean = false
 ): string {
-  const query = eip681.query?.toString();
+  const query = eip681.query?.toString() ?? "";
   const url = `ethereum:${eip681.address}@${eip681.chainId}${
-    query != null ? "?" + query.toString() : ""
+    query !== "" ? "?" + query : ""
   }`;
   // Confirm the format is correct
   parseEIP681(url, skipAddressCheck);

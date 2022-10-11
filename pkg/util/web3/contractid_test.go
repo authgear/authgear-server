@@ -21,14 +21,14 @@ func TestNew(t *testing.T) {
 				Blockchain: "ethereum",
 				Network:    "1",
 				Address:    "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
-				Query:      nil,
+				Query:      url.Values{},
 			})
 
 			test("ethereum:0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d@1?token_ids=0x1&token_ids=0x2", &web3.ContractID{
 				Blockchain: "ethereum",
 				Network:    "1",
 				Address:    "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
-				Query: &url.Values{
+				Query: url.Values{
 					"token_ids": []string{
 						"0x1", "0x2",
 					},
@@ -56,7 +56,7 @@ func TestNew(t *testing.T) {
 				Blockchain: "ethereum",
 				Network:    "1",
 				Address:    "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
-				Query: &url.Values{
+				Query: url.Values{
 					"token_ids": []string{
 						"0x1", "0x2",
 					},
@@ -69,7 +69,7 @@ func TestNew(t *testing.T) {
 		})
 
 		Convey("create new contract_id", func() {
-			test := func(blockchain string, network string, address string, query *url.Values, expected *web3.ContractID) {
+			test := func(blockchain string, network string, address string, query url.Values, expected *web3.ContractID) {
 				cid, err := web3.NewContractID(blockchain, network, address, query)
 				So(err, ShouldBeNil)
 				So(cid, ShouldResemble, expected)
@@ -79,10 +79,9 @@ func TestNew(t *testing.T) {
 				Blockchain: "ethereum",
 				Network:    "1",
 				Address:    "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
-				Query:      nil,
 			})
 
-			test("ethereum", "1", "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d", &url.Values{
+			test("ethereum", "1", "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d", url.Values{
 				"token_ids": []string{
 					"0x1", "0x2",
 				},
@@ -90,7 +89,7 @@ func TestNew(t *testing.T) {
 				Blockchain: "ethereum",
 				Network:    "1",
 				Address:    "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
-				Query: &url.Values{
+				Query: url.Values{
 					"token_ids": []string{
 						"0x1", "0x2",
 					},

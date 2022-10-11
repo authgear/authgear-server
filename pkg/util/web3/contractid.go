@@ -12,10 +12,10 @@ type ContractID struct {
 	Blockchain string
 	Network    string
 	Address    string
-	Query      *url.Values
+	Query      url.Values
 }
 
-func NewContractID(blockchain string, network string, address string, query *url.Values) (*ContractID, error) {
+func NewContractID(blockchain string, network string, address string, query url.Values) (*ContractID, error) {
 	hexaddr, err := hexstring.Parse(address)
 	if err != nil {
 		return nil, err
