@@ -2,7 +2,6 @@ import React, { useCallback, useMemo } from "react";
 import { Dialog, DialogFooter, Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import DefaultButton from "../../DefaultButton";
-import { NftCollection } from "./globalTypes.generated";
 import styles from "./Web3ConfigurationDetailDialog.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { getNetworkNameID } from "../../util/networkId";
@@ -10,12 +9,13 @@ import ActionButton from "../../ActionButton";
 import { explorerAddress } from "../../util/eip681";
 import ExternalLink from "../../ExternalLink";
 import { createContractIDURL } from "../../util/contractId";
+import { CollectionItem } from "./Web3ConfigurationScreen";
 
 interface Web3ConfigurationDetailDialogProps {
-  nftCollection: NftCollection;
+  nftCollection: CollectionItem;
 
   isVisible: boolean;
-  onDelete: (nftCollection: NftCollection) => void;
+  onDelete: (nftCollection: CollectionItem) => void;
   onDismiss: () => void;
 }
 
@@ -45,8 +45,21 @@ const Web3ConfigurationDetailDialog: React.VFC<Web3ConfigurationDetailDialogProp
       [nftCollection]
     );
 
-    const totalSupply = useMemo(() => {
-      return nftCollection.totalSupply ?? "-";
+    const displayedTokens = useMemo(() => {
+      const totalSupplyNotAvailable =
+        !nftCollection.totalSupply || nftCollection.totalSupply === "0";
+
+      // Check if collection is ERC-1155
+      if (nftCollection.tokenIDs.length !== 0) {
+        // Return tracked token count over total supply if available
+        // otherwise just tracked token count
+        return totalSupplyNotAvailable
+          ? nftCollection.tokenIDs.length
+          : `${nftCollection.tokenIDs.length}/${nftCollection.totalSupply}`;
+      }
+
+      // Return dash is total supply not available
+      return totalSupplyNotAvailable ? "-" : nftCollection.totalSupply;
     }, [nftCollection]);
 
     return (
@@ -83,10 +96,17 @@ const Web3ConfigurationDetailDialog: React.VFC<Web3ConfigurationDetailDialogProp
 
           <div className={styles.fieldContainer}>
             <Text className={styles.fieldTitle} block={true}>
-              <FormattedMessage id="Web3ConfigurationScreen.detail-dialog.tokens" />
+              <FormattedMessage
+                id={
+                  nftCollection.totalSupply == null &&
+                  nftCollection.tokenIDs.length === 0
+                    ? "Web3ConfigurationScreen.detail-dialog.total-supply"
+                    : "Web3ConfigurationScreen.detail-dialog.tracked-tokens"
+                }
+              />
             </Text>
             <Text as="p" block={true}>
-              {totalSupply}
+              {displayedTokens}
             </Text>
           </div>
 

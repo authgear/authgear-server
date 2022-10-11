@@ -183,7 +183,7 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
     const [activeDialog, setActiveDialog] =
       useState<Web3ConfigurationContentDialogs>(null);
     const [selectedCollection, setSelectedCollection] =
-      useState<NftCollection | null>(null);
+      useState<CollectionItem | null>(null);
 
     const { renderToString } = useContext(Context);
 
@@ -270,7 +270,7 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
     );
 
     const onRequireConfirmRemoveCollection = useCallback(
-      (collection: NftCollection) => {
+      (collection: CollectionItem) => {
         setSelectedCollection(collection);
 
         openDeleteConfirmationDialog();

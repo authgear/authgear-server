@@ -2,17 +2,17 @@ import React, { useCallback, useContext, useMemo } from "react";
 import { Dialog, DialogFooter } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import DefaultButton from "../../DefaultButton";
-import { NftCollection } from "./globalTypes.generated";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { getNetworkNameID } from "../../util/networkId";
 import PrimaryButton from "../../PrimaryButton";
 import { truncateAddress } from "../../util/hex";
+import { CollectionItem } from "./Web3ConfigurationScreen";
 
 interface Web3ConfigurationCollectionDeletionDialogProps {
-  nftCollection: NftCollection;
+  nftCollection: CollectionItem;
 
   isVisible: boolean;
-  onConfirm: (nftCollection: NftCollection) => void;
+  onConfirm: (nftCollection: CollectionItem) => void;
   onDismiss: () => void;
 }
 
