@@ -25,17 +25,36 @@ var cmdInit = &cobra.Command{
 
 		// obtain options
 		appConfigOpts := config.ReadAppConfigOptionsFromConsole()
+		oauthClientConfigOpts, err := config.ReadOAuthClientConfigsFromConsole()
+		if err != nil {
+			log.Fatalf("invalid input: %s", err.Error())
+			return
+		}
+
 		appSecretsOpts := config.ReadSecretConfigOptionsFromConsole()
 
-		// generate authgear.yaml
+		// generate app config
 		appConfig := libconfig.GenerateAppConfigFromOptions(appConfigOpts)
 
-		// generate authgear.secrets.yaml
+		// generate oauth client for the portal
+		oauthClientConfig, err := libconfig.GenerateOAuthConfigFromOptions(oauthClientConfigOpts)
+		if err != nil {
+			log.Fatalf("failed to generate oauth client config: %s", err.Error())
+			return
+		}
+
+		// assign oauth client to app config
+		if appConfig.OAuth == nil {
+			appConfig.OAuth = &libconfig.OAuthConfig{}
+		}
+		appConfig.OAuth.Clients = append(appConfig.OAuth.Clients, *oauthClientConfig)
+
+		// generate secret config
 		createdAt := time.Now().UTC()
 		appSecretConfig := libconfig.GenerateSecretConfigFromOptions(appSecretsOpts, createdAt, rand.SecureRand)
 
 		// write authgear.yaml
-		err := config.MarshalConfigYAML(appConfig, outputFolderPath, "authgear.yaml")
+		err = config.MarshalConfigYAML(appConfig, outputFolderPath, "authgear.yaml")
 		if err != nil {
 			if errors.Is(err, config.ErrUserCancel) {
 				return
