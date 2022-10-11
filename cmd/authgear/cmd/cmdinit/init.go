@@ -30,8 +30,14 @@ var cmdInit = &cobra.Command{
 			log.Fatalf("invalid input: %s", err.Error())
 			return
 		}
-
-		appSecretsOpts := config.ReadSecretConfigOptionsFromConsole()
+		var appSecretsOpts *libconfig.GenerateSecretConfigOptions
+		if forHelmChart, err := cmd.Flags().GetBool("for-helm-chart"); err == nil && forHelmChart {
+			// Skip all the db, redis, elasticsearch credentials
+			// Those are provided via the helm chart
+			appSecretsOpts = &libconfig.GenerateSecretConfigOptions{}
+		} else {
+			appSecretsOpts = config.ReadSecretConfigOptionsFromConsole()
+		}
 
 		// generate app config
 		appConfig := libconfig.GenerateAppConfigFromOptions(appConfigOpts)
@@ -75,6 +81,9 @@ var cmdInit = &cobra.Command{
 
 func init() {
 	binder := authgearcmd.GetBinder()
+
 	binder.BindString(cmdInit.PersistentFlags(), authgearcmd.ArgOutputFolder)
+	_ = cmdInit.Flags().Bool("for-helm-chart", false, "Generate config for helm chart deployment")
+
 	authgearcmd.Root.AddCommand(cmdInit)
 }
