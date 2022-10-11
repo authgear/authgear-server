@@ -30,6 +30,7 @@ var cmdInit = &cobra.Command{
 			log.Fatalf("invalid input: %s", err.Error())
 			return
 		}
+		skipEmailVerification := config.ReadSkipEmailVerification()
 		var appSecretsOpts *libconfig.GenerateSecretConfigOptions
 		if forHelmChart, err := cmd.Flags().GetBool("for-helm-chart"); err == nil && forHelmChart {
 			// Skip all the db, redis, elasticsearch credentials
@@ -54,6 +55,17 @@ var cmdInit = &cobra.Command{
 			appConfig.OAuth = &libconfig.OAuthConfig{}
 		}
 		appConfig.OAuth.Clients = append(appConfig.OAuth.Clients, *oauthClientConfig)
+
+		// assign email verification enabled
+		emailVerificationEnabled := !skipEmailVerification
+		appConfig.Verification = &libconfig.VerificationConfig{
+			Claims: &libconfig.VerificationClaimsConfig{
+				Email: &libconfig.VerificationClaimConfig{
+					Enabled:  &emailVerificationEnabled,
+					Required: &emailVerificationEnabled,
+				},
+			},
+		}
 
 		// generate secret config
 		createdAt := time.Now().UTC()

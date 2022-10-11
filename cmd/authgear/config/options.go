@@ -47,6 +47,13 @@ func ReadOAuthClientConfigsFromConsole() (*config.GenerateOAuthClientConfigOptio
 	}, nil
 }
 
+func ReadSkipEmailVerification() bool {
+	return promptBool{
+		Title:        "Would you like to turn off email verification? (In case you don't have SMTP credentials in your initial setup)",
+		DefaultValue: false,
+	}.Prompt()
+}
+
 func ReadSecretConfigOptionsFromConsole() *config.GenerateSecretConfigOptions {
 	opts := &config.GenerateSecretConfigOptions{}
 
