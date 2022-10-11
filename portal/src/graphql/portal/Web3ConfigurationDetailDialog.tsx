@@ -53,6 +53,17 @@ const Web3ConfigurationDetailDialog: React.VFC<Web3ConfigurationDetailDialogProp
       [nftCollection]
     );
 
+    const tokenTypeMessageId = useMemo(() => {
+      switch (nftCollection.tokenType) {
+        case "erc721":
+          return "Web3ConfigurationScreen.detail-dialog.token-type.erc721";
+        case "erc1155":
+          return "Web3ConfigurationScreen.detail-dialog.token-type.erc1155";
+        default:
+          return "Web3ConfigurationScreen.detail-dialog.token-type.unknown";
+      }
+    }, [nftCollection]);
+
     const displayedTokens = useMemo(() => {
       const totalSupplyNotAvailable =
         !nftCollection.totalSupply || nftCollection.totalSupply === "0";
@@ -99,6 +110,15 @@ const Web3ConfigurationDetailDialog: React.VFC<Web3ConfigurationDetailDialogProp
             </Text>
             <Text as="p" block={true}>
               <FormattedMessage id={getNetworkNameID(nftCollection)} />
+            </Text>
+          </div>
+
+          <div className={styles.fieldContainer}>
+            <Text className={styles.fieldTitle} block={true}>
+              <FormattedMessage id="Web3ConfigurationScreen.detail-dialog.token-type" />
+            </Text>
+            <Text as="p" block={true}>
+              <FormattedMessage id={tokenTypeMessageId} />
             </Text>
           </div>
 
