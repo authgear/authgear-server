@@ -61,6 +61,10 @@ func TestHexCmp(t *testing.T) {
 		h3, err := hexstring.Parse("0x0")
 		So(err, ShouldBeNil)
 		So(h3, ShouldEqual, "0x0")
+
+		h4, err := hexstring.Parse("0x000018")
+		So(err, ShouldBeNil)
+		So(h4, ShouldEqual, "0x000018")
 	})
 
 	Convey("Parse failure", t, func() {
@@ -100,7 +104,7 @@ func TestHexCmp(t *testing.T) {
 		So(i, ShouldEqual, -1)
 	})
 	Convey("Parse remove leading zeros", t, func() {
-		h, err := hexstring.Parse("0x000000000000000000000DEADBEEF")
+		h, err := hexstring.TrimmedParse("0x000000000000000000000DEADBEEF")
 		So(err, ShouldBeNil)
 		So(h, ShouldEqual, "0xdeadbeef")
 	})

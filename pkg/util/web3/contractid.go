@@ -12,9 +12,10 @@ type ContractID struct {
 	Blockchain string
 	Network    string
 	Address    string
+	Query      url.Values
 }
 
-func NewContractID(blockchain string, network string, address string) (*ContractID, error) {
+func NewContractID(blockchain string, network string, address string, query url.Values) (*ContractID, error) {
 	hexaddr, err := hexstring.Parse(address)
 	if err != nil {
 		return nil, err
@@ -24,6 +25,7 @@ func NewContractID(blockchain string, network string, address string) (*Contract
 		Blockchain: blockchain,
 		Network:    network,
 		Address:    hexaddr.String(),
+		Query:      query,
 	}, nil
 }
 
@@ -42,11 +44,7 @@ func ParseContractID(contractURL string) (*ContractID, error) {
 			return nil, err
 		}
 
-		return &ContractID{
-			Blockchain: "ethereum",
-			Network:    strconv.Itoa(eip681.ChainID),
-			Address:    eip681.Address,
-		}, nil
+		return NewContractID("ethereum", strconv.Itoa(eip681.ChainID), eip681.Address, eip681.Query)
 	default:
 		return nil, fmt.Errorf("contract_id: unknown protocol: %s", protocol)
 	}
@@ -55,18 +53,15 @@ func ParseContractID(contractURL string) (*ContractID, error) {
 func (cid *ContractID) URL() (*url.URL, error) {
 	switch cid.Blockchain {
 	case "ethereum":
+
 		chainID, err := strconv.Atoi(cid.Network)
 		if err != nil {
 			return nil, err
 		}
 
-		if chainID <= 0 {
+		eip681, err := NewEIP681(chainID, cid.Address, cid.Query)
+		if err != nil {
 			return nil, err
-		}
-
-		eip681 := &EIP681{
-			ChainID: chainID,
-			Address: cid.Address,
 		}
 
 		return eip681.URL(), nil

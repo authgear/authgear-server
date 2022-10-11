@@ -13,27 +13,47 @@ import (
 type EIP681 struct {
 	ChainID int
 	Address string
+	Query   url.Values
 }
 
 func (eip681 *EIP681) URL() *url.URL {
 	return &url.URL{
-		Scheme: "ethereum",
-		Opaque: fmt.Sprintf("%s@%d", eip681.Address, eip681.ChainID),
+		Scheme:   "ethereum",
+		Opaque:   fmt.Sprintf("%s@%d", eip681.Address, eip681.ChainID),
+		RawQuery: eip681.Query.Encode(),
 	}
 }
 
-func ParseEIP681(uri string) (*EIP681, error) {
-	protocolURI := strings.Split(uri, ":")
+func NewEIP681(chainID int, address string, query url.Values) (*EIP681, error) {
 
-	if len(protocolURI) != 2 {
+	if chainID <= 0 {
+		return nil, fmt.Errorf("chain ID must be positive")
+	}
+
+	addrHex, err := hexstring.Parse(address)
+	if err != nil {
+		return nil, err
+	}
+
+	return &EIP681{
+		ChainID: chainID,
+		Address: addrHex.String(),
+		Query:   query,
+	}, nil
+}
+
+func ParseEIP681(uri string) (*EIP681, error) {
+
+	url, err := url.Parse(uri)
+	if err != nil {
 		return nil, fmt.Errorf("invalid uri: %s", uri)
 	}
 
-	if protocolURI[0] != "ethereum" {
-		return nil, fmt.Errorf("invalid protocol: %s", protocolURI[0])
+	if url.Scheme != "ethereum" {
+		return nil, fmt.Errorf("invalid protocol: %s", url.Scheme)
 	}
 
-	addressURI := strings.Split(protocolURI[1], "@")
+	addressURI := strings.Split(url.Opaque, "@")
 
 	if len(addressURI) != 2 {
 		return nil, fmt.Errorf("invalid uri: %s", uri)
@@ -57,6 +77,7 @@ func ParseEIP681(uri string) (*EIP681, error) {
 	return &EIP681{
 		ChainID: chainID,
 		Address: string(address),
+		Query:   url.Query(),
 	}, nil
 
 }

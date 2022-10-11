@@ -39,9 +39,16 @@ func NewFromBigInt(v *big.Int) (T, error) {
 }
 
 func Parse(s string) (T, error) {
+	if parseRegExp.MatchString(s) {
+		return T(strings.ToLower(s)), nil
+	}
+	return "", fmt.Errorf("hex string must match the regexp %q", parseRegExp)
+}
+
+func TrimmedParse(s string) (T, error) {
 	m := parseRegExp.FindStringSubmatch(s)
 	if len(m) == 3 {
-		return T(strings.ToLower(strings.Join(m[1:], ""))), nil
+		return Parse(strings.Join(m[1:], ""))
 	}
 	return "", fmt.Errorf("hex string must match the regexp %q", parseRegExp)
 }
