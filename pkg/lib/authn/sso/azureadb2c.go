@@ -126,7 +126,8 @@ func (f *Azureadb2cImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, 
 }
 
 func (f *Azureadb2cImpl) Extract(claims map[string]interface{}) (stdattrs.T, error) {
-	// Here is the list of possible builtin claims.
+	// Here is the list of possible builtin claims of user flows
+	// https://learn.microsoft.com/en-us/azure/active-directory-b2c/user-flow-overview#user-flows
 	// city: free text
 	// country: free text
 	// jobTitle: free text
@@ -141,6 +142,10 @@ func (f *Azureadb2cImpl) Extract(claims map[string]interface{}) (stdattrs.T, err
 	// given_name: correspond to standard claim
 	// family_name: correspond to standard claim
 
+	// For custom policy we further recognize the following claims.
+	// https://learn.microsoft.com/en-us/azure/active-directory-b2c/user-profile-attributes
+	// signInNames.emailAddress: string
+
 	extractString := func(input map[string]interface{}, output stdattrs.T, key string) {
 		if value, ok := input[key].(string); ok && value != "" {
 			output[key] = value
@@ -154,9 +159,18 @@ func (f *Azureadb2cImpl) Extract(claims map[string]interface{}) (stdattrs.T, err
 	extractString(claims, out, stdattrs.FamilyName)
 
 	var email string
-	if ifaceSlice, ok := claims["emails"].([]interface{}); ok {
-		for _, iface := range ifaceSlice {
-			if str, ok := iface.(string); ok && str != "" {
+	if email == "" {
+		if ifaceSlice, ok := claims["emails"].([]interface{}); ok {
+			for _, iface := range ifaceSlice {
+				if str, ok := iface.(string); ok && str != "" {
+					email = str
+				}
+			}
+		}
+	}
+	if email == "" {
+		if str, ok := claims["signInNames.emailAddress"].(string); ok {
+			if str != "" {
 				email = str
 			}
 		}
