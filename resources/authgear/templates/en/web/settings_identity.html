@@ -12,7 +12,7 @@
       {{ template "settings-identity-title" }}
     </h1>
     <p class="m-0 secondary-txt text-sm">
-      {{ template "settings-identity-description" }}
+      {{ template "settings-identity-description" (dict "count" $.IdentityCount ) }}
     </p>
   </div>
 
