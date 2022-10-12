@@ -3,20 +3,18 @@ package config
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"sigs.k8s.io/yaml"
 )
 
-func MarshalConfigYAML(cfg interface{}, outputPath string) error {
+func MarshalConfigYAML(cfg interface{}, outputFolderPath string, fileName string) error {
 	yaml, err := yaml.Marshal(cfg)
 	if err != nil {
 		return err
 	}
 
-	if outputPath == "-" {
-		_, err = os.Stdout.Write(yaml)
-		return err
-	}
+	outputPath := filepath.Join(outputFolderPath, fileName)
 
 	file, err := os.OpenFile(outputPath, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0666)
 	if os.IsExist(err) {
@@ -26,7 +24,7 @@ func MarshalConfigYAML(cfg interface{}, outputPath string) error {
 		}.Prompt()
 		if !overwrite {
 			fmt.Println("cancelled")
-			return nil
+			return ErrUserCancel
 		}
 		file, err = os.Create(outputPath)
 	}

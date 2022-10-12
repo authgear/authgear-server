@@ -1,12 +1,15 @@
 package config
 
 import (
+	"encoding/hex"
 	"encoding/json"
+	"errors"
 	mathrand "math/rand"
 	"time"
 
 	"github.com/lestrrat-go/jwx/jwk"
 
+	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/secrets"
 )
 
@@ -27,11 +30,43 @@ func GenerateAppConfigFromOptions(opts *GenerateAppConfigOptions) *AppConfig {
 	return cfg
 }
 
+type GenerateOAuthClientConfigOptions struct {
+	Name                  string
+	ApplicationType       OAuthClientApplicationType
+	RedirectURI           string
+	PostLogoutRedirectURI string
+}
+
+func GenerateOAuthConfigFromOptions(opts *GenerateOAuthClientConfigOptions) (*OAuthClientConfig, error) {
+	if opts.ApplicationType == OAuthClientApplicationTypeThirdPartyApp {
+		// third-party apps require client secret
+		return nil, errors.New("generating third-party apps is not supported")
+	}
+	clientID := make([]byte, 8)
+	corerand.SecureRand.Read(clientID)
+
+	cfg := &OAuthClientConfig{
+		ClientID:        hex.EncodeToString(clientID),
+		Name:            opts.Name,
+		ApplicationType: opts.ApplicationType,
+		RedirectURIs:    []string{opts.RedirectURI},
+	}
+
+	if opts.PostLogoutRedirectURI != "" {
+		cfg.PostLogoutRedirectURIs = []string{opts.PostLogoutRedirectURI}
+	}
+
+	return cfg, nil
+}
+
 type GenerateSecretConfigOptions struct {
-	DatabaseURL      string
-	DatabaseSchema   string
-	ElasticsearchURL string
-	RedisURL         string
+	DatabaseURL         string
+	DatabaseSchema      string
+	ElasticsearchURL    string
+	RedisURL            string
+	AuditDatabaseURL    string
+	AuditDatabaseSchema string
+	AnalyticRedisURL    string
 }
 
 func GenerateSecretConfigFromOptions(opts *GenerateSecretConfigOptions, createdAt time.Time, rng *mathrand.Rand) *SecretConfig {
@@ -43,6 +78,15 @@ func GenerateSecretConfigFromOptions(opts *GenerateSecretConfigOptions, createdA
 			Data: &DatabaseCredentials{
 				DatabaseURL:    opts.DatabaseURL,
 				DatabaseSchema: opts.DatabaseSchema,
+			},
+		})
+	}
+	if opts.AuditDatabaseURL != "" {
+		items = append(items, SecretItem{
+			Key: AuditDatabaseCredentialsKey,
+			Data: &AuditDatabaseCredentials{
+				DatabaseURL:    opts.AuditDatabaseURL,
+				DatabaseSchema: opts.AuditDatabaseSchema,
 			},
 		})
 	}
@@ -59,6 +103,14 @@ func GenerateSecretConfigFromOptions(opts *GenerateSecretConfigOptions, createdA
 			Key: RedisCredentialsKey,
 			Data: &RedisCredentials{
 				RedisURL: opts.RedisURL,
+			},
+		})
+	}
+	if opts.AnalyticRedisURL != "" {
+		items = append(items, SecretItem{
+			Key: AnalyticRedisCredentialsKey,
+			Data: &AnalyticRedisCredentials{
+				RedisURL: opts.AnalyticRedisURL,
 			},
 		})
 	}
