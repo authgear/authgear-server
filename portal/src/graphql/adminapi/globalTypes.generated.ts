@@ -685,6 +685,7 @@ export type UserIdentitiesArgs = {
   after?: InputMaybe<Scalars['String']>;
   before?: InputMaybe<Scalars['String']>;
   first?: InputMaybe<Scalars['Int']>;
+  identityType?: InputMaybe<IdentityType>;
   last?: InputMaybe<Scalars['Int']>;
 };
 

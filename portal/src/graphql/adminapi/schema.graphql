@@ -776,7 +776,7 @@ type User implements Entity & Node {
   id: ID!
 
   """"""
-  identities(after: String, before: String, first: Int, last: Int): IdentityConnection
+  identities(after: String, before: String, first: Int, identityType: IdentityType, last: Int): IdentityConnection
 
   """"""
   isAnonymous: Boolean!

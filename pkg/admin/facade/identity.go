@@ -14,7 +14,7 @@ import (
 
 type IdentityService interface {
 	Get(id string) (*identity.Info, error)
-	ListRefsByUsers(userIDs []string) ([]*apimodel.IdentityRef, error)
+	ListRefsByUsers(userIDs []string, identityType *apimodel.IdentityType) ([]*apimodel.IdentityRef, error)
 }
 
 type IdentityFacade struct {
@@ -26,8 +26,8 @@ func (f *IdentityFacade) Get(id string) (*identity.Info, error) {
 	return f.Identities.Get(id)
 }
 
-func (f *IdentityFacade) List(userID string) ([]*apimodel.IdentityRef, error) {
-	refs, err := f.Identities.ListRefsByUsers([]string{userID})
+func (f *IdentityFacade) List(userID string, identityType *apimodel.IdentityType) ([]*apimodel.IdentityRef, error) {
+	refs, err := f.Identities.ListRefsByUsers([]string{userID}, identityType)
 	if err != nil {
 		return nil, err
 	}

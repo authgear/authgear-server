@@ -425,8 +425,8 @@ func (s *Service) Count(userID string) (uint64, error) {
 	return s.Store.Count(userID)
 }
 
-func (s *Service) ListRefsByUsers(userIDs []string) ([]*model.IdentityRef, error) {
-	return s.Store.ListRefsByUsers(userIDs)
+func (s *Service) ListRefsByUsers(userIDs []string, identityType *model.IdentityType) ([]*model.IdentityRef, error) {
+	return s.Store.ListRefsByUsers(userIDs, identityType)
 }
 
 func (s *Service) ListByClaim(name string, value string) ([]*identity.Info, error) {

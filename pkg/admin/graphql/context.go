@@ -51,7 +51,7 @@ type UserFacade interface {
 
 type IdentityFacade interface {
 	Get(id string) (*identity.Info, error)
-	List(userID string) ([]*apimodel.IdentityRef, error)
+	List(userID string, identityType *apimodel.IdentityType) ([]*apimodel.IdentityRef, error)
 	Remove(identityInfo *identity.Info) error
 	Create(userID string, identityDef model.IdentityDef, password string) (*apimodel.IdentityRef, error)
 }

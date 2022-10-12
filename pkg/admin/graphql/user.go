@@ -30,11 +30,22 @@ var nodeUser = node(
 			},
 			"identities": &graphql.Field{
 				Type: connIdentity.ConnectionType,
-				Args: relay.ConnectionArgs,
+				Args: relay.NewConnectionArgs(graphql.FieldConfigArgument{
+					"identityType": &graphql.ArgumentConfig{
+						Type: identityType,
+					},
+				}),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					source := p.Source.(*model.User)
 					gqlCtx := GQLContext(p.Context)
-					refs, err := gqlCtx.IdentityFacade.List(source.ID)
+					identityTypeStr, _ := p.Args["identityType"].(string)
+					var identityTypePtr *model.IdentityType
+					if identityTypeStr != "" {
+						identityType := model.IdentityType(identityTypeStr)
+						identityTypePtr = &identityType
+					}
+
+					refs, err := gqlCtx.IdentityFacade.List(source.ID, identityTypePtr)
 					if err != nil {
 						return nil, err
 					}
