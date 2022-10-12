@@ -754,6 +754,9 @@ type User implements Entity & Node {
   """"""
   authorizations(after: String, before: String, first: Int, last: Int): AuthorizationConnection
 
+  """"""
+  biometricRegistrations: [Identity!]
+
   """The creation time of entity"""
   createdAt: DateTime!
 
@@ -789,6 +792,15 @@ type User implements Entity & Node {
 
   """The last login time of user"""
   lastLoginAt: DateTime
+
+  """"""
+  loginIDs: [Identity!]
+
+  """"""
+  oauthConnections: [Identity!]
+
+  """"""
+  passkeys: [Identity!]
 
   """"""
   sessions(after: String, before: String, first: Int, last: Int): SessionConnection

@@ -29,6 +29,22 @@ var nodeUser = node(
 				Type:        graphql.DateTime,
 				Description: "The last login time of user",
 			},
+			"loginIDs": &graphql.Field{
+				Type:    graphql.NewList(graphql.NewNonNull(nodeIdentity)),
+				Resolve: identitiesResolverByType(model.IdentityTypeLoginID),
+			},
+			"oauthConnections": &graphql.Field{
+				Type:    graphql.NewList(graphql.NewNonNull(nodeIdentity)),
+				Resolve: identitiesResolverByType(model.IdentityTypeOAuth),
+			},
+			"biometricRegistrations": &graphql.Field{
+				Type:    graphql.NewList(graphql.NewNonNull(nodeIdentity)),
+				Resolve: identitiesResolverByType(model.IdentityTypeBiometric),
+			},
+			"passkeys": &graphql.Field{
+				Type:    graphql.NewList(graphql.NewNonNull(nodeIdentity)),
+				Resolve: identitiesResolverByType(model.IdentityTypePasskey),
+			},
 			"identities": &graphql.Field{
 				Type: connIdentity.ConnectionType,
 				Args: relay.NewConnectionArgs(graphql.FieldConfigArgument{
@@ -214,3 +230,48 @@ var nodeUser = node(
 )
 
 var connUser = graphqlutil.NewConnectionDef(nodeUser)
+
+func identitiesResolverByType(typ model.IdentityType) func(p graphql.ResolveParams) (interface{}, error) {
+	return func(p graphql.ResolveParams) (interface{}, error) {
+		source := p.Source.(*model.User)
+		gqlCtx := GQLContext(p.Context)
+		identities, err := gqlCtx.IdentityFacade.List(source.ID, &typ)
+		if err != nil {
+			return nil, err
+		}
+
+		return identities, nil
+	}
+}
+
+func authenticatorResolverByTypeAndKind(authenticatorType apimodel.AuthenticatorType, authenticatorKind authenticator.Kind) func(p graphql.ResolveParams) (interface{}, error) {
+	return func(p graphql.ResolveParams) (interface{}, error) {
+		source := p.Source.(*model.User)
+		gqlCtx := GQLContext(p.Context)
+
+		authenticators, err := gqlCtx.AuthenticatorFacade.List(source.ID, &authenticatorType, &authenticatorKind)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(authenticators) > 0 {
+			return authenticators[0], nil
+		}
+
+		return nil, nil
+	}
+}
+
+func authenticatorsResolverByTypeAndKind(authenticatorType apimodel.AuthenticatorType, authenticatorKind authenticator.Kind) func(p graphql.ResolveParams) (interface{}, error) {
+	return func(p graphql.ResolveParams) (interface{}, error) {
+		source := p.Source.(*model.User)
+		gqlCtx := GQLContext(p.Context)
+
+		authenticators, err := gqlCtx.AuthenticatorFacade.List(source.ID, &authenticatorType, &authenticatorKind)
+		if err != nil {
+			return nil, err
+		}
+
+		return authenticators, nil
+	}
+}
