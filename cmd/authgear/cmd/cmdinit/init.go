@@ -3,6 +3,7 @@ package cmdinit
 import (
 	"errors"
 	"log"
+	"os"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -70,6 +71,12 @@ var cmdInit = &cobra.Command{
 		// generate secret config
 		createdAt := time.Now().UTC()
 		appSecretConfig := libconfig.GenerateSecretConfigFromOptions(appSecretsOpts, createdAt, rand.SecureRand)
+
+		err = os.MkdirAll(outputFolderPath, 0755)
+		if err != nil && !os.IsExist(err) {
+			log.Fatal(err)
+			return
+		}
 
 		// write authgear.yaml
 		err = config.MarshalConfigYAML(appConfig, outputFolderPath, "authgear.yaml")
