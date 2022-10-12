@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
+	"github.com/authgear/authgear-server/pkg/util/web3"
 	siwego "github.com/spruceid/siwe-go"
 )
 
@@ -67,10 +68,15 @@ func (p *Provider) New(
 		return nil, err
 	}
 
+	encodedAddress, err := web3.NewEIP55(wallet.Address)
+	if err != nil {
+		return nil, err
+	}
+
 	i := &identity.SIWE{
 		ID:      uuid.New(),
 		UserID:  userID,
-		Address: wallet.Address,
+		Address: encodedAddress,
 		ChainID: wallet.ChainID,
 
 		Data: &model.SIWEVerifiedData{

@@ -2,6 +2,7 @@ package model
 
 import (
 	"math/big"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -55,9 +56,9 @@ func (s *NFTOwnership) EndUserAccountID() string {
 		if err != nil {
 			return ""
 		}
-		eip681 := web3util.EIP681{
-			ChainID: int(chainID),
-			Address: s.AccountIdentifier.Address,
+		eip681, err := web3util.NewEIP681(int(chainID), s.AccountIdentifier.Address, url.Values{})
+		if err != nil {
+			return ""
 		}
 		return eip681.URL().String()
 	}

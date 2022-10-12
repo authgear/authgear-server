@@ -6,7 +6,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/web3"
 )
 
 type Info struct {
@@ -200,9 +199,9 @@ func (i *Info) DisplayID() string {
 	case model.IdentityTypePasskey:
 		return i.Passkey.CreationOptions.PublicKey.User.DisplayName
 	case model.IdentityTypeSIWE:
-		eip681 := &web3.EIP681{
-			Address: i.SIWE.Address,
-			ChainID: i.SIWE.ChainID,
+		eip681, err := i.SIWE.ToERC681()
+		if err != nil {
+			panic(fmt.Errorf("identity: failed to parse SIWE identity: %w", err))
 		}
 		return eip681.URL().String()
 	default:

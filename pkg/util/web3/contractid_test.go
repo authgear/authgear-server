@@ -20,14 +20,14 @@ func TestNew(t *testing.T) {
 			test("ethereum:0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d@1", &web3.ContractID{
 				Blockchain: "ethereum",
 				Network:    "1",
-				Address:    "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
+				Address:    "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
 				Query:      url.Values{},
 			})
 
 			test("ethereum:0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d@1?token_ids=0x1&token_ids=0x2", &web3.ContractID{
 				Blockchain: "ethereum",
 				Network:    "1",
-				Address:    "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
+				Address:    "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
 				Query: url.Values{
 					"token_ids": []string{
 						"0x1", "0x2",
@@ -46,16 +46,16 @@ func TestNew(t *testing.T) {
 			test(&web3.ContractID{
 				Blockchain: "ethereum",
 				Network:    "1",
-				Address:    "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
+				Address:    "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
 			}, &url.URL{
 				Scheme: "ethereum",
-				Opaque: "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d@1",
+				Opaque: "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D@1",
 			})
 
 			test(&web3.ContractID{
 				Blockchain: "ethereum",
 				Network:    "1",
-				Address:    "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
+				Address:    "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
 				Query: url.Values{
 					"token_ids": []string{
 						"0x1", "0x2",
@@ -63,7 +63,7 @@ func TestNew(t *testing.T) {
 				},
 			}, &url.URL{
 				Scheme:   "ethereum",
-				Opaque:   "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d@1",
+				Opaque:   "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D@1",
 				RawQuery: "token_ids=0x1&token_ids=0x2",
 			})
 		})
@@ -78,7 +78,7 @@ func TestNew(t *testing.T) {
 			test("ethereum", "1", "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d", nil, &web3.ContractID{
 				Blockchain: "ethereum",
 				Network:    "1",
-				Address:    "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
+				Address:    "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
 			})
 
 			test("ethereum", "1", "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d", url.Values{
@@ -88,7 +88,7 @@ func TestNew(t *testing.T) {
 			}, &web3.ContractID{
 				Blockchain: "ethereum",
 				Network:    "1",
-				Address:    "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
+				Address:    "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
 				Query: url.Values{
 					"token_ids": []string{
 						"0x1", "0x2",
