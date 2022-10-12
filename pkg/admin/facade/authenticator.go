@@ -3,6 +3,7 @@ package facade
 import (
 	"sort"
 
+	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 )
@@ -10,7 +11,7 @@ import (
 type AuthenticatorService interface {
 	Get(id string) (*authenticator.Info, error)
 	Count(userID string) (uint64, error)
-	ListRefsByUsers(userIDs []string) ([]*authenticator.Ref, error)
+	ListRefsByUsers(userIDs []string, authenticatorType *apimodel.AuthenticatorType, authenticatorKind *authenticator.Kind) ([]*authenticator.Ref, error)
 }
 
 type AuthenticatorFacade struct {
@@ -22,8 +23,8 @@ func (f *AuthenticatorFacade) Get(id string) (*authenticator.Info, error) {
 	return f.Authenticators.Get(id)
 }
 
-func (f *AuthenticatorFacade) List(userID string) ([]*authenticator.Ref, error) {
-	refs, err := f.Authenticators.ListRefsByUsers([]string{userID})
+func (f *AuthenticatorFacade) List(userID string, authenticatorType *apimodel.AuthenticatorType, authenticatorKind *authenticator.Kind) ([]*authenticator.Ref, error) {
+	refs, err := f.Authenticators.ListRefsByUsers([]string{userID}, authenticatorType, authenticatorKind)
 	if err != nil {
 		return nil, err
 	}

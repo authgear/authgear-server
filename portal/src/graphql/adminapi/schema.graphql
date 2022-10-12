@@ -749,7 +749,7 @@ type UpdateUserPayload {
 """Authgear user"""
 type User implements Entity & Node {
   """"""
-  authenticators(after: String, before: String, first: Int, last: Int): AuthenticatorConnection
+  authenticators(after: String, authenticatorKind: AuthenticatorKind, authenticatorType: AuthenticatorType, before: String, first: Int, last: Int): AuthenticatorConnection
 
   """"""
   authorizations(after: String, before: String, first: Int, last: Int): AuthorizationConnection

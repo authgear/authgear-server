@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/lib/pq"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -31,11 +32,20 @@ func (s *Store) Count(userID string) (uint64, error) {
 	return count, nil
 }
 
-func (s *Store) ListRefsByUsers(userIDs []string) ([]*authenticator.Ref, error) {
+func (s *Store) ListRefsByUsers(userIDs []string, authenticatorType *model.AuthenticatorType, authenticatorKind *authenticator.Kind) ([]*authenticator.Ref, error) {
 	builder := s.SQLBuilder.
 		Select("id", "type", "user_id", "created_at", "updated_at").
-		Where("user_id = ANY (?)", pq.Array(userIDs)).
-		From(s.SQLBuilder.TableName("_auth_authenticator"))
+		Where("user_id = ANY (?)", pq.Array(userIDs))
+
+	if authenticatorType != nil && *authenticatorType != "" {
+		builder = builder.Where("type = ?", authenticatorType)
+	}
+
+	if authenticatorKind != nil && *authenticatorKind != "" {
+		builder = builder.Where("kind = ?", authenticatorKind)
+	}
+
+	builder = builder.From(s.SQLBuilder.TableName("_auth_authenticator"))
 
 	return s.listRefs(builder)
 }

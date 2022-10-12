@@ -665,6 +665,8 @@ export type User = Entity & Node & {
 /** Authgear user */
 export type UserAuthenticatorsArgs = {
   after?: InputMaybe<Scalars['String']>;
+  authenticatorKind?: InputMaybe<AuthenticatorKind>;
+  authenticatorType?: InputMaybe<AuthenticatorType>;
   before?: InputMaybe<Scalars['String']>;
   first?: InputMaybe<Scalars['Int']>;
   last?: InputMaybe<Scalars['Int']>;

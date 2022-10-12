@@ -5,6 +5,7 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -60,11 +61,33 @@ var nodeUser = node(
 			},
 			"authenticators": &graphql.Field{
 				Type: connAuthenticator.ConnectionType,
-				Args: relay.ConnectionArgs,
+				Args: relay.NewConnectionArgs(graphql.FieldConfigArgument{
+					"authenticatorType": &graphql.ArgumentConfig{
+						Type: authenticatorType,
+					},
+					"authenticatorKind": &graphql.ArgumentConfig{
+						Type: authenticatorKind,
+					},
+				}),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					source := p.Source.(*model.User)
 					gqlCtx := GQLContext(p.Context)
-					refs, err := gqlCtx.AuthenticatorFacade.List(source.ID)
+
+					authenticatorTypeStr, _ := p.Args["authenticatorType"].(string)
+					var authenticatorTypePtr *model.AuthenticatorType
+					if authenticatorTypeStr != "" {
+						authenticatorType := model.AuthenticatorType(authenticatorTypeStr)
+						authenticatorTypePtr = &authenticatorType
+					}
+
+					authenticatorKindStr, _ := p.Args["authenticatorKind"].(string)
+					var authenticatorKindPtr *authenticator.Kind
+					if authenticatorKindStr != "" {
+						authenticatorKind := authenticator.Kind(authenticatorKindStr)
+						authenticatorKindPtr = &authenticatorKind
+					}
+
+					refs, err := gqlCtx.AuthenticatorFacade.List(source.ID, authenticatorTypePtr, authenticatorKindPtr)
 					if err != nil {
 						return nil, err
 					}
