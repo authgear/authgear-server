@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/util/web3"
 )
 
 type Store struct {
@@ -35,6 +36,7 @@ func (s *Store) selectQuery() db.SelectBuilder {
 
 func (s *Store) scan(scanner db.Scanner) (*identity.SIWE, error) {
 	i := &identity.SIWE{}
+	var address string
 	var data []byte
 	err := scanner.Scan(
 		&i.ID,
@@ -42,7 +44,7 @@ func (s *Store) scan(scanner db.Scanner) (*identity.SIWE, error) {
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ChainID,
-		&i.Address,
+		&address,
 		&data,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -54,6 +56,13 @@ func (s *Store) scan(scanner db.Scanner) (*identity.SIWE, error) {
 	if err = json.Unmarshal(data, &i.Data); err != nil {
 		return nil, err
 	}
+
+	encodedAddress, err := web3.NewEIP55(address)
+	if err != nil {
+		return nil, err
+	}
+
+	i.Address = encodedAddress
 
 	return i, nil
 }
@@ -110,8 +119,12 @@ func (s *Store) Get(userID, id string) (*identity.SIWE, error) {
 	return s.scan(rows)
 }
 
-func (s *Store) GetByAddress(chainID int, address string) (*identity.SIWE, error) {
-	q := s.selectQuery().Where("s.chain_id = ? AND s.address = ?", chainID, address)
+func (s *Store) GetByAddress(chainID int, address web3.EIP55) (*identity.SIWE, error) {
+	addrHex, err := address.ToHexstring()
+	if err != nil {
+		return nil, err
+	}
+	q := s.selectQuery().Where("s.chain_id = ? AND s.address = ?", chainID, addrHex.String())
 	rows, err := s.SQLExecutor.QueryRowWith(q)
 	if err != nil {
 		return nil, err
@@ -148,6 +161,11 @@ func (s *Store) Create(i *identity.SIWE) error {
 		return err
 	}
 
+	address, err := i.Address.ToHexstring()
+	if err != nil {
+		return err
+	}
+
 	q := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_identity_siwe")).
 		Columns(
@@ -158,7 +176,7 @@ func (s *Store) Create(i *identity.SIWE) error {
 		).
 		Values(
 			i.ID,
-			i.Address,
+			address,
 			i.ChainID,
 			data,
 		)

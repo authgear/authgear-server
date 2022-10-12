@@ -43,10 +43,15 @@ func (p *Provider) GetByMessage(msg string) (*identity.SIWE, error) {
 		return nil, err
 	}
 
-	address := message.GetAddress()
+	address := message.GetAddress().Hex()
 	chainID := message.GetChainID()
 
-	return p.Store.GetByAddress(chainID, address.Hex())
+	addressHex, err := web3.NewEIP55(address)
+	if err != nil {
+		return nil, err
+	}
+
+	return p.Store.GetByAddress(chainID, addressHex)
 }
 
 func (p *Provider) GetMany(ids []string) ([]*identity.SIWE, error) {
