@@ -30,7 +30,7 @@ func (m *CORSMiddleware) Handle(next http.Handler) http.Handler {
 		allowedOrigins := m.Config.AllowedOrigins
 		allowedOrigins = append(allowedOrigins, m.CORSAllowedOrigins.List()...)
 		for _, oauthClient := range m.OAuthConfig.Clients {
-			allowedOrigins = append(allowedOrigins, oauthClient.RedirectURIHosts()...)
+			allowedOrigins = append(allowedOrigins, oauthClient.RedirectURIs...)
 		}
 		allowedOrigins = slice.Deduplicate(allowedOrigins)
 		matcher, err := originmatcher.New(allowedOrigins)
