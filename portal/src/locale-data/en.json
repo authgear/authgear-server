@@ -163,6 +163,7 @@
   "UserDetailsScreen.disable-user": "Disable User",
   "UserDetailsScreen.cancel-removal": "Cancel Removal",
   "UserDetailsScreen.scheduled-deletion": "This user is disabled and scheduled to be removed on {date}",
+  "UserDetailsScreen.user-account-security.siwe-enabled": "This tab is not available when the user signs in with Ethereum.",
 
   "UsersList.column.raw-id": "ID",
   "UsersList.column.username": "Username",

@@ -3,3 +3,7 @@
 
   @apply tablet:col-span-full;
 }
+
+.siweEnabledTabWarningMessageBar {
+  @apply mt-5;
+}
