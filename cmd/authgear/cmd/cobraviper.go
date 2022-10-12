@@ -40,5 +40,6 @@ var ArgAppID = &cobraviper.StringArgument{
 var ArgOutputFolder = &cobraviper.StringArgument{
 	ArgumentName: "output-folder",
 	EnvName:      "OUTPUT_FOLDER",
+	Short:        "o",
 	Usage:        "Path to output folder",
 }
