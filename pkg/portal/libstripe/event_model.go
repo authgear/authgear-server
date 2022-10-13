@@ -38,6 +38,10 @@ type CustomerSubscriptionEvent struct {
 	StripeSubscriptionStatus stripe.SubscriptionStatus
 }
 
+func (e *CustomerSubscriptionEvent) IsSubscriptionIncompleteExpired() bool {
+	return e.StripeSubscriptionStatus == stripe.SubscriptionStatusIncompleteExpired
+}
+
 func (e *CustomerSubscriptionEvent) IsSubscriptionActive() bool {
 	return e.StripeSubscriptionStatus == stripe.SubscriptionStatusActive
 }

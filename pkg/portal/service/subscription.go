@@ -165,7 +165,10 @@ func (s *SubscriptionService) UpdateSubscriptionCheckoutStatusByCustomerID(appID
 }
 
 // UpdatedSubscriptionCheckoutStatusToCancelled updates subscription status to cancelled
-// It is used when a subscription is cancelled
+// It is used when
+//
+//	a subscription is cancelled.
+//	a subscription is incomplete_expired.
 func (s *SubscriptionService) UpdatedSubscriptionCheckoutStatusToCancelled(appID string, customerID string) error {
 	return s.updateSubscriptionCheckoutStatus(func(b squirrel.UpdateBuilder) squirrel.UpdateBuilder {
 		return b.Set("status", model.SubscriptionCheckoutStatusCancelled).
