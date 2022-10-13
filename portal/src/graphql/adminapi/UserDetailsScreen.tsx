@@ -51,6 +51,7 @@ import { formatDatetime } from "../../util/formatDatetime";
 
 import styles from "./UserDetailsScreen.module.css";
 import { makeInvariantViolatedErrorParseRule } from "../../error/parse";
+import { IdentityType } from "./globalTypes.generated";
 
 interface UserDetailsProps {
   form: SimpleFormModel<FormState>;
@@ -287,14 +288,20 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
 
   const verifiedClaims = data?.verifiedClaims ?? [];
 
-  const identities =
-    data?.identities?.edges?.map((edge) => edge?.node).filter(nonNullable) ??
-    [];
+  const identities = useMemo(
+    () =>
+      data?.identities?.edges?.map((edge) => edge?.node).filter(nonNullable) ??
+      [],
+    [data?.identities]
+  );
 
-  const authenticators =
-    data?.authenticators?.edges
-      ?.map((edge) => edge?.node)
-      .filter(nonNullable) ?? [];
+  const authenticators = useMemo(
+    () =>
+      data?.authenticators?.edges
+        ?.map((edge) => edge?.node)
+        .filter(nonNullable) ?? [],
+    [data?.authenticators]
+  );
 
   const sessions =
     data?.sessions?.edges?.map((edge) => edge?.node).filter(nonNullable) ?? [];
@@ -309,6 +316,11 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     const level = standardAttributeAccessControl[ptr];
     return level === "readwrite";
   }, [standardAttributeAccessControl]);
+
+  const isSIWEIdentity = useMemo(
+    () => identities.some((i) => i.type === IdentityType.Siwe),
+    [identities]
+  );
 
   return (
     <div className={styles.widget}>
@@ -344,10 +356,16 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           itemKey={ACCOUNT_SECURITY_PIVOT_KEY}
           headerText={renderToString("UserDetails.account-security.header")}
         >
-          <UserDetailsAccountSecurity
-            identities={identities}
-            authenticators={authenticators}
-          />
+          {isSIWEIdentity ? (
+            <MessageBar className={styles.siweEnabledTabWarningMessageBar}>
+              <FormattedMessage id="UserDetailsScreen.user-account-security.siwe-enabled" />
+            </MessageBar>
+          ) : (
+            <UserDetailsAccountSecurity
+              identities={identities}
+              authenticators={authenticators}
+            />
+          )}
         </PivotItem>
         <PivotItem
           itemKey={CONNECTED_IDENTITIES_PIVOT_KEY}
