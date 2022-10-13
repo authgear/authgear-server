@@ -3,10 +3,9 @@ package web3
 import (
 	"fmt"
 	"regexp"
-	"strings"
 
 	"github.com/authgear/authgear-server/pkg/util/hexstring"
-	"golang.org/x/crypto/sha3"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 // https://eips.ethereum.org/EIPS/eip-55
@@ -19,26 +18,14 @@ func NewEIP55(s string) (EIP55, error) {
 		return "", fmt.Errorf("hex string must match the regexp %q", parseRegExp)
 	}
 
-	strippedHex := strings.ToLower(strings.ReplaceAll(s, "0x", ""))
-
-	sha := sha3.NewLegacyKeccak256()
-	sha.Write([]byte(strippedHex))
-	hash := sha.Sum(nil)
-
-	result := []byte(strippedHex)
-	for i := 0; i < len(result); i++ {
-		hashByte := hash[i/2]
-		if i%2 == 0 {
-			hashByte = hashByte >> 4
-		} else {
-			hashByte &= 0xf
-		}
-		if result[i] > '9' && hashByte > 7 {
-			result[i] -= 32
-		}
+	// Special case for null address
+	if s == "0x0" {
+		return EIP55("0x0"), nil
 	}
 
-	return EIP55("0x" + string(result)), nil
+	address := common.HexToAddress(s)
+
+	return EIP55(address.Hex()), nil
 }
 
 func (t EIP55) String() string {
