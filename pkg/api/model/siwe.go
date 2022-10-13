@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/util/web3"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
@@ -15,8 +16,8 @@ type SIWEVerificationRequest struct {
 }
 
 type SIWEWallet struct {
-	Address string `json:"address"`
-	ChainID int    `json:"chain_id"`
+	Address web3.EIP55 `json:"address"`
+	ChainID int        `json:"chain_id"`
 }
 
 type SIWEVerifiedData struct {

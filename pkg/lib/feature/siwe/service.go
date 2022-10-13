@@ -3,7 +3,6 @@ package siwe
 import (
 	"crypto/ecdsa"
 	"net/url"
-	"strings"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -13,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/rand"
+	"github.com/authgear/authgear-server/pkg/util/web3"
 	siwego "github.com/spruceid/siwe-go"
 )
 
@@ -91,8 +91,13 @@ func (s *Service) VerifyMessage(msg string, signature string) (*model.SIWEWallet
 		return nil, nil, err
 	}
 
+	eip55, err := web3.NewEIP55(message.GetAddress().Hex())
+	if err != nil {
+		return nil, nil, err
+	}
+
 	wallet := &model.SIWEWallet{
-		Address: strings.ToLower(message.GetAddress().Hex()),
+		Address: eip55,
 		ChainID: message.GetChainID(),
 	}
 

@@ -73,15 +73,10 @@ func (p *Provider) New(
 		return nil, err
 	}
 
-	encodedAddress, err := web3.NewEIP55(wallet.Address)
-	if err != nil {
-		return nil, err
-	}
-
 	i := &identity.SIWE{
 		ID:      uuid.New(),
 		UserID:  userID,
-		Address: encodedAddress,
+		Address: wallet.Address,
 		ChainID: wallet.ChainID,
 
 		Data: &model.SIWEVerifiedData{
