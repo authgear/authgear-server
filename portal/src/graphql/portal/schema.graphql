@@ -49,6 +49,9 @@ type App implements Node {
   isProcessingSubscription: Boolean!
 
   """"""
+  lastStripeError: StripeError
+
+  """"""
   nftCollections: [NFTCollection!]!
 
   """"""
@@ -744,6 +747,9 @@ input SmtpSecretUpdateInstructionsInput {
   """"""
   data: SMTPSecretInput
 }
+
+"""The `StripeError` scalar type represents Stripe error"""
+scalar StripeError
 
 """"""
 type Subscription {

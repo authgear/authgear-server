@@ -210,21 +210,21 @@ func (s *SubscriptionService) UpdateAppPlanToDefault(appID string) error {
 	return s.UpdateAppPlan(appID, defaultPlan)
 }
 
-func (s *SubscriptionService) GetIsProcessingSubscription(appID string) (bool, error) {
-	count, err := s.getCompletedSubscriptionCheckoutCount(appID)
-	if err != nil {
-		return false, err
-	}
-
+func (s *SubscriptionService) GetLastProcessingCustomerID(appID string) (*string, error) {
 	hasSubscription := true
-	_, err = s.GetSubscription(appID)
+	_, err := s.GetSubscription(appID)
 	if errors.Is(err, ErrSubscriptionNotFound) {
 		hasSubscription = false
 	} else if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	return count > 0 && !hasSubscription, nil
+	// If the app has an active subscription, we ignore any processing checkout session.
+	if hasSubscription {
+		return nil, nil
+	}
+
+	return s.getLastCompletedSubscriptionCheckoutCustomerID(appID)
 }
 
 func (s *SubscriptionService) SetSubscriptionCancelledStatus(id string, cancelled bool, endedAt *time.Time) error {
@@ -363,25 +363,32 @@ func (s *SubscriptionService) createSubscriptionCheckout(sc *model.SubscriptionC
 	return nil
 }
 
-func (s *SubscriptionService) getCompletedSubscriptionCheckoutCount(appID string) (uint64, error) {
+func (s *SubscriptionService) getLastCompletedSubscriptionCheckoutCustomerID(appID string) (*string, error) {
+	now := s.Clock.NowUTC()
 	query := s.SQLBuilder.
-		Select("count(*)").
+		Select("stripe_customer_id").
 		From(s.SQLBuilder.TableName("_portal_subscription_checkout")).
 		Where("app_id = ?", appID).
-		Where("status = ?", model.SubscriptionCheckoutStatusCompleted)
+		Where("status = ?", model.SubscriptionCheckoutStatusCompleted).
+		Where("expire_at > ?", now).
+		OrderBy("created_at DESC").
+		Limit(1)
 
 	scan, err := s.SQLExecutor.QueryRowWith(query)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	var count uint64
-	err = scan.Scan(&count)
+	var customerID string
+	err = scan.Scan(&customerID)
 	if err != nil {
-		return 0, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
 	}
 
-	return count, nil
+	return &customerID, nil
 }
 
 func (s *SubscriptionService) updateSubscriptionCheckoutStatus(

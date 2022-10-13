@@ -34,3 +34,6 @@ declare type GQL_TutorialStatusData = import("./types").TutorialStatusData;
 
 // eslint-disable-next-line no-undef
 declare type GQL_Web3Claims = import("./types").Web3Claims;
+
+// eslint-disable-next-line no-undef
+declare type GQL_StripeError = stripe.Error;

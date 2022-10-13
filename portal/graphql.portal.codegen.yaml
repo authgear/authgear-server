@@ -11,6 +11,7 @@ generates:
         DateTime: GQL_DateTime
         FeatureConfig: GQL_FeatureConfig
         TutorialStatusData: GQL_TutorialStatusData
+        StripeError: GQL_StripeError
 
   ./src/graphql/portal/:
     preset: near-operation-file

@@ -275,11 +275,33 @@ var nodeApp = node(
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					ctx := GQLContext(p.Context)
 					appID := p.Source.(*model.App).ID
-					isProcessingSubscription, err := ctx.SubscriptionService.GetIsProcessingSubscription(appID)
+					customerID, err := ctx.SubscriptionService.GetLastProcessingCustomerID(appID)
 					if err != nil {
 						return nil, err
 					}
-					return isProcessingSubscription, nil
+
+					return customerID != nil, nil
+				},
+			},
+			"lastStripeError": &graphql.Field{
+				Type: StripeError,
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					ctx := GQLContext(p.Context)
+					appID := p.Source.(*model.App).ID
+					customerID, err := ctx.SubscriptionService.GetLastProcessingCustomerID(appID)
+					if err != nil {
+						return nil, err
+					}
+					if customerID == nil {
+						return nil, err
+					}
+
+					stripeError, err := ctx.StripeService.GetLastPaymentError(*customerID)
+					if err != nil {
+						return nil, err
+					}
+
+					return stripeError, nil
 				},
 			},
 			"domains": &graphql.Field{

@@ -18,6 +18,8 @@ export type Scalars = {
   DateTime: GQL_DateTime;
   /** The `FeatureConfig` scalar type represents an feature config JSON object */
   FeatureConfig: GQL_FeatureConfig;
+  /** The `StripeError` scalar type represents Stripe error */
+  StripeError: GQL_StripeError;
   /** The `TutorialStatusData` scalar type represents tutorial status data */
   TutorialStatusData: GQL_TutorialStatusData;
 };
@@ -52,6 +54,7 @@ export type App = Node & {
   /** The ID of an object */
   id: Scalars['ID'];
   isProcessingSubscription: Scalars['Boolean'];
+  lastStripeError?: Maybe<Scalars['StripeError']>;
   nftCollections: Array<NftCollection>;
   planName: Scalars['String'];
   rawAppConfig: Scalars['AppConfig'];
