@@ -64,12 +64,16 @@ func (p *FormPrefiller) Prefill(form url.Values) {
 
 	// Set x_login_id_input_type to the type of the first login ID.
 	if _, ok := form["x_login_id_input_type"]; !ok {
+		// When SIWE is enabled, keys will be empty.
+		// but x_login_id_input_type should always be there.
 		if len(p.LoginID.Keys) > 0 {
 			if string(p.LoginID.Keys[0].Type) == "phone" {
 				form.Set("x_login_id_input_type", "phone")
 			} else {
 				form.Set("x_login_id_input_type", nonPhoneLoginIDInputType)
 			}
+		} else {
+			form.Set("x_login_id_input_type", "text")
 		}
 	}
 
