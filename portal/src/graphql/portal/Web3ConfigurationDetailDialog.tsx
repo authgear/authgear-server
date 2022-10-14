@@ -1,34 +1,35 @@
 import React, { useCallback, useMemo } from "react";
-import {
-  Dialog,
-  DialogFooter,
-  MessageBar,
-  MessageBarType,
-  Text,
-} from "@fluentui/react";
+import cn from "classnames";
+import { Dialog, DialogFooter, Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import DefaultButton from "../../DefaultButton";
-import { NftCollection } from "./globalTypes.generated";
 import styles from "./Web3ConfigurationDetailDialog.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { getNetworkNameID } from "../../util/networkId";
 import ActionButton from "../../ActionButton";
-import { DateTime } from "luxon";
-import { explorerAddress, explorerBlocks } from "../../util/eip681";
+import { explorerAddress } from "../../util/eip681";
 import ExternalLink from "../../ExternalLink";
 import { createContractIDURL } from "../../util/contractId";
+import { CollectionItem } from "./Web3ConfigurationScreen";
 
 interface Web3ConfigurationDetailDialogProps {
-  nftCollection: NftCollection;
+  nftCollection: CollectionItem;
 
   isVisible: boolean;
-  onDelete: (nftCollection: NftCollection) => void;
+  onEditTrackedTokens: () => void;
+  onDelete: (nftCollection: CollectionItem) => void;
   onDismiss: () => void;
 }
 
 const Web3ConfigurationDetailDialog: React.VFC<Web3ConfigurationDetailDialogProps> =
   function Web3ConfigurationDetailDialog(props) {
-    const { nftCollection, isVisible, onDelete, onDismiss } = props;
+    const {
+      nftCollection,
+      isVisible,
+      onDelete,
+      onDismiss,
+      onEditTrackedTokens,
+    } = props;
 
     const { themes } = useSystemConfig();
 
@@ -42,13 +43,6 @@ const Web3ConfigurationDetailDialog: React.VFC<Web3ConfigurationDetailDialogProp
       onDelete(nftCollection);
     }, [nftCollection, onDelete]);
 
-    const isRecentlyAdded = useMemo(() => {
-      const createdAt = DateTime.fromISO(nftCollection.createdAt);
-      const now = DateTime.now();
-
-      return createdAt.plus({ minutes: 5 }) > now;
-    }, [nftCollection]);
-
     const contractID = useMemo(
       () =>
         createContractIDURL({
@@ -59,8 +53,32 @@ const Web3ConfigurationDetailDialog: React.VFC<Web3ConfigurationDetailDialogProp
       [nftCollection]
     );
 
-    const totalSupply = useMemo(() => {
-      return nftCollection.totalSupply ?? "-";
+    const tokenTypeMessageId = useMemo(() => {
+      switch (nftCollection.tokenType) {
+        case "erc721":
+          return "Web3ConfigurationScreen.detail-dialog.token-type.erc721";
+        case "erc1155":
+          return "Web3ConfigurationScreen.detail-dialog.token-type.erc1155";
+        default:
+          return "Web3ConfigurationScreen.detail-dialog.token-type.unknown";
+      }
+    }, [nftCollection]);
+
+    const displayedTokens = useMemo(() => {
+      const totalSupplyNotAvailable =
+        !nftCollection.totalSupply || nftCollection.totalSupply === "0";
+
+      // Check if collection is ERC-1155
+      if (nftCollection.tokenIDs.length !== 0) {
+        // Return tracked token count over total supply if available
+        // otherwise just tracked token count
+        return totalSupplyNotAvailable
+          ? nftCollection.tokenIDs.length
+          : `${nftCollection.tokenIDs.length}/${nftCollection.totalSupply}`;
+      }
+
+      // Return dash is total supply not available
+      return totalSupplyNotAvailable ? "-" : nftCollection.totalSupply;
     }, [nftCollection]);
 
     return (
@@ -94,42 +112,56 @@ const Web3ConfigurationDetailDialog: React.VFC<Web3ConfigurationDetailDialogProp
               <FormattedMessage id={getNetworkNameID(nftCollection)} />
             </Text>
           </div>
+
           <div className={styles.fieldContainer}>
             <Text className={styles.fieldTitle} block={true}>
-              <FormattedMessage id="Web3ConfigurationScreen.detail-dialog.block-height" />
+              <FormattedMessage id="Web3ConfigurationScreen.detail-dialog.token-type" />
             </Text>
             <Text as="p" block={true}>
+              <FormattedMessage id={tokenTypeMessageId} />
+            </Text>
+          </div>
+
+          <div className={styles.fieldContainer}>
+            <Text className={styles.fieldTitle} block={true}>
               <FormattedMessage
-                id="Web3ConfigurationScreen.detail-dialog.block-height.description"
-                values={{
-                  currentHeight: nftCollection.blockHeight,
-                  explorerUrl: explorerBlocks(contractID),
-                }}
+                id={
+                  nftCollection.totalSupply == null &&
+                  nftCollection.tokenIDs.length === 0
+                    ? "Web3ConfigurationScreen.detail-dialog.total-supply"
+                    : "Web3ConfigurationScreen.detail-dialog.tracked-tokens"
+                }
               />
             </Text>
-
-            {isRecentlyAdded ? (
-              <MessageBar
-                className={styles.messageBar}
-                messageBarType={MessageBarType.info}
-              >
-                <FormattedMessage id="Web3ConfigurationScreen.detail-dialog.recent-added-info" />
-              </MessageBar>
+            <Text as="p" block={true}>
+              {displayedTokens}
+            </Text>
+            {nftCollection.tokenType === "erc1155" ? (
+              <div className={styles.actionButtonContainer}>
+                <ActionButton
+                  className={styles.actionButton}
+                  theme={themes.actionButton}
+                  onClick={onEditTrackedTokens}
+                  text={
+                    <FormattedMessage
+                      id={
+                        "Web3ConfigurationScreen.detail-dialog.edit-tracked-tokens"
+                      }
+                    />
+                  }
+                />
+              </div>
             ) : null}
           </div>
 
-          <div className={styles.fieldContainer}>
-            <Text className={styles.fieldTitle} block={true}>
-              <FormattedMessage id="Web3ConfigurationScreen.detail-dialog.tokens" />
-            </Text>
-            <Text as="p" block={true}>
-              {totalSupply}
-            </Text>
-          </div>
-
-          <div className={styles.removeCollectionButtonContainer}>
+          <div
+            className={cn(
+              styles.actionButtonContainer,
+              styles.deleteCollectionButtonContainer
+            )}
+          >
             <ActionButton
-              className={styles.removeCollectionButton}
+              className={styles.actionButton}
               theme={themes.destructive}
               onClick={onRemoveCollection}
               text={
@@ -141,7 +173,7 @@ const Web3ConfigurationDetailDialog: React.VFC<Web3ConfigurationDetailDialogProp
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className={styles.footer}>
           <DefaultButton
             onClick={onDismiss}
             theme={themes.inverted}

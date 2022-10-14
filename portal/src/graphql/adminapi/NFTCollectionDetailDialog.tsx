@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import {
   DetailsList,
   Dialog,
@@ -10,7 +10,7 @@ import {
 import { NFTContract, NFTToken } from "../../types";
 import { truncateAddress } from "../../util/hex";
 
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import ExternalLink from "../../ExternalLink";
 import { explorerBlock, explorerTx } from "../../util/eip681";
@@ -20,7 +20,6 @@ const DIALOG_MAX_WIDTH = "80%";
 
 interface NFTCollectionDetailDialogProps {
   contract: NFTContract;
-  balance: number;
   tokens: NFTToken[];
   eip681String: string;
 
@@ -31,9 +30,9 @@ interface NFTCollectionDetailDialogProps {
 const NFTCollectionDetailDialog: React.VFC<NFTCollectionDetailDialogProps> = (
   props
 ) => {
-  const { contract, balance, tokens, eip681String, isVisible, onDismiss } =
-    props;
+  const { contract, tokens, eip681String, isVisible, onDismiss } = props;
   const { themes } = useSystemConfig();
+  const { renderToString } = useContext(Context);
 
   const dialogContentProps: IDialogContentProps = useMemo(() => {
     return {
@@ -45,30 +44,46 @@ const NFTCollectionDetailDialog: React.VFC<NFTCollectionDetailDialogProps> = (
     return [
       {
         key: "token-id",
-        name: "Token ID",
-        minWidth: 60,
-        maxWidth: 60,
+        name: renderToString(
+          "UserDetails.connected-identities.siwe.nft-collections.token-id"
+        ),
+        minWidth: 100,
+        maxWidth: 100,
       },
       {
         key: "transcation-hash",
-        name: "Txn Hash",
+        name: renderToString(
+          "UserDetails.connected-identities.siwe.nft-collections.transaction-hash"
+        ),
         minWidth: 221,
         maxWidth: 221,
       },
       {
+        key: "balance",
+        name: renderToString(
+          "UserDetails.connected-identities.siwe.nft-collections.balance"
+        ),
+        minWidth: 60,
+        maxWidth: 60,
+      },
+      {
         key: "block-index",
-        name: "Block",
+        name: renderToString(
+          "UserDetails.connected-identities.siwe.nft-collections.block"
+        ),
         minWidth: 100,
         maxWidth: 100,
       },
       {
         key: "timestamp",
-        name: "Timestamp",
+        name: renderToString(
+          "UserDetails.connected-identities.siwe.nft-collections.timestamp"
+        ),
         minWidth: 205,
         maxWidth: 205,
       },
     ];
-  }, []);
+  }, [renderToString]);
 
   const onRenderItemColumn = useCallback(
     (item?: NFTToken, _index?: number, column?: IColumn) => {
@@ -80,7 +95,7 @@ const NFTCollectionDetailDialog: React.VFC<NFTCollectionDetailDialogProps> = (
         case "token-id":
           return (
             <span style={{ color: themes.main.palette.neutralDark }}>
-              {`#${item.token_id}`}
+              {truncateAddress(item.token_id)}
             </span>
           );
         case "transcation-hash":
@@ -90,6 +105,12 @@ const NFTCollectionDetailDialog: React.VFC<NFTCollectionDetailDialogProps> = (
             >
               {truncateAddress(item.transaction_identifier.hash)}
             </ExternalLink>
+          );
+        case "balance":
+          return (
+            <span style={{ color: themes.main.palette.neutralSecondary }}>
+              {item.balance}
+            </span>
           );
         case "block-index":
           return (
@@ -126,10 +147,6 @@ const NFTCollectionDetailDialog: React.VFC<NFTCollectionDetailDialogProps> = (
       dialogContentProps={dialogContentProps}
       maxWidth={DIALOG_MAX_WIDTH}
     >
-      <FormattedMessage
-        id="UserDetails.connected-identities.siwe.nft-collections.balance"
-        values={{ balance: balance }}
-      />
       <DetailsList
         columns={columns}
         items={tokens}

@@ -123,9 +123,8 @@ type SubscriptionService interface {
 }
 
 type NFTService interface {
-	WatchNFTCollection(contractID web3.ContractID) (*apimodel.NFTCollection, error)
-	GetNFTCollections(contracts []web3.ContractID) (*apimodel.GetCollectionsResult, error)
-	GetContractMetadata(appID string, contract web3.ContractID) (*apimodel.ContractMetadata, error)
+	ProbeNFTCollection(contractID web3.ContractID) (*apimodel.ProbeCollectionResult, error)
+	GetContractMetadata(contracts []web3.ContractID) ([]apimodel.NFTCollection, error)
 }
 
 type Logger struct{ *log.Logger }

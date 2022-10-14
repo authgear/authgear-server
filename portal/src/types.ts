@@ -753,6 +753,7 @@ export interface StandardAttributesAddress {
 export interface NFTContract {
   name: string;
   address: string;
+  type: string;
 }
 
 export interface TransactionIdentifier {
@@ -768,11 +769,11 @@ export interface NFTToken {
   token_id: string;
   transaction_identifier: TransactionIdentifier;
   block_identifier: BlockIdentifier;
+  balance: string;
 }
 
 export interface NFT {
   contract: NFTContract;
-  balance: number;
   tokens: NFTToken[];
 }
 

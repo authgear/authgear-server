@@ -1,11 +1,11 @@
 package web3
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
-	"path"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -19,7 +19,7 @@ type Service struct {
 	Web3Config  *config.Web3Config
 }
 
-type GetUserNFTsResponse struct {
+type ListOwnerNFTsResponse struct {
 	Result model.NFTOwnership  `json:"result"`
 	Error  *apierrors.APIError `json:"error"`
 }
@@ -63,7 +63,7 @@ func (s *Service) GetWeb3Info(identities []*identity.Info) (*model.UserWeb3Info,
 			continue
 		}
 
-		nft, err := s.GetNFTsByAddress(contractIDs, *ownerID)
+		nft, err := s.ListOwnerNFTs(*ownerID, contractIDs)
 		if err != nil {
 			return nil, err
 		}
@@ -83,38 +83,45 @@ func (s *Service) GetWeb3Info(identities []*identity.Info) (*model.UserWeb3Info,
 	return web3Info, nil
 }
 
-func (s *Service) GetNFTsByAddress(contractIDs []web3.ContractID, ownerID web3.ContractID) (*model.NFTOwnership, error) {
+func (s *Service) ListOwnerNFTs(ownerID web3.ContractID, contractIDs []web3.ContractID) (*model.NFTOwnership, error) {
 	endpoint, err := url.Parse(string(s.APIEndpoint))
 	if err != nil {
 		return nil, err
 	}
+
+	endpoint.Path = "nfts"
 
 	ownerURL, err := ownerID.URL()
 	if err != nil {
 		return nil, err
 	}
 
-	endpoint.Path = path.Join("nfts", ownerURL.String())
-
-	query := endpoint.Query()
-	if len(contractIDs) > 0 {
-		urls := make([]string, 0, len(contractIDs))
-		for _, contract := range contractIDs {
-			url, err := contract.URL()
-			if err != nil {
-				return nil, err
-			}
-			urls = append(urls, url.String())
+	contractUrls := make([]string, 0, len(contractIDs))
+	for _, contract := range contractIDs {
+		url, err := contract.URL()
+		if err != nil {
+			return nil, err
 		}
-		query["contract_id"] = urls
+		contractUrls = append(contractUrls, url.String())
 	}
 
-	res, err := http.Get(endpoint.String())
+	request := model.ListOwnerNFTsRequest{
+		OwnerAddress: ownerURL.String(),
+		ContractIDs:  contractUrls,
+	}
+
+	data, err := json.Marshal(request)
 	if err != nil {
 		return nil, err
 	}
 
-	var response GetUserNFTsResponse
+	res, err := http.Post(endpoint.String(), "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	var response ListOwnerNFTsResponse
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, err

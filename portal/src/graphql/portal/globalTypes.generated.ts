@@ -278,6 +278,8 @@ export type Mutation = {
   generateStripeCustomerPortalSession: GenerateStripeCustomerPortalSessionPayload;
   /** Preview update subscription */
   previewUpdateSubscription: PreviewUpdateSubscriptionPayload;
+  /** Probes a NFT Collection to see whether it is a large collection */
+  probeNFTCollection: ProbeNftCollectionsPayload;
   /** Reconcile the completed checkout session */
   reconcileCheckoutSession: ReconcileCheckoutSessionPayload;
   /** Send test STMP configuration email */
@@ -294,8 +296,6 @@ export type Mutation = {
   updateSubscription: UpdateSubscriptionPayload;
   /** Request verification of a domain of target app */
   verifyDomain: VerifyDomainPayload;
-  /** Start watching a batch of NFT Collections */
-  watchNFTCollections: WatchNftCollectionsPayload;
 };
 
 
@@ -349,6 +349,11 @@ export type MutationPreviewUpdateSubscriptionArgs = {
 };
 
 
+export type MutationProbeNftCollectionArgs = {
+  input: ProbeNftCollectionInput;
+};
+
+
 export type MutationReconcileCheckoutSessionArgs = {
   input: ReconcileCheckoutSession;
 };
@@ -388,30 +393,14 @@ export type MutationVerifyDomainArgs = {
   input: VerifyDomainInput;
 };
 
-
-export type MutationWatchNftCollectionsArgs = {
-  input: WatchNftCollectionsInput;
-};
-
 /** Web3 NFT Collection */
 export type NftCollection = {
   __typename?: 'NFTCollection';
-  blockHeight: Scalars['String'];
   blockchain: Scalars['String'];
   contractAddress: Scalars['String'];
   createdAt: Scalars['DateTime'];
   name: Scalars['String'];
   network: Scalars['String'];
-  tokenType: Scalars['String'];
-  totalSupply?: Maybe<Scalars['String']>;
-};
-
-/** Web3 NFT ContractMetadata */
-export type NftContractMetadata = {
-  __typename?: 'NFTContractMetadata';
-  address: Scalars['String'];
-  name: Scalars['String'];
-  symbol: Scalars['String'];
   tokenType: Scalars['String'];
   totalSupply?: Maybe<Scalars['String']>;
 };
@@ -484,6 +473,15 @@ export type PreviewUpdateSubscriptionPayload = {
   currency: Scalars['String'];
 };
 
+export type ProbeNftCollectionInput = {
+  contractID: Scalars['String'];
+};
+
+export type ProbeNftCollectionsPayload = {
+  __typename?: 'ProbeNFTCollectionsPayload';
+  isLargeCollection: Scalars['Boolean'];
+};
+
 export type Query = {
   __typename?: 'Query';
   /** Active users chart dataset */
@@ -493,7 +491,7 @@ export type Query = {
   /** Check whether the viewer can accept the collaboration invitation */
   checkCollaboratorInvitation?: Maybe<CheckCollaboratorInvitationPayload>;
   /** Fetch NFT Contract Metadata */
-  nftContractMetadata?: Maybe<NftContractMetadata>;
+  nftContractMetadata?: Maybe<NftCollection>;
   /** Fetches an object given its ID */
   node?: Maybe<Node>;
   /** Lookup nodes by a list of IDs. */
@@ -533,8 +531,7 @@ export type QueryCheckCollaboratorInvitationArgs = {
 
 
 export type QueryNftContractMetadataArgs = {
-  appID?: InputMaybe<Scalars['ID']>;
-  contractID?: InputMaybe<Scalars['String']>;
+  contractID: Scalars['String'];
 };
 
 
@@ -771,17 +768,6 @@ export type VerifyDomainPayload = {
   __typename?: 'VerifyDomainPayload';
   app: App;
   domain: Domain;
-};
-
-export type WatchNftCollectionsInput = {
-  contractIDs: Array<Scalars['String']>;
-  /** ID of the app. */
-  id: Scalars['String'];
-};
-
-export type WatchNftCollectionsPayload = {
-  __typename?: 'WatchNFTCollectionsPayload';
-  app: App;
 };
 
 /** Webhook secret */

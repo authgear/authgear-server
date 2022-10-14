@@ -32,6 +32,8 @@ interface FormChanges {
     to: NetworkID;
   } | null;
 
+  tokenIDChanges: NftCollection[];
+
   collectionAdded: NftCollection[];
   collectionRemoved: NftCollection[];
 }
@@ -55,6 +57,7 @@ const Web3ConfigurationConfirmationDialog: React.VFC<Web3ConfigurationConfirmati
       const changes: FormChanges = {
         siweEnabled: null,
         networkChange: null,
+        tokenIDChanges: [],
         collectionAdded: [],
         collectionRemoved: [],
       };
@@ -71,14 +74,14 @@ const Web3ConfigurationConfirmationDialog: React.VFC<Web3ConfigurationConfirmati
       }
 
       // We remove all collections if siwe is disabled
-      if (
-        changes.siweEnabled === false ||
-        !(
-          initialState.network.blockchain === currentState.network.blockchain &&
-          initialState.network.network === currentState.network.network
-        )
-      ) {
+      // Remove all collections if siwe is disabled
+      if (changes.siweEnabled === false) {
         changes.collectionAdded = [];
+        changes.collectionRemoved = initialState.collections;
+      } else if (!sameNetworkID(initialState.network, currentState.network)) {
+        changes.collectionAdded = currentState.collections.filter((c) =>
+          sameNetworkID(c, currentState.network)
+        );
         changes.collectionRemoved = initialState.collections;
       } else {
         changes.collectionAdded = currentState.collections.filter(
@@ -95,6 +98,15 @@ const Web3ConfigurationConfirmationDialog: React.VFC<Web3ConfigurationConfirmati
             ) === -1
         );
       }
+
+      changes.tokenIDChanges = currentState.collections.filter(
+        (c) =>
+          initialState.collections.findIndex(
+            (cc) =>
+              isNFTCollectionEqual(c, cc) &&
+              !c.tokenIDs.every((ct) => cc.tokenIDs.includes(ct))
+          ) !== -1
+      );
 
       return changes;
     }, [initialState, currentState]);
@@ -148,6 +160,34 @@ const Web3ConfigurationConfirmationDialog: React.VFC<Web3ConfigurationConfirmati
                   }}
                 />
               </Text>
+            </div>
+          ) : null}
+
+          {formChanges.tokenIDChanges.length > 0 ? (
+            <div className={styles.changesSectionContainer}>
+              <Text className={styles.changesSectionTitle}>
+                <FormattedMessage id="Web3ConfigurationScreen.confirmation-dialog.tracked-token-changed.title" />
+              </Text>
+              <Text>
+                <FormattedMessage id="Web3ConfigurationScreen.confirmation-dialog.tracked-token-changed.description" />
+              </Text>
+              <ul className={styles.changesSectionCollectionList}>
+                {formChanges.tokenIDChanges.map((c) => {
+                  const networkNameId = getNetworkNameID(c);
+                  return (
+                    <li key={c.contractAddress}>
+                      <FormattedMessage
+                        id="NftCollection.item.identifier"
+                        values={{
+                          name: c.name,
+                          network: renderToString(networkNameId),
+                          address: truncateAddress(c.contractAddress),
+                        }}
+                      />
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           ) : null}
 

@@ -29,10 +29,8 @@ import styles from "./Web3ConfigurationScreen.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useNftCollectionsQuery } from "./query/nftCollectionsQuery";
 import { NftCollection } from "./globalTypes.generated";
-import { createContractIDURL } from "../../util/contractId";
+import { createContractIDURL, parseContractID } from "../../util/contractId";
 import { useNftContractMetadataLazyQuery } from "./query/nftContractMetadataQuery";
-import { LazyQueryResult, OperationVariables } from "@apollo/client";
-import { NftContractMetadataQueryQuery } from "./query/nftContractMetadataQuery.generated";
 import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 import {
   ALL_SUPPORTED_NETWORKS,
@@ -40,21 +38,26 @@ import {
   getNetworkNameID,
   NetworkID,
   parseNetworkID,
+  sameNetworkID,
 } from "../../util/networkId";
-import { useWatchNFTCollectionsMutation } from "./mutations/watchNFTCollectionsMutation";
 import Web3ConfigurationConfirmationDialog from "./Web3ConfigurationConfirmationDialog";
 import Web3ConfigurationDetailDialog from "./Web3ConfigurationDetailDialog";
 import Web3ConfigurationCollectionDeletionDialog from "./Web3ConfigurationCollectionDeletionDialog";
-import Web3ConfigurationAddCollectionForm from "./Web3ConfigurationAddCollectionForm";
+import Web3ConfigurationAddCollectionSection from "./Web3ConfigurationAddCollectionSection";
 import CommandBarButton from "../../CommandBarButton";
 import ActionButton from "../../ActionButton";
 import Toggle from "../../Toggle";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import HorizontalDivider from "../../HorizontalDivider";
+import { useProbeNFTCollectionMutation } from "./mutations/probeNFTCollectionMutation";
+import Web3ConfigurationTokenTrackingDialog from "./Web3ConfigurationTokenTrackingDialog";
+import { truncateAddress } from "../../util/hex";
+import Web3ConfigurationNetworkChangeDialog from "./Web3ConfigurationNetworkChangeDialog";
 
 export interface CollectionItem extends NftCollection {
   status: "pending" | "active";
+  tokenIDs: string[];
 }
 
 export function isNFTCollectionEqual(
@@ -103,12 +106,14 @@ function constructConfig(
 
     let collections: CollectionItem[] = [];
 
-    if (
-      !config.web3.siwe.networks?.includes(selectedNetwork) ||
-      !currentState.siweChecked
-    ) {
-      // Clear collection list if network is changed or when SIWE is disabled
+    if (!currentState.siweChecked) {
+      // Clear collection list if SIWE is disabled
       collections = [];
+    } else if (!config.web3.siwe.networks?.includes(selectedNetwork)) {
+      // Clear unrelated collections if network is changed
+      collections = currentState.collections.filter((c) =>
+        sameNetworkID(c, currentState.network)
+      );
     } else {
       // Proceed with changes
       collections = currentState.collections;
@@ -120,6 +125,10 @@ function constructConfig(
         blockchain: c.blockchain,
         network: c.network,
         address: c.contractAddress,
+        query:
+          c.tokenIDs.length !== 0
+            ? new URLSearchParams(c.tokenIDs.map((t) => ["token_ids", t]))
+            : undefined,
       });
     });
 
@@ -151,29 +160,36 @@ const ALL_NETWORK_OPTIONS: string[] = ALL_SUPPORTED_NETWORKS.map((n) =>
 
 interface Web3ConfigurationContentProps {
   nftCollections: NftCollection[];
+  isAddCollectionFieldVisible: boolean;
+  showAddCollectionField: () => void;
+  hideAddCollectionField: () => void;
+
   maximumCollections: number;
-  fetchMetadata: (
-    contractId: string
-  ) => Promise<
-    LazyQueryResult<NftContractMetadataQueryQuery, OperationVariables>
-  >;
+  fetchMetadata: (contractId: string) => Promise<NftCollection | null>;
+  probeCollection: (contractId: string) => Promise<boolean>;
   form: AppConfigFormModel<FormState>;
 }
 
-type Web3ConfigurationContentDialogs = "deletionConfirmation" | "detail" | null;
+type Web3ConfigurationContentDialogs =
+  | "deletionConfirmation"
+  | "detail"
+  | "networkChange"
+  | null;
 
 const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
+  // eslint-disable-next-line complexity
   function Web3ConfigurationContent(props) {
     const { state, setState } = props.form;
     const { themes } = useSystemConfig();
 
-    const [showAddCollectionField, setShowAddCollectionField] =
-      useState<boolean>(false);
-
     const [activeDialog, setActiveDialog] =
       useState<Web3ConfigurationContentDialogs>(null);
-    const [selectedCollection, setSelectedCollection] =
-      useState<NftCollection | null>(null);
+    const [selectedCollectionIdx, setSelectedCollectionIdx] =
+      useState<number>(-1);
+    const [isTokenTrackingDialogVisible, setIsTokenTrackingDialogVisible] =
+      useState<boolean>(false);
+
+    const [pendingNetwork, setPendingNetwork] = useState<string | null>(null);
 
     const { renderToString } = useContext(Context);
 
@@ -194,28 +210,33 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
       [renderToString]
     );
 
+    const onNetworkDropdownOptionChange = useCallback(
+      (option: string) => {
+        const networkId = parseNetworkID(option);
+        if (
+          state.collections.length > 0 &&
+          !sameNetworkID(networkId, state.network)
+        ) {
+          setPendingNetwork(option);
+          setActiveDialog("networkChange");
+          return;
+        }
+
+        setState((prev) => ({
+          ...prev,
+          network: networkId,
+        }));
+      },
+      [state.collections, state.network, setState]
+    );
+
     const { options: blockchainOptions, onChange: onBlockchainChange } =
       useDropdown<string>(
         ALL_NETWORK_OPTIONS,
-        (option) => {
-          setState((prev) => ({
-            ...prev,
-            network: parseNetworkID(option),
-          }));
-        },
+        onNetworkDropdownOptionChange,
         createNetworkIDURL(state.network),
         renderBlockchainNetwork
       );
-
-    const onEnableNewCollectionField = useCallback(
-      (e: React.MouseEvent<unknown>) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        setShowAddCollectionField(true);
-      },
-      []
-    );
 
     const openDetailDialog = useCallback(() => {
       setActiveDialog("detail");
@@ -228,6 +249,17 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
     const dismissAllDialogs = useCallback(() => {
       setActiveDialog(null);
     }, [setActiveDialog]);
+
+    const onSelectCollection = useCallback(
+      (collection: CollectionItem) => {
+        const idx = state.collections.findIndex((c) =>
+          isNFTCollectionEqual(collection, c)
+        );
+
+        setSelectedCollectionIdx(idx);
+      },
+      [state.collections]
+    );
 
     const onAddNewCollection = useCallback(
       (collection: CollectionItem) => {
@@ -256,16 +288,17 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
     );
 
     const onRequireConfirmRemoveCollection = useCallback(
-      (collection: NftCollection) => {
-        setSelectedCollection(collection);
+      (collection: CollectionItem) => {
+        onSelectCollection(collection);
 
         openDeleteConfirmationDialog();
       },
-      [setSelectedCollection, openDeleteConfirmationDialog]
+      [onSelectCollection, openDeleteConfirmationDialog]
     );
 
     const onRemoveCollection = useCallback(
       (collection: NftCollection) => {
+        setSelectedCollectionIdx(-1);
         setState((prev) => {
           const collections = prev.collections;
           const index = collections.findIndex((c) =>
@@ -290,6 +323,20 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
       [setState, dismissAllDialogs]
     );
 
+    const confirmNetworkChange = useCallback(() => {
+      if (!pendingNetwork) {
+        return;
+      }
+
+      setState((prev) => ({
+        ...prev,
+        network: parseNetworkID(pendingNetwork),
+        collections: [],
+      }));
+
+      setPendingNetwork(null);
+    }, [pendingNetwork, setState]);
+
     const onCollectionUserActionClick = useCallback(
       (e: React.MouseEvent<unknown>, collection: CollectionItem) => {
         e.preventDefault();
@@ -300,13 +347,44 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
             onRemoveCollection(collection);
             break;
           case "active":
-            setSelectedCollection(collection);
+            onSelectCollection(collection);
 
             openDetailDialog();
             break;
         }
       },
-      [onRemoveCollection, openDetailDialog]
+      [onRemoveCollection, onSelectCollection, openDetailDialog]
+    );
+
+    const showTokenTrackingDialog = useCallback(() => {
+      setIsTokenTrackingDialogVisible(true);
+    }, []);
+
+    const dismissTokenTrackingDialog = useCallback(() => {
+      setIsTokenTrackingDialogVisible(false);
+    }, []);
+
+    const onEditSelectedCollectionTokenIds = useCallback(
+      (tokenIDs: string[]) => {
+        if (selectedCollectionIdx === -1) {
+          return;
+        }
+
+        setState((prev) => {
+          const collections = prev.collections;
+          const updatedCollection = {
+            ...prev.collections[selectedCollectionIdx],
+            tokenIDs: tokenIDs,
+          };
+          collections.splice(selectedCollectionIdx, 1, updatedCollection);
+          return {
+            ...prev,
+            collections,
+          };
+        });
+        dismissTokenTrackingDialog();
+      },
+      [selectedCollectionIdx, setState, dismissTokenTrackingDialog]
     );
 
     const onRenderItemColumn = useCallback(
@@ -322,14 +400,14 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
               </span>
             );
           case "contract-address":
-            return item.contractAddress;
+            return truncateAddress(item.contractAddress);
           case "status":
             if (item.status === "pending") {
               return renderToString(
                 "Web3ConfigurationScreen.collection-list.status.pending"
               );
             }
-            return null;
+            return "";
           case "action": {
             const theme =
               item.status === "pending"
@@ -366,27 +444,29 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
         {
           key: "name",
           name: "",
-          minWidth: 113,
-          maxWidth: 113,
+          minWidth: 179,
+          maxWidth: 179,
           isMultiline: true,
         },
         {
           key: "contract-address",
           name: "",
-          minWidth: 113,
-          maxWidth: 113,
+          flexGrow: 1,
+          minWidth: 103,
+          maxWidth: 103,
         },
         {
           key: "status",
           name: "",
-          minWidth: 113,
-          maxWidth: 113,
+          minWidth: 103,
+          maxWidth: 103,
         },
         {
           key: "action",
           name: "",
-          minWidth: 113,
-          maxWidth: 113,
+          minWidth: 103,
+          maxWidth: 103,
+          targetWidthProportion: 1,
         },
       ],
       []
@@ -395,6 +475,14 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
     const collectionLimitReached = useMemo(() => {
       return state.collections.length >= props.maximumCollections;
     }, [props.maximumCollections, state.collections.length]);
+
+    const selectedCollection = useMemo(() => {
+      if (selectedCollectionIdx === -1) {
+        return null;
+      }
+
+      return state.collections[selectedCollectionIdx] ?? null;
+    }, [state, selectedCollectionIdx]);
 
     return (
       <>
@@ -461,15 +549,18 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
                   text={renderToString(
                     "Web3ConfigurationScreen.collection-list.add-collection"
                   )}
-                  onClick={onEnableNewCollectionField}
+                  onClick={props.showAddCollectionField}
                 />
                 <HorizontalDivider />
-                {showAddCollectionField && !collectionLimitReached ? (
-                  <Web3ConfigurationAddCollectionForm
+                {props.isAddCollectionFieldVisible &&
+                !collectionLimitReached ? (
+                  <Web3ConfigurationAddCollectionSection
                     className={styles.addCollectionForm}
                     selectedNetwork={state.network}
                     onAdd={onAddNewCollection}
+                    onDismiss={props.hideAddCollectionField}
                     fetchMetadata={props.fetchMetadata}
+                    probeCollection={props.probeCollection}
                   />
                 ) : null}
                 <div className={styles.listWrapper}>
@@ -482,7 +573,7 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
                     />
                   ) : null}
                   <DetailsList
-                    className={styles.list}
+                    className={styles.nftCollectionList}
                     selectionMode={SelectionMode.none}
                     onRenderItemColumn={onRenderItemColumn}
                     isHeaderVisible={false}
@@ -503,6 +594,7 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
           <Web3ConfigurationDetailDialog
             nftCollection={selectedCollection}
             isVisible={activeDialog === "detail"}
+            onEditTrackedTokens={showTokenTrackingDialog}
             onDismiss={dismissAllDialogs}
             onDelete={onRequireConfirmRemoveCollection}
           />
@@ -515,6 +607,21 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
             onConfirm={onRemoveCollection}
           />
         ) : null}
+        {selectedCollection !== null ? (
+          <Web3ConfigurationTokenTrackingDialog
+            isVisible={isTokenTrackingDialogVisible}
+            initialValue={selectedCollection.tokenIDs}
+            onContinue={onEditSelectedCollectionTokenIds}
+            onDismiss={dismissTokenTrackingDialog}
+          />
+        ) : null}
+        {pendingNetwork !== null ? (
+          <Web3ConfigurationNetworkChangeDialog
+            isVisible={activeDialog === "networkChange"}
+            onConfirm={confirmNetworkChange}
+            onDismiss={dismissAllDialogs}
+          />
+        ) : null}
       </>
     );
   };
@@ -524,15 +631,18 @@ const Web3ConfigurationScreen: React.VFC = function Web3ConfigurationScreen() {
   const [isConfirmationDialogVisible, setIsConfirmationDialogVisible] =
     useState<boolean>(false);
 
+  const [isAddCollectionFieldVisible, setIsAddCollectionFieldVisible] =
+    useState<boolean>(false);
+
   const nftCollections = useNftCollectionsQuery(appID);
 
   const featureConfig = useAppFeatureConfigQuery(appID);
 
   const { fetch: fetchMetadata, error: fetchMetadataError } =
-    useNftContractMetadataLazyQuery(appID);
+    useNftContractMetadataLazyQuery();
 
-  const { watchNFTCollections, error: watchNFTCollectionsError } =
-    useWatchNFTCollectionsMutation(appID);
+  const { probeNFTCollection, error: probeNFTCollectionError } =
+    useProbeNFTCollectionMutation();
 
   const constructFormState = useCallback(
     (config: PortalAPIAppConfig) => {
@@ -556,20 +666,42 @@ const Web3ConfigurationScreen: React.VFC = function Web3ConfigurationScreen() {
 
       const contractIDs = config.web3?.nft?.collections ?? [];
 
-      const existingCollections = nftCollections.collections
-        .filter((c) => {
-          const contractIdUrl = createContractIDURL({
+      const collectionMap = new Map<string, NftCollection>();
+      nftCollections.collections.forEach((c) => {
+        collectionMap.set(
+          createContractIDURL({
             blockchain: c.blockchain,
             network: c.network,
             address: c.contractAddress,
-          });
+          }),
+          c
+        );
+      });
 
-          return contractIDs.includes(contractIdUrl);
+      const existingCollections = contractIDs
+        .map((c) => parseContractID(c))
+        .map<CollectionItem | null>((cid) => {
+          const collection = collectionMap.get(
+            createContractIDURL({
+              blockchain: cid.blockchain,
+              network: cid.network,
+              address: cid.address,
+            })
+          );
+
+          const tokens = cid.query?.getAll("token_ids") ?? [];
+
+          if (!collection) {
+            return null;
+          }
+
+          return {
+            ...collection,
+            tokenIDs: tokens,
+            status: "active",
+          };
         })
-        .map<CollectionItem>((c) => ({
-          ...c,
-          status: "active",
-        }));
+        .filter((c): c is CollectionItem => c !== null);
 
       return {
         siweChecked,
@@ -594,13 +726,22 @@ const Web3ConfigurationScreen: React.VFC = function Web3ConfigurationScreen() {
     setIsConfirmationDialogVisible(false);
   }, [setIsConfirmationDialogVisible]);
 
+  const showAddCollectionField = useCallback(() => {
+    setIsAddCollectionFieldVisible(true);
+  }, []);
+
+  const hideAddCollectionField = useCallback(() => {
+    setIsAddCollectionFieldVisible(false);
+  }, []);
+
   const saveForm = useCallback(async () => {
     dismissConfirmationDialog();
+    hideAddCollectionField();
 
     await form.save();
 
     await nftCollections.refetch();
-  }, [form, nftCollections, dismissConfirmationDialog]);
+  }, [form, nftCollections, dismissConfirmationDialog, hideAddCollectionField]);
 
   const onFormSave = useCallback(async () => {
     openConfirmationDialog();
@@ -610,19 +751,6 @@ const Web3ConfigurationScreen: React.VFC = function Web3ConfigurationScreen() {
     ...form,
     save: onFormSave,
   };
-
-  const beforeFormSaved = useCallback(async () => {
-    const contractURLs = form.state.collections.map((c) =>
-      createContractIDURL({
-        blockchain: c.blockchain,
-        network: c.network,
-        address: c.contractAddress,
-      })
-    );
-
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    watchNFTCollections(contractURLs);
-  }, [form.state.collections, watchNFTCollections]);
 
   const errorRules: ErrorParseRule[] = useMemo(() => {
     return [
@@ -663,14 +791,17 @@ const Web3ConfigurationScreen: React.VFC = function Web3ConfigurationScreen() {
     <FormContainer
       form={formModel}
       errorRules={errorRules}
-      localError={fetchMetadataError || watchNFTCollectionsError}
-      beforeSave={beforeFormSaved}
+      localError={fetchMetadataError || probeNFTCollectionError}
     >
       <Web3ConfigurationContent
         form={form}
-        fetchMetadata={fetchMetadata}
+        isAddCollectionFieldVisible={isAddCollectionFieldVisible}
         maximumCollections={collectionsMaximum}
         nftCollections={nftCollections.collections}
+        fetchMetadata={fetchMetadata}
+        probeCollection={probeNFTCollection}
+        showAddCollectionField={showAddCollectionField}
+        hideAddCollectionField={hideAddCollectionField}
       />
 
       <Web3ConfigurationConfirmationDialog

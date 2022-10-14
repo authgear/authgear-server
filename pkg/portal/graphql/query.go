@@ -7,6 +7,7 @@ import (
 	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -263,18 +264,14 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 		},
 		"nftContractMetadata": &graphql.Field{
 			Description: "Fetch NFT Contract Metadata",
-			Type:        nftContractMetadata,
+			Type:        nftCollection,
 			Args: graphql.FieldConfigArgument{
-				"appID": &graphql.ArgumentConfig{
-					Type: graphql.ID,
-				},
 				"contractID": &graphql.ArgumentConfig{
-					Type: graphql.String,
+					Type: graphql.NewNonNull(graphql.String),
 				},
 			},
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				ctx := GQLContext(p.Context)
-				appNodeID := p.Args["appID"].(string)
 				contractURL := p.Args["contractID"].(string)
 
 				contractID, err := web3.ParseContractID(contractURL)
@@ -282,12 +279,16 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					return nil, err
 				}
 
-				metadata, err := ctx.NFTService.GetContractMetadata(appNodeID, *contractID)
+				metadata, err := ctx.NFTService.GetContractMetadata([]web3.ContractID{*contractID})
 				if err != nil {
 					return nil, err
 				}
 
-				return metadata, nil
+				if len(metadata) == 0 {
+					return nil, apierrors.NewInternalError("failed to fetch contract metadata")
+				}
+
+				return metadata[0], nil
 			},
 		},
 	},
