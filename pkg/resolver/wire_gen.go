@@ -297,6 +297,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	siweStoreRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   handle,
@@ -317,6 +318,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clock,
 		NonceStore:  siweStoreRedis,
 		RateLimiter: limiter,
@@ -460,7 +462,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -664,6 +665,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -685,6 +687,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -837,7 +840,6 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,

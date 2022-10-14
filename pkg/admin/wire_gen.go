@@ -288,6 +288,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -308,6 +309,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -451,7 +453,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,

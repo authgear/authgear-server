@@ -840,18 +840,18 @@ func (mr *MockSIWEIdentityProviderMockRecorder) Get(userID, id interface{}) *gom
 }
 
 // GetByMessage mocks base method.
-func (m *MockSIWEIdentityProvider) GetByMessage(msg string) (*identity.SIWE, error) {
+func (m *MockSIWEIdentityProvider) GetByMessage(msg, signature string) (*identity.SIWE, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByMessage", msg)
+	ret := m.ctrl.Call(m, "GetByMessage", msg, signature)
 	ret0, _ := ret[0].(*identity.SIWE)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByMessage indicates an expected call of GetByMessage.
-func (mr *MockSIWEIdentityProviderMockRecorder) GetByMessage(msg interface{}) *gomock.Call {
+func (mr *MockSIWEIdentityProviderMockRecorder) GetByMessage(msg, signature interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByMessage", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).GetByMessage), msg)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByMessage", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).GetByMessage), msg, signature)
 }
 
 // GetMany mocks base method.

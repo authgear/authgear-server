@@ -296,6 +296,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: ctx,
 		Redis:   appredisHandle,
@@ -306,6 +307,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -449,7 +451,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,

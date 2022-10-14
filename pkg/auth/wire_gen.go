@@ -329,6 +329,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	siweStoreRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -349,6 +350,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clock,
 		NonceStore:  siweStoreRedis,
 		RateLimiter: limiter,
@@ -491,7 +493,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -1101,6 +1102,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	siweStoreRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -1121,6 +1123,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  siweStoreRedis,
 		RateLimiter: limiter,
@@ -1263,7 +1266,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -1843,6 +1845,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -1863,6 +1866,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -2006,7 +2010,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -2584,6 +2587,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	siweStoreRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -2604,6 +2608,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  siweStoreRedis,
 		RateLimiter: limiter,
@@ -2747,7 +2752,6 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -3030,6 +3034,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -3050,6 +3055,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -3192,7 +3198,6 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -3371,6 +3376,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -3391,6 +3397,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -3533,7 +3540,6 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -3757,6 +3763,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	siweStoreRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -3777,6 +3784,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  siweStoreRedis,
 		RateLimiter: limiter,
@@ -3919,7 +3927,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -4222,6 +4229,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -4242,6 +4250,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -4385,7 +4394,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -4793,6 +4801,7 @@ func newSIWENonceHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
+	web3Config := appConfig.Web3
 	clockClock := _wireSystemClockValue
 	contextContext := deps.ProvideRequestContext(request)
 	handle := appProvider.Redis
@@ -4817,6 +4826,7 @@ func newSIWENonceHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -4990,6 +5000,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -5010,6 +5021,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -5153,7 +5165,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -5723,6 +5734,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -5743,6 +5755,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -5886,7 +5899,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -6556,6 +6568,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -6576,6 +6589,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -6719,7 +6733,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -7332,6 +7345,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -7352,6 +7366,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -7495,7 +7510,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -8107,6 +8121,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -8127,6 +8142,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -8270,7 +8286,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -8865,6 +8880,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -8885,6 +8901,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -9028,7 +9045,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -9619,6 +9635,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -9639,6 +9656,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -9782,7 +9800,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -10365,6 +10382,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -10385,6 +10403,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -10528,7 +10547,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -11114,6 +11132,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -11134,6 +11153,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -11277,7 +11297,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -11866,6 +11885,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -11886,6 +11906,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -12029,7 +12050,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -12620,6 +12640,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -12640,6 +12661,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -12783,7 +12805,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -13372,6 +13393,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -13392,6 +13414,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -13535,7 +13558,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -14124,6 +14146,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -14144,6 +14167,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -14287,7 +14311,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -14877,6 +14900,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -14897,6 +14921,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -15040,7 +15065,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -15629,6 +15653,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -15649,6 +15674,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -15792,7 +15818,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -16381,6 +16406,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -16401,6 +16427,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -16544,7 +16571,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -17135,6 +17161,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -17155,6 +17182,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -17298,7 +17326,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -17887,6 +17914,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -17907,6 +17935,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -18050,7 +18079,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -18639,6 +18667,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -18659,6 +18688,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -18802,7 +18832,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -19393,6 +19422,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -19413,6 +19443,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -19556,7 +19587,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -20145,6 +20175,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -20165,6 +20196,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -20308,7 +20340,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -20890,6 +20921,7 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	siweStoreRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   handle,
@@ -20910,6 +20942,7 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  siweStoreRedis,
 		RateLimiter: limiter,
@@ -21053,7 +21086,6 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -21323,6 +21355,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -21343,6 +21376,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -21486,7 +21520,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -22075,6 +22108,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -22095,6 +22129,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -22238,7 +22273,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -22823,6 +22857,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -22843,6 +22878,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -22986,7 +23022,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -23573,6 +23608,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -23593,6 +23629,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -23736,7 +23773,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -24321,6 +24357,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -24341,6 +24378,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -24484,7 +24522,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -25079,6 +25116,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -25099,6 +25137,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -25242,7 +25281,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -25827,6 +25865,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -25847,6 +25886,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -25990,7 +26030,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -26576,6 +26615,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -26596,6 +26636,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -26739,7 +26780,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -27324,6 +27364,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -27344,6 +27385,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -27487,7 +27529,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -28103,6 +28144,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -28123,6 +28165,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -28266,7 +28309,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -28862,6 +28904,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -28882,6 +28925,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -29025,7 +29069,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -29634,6 +29677,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -29654,6 +29698,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -29797,7 +29842,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -30390,6 +30434,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -30410,6 +30455,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -30553,7 +30599,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -31139,6 +31184,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -31159,6 +31205,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -31302,7 +31349,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -31896,6 +31942,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -31916,6 +31963,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -32059,7 +32107,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -32645,6 +32692,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -32665,6 +32713,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -32808,7 +32857,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -33394,6 +33442,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -33414,6 +33463,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -33557,7 +33607,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -34143,6 +34192,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -34163,6 +34213,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -34306,7 +34357,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -34893,6 +34943,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -34913,6 +34964,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -35056,7 +35108,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -35653,6 +35704,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -35673,6 +35725,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -35816,7 +35869,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -36402,6 +36454,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -36422,6 +36475,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -36565,7 +36619,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -37151,6 +37204,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -37171,6 +37225,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -37314,7 +37369,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -37900,6 +37954,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -37920,6 +37975,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -38063,7 +38119,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -38649,6 +38704,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -38669,6 +38725,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -38812,7 +38869,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -39405,6 +39461,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -39425,6 +39482,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -39568,7 +39626,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -40155,6 +40212,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -40175,6 +40233,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -40318,7 +40377,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -40903,6 +40961,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -40923,6 +40982,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -41066,7 +41126,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -41670,6 +41729,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -41690,6 +41750,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -41833,7 +41894,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -42418,6 +42478,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -42438,6 +42499,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -42581,7 +42643,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -43183,6 +43244,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   handle,
@@ -43203,6 +43265,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -43346,7 +43409,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -43897,6 +43959,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   handle,
@@ -43917,6 +43980,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -44060,7 +44124,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -44610,6 +44673,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -44630,6 +44694,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -44773,7 +44838,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -45368,6 +45432,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -45388,6 +45453,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -45531,7 +45597,6 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -46366,6 +46431,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	siweStoreRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   handle,
@@ -46386,6 +46452,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  siweStoreRedis,
 		RateLimiter: limiter,
@@ -46528,7 +46595,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
@@ -46859,6 +46925,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -46879,6 +46946,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	siweService := &siwe2.Service{
 		RemoteIP:    remoteIP,
 		HTTPConfig:  httpConfig,
+		Web3Config:  web3Config,
 		Clock:       clockClock,
 		NonceStore:  storeRedis,
 		RateLimiter: limiter,
@@ -47022,7 +47090,6 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Config := appConfig.Web3
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,

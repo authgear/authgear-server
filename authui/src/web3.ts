@@ -63,7 +63,8 @@ async function getProvider(type: string): Promise<Web3Provider | null> {
   })) as ethers.providers.ExternalProvider | null;
 
   if (provider) {
-    return new ethers.providers.Web3Provider(provider);
+    // https://github.com/ethers-io/ethers.js/issues/866
+    return new ethers.providers.Web3Provider(provider, "any");
   }
 
   return null;
@@ -181,7 +182,7 @@ export class WalletConfirmationController extends Controller {
     if (isProviderMetaMask(p?.provider)) {
       p!.provider.on("accountsChanged", this.onAccountChanged);
     } else if (isProviderMetaMask(this._provider?.provider) && p === null) {
-      this._provider?.provider.off("accountsChanged", this.onAccountChanged);
+      this._provider?.provider.off?.("accountsChanged", this.onAccountChanged);
     }
 
     this._provider = p;
