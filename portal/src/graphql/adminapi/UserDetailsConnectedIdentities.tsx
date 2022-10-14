@@ -494,11 +494,7 @@ const BaseIdentityListCellButtonGroup: React.VFC<
       ) : null}
       {removeButtonTextId[identityType] !== "" ? (
         <DefaultButton
-          className={cn(
-            styles.controlButton,
-            styles.removeButton,
-            shouldShowVerifyButton ? "" : styles.removeButtonFull
-          )}
+          className={cn(styles.controlButton, styles.removeButton)}
           disabled={loading}
           theme={themes.destructive}
           onClick={onRemoveClicked}
