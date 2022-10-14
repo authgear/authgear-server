@@ -3,6 +3,7 @@ package siwe
 import (
 	"crypto/ecdsa"
 	"net/url"
+	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -39,6 +40,7 @@ func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("siwe")} }
 type Service struct {
 	RemoteIP   httputil.RemoteIP
 	HTTPConfig *config.HTTPConfig
+	Web3Config *config.Web3Config
 
 	Clock       clock.Clock
 	NonceStore  NonceStore
@@ -78,6 +80,26 @@ func (s *Service) VerifyMessage(msg string, signature string) (*model.SIWEWallet
 	})
 	if err != nil {
 		return nil, nil, err
+	}
+
+	chainID := message.GetChainID()
+
+	mismatchNetwork := true
+	for _, networkURL := range s.Web3Config.SIWE.Networks {
+		networkID, err := web3.ParseContractID(networkURL)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		if networkID.Network == strconv.Itoa(chainID) {
+			mismatchNetwork = false
+			break
+		}
+
+	}
+
+	if mismatchNetwork {
+		return nil, nil, ErrMismatchNetwork
 	}
 
 	publicOrigin, err := url.Parse(s.HTTPConfig.PublicOrigin)
