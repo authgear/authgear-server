@@ -54,9 +54,7 @@ const Web3ConfigurationCollectionDeletionDialog: React.VFC<Web3ConfigurationColl
           <PrimaryButton
             onClick={onConfirmDelete}
             theme={themes.destructive}
-            text={
-              <FormattedMessage id="remove" />
-            }
+            text={<FormattedMessage id="remove" />}
           />
           <DefaultButton
             onClick={onDismiss}

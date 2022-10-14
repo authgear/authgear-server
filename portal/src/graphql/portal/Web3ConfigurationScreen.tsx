@@ -53,6 +53,7 @@ import HorizontalDivider from "../../HorizontalDivider";
 import { useProbeNFTCollectionMutation } from "./mutations/probeNFTCollectionMutation";
 import Web3ConfigurationTokenTrackingDialog from "./Web3ConfigurationTokenTrackingDialog";
 import { truncateAddress } from "../../util/hex";
+import Web3ConfigurationNetworkChangeDialog from "./Web3ConfigurationNetworkChangeDialog";
 
 export interface CollectionItem extends NftCollection {
   status: "pending" | "active";
@@ -169,9 +170,14 @@ interface Web3ConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
 }
 
-type Web3ConfigurationContentDialogs = "deletionConfirmation" | "detail" | null;
+type Web3ConfigurationContentDialogs =
+  | "deletionConfirmation"
+  | "detail"
+  | "networkChange"
+  | null;
 
 const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
+  // eslint-disable-next-line complexity
   function Web3ConfigurationContent(props) {
     const { state, setState } = props.form;
     const { themes } = useSystemConfig();
@@ -182,6 +188,8 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
       useState<number>(-1);
     const [isTokenTrackingDialogVisible, setIsTokenTrackingDialogVisible] =
       useState<boolean>(false);
+
+    const [pendingNetwork, setPendingNetwork] = useState<string | null>(null);
 
     const { renderToString } = useContext(Context);
 
@@ -202,15 +210,30 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
       [renderToString]
     );
 
+    const onNetworkDropdownOptionChange = useCallback(
+      (option: string) => {
+        const networkId = parseNetworkID(option);
+        if (
+          state.collections.length > 0 &&
+          !sameNetworkID(networkId, state.network)
+        ) {
+          setPendingNetwork(option);
+          setActiveDialog("networkChange");
+          return;
+        }
+
+        setState((prev) => ({
+          ...prev,
+          network: networkId,
+        }));
+      },
+      [state.collections, state.network, setState]
+    );
+
     const { options: blockchainOptions, onChange: onBlockchainChange } =
       useDropdown<string>(
         ALL_NETWORK_OPTIONS,
-        (option) => {
-          setState((prev) => ({
-            ...prev,
-            network: parseNetworkID(option),
-          }));
-        },
+        onNetworkDropdownOptionChange,
         createNetworkIDURL(state.network),
         renderBlockchainNetwork
       );
@@ -299,6 +322,20 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
       },
       [setState, dismissAllDialogs]
     );
+
+    const confirmNetworkChange = useCallback(() => {
+      if (!pendingNetwork) {
+        return;
+      }
+
+      setState((prev) => ({
+        ...prev,
+        network: parseNetworkID(pendingNetwork),
+        collections: [],
+      }));
+
+      setPendingNetwork(null);
+    }, [pendingNetwork, setState]);
 
     const onCollectionUserActionClick = useCallback(
       (e: React.MouseEvent<unknown>, collection: CollectionItem) => {
@@ -576,6 +613,13 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
             initialValue={selectedCollection.tokenIDs}
             onContinue={onEditSelectedCollectionTokenIds}
             onDismiss={dismissTokenTrackingDialog}
+          />
+        ) : null}
+        {pendingNetwork !== null ? (
+          <Web3ConfigurationNetworkChangeDialog
+            isVisible={activeDialog === "networkChange"}
+            onConfirm={confirmNetworkChange}
+            onDismiss={dismissAllDialogs}
           />
         ) : null}
       </>

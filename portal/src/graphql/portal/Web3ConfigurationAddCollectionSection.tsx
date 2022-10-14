@@ -2,7 +2,6 @@ import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
-import { Text } from "@fluentui/react";
 import styles from "./Web3ConfigurationAddCollectionSection.module.css";
 import { createContractIDURL } from "../../util/contractId";
 import { NetworkID } from "../../util/networkId";
@@ -10,84 +9,17 @@ import { CollectionItem } from "./Web3ConfigurationScreen";
 import { DateTime } from "luxon";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
-import ChoiceButton from "../../ChoiceButton";
-import { NFTTokenType } from "../../types";
 import Web3ConfigurationLargeCollectionDialog from "./Web3ConfigurationLargeCollectionDialog";
 import Web3ConfigurationTokenTrackingDialog from "./Web3ConfigurationTokenTrackingDialog";
 import TextField from "../../TextField";
 import { NftCollection } from "./globalTypes.generated";
 
-interface TokenTypeButtonsProps {
-  disabled?: boolean;
-  selectedType: NFTTokenType;
-  onSelect: (type: NFTTokenType) => void;
-}
-
-const TokenTypeButtons: React.VFC<TokenTypeButtonsProps> = (props) => {
-  const { selectedType, disabled, onSelect } = props;
-
-  const onSelectERC721 = useCallback(() => {
-    onSelect("erc721");
-  }, [onSelect]);
-
-  const onSelectERC1155 = useCallback(() => {
-    onSelect("erc1155");
-  }, [onSelect]);
-
-  return (
-    <div className={styles.tokenTypeChoiceButtonContainer}>
-      <ChoiceButton
-        className={styles.tokenTypeChoiceButton}
-        disabled={disabled}
-        checked={selectedType === "erc721"}
-        onClick={onSelectERC721}
-        text={
-          <Text className={styles.tokenTypeChoiceButtonText}>
-            <FormattedMessage
-              id={`Web3ConfigurationScreen.collection-list.add-collection.token-type-button.erc721.title`}
-            />
-          </Text>
-        }
-        secondaryText={
-          <Text className={styles.tokenTypeChoiceButtonText}>
-            <FormattedMessage
-              id={`Web3ConfigurationScreen.collection-list.add-collection.token-type-button.erc721.description`}
-            />
-          </Text>
-        }
-      />
-      <ChoiceButton
-        className={styles.tokenTypeChoiceButton}
-        disabled={disabled}
-        checked={selectedType === "erc1155"}
-        onClick={onSelectERC1155}
-        text={
-          <Text className={styles.tokenTypeChoiceButtonText}>
-            <FormattedMessage
-              id={`Web3ConfigurationScreen.collection-list.add-collection.token-type-button.erc1155.title`}
-            />
-          </Text>
-        }
-        secondaryText={
-          <Text className={styles.tokenTypeChoiceButtonText}>
-            <FormattedMessage
-              id={`Web3ConfigurationScreen.collection-list.add-collection.token-type-button.erc1155.description`}
-            />
-          </Text>
-        }
-      />
-    </div>
-  );
-};
-
 interface AddCollectionSectionValues {
   contractAddress: string;
-  tokenType: NFTTokenType;
 }
 
 const defaultValues: AddCollectionSectionValues = {
   contractAddress: "",
-  tokenType: "erc721",
 };
 
 interface AddCollectionSectionProps {
@@ -155,13 +87,6 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionSectionProps> =
       [setValues]
     );
 
-    const onChangeTokenType = useCallback(
-      (type: NFTTokenType) => {
-        setValues((prev) => ({ ...prev, tokenType: type }));
-      },
-      [setValues]
-    );
-
     const dismissDialogs = useCallback(() => {
       setActiveDialog(null);
     }, []);
@@ -181,14 +106,21 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionSectionProps> =
           return;
         }
 
+        const probeResult = await probeCollection(contractID);
+        if (probeResult) {
+          setActiveDialog("largeCollection");
+          setIsLoading(false);
+          return;
+        }
+
         const metadata = await fetchMetadata(contractID);
         if (!metadata) {
           setIsLoading(false);
           return;
         }
 
-        if (metadata.tokenType !== values.tokenType) {
-          setValidationErrorId("errors.invalid-address");
+        if (metadata.tokenType === "erc1155" && !tokenIDs?.length) {
+          setActiveDialog("tokenTracking");
           setIsLoading(false);
           return;
         }
@@ -207,52 +139,20 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionSectionProps> =
         dismissDialogs,
         fetchMetadata,
         onAdd,
+        probeCollection,
         resetValues,
         values.contractAddress,
-        values.tokenType,
       ]
     );
 
     const onAddCollection = useCallback(
-      async (e) => {
+      (e) => {
         e.preventDefault();
         e.stopPropagation();
 
-        setIsLoading(true);
-        setValidationErrorId(null);
-
-        let contractID = "";
-        try {
-          contractID = buildContractID(values.contractAddress);
-        } catch (_: unknown) {
-          setValidationErrorId("errors.invalid-address");
-          setIsLoading(false);
-          return;
-        }
-
-        const probeResult = await probeCollection(contractID);
-        if (probeResult) {
-          setActiveDialog("largeCollection");
-          setIsLoading(false);
-          return;
-        }
-
-        if (values.tokenType === "erc1155") {
-          setActiveDialog("tokenTracking");
-          setIsLoading(false);
-          return;
-        }
-
-        // Add ERC-721 collection directly
-        await handleAddCollection();
+        handleAddCollection().catch(() => {});
       },
-      [
-        probeCollection,
-        values.tokenType,
-        values.contractAddress,
-        handleAddCollection,
-        buildContractID,
-      ]
+      [handleAddCollection]
     );
 
     const onCancel = useCallback(
@@ -281,11 +181,6 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionSectionProps> =
           }
           value={values.contractAddress}
           onChange={onChangeContractAddress}
-        />
-        <TokenTypeButtons
-          disabled={isLoading}
-          selectedType={values.tokenType}
-          onSelect={onChangeTokenType}
         />
         <div className={styles.addCollectionButtonContainer}>
           <PrimaryButton

@@ -453,8 +453,6 @@ export interface NFTConfig {
   collections?: string[];
 }
 
-export type NFTTokenType = "erc721" | "erc1155";
-
 export interface Web3Config {
   nft?: NFTConfig;
   siwe?: SIWEConfig;
