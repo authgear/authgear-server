@@ -3,6 +3,11 @@ import BigNumber from "bignumber.js";
 export function truncateAddress(address: string): string {
   const delimiter = "...";
 
+  // No need to trim if it's not long enough
+  if (address.length < 6) {
+    return address;
+  }
+
   // We only show the first 6 and last 4 characters of the address
   return address.slice(0, 6) + delimiter + address.slice(address.length - 4);
 }
