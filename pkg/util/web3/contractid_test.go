@@ -1,6 +1,7 @@
 package web3_test
 
 import (
+"encoding/json"
 	"net/url"
 	"testing"
 
@@ -95,6 +96,61 @@ func TestNew(t *testing.T) {
 					},
 				},
 			})
+		})
+
+		Convey("non-pointer ContractID and JSON", func() {
+			type A struct {
+				ContractID web3.ContractID
+			}
+			a := A{
+				ContractID: web3.ContractID{
+					Blockchain: "ethereum",
+					Network: "1",
+					Address: web3.EIP55("0xEC7F0e0C2B7a356b5271D13e75004705977Fd010"),
+					Query: url.Values{
+						"a": []string{"b"},
+					},
+				},
+			}
+
+			jsonBytes, err := json.Marshal(a)
+			So(err, ShouldBeNil)
+			So(string(jsonBytes), ShouldEqual, `{"ContractID":"ethereum:0xEC7F0e0C2B7a356b5271D13e75004705977Fd010@1?a=b"}`)
+
+			var b A
+			err = json.Unmarshal(jsonBytes, &b)
+			So(err, ShouldBeNil)
+			So(a.ContractID.String(), ShouldEqual, "ethereum:0xEC7F0e0C2B7a356b5271D13e75004705977Fd010@1?a=b")
+		})
+
+		Convey("pointer to ContractID and JSON", func() {
+			type A struct {
+				ContractID *web3.ContractID
+			}
+			a := A{
+				ContractID: &web3.ContractID{
+					Blockchain: "ethereum",
+					Network: "1",
+					Address: web3.EIP55("0xEC7F0e0C2B7a356b5271D13e75004705977Fd010"),
+					Query: url.Values{
+						"a": []string{"b"},
+					},
+				},
+			}
+
+			jsonBytes, err := json.Marshal(a)
+			So(err, ShouldBeNil)
+			So(string(jsonBytes), ShouldEqual, `{"ContractID":"ethereum:0xEC7F0e0C2B7a356b5271D13e75004705977Fd010@1?a=b"}`)
+
+			var b A
+			err = json.Unmarshal(jsonBytes, &b)
+			So(err, ShouldBeNil)
+			So(a.ContractID.String(), ShouldEqual, "ethereum:0xEC7F0e0C2B7a356b5271D13e75004705977Fd010@1?a=b")
+
+			var c A
+			err = json.Unmarshal([]byte(`{"ContractID":null}`), &c)
+			So(err, ShouldBeNil)
+			So(c.ContractID, ShouldBeNil)
 		})
 	})
 }

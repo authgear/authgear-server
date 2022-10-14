@@ -48,22 +48,47 @@ func ParseContractID(contractURL string) (*ContractID, error) {
 	}
 }
 
-func (cid *ContractID) URL() (*url.URL, error) {
-	switch cid.Blockchain {
+func (t *ContractID) URL() (*url.URL, error) {
+	switch t.Blockchain {
 	case "ethereum":
 
-		chainID, err := strconv.Atoi(cid.Network)
+		chainID, err := strconv.Atoi(t.Network)
 		if err != nil {
 			return nil, err
 		}
 
-		eip681, err := NewEIP681(chainID, cid.Address.String(), cid.Query)
+		eip681, err := NewEIP681(chainID, t.Address.String(), t.Query)
 		if err != nil {
 			return nil, err
 		}
 
 		return eip681.URL(), nil
 	default:
-		return nil, fmt.Errorf("contract_id: unsupported blockchain: %s", cid.Blockchain)
+		return nil, fmt.Errorf("contract_id: unsupported blockchain: %s", t.Blockchain)
 	}
+}
+
+func (t *ContractID) String() string {
+	u, err := t.URL()
+	if err != nil {
+		panic(err)
+	}
+	return u.String()
+}
+
+func (t ContractID) MarshalText() ([]byte, error) {
+	u, err := t.URL()
+	if err != nil {
+		return nil, err
+	}
+	return []byte(u.String()), nil
+}
+
+func (t *ContractID) UnmarshalText(text []byte) error {
+	parsed, err := ParseContractID(string(text))
+	if err != nil {
+		return err
+	}
+	*t = *parsed
+	return nil
 }
