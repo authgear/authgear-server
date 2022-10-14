@@ -398,7 +398,6 @@
   "Web3ConfigurationScreen.detail-dialog.tracked-tokens": "Tracked Tokens",
   "Web3ConfigurationScreen.detail-dialog.edit-tracked-tokens": "Edit tracked tokens",
   "Web3ConfigurationScreen.detail-dialog.remove-collection": "Remove Collection",
-  "Web3ConfigurationScreen.deletion-dialog.remove": "Remove Immediately",
   "Web3ConfigurationScreen.deletion-dialog.title": "Remove collection",
   "Web3ConfigurationScreen.deletion-dialog.description": "Are you sure you want to remove {collection} from your project?",
 
