@@ -1,7 +1,7 @@
 package web3_test
 
 import (
-"encoding/json"
+	"encoding/json"
 	"net/url"
 	"testing"
 
@@ -105,8 +105,8 @@ func TestNew(t *testing.T) {
 			a := A{
 				ContractID: web3.ContractID{
 					Blockchain: "ethereum",
-					Network: "1",
-					Address: web3.EIP55("0xEC7F0e0C2B7a356b5271D13e75004705977Fd010"),
+					Network:    "1",
+					Address:    web3.EIP55("0xEC7F0e0C2B7a356b5271D13e75004705977Fd010"),
 					Query: url.Values{
 						"a": []string{"b"},
 					},
@@ -130,8 +130,8 @@ func TestNew(t *testing.T) {
 			a := A{
 				ContractID: &web3.ContractID{
 					Blockchain: "ethereum",
-					Network: "1",
-					Address: web3.EIP55("0xEC7F0e0C2B7a356b5271D13e75004705977Fd010"),
+					Network:    "1",
+					Address:    web3.EIP55("0xEC7F0e0C2B7a356b5271D13e75004705977Fd010"),
 					Query: url.Values{
 						"a": []string{"b"},
 					},
@@ -151,6 +151,27 @@ func TestNew(t *testing.T) {
 			err = json.Unmarshal([]byte(`{"ContractID":null}`), &c)
 			So(err, ShouldBeNil)
 			So(c.ContractID, ShouldBeNil)
+		})
+
+		Convey("Clone and StringQuery", func() {
+			a := web3.ContractID{
+				Blockchain: "ethereum",
+				Network:    "1",
+				Address:    web3.EIP55("0xEC7F0e0C2B7a356b5271D13e75004705977Fd010"),
+				Query: url.Values{
+					"a": []string{"b"},
+				},
+			}
+
+			b := a.Clone()
+			b.Query.Set("a", "c")
+
+			So(a.String(), ShouldEqual, "ethereum:0xEC7F0e0C2B7a356b5271D13e75004705977Fd010@1?a=b")
+			So(b.String(), ShouldEqual, "ethereum:0xEC7F0e0C2B7a356b5271D13e75004705977Fd010@1?a=c")
+
+			c := a.StripQuery()
+			So(a.String(), ShouldEqual, "ethereum:0xEC7F0e0C2B7a356b5271D13e75004705977Fd010@1?a=b")
+			So(c.String(), ShouldEqual, "ethereum:0xEC7F0e0C2B7a356b5271D13e75004705977Fd010@1")
 		})
 	})
 }

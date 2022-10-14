@@ -48,6 +48,25 @@ func ParseContractID(contractURL string) (*ContractID, error) {
 	}
 }
 
+func (t *ContractID) Clone() *ContractID {
+	cloned := *t
+	if t.Query != nil {
+		cloned.Query = make(url.Values)
+		for key, val := range t.Query {
+			slice := make([]string, len(val))
+			copy(slice, val)
+			cloned.Query[key] = slice
+		}
+	}
+	return &cloned
+}
+
+func (t *ContractID) StripQuery() *ContractID {
+	cloned := *t
+	cloned.Query = nil
+	return &cloned
+}
+
 func (t *ContractID) URL() (*url.URL, error) {
 	switch t.Blockchain {
 	case "ethereum":
