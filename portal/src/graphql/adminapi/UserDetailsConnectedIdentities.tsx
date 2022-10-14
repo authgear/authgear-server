@@ -1036,18 +1036,20 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
           <Text as="h2" variant="medium" className={styles.header}>
             <FormattedMessage id="UserDetails.connected-identities.title" />
           </Text>
-          <PrimaryButton
-            disabled={addIdentitiesMenuProps.items.length === 0}
-            iconProps={{ iconName: "CirclePlus" }}
-            menuProps={addIdentitiesMenuProps}
-            styles={{
-              menuIcon: { paddingLeft: "3px" },
-              icon: { paddingRight: "3px" },
-            }}
-            text={
-              <FormattedMessage id="UserDetails.connected-identities.add-identity" />
-            }
-          />
+          {identityLists.siwe.length === 0 ? (
+            <PrimaryButton
+              disabled={addIdentitiesMenuProps.items.length === 0}
+              iconProps={{ iconName: "CirclePlus" }}
+              menuProps={addIdentitiesMenuProps}
+              styles={{
+                menuIcon: { paddingLeft: "3px" },
+                icon: { paddingRight: "3px" },
+              }}
+              text={
+                <FormattedMessage id="UserDetails.connected-identities.add-identity" />
+              }
+            />
+          ) : null}
         </section>
         <section className={styles.identityLists}>
           {identityLists.oauth.length > 0 ? (

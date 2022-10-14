@@ -12,6 +12,8 @@
 
 .header {
   font-weight: 600;
+  padding-top: 6px;
+  padding-bottom: 6px;
 }
 
 .identityLists {
