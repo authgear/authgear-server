@@ -1,11 +1,13 @@
 package web3_test
 
 import (
+	"encoding/json"
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/util/hexstring"
 	"github.com/authgear/authgear-server/pkg/util/web3"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestEIP55(t *testing.T) {
@@ -48,6 +50,59 @@ func TestEIP55(t *testing.T) {
 			test("0xec7f0e0c2b7a356b5271d13e75004705977fd010", "0xEC7F0e0C2B7a356b5271D13e75004705977Fd010")
 
 			test("0x6e992c5b27db78915ffecf227796b8983880cc9a", "0x6E992c5b27DB78915ffECF227796b8983880cc9A")
+		})
+
+		Convey("non-pointer EIP55 and JSON", func() {
+			type A struct {
+				EIP55 web3.EIP55
+			}
+			a := A{
+				EIP55: web3.EIP55("0xEC7F0e0C2B7a356b5271D13e75004705977Fd010"),
+			}
+
+			jsonBytes, err := json.Marshal(a)
+			So(err, ShouldBeNil)
+			So(string(jsonBytes), ShouldEqual, `{"EIP55":"0xEC7F0e0C2B7a356b5271D13e75004705977Fd010"}`)
+
+			lowercase := []byte(`{"EIP55":"0xec7f0e0c2b7a356b5271d13e75004705977fd010"}`)
+			var b A
+			err = json.Unmarshal(lowercase, &b)
+			So(err, ShouldBeNil)
+			So(b.EIP55, ShouldEqual, a.EIP55)
+
+			invalid := []byte(`{"EIP55":"nonsense"}`)
+			var c A
+			err = json.Unmarshal(invalid, &c)
+			So(err, ShouldBeError, `hex string must match the regexp "^(0x)0*([0-9a-fA-F]+)$"`)
+		})
+
+		Convey("pointer to EIP55 and JSON", func() {
+			type A struct {
+				EIP55 *web3.EIP55
+			}
+			eip55 := web3.EIP55("0xEC7F0e0C2B7a356b5271D13e75004705977Fd010")
+			a := A{}
+
+			jsonBytes, err := json.Marshal(a)
+			So(err, ShouldBeNil)
+			So(string(jsonBytes), ShouldEqual, `{"EIP55":null}`)
+
+			a.EIP55 = &eip55
+			jsonBytes, err = json.Marshal(a)
+			So(err, ShouldBeNil)
+			So(string(jsonBytes), ShouldEqual, `{"EIP55":"0xEC7F0e0C2B7a356b5271D13e75004705977Fd010"}`)
+
+			valid := []byte(`{"EIP55":"0xEC7F0e0C2B7a356b5271D13e75004705977Fd010"}`)
+			var b A
+			err = json.Unmarshal(valid, &b)
+			So(err, ShouldBeNil)
+			So(*b.EIP55, ShouldEqual, eip55)
+
+			empty := []byte(`{"EIP55":null}`)
+			var c A
+			err = json.Unmarshal(empty, &c)
+			So(err, ShouldBeNil)
+			So(c.EIP55, ShouldBeNil)
 		})
 	})
 }

@@ -39,3 +39,16 @@ func NewEIP55FromHexstring(h hexstring.T) (EIP55, error) {
 func (t EIP55) ToHexstring() (hexstring.T, error) {
 	return hexstring.Parse(t.String())
 }
+
+func (t EIP55) MarshalText() ([]byte, error) {
+	return []byte(t.String()), nil
+}
+
+func (t *EIP55) UnmarshalText(text []byte) error {
+	parsed, err := NewEIP55(string(text))
+	if err != nil {
+		return err
+	}
+	*t = parsed
+	return nil
+}
