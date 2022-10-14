@@ -2,9 +2,11 @@ package siwe
 
 import (
 	"crypto/ecdsa"
+	"fmt"
 	"net/url"
 	"strconv"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
@@ -84,14 +86,15 @@ func (s *Service) VerifyMessage(msg string, signature string) (*model.SIWEWallet
 
 	chainID := message.GetChainID()
 
+	var expectedNetworkID *web3.ContractID
 	mismatchNetwork := true
 	for _, networkURL := range s.Web3Config.SIWE.Networks {
-		networkID, err := web3.ParseContractID(networkURL)
+		expectedNetworkID, err = web3.ParseContractID(networkURL)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		if networkID.Network == strconv.Itoa(chainID) {
+		if expectedNetworkID.Network == strconv.Itoa(chainID) {
 			mismatchNetwork = false
 			break
 		}
@@ -99,7 +102,7 @@ func (s *Service) VerifyMessage(msg string, signature string) (*model.SIWEWallet
 	}
 
 	if mismatchNetwork {
-		return nil, nil, ErrMismatchNetwork
+		return nil, nil, InvalidNetwork.NewWithInfo("network does not match expected network", apierrors.Details{"expected_chain_id": fmt.Sprintf("_%s", expectedNetworkID.Network)})
 	}
 
 	publicOrigin, err := url.Parse(s.HTTPConfig.PublicOrigin)

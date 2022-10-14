@@ -206,6 +206,11 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
     <li>{{ template "error-webhook-invalid-response" }}</li>
     {{ else if eq .Error.reason "WebHookDeliveryTimeout" }}
     <li>{{ template "error-webhook-delivery-timeout" }}</li>
+    {{ else if eq .Error.reason "InvalidNetwork" }}
+    <li>
+      {{ template "error-invalid-web3-network" (dict "chainID"
+      $info.expected_chain_id) }}
+    </li>
     {{ else }}
     <li>{{ .Error.message }}</li>
     {{ end }} {{ end }}
