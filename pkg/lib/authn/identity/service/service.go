@@ -756,7 +756,7 @@ func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err e
 
 			for _, iden := range siwes {
 				candidate := identity.NewSIWECandidate()
-				candidate[identity.CandidateKeyDisplayID] = iden.Address
+				candidate[identity.CandidateKeyDisplayID] = iden.Address.String()
 				candidate[identity.CandidateKeyIdentityID] = iden.ID
 
 				out = append(out, candidate)

@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -47,8 +46,7 @@ func (s *Service) GetWeb3Info(identities []*identity.Info) (*model.UserWeb3Info,
 		var ownerID *web3.ContractID
 		switch identity.Type {
 		case model.IdentityTypeSIWE:
-			// SIWE means blockchain has to be ethereum
-			id, err := web3.NewContractID("ethereum", strconv.Itoa(identity.SIWE.ChainID), identity.SIWE.Address, nil)
+			id, err := identity.SIWE.ToContractID()
 			if err != nil {
 				return nil, err
 			}

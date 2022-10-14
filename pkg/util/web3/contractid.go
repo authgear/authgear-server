@@ -4,19 +4,17 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
-
-	"github.com/authgear/authgear-server/pkg/util/hexstring"
 )
 
 type ContractID struct {
 	Blockchain string
 	Network    string
-	Address    string
+	Address    EIP55
 	Query      url.Values
 }
 
 func NewContractID(blockchain string, network string, address string, query url.Values) (*ContractID, error) {
-	hexaddr, err := hexstring.Parse(address)
+	hexaddr, err := NewEIP55(address)
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +22,7 @@ func NewContractID(blockchain string, network string, address string, query url.
 	return &ContractID{
 		Blockchain: blockchain,
 		Network:    network,
-		Address:    hexaddr.String(),
+		Address:    hexaddr,
 		Query:      query,
 	}, nil
 }
@@ -44,7 +42,7 @@ func ParseContractID(contractURL string) (*ContractID, error) {
 			return nil, err
 		}
 
-		return NewContractID("ethereum", strconv.Itoa(eip681.ChainID), eip681.Address, eip681.Query)
+		return NewContractID("ethereum", strconv.Itoa(eip681.ChainID), eip681.Address.String(), eip681.Query)
 	default:
 		return nil, fmt.Errorf("contract_id: unknown protocol: %s", protocol)
 	}
@@ -59,7 +57,7 @@ func (cid *ContractID) URL() (*url.URL, error) {
 			return nil, err
 		}
 
-		eip681, err := NewEIP681(chainID, cid.Address, cid.Query)
+		eip681, err := NewEIP681(chainID, cid.Address.String(), cid.Query)
 		if err != nil {
 			return nil, err
 		}

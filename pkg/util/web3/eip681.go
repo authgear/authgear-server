@@ -5,14 +5,12 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-
-	"github.com/authgear/authgear-server/pkg/util/hexstring"
 )
 
 // https://eips.ethereum.org/EIPS/eip-681
 type EIP681 struct {
 	ChainID int
-	Address string
+	Address EIP55
 	Query   url.Values
 }
 
@@ -30,14 +28,14 @@ func NewEIP681(chainID int, address string, query url.Values) (*EIP681, error) {
 		return nil, fmt.Errorf("chain ID must be positive")
 	}
 
-	addrHex, err := hexstring.Parse(address)
+	addrHex, err := NewEIP55(address)
 	if err != nil {
 		return nil, err
 	}
 
 	return &EIP681{
 		ChainID: chainID,
-		Address: addrHex.String(),
+		Address: addrHex,
 		Query:   query,
 	}, nil
 }
@@ -60,7 +58,7 @@ func ParseEIP681(uri string) (*EIP681, error) {
 	}
 
 	addressString := addressURI[0]
-	address, err := hexstring.Parse(addressString)
+	address, err := NewEIP55(addressString)
 	if err != nil {
 		return nil, fmt.Errorf("invalid address: %s", address)
 	}
@@ -76,7 +74,7 @@ func ParseEIP681(uri string) (*EIP681, error) {
 
 	return &EIP681{
 		ChainID: chainID,
-		Address: string(address),
+		Address: address,
 		Query:   url.Query(),
 	}, nil
 
