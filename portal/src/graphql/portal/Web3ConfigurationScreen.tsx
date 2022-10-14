@@ -51,6 +51,7 @@ import Toggle from "../../Toggle";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import HorizontalDivider from "../../HorizontalDivider";
+import { useProbeNFTCollectionMutation } from "./mutations/probeNFTCollectionMutation";
 
 export interface CollectionItem extends NftCollection {
   status: "pending" | "active";
@@ -156,6 +157,7 @@ interface Web3ConfigurationContentProps {
   ) => Promise<
     LazyQueryResult<NftContractMetadataQueryQuery, OperationVariables>
   >;
+  probeCollection: (contractId: string) => Promise<boolean>;
   form: AppConfigFormModel<FormState>;
 }
 
@@ -474,6 +476,7 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
                     onAdd={onAddNewCollection}
                     onCancel={onDisableNewCollectionField}
                     fetchMetadata={props.fetchMetadata}
+                    probeCollection={props.probeCollection}
                   />
                 ) : null}
                 <div className={styles.listWrapper}>
@@ -534,6 +537,9 @@ const Web3ConfigurationScreen: React.VFC = function Web3ConfigurationScreen() {
 
   const { fetch: fetchMetadata, error: fetchMetadataError } =
     useNftContractMetadataLazyQuery();
+
+  const { probeNFTCollection, error: probeNFTCollectionError } =
+    useProbeNFTCollectionMutation();
 
   const constructFormState = useCallback(
     (config: PortalAPIAppConfig) => {
@@ -651,11 +657,12 @@ const Web3ConfigurationScreen: React.VFC = function Web3ConfigurationScreen() {
     <FormContainer
       form={formModel}
       errorRules={errorRules}
-      localError={fetchMetadataError}
+      localError={fetchMetadataError || probeNFTCollectionError}
     >
       <Web3ConfigurationContent
         form={form}
         fetchMetadata={fetchMetadata}
+        probeCollection={probeNFTCollection}
         maximumCollections={collectionsMaximum}
         nftCollections={nftCollections.collections}
       />

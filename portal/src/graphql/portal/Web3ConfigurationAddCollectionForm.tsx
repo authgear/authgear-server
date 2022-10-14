@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import { APIError } from "../../error/error";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -19,6 +19,7 @@ import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import ChoiceButton from "../../ChoiceButton";
 import { NFTTokenType } from "../../types";
+import Web3ConfigurationLargeCollectionDialog from "./Web3ConfigurationLargeCollectionDialog";
 
 const InvalidAddressError: APIError = {
   errorName: "InvalidAddressError",
@@ -109,6 +110,7 @@ interface AddCollectionFormProps {
   ) => Promise<
     LazyQueryResult<NftContractMetadataQueryQuery, OperationVariables>
   >;
+  probeCollection: (contractId: string) => Promise<boolean>;
   onAdd: (collection: CollectionItem) => void;
   onCancel: () => void;
 }
@@ -117,20 +119,21 @@ interface AddCollectionSectionFormState {
   contractAddress: string;
   tokenType: NFTTokenType;
 }
-
-function makeDefaultAddCollectionSectionFormState(): AddCollectionSectionFormState {
-  return {
-    contractAddress: "",
-    tokenType: "erc721",
-  };
-}
-
 const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionFormProps> =
   function Web3ConfigurationAddCollectionForm(props) {
     const { renderToString } = useContext(Context);
 
-    const { onAdd, onCancel, fetchMetadata, className, selectedNetwork } =
-      props;
+    const [isLargeCollectionDialogVisible, setIsLargeCollectionDialogVisible] =
+      useState<boolean>(false);
+
+    const {
+      onAdd,
+      onCancel,
+      fetchMetadata,
+      probeCollection,
+      className,
+      selectedNetwork,
+    } = props;
 
     const onSubmit = useCallback(
       async (state: AddCollectionSectionFormState) => {
@@ -146,6 +149,13 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionFormProps> =
         } catch (_: unknown) {
           // eslint-disable-next-line @typescript-eslint/no-throw-literal
           throw InvalidAddressError;
+        }
+
+        const probeResult = await probeCollection(contractID);
+
+        if (probeResult) {
+          setIsLargeCollectionDialogVisible(true);
+          return;
         }
 
         const metadataResponse = await fetchMetadata(contractID);
@@ -166,13 +176,26 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionFormProps> =
           status: "pending",
         });
       },
-      [fetchMetadata, onAdd, selectedNetwork]
+      [
+        fetchMetadata,
+        onAdd,
+        probeCollection,
+        selectedNetwork.blockchain,
+        selectedNetwork.network,
+      ]
+    );
+
+    const defaultState = useMemo(
+      () => ({
+        contractAddress: "",
+        tokenType: "erc721" as NFTTokenType,
+      }),
+      []
     );
 
     const form = useSimpleForm({
-      stateMode:
-        "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
-      defaultState: makeDefaultAddCollectionSectionFormState(),
+      stateMode: "UpdateInitialStateWithUseEffect",
+      defaultState: defaultState,
       submit: onSubmit,
     });
 
@@ -222,6 +245,10 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionFormProps> =
       [onCancel]
     );
 
+    const hideLargeCollectionDialog = useCallback(() => {
+      setIsLargeCollectionDialogVisible(false);
+    }, []);
+
     return (
       <FormProvider loading={isUpdating} error={updateError}>
         <div className={cn(styles.addCollection, className)}>
@@ -265,6 +292,10 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionFormProps> =
             />
           </div>
         </div>
+        <Web3ConfigurationLargeCollectionDialog
+          isVisible={isLargeCollectionDialogVisible}
+          onDismiss={hideLargeCollectionDialog}
+        />
       </FormProvider>
     );
   };

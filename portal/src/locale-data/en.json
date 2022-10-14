@@ -358,6 +358,9 @@
   "Web3ConfigurationScreen.collection-list.add-collection.token-type-button.erc721.description": "Non-fungible Token standard",
   "Web3ConfigurationScreen.collection-list.add-collection.token-type-button.erc1155.title": "ERC-1155",
   "Web3ConfigurationScreen.collection-list.add-collection.token-type-button.erc1155.description": "Multiple Token Standard",
+  "Web3ConfigurationScreen.collection-list.add-collection.large-collection-dialog.title": "This collection is not supported yet",
+  "Web3ConfigurationScreen.collection-list.add-collection.large-collection-dialog.description": "The size of the collection you entered is too large. Please contact us if this is the contract you want to use it in your project.",
+  "Web3ConfigurationScreen.collection-list.add-collection.large-collection-dialog.contact-sales": "Contact sales",
 
   "Web3ConfigurationScreen.confirmation-dialog.title": "Confirm Changes?",
   "Web3ConfigurationScreen.confirmation-dialog.siwe-enabled.title": "Enabling Login with Ethereum",
