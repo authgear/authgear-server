@@ -14,12 +14,16 @@ type EIP681 struct {
 	Query   url.Values
 }
 
-func (eip681 *EIP681) URL() *url.URL {
+func (t *EIP681) URL() *url.URL {
 	return &url.URL{
 		Scheme:   "ethereum",
-		Opaque:   fmt.Sprintf("%s@%d", eip681.Address, eip681.ChainID),
-		RawQuery: eip681.Query.Encode(),
+		Opaque:   fmt.Sprintf("%s@%d", t.Address, t.ChainID),
+		RawQuery: t.Query.Encode(),
 	}
+}
+
+func (t *EIP681) String() string {
+	return t.URL().String()
 }
 
 func NewEIP681(chainID int, address string, query url.Values) (*EIP681, error) {
@@ -78,4 +82,17 @@ func ParseEIP681(uri string) (*EIP681, error) {
 		Query:   url.Query(),
 	}, nil
 
+}
+
+func (t EIP681) MarshalText() ([]byte, error) {
+	return []byte(t.String()), nil
+}
+
+func (t *EIP681) UnmarshalText(text []byte) error {
+	parsed, err := ParseEIP681(string(text))
+	if err != nil {
+		return err
+	}
+	*t = *parsed
+	return nil
 }

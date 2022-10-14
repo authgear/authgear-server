@@ -1,6 +1,7 @@
 package web3_test
 
 import (
+	"encoding/json"
 	"net/url"
 	"testing"
 
@@ -95,6 +96,59 @@ func TestEIP681(t *testing.T) {
 				Opaque:   "0x71C7656EC7ab88b098defB751B7401B5f6d8976F@23821",
 				RawQuery: "token_ids=0x1&token_ids=0x2",
 			})
+		})
+
+		Convey("non-pointer EIP681 and JSON", func() {
+			type A struct {
+				EIP681 web3.EIP681
+			}
+			a := A{
+				EIP681: web3.EIP681{
+					ChainID: 1,
+					Address: web3.EIP55("0xEC7F0e0C2B7a356b5271D13e75004705977Fd010"),
+					Query: url.Values{
+						"a": []string{"b"},
+					},
+				},
+			}
+
+			jsonBytes, err := json.Marshal(a)
+			So(err, ShouldBeNil)
+			So(string(jsonBytes), ShouldEqual, `{"EIP681":"ethereum:0xEC7F0e0C2B7a356b5271D13e75004705977Fd010@1?a=b"}`)
+
+			var b A
+			err = json.Unmarshal(jsonBytes, &b)
+			So(err, ShouldBeNil)
+			So(a.EIP681.String(), ShouldEqual, "ethereum:0xEC7F0e0C2B7a356b5271D13e75004705977Fd010@1?a=b")
+		})
+
+		Convey("pointer to EIP681 and JSON", func() {
+			type A struct {
+				EIP681 *web3.EIP681
+			}
+			a := A{
+				EIP681: &web3.EIP681{
+					ChainID: 1,
+					Address: web3.EIP55("0xEC7F0e0C2B7a356b5271D13e75004705977Fd010"),
+					Query: url.Values{
+						"a": []string{"b"},
+					},
+				},
+			}
+
+			jsonBytes, err := json.Marshal(a)
+			So(err, ShouldBeNil)
+			So(string(jsonBytes), ShouldEqual, `{"EIP681":"ethereum:0xEC7F0e0C2B7a356b5271D13e75004705977Fd010@1?a=b"}`)
+
+			var b A
+			err = json.Unmarshal(jsonBytes, &b)
+			So(err, ShouldBeNil)
+			So(a.EIP681.String(), ShouldEqual, "ethereum:0xEC7F0e0C2B7a356b5271D13e75004705977Fd010@1?a=b")
+
+			var c A
+			err = json.Unmarshal([]byte(`{"EIP681":null}`), &c)
+			So(err, ShouldBeNil)
+			So(c.EIP681, ShouldBeNil)
 		})
 	})
 }
