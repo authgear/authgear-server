@@ -80,7 +80,7 @@ type PasskeyIdentityProvider interface {
 type SIWEIdentityProvider interface {
 	Get(userID, id string) (*identity.SIWE, error)
 	GetMany(ids []string) ([]*identity.SIWE, error)
-	GetByMessage(msg string) (*identity.SIWE, error)
+	GetByMessage(msg string, signature string) (*identity.SIWE, error)
 	List(userID string) ([]*identity.SIWE, error)
 	New(userID string, msg string, signature string) (*identity.SIWE, error)
 	Create(i *identity.SIWE) error
@@ -280,7 +280,8 @@ func (s *Service) getBySpec(spec *identity.Spec) (*identity.Info, error) {
 		return p.ToInfo(), nil
 	case model.IdentityTypeSIWE:
 		message := spec.SIWE.Message
-		e, err := s.SIWE.GetByMessage(message)
+		signature := spec.SIWE.Signature
+		e, err := s.SIWE.GetByMessage(message, signature)
 		if err != nil {
 			return nil, err
 		}

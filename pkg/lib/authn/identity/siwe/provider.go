@@ -8,8 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
-	"github.com/authgear/authgear-server/pkg/util/web3"
-	siwego "github.com/spruceid/siwe-go"
 )
 
 // nolint: golint
@@ -37,21 +35,13 @@ func (p *Provider) Get(userID, id string) (*identity.SIWE, error) {
 	return p.Store.Get(userID, id)
 }
 
-func (p *Provider) GetByMessage(msg string) (*identity.SIWE, error) {
-	message, err := siwego.ParseMessage(msg)
+func (p *Provider) GetByMessage(msg string, signature string) (*identity.SIWE, error) {
+	wallet, _, err := p.SIWE.VerifyMessage(msg, signature)
 	if err != nil {
 		return nil, err
 	}
 
-	address := message.GetAddress().Hex()
-	chainID := message.GetChainID()
-
-	addressHex, err := web3.NewEIP55(address)
-	if err != nil {
-		return nil, err
-	}
-
-	return p.Store.GetByAddress(chainID, addressHex)
+	return p.Store.GetByAddress(wallet.ChainID, wallet.Address)
 }
 
 func (p *Provider) GetMany(ids []string) ([]*identity.SIWE, error) {
