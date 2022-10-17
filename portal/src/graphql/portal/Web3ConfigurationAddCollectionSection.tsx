@@ -106,31 +106,38 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionSectionProps> =
           return;
         }
 
-        const probeResult = await probeCollection(contractID);
-        if (probeResult) {
-          setActiveDialog("largeCollection");
+        try {
+          const probeResult = await probeCollection(contractID);
+          if (probeResult) {
+            setActiveDialog("largeCollection");
+            setIsLoading(false);
+            return;
+          }
+
+          const metadata = await fetchMetadata(contractID);
+          if (!metadata) {
+            setIsLoading(false);
+            return;
+          }
+
+          if (metadata.tokenType === "erc1155" && !tokenIDs?.length) {
+            setActiveDialog("tokenTracking");
+            setIsLoading(false);
+            return;
+          }
+
+          onAdd({
+            ...metadata,
+            createdAt: DateTime.now().toISO(),
+            tokenIDs: tokenIDs ?? [],
+            status: "pending",
+          });
+        } catch (_: unknown) {
+          // Error handled by parent component
           setIsLoading(false);
           return;
         }
 
-        const metadata = await fetchMetadata(contractID);
-        if (!metadata) {
-          setIsLoading(false);
-          return;
-        }
-
-        if (metadata.tokenType === "erc1155" && !tokenIDs?.length) {
-          setActiveDialog("tokenTracking");
-          setIsLoading(false);
-          return;
-        }
-
-        onAdd({
-          ...metadata,
-          createdAt: DateTime.now().toISO(),
-          tokenIDs: tokenIDs ?? [],
-          status: "pending",
-        });
         setIsLoading(false);
         resetValues();
       },
