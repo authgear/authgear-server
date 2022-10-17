@@ -754,7 +754,10 @@ const Web3ConfigurationScreen: React.VFC = function Web3ConfigurationScreen() {
 
   const errorRules: ErrorParseRule[] = useMemo(() => {
     return [
-      makeReasonErrorParseRule("TooManyRequest", "errors.rate-limited"),
+      makeReasonErrorParseRule(
+        "ServiceUnavailable",
+        "errors.service-unavailable"
+      ),
       makeReasonErrorParseRule("BadNFTCollection", "errors.bad-nft-collection"),
     ];
   }, []);
