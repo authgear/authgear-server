@@ -75,6 +75,7 @@ require (
 	github.com/stripe/stripe-go/v72 v72.122.0
 	github.com/tdewolff/parse/v2 v2.6.3
 	github.com/vimeo/go-magic v1.0.0
+	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 )
 
 require (
@@ -202,7 +203,6 @@ require (
 	golang.org/x/image v0.0.0-20200927104501-e162460cd6b5 // indirect
 	golang.org/x/mod v0.5.0 // indirect
 	golang.org/x/sys v0.0.0-20220804214406-8e32c043e418 // indirect
-	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/time v0.0.0-20210611083556-38a9dc6acbc6 // indirect
 	golang.org/x/tools v0.1.7 // indirect
 	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f // indirect
