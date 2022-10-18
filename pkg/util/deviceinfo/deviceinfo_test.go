@@ -212,3 +212,24 @@ func TestApplicationID(t *testing.T) {
 		So(ApplicationName(nil), ShouldEqual, "")
 	})
 }
+
+func TestProbablySame(t *testing.T) {
+	Convey("ProbablySame", t, func() {
+		var ios map[string]interface{}
+		err := json.Unmarshal([]byte(ExampleIOS), &ios)
+		So(err, ShouldBeNil)
+
+		var android map[string]interface{}
+		err = json.Unmarshal([]byte(ExampleAndroid), &android)
+		So(err, ShouldBeNil)
+
+		So(ProbablySame(nil, nil), ShouldBeFalse)
+		So(ProbablySame(ios, nil), ShouldBeFalse)
+		So(ProbablySame(android, nil), ShouldBeFalse)
+		So(ProbablySame(nil, ios), ShouldBeFalse)
+		So(ProbablySame(nil, android), ShouldBeFalse)
+		So(ProbablySame(ios, android), ShouldBeFalse)
+		So(ProbablySame(ios, ios), ShouldBeTrue)
+		So(ProbablySame(android, android), ShouldBeTrue)
+	})
+}

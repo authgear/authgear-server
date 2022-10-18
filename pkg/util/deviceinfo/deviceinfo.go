@@ -357,3 +357,22 @@ func applicationIDIOS(ios map[string]interface{}) string {
 	}
 	return ""
 }
+
+func ProbablySame(a map[string]interface{}, b map[string]interface{}) bool {
+	platformA := DevicePlatform(a)
+	platformB := DevicePlatform(b)
+
+	codenameA := DeviceModelCodename(a)
+	codenameB := DeviceModelCodename(b)
+
+	nameA := DeviceName(a)
+	nameB := DeviceName(b)
+
+	appA := ApplicationID(a)
+	appB := ApplicationID(b)
+
+	return (platformA != "" && platformA == platformB) &&
+		(codenameA != "" && codenameA == codenameB) &&
+		(nameA != "" && nameA == nameB) &&
+		(appA != "" && appA == appB)
+}
