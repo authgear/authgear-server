@@ -234,11 +234,7 @@ func DeviceNameAndroid(android map[string]interface{}) string {
 }
 
 func DeviceNameIOS(ios map[string]interface{}) string {
-	if uiDevice, ok := ios["UIDevice"].(map[string]interface{}); ok {
-		if name, ok := uiDevice["name"].(string); ok {
-			return name
-		}
-	}
+	// Observed on iOS 16, only uname.nodename is the device name.
 	if uname, ok := ios["uname"].(map[string]interface{}); ok {
 		if nodename, ok := uname["nodename"].(string); ok {
 			return nodename
