@@ -192,3 +192,23 @@ func TestApplicationName(t *testing.T) {
 		So(ApplicationName(nil), ShouldEqual, "")
 	})
 }
+
+func TestApplicationID(t *testing.T) {
+	Convey("ApplicationID", t, func() {
+		var ios map[string]interface{}
+		err := json.Unmarshal([]byte(ExampleIOS), &ios)
+		So(err, ShouldBeNil)
+
+		var android map[string]interface{}
+		err = json.Unmarshal([]byte(ExampleAndroid), &android)
+		So(err, ShouldBeNil)
+
+		actual := ApplicationID(ios)
+		So(actual, ShouldEqual, "com.authgear.exampleapp.flutter")
+
+		actual = ApplicationID(android)
+		So(actual, ShouldEqual, "com.authgear.exampleapp.flutter")
+
+		So(ApplicationName(nil), ShouldEqual, "")
+	})
+}

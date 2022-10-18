@@ -327,3 +327,33 @@ func applicationNameIOS(ios map[string]interface{}) string {
 	}
 	return ""
 }
+
+func ApplicationID(deviceInfo map[string]interface{}) string {
+	android, ok := deviceInfo["android"].(map[string]interface{})
+	if ok {
+		return applicationIDAndroid(android)
+	}
+	ios, ok := deviceInfo["ios"].(map[string]interface{})
+	if ok {
+		return applicationIDIOS(ios)
+	}
+	return ""
+}
+
+func applicationIDAndroid(android map[string]interface{}) string {
+	if packageInfo, ok := android["PackageInfo"].(map[string]interface{}); ok {
+		if packageName, ok := packageInfo["packageName"].(string); ok {
+			return packageName
+		}
+	}
+	return ""
+}
+
+func applicationIDIOS(ios map[string]interface{}) string {
+	if nsBundle, ok := ios["NSBundle"].(map[string]interface{}); ok {
+		if cfBundleIdentifier, ok := nsBundle["CFBundleIdentifier"].(string); ok {
+			return cfBundleIdentifier
+		}
+	}
+	return ""
+}
