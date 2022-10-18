@@ -172,16 +172,16 @@ func DevicePlatform(deviceInfo map[string]interface{}) Platform {
 func DeviceModelCodename(deviceInfo map[string]interface{}) string {
 	android, ok := deviceInfo["android"].(map[string]interface{})
 	if ok {
-		return DeviceModelCodenameAndroid(android)
+		return deviceModelCodenameAndroid(android)
 	}
 	ios, ok := deviceInfo["ios"].(map[string]interface{})
 	if ok {
-		return DeviceModelCodenameIOS(ios)
+		return deviceModelCodenameIOS(ios)
 	}
 	return ""
 }
 
-func DeviceModelCodenameAndroid(android map[string]interface{}) string {
+func deviceModelCodenameAndroid(android map[string]interface{}) string {
 	build, ok := android["Build"].(map[string]interface{})
 	if !ok {
 		return ""
@@ -193,7 +193,7 @@ func DeviceModelCodenameAndroid(android map[string]interface{}) string {
 	return model
 }
 
-func DeviceModelCodenameIOS(ios map[string]interface{}) string {
+func deviceModelCodenameIOS(ios map[string]interface{}) string {
 	uname, ok := ios["uname"].(map[string]interface{})
 	if !ok {
 		return ""
@@ -209,16 +209,16 @@ func DeviceModelCodenameIOS(ios map[string]interface{}) string {
 func DeviceModel(deviceInfo map[string]interface{}) string {
 	android, ok := deviceInfo["android"].(map[string]interface{})
 	if ok {
-		return DeviceModelAndroid(android)
+		return deviceModelAndroid(android)
 	}
 	ios, ok := deviceInfo["ios"].(map[string]interface{})
 	if ok {
-		return DeviceModelIOS(ios)
+		return deviceModelIOS(ios)
 	}
 	return ""
 }
 
-func DeviceModelAndroid(android map[string]interface{}) string {
+func deviceModelAndroid(android map[string]interface{}) string {
 	build, ok := android["Build"].(map[string]interface{})
 	if !ok {
 		return ""
@@ -234,7 +234,7 @@ func DeviceModelAndroid(android map[string]interface{}) string {
 	return fmt.Sprintf("%v %v", manufacturer, model)
 }
 
-func DeviceModelIOS(ios map[string]interface{}) string {
+func deviceModelIOS(ios map[string]interface{}) string {
 	uname, ok := ios["uname"].(map[string]interface{})
 	if !ok {
 		return ""
@@ -265,16 +265,16 @@ func DeviceModelIOS(ios map[string]interface{}) string {
 func DeviceName(deviceInfo map[string]interface{}) string {
 	android, ok := deviceInfo["android"].(map[string]interface{})
 	if ok {
-		return DeviceNameAndroid(android)
+		return deviceNameAndroid(android)
 	}
 	ios, ok := deviceInfo["ios"].(map[string]interface{})
 	if ok {
-		return DeviceNameIOS(ios)
+		return deviceNameIOS(ios)
 	}
 	return ""
 }
 
-func DeviceNameAndroid(android map[string]interface{}) string {
+func deviceNameAndroid(android map[string]interface{}) string {
 	if settings, ok := android["Settings"].(map[string]interface{}); ok {
 		if global, ok := settings["Global"].(map[string]interface{}); ok {
 			if deviceName, ok := global["DEVICE_NAME"].(string); ok {
@@ -290,7 +290,7 @@ func DeviceNameAndroid(android map[string]interface{}) string {
 	return ""
 }
 
-func DeviceNameIOS(ios map[string]interface{}) string {
+func deviceNameIOS(ios map[string]interface{}) string {
 	// Observed on iOS 16, only uname.nodename is the device name.
 	if uname, ok := ios["uname"].(map[string]interface{}); ok {
 		if nodename, ok := uname["nodename"].(string); ok {
@@ -303,23 +303,23 @@ func DeviceNameIOS(ios map[string]interface{}) string {
 func ApplicationName(deviceInfo map[string]interface{}) string {
 	android, ok := deviceInfo["android"].(map[string]interface{})
 	if ok {
-		return ApplicationNameAndroid(android)
+		return applicationNameAndroid(android)
 	}
 	ios, ok := deviceInfo["ios"].(map[string]interface{})
 	if ok {
-		return ApplicationNameIOS(ios)
+		return applicationNameIOS(ios)
 	}
 	return ""
 }
 
-func ApplicationNameAndroid(android map[string]interface{}) string {
+func applicationNameAndroid(android map[string]interface{}) string {
 	if applicationInfoLabel, ok := android["ApplicationInfoLabel"].(string); ok {
 		return applicationInfoLabel
 	}
 	return ""
 }
 
-func ApplicationNameIOS(ios map[string]interface{}) string {
+func applicationNameIOS(ios map[string]interface{}) string {
 	if nsBundle, ok := ios["NSBundle"].(map[string]interface{}); ok {
 		if cfBundleDisplayName, ok := nsBundle["CFBundleDisplayName"].(string); ok {
 			return cfBundleDisplayName
