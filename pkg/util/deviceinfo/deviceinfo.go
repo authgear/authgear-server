@@ -149,6 +149,63 @@ var iosMachineMapping = map[string]string{
 	"AppleTV6,2": "Apple TV 4K", // Apple TV 4K
 }
 
+type Platform string
+
+const (
+	PlatformUnknown Platform = ""
+	PlatformIOS     Platform = "ios"
+	PlatformAndroid Platform = "android"
+)
+
+func DevicePlatform(deviceInfo map[string]interface{}) Platform {
+	_, isAndroid := deviceInfo["android"].(map[string]interface{})
+	_, isIOS := deviceInfo["ios"].(map[string]interface{})
+	if isAndroid && !isIOS {
+		return PlatformAndroid
+	}
+	if !isAndroid && isIOS {
+		return PlatformIOS
+	}
+	return PlatformUnknown
+}
+
+func DeviceModelCodename(deviceInfo map[string]interface{}) string {
+	android, ok := deviceInfo["android"].(map[string]interface{})
+	if ok {
+		return DeviceModelCodenameAndroid(android)
+	}
+	ios, ok := deviceInfo["ios"].(map[string]interface{})
+	if ok {
+		return DeviceModelCodenameIOS(ios)
+	}
+	return ""
+}
+
+func DeviceModelCodenameAndroid(android map[string]interface{}) string {
+	build, ok := android["Build"].(map[string]interface{})
+	if !ok {
+		return ""
+	}
+	model, ok := build["MODEL"].(string)
+	if !ok {
+		return ""
+	}
+	return model
+}
+
+func DeviceModelCodenameIOS(ios map[string]interface{}) string {
+	uname, ok := ios["uname"].(map[string]interface{})
+	if !ok {
+		return ""
+	}
+	machine, ok := uname["machine"].(string)
+	if !ok {
+		return ""
+	}
+
+	return machine
+}
+
 func DeviceModel(deviceInfo map[string]interface{}) string {
 	android, ok := deviceInfo["android"].(map[string]interface{})
 	if ok {
