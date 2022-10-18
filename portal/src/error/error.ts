@@ -50,6 +50,11 @@ export interface TooManyRequestError {
   reason: "TooManyRequest";
 }
 
+export interface ServiceUnavailableError {
+  errorName: "ServiceUnavailable";
+  reason: "ServiceUnavailable";
+}
+
 export interface UnknownError {
   errorName: "Unknown";
   reason: "Unknown";
@@ -72,6 +77,7 @@ export type APIError =
   | UnknownError
   | LocalError
   | TooManyRequestError
+  | ServiceUnavailableError
   | WebHookDisallowedError
   | WebHookDeliveryTimeoutError
   | WebHookInvalidResponseError

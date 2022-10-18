@@ -105,7 +105,7 @@
   "errors.invalid-address": "Please input a valid contract address.",
   "errors.invalid-token-id": "Please input a valid token ID.",
   "errors.duplicated-contract": "Duplicated contract address.",
-  "errors.rate-limited": "You have exceeded the rate limit. Please Try again later.",
+  "errors.service-unavailable": "Service Unavailable. Please Try again later.",
   "errors.bad-nft-collection": "This NFT collection is either not supported or is from another network.",
 
   "TodoButtonWrapper.dialog-title": "Feature Not Ready",
