@@ -25,16 +25,14 @@ func (e *EdgePromptCreatePasskeyBegin) Instantiate(ctx *interaction.Context, gra
 		return nil, err
 	}
 
-	// Check if the user has identity that needs passkey
-	// e.g. Should not ask the user to create passkey when they only have
-	// oauth / anonymous identities
+	// Check if the identity being used needs passkey.
+	// We MUST NOT check all identities because some identity
+	// is not used interactively, e.g. anonymous and biometric.
+	// And some identity like oauth does not use passkey at all.
 	needPasskey := false
-	identities, err := ctx.Identities.ListByUser(userID)
-	if err != nil {
-		return nil, err
-	}
-	for _, ii := range identities {
-		types := ii.PrimaryAuthenticatorTypes()
+	iden, ok := graph.GetUserLastIdentity()
+	if ok {
+		types := iden.PrimaryAuthenticatorTypes()
 		for _, typ := range types {
 			if typ == model.AuthenticatorTypePasskey {
 				needPasskey = true
