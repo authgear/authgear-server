@@ -1255,7 +1255,7 @@
   "GetStartedScreen.card.description.sso": "Sign in to your apps with connections like Facebook, Google, Active Directory and more. {DocLink, react, href{https://docs.authgear.com/strategies/how-to-setup-sso-integrations} children{See setup instructions}}",
   "GetStartedScreen.card.action-label.sso": "Add login provider",
   "GetStartedScreen.card.title.invite": "Invite your team members",
-  "GetStartedScreen.card.description.invite": "Add your team members ad admin to help with your integration.",
+  "GetStartedScreen.card.description.invite": "Add your team members and admin to help with your integration.",
   "GetStartedScreen.card.action-label.invite": "Invite members",
   "GetStartedScreen.card.skip-button.label": "Skip this",
 
