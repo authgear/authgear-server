@@ -803,6 +803,27 @@ type User implements Entity & Node {
   passkeys: [Identity!]
 
   """"""
+  primaryOOBOTPEmailAuthenticators: [Authenticator!]
+
+  """"""
+  primaryOOBOTPSMSAuthenticators: [Authenticator!]
+
+  """"""
+  primaryPassword: Authenticator
+
+  """"""
+  secondaryOOBOTPEmailAuthenticators: [Authenticator!]
+
+  """"""
+  secondaryOOBOTPSMSAuthenticators: [Authenticator!]
+
+  """"""
+  secondaryPassword: Authenticator
+
+  """"""
+  secondaryTOTPAuthenticators: [Authenticator!]
+
+  """"""
   sessions(after: String, before: String, first: Int, last: Int): SessionConnection
 
   """"""

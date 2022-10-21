@@ -5,6 +5,7 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -74,6 +75,34 @@ var nodeUser = node(
 					args := relay.NewConnectionArguments(p.Args)
 					return graphqlutil.NewConnectionFromArray(identities, args), nil
 				},
+			},
+			"primaryPassword": &graphql.Field{
+				Type:    nodeAuthenticator,
+				Resolve: authenticatorResolverByTypeAndKind(model.AuthenticatorTypePassword, authenticator.KindPrimary),
+			},
+			"primaryOOBOTPEmailAuthenticators": &graphql.Field{
+				Type:    graphql.NewList(graphql.NewNonNull(nodeAuthenticator)),
+				Resolve: authenticatorsResolverByTypeAndKind(model.AuthenticatorTypeOOBEmail, authenticator.KindPrimary),
+			},
+			"primaryOOBOTPSMSAuthenticators": &graphql.Field{
+				Type:    graphql.NewList(graphql.NewNonNull(nodeAuthenticator)),
+				Resolve: authenticatorsResolverByTypeAndKind(model.AuthenticatorTypeOOBSMS, authenticator.KindPrimary),
+			},
+			"secondaryTOTPAuthenticators": &graphql.Field{
+				Type:    graphql.NewList(graphql.NewNonNull(nodeAuthenticator)),
+				Resolve: authenticatorsResolverByTypeAndKind(model.AuthenticatorTypeTOTP, authenticator.KindSecondary),
+			},
+			"secondaryOOBOTPEmailAuthenticators": &graphql.Field{
+				Type:    graphql.NewList(graphql.NewNonNull(nodeAuthenticator)),
+				Resolve: authenticatorsResolverByTypeAndKind(model.AuthenticatorTypeOOBEmail, authenticator.KindSecondary),
+			},
+			"secondaryOOBOTPSMSAuthenticators": &graphql.Field{
+				Type:    graphql.NewList(graphql.NewNonNull(nodeAuthenticator)),
+				Resolve: authenticatorsResolverByTypeAndKind(model.AuthenticatorTypeOOBSMS, authenticator.KindSecondary),
+			},
+			"secondaryPassword": &graphql.Field{
+				Type:    nodeAuthenticator,
+				Resolve: authenticatorResolverByTypeAndKind(model.AuthenticatorTypePassword, authenticator.KindSecondary),
 			},
 			"authenticators": &graphql.Field{
 				Type: connAuthenticator.ConnectionType,
