@@ -43,6 +43,9 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
     <li id="error-message-passkey-empty-allow-credentials" class="hidden">
       {{ template "error-passkey-empty-allow-credentials" (dict "variant" $.LoginIDContextualType) }}
     </li>
+    <li id="error-message-passkey-duplicate" class="hidden">
+      {{ template "error-passkey-duplicate" }}
+    </li>
     <li id="error-message-metamask-unauthorized" class="hidden">
       {{ template "error-metamask-unauthorized" }}
     </li>
