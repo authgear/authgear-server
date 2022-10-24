@@ -111,7 +111,7 @@ type StripeService interface {
 type SubscriptionService interface {
 	GetSubscription(appID string) (*model.Subscription, error)
 	CreateSubscriptionCheckout(stripeCheckoutSession *libstripe.CheckoutSession) (*model.SubscriptionCheckout, error)
-	UpdateSubscriptionCheckoutStatusAndCustomerID(appID string, stripCheckoutSessionID string, status model.SubscriptionCheckoutStatus, customerID string) error
+	MarkCheckoutCompleted(appID string, stripCheckoutSessionID string, customerID string) error
 	GetSubscriptionUsage(
 		appID string,
 		planName string,

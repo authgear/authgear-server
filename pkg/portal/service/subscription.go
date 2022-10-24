@@ -135,13 +135,12 @@ func (s *SubscriptionService) GetSubscription(appID string) (*model.Subscription
 	return &subscription, nil
 }
 
-// UpdateSubscriptionCheckoutStatus updates subscription checkout status and customer id
+// MarkCheckoutCompleted marks subscription checkout as completed.
 // It returns ErrSubscriptionCheckoutNotFound when the checkout is not found
-// or the checkout status is already subscribed
-// It is used when the checkout session is completed
-func (s *SubscriptionService) UpdateSubscriptionCheckoutStatusAndCustomerID(appID string, stripCheckoutSessionID string, status model.SubscriptionCheckoutStatus, customerID string) error {
+// or the checkout status is already subscribed.
+func (s *SubscriptionService) MarkCheckoutCompleted(appID string, stripCheckoutSessionID string, customerID string) error {
 	return s.updateSubscriptionCheckoutStatus(func(b squirrel.UpdateBuilder) squirrel.UpdateBuilder {
-		return b.Set("status", status).
+		return b.Set("status", model.SubscriptionCheckoutStatusCompleted).
 			Set("stripe_customer_id", customerID).
 			Where("stripe_checkout_session_id = ?", stripCheckoutSessionID).
 			Where("app_id = ?", appID).
@@ -150,13 +149,12 @@ func (s *SubscriptionService) UpdateSubscriptionCheckoutStatusAndCustomerID(appI
 	})
 }
 
-// UpdateSubscriptionCheckoutStatusByCustomerID updates subscription checkout status by customer id
+// MarkCheckoutSubscribed marks subscription checkout as subscribed.
 // It returns ErrSubscriptionCheckoutNotFound when the checkout is not found
-// or the checkout status is already subscribed
-// It is used when a subscription is created or updated
-func (s *SubscriptionService) UpdateSubscriptionCheckoutStatusByCustomerID(appID string, customerID string, status model.SubscriptionCheckoutStatus) error {
+// or the checkout status is already subscribed.
+func (s *SubscriptionService) MarkCheckoutSubscribed(appID string, customerID string) error {
 	return s.updateSubscriptionCheckoutStatus(func(b squirrel.UpdateBuilder) squirrel.UpdateBuilder {
-		return b.Set("status", status).
+		return b.Set("status", model.SubscriptionCheckoutStatusSubscribed).
 			Where("app_id = ?", appID).
 			Where("stripe_customer_id = ?", customerID).
 			// Only allow updating status if it is not subscribed
@@ -164,14 +162,17 @@ func (s *SubscriptionService) UpdateSubscriptionCheckoutStatusByCustomerID(appID
 	})
 }
 
-// UpdatedSubscriptionCheckoutStatusToCancelled updates subscription status to cancelled
-// It is used when
-//
-//	a subscription is cancelled.
-//	a subscription is incomplete_expired.
-func (s *SubscriptionService) UpdatedSubscriptionCheckoutStatusToCancelled(appID string, customerID string) error {
+func (s *SubscriptionService) MarkCheckoutCancelled(appID string, customerID string) error {
 	return s.updateSubscriptionCheckoutStatus(func(b squirrel.UpdateBuilder) squirrel.UpdateBuilder {
 		return b.Set("status", model.SubscriptionCheckoutStatusCancelled).
+			Where("app_id = ?", appID).
+			Where("stripe_customer_id = ?", customerID)
+	})
+}
+
+func (s *SubscriptionService) MarkCheckoutExpired(appID string, customerID string) error {
+	return s.updateSubscriptionCheckoutStatus(func(b squirrel.UpdateBuilder) squirrel.UpdateBuilder {
+		return b.Set("status", model.SubscriptionCheckoutStatusExpired).
 			Where("app_id = ?", appID).
 			Where("stripe_customer_id = ?", customerID)
 	})

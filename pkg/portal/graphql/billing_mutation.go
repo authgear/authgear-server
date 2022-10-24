@@ -361,10 +361,9 @@ var _ = registerMutationField(
 			if cs.StripeCustomerID == nil {
 				return nil, apierrors.NewInvalid("missing customer ID in the completed checkout session")
 			}
-			err = ctx.SubscriptionService.UpdateSubscriptionCheckoutStatusAndCustomerID(
+			err = ctx.SubscriptionService.MarkCheckoutCompleted(
 				appID,
 				checkoutSessionID,
-				model.SubscriptionCheckoutStatusCompleted,
 				*cs.StripeCustomerID,
 			)
 			if err != nil {
