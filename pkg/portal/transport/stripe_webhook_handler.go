@@ -30,9 +30,10 @@ type StripeService interface {
 
 type SubscriptionService interface {
 	GetSubscription(appID string) (*model.Subscription, error)
-	UpdateSubscriptionCheckoutStatusAndCustomerID(appID string, stripCheckoutSessionID string, status model.SubscriptionCheckoutStatus, customerID string) error
-	UpdateSubscriptionCheckoutStatusByCustomerID(appID string, customerID string, status model.SubscriptionCheckoutStatus) error
-	UpdatedSubscriptionCheckoutStatusToCancelled(appID string, customerID string) error
+	MarkCheckoutCompleted(appID string, stripCheckoutSessionID string, customerID string) error
+	MarkCheckoutSubscribed(appID string, customerID string) error
+	MarkCheckoutCancelled(appID string, customerID string) error
+	MarkCheckoutExpired(appID string, customerID string) error
 	UpsertSubscription(appID string, stripeSubscriptionID string, stripeCustomerID string) (*model.Subscription, error)
 	ArchiveSubscription(sub *model.Subscription) error
 	UpdateAppPlan(appID string, planName string) error
@@ -96,10 +97,9 @@ func (h *StripeWebhookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 func (h *StripeWebhookHandler) handleCheckoutSessionCompletedEvent(event *libstripe.CheckoutSessionCompletedEvent) error {
 	// Update _portal_subscription_checkout set state=completed, stripe_customer_id
 	err := h.Database.WithTx(func() error {
-		return h.Subscriptions.UpdateSubscriptionCheckoutStatusAndCustomerID(
+		return h.Subscriptions.MarkCheckoutCompleted(
 			event.AppID,
 			event.StripeCheckoutSessionID,
-			model.SubscriptionCheckoutStatusCompleted,
 			event.StripeCustomerID,
 		)
 	})
@@ -153,22 +153,60 @@ func (h *StripeWebhookHandler) handleCheckoutSessionCompletedEvent(event *libstr
 }
 
 func (h *StripeWebhookHandler) handleCustomerSubscriptionEvent(event *libstripe.CustomerSubscriptionEvent) error {
-	if !event.IsSubscriptionActive() {
-		// If the subscription event is about status that are not active
-		// Ignore it
-		h.Logger.
-			WithField("stripe_subscription_id", event.StripeSubscriptionID).
-			WithField("stripe_subscription_status", event.StripeSubscriptionStatus).
-			Info("unhandled subscription status")
-		return nil
+	// Here is a complete list of subscription status and our corresponding action.
+	// incomplete -> ignore
+	// incomplete_expired -> set checkout to cancelled.
+	// trialing -> ignore
+	// active -> set checkout to subscribed
+	// past_due -> ignore
+	// canceled -> ignore
+	// unpaid -> ignore
+
+	if event.IsSubscriptionActive() {
+		return h.handleActiveSubscriptionEvent(event)
 	}
 
+	if event.IsSubscriptionIncompleteExpired() {
+		return h.handleIncompleteExpiredSubscriptionEvent(event)
+	}
+
+	h.Logger.
+		WithField("stripe_subscription_id", event.StripeSubscriptionID).
+		WithField("stripe_subscription_status", event.StripeSubscriptionStatus).
+		Info("unhandled subscription status")
+	return nil
+}
+
+func (h *StripeWebhookHandler) handleIncompleteExpiredSubscriptionEvent(event *libstripe.CustomerSubscriptionEvent) error {
 	err := h.Database.WithTx(func() error {
-		// Mark checkout session as subscribed
-		err := h.Subscriptions.UpdateSubscriptionCheckoutStatusByCustomerID(
+		err := h.Subscriptions.MarkCheckoutExpired(
 			event.AppID,
 			event.StripeCustomerID,
-			model.SubscriptionCheckoutStatusSubscribed,
+		)
+		if err != nil {
+			if !errors.Is(err, service.ErrSubscriptionCheckoutNotFound) {
+				return err
+			}
+			// The checkout session doesn't exist
+			// It may happen if the subscription is created via Stripe portal
+			// Tolerate it.
+			h.Logger.
+				WithField("app_id", event.AppID).
+				WithField("stripe_subscription_id", event.StripeSubscriptionID).
+				Info("the subscription checkout does not exist for incomplete_expired")
+			return nil
+		}
+		return nil
+	})
+	return err
+}
+
+func (h *StripeWebhookHandler) handleActiveSubscriptionEvent(event *libstripe.CustomerSubscriptionEvent) error {
+	err := h.Database.WithTx(func() error {
+		// Mark checkout session as subscribed
+		err := h.Subscriptions.MarkCheckoutSubscribed(
+			event.AppID,
+			event.StripeCustomerID,
 		)
 		if err != nil {
 			if !errors.Is(err, service.ErrSubscriptionCheckoutNotFound) {
@@ -216,8 +254,8 @@ func (h *StripeWebhookHandler) handleCustomerSubscriptionDeletedEvent(event *lib
 	}
 
 	err := h.Database.WithTx(func() error {
-		// Mark checkout session as subscribed
-		err := h.Subscriptions.UpdatedSubscriptionCheckoutStatusToCancelled(
+		// Mark checkout session as cancelled
+		err := h.Subscriptions.MarkCheckoutCancelled(
 			event.AppID,
 			event.StripeCustomerID,
 		)

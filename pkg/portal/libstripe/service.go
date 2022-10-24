@@ -637,6 +637,40 @@ func (s *Service) deriveSubscriptionItemsParams(sub *stripe.Subscription, subscr
 	return
 }
 
+func (s *Service) GetLastPaymentError(stripeCustomerID string) (*stripe.Error, error) {
+	subscriptionListParams := &stripe.SubscriptionListParams{
+		ListParams: stripe.ListParams{
+			Context: s.Context,
+			Expand: []*string{
+				stripe.String("data.latest_invoice"),
+				stripe.String("data.latest_invoice.payment_intent"),
+			},
+		},
+		Customer: stripeCustomerID,
+	}
+
+	iter := s.ClientAPI.Subscriptions.List(subscriptionListParams)
+	for iter.Next() {
+		sub := iter.Current().(*stripe.Subscription)
+		invoice := sub.LatestInvoice
+		if invoice == nil {
+			return nil, ErrNoInvoice
+		}
+		paymentIntent := invoice.PaymentIntent
+		if paymentIntent == nil {
+			return nil, ErrNoPaymentIntent
+		}
+
+		// Even the customer has more than 1 subscription,
+		// we only consider the first one here.
+		return paymentIntent.LastPaymentError, nil
+	}
+	if err := iter.Err(); err != nil {
+		return nil, fmt.Errorf("failed to list subscription: %w", err)
+	}
+	return nil, ErrNoSubscription
+}
+
 func stripeSubscriptionToPrices(subscription *stripe.Subscription) ([]*model.Price, error) {
 	var prices []*model.Price
 	for _, item := range subscription.Items.Data {

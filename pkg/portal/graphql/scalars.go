@@ -16,3 +16,8 @@ var TutorialStatusData = graphqlutil.NewJSONObjectScalar(
 	"TutorialStatusData",
 	"The `TutorialStatusData` scalar type represents tutorial status data",
 )
+
+var StripeError = graphqlutil.NewJSONObjectScalar(
+	"StripeError",
+	"The `StripeError` scalar type represents Stripe error",
+)

@@ -9,10 +9,16 @@ import (
 type SubscriptionCheckoutStatus string
 
 const (
-	SubscriptionCheckoutStatusOpen       SubscriptionCheckoutStatus = "open"
-	SubscriptionCheckoutStatusCompleted  SubscriptionCheckoutStatus = "completed"
+	// SubscriptionCheckoutStatusOpen is the initial status.
+	SubscriptionCheckoutStatusOpen SubscriptionCheckoutStatus = "open"
+	// SubscriptionCheckoutStatusCompleted represents the Stripe customer is created.
+	SubscriptionCheckoutStatusCompleted SubscriptionCheckoutStatus = "completed"
+	// SubscriptionCheckoutStatusSubscribed represents the Stripe subscription is active.
 	SubscriptionCheckoutStatusSubscribed SubscriptionCheckoutStatus = "subscribed"
-	SubscriptionCheckoutStatusCancelled  SubscriptionCheckoutStatus = "cancelled"
+	// SubscriptionCheckoutStatusCancelled represents the Stripe subscription is cancelled.
+	SubscriptionCheckoutStatusCancelled SubscriptionCheckoutStatus = "cancelled"
+	// SubscriptionCheckoutStatusExpired represents the Stripe subscription is incomplete_expired.
+	SubscriptionCheckoutStatusExpired SubscriptionCheckoutStatus = "expired"
 )
 
 // Subscription represents an app subscription.
