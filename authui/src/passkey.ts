@@ -173,6 +173,24 @@ function isFirefoxSecurityKeyError(err: unknown) {
   );
 }
 
+function isSafariDuplicateError(err: unknown) {
+  return (
+    err instanceof DOMException &&
+    err.name === "InvalidStateError" &&
+    // "At least one credential matches an entry of the excludeCredentials list in the platform attached authenticator."
+    /excludeCredentials/i.test(err.message)
+  );
+}
+
+function isChromeDuplicateError(err: unknown) {
+  return (
+    err instanceof DOMException &&
+    err.name === "InvalidStateError" &&
+    // "The user attempted to register an authenticator that contains one of the credentials already registered with the relying party."
+    /already register/i.test(err.message)
+  );
+}
+
 function handleError(err: unknown) {
   console.error(err);
 
@@ -202,6 +220,10 @@ function handleError(err: unknown) {
 
   if (isEmptyAllowCredentialsError(err)) {
     showErrorMessage("error-message-passkey-empty-allow-credentials");
+  }
+
+  if (isSafariDuplicateError(err) || isChromeDuplicateError(err)) {
+    showErrorMessage("error-message-passkey-duplicate");
   }
 
   return false;
