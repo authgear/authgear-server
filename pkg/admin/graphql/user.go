@@ -80,13 +80,13 @@ var nodeUser = node(
 				Type:    nodeAuthenticator,
 				Resolve: authenticatorResolverByTypeAndKind(model.AuthenticatorTypePassword, authenticator.KindPrimary),
 			},
-			"primaryOOBOTPEmailAuthenticators": &graphql.Field{
-				Type:    graphql.NewList(graphql.NewNonNull(nodeAuthenticator)),
-				Resolve: authenticatorsResolverByTypeAndKind(model.AuthenticatorTypeOOBEmail, authenticator.KindPrimary),
+			"primaryOOBOTPEmailAuthenticator": &graphql.Field{
+				Type:    nodeAuthenticator,
+				Resolve: authenticatorResolverByTypeAndKind(model.AuthenticatorTypeOOBEmail, authenticator.KindPrimary),
 			},
-			"primaryOOBOTPSMSAuthenticators": &graphql.Field{
-				Type:    graphql.NewList(graphql.NewNonNull(nodeAuthenticator)),
-				Resolve: authenticatorsResolverByTypeAndKind(model.AuthenticatorTypeOOBSMS, authenticator.KindPrimary),
+			"primaryOOBOTPSMSAuthenticator": &graphql.Field{
+				Type:    nodeAuthenticator,
+				Resolve: authenticatorResolverByTypeAndKind(model.AuthenticatorTypeOOBSMS, authenticator.KindPrimary),
 			},
 			"secondaryTOTPAuthenticators": &graphql.Field{
 				Type:    graphql.NewList(graphql.NewNonNull(nodeAuthenticator)),

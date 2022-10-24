@@ -657,8 +657,8 @@ export type User = Entity & Node & {
   loginIDs?: Maybe<Array<Identity>>;
   oauthConnections?: Maybe<Array<Identity>>;
   passkeys?: Maybe<Array<Identity>>;
-  primaryOOBOTPEmailAuthenticators?: Maybe<Array<Authenticator>>;
-  primaryOOBOTPSMSAuthenticators?: Maybe<Array<Authenticator>>;
+  primaryOOBOTPEmailAuthenticator?: Maybe<Authenticator>;
+  primaryOOBOTPSMSAuthenticator?: Maybe<Authenticator>;
   primaryPassword?: Maybe<Authenticator>;
   secondaryOOBOTPEmailAuthenticators?: Maybe<Array<Authenticator>>;
   secondaryOOBOTPSMSAuthenticators?: Maybe<Array<Authenticator>>;

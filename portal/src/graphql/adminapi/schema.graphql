@@ -803,10 +803,10 @@ type User implements Entity & Node {
   passkeys: [Identity!]
 
   """"""
-  primaryOOBOTPEmailAuthenticators: [Authenticator!]
+  primaryOOBOTPEmailAuthenticator: Authenticator
 
   """"""
-  primaryOOBOTPSMSAuthenticators: [Authenticator!]
+  primaryOOBOTPSMSAuthenticator: Authenticator
 
   """"""
   primaryPassword: Authenticator
