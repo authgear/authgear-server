@@ -72,7 +72,7 @@ func ReadSecretConfigOptionsFromConsole() *config.GenerateSecretConfigOptions {
 		DefaultValue: "postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable",
 	}.Prompt()
 
-	opts.AuditDatabaseSchema = promptURL{
+	opts.AuditDatabaseSchema = promptString{
 		Title:        "Audit Database schema",
 		DefaultValue: "public",
 	}.Prompt()
