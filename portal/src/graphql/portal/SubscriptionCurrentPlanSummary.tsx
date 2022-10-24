@@ -222,9 +222,7 @@ function UsageMeter(props: UsageMeterProps) {
             <LinkButton onClick={onClickUpgrade}>
               <FormattedMessage id="SubscriptionCurrentPlanSummary.mau.approaching-limit" />
             </LinkButton>
-          ) : (
-            <Text block={true}>{"\u00a0"}</Text>
-          )}
+          ) : null}
         </ThemeProvider>
       </div>
     </TooltipHost>

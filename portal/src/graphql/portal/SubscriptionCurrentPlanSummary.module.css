@@ -8,7 +8,7 @@
   flex-direction: row;
   column-gap: 20px;
 
-  @apply mobile:flex-col;
+  @apply mobile:flex-col mobile:gap-y-2.5;
 }
 
 .costItemTitle {
@@ -17,19 +17,22 @@
 
 .costItemSeparator {
   width: 1px;
+
+  @apply mobile:w-full mobile:h-px;
 }
 
 .usageMeterContainer {
   margin-top: 30px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   justify-content: space-between;
+
+  @apply tablet:flex-col tablet:gap-y-5;
 }
 
 .usageMeter {
   display: flex;
   flex-direction: column;
-  padding: 10px 0;
 }
 
 .usageMeterTitle {
@@ -45,7 +48,6 @@
 .subscriptionManagement {
   display: flex;
   flex-direction: column;
-  padding: 10px 0;
   row-gap: 10px;
 }
 
