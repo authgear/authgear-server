@@ -637,7 +637,7 @@ export type User = Entity & Node & {
   __typename?: 'User';
   authenticators?: Maybe<AuthenticatorConnection>;
   authorizations?: Maybe<AuthorizationConnection>;
-  biometricRegistrations?: Maybe<Array<Identity>>;
+  biometricRegistrations: Array<Identity>;
   /** The creation time of entity */
   createdAt: Scalars['DateTime'];
   customAttributes: Scalars['UserCustomAttributes'];
@@ -654,16 +654,16 @@ export type User = Entity & Node & {
   isDisabled: Scalars['Boolean'];
   /** The last login time of user */
   lastLoginAt?: Maybe<Scalars['DateTime']>;
-  loginIDs?: Maybe<Array<Identity>>;
-  oauthConnections?: Maybe<Array<Identity>>;
-  passkeys?: Maybe<Array<Identity>>;
+  loginIDs: Array<Identity>;
+  oauthConnections: Array<Identity>;
+  passkeys: Array<Identity>;
   primaryOOBOTPEmailAuthenticator?: Maybe<Authenticator>;
   primaryOOBOTPSMSAuthenticator?: Maybe<Authenticator>;
   primaryPassword?: Maybe<Authenticator>;
-  secondaryOOBOTPEmailAuthenticators?: Maybe<Array<Authenticator>>;
-  secondaryOOBOTPSMSAuthenticators?: Maybe<Array<Authenticator>>;
+  secondaryOOBOTPEmailAuthenticators: Array<Authenticator>;
+  secondaryOOBOTPSMSAuthenticators: Array<Authenticator>;
   secondaryPassword?: Maybe<Authenticator>;
-  secondaryTOTPAuthenticators?: Maybe<Array<Authenticator>>;
+  secondaryTOTPAuthenticators: Array<Authenticator>;
   sessions?: Maybe<SessionConnection>;
   standardAttributes: Scalars['UserStandardAttributes'];
   /** The update time of entity */

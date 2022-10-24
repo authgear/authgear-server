@@ -755,7 +755,7 @@ type User implements Entity & Node {
   authorizations(after: String, before: String, first: Int, last: Int): AuthorizationConnection
 
   """"""
-  biometricRegistrations: [Identity!]
+  biometricRegistrations: [Identity!]!
 
   """The creation time of entity"""
   createdAt: DateTime!
@@ -794,13 +794,13 @@ type User implements Entity & Node {
   lastLoginAt: DateTime
 
   """"""
-  loginIDs: [Identity!]
+  loginIDs: [Identity!]!
 
   """"""
-  oauthConnections: [Identity!]
+  oauthConnections: [Identity!]!
 
   """"""
-  passkeys: [Identity!]
+  passkeys: [Identity!]!
 
   """"""
   primaryOOBOTPEmailAuthenticator: Authenticator
@@ -812,16 +812,16 @@ type User implements Entity & Node {
   primaryPassword: Authenticator
 
   """"""
-  secondaryOOBOTPEmailAuthenticators: [Authenticator!]
+  secondaryOOBOTPEmailAuthenticators: [Authenticator!]!
 
   """"""
-  secondaryOOBOTPSMSAuthenticators: [Authenticator!]
+  secondaryOOBOTPSMSAuthenticators: [Authenticator!]!
 
   """"""
   secondaryPassword: Authenticator
 
   """"""
-  secondaryTOTPAuthenticators: [Authenticator!]
+  secondaryTOTPAuthenticators: [Authenticator!]!
 
   """"""
   sessions(after: String, before: String, first: Int, last: Int): SessionConnection

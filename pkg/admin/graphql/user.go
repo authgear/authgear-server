@@ -31,19 +31,19 @@ var nodeUser = node(
 				Description: "The last login time of user",
 			},
 			"loginIDs": &graphql.Field{
-				Type:    graphql.NewList(graphql.NewNonNull(nodeIdentity)),
+				Type:    graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeIdentity))),
 				Resolve: identitiesResolverByType(model.IdentityTypeLoginID),
 			},
 			"oauthConnections": &graphql.Field{
-				Type:    graphql.NewList(graphql.NewNonNull(nodeIdentity)),
+				Type:    graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeIdentity))),
 				Resolve: identitiesResolverByType(model.IdentityTypeOAuth),
 			},
 			"biometricRegistrations": &graphql.Field{
-				Type:    graphql.NewList(graphql.NewNonNull(nodeIdentity)),
+				Type:    graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeIdentity))),
 				Resolve: identitiesResolverByType(model.IdentityTypeBiometric),
 			},
 			"passkeys": &graphql.Field{
-				Type:    graphql.NewList(graphql.NewNonNull(nodeIdentity)),
+				Type:    graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeIdentity))),
 				Resolve: identitiesResolverByType(model.IdentityTypePasskey),
 			},
 			"identities": &graphql.Field{
@@ -89,15 +89,15 @@ var nodeUser = node(
 				Resolve: authenticatorResolverByTypeAndKind(model.AuthenticatorTypeOOBSMS, authenticator.KindPrimary),
 			},
 			"secondaryTOTPAuthenticators": &graphql.Field{
-				Type:    graphql.NewList(graphql.NewNonNull(nodeAuthenticator)),
+				Type:    graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeAuthenticator))),
 				Resolve: authenticatorsResolverByTypeAndKind(model.AuthenticatorTypeTOTP, authenticator.KindSecondary),
 			},
 			"secondaryOOBOTPEmailAuthenticators": &graphql.Field{
-				Type:    graphql.NewList(graphql.NewNonNull(nodeAuthenticator)),
+				Type:    graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeAuthenticator))),
 				Resolve: authenticatorsResolverByTypeAndKind(model.AuthenticatorTypeOOBEmail, authenticator.KindSecondary),
 			},
 			"secondaryOOBOTPSMSAuthenticators": &graphql.Field{
-				Type:    graphql.NewList(graphql.NewNonNull(nodeAuthenticator)),
+				Type:    graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeAuthenticator))),
 				Resolve: authenticatorsResolverByTypeAndKind(model.AuthenticatorTypeOOBSMS, authenticator.KindSecondary),
 			},
 			"secondaryPassword": &graphql.Field{
