@@ -65,6 +65,7 @@ import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import LinkButton from "../../LinkButton";
 import { StripeError } from "../../types";
+import { useCancelFailedSubscriptionMutation } from "./mutations/cancelFailedSubscriptionMutation";
 
 const ALL_KNOWN_PLANS = ["free", "developers", "startups", "business"];
 const PAID_PLANS = ALL_KNOWN_PLANS.slice(1);
@@ -877,6 +878,13 @@ const SubscriptionProcessingPaymentScreen: React.VFC<SubscriptionProcessingPayme
     const { renderToString } = useContext(Context);
     const { appID } = useParams() as { appID: string };
 
+    const {
+      cancelFailedSubscription,
+      loading: cancelFailedSubscriptionLoading,
+      error: cancelFailedSubscriptionError,
+    } = useCancelFailedSubscriptionMutation(appID);
+    useLoading(cancelFailedSubscriptionLoading);
+
     const paymentStatus = useMemo(() => {
       if (stripeError == null) {
         return "IsProcessing";
@@ -887,7 +895,9 @@ const SubscriptionProcessingPaymentScreen: React.VFC<SubscriptionProcessingPayme
       return "UnknownError";
     }, [stripeError]);
 
-    const onClickCancelFailedSubscription = useCallback(() => {}, [appID]);
+    const onClickCancelFailedSubscription = useCallback(async () => {
+      await cancelFailedSubscription();
+    }, [cancelFailedSubscription]);
 
     return (
       <div className={styles.root}>
@@ -921,11 +931,10 @@ const SubscriptionProcessingPaymentScreen: React.VFC<SubscriptionProcessingPayme
                 <FormattedMessage id="SubscriptionScreen.payment-declined.description" />
               </Text>
               <div className={styles.processingPaymentButtonContainer}>
-                <PrimaryButton
+                <ButtonWithLoading
+                  loading={cancelFailedSubscriptionLoading}
                   onClick={onClickCancelFailedSubscription}
-                  text={
-                    <FormattedMessage id="SubscriptionScreen.cancel-transaction.label" />
-                  }
+                  labelId="SubscriptionScreen.cancel-transaction.label"
                 />
               </div>
             </>
@@ -937,6 +946,11 @@ const SubscriptionProcessingPaymentScreen: React.VFC<SubscriptionProcessingPayme
               </Text>
             </>
           ) : null}
+          <ErrorDialog
+            error={cancelFailedSubscriptionError}
+            rules={[]}
+            fallbackErrorMessageID="SubscriptionScreen.cancel-transaction-error.description"
+          />
         </div>
       </div>
     );

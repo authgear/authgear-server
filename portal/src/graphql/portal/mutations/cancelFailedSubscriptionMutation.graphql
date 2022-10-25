@@ -1,0 +1,15 @@
+mutation cancelFailedSubscriptionMutation(
+  $appID: ID!
+) {
+  cancelFailedSubscription(
+    input: {
+      appID: $appID
+    }
+  ) {
+    app {
+      id
+      isProcessingSubscription
+      lastStripeError
+    }
+  }
+}
