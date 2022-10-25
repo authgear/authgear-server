@@ -32,3 +32,14 @@
   flex-direction: column;
   row-gap: 10px;
 }
+
+.processingPaymentSection {
+  display: flex;
+  padding: 20px;
+  max-width: 560px;
+}
+
+.processingPaymentSpinner {
+  padding: 24px 0;
+  justify-content: left;
+}

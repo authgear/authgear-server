@@ -17,6 +17,8 @@ import {
   IDialogContentProps,
   ThemeProvider,
   PartialTheme,
+  Spinner,
+  SpinnerSize,
 } from "@fluentui/react";
 import { useConst } from "@fluentui/react-hooks";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -862,8 +864,40 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   );
 }
 
+const SubscriptionProcessingPaymentScreen: React.VFC =
+  function SubscriptionProcessingPayment() {
+    const { renderToString } = useContext(Context);
+
+    return (
+      <div className={styles.root}>
+        <ScreenTitle className={styles.section}>
+          <FormattedMessage id="SubscriptionScreen.title" />
+        </ScreenTitle>
+        <div
+          className={cn(styles.processingPaymentSection)}
+          style={{
+            boxShadow: DefaultEffects.elevation4,
+          }}
+        >
+          <Spinner
+            className={styles.processingPaymentSpinner}
+            labelPosition="right"
+            label={renderToString("SubscriptionScreen.processing-payment")}
+            size={SpinnerSize.large}
+            styles={{
+              label: {
+                whiteSpace: "pre-line",
+                textAlign: "left",
+                marginLeft: "16px",
+              },
+            }}
+          />
+        </div>
+      </div>
+    );
+  };
+
 const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
-  const { renderToString } = useContext(Context);
   const now = useConst(new Date());
   const thisMonth = useMemo(() => {
     return now.toISOString();
@@ -929,11 +963,7 @@ const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
   }
 
   if (isProcessingSubscription) {
-    return (
-      <ShowLoading
-        label={renderToString("SubscriptionScreen.processing-payment")}
-      />
-    );
+    return <SubscriptionProcessingPaymentScreen />;
   }
 
   const planName = (subscriptionScreenQuery.data?.node as AppFragmentFragment)
