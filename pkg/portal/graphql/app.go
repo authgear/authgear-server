@@ -10,6 +10,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/portal/libstripe"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
@@ -298,6 +299,12 @@ var nodeApp = node(
 
 					stripeError, err := ctx.StripeService.GetLastPaymentError(*customerID)
 					if err != nil {
+						if errors.Is(err, libstripe.ErrNoSubscription) {
+							// customer can have no subscription
+							// e.g. right after the checkout session is created and
+							// before the subscription is created
+							return nil, nil
+						}
 						return nil, err
 					}
 
