@@ -637,6 +637,7 @@ export type User = Entity & Node & {
   __typename?: 'User';
   authenticators?: Maybe<AuthenticatorConnection>;
   authorizations?: Maybe<AuthorizationConnection>;
+  biometricRegistrations: Array<Identity>;
   /** The creation time of entity */
   createdAt: Scalars['DateTime'];
   customAttributes: Scalars['UserCustomAttributes'];
@@ -653,6 +654,16 @@ export type User = Entity & Node & {
   isDisabled: Scalars['Boolean'];
   /** The last login time of user */
   lastLoginAt?: Maybe<Scalars['DateTime']>;
+  loginIDs: Array<Identity>;
+  oauthConnections: Array<Identity>;
+  passkeys: Array<Identity>;
+  primaryOOBOTPEmailAuthenticator?: Maybe<Authenticator>;
+  primaryOOBOTPSMSAuthenticator?: Maybe<Authenticator>;
+  primaryPassword?: Maybe<Authenticator>;
+  secondaryOOBOTPEmailAuthenticators: Array<Authenticator>;
+  secondaryOOBOTPSMSAuthenticators: Array<Authenticator>;
+  secondaryPassword?: Maybe<Authenticator>;
+  secondaryTOTPAuthenticators: Array<Authenticator>;
   sessions?: Maybe<SessionConnection>;
   standardAttributes: Scalars['UserStandardAttributes'];
   /** The update time of entity */
@@ -665,6 +676,8 @@ export type User = Entity & Node & {
 /** Authgear user */
 export type UserAuthenticatorsArgs = {
   after?: InputMaybe<Scalars['String']>;
+  authenticatorKind?: InputMaybe<AuthenticatorKind>;
+  authenticatorType?: InputMaybe<AuthenticatorType>;
   before?: InputMaybe<Scalars['String']>;
   first?: InputMaybe<Scalars['Int']>;
   last?: InputMaybe<Scalars['Int']>;
@@ -685,6 +698,7 @@ export type UserIdentitiesArgs = {
   after?: InputMaybe<Scalars['String']>;
   before?: InputMaybe<Scalars['String']>;
   first?: InputMaybe<Scalars['Int']>;
+  identityType?: InputMaybe<IdentityType>;
   last?: InputMaybe<Scalars['Int']>;
 };
 

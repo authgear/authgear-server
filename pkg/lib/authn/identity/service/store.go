@@ -31,14 +31,20 @@ func (s *Store) Count(userID string) (uint64, error) {
 	return count, nil
 }
 
-func (s *Store) ListRefsByUsers(userIDs []string) ([]*model.IdentityRef, error) {
+func (s *Store) ListRefsByUsers(userIDs []string, identityType *model.IdentityType) ([]*model.IdentityRef, error) {
 	builder := s.SQLBuilder.
 		Select("id", "type", "user_id", "created_at", "updated_at").
-		Where("user_id = ANY (?)", pq.Array(userIDs)).
-		From(s.SQLBuilder.TableName("_auth_identity"))
+		Where("user_id = ANY (?)", pq.Array(userIDs))
+
+	if identityType != nil && *identityType != "" {
+		builder = builder.Where("type = ?", *identityType)
+	}
+
+	builder = builder.From(s.SQLBuilder.TableName("_auth_identity"))
 
 	return s.listRefs(builder)
 }
+
 func (s *Store) ListRefsByIDs(ids []string) ([]*model.IdentityRef, error) {
 	builder := s.SQLBuilder.
 		Select("id", "type", "user_id", "created_at", "updated_at").

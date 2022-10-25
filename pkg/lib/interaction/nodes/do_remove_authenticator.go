@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -43,6 +44,14 @@ func (n *NodeDoRemoveAuthenticator) GetEffects() ([]interaction.Effect, error) {
 
 			switch n.Authenticator.Kind {
 			case authenticator.KindPrimary:
+				if n.Authenticator.Type == model.AuthenticatorTypePasskey {
+					return interaction.NewInvariantViolated(
+						"RemovePasskeyAuthenticator",
+						"cannot delete passkey authenticator, should delete passkey identity instead",
+						nil,
+					)
+				}
+
 				// Ensure all identities have matching primary authenticator.
 				is, err := ctx.Identities.ListByUser(userID)
 				if err != nil {

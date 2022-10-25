@@ -239,8 +239,8 @@ func (s *Service) Count(userID string) (uint64, error) {
 	return s.Store.Count(userID)
 }
 
-func (s *Service) ListRefsByUsers(userIDs []string) ([]*authenticator.Ref, error) {
-	return s.Store.ListRefsByUsers(userIDs)
+func (s *Service) ListRefsByUsers(userIDs []string, authenticatorType *model.AuthenticatorType, authenticatorKind *authenticator.Kind) ([]*authenticator.Ref, error) {
+	return s.Store.ListRefsByUsers(userIDs, authenticatorType, authenticatorKind)
 }
 
 func (s *Service) New(spec *authenticator.Spec) (*authenticator.Info, error) {

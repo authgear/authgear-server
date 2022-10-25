@@ -749,10 +749,13 @@ type UpdateUserPayload {
 """Authgear user"""
 type User implements Entity & Node {
   """"""
-  authenticators(after: String, before: String, first: Int, last: Int): AuthenticatorConnection
+  authenticators(after: String, authenticatorKind: AuthenticatorKind, authenticatorType: AuthenticatorType, before: String, first: Int, last: Int): AuthenticatorConnection
 
   """"""
   authorizations(after: String, before: String, first: Int, last: Int): AuthorizationConnection
+
+  """"""
+  biometricRegistrations: [Identity!]!
 
   """The creation time of entity"""
   createdAt: DateTime!
@@ -776,7 +779,7 @@ type User implements Entity & Node {
   id: ID!
 
   """"""
-  identities(after: String, before: String, first: Int, last: Int): IdentityConnection
+  identities(after: String, before: String, first: Int, identityType: IdentityType, last: Int): IdentityConnection
 
   """"""
   isAnonymous: Boolean!
@@ -789,6 +792,36 @@ type User implements Entity & Node {
 
   """The last login time of user"""
   lastLoginAt: DateTime
+
+  """"""
+  loginIDs: [Identity!]!
+
+  """"""
+  oauthConnections: [Identity!]!
+
+  """"""
+  passkeys: [Identity!]!
+
+  """"""
+  primaryOOBOTPEmailAuthenticator: Authenticator
+
+  """"""
+  primaryOOBOTPSMSAuthenticator: Authenticator
+
+  """"""
+  primaryPassword: Authenticator
+
+  """"""
+  secondaryOOBOTPEmailAuthenticators: [Authenticator!]!
+
+  """"""
+  secondaryOOBOTPSMSAuthenticators: [Authenticator!]!
+
+  """"""
+  secondaryPassword: Authenticator
+
+  """"""
+  secondaryTOTPAuthenticators: [Authenticator!]!
 
   """"""
   sessions(after: String, before: String, first: Int, last: Int): SessionConnection
