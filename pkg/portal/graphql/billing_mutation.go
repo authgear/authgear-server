@@ -485,7 +485,7 @@ var _ = registerMutationField(
 			// Access Control: authenticated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, AccessDenied.New("only authenticated users can delete domain")
+				return nil, AccessDenied.New("only authenticated users can set subscription cancelled status")
 			}
 
 			input := p.Args["input"].(map[string]interface{})
@@ -517,6 +517,102 @@ var _ = registerMutationField(
 			err = ctx.SubscriptionService.SetSubscriptionCancelledStatus(subscription.ID, cancelled, periodEnd)
 			if err != nil {
 				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"app": ctx.Apps.Load(appID),
+			}).Value, nil
+		},
+	},
+)
+
+var cancelFailedSubscriptionInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "cancelFailedSubscriptionInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"appID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target app ID.",
+		},
+	},
+})
+
+var cancelFailedSubscriptionPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "CancelFailedSubscriptionPayload",
+	Fields: graphql.Fields{
+		"app": &graphql.Field{Type: graphql.NewNonNull(nodeApp)},
+	},
+})
+
+var _ = registerMutationField(
+	"cancelFailedSubscription",
+	&graphql.Field{
+		Description: "Cancel failed subscription",
+		Type:        graphql.NewNonNull(cancelFailedSubscriptionPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(cancelFailedSubscriptionInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			// Access Control: authenticated user.
+			sessionInfo := session.GetValidSessionInfo(p.Context)
+			if sessionInfo == nil {
+				return nil, AccessDenied.New("only authenticated users can cancel failed subscription")
+			}
+
+			input := p.Args["input"].(map[string]interface{})
+			appNodeID := input["appID"].(string)
+			resolvedNodeID := relay.FromGlobalID(appNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
+				return nil, apierrors.NewInvalid("invalid app ID")
+			}
+			appID := resolvedNodeID.ID
+			ctx := GQLContext(p.Context)
+
+			// Access Control: collaborator.
+			_, err := ctx.AuthzService.CheckAccessOfViewer(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			customerID, err := ctx.SubscriptionService.GetLastProcessingCustomerID(appID)
+			if err != nil {
+				return nil, err
+			}
+			if customerID == nil {
+				return nil, apierrors.NewInvalid("last completed checkout session not found")
+			}
+
+			subscription, err := ctx.StripeService.GetSubscription(*customerID)
+			if err != nil {
+				return nil, err
+			}
+
+			if subscription == nil ||
+				subscription.LatestInvoice == nil ||
+				subscription.LatestInvoice.PaymentIntent == nil ||
+				subscription.LatestInvoice.PaymentIntent.LastPaymentError == nil {
+				// only allow cancelling failed subscription
+				// normal subscription should be cancelled via setSubscriptionCancelledStatus
+				return nil, apierrors.NewInvalid("subscription not found or the subscription doesn't have payment error")
+			}
+
+			err = ctx.StripeService.CancelSubscriptionImmediately(subscription.ID)
+			if err != nil {
+				ctx.Logger().WithError(err).Error("failed to cancel subscription")
+				return nil, apierrors.NewInternalError("failed to cancel subscription")
+			}
+
+			// After cancelling failed subscription
+			// webhook event `customer.subscription.updated` will be fired
+			// and the subscription will change to `incomplete_expired` status
+			//
+			// although the status will be changed by webhook
+			// we set it to expiry first to avoid ui inconsistent before the webhook come
+			err = ctx.SubscriptionService.MarkCheckoutExpired(appID, *customerID)
+			if err != nil {
+				ctx.Logger().WithError(err).Error("failed to update checkout session status")
+				return nil, apierrors.NewInternalError("failed to update checkout session status")
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{

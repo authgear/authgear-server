@@ -128,6 +128,12 @@ input AppResourceUpdate {
 }
 
 """"""
+type CancelFailedSubscriptionPayload {
+  """"""
+  app: App!
+}
+
+""""""
 type Chart {
   """"""
   dataset: [DataPoint]!
@@ -353,6 +359,9 @@ type GenerateStripeCustomerPortalSessionPayload {
 type Mutation {
   """Accept collaborator invitation to the target app."""
   acceptCollaboratorInvitation(input: AcceptCollaboratorInvitationInput!): AcceptCollaboratorInvitationPayload!
+
+  """Cancel failed subscription"""
+  cancelFailedSubscription(input: cancelFailedSubscriptionInput!): CancelFailedSubscriptionPayload!
 
   """Create new app"""
   createApp(input: CreateAppInput!): CreateAppPayload!
@@ -971,6 +980,12 @@ type VerifyDomainPayload {
 type WebhookSecret {
   """"""
   secret: String
+}
+
+""""""
+input cancelFailedSubscriptionInput {
+  """Target app ID."""
+  appID: ID!
 }
 
 """OAuth client secret item"""

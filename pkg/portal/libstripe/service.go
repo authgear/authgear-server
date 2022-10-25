@@ -637,7 +637,7 @@ func (s *Service) deriveSubscriptionItemsParams(sub *stripe.Subscription, subscr
 	return
 }
 
-func (s *Service) GetLastPaymentError(stripeCustomerID string) (*stripe.Error, error) {
+func (s *Service) GetSubscription(stripeCustomerID string) (*stripe.Subscription, error) {
 	subscriptionListParams := &stripe.SubscriptionListParams{
 		ListParams: stripe.ListParams{
 			Context: s.Context,
@@ -652,23 +652,54 @@ func (s *Service) GetLastPaymentError(stripeCustomerID string) (*stripe.Error, e
 	iter := s.ClientAPI.Subscriptions.List(subscriptionListParams)
 	for iter.Next() {
 		sub := iter.Current().(*stripe.Subscription)
-		invoice := sub.LatestInvoice
-		if invoice == nil {
-			return nil, ErrNoInvoice
-		}
-		paymentIntent := invoice.PaymentIntent
-		if paymentIntent == nil {
-			return nil, ErrNoPaymentIntent
-		}
-
 		// Even the customer has more than 1 subscription,
 		// we only consider the first one here.
-		return paymentIntent.LastPaymentError, nil
+		return sub, nil
 	}
 	if err := iter.Err(); err != nil {
 		return nil, fmt.Errorf("failed to list subscription: %w", err)
 	}
 	return nil, ErrNoSubscription
+}
+
+func (s *Service) GetLastPaymentError(stripeCustomerID string) (*stripe.Error, error) {
+	sub, err := s.GetSubscription(stripeCustomerID)
+	if err != nil {
+		return nil, err
+	}
+
+	invoice := sub.LatestInvoice
+	if invoice == nil {
+		return nil, ErrNoInvoice
+	}
+
+	paymentIntent := invoice.PaymentIntent
+	if paymentIntent == nil {
+		return nil, ErrNoPaymentIntent
+	}
+
+	return paymentIntent.LastPaymentError, nil
+}
+
+// CancelSubscriptionImmediately removes the subscription immediately
+// It should be used only for failed subscriptions
+// To cancel normal subscription, SetSubscriptionCancelAtPeriodEnd should be used
+func (s *Service) CancelSubscriptionImmediately(subscriptionID string) error {
+	// By default, upon subscription cancellation, Stripe will stop automatic
+	// collection of all finalized invoices for the customer. This is intended to
+	// prevent unexpected payment attempts after the customer has canceled a subscription.
+	//
+	// https://stripe.com/docs/api/subscriptions/cancel
+	params := &stripe.SubscriptionCancelParams{
+		Params: stripe.Params{
+			Context: s.Context,
+		},
+	}
+	_, err := s.ClientAPI.Subscriptions.Cancel(subscriptionID, params)
+	if err != nil {
+		return fmt.Errorf("failed to cancel subscription: %w", err)
+	}
+	return nil
 }
 
 func stripeSubscriptionToPrices(subscription *stripe.Subscription) ([]*model.Price, error) {
