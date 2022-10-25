@@ -833,3 +833,10 @@ export interface TutorialStatusData {
     invite?: boolean;
   };
 }
+
+// https://stripe.com/docs/error-codes
+export type StripeErrorCode = "card_declined";
+
+export interface StripeError {
+  code?: StripeErrorCode;
+}

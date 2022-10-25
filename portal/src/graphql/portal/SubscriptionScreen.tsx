@@ -64,6 +64,7 @@ import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import LinkButton from "../../LinkButton";
+import { StripeError } from "../../types";
 
 const ALL_KNOWN_PLANS = ["free", "developers", "startups", "business"];
 const PAID_PLANS = ALL_KNOWN_PLANS.slice(1);
@@ -864,9 +865,29 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   );
 }
 
-const SubscriptionProcessingPaymentScreen: React.VFC =
-  function SubscriptionProcessingPayment() {
+interface SubscriptionProcessingPaymentScreenProps {
+  stripeError?: StripeError;
+}
+
+const SubscriptionProcessingPaymentScreen: React.VFC<SubscriptionProcessingPaymentScreenProps> =
+  function SubscriptionProcessingPaymentScreen(
+    props: SubscriptionProcessingPaymentScreenProps
+  ) {
+    const { stripeError } = props;
     const { renderToString } = useContext(Context);
+    const { appID } = useParams() as { appID: string };
+
+    const paymentStatus = useMemo(() => {
+      if (stripeError == null) {
+        return "IsProcessing";
+      }
+      if (stripeError.code === "card_declined") {
+        return "CardDeclined";
+      }
+      return "UnknownError";
+    }, [stripeError]);
+
+    const onClickCancelFailedSubscription = useCallback(() => {}, [appID]);
 
     return (
       <div className={styles.root}>
@@ -879,19 +900,43 @@ const SubscriptionProcessingPaymentScreen: React.VFC =
             boxShadow: DefaultEffects.elevation4,
           }}
         >
-          <Spinner
-            className={styles.processingPaymentSpinner}
-            labelPosition="right"
-            label={renderToString("SubscriptionScreen.processing-payment")}
-            size={SpinnerSize.large}
-            styles={{
-              label: {
-                whiteSpace: "pre-line",
-                textAlign: "left",
-                marginLeft: "16px",
-              },
-            }}
-          />
+          {paymentStatus === "IsProcessing" ? (
+            <Spinner
+              className={styles.processingPaymentSpinner}
+              labelPosition="right"
+              label={renderToString("SubscriptionScreen.processing-payment")}
+              size={SpinnerSize.large}
+              styles={{
+                label: {
+                  whiteSpace: "pre-line",
+                  textAlign: "left",
+                  marginLeft: "16px",
+                },
+              }}
+            />
+          ) : null}
+          {paymentStatus === "CardDeclined" ? (
+            <>
+              <Text className={styles.processingPaymentErrorMessage}>
+                <FormattedMessage id="SubscriptionScreen.payment-declined.description" />
+              </Text>
+              <div className={styles.processingPaymentButtonContainer}>
+                <PrimaryButton
+                  onClick={onClickCancelFailedSubscription}
+                  text={
+                    <FormattedMessage id="SubscriptionScreen.cancel-transaction.label" />
+                  }
+                />
+              </div>
+            </>
+          ) : null}
+          {paymentStatus === "UnknownError" ? (
+            <>
+              <Text className={styles.processingPaymentErrorMessage}>
+                <FormattedMessage id="SubscriptionScreen.unknown-error.description" />
+              </Text>
+            </>
+          ) : null}
         </div>
       </div>
     );
@@ -925,6 +970,13 @@ const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
     !!subscriptionScreenQuery.data &&
     (subscriptionScreenQuery.data.node as AppFragmentFragment)
       .isProcessingSubscription;
+
+  const lastStripeError = useMemo(() => {
+    return (
+      !!subscriptionScreenQuery.data &&
+      (subscriptionScreenQuery.data.node as AppFragmentFragment).lastStripeError
+    );
+  }, [subscriptionScreenQuery]);
 
   // if isProcessingSubscription is true
   // refetch in every few seconds and wait until it changes to false
@@ -963,7 +1015,9 @@ const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
   }
 
   if (isProcessingSubscription) {
-    return <SubscriptionProcessingPaymentScreen />;
+    return (
+      <SubscriptionProcessingPaymentScreen stripeError={lastStripeError} />
+    );
   }
 
   const planName = (subscriptionScreenQuery.data?.node as AppFragmentFragment)
