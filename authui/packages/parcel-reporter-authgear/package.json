@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "dependencies": {
     "@parcel/plugin": "2.7.0",
-    "node-html-parser": "5.4.2"
+    "node-html-parser": "6.1.1"
   },
   "files": [
     "src/*.js"
