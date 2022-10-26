@@ -1,3 +1,4 @@
+/* global stripe */
 import React, {
   useState,
   useCallback,
@@ -64,7 +65,6 @@ import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import LinkButton from "../../LinkButton";
-import { StripeError } from "../../types";
 import { useCancelFailedSubscriptionMutation } from "./mutations/cancelFailedSubscriptionMutation";
 
 const ALL_KNOWN_PLANS = ["free", "developers", "startups", "business"];
@@ -867,7 +867,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
 }
 
 interface SubscriptionProcessingPaymentScreenProps {
-  stripeError?: StripeError;
+  stripeError?: stripe.Error;
 }
 
 const SubscriptionProcessingPaymentScreen: React.VFC<SubscriptionProcessingPaymentScreenProps> =
@@ -889,6 +889,7 @@ const SubscriptionProcessingPaymentScreen: React.VFC<SubscriptionProcessingPayme
       if (stripeError == null) {
         return "IsProcessing";
       }
+      // https://stripe.com/docs/error-codes
       if (stripeError.code === "card_declined") {
         return "CardDeclined";
       }
