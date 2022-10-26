@@ -307,6 +307,8 @@ As the first project `accounts` is created by the script instead of by user, we 
 
 cert-manager@v1.7.3 has transitive dependency problem.
 
+siwe has to be 1.1.6. siwe@2.x has runtime error on page load. siwe@1.1.6 requires ethers@5.5.1.
+
 ### Portal
 
 As `useBlocker` is removed since react-router-domv6.0.0-beta.7 and have no promise which version will
