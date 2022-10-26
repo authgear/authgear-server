@@ -1,3 +1,5 @@
+import { AxiosProgressEvent } from "axios";
+//
 // disableAllButtons remembers the disabled state of all buttons.
 // It disables all button and returns a function to revert to original state.
 export function disableAllButtons(): () => void {
@@ -35,13 +37,13 @@ export function showProgressBar(): void {
   loadingProgressBar.style.opacity = "1";
 }
 
-export function progressEventHandler(progressEvent: ProgressEvent): void {
+export function progressEventHandler(progressEvent: AxiosProgressEvent): void {
   const loadingProgressBar = document.getElementById("loading-progress-bar");
   if (loadingProgressBar == null) {
     return;
   }
 
-  if (!progressEvent.lengthComputable) {
+  if (progressEvent.total == null) {
     return;
   }
 
