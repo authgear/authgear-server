@@ -305,6 +305,8 @@ As the first project `accounts` is created by the script instead of by user, we 
 
 ## Known issues
 
+cert-manager@v1.7.3 has transitive dependency problem.
+
 ### Portal
 
 As `useBlocker` is removed since react-router-domv6.0.0-beta.7 and have no promise which version will
