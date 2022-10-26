@@ -665,6 +665,12 @@ func (s *Service) GetSubscription(stripeCustomerID string) (*stripe.Subscription
 func (s *Service) GetLastPaymentError(stripeCustomerID string) (*stripe.Error, error) {
 	sub, err := s.GetSubscription(stripeCustomerID)
 	if err != nil {
+		if errors.Is(err, ErrNoSubscription) {
+			// customer can have no subscription
+			// e.g. right after the checkout session is created and
+			// before the subscription is created
+			return nil, nil
+		}
 		return nil, err
 	}
 
