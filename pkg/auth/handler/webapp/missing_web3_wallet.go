@@ -18,7 +18,7 @@ var TemplateWebMissingWeb3WalletHTML = template.RegisterHTML(
 func ConfigureMissingWeb3WalletRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET").
-		WithPathPattern("/missing_web3_wallet")
+		WithPathPattern("/errors/missing_web3_wallet")
 }
 
 type MissingWeb3WalletViewModel struct {

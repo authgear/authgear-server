@@ -10,7 +10,7 @@ import (
 func ConfigureErrorRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET").
-		WithPathPattern("/error")
+		WithPathPattern("/errors/error")
 }
 
 type ErrorHandler struct {

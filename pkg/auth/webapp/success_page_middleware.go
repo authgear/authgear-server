@@ -42,7 +42,7 @@ func (m *SuccessPageMiddleware) Handle(next http.Handler) http.Handler {
 				panic(err)
 			}
 			httputil.UpdateCookie(w, errorCookie)
-			http.Redirect(w, r, "/error", http.StatusFound)
+			http.Redirect(w, r, "/errors/error", http.StatusFound)
 		} else {
 			next.ServeHTTP(w, r)
 		}

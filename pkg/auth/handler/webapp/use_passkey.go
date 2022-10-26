@@ -18,7 +18,7 @@ var TemplateWebUsePasskeyHTML = template.RegisterHTML(
 func ConfigureUsePasskeyRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/use_passkey")
+		WithPathPattern("/flows/use_passkey")
 }
 
 type UsePasskeyHandler struct {

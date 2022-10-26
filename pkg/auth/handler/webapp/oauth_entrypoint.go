@@ -9,11 +9,11 @@ import (
 func ConfigureOAuthEntrypointRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET").
-		WithPathPattern("/_oauth_entrypoint")
+		WithPathPattern("/_internals/oauth_entrypoint")
 }
 
 type OAuthEntrypointHandler struct{}
 
 func (h *OAuthEntrypointHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/select_account", http.StatusFound)
+	http.Redirect(w, r, "/flows/select_account", http.StatusFound)
 }

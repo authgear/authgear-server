@@ -42,7 +42,7 @@ var SetupOOBOTPSMSSchema = validation.NewSimpleSchema(`
 func ConfigureSetupOOBOTPRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/setup_oob_otp_:channel")
+		WithPathPattern("/flows/setup_oob_otp_:channel")
 }
 
 type SetupOOBOTPNode interface {

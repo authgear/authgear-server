@@ -17,7 +17,7 @@ var TemplateWebForgotPasswordSuccessHTML = template.RegisterHTML(
 func ConfigureForgotPasswordSuccessRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET").
-		WithPathPattern("/forgot_password/success")
+		WithPathPattern("/flows/forgot_password/success")
 }
 
 type ForgotPasswordSuccessViewModel struct {

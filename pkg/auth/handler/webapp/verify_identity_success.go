@@ -16,7 +16,7 @@ var TemplateWebVerifyIdentitySuccessHTML = template.RegisterHTML(
 func ConfigureVerifyIdentitySuccessRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET").
-		WithPathPattern("/verify_identity/success")
+		WithPathPattern("/flows/verify_identity/success")
 }
 
 type VerifyIdentitySuccessHandler struct {

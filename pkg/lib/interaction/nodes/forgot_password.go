@@ -78,7 +78,7 @@ func (e *EdgeForgotPasswordSelectLoginID) Instantiate(ctx *interaction.Context, 
 		return nil, err
 	}
 
-	successPageCookie := ctx.CookieManager.ValueCookie(successpage.PathCookieDef, "/forgot_password/success")
+	successPageCookie := ctx.CookieManager.ValueCookie(successpage.PathCookieDef, "/flows/forgot_password/success")
 	return &NodeForgotPasswordEnd{
 		LoginID:           loginID,
 		SuccessPageCookie: successPageCookie,

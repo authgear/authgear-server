@@ -34,7 +34,7 @@ var CreatePasswordSchema = validation.NewSimpleSchema(`
 func ConfigureCreatePasswordRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/create_password")
+		WithPathPattern("/flows/create_password")
 }
 
 type CreatePasswordViewModel struct {

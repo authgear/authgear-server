@@ -19,7 +19,7 @@ var TemplateWebAccountStatusHTML = template.RegisterHTML(
 func ConfigureAccountStatusRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET").
-		WithPathPattern("/account_status")
+		WithPathPattern("/flows/account_status")
 }
 
 type AccountStatusHandler struct {

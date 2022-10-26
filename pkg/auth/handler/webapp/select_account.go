@@ -27,7 +27,7 @@ var TemplateWebSelectAccountHTML = template.RegisterHTML(
 func ConfigureSelectAccountRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/select_account")
+		WithPathPattern("/flows/select_account")
 }
 
 type SelectAccountUserService interface {

@@ -196,7 +196,7 @@ export class WalletConfirmationController extends Controller {
     getProvider(this.providerValue)
       .then((provider) => {
         if (!provider) {
-          visit(`/missing_web3_wallet?provider=${this.providerValue}`);
+          visit(`/errors/missing_web3_wallet?provider=${this.providerValue}`);
           return;
         }
         this.provider = provider;
@@ -241,7 +241,7 @@ export class WalletConfirmationController extends Controller {
     await this._getAccount();
 
     try {
-      const nonceResp = await axios("/siwe/nonce", {
+      const nonceResp = await axios("/_internals/siwe/nonce", {
         method: "get",
       });
 

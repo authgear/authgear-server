@@ -38,7 +38,7 @@ var VerifyIdentitySchema = validation.NewSimpleSchema(`
 func ConfigureVerifyIdentityRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/verify_identity")
+		WithPathPattern("/flows/verify_identity")
 }
 
 const (

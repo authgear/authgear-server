@@ -49,48 +49,48 @@ func NewSessionStep(kind SessionStepKind, graphID string) SessionStep {
 func (k SessionStepKind) Path() string {
 	switch k {
 	case SessionStepPromoteUser:
-		return "/promote_user"
+		return "/flows/promote_user"
 	case SessionStepEnterPassword:
-		return "/enter_password"
+		return "/flows/enter_password"
 	case SessionStepUsePasskey:
-		return "/use_passkey"
+		return "/flows/use_passkey"
 	case SessionStepCreatePassword:
-		return "/create_password"
+		return "/flows/create_password"
 	case SessionStepCreatePasskey:
-		return "/create_passkey"
+		return "/flows/create_passkey"
 	case SessionStepPromptCreatePasskey:
-		return "/prompt_create_passkey"
+		return "/flows/prompt_create_passkey"
 	case SessionStepChangePrimaryPassword:
-		return "/change_password"
+		return "/flows/change_password"
 	case SessionStepChangeSecondaryPassword:
-		return "/change_secondary_password"
+		return "/flows/change_secondary_password"
 	case SessionStepEnterOOBOTPAuthnEmail,
 		SessionStepEnterOOBOTPAuthnSMS,
 		SessionStepEnterOOBOTPSetupEmail,
 		SessionStepEnterOOBOTPSetupSMS:
-		return "/enter_oob_otp"
+		return "/flows/enter_oob_otp"
 	case SessionStepSetupOOBOTPEmail:
-		return "/setup_oob_otp_email"
+		return "/flows/setup_oob_otp_email"
 	case SessionStepSetupOOBOTPSMS:
-		return "/setup_oob_otp_sms"
+		return "/flows/setup_oob_otp_sms"
 	case SessionStepSetupWhatsappOTP:
-		return "/setup_whatsapp_otp"
+		return "/flows/setup_whatsapp_otp"
 	case SessionStepVerifyWhatsappOTPSetup,
 		SessionStepVerifyWhatsappOTPAuthn,
 		SessionStepVerifyIdentityViaWhatsapp:
-		return "/whatsapp_otp"
+		return "/flows/whatsapp_otp"
 	case SessionStepEnterTOTP:
-		return "/enter_totp"
+		return "/flows/enter_totp"
 	case SessionStepSetupTOTP:
-		return "/setup_totp"
+		return "/flows/setup_totp"
 	case SessionStepEnterRecoveryCode:
-		return "/enter_recovery_code"
+		return "/flows/enter_recovery_code"
 	case SessionStepSetupRecoveryCode:
 		return "/setup_recovery_code"
 	case SessionStepVerifyIdentityViaOOBOTP:
-		return "/verify_identity"
+		return "/flows/verify_identity"
 	case SessionStepAccountStatus:
-		return "/account_status"
+		return "/flows/account_status"
 	case SessionStepOAuthRedirect,
 		SessionStepAuthenticate,
 		SessionStepCreateAuthenticator,
@@ -112,14 +112,14 @@ func (k SessionStepKind) MatchPath(path string) bool {
 			strings.HasPrefix(path, "/sso/oauth2/callback/")
 	case SessionStepAuthenticate:
 		switch path {
-		case "/enter_totp", "/enter_password", "/enter_oob_otp", "/enter_recovery_code":
+		case "/flows/enter_totp", "/flows/enter_password", "/flows/enter_oob_otp", "/flows/enter_recovery_code":
 			return true
 		default:
 			return false
 		}
 	case SessionStepCreateAuthenticator:
 		switch path {
-		case "/setup_totp", "/setup_oob_otp", "/create_password", "/setup_whatsapp_otp":
+		case "/flows/setup_totp", "/flows/setup_oob_otp_email", "/flows/setup_oob_otp_sms", "/flows/create_password", "/flows/setup_whatsapp_otp":
 			return true
 		default:
 			return false

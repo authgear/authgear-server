@@ -33,7 +33,7 @@ var Web3AccountConfirmationSchema = validation.NewSimpleSchema(`
 func ConfigureConnectWeb3AccountRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/confirm_web3_account")
+		WithPathPattern("/flows/confirm_web3_account")
 }
 
 type ConnectWeb3AccountViewModel struct {

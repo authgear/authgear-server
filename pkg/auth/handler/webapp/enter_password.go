@@ -30,7 +30,7 @@ var EnterPasswordSchema = validation.NewSimpleSchema(`
 func ConfigureEnterPasswordRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/enter_password")
+		WithPathPattern("/flows/enter_password")
 }
 
 type EnterPasswordViewModel struct {

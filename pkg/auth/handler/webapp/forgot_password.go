@@ -31,7 +31,7 @@ var ForgotPasswordSchema = validation.NewSimpleSchema(`
 func ConfigureForgotPasswordRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/forgot_password")
+		WithPathPattern("/flows/forgot_password")
 }
 
 type ForgotPasswordHandler struct {

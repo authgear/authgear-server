@@ -28,7 +28,8 @@ var ForceChangeSecondaryPasswordSchema = validation.NewSimpleSchema(`
 `)
 
 func ConfigureForceChangeSecondaryPasswordRoute(route httproute.Route) httproute.Route {
-	return route.WithMethods("OPTIONS", "POST", "GET").WithPathPattern("/change_secondary_password")
+	return route.WithMethods("OPTIONS", "POST", "GET").
+		WithPathPattern("/flows/change_secondary_password")
 }
 
 type ForceChangeSecondaryPasswordHandler struct {

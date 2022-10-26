@@ -33,7 +33,7 @@ var PromoteWithLoginIDSchema = validation.NewSimpleSchema(`
 func ConfigurePromoteRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/promote_user")
+		WithPathPattern("/flows/promote_user")
 }
 
 type PromoteHandler struct {

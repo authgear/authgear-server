@@ -40,7 +40,7 @@ var SetupTOTPSchema = validation.NewSimpleSchema(`
 func ConfigureSetupTOTPRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/setup_totp")
+		WithPathPattern("/flows/setup_totp")
 }
 
 type SetupTOTPViewModel struct {

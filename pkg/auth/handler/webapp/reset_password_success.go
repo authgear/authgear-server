@@ -16,7 +16,7 @@ var TemplateWebResetPasswordSuccessHTML = template.RegisterHTML(
 func ConfigureResetPasswordSuccessRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET").
-		WithPathPattern("/reset_password/success")
+		WithPathPattern("/flows/reset_password/success")
 }
 
 type ResetPasswordSuccessHandler struct {
