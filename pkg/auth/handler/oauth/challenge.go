@@ -64,19 +64,20 @@ type JSONResponseWriter interface {
 }
 
 /*
-	@Operation POST /challenge - Obtain new challenge
-		Obtain a new challenge for challenge-based OAuth authentication.
-		Challenges can be used once only.
+@Operation POST /challenge - Obtain new challenge
 
-		@Tag User
+	Obtain a new challenge for challenge-based OAuth authentication.
+	Challenges can be used once only.
 
-		@RequestBody
-			Describe purpose of the challenge.
-			@JSONSchema {OAuthChallengeRequest}
+	@Tag User
 
-		@Response 200
-			Created challenge information.
-			@JSONSchema {OAuthChallengeResponse}
+	@RequestBody
+		Describe purpose of the challenge.
+		@JSONSchema {OAuthChallengeRequest}
+
+	@Response 200
+		Created challenge information.
+		@JSONSchema {OAuthChallengeResponse}
 */
 type ChallengeHandler struct {
 	Database   *appdb.Handle

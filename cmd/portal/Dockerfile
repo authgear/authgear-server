@@ -1,5 +1,5 @@
 # Stage 1: Build the Go binary
-FROM golang:1.18.2-bullseye as stage1
+FROM golang:1.19.2-bullseye as stage1
 
 # Install build time C dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
