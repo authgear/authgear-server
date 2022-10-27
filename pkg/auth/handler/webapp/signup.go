@@ -43,6 +43,20 @@ type MeterService interface {
 	TrackPageView(VisitorID string, pageType meter.PageType) error
 }
 
+type SignupViewModel struct {
+	LoginIDInputType string
+	LoginIDKey       string
+}
+
+func NewSignupViewModel(r *http.Request) SignupViewModel {
+	loginIDInputType := r.Form.Get("x_login_id_input_type")
+	loginIDKey := r.Form.Get("x_login_id_key")
+	return SignupViewModel{
+		LoginIDInputType: loginIDInputType,
+		LoginIDKey:       loginIDKey,
+	}
+}
+
 type SignupHandler struct {
 	ControllerFactory       ControllerFactory
 	BaseViewModel           *viewmodels.BaseViewModeler
@@ -56,13 +70,13 @@ type SignupHandler struct {
 func (h *SignupHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	viewmodels.EmbedForm(data, r.Form)
 	if h.TutorialCookie.Pop(r, rw, httputil.SignupLoginTutorialCookieName) {
 		baseViewModel.SetTutorial(httputil.SignupLoginTutorialCookieName)
 	}
 	viewmodels.Embed(data, baseViewModel)
 	authenticationViewModel := h.AuthenticationViewModel.NewWithGraph(graph, r.Form)
 	viewmodels.Embed(data, authenticationViewModel)
+	viewmodels.Embed(data, NewSignupViewModel(r))
 	return data, nil
 }
 
