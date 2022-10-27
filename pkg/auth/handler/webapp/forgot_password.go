@@ -34,6 +34,20 @@ func ConfigureForgotPasswordRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/flows/forgot_password")
 }
 
+type ForgotPasswordViewModel struct {
+	LoginIDInputType string
+	LoginID          string
+}
+
+func NewForgotPasswordViewModel(r *http.Request) ForgotPasswordViewModel {
+	loginIDInputType := r.Form.Get("x_login_id_input_type")
+	loginID := r.Form.Get("x_login_id")
+	return ForgotPasswordViewModel{
+		LoginIDInputType: loginIDInputType,
+		LoginID:          loginID,
+	}
+}
+
 type ForgotPasswordHandler struct {
 	ControllerFactory       ControllerFactory
 	BaseViewModel           *viewmodels.BaseViewModeler
@@ -46,7 +60,7 @@ func (h *ForgotPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter,
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	authenticationViewModel := h.AuthenticationViewModel.NewWithGraph(graph, r.Form)
-	viewmodels.EmbedForm(data, r.Form)
+	viewmodels.Embed(data, NewForgotPasswordViewModel(r))
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, authenticationViewModel)
 	return data, nil
