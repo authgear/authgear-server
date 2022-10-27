@@ -36,6 +36,17 @@ func ConfigurePromoteRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/flows/promote_user")
 }
 
+type PromoteViewModel struct {
+	LoginIDKey string
+}
+
+func NewPromoteViewModel(r *http.Request) PromoteViewModel {
+	loginIDKey := r.Form.Get("x_login_id_key")
+	return PromoteViewModel{
+		LoginIDKey: loginIDKey,
+	}
+}
+
 type PromoteHandler struct {
 	ControllerFactory       ControllerFactory
 	BaseViewModel           *viewmodels.BaseViewModeler
@@ -47,10 +58,10 @@ type PromoteHandler struct {
 func (h *PromoteHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
 	authenticationViewModel := h.AuthenticationViewModel.NewWithGraph(graph, r.Form)
 	viewmodels.Embed(data, authenticationViewModel)
+	viewmodels.Embed(data, NewPromoteViewModel(r))
 	return data, nil
 }
 
