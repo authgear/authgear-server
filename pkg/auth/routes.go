@@ -274,5 +274,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	router.Add(webapphandler.ConfigureGeneratedStaticAssetsRoute(generatedStaticRoute), p.RootHandler(newWebAppGeneratedStaticAssetsHandler))
 
+	router.NotFound(webappPageRoute, p.Handler(newWebAppNotFoundHandler))
+
 	return router
 }

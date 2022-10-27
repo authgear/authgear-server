@@ -85,6 +85,8 @@
   "error-metamask-unsupported-method": "The requested method is not supported.",
   "error-metamask-disconnected": "The provider is disconnected from the specified chain.",
   "error-failed-to-connect-wallet": "Failed to connect to wallet.",
+  "error-page-not-found": "The page cannot be found",
+  "error-page-not-found-action": "Return to Home",
 
   "success-resend-code": "Resent code successfully!",
 

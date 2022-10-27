@@ -497,6 +497,13 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.NotFoundHandler)),
+	))
+}
+
 func newWebAppWebsocketHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
