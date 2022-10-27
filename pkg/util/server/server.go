@@ -32,8 +32,9 @@ func Start(logger *log.Logger, specs []Spec) {
 		spec := spec
 
 		httpServer := &http.Server{
-			Addr:    spec.ListenAddress,
-			Handler: spec.Handler,
+			Addr:              spec.ListenAddress,
+			Handler:           spec.Handler,
+			ReadHeaderTimeout: 5 * time.Second,
 		}
 
 		go func() {
