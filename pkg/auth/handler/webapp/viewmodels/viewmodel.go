@@ -1,7 +1,6 @@
 package viewmodels
 
 import (
-	"net/url"
 	"reflect"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -28,8 +27,10 @@ func Embed(data map[string]interface{}, s interface{}) {
 	template.Embed(data, s)
 }
 
-func EmbedForm(data map[string]interface{}, form url.Values) {
-	for name := range form {
-		data[name] = form.Get(name)
-	}
-}
+// We used to have EmbedForm to embed arbitrary query in the view model.
+// But we later switched to explicit view model.
+// func EmbedForm(data map[string]interface{}, form url.Values) {
+// 	for name := range form {
+// 		data[name] = form.Get(name)
+// 	}
+// }
