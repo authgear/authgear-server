@@ -1,6 +1,9 @@
 package log
 
 import (
+	"io/ioutil"
+	"os"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -16,6 +19,8 @@ type Factory struct {
 func NewFactory(level Level, hooks ...logrus.Hook) *Factory {
 	logger := logrus.New()
 	logger.Level = level.Logrus()
+	logger.Out = ioutil.Discard
+	logger.Hooks.Add(NewWriterHook(os.Stderr))
 
 	for _, hook := range hooks {
 		logger.Hooks.Add(hook)

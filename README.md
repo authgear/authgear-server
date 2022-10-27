@@ -87,15 +87,7 @@ To avoid doing the above every time you open a new shell, you may want to add it
    To generate the necessary config and secret yaml file, run
 
    ```sh
-   go run ./cmd/authgear init authgear.yaml --output ./var/authgear.yaml
-   go run ./cmd/authgear init authgear.secrets.yaml --output ./var/authgear.secrets.yaml
-   ```
-
-   then follow the instructions. For database URL and schema, use the following,
-
-   ```
-   DATABASE_URL=postgres://postgres@127.0.0.1:5432/postgres?sslmode=disable
-   DATABASE_SCHEMA=app
+   go run ./cmd/authgear init -o ./var
    ```
 
 3. Setup `.localhost` domain
@@ -125,22 +117,15 @@ To avoid doing the above every time you open a new shell, you may want to add it
    docker-compose up -d db
    ```
 
-2. Create a schema:
-
-   Run the following SQL command with command line to such as `psql` or DB viewer such as `Postico`
-
-   ```sql
-   CREATE SCHEMA app;
-   ```
-
-3. Apply database schema migrations:
+2. Apply database schema migrations:
 
    make sure the db container is running
 
    ```sh
    go run ./cmd/authgear database migrate up
-   go run ./cmd/portal database migrate up
+   go run ./cmd/authgear audit database migrate up
    go run ./cmd/authgear images database migrate up
+   go run ./cmd/portal database migrate up
    ```
 
 To create new migration:
