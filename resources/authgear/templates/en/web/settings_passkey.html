@@ -22,7 +22,7 @@
         {{ template "settings-passkey-item-description" (dict "name" .Passkey.CreationOptions.PublicKey.User.DisplayName "time" .CreatedAt "rfc3339" (rfc3339 .CreatedAt)) }}
       </p>
       {{ $.CSRFField }}
-      <input type="hidden" name="x_identity_id" value="{{ .ID }}">
+      <input type="hidden" name="q_identity_id" value="{{ .ID }}">
       <button
         class="w-6 col-start-2 col-span-1 row-start-1 row-span-2 flex flex-col items-end justify-center btn destructive-secondary-btn"
         type="submit"

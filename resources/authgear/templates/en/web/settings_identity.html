@@ -113,7 +113,7 @@
       {{ if not $verification_verified }}
       <form class="" method="post" novalidate>
       {{ $.CSRFField }}
-      <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
+      <input type="hidden" name="q_identity_id" value="{{ .identity_id }}">
       <button
         class="btn action-btn text-xs"
         type="submit"
@@ -133,7 +133,7 @@
     <form class="w-8 flex flex-col" method="post" data-turbo="false" novalidate>
       {{ $.CSRFField }}
       <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
-      <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
+      <input type="hidden" name="q_identity_id" value="{{ .identity_id }}">
       {{ if not .modify_disabled }}
         {{ if .identity_id }}
           {{ if gt $.IdentityCount 1 }}
@@ -166,7 +166,7 @@
     {{/* Action */}}
     {{ if eq .type "login_id" }}
     {{ if not .modify_disabled }}{{ if .identity_id }}
-    <a class="link w-8 flex flex-col items-end justify-center" href="{{ call $.MakeURL "/settings/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type "x_identity_id" .identity_id }}">
+    <a class="link w-8 flex flex-col items-end justify-center" href="{{ call $.MakeURL "/settings/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type "q_identity_id" .identity_id }}">
       <i class="ti ti-edit"></i>
     </a>
     {{ else }}

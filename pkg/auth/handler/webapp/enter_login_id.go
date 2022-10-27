@@ -37,7 +37,7 @@ func NewEnterLoginIDViewModel(r *http.Request, displayID string) EnterLoginIDVie
 	loginIDKey := r.Form.Get("q_login_id_key")
 	loginIDType := r.Form.Get("q_login_id_type")
 	loginIDInputType := r.Form.Get("q_login_id_input_type")
-	identityID := r.Form.Get("x_identity_id")
+	identityID := r.Form.Get("q_identity_id")
 
 	return EnterLoginIDViewModel{
 		LoginIDKey:       loginIDKey,
@@ -52,9 +52,9 @@ var RemoveLoginIDSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_identity_id": { "type": "string" }
+			"q_identity_id": { "type": "string" }
 		},
-		"required": ["x_identity_id"]
+		"required": ["q_identity_id"]
 	}
 `)
 
@@ -87,7 +87,7 @@ type EnterLoginIDHandler struct {
 
 func (h *EnterLoginIDHandler) GetData(userID string, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
-	identityID := r.Form.Get("x_identity_id")
+	identityID := r.Form.Get("q_identity_id")
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	var enterLoginIDViewModel EnterLoginIDViewModel
@@ -139,7 +139,7 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		opts := webapp.SessionOptions{
 			RedirectURI: "/settings",
 		}
-		identityID := r.Form.Get("x_identity_id")
+		identityID := r.Form.Get("q_identity_id")
 		intent := intents.NewIntentRemoveIdentity(userID)
 
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
@@ -167,7 +167,7 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		}
 		loginIDKey := r.Form.Get("q_login_id_key")
 		loginIDType := r.Form.Get("q_login_id_type")
-		identityID := r.Form.Get("x_identity_id")
+		identityID := r.Form.Get("q_identity_id")
 		newLoginID := r.Form.Get("x_login_id")
 		var intent interaction.Intent
 		if identityID != "" {
