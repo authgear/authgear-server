@@ -27,8 +27,8 @@
 	<div class="pane flex flex-col">
 		{{ if not $.PublicSignupDisabled }}{{ if (or $has_login_id $has_siwe) }}
 		<div class="flex flex-row">
-			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt" href="{{ call $.MakeURL "/login" "x_login_id_input_type" $.LoginIDInputType }}" data-turbo-action="replace">{{ template "login-label" }}</a>
-			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt current" href="{{ call $.MakeURL "/signup" "x_login_id_input_type" $.LoginIDInputType }}" data-turbo-action="replace">{{ template "signup-label" }}</a>
+			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt" href="{{ call $.MakeURL "/login" "q_login_id_input_type" $.LoginIDInputType }}" data-turbo-action="replace">{{ template "login-label" }}</a>
+			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt current" href="{{ call $.MakeURL "/signup" "q_login_id_input_type" $.LoginIDInputType }}" data-turbo-action="replace">{{ template "signup-label" }}</a>
 		</div>
 		{{ end }}{{ end }}
 
@@ -98,7 +98,7 @@
 				{{ range .IdentityCandidates }}
 				{{ if eq .type "login_id" }}{{ if not (eq .login_id_key $.LoginIDKey) }}
 					<a class="link text-sm self-start block" data-turbo-action="replace"
-						href="{{ call $.MakeURL "" "x_login_id_key" .login_id_key "x_login_id_input_type" .login_id_input_type}}">
+						href="{{ call $.MakeURL "" "x_login_id_key" .login_id_key "q_login_id_input_type" .login_id_input_type}}">
 						{{ template "use-login-id-key" (dict "key" .login_id_key) }}
 					</a>
 				{{ end }}{{ end }}

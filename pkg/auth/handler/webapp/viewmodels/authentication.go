@@ -30,11 +30,11 @@ type AuthenticationViewModel struct {
 	// It is "email", "username" or "email_or_username".
 	NonPhoneLoginIDType string
 
-	// x_login_id_input_type is the input the end-user has chosen.
+	// q_login_id_input_type is the input the end-user has chosen.
 	// It is "email", "phone" or "text".
 
 	// LoginIDContextualType is the type the end-user thinks they should enter.
-	// It depends on x_login_id_input_type.
+	// It depends on q_login_id_input_type.
 	// It is "email", "phone", "username", or "email_or_username".
 	LoginIDContextualType string
 }
@@ -108,10 +108,10 @@ func (m *AuthenticationViewModeler) NewWithCandidates(candidates []identity.Cand
 		}
 	}
 
-	// Then we determine x_login_id_input_type.
+	// Then we determine q_login_id_input_type.
 	xLoginIDInputType := "text"
-	if _, ok := form["x_login_id_input_type"]; ok {
-		xLoginIDInputType = form.Get("x_login_id_input_type")
+	if _, ok := form["q_login_id_input_type"]; ok {
+		xLoginIDInputType = form.Get("q_login_id_input_type")
 	} else {
 		if len(m.LoginID.Keys) > 0 {
 			if m.LoginID.Keys[0].Type == model.LoginIDKeyTypePhone {

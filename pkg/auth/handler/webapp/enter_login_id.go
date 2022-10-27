@@ -36,7 +36,7 @@ type EnterLoginIDService interface {
 func NewEnterLoginIDViewModel(r *http.Request, displayID string) EnterLoginIDViewModel {
 	loginIDKey := r.Form.Get("x_login_id_key")
 	loginIDType := r.Form.Get("x_login_id_type")
-	loginIDInputType := r.Form.Get("x_login_id_input_type")
+	loginIDInputType := r.Form.Get("q_login_id_input_type")
 	identityID := r.Form.Get("x_identity_id")
 
 	return EnterLoginIDViewModel{
@@ -62,12 +62,12 @@ var AddOrUpdateLoginIDSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_login_id_input_type": { "type": "string" },
+			"q_login_id_input_type": { "type": "string" },
 			"x_login_id_key": { "type": "string" },
 			"x_login_id_type": { "type": "string" },
 			"x_login_id": { "type": "string" }
 		},
-		"required": ["x_login_id_input_type", "x_login_id_key", "x_login_id_type", "x_login_id"]
+		"required": ["q_login_id_input_type", "x_login_id_key", "x_login_id_type", "x_login_id"]
 	}
 `)
 

@@ -25,10 +25,10 @@ var LoginWithLoginIDSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
+			"q_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
 			"x_login_id": { "type": "string" }
 		},
-		"required": ["x_login_id_input_type", "x_login_id"]
+		"required": ["q_login_id_input_type", "x_login_id"]
 	}
 `)
 
@@ -62,7 +62,7 @@ type LoginViewModel struct {
 }
 
 func NewLoginViewModel(allowLoginOnly bool, r *http.Request) LoginViewModel {
-	loginIDInputType := r.Form.Get("x_login_id_input_type")
+	loginIDInputType := r.Form.Get("q_login_id_input_type")
 	return LoginViewModel{
 		AllowLoginOnly:   allowLoginOnly,
 		LoginIDInputType: loginIDInputType,

@@ -23,10 +23,10 @@ var PromoteWithLoginIDSchema = validation.NewSimpleSchema(`
 		"properties": {
 			"x_login_id_key": { "type": "string" },
 			"x_login_id_type": { "type": "string" },
-			"x_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
+			"q_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
 			"x_login_id": { "type": "string" }
 		},
-		"required": ["x_login_id_key", "x_login_id_type", "x_login_id_input_type", "x_login_id"]
+		"required": ["x_login_id_key", "x_login_id_type", "q_login_id_input_type", "x_login_id"]
 	}
 `)
 
