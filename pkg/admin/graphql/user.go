@@ -31,23 +31,28 @@ var nodeUser = node(
 				Description: "The last login time of user",
 			},
 			"loginIDs": &graphql.Field{
-				Type:    graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeIdentity))),
-				Resolve: identitiesResolverByType(model.IdentityTypeLoginID),
+				Type:        graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeIdentity))),
+				Description: "The list of login ids",
+				Resolve:     identitiesResolverByType(model.IdentityTypeLoginID),
 			},
 			"oauthConnections": &graphql.Field{
-				Type:    graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeIdentity))),
-				Resolve: identitiesResolverByType(model.IdentityTypeOAuth),
+				Type:        graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeIdentity))),
+				Description: "The list of oauth connections",
+				Resolve:     identitiesResolverByType(model.IdentityTypeOAuth),
 			},
 			"biometricRegistrations": &graphql.Field{
-				Type:    graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeIdentity))),
-				Resolve: identitiesResolverByType(model.IdentityTypeBiometric),
+				Type:        graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeIdentity))),
+				Description: "The list of biometric registrations",
+				Resolve:     identitiesResolverByType(model.IdentityTypeBiometric),
 			},
 			"passkeys": &graphql.Field{
-				Type:    graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeIdentity))),
-				Resolve: identitiesResolverByType(model.IdentityTypePasskey),
+				Type:        graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeIdentity))),
+				Description: "The list of passkeys",
+				Resolve:     identitiesResolverByType(model.IdentityTypePasskey),
 			},
 			"identities": &graphql.Field{
-				Type: connIdentity.ConnectionType,
+				Type:        connIdentity.ConnectionType,
+				Description: "The list of identities",
 				Args: relay.NewConnectionArgs(graphql.FieldConfigArgument{
 					"identityType": &graphql.ArgumentConfig{
 						Type: identityType,
@@ -77,35 +82,43 @@ var nodeUser = node(
 				},
 			},
 			"primaryPassword": &graphql.Field{
-				Type:    nodeAuthenticator,
-				Resolve: authenticatorResolverByTypeAndKind(model.AuthenticatorTypePassword, authenticator.KindPrimary),
+				Type:        nodeAuthenticator,
+				Description: "The primary password authenticator",
+				Resolve:     authenticatorResolverByTypeAndKind(model.AuthenticatorTypePassword, authenticator.KindPrimary),
 			},
 			"primaryOOBOTPEmailAuthenticator": &graphql.Field{
-				Type:    nodeAuthenticator,
-				Resolve: authenticatorResolverByTypeAndKind(model.AuthenticatorTypeOOBEmail, authenticator.KindPrimary),
+				Type:        nodeAuthenticator,
+				Description: "The primary passwordless via email authenticator",
+				Resolve:     authenticatorResolverByTypeAndKind(model.AuthenticatorTypeOOBEmail, authenticator.KindPrimary),
 			},
 			"primaryOOBOTPSMSAuthenticator": &graphql.Field{
-				Type:    nodeAuthenticator,
-				Resolve: authenticatorResolverByTypeAndKind(model.AuthenticatorTypeOOBSMS, authenticator.KindPrimary),
+				Type:        nodeAuthenticator,
+				Description: "The primary passwordless via phone authenticator",
+				Resolve:     authenticatorResolverByTypeAndKind(model.AuthenticatorTypeOOBSMS, authenticator.KindPrimary),
 			},
 			"secondaryTOTPAuthenticators": &graphql.Field{
-				Type:    graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeAuthenticator))),
-				Resolve: authenticatorsResolverByTypeAndKind(model.AuthenticatorTypeTOTP, authenticator.KindSecondary),
+				Type:        graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeAuthenticator))),
+				Description: "The list of secondary TOTP authenticators",
+				Resolve:     authenticatorsResolverByTypeAndKind(model.AuthenticatorTypeTOTP, authenticator.KindSecondary),
 			},
 			"secondaryOOBOTPEmailAuthenticators": &graphql.Field{
-				Type:    graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeAuthenticator))),
-				Resolve: authenticatorsResolverByTypeAndKind(model.AuthenticatorTypeOOBEmail, authenticator.KindSecondary),
+				Type:        graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeAuthenticator))),
+				Description: "The list of secondary passwordless via email authenticators",
+				Resolve:     authenticatorsResolverByTypeAndKind(model.AuthenticatorTypeOOBEmail, authenticator.KindSecondary),
 			},
 			"secondaryOOBOTPSMSAuthenticators": &graphql.Field{
-				Type:    graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeAuthenticator))),
-				Resolve: authenticatorsResolverByTypeAndKind(model.AuthenticatorTypeOOBSMS, authenticator.KindSecondary),
+				Type:        graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeAuthenticator))),
+				Description: "The list of secondary passwordless via phone authenticators",
+				Resolve:     authenticatorsResolverByTypeAndKind(model.AuthenticatorTypeOOBSMS, authenticator.KindSecondary),
 			},
 			"secondaryPassword": &graphql.Field{
-				Type:    nodeAuthenticator,
-				Resolve: authenticatorResolverByTypeAndKind(model.AuthenticatorTypePassword, authenticator.KindSecondary),
+				Type:        nodeAuthenticator,
+				Description: "The secondary password authenticator",
+				Resolve:     authenticatorResolverByTypeAndKind(model.AuthenticatorTypePassword, authenticator.KindSecondary),
 			},
 			"authenticators": &graphql.Field{
-				Type: connAuthenticator.ConnectionType,
+				Type:        connAuthenticator.ConnectionType,
+				Description: "The list of authenticators",
 				Args: relay.NewConnectionArgs(graphql.FieldConfigArgument{
 					"authenticatorType": &graphql.ArgumentConfig{
 						Type: authenticatorType,
@@ -147,7 +160,8 @@ var nodeUser = node(
 				},
 			},
 			"verifiedClaims": &graphql.Field{
-				Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(claim))),
+				Type:        graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(claim))),
+				Description: "The list of user's verified claims",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					source := p.Source.(*model.User)
 					gqlCtx := GQLContext(p.Context)
@@ -160,8 +174,9 @@ var nodeUser = node(
 				},
 			},
 			"sessions": &graphql.Field{
-				Type: connSession.ConnectionType,
-				Args: relay.ConnectionArgs,
+				Type:        connSession.ConnectionType,
+				Description: "The list of first party app sessions",
+				Args:        relay.ConnectionArgs,
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					source := p.Source.(*model.User)
 					gqlCtx := GQLContext(p.Context)
@@ -182,8 +197,9 @@ var nodeUser = node(
 				},
 			},
 			"authorizations": &graphql.Field{
-				Type: connAuthorization.ConnectionType,
-				Args: relay.ConnectionArgs,
+				Type:        connAuthorization.ConnectionType,
+				Description: "The list of third party app authorizations",
+				Args:        relay.ConnectionArgs,
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					source := p.Source.(*model.User)
 					gqlCtx := GQLContext(p.Context)
@@ -204,32 +220,40 @@ var nodeUser = node(
 				},
 			},
 			"isDisabled": &graphql.Field{
-				Type: graphql.NewNonNull(graphql.Boolean),
+				Type:        graphql.NewNonNull(graphql.Boolean),
+				Description: "Indicates if the user is disabled",
 			},
 			"isAnonymous": &graphql.Field{
-				Type: graphql.NewNonNull(graphql.Boolean),
+				Type:        graphql.NewNonNull(graphql.Boolean),
+				Description: "Indicates if the user is anonymous",
 			},
 			"disableReason": &graphql.Field{
-				Type: graphql.String,
+				Type:        graphql.String,
+				Description: "The reason of disabled",
 			},
 			"isDeactivated": &graphql.Field{
-				Type: graphql.NewNonNull(graphql.Boolean),
+				Type:        graphql.NewNonNull(graphql.Boolean),
+				Description: "Indicates if the user is deactivated",
 			},
 			"deleteAt": &graphql.Field{
 				Type:        graphql.DateTime,
 				Description: "The scheduled deletion time of the user",
 			},
 			"standardAttributes": &graphql.Field{
-				Type: graphql.NewNonNull(UserStandardAttributes),
+				Type:        graphql.NewNonNull(UserStandardAttributes),
+				Description: "The user's standard attributes",
 			},
 			"customAttributes": &graphql.Field{
-				Type: graphql.NewNonNull(UserCustomAttributes),
+				Type:        graphql.NewNonNull(UserCustomAttributes),
+				Description: "The user's custom attributes",
 			},
 			"web3": &graphql.Field{
-				Type: graphql.NewNonNull(Web3Claims),
+				Type:        graphql.NewNonNull(Web3Claims),
+				Description: "The web3 claims",
 			},
 			"formattedName": &graphql.Field{
-				Type: graphql.String,
+				Type:        graphql.String,
+				Description: "The user's formatted name",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					source := p.Source.(*model.User)
 					formattedName := stdattrs.T(source.StandardAttributes).FormattedName()
@@ -240,7 +264,8 @@ var nodeUser = node(
 				},
 			},
 			"endUserAccountID": &graphql.Field{
-				Type: graphql.String,
+				Type:        graphql.String,
+				Description: "The end user account id constructed based on user's personal data. (e.g. email, phone...etc)",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					source := p.Source.(*model.User)
 					endUserAccountID := source.EndUserAccountID()

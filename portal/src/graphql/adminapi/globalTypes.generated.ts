@@ -635,40 +635,65 @@ export type UpdateUserPayload = {
 /** Authgear user */
 export type User = Entity & Node & {
   __typename?: 'User';
+  /** The list of authenticators */
   authenticators?: Maybe<AuthenticatorConnection>;
+  /** The list of third party app authorizations */
   authorizations?: Maybe<AuthorizationConnection>;
+  /** The list of biometric registrations */
   biometricRegistrations: Array<Identity>;
   /** The creation time of entity */
   createdAt: Scalars['DateTime'];
+  /** The user's custom attributes */
   customAttributes: Scalars['UserCustomAttributes'];
   /** The scheduled deletion time of the user */
   deleteAt?: Maybe<Scalars['DateTime']>;
+  /** The reason of disabled */
   disableReason?: Maybe<Scalars['String']>;
+  /** The end user account id constructed based on user's personal data. (e.g. email, phone...etc) */
   endUserAccountID?: Maybe<Scalars['String']>;
+  /** The user's formatted name */
   formattedName?: Maybe<Scalars['String']>;
   /** The ID of an object */
   id: Scalars['ID'];
+  /** The list of identities */
   identities?: Maybe<IdentityConnection>;
+  /** Indicates if the user is anonymous */
   isAnonymous: Scalars['Boolean'];
+  /** Indicates if the user is deactivated */
   isDeactivated: Scalars['Boolean'];
+  /** Indicates if the user is disabled */
   isDisabled: Scalars['Boolean'];
   /** The last login time of user */
   lastLoginAt?: Maybe<Scalars['DateTime']>;
+  /** The list of login ids */
   loginIDs: Array<Identity>;
+  /** The list of oauth connections */
   oauthConnections: Array<Identity>;
+  /** The list of passkeys */
   passkeys: Array<Identity>;
+  /** The primary passwordless via email authenticator */
   primaryOOBOTPEmailAuthenticator?: Maybe<Authenticator>;
+  /** The primary passwordless via phone authenticator */
   primaryOOBOTPSMSAuthenticator?: Maybe<Authenticator>;
+  /** The primary password authenticator */
   primaryPassword?: Maybe<Authenticator>;
+  /** The list of secondary passwordless via email authenticators */
   secondaryOOBOTPEmailAuthenticators: Array<Authenticator>;
+  /** The list of secondary passwordless via phone authenticators */
   secondaryOOBOTPSMSAuthenticators: Array<Authenticator>;
+  /** The secondary password authenticator */
   secondaryPassword?: Maybe<Authenticator>;
+  /** The list of secondary TOTP authenticators */
   secondaryTOTPAuthenticators: Array<Authenticator>;
+  /** The list of first party app sessions */
   sessions?: Maybe<SessionConnection>;
+  /** The user's standard attributes */
   standardAttributes: Scalars['UserStandardAttributes'];
   /** The update time of entity */
   updatedAt: Scalars['DateTime'];
+  /** The list of user's verified claims */
   verifiedClaims: Array<Claim>;
+  /** The web3 claims */
   web3: Scalars['Web3Claims'];
 };
 

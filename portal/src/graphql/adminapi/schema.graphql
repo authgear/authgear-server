@@ -748,94 +748,96 @@ type UpdateUserPayload {
 
 """Authgear user"""
 type User implements Entity & Node {
-  """"""
+  """The list of authenticators"""
   authenticators(after: String, authenticatorKind: AuthenticatorKind, authenticatorType: AuthenticatorType, before: String, first: Int, last: Int): AuthenticatorConnection
 
-  """"""
+  """The list of third party app authorizations"""
   authorizations(after: String, before: String, first: Int, last: Int): AuthorizationConnection
 
-  """"""
+  """The list of biometric registrations"""
   biometricRegistrations: [Identity!]!
 
   """The creation time of entity"""
   createdAt: DateTime!
 
-  """"""
+  """The user's custom attributes"""
   customAttributes: UserCustomAttributes!
 
   """The scheduled deletion time of the user"""
   deleteAt: DateTime
 
-  """"""
+  """The reason of disabled"""
   disableReason: String
 
-  """"""
+  """
+  The end user account id constructed based on user's personal data. (e.g. email, phone...etc)
+  """
   endUserAccountID: String
 
-  """"""
+  """The user's formatted name"""
   formattedName: String
 
   """The ID of an object"""
   id: ID!
 
-  """"""
+  """The list of identities"""
   identities(after: String, before: String, first: Int, identityType: IdentityType, last: Int): IdentityConnection
 
-  """"""
+  """Indicates if the user is anonymous"""
   isAnonymous: Boolean!
 
-  """"""
+  """Indicates if the user is deactivated"""
   isDeactivated: Boolean!
 
-  """"""
+  """Indicates if the user is disabled"""
   isDisabled: Boolean!
 
   """The last login time of user"""
   lastLoginAt: DateTime
 
-  """"""
+  """The list of login ids"""
   loginIDs: [Identity!]!
 
-  """"""
+  """The list of oauth connections"""
   oauthConnections: [Identity!]!
 
-  """"""
+  """The list of passkeys"""
   passkeys: [Identity!]!
 
-  """"""
+  """The primary passwordless via email authenticator"""
   primaryOOBOTPEmailAuthenticator: Authenticator
 
-  """"""
+  """The primary passwordless via phone authenticator"""
   primaryOOBOTPSMSAuthenticator: Authenticator
 
-  """"""
+  """The primary password authenticator"""
   primaryPassword: Authenticator
 
-  """"""
+  """The list of secondary passwordless via email authenticators"""
   secondaryOOBOTPEmailAuthenticators: [Authenticator!]!
 
-  """"""
+  """The list of secondary passwordless via phone authenticators"""
   secondaryOOBOTPSMSAuthenticators: [Authenticator!]!
 
-  """"""
+  """The secondary password authenticator"""
   secondaryPassword: Authenticator
 
-  """"""
+  """The list of secondary TOTP authenticators"""
   secondaryTOTPAuthenticators: [Authenticator!]!
 
-  """"""
+  """The list of first party app sessions"""
   sessions(after: String, before: String, first: Int, last: Int): SessionConnection
 
-  """"""
+  """The user's standard attributes"""
   standardAttributes: UserStandardAttributes!
 
   """The update time of entity"""
   updatedAt: DateTime!
 
-  """"""
+  """The list of user's verified claims"""
   verifiedClaims: [Claim!]!
 
-  """"""
+  """The web3 claims"""
   web3: Web3Claims!
 }
 
