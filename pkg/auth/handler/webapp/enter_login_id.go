@@ -65,9 +65,9 @@ var AddOrUpdateLoginIDSchema = validation.NewSimpleSchema(`
 			"q_login_id_input_type": { "type": "string" },
 			"q_login_id_key": { "type": "string" },
 			"q_login_id_type": { "type": "string" },
-			"x_login_id": { "type": "string" }
+			"q_login_id": { "type": "string" }
 		},
-		"required": ["q_login_id_input_type", "q_login_id_key", "q_login_id_type", "x_login_id"]
+		"required": ["q_login_id_input_type", "q_login_id_key", "q_login_id_type", "q_login_id"]
 	}
 `)
 
@@ -168,7 +168,7 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		loginIDKey := r.Form.Get("q_login_id_key")
 		loginIDType := r.Form.Get("q_login_id_type")
 		identityID := r.Form.Get("q_identity_id")
-		newLoginID := r.Form.Get("x_login_id")
+		newLoginID := r.Form.Get("q_login_id")
 		var intent interaction.Intent
 		if identityID != "" {
 			intent = intents.NewIntentUpdateIdentity(userID, identityID)

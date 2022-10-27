@@ -24,9 +24,9 @@ var PromoteWithLoginIDSchema = validation.NewSimpleSchema(`
 			"q_login_id_key": { "type": "string" },
 			"q_login_id_type": { "type": "string" },
 			"q_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
-			"x_login_id": { "type": "string" }
+			"q_login_id": { "type": "string" }
 		},
-		"required": ["q_login_id_key", "q_login_id_type", "q_login_id_input_type", "x_login_id"]
+		"required": ["q_login_id_key", "q_login_id_type", "q_login_id_input_type", "q_login_id"]
 	}
 `)
 
@@ -120,7 +120,7 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			loginIDValue := r.Form.Get("x_login_id")
+			loginIDValue := r.Form.Get("q_login_id")
 			loginIDKey := r.Form.Get("q_login_id_key")
 			loginIDType := r.Form.Get("q_login_id_type")
 

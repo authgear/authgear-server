@@ -22,9 +22,9 @@ var ForgotPasswordSchema = validation.NewSimpleSchema(`
 		"type": "object",
 		"properties": {
 			"q_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
-			"x_login_id": { "type": "string" }
+			"q_login_id": { "type": "string" }
 		},
-		"required": ["q_login_id_input_type", "x_login_id"]
+		"required": ["q_login_id_input_type", "q_login_id"]
 	}
 `)
 
@@ -41,7 +41,7 @@ type ForgotPasswordViewModel struct {
 
 func NewForgotPasswordViewModel(r *http.Request) ForgotPasswordViewModel {
 	loginIDInputType := r.Form.Get("q_login_id_input_type")
-	loginID := r.Form.Get("x_login_id")
+	loginID := r.Form.Get("q_login_id")
 	return ForgotPasswordViewModel{
 		LoginIDInputType: loginIDInputType,
 		LoginID:          loginID,
@@ -103,7 +103,7 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				return
 			}
 
-			loginID := r.Form.Get("x_login_id")
+			loginID := r.Form.Get("q_login_id")
 
 			input = &InputForgotPassword{
 				LoginID: loginID,
