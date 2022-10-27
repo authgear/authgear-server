@@ -25,11 +25,11 @@ var SignupWithLoginIDSchema = validation.NewSimpleSchema(`
 		"type": "object",
 		"properties": {
 			"q_login_id_key": { "type": "string" },
-			"x_login_id_type": { "type": "string" },
+			"q_login_id_type": { "type": "string" },
 			"q_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
 			"x_login_id": { "type": "string" }
 		},
-		"required": ["q_login_id_key", "x_login_id_type", "q_login_id_input_type", "x_login_id"]
+		"required": ["q_login_id_key", "q_login_id_type", "q_login_id_input_type", "x_login_id"]
 	}
 `)
 
@@ -164,7 +164,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			loginIDValue := r.Form.Get("x_login_id")
 			loginIDKey := r.Form.Get("q_login_id_key")
-			loginIDType := r.Form.Get("x_login_id_type")
+			loginIDType := r.Form.Get("q_login_id_type")
 
 			input = &InputNewLoginID{
 				LoginIDType:  loginIDType,
