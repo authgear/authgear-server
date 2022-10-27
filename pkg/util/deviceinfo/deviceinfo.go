@@ -149,19 +149,76 @@ var iosMachineMapping = map[string]string{
 	"AppleTV6,2": "Apple TV 4K", // Apple TV 4K
 }
 
-func DeviceModel(deviceInfo map[string]interface{}) string {
+type Platform string
+
+const (
+	PlatformUnknown Platform = ""
+	PlatformIOS     Platform = "ios"
+	PlatformAndroid Platform = "android"
+)
+
+func DevicePlatform(deviceInfo map[string]interface{}) Platform {
+	_, isAndroid := deviceInfo["android"].(map[string]interface{})
+	_, isIOS := deviceInfo["ios"].(map[string]interface{})
+	if isAndroid && !isIOS {
+		return PlatformAndroid
+	}
+	if !isAndroid && isIOS {
+		return PlatformIOS
+	}
+	return PlatformUnknown
+}
+
+func DeviceModelCodename(deviceInfo map[string]interface{}) string {
 	android, ok := deviceInfo["android"].(map[string]interface{})
 	if ok {
-		return DeviceModelAndroid(android)
+		return deviceModelCodenameAndroid(android)
 	}
 	ios, ok := deviceInfo["ios"].(map[string]interface{})
 	if ok {
-		return DeviceModelIOS(ios)
+		return deviceModelCodenameIOS(ios)
 	}
 	return ""
 }
 
-func DeviceModelAndroid(android map[string]interface{}) string {
+func deviceModelCodenameAndroid(android map[string]interface{}) string {
+	build, ok := android["Build"].(map[string]interface{})
+	if !ok {
+		return ""
+	}
+	model, ok := build["MODEL"].(string)
+	if !ok {
+		return ""
+	}
+	return model
+}
+
+func deviceModelCodenameIOS(ios map[string]interface{}) string {
+	uname, ok := ios["uname"].(map[string]interface{})
+	if !ok {
+		return ""
+	}
+	machine, ok := uname["machine"].(string)
+	if !ok {
+		return ""
+	}
+
+	return machine
+}
+
+func DeviceModel(deviceInfo map[string]interface{}) string {
+	android, ok := deviceInfo["android"].(map[string]interface{})
+	if ok {
+		return deviceModelAndroid(android)
+	}
+	ios, ok := deviceInfo["ios"].(map[string]interface{})
+	if ok {
+		return deviceModelIOS(ios)
+	}
+	return ""
+}
+
+func deviceModelAndroid(android map[string]interface{}) string {
 	build, ok := android["Build"].(map[string]interface{})
 	if !ok {
 		return ""
@@ -177,7 +234,7 @@ func DeviceModelAndroid(android map[string]interface{}) string {
 	return fmt.Sprintf("%v %v", manufacturer, model)
 }
 
-func DeviceModelIOS(ios map[string]interface{}) string {
+func deviceModelIOS(ios map[string]interface{}) string {
 	uname, ok := ios["uname"].(map[string]interface{})
 	if !ok {
 		return ""
@@ -208,16 +265,16 @@ func DeviceModelIOS(ios map[string]interface{}) string {
 func DeviceName(deviceInfo map[string]interface{}) string {
 	android, ok := deviceInfo["android"].(map[string]interface{})
 	if ok {
-		return DeviceNameAndroid(android)
+		return deviceNameAndroid(android)
 	}
 	ios, ok := deviceInfo["ios"].(map[string]interface{})
 	if ok {
-		return DeviceNameIOS(ios)
+		return deviceNameIOS(ios)
 	}
 	return ""
 }
 
-func DeviceNameAndroid(android map[string]interface{}) string {
+func deviceNameAndroid(android map[string]interface{}) string {
 	if settings, ok := android["Settings"].(map[string]interface{}); ok {
 		if global, ok := settings["Global"].(map[string]interface{}); ok {
 			if deviceName, ok := global["DEVICE_NAME"].(string); ok {
@@ -233,12 +290,8 @@ func DeviceNameAndroid(android map[string]interface{}) string {
 	return ""
 }
 
-func DeviceNameIOS(ios map[string]interface{}) string {
-	if uiDevice, ok := ios["UIDevice"].(map[string]interface{}); ok {
-		if name, ok := uiDevice["name"].(string); ok {
-			return name
-		}
-	}
+func deviceNameIOS(ios map[string]interface{}) string {
+	// Observed on iOS 16, only uname.nodename is the device name.
 	if uname, ok := ios["uname"].(map[string]interface{}); ok {
 		if nodename, ok := uname["nodename"].(string); ok {
 			return nodename
@@ -250,27 +303,76 @@ func DeviceNameIOS(ios map[string]interface{}) string {
 func ApplicationName(deviceInfo map[string]interface{}) string {
 	android, ok := deviceInfo["android"].(map[string]interface{})
 	if ok {
-		return ApplicationNameAndroid(android)
+		return applicationNameAndroid(android)
 	}
 	ios, ok := deviceInfo["ios"].(map[string]interface{})
 	if ok {
-		return ApplicationNameIOS(ios)
+		return applicationNameIOS(ios)
 	}
 	return ""
 }
 
-func ApplicationNameAndroid(android map[string]interface{}) string {
+func applicationNameAndroid(android map[string]interface{}) string {
 	if applicationInfoLabel, ok := android["ApplicationInfoLabel"].(string); ok {
 		return applicationInfoLabel
 	}
 	return ""
 }
 
-func ApplicationNameIOS(ios map[string]interface{}) string {
+func applicationNameIOS(ios map[string]interface{}) string {
 	if nsBundle, ok := ios["NSBundle"].(map[string]interface{}); ok {
 		if cfBundleDisplayName, ok := nsBundle["CFBundleDisplayName"].(string); ok {
 			return cfBundleDisplayName
 		}
 	}
 	return ""
+}
+
+func ApplicationID(deviceInfo map[string]interface{}) string {
+	android, ok := deviceInfo["android"].(map[string]interface{})
+	if ok {
+		return applicationIDAndroid(android)
+	}
+	ios, ok := deviceInfo["ios"].(map[string]interface{})
+	if ok {
+		return applicationIDIOS(ios)
+	}
+	return ""
+}
+
+func applicationIDAndroid(android map[string]interface{}) string {
+	if packageInfo, ok := android["PackageInfo"].(map[string]interface{}); ok {
+		if packageName, ok := packageInfo["packageName"].(string); ok {
+			return packageName
+		}
+	}
+	return ""
+}
+
+func applicationIDIOS(ios map[string]interface{}) string {
+	if nsBundle, ok := ios["NSBundle"].(map[string]interface{}); ok {
+		if cfBundleIdentifier, ok := nsBundle["CFBundleIdentifier"].(string); ok {
+			return cfBundleIdentifier
+		}
+	}
+	return ""
+}
+
+func ProbablySame(a map[string]interface{}, b map[string]interface{}) bool {
+	platformA := DevicePlatform(a)
+	platformB := DevicePlatform(b)
+
+	codenameA := DeviceModelCodename(a)
+	codenameB := DeviceModelCodename(b)
+
+	nameA := DeviceName(a)
+	nameB := DeviceName(b)
+
+	appA := ApplicationID(a)
+	appB := ApplicationID(b)
+
+	return (platformA != "" && platformA == platformB) &&
+		(codenameA != "" && codenameA == codenameB) &&
+		(nameA != "" && nameA == nameB) &&
+		(appA != "" && appA == appB)
 }
