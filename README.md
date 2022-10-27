@@ -378,6 +378,7 @@ Various files in this project have versioned dependencies.
 - [The go directive in go.mod](./go.mod)
 - [The dependencies listed in go.mod](./go.mod)
 - [The tool versions listed in .tool-versions](./.tool-versions)
+- [The version of golangci-lint in Makefile](./Makefile)
 - [The versions appearing in ./github/workflows/ci.yaml](./github/workflows/ci.yaml)
 - [The FROM directives in ./cmd/authgear/Dockerfile](./cmd/authgear/Dockerfile)
 - [The FROM directives in ./cmd/portal/Dockerfile](./cmd/portal/Dockerfile)
