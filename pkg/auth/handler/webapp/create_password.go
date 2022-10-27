@@ -89,7 +89,6 @@ func (h *CreatePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter,
 		IdentityDisplayID: displayID,
 	}
 
-	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, passwordPolicyViewModel)
 	viewmodels.Embed(data, createPasswordViewModel)

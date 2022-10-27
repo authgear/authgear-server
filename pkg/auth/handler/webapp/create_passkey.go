@@ -37,7 +37,6 @@ func (h *CreatePasskeyHandler) GetData(r *http.Request, rw http.ResponseWriter, 
 		return nil, err
 	}
 
-	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, *alternatives)
 
