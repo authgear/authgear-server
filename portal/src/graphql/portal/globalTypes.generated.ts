@@ -115,6 +115,11 @@ export type AppResourceUpdate = {
   path: Scalars['String'];
 };
 
+export type CancelFailedSubscriptionPayload = {
+  __typename?: 'CancelFailedSubscriptionPayload';
+  app: App;
+};
+
 export type Chart = {
   __typename?: 'Chart';
   dataset: Array<Maybe<DataPoint>>;
@@ -263,6 +268,8 @@ export type Mutation = {
   __typename?: 'Mutation';
   /** Accept collaborator invitation to the target app. */
   acceptCollaboratorInvitation: AcceptCollaboratorInvitationPayload;
+  /** Cancel failed subscription */
+  cancelFailedSubscription: CancelFailedSubscriptionPayload;
   /** Create new app */
   createApp: CreateAppPayload;
   /** Create stripe checkout session */
@@ -304,6 +311,11 @@ export type Mutation = {
 
 export type MutationAcceptCollaboratorInvitationArgs = {
   input: AcceptCollaboratorInvitationInput;
+};
+
+
+export type MutationCancelFailedSubscriptionArgs = {
+  input: CancelFailedSubscriptionInput;
 };
 
 
@@ -777,6 +789,11 @@ export type VerifyDomainPayload = {
 export type WebhookSecret = {
   __typename?: 'WebhookSecret';
   secret?: Maybe<Scalars['String']>;
+};
+
+export type CancelFailedSubscriptionInput = {
+  /** Target app ID. */
+  appID: Scalars['ID'];
 };
 
 /** OAuth client secret item */

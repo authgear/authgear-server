@@ -2,6 +2,7 @@ fragment AppFragment on App {
   id
   effectiveFeatureConfig
   isProcessingSubscription
+  lastStripeError
   planName
   previousMonth: subscriptionUsage(date: $previousMonth) {
     nextBillingDate

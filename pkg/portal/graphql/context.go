@@ -106,6 +106,8 @@ type StripeService interface {
 	PreviewUpdateSubscription(stripeSubscriptionID string, subscriptionPlan *model.SubscriptionPlan) (*model.SubscriptionUpdatePreview, error)
 	SetSubscriptionCancelAtPeriodEnd(stripeSubscriptionID string, cancelAtPeriodEnd bool) (*time.Time, error)
 	GetLastPaymentError(stripeCustomerID string) (*stripe.Error, error)
+	GetSubscription(stripeCustomerID string) (*stripe.Subscription, error)
+	CancelSubscriptionImmediately(subscriptionID string) error
 }
 
 type SubscriptionService interface {
@@ -121,6 +123,7 @@ type SubscriptionService interface {
 	UpdateAppPlan(appID string, planName string) error
 	SetSubscriptionCancelledStatus(id string, cancelled bool, endedAt *time.Time) error
 	GetLastProcessingCustomerID(appID string) (*string, error)
+	MarkCheckoutExpired(appID string, customerID string) error
 }
 
 type NFTService interface {

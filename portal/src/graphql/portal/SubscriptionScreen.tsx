@@ -1,3 +1,4 @@
+/* global stripe */
 import React, {
   useState,
   useCallback,
@@ -17,6 +18,8 @@ import {
   IDialogContentProps,
   ThemeProvider,
   PartialTheme,
+  Spinner,
+  SpinnerSize,
 } from "@fluentui/react";
 import { useConst } from "@fluentui/react-hooks";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -62,6 +65,7 @@ import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import LinkButton from "../../LinkButton";
+import { useCancelFailedSubscriptionMutation } from "./mutations/cancelFailedSubscriptionMutation";
 
 const ALL_KNOWN_PLANS = ["free", "developers", "startups", "business"];
 const PAID_PLANS = ALL_KNOWN_PLANS.slice(1);
@@ -862,8 +866,98 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   );
 }
 
+interface SubscriptionProcessingPaymentScreenProps {
+  stripeError?: stripe.Error;
+}
+
+const SubscriptionProcessingPaymentScreen: React.VFC<SubscriptionProcessingPaymentScreenProps> =
+  function SubscriptionProcessingPaymentScreen(
+    props: SubscriptionProcessingPaymentScreenProps
+  ) {
+    const { stripeError } = props;
+    const { renderToString } = useContext(Context);
+    const { appID } = useParams() as { appID: string };
+
+    const {
+      cancelFailedSubscription,
+      loading: cancelFailedSubscriptionLoading,
+      error: cancelFailedSubscriptionError,
+    } = useCancelFailedSubscriptionMutation(appID);
+    useLoading(cancelFailedSubscriptionLoading);
+
+    const paymentStatus = useMemo(() => {
+      if (stripeError == null) {
+        return "IsProcessing";
+      }
+      // https://stripe.com/docs/error-codes
+      if (stripeError.code === "card_declined") {
+        return "CardDeclined";
+      }
+      return "UnknownError";
+    }, [stripeError]);
+
+    const onClickCancelFailedSubscription = useCallback(async () => {
+      await cancelFailedSubscription();
+    }, [cancelFailedSubscription]);
+
+    return (
+      <div className={styles.root}>
+        <ScreenTitle className={styles.section}>
+          <FormattedMessage id="SubscriptionScreen.title" />
+        </ScreenTitle>
+        <div
+          className={cn(styles.processingPaymentSection)}
+          style={{
+            boxShadow: DefaultEffects.elevation4,
+          }}
+        >
+          {paymentStatus === "IsProcessing" ? (
+            <Spinner
+              className={styles.processingPaymentSpinner}
+              labelPosition="right"
+              label={renderToString("SubscriptionScreen.processing-payment")}
+              size={SpinnerSize.large}
+              styles={{
+                label: {
+                  whiteSpace: "pre-line",
+                  textAlign: "left",
+                  marginLeft: "16px",
+                },
+              }}
+            />
+          ) : null}
+          {paymentStatus === "CardDeclined" ? (
+            <>
+              <Text className={styles.processingPaymentErrorMessage}>
+                <FormattedMessage id="SubscriptionScreen.payment-declined.description" />
+              </Text>
+              <div className={styles.processingPaymentButtonContainer}>
+                <ButtonWithLoading
+                  loading={cancelFailedSubscriptionLoading}
+                  onClick={onClickCancelFailedSubscription}
+                  labelId="SubscriptionScreen.cancel-transaction.label"
+                />
+              </div>
+            </>
+          ) : null}
+          {paymentStatus === "UnknownError" ? (
+            <>
+              <Text className={styles.processingPaymentErrorMessage}>
+                <FormattedMessage id="SubscriptionScreen.unknown-error.description" />
+              </Text>
+            </>
+          ) : null}
+          <ErrorDialog
+            error={cancelFailedSubscriptionError}
+            rules={[]}
+            fallbackErrorMessageID="SubscriptionScreen.cancel-transaction-error.description"
+          />
+        </div>
+      </div>
+    );
+  };
+
 const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
-  const { renderToString } = useContext(Context);
   const now = useConst(new Date());
   const thisMonth = useMemo(() => {
     return now.toISOString();
@@ -891,6 +985,13 @@ const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
     !!subscriptionScreenQuery.data &&
     (subscriptionScreenQuery.data.node as AppFragmentFragment)
       .isProcessingSubscription;
+
+  const lastStripeError = useMemo(() => {
+    return (
+      !!subscriptionScreenQuery.data &&
+      (subscriptionScreenQuery.data.node as AppFragmentFragment).lastStripeError
+    );
+  }, [subscriptionScreenQuery]);
 
   // if isProcessingSubscription is true
   // refetch in every few seconds and wait until it changes to false
@@ -930,9 +1031,7 @@ const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
 
   if (isProcessingSubscription) {
     return (
-      <ShowLoading
-        label={renderToString("SubscriptionScreen.processing-payment")}
-      />
+      <SubscriptionProcessingPaymentScreen stripeError={lastStripeError} />
     );
   }
 
