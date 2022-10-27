@@ -21,12 +21,12 @@ var PromoteWithLoginIDSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_login_id_key": { "type": "string" },
+			"q_login_id_key": { "type": "string" },
 			"x_login_id_type": { "type": "string" },
 			"q_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
 			"x_login_id": { "type": "string" }
 		},
-		"required": ["x_login_id_key", "x_login_id_type", "q_login_id_input_type", "x_login_id"]
+		"required": ["q_login_id_key", "x_login_id_type", "q_login_id_input_type", "x_login_id"]
 	}
 `)
 
@@ -41,7 +41,7 @@ type PromoteViewModel struct {
 }
 
 func NewPromoteViewModel(r *http.Request) PromoteViewModel {
-	loginIDKey := r.Form.Get("x_login_id_key")
+	loginIDKey := r.Form.Get("q_login_id_key")
 	return PromoteViewModel{
 		LoginIDKey: loginIDKey,
 	}
@@ -121,7 +121,7 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			loginIDValue := r.Form.Get("x_login_id")
-			loginIDKey := r.Form.Get("x_login_id_key")
+			loginIDKey := r.Form.Get("q_login_id_key")
 			loginIDType := r.Form.Get("x_login_id_type")
 
 			input = &InputNewLoginID{

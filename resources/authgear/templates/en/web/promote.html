@@ -33,7 +33,7 @@
 					{{ end }}
 				</h1>
 
-				<input type="hidden" name="x_login_id_key" value="{{ $.LoginIDKey }}">
+				<input type="hidden" name="q_login_id_key" value="{{ $.LoginIDKey }}">
 
 				{{ range $.IdentityCandidates }}
 				{{ if eq .type "login_id" }}{{ if eq .login_id_key $.LoginIDKey }}
@@ -72,7 +72,7 @@
 				{{ range $.IdentityCandidates }}
 				{{ if eq .type "login_id" }}{{ if not (eq .login_id_key $.LoginIDKey) }}
 					<a class="link text-sm self-start block" data-turbo-action="replace"
-						href="{{ call $.MakeURL "" "x_login_id_key" .login_id_key "q_login_id_input_type" .login_id_input_type}}">
+						href="{{ call $.MakeURL "" "q_login_id_key" .login_id_key "q_login_id_input_type" .login_id_input_type}}">
 						{{ template "use-login-id-key" (dict "key" .login_id_key) }}
 					</a>
 				{{ end }}{{ end }}

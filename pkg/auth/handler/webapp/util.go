@@ -77,21 +77,21 @@ func (p *FormPrefiller) Prefill(form url.Values) {
 		}
 	}
 
-	// Set x_login_id_key to match q_login_id_input_type
-	if inKey := form.Get("x_login_id_key"); inKey == "" {
+	// Set q_login_id_key to match q_login_id_input_type
+	if inKey := form.Get("q_login_id_key"); inKey == "" {
 	Switch:
 		switch form.Get("q_login_id_input_type") {
 		case "phone":
 			for _, k := range p.LoginID.Keys {
 				if k.Type == model.LoginIDKeyTypePhone {
-					form.Set("x_login_id_key", k.Key)
+					form.Set("q_login_id_key", k.Key)
 					break Switch
 				}
 			}
 		case "email":
 			for _, k := range p.LoginID.Keys {
 				if k.Type == model.LoginIDKeyTypeEmail {
-					form.Set("x_login_id_key", k.Key)
+					form.Set("q_login_id_key", k.Key)
 					break Switch
 				}
 			}
@@ -100,7 +100,7 @@ func (p *FormPrefiller) Prefill(form url.Values) {
 		default:
 			for _, k := range p.LoginID.Keys {
 				if k.Type != model.LoginIDKeyTypePhone {
-					form.Set("x_login_id_key", k.Key)
+					form.Set("q_login_id_key", k.Key)
 					break Switch
 				}
 			}
