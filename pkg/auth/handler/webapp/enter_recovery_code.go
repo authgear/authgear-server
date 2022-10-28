@@ -32,7 +32,7 @@ var EnterRecoveryCodeSchema = validation.NewSimpleSchema(`
 func ConfigureEnterRecoveryCodeRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/enter_recovery_code")
+		WithPathPattern("/flows/enter_recovery_code")
 }
 
 type EnterRecoveryCodeHandler struct {

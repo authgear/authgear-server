@@ -2,7 +2,7 @@
 
 {{ define "page-content" }}
 <div class="pane twc-container-vertical pt-3 pb-5 px-6 tablet:px-8 desktop:px-8">
-{{ template "__nav_bar.html" "/settings" }}
+{{ template "__nav_bar.html" (call $.MakeURL "/settings") }}
 	<h1 class="primary-txt text-center m-0 text-xl font-bold">
 		{{ template "recovery-code-title" }}
 	</h1>

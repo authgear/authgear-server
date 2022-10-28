@@ -169,10 +169,10 @@ func (c *Controller) renderError(err error) {
 	// If the request method is Get, avoid redirect back to the same path
 	// which causes infinite redirect loop
 	if c.request.Method == http.MethodGet {
-		u.Path = "/error"
+		u.Path = "/errors/error"
 	}
 	if apierror.Reason == webapp.WebUIInvalidSession.Reason {
-		u.Path = "/error"
+		u.Path = "/errors/error"
 	}
 
 	cookie, err := c.ErrorCookie.SetError(c.request, apierror)

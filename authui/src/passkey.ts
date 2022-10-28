@@ -256,7 +256,7 @@ export class PasskeyCreationController extends Controller {
 
   async _create() {
     try {
-      const resp = await axios("/passkey/creation_options", {
+      const resp = await axios("/_internals/passkey/creation_options", {
         method: "post",
       });
       const options = deserializeCreationOptions(resp.data.result);
@@ -321,7 +321,7 @@ export class PasskeyRequestController extends Controller {
     try {
       const params = new URLSearchParams();
       params.set("allow_credentials", this.allowCredentialsValue);
-      const resp = await axios("/passkey/request_options", {
+      const resp = await axios("/_internals/passkey/request_options", {
         method: "post",
         data: params,
       });
@@ -404,7 +404,7 @@ export class PasskeyAutofillController extends Controller {
         try {
           const params = new URLSearchParams();
           params.set("conditional", "true");
-          const resp = await axios("/passkey/request_options", {
+          const resp = await axios("/_internals/passkey/request_options", {
             method: "post",
             data: params,
           });

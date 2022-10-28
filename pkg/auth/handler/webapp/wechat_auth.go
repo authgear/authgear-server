@@ -32,7 +32,6 @@ func ConfigureWechatAuthRoute(route httproute.Route) httproute.Route {
 type WeChatAuthViewModel struct {
 	ImageURI          htmltemplate.URL
 	WeChatRedirectURI htmltemplate.URL
-	CurrentURI        string
 }
 
 type WechatAuthHandler struct {
@@ -65,8 +64,7 @@ func (h *WechatAuthHandler) GetData(r *http.Request, w http.ResponseWriter, sess
 		// dataURI is generated here and not user generated,
 		// so it is safe to use htmltemplate.URL with it.
 		// nolint:gosec
-		ImageURI:   htmltemplate.URL(dataURI),
-		CurrentURI: r.URL.RequestURI(),
+		ImageURI: htmltemplate.URL(dataURI),
 	}
 
 	weChatRedirectURIFromCtx := wechat.GetWeChatRedirectURI(r.Context())

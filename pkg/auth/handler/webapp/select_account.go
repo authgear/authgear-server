@@ -27,7 +27,7 @@ var TemplateWebSelectAccountHTML = template.RegisterHTML(
 func ConfigureSelectAccountRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/select_account")
+		WithPathPattern("/flows/select_account")
 }
 
 type SelectAccountUserService interface {
@@ -61,7 +61,6 @@ type SelectAccountHandler struct {
 func (h *SelectAccountHandler) GetData(r *http.Request, rw http.ResponseWriter, userID string) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
 
 	identities, err := h.Identities.ListByUser(userID)

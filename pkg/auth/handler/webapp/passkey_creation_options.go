@@ -16,7 +16,7 @@ import (
 func ConfigurePasskeyCreationOptionsRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST").
-		WithPathPattern("/passkey/creation_options")
+		WithPathPattern("/_internals/passkey/creation_options")
 }
 
 type PasskeyCreationOptionsService interface {

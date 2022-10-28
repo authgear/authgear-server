@@ -133,7 +133,7 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer ctrl.Serve()
 
 	redirectURI := httputil.HostRelative(r.URL).String()
-	identityID := r.Form.Get("x_identity_id")
+	identityID := r.Form.Get("q_identity_id")
 	userID := ctrl.RequireUserID()
 
 	// check if the user is anonymous user

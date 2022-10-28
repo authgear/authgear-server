@@ -17,12 +17,11 @@ var TemplateWebForgotPasswordSuccessHTML = template.RegisterHTML(
 func ConfigureForgotPasswordSuccessRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET").
-		WithPathPattern("/forgot_password/success")
+		WithPathPattern("/flows/forgot_password/success")
 }
 
 type ForgotPasswordSuccessViewModel struct {
 	GivenLoginID string
-	RedirectURI  string
 }
 
 type ForgotPasswordSuccessNode interface {
@@ -39,8 +38,6 @@ func (h *ForgotPasswordSuccessHandler) GetData(r *http.Request, rw http.Response
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	forgotPasswordSuccessViewModel := ForgotPasswordSuccessViewModel{}
-
-	forgotPasswordSuccessViewModel.RedirectURI = "/login"
 
 	if loginID, ok := session.Extra["login_id"]; ok {
 		forgotPasswordSuccessViewModel.GivenLoginID = loginID.(string)

@@ -28,7 +28,8 @@ var ForceChangePasswordSchema = validation.NewSimpleSchema(`
 `)
 
 func ConfigureForceChangePasswordRoute(route httproute.Route) httproute.Route {
-	return route.WithMethods("OPTIONS", "POST", "GET").WithPathPattern("/change_password")
+	return route.WithMethods("OPTIONS", "POST", "GET").
+		WithPathPattern("/flows/change_password")
 }
 
 type ChangePasswordViewModel struct {

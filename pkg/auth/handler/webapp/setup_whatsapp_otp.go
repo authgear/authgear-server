@@ -29,7 +29,7 @@ var SetupWhatsappOTPSchema = validation.NewSimpleSchema(`
 func ConfigureSetupWhatsappOTPRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/setup_whatsapp_otp")
+		WithPathPattern("/flows/setup_whatsapp_otp")
 }
 
 type SetupWhatsappOTPHandler struct {

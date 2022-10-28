@@ -70,11 +70,15 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 		rootChain,
 		httproute.MiddlewareFunc(httputil.NoStore),
 	)
+	notFoundChain := httproute.Chain(
+		securityMiddleware,
+	)
 
 	systemConfigJSONRoute := httproute.Route{Middleware: systemConfigJSONChain}
 	graphqlRoute := httproute.Route{Middleware: graphqlChain}
 	adminAPIRoute := httproute.Route{Middleware: adminAPIChain}
 	incomingWebhookRoute := httproute.Route{Middleware: incomingWebhookChain}
+	notFoundRoute := httproute.Route{Middleware: notFoundChain}
 
 	router.Add(transport.ConfigureSystemConfigRoute(systemConfigJSONRoute), p.Handler(newSystemConfigHandler))
 
@@ -84,7 +88,7 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 
 	router.Add(transport.ConfigureStripeWebhookRoute(incomingWebhookRoute), p.Handler(newStripeWebhookHandler))
 
-	router.NotFound(securityMiddleware.Handle(p.Handler(newStaticAssetsHandler)))
+	router.NotFound(notFoundRoute, p.Handler(newStaticAssetsHandler))
 
 	return router
 }

@@ -34,10 +34,10 @@ type EnterLoginIDService interface {
 }
 
 func NewEnterLoginIDViewModel(r *http.Request, displayID string) EnterLoginIDViewModel {
-	loginIDKey := r.Form.Get("x_login_id_key")
-	loginIDType := r.Form.Get("x_login_id_type")
-	loginIDInputType := r.Form.Get("x_login_id_input_type")
-	identityID := r.Form.Get("x_identity_id")
+	loginIDKey := r.Form.Get("q_login_id_key")
+	loginIDType := r.Form.Get("q_login_id_type")
+	loginIDInputType := r.Form.Get("q_login_id_input_type")
+	identityID := r.Form.Get("q_identity_id")
 
 	return EnterLoginIDViewModel{
 		LoginIDKey:       loginIDKey,
@@ -52,9 +52,9 @@ var RemoveLoginIDSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_identity_id": { "type": "string" }
+			"q_identity_id": { "type": "string" }
 		},
-		"required": ["x_identity_id"]
+		"required": ["q_identity_id"]
 	}
 `)
 
@@ -62,12 +62,12 @@ var AddOrUpdateLoginIDSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_login_id_input_type": { "type": "string" },
-			"x_login_id_key": { "type": "string" },
-			"x_login_id_type": { "type": "string" },
-			"x_login_id": { "type": "string" }
+			"q_login_id_input_type": { "type": "string" },
+			"q_login_id_key": { "type": "string" },
+			"q_login_id_type": { "type": "string" },
+			"q_login_id": { "type": "string" }
 		},
-		"required": ["x_login_id_input_type", "x_login_id_key", "x_login_id_type", "x_login_id"]
+		"required": ["q_login_id_input_type", "q_login_id_key", "q_login_id_type", "q_login_id"]
 	}
 `)
 
@@ -87,7 +87,7 @@ type EnterLoginIDHandler struct {
 
 func (h *EnterLoginIDHandler) GetData(userID string, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
-	identityID := r.Form.Get("x_identity_id")
+	identityID := r.Form.Get("q_identity_id")
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	var enterLoginIDViewModel EnterLoginIDViewModel
@@ -139,7 +139,7 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		opts := webapp.SessionOptions{
 			RedirectURI: "/settings",
 		}
-		identityID := r.Form.Get("x_identity_id")
+		identityID := r.Form.Get("q_identity_id")
 		intent := intents.NewIntentRemoveIdentity(userID)
 
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
@@ -165,10 +165,10 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		opts := webapp.SessionOptions{
 			RedirectURI: "/settings",
 		}
-		loginIDKey := r.Form.Get("x_login_id_key")
-		loginIDType := r.Form.Get("x_login_id_type")
-		identityID := r.Form.Get("x_identity_id")
-		newLoginID := r.Form.Get("x_login_id")
+		loginIDKey := r.Form.Get("q_login_id_key")
+		loginIDType := r.Form.Get("q_login_id_type")
+		identityID := r.Form.Get("q_identity_id")
+		newLoginID := r.Form.Get("q_login_id")
 		var intent interaction.Intent
 		if identityID != "" {
 			intent = intents.NewIntentUpdateIdentity(userID, identityID)

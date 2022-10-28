@@ -57,7 +57,7 @@ export class WebSocketController extends Controller {
     // we will receive a refresh message which will refresh the page immediately.
     // This will cause the page to load twice.
     const url =
-      `${scheme}//${host}/ws` +
+      `${scheme}//${host}/_internals/ws` +
       (isReconnect && sessionUpdatedAfter != ""
         ? `?session_updated_after=${sessionUpdatedAfter}`
         : "");

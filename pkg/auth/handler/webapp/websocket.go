@@ -17,7 +17,7 @@ import (
 func ConfigureWebsocketRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET").
-		WithPathPattern("/ws")
+		WithPathPattern("/_internals/ws")
 }
 
 type WebsocketHandler struct {

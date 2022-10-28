@@ -32,7 +32,7 @@
 	inputmode="tel"
 	autocomplete="tel-national"
 	autocapitalize="none"
-	name="x_login_id"
+	name="q_login_id"
 	placeholder="{{ template "phone-number-placeholder" }}"
 	data-controller="intl-tel-input"
 	data-action="input->intl-tel-input#input countrychange->intl-tel-input#input"
@@ -45,7 +45,7 @@
 	type="{{ .LoginIDInputType }}"
 	autocomplete="username"
 	autocapitalize="none"
-	name="x_login_id"
+	name="q_login_id"
 	placeholder="{{ template "login-id-placeholder" (dict "variant" .LoginIDType) }}"
 >
 {{ end }}

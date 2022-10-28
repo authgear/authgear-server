@@ -62,36 +62,36 @@ func (p *FormPrefiller) Prefill(form url.Values) {
 		nonPhoneLoginIDInputType = "email"
 	}
 
-	// Set x_login_id_input_type to the type of the first login ID.
-	if _, ok := form["x_login_id_input_type"]; !ok {
+	// Set q_login_id_input_type to the type of the first login ID.
+	if _, ok := form["q_login_id_input_type"]; !ok {
 		// When SIWE is enabled, keys will be empty.
-		// but x_login_id_input_type should always be there.
+		// but q_login_id_input_type should always be there.
 		if len(p.LoginID.Keys) > 0 {
 			if string(p.LoginID.Keys[0].Type) == "phone" {
-				form.Set("x_login_id_input_type", "phone")
+				form.Set("q_login_id_input_type", "phone")
 			} else {
-				form.Set("x_login_id_input_type", nonPhoneLoginIDInputType)
+				form.Set("q_login_id_input_type", nonPhoneLoginIDInputType)
 			}
 		} else {
-			form.Set("x_login_id_input_type", "text")
+			form.Set("q_login_id_input_type", "text")
 		}
 	}
 
-	// Set x_login_id_key to match x_login_id_input_type
-	if inKey := form.Get("x_login_id_key"); inKey == "" {
+	// Set q_login_id_key to match q_login_id_input_type
+	if inKey := form.Get("q_login_id_key"); inKey == "" {
 	Switch:
-		switch form.Get("x_login_id_input_type") {
+		switch form.Get("q_login_id_input_type") {
 		case "phone":
 			for _, k := range p.LoginID.Keys {
 				if k.Type == model.LoginIDKeyTypePhone {
-					form.Set("x_login_id_key", k.Key)
+					form.Set("q_login_id_key", k.Key)
 					break Switch
 				}
 			}
 		case "email":
 			for _, k := range p.LoginID.Keys {
 				if k.Type == model.LoginIDKeyTypeEmail {
-					form.Set("x_login_id_key", k.Key)
+					form.Set("q_login_id_key", k.Key)
 					break Switch
 				}
 			}
@@ -100,7 +100,7 @@ func (p *FormPrefiller) Prefill(form url.Values) {
 		default:
 			for _, k := range p.LoginID.Keys {
 				if k.Type != model.LoginIDKeyTypePhone {
-					form.Set("x_login_id_key", k.Key)
+					form.Set("q_login_id_key", k.Key)
 					break Switch
 				}
 			}

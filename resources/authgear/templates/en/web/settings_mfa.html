@@ -4,7 +4,7 @@
 
 <div class="pane flex flex-col">
   <div class="px-4">
-    {{ template "__nav_bar.html" "/settings" }}
+    {{ template "__nav_bar.html" (call $.MakeURL "/settings") }}
   </div>
 
   <!-- Title -->
@@ -28,7 +28,7 @@
     <p class="col-start-1 col-span-2 m-0 good-txt text-sm">
       {{ template "activated-label" }}
     </p>
-    <a class="link w-6 col-start-3 col-span-1 row-start-1 row-span-2 flex flex-col items-end justify-center" href="/settings/mfa/totp">
+    <a class="link w-6 col-start-3 col-span-1 row-start-1 row-span-2 flex flex-col items-end justify-center" href="{{ call $.MakeURL "/settings/mfa/totp" }}">
       <i class="ti ti-edit"></i>
     </a>
     {{ else }}
@@ -56,7 +56,7 @@
     <p class="col-start-1 col-span-2 m-0 good-txt text-sm">
       {{ template "activated-label" }}
     </p>
-    <a class="link w-6 col-start-3 col-span-1 row-start-1 row-span-2 flex flex-col items-end justify-center" href="/settings/mfa/oob_otp_email">
+    <a class="link w-6 col-start-3 col-span-1 row-start-1 row-span-2 flex flex-col items-end justify-center" href="{{ call $.MakeURL "/settings/mfa/oob_otp_email" }}">
       <i class="ti ti-edit"></i>
     </a>
     {{ else }}
@@ -83,7 +83,7 @@
     <p class="col-start-1 col-span-2 m-0 good-txt text-sm">
       {{ template "activated-label" }}
     </p>
-    <a class="link w-6 col-start-3 col-span-1 row-start-1 row-span-2 flex flex-col items-end justify-center" href="/settings/mfa/oob_otp_sms">
+    <a class="link w-6 col-start-3 col-span-1 row-start-1 row-span-2 flex flex-col items-end justify-center" href="{{ call $.MakeURL "/settings/mfa/oob_otp_sms" }}">
       <i class="ti ti-edit"></i>
     </a>
     {{ else }}
@@ -113,7 +113,7 @@
       <!-- FIXME(ui): Use user preferred timezone -->
       {{ template "settings-page-secondary-password-description" (dict "time" $.SecondaryPassword.UpdatedAt "rfc3339" (rfc3339 $.SecondaryPassword.UpdatedAt)) }}
     </p>
-    <a class="link w-6 col-start-3 col-span-1 row-start-1 row-span-2 flex flex-col items-end justify-center btn secondary-btn" href="/settings/mfa/change_secondary_password">
+    <a class="link w-6 col-start-3 col-span-1 row-start-1 row-span-2 flex flex-col items-end justify-center btn secondary-btn" href="{{ call $.MakeURL "/settings/mfa/change_secondary_password" }}">
       <i class="ti ti-edit"></i>
     </a>
     <form class="col-start-4 col-span-1 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate>
@@ -144,7 +144,7 @@
     <p class="col-start-1 col-span-2 m-0 secondary-txt text-sm">
       {{ template "settings-page-recovery-code-description" }}
     </p>
-    <a class="link col-start-3 col-span-1 row-start-1 row-span-2 self-center text-sm as-btn not-a btn action-btn" href="/settings/mfa/recovery_code">
+    <a class="link col-start-3 col-span-1 row-start-1 row-span-2 self-center text-sm as-btn not-a btn action-btn" href="{{ call $.MakeURL "/settings/mfa/recovery_code" }}">
       {{ template "show-recovery-code-button-label" }}
     </a>
   </div>

@@ -37,7 +37,7 @@ var EnterOOBOTPSchema = validation.NewSimpleSchema(`
 func ConfigureEnterOOBOTPRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/enter_oob_otp")
+		WithPathPattern("/flows/enter_oob_otp")
 }
 
 type EnterOOBOTPViewModel struct {

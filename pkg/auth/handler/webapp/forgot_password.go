@@ -21,17 +21,31 @@ var ForgotPasswordSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
-			"x_login_id": { "type": "string" }
+			"q_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
+			"q_login_id": { "type": "string" }
 		},
-		"required": ["x_login_id_input_type", "x_login_id"]
+		"required": ["q_login_id_input_type", "q_login_id"]
 	}
 `)
 
 func ConfigureForgotPasswordRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/forgot_password")
+		WithPathPattern("/flows/forgot_password")
+}
+
+type ForgotPasswordViewModel struct {
+	LoginIDInputType string
+	LoginID          string
+}
+
+func NewForgotPasswordViewModel(r *http.Request) ForgotPasswordViewModel {
+	loginIDInputType := r.Form.Get("q_login_id_input_type")
+	loginID := r.Form.Get("q_login_id")
+	return ForgotPasswordViewModel{
+		LoginIDInputType: loginIDInputType,
+		LoginID:          loginID,
+	}
 }
 
 type ForgotPasswordHandler struct {
@@ -46,7 +60,7 @@ func (h *ForgotPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter,
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	authenticationViewModel := h.AuthenticationViewModel.NewWithGraph(graph, r.Form)
-	viewmodels.EmbedForm(data, r.Form)
+	viewmodels.Embed(data, NewForgotPasswordViewModel(r))
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, authenticationViewModel)
 	return data, nil
@@ -89,7 +103,7 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				return
 			}
 
-			loginID := r.Form.Get("x_login_id")
+			loginID := r.Form.Get("q_login_id")
 
 			input = &InputForgotPassword{
 				LoginID: loginID,

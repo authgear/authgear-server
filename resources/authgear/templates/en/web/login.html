@@ -19,8 +19,8 @@
 	<div class="pane flex flex-col">
 		{{ if (or $has_login_id $has_siwe) }}{{ if (not (or $.PublicSignupDisabled $.AllowLoginOnly)) }}
 		<div class="flex flex-row">
-			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt current" href="{{ call $.MakeURL "/login" "x_login_id_input_type" $.x_login_id_input_type }}" data-turbo-action="replace">{{ template "login-label" }}</a>
-			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt" href="{{ call $.MakeURL "/signup" "x_login_id_input_type" $.x_login_id_input_type }}" data-turbo-action="replace">{{ template "signup-label" }}</a>
+			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt current" href="{{ call $.MakeURL "/login" "q_login_id_input_type" $.LoginIDInputType }}" data-turbo-action="replace">{{ template "login-label" }}</a>
+			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt" href="{{ call $.MakeURL "/signup" "q_login_id_input_type" $.LoginIDInputType }}" data-turbo-action="replace">{{ template "signup-label" }}</a>
 		</div>
 		{{ end }}{{ end }}
 
@@ -51,7 +51,7 @@
 					{{ end }}
 				</h1>
 
-				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if $.PhoneLoginIDEnabled }}
+				{{ if $.LoginIDInputType }}{{ if eq $.LoginIDInputType "phone" }}{{ if $.PhoneLoginIDEnabled }}
 				<input
 					data-intl-tel-input="true"
 					data-intl-tel-input-class-value="flex flex-row"
@@ -62,7 +62,7 @@
 					inputmode="tel"
 					autocomplete="tel-national username webauthn"
 					autocapitalize="none"
-					name="x_login_id"
+					name="q_login_id"
 					placeholder="{{ template "phone-number-placeholder" }}"
 					data-controller="intl-tel-input"
 					data-action="input->intl-tel-input#input countrychange->intl-tel-input#input intl-tel-input:input->retain-form-form#input"
@@ -71,7 +71,7 @@
 				>
 				{{ end }}{{ end }}{{ end }}
 
-				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if (or $.EmailLoginIDEnabled $.UsernameLoginIDEnabled) }}
+				{{ if $.LoginIDInputType }}{{ if not (eq $.LoginIDInputType "phone") }}{{ if (or $.EmailLoginIDEnabled $.UsernameLoginIDEnabled) }}
 				<input
 					tabindex="0"
 					autofocus
@@ -79,7 +79,7 @@
 					type="{{ $.NonPhoneLoginIDInputType }}"
 					autocomplete="username webauthn"
 					autocapitalize="none"
-					name="x_login_id"
+					name="q_login_id"
 					placeholder="{{ template "login-id-placeholder" (dict "variant" $.NonPhoneLoginIDType) }}"
 					data-controller="retain-form-input"
 					data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
@@ -90,12 +90,12 @@
 				<input style="display: none" aria-hidden="true" type="password" autocomplete="current-password" name="">
 				{{ end }}{{ end }}{{ end }}
 
-				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if (or $.EmailLoginIDEnabled $.UsernameLoginIDEnabled) }}
-				<a class="link text-sm self-start block" href="{{ call $.MakeURL "" "x_login_id_input_type" $.NonPhoneLoginIDInputType }}" data-turbo-action="replace">{{ template "use-text-login-id-description" (dict "variant" $.NonPhoneLoginIDType) }}</a>
+				{{ if $.LoginIDInputType }}{{ if eq $.LoginIDInputType "phone" }}{{ if (or $.EmailLoginIDEnabled $.UsernameLoginIDEnabled) }}
+				<a class="link text-sm self-start block" href="{{ call $.MakeURL "" "q_login_id_input_type" $.NonPhoneLoginIDInputType }}" data-turbo-action="replace">{{ template "use-text-login-id-description" (dict "variant" $.NonPhoneLoginIDType) }}</a>
 				{{ end }}{{ end }}{{ end }}
 
-				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if $.PhoneLoginIDEnabled }}
-				<a class="link text-sm self-start block" href="{{ call $.MakeURL "" "x_login_id_input_type" "phone" }}" data-turbo-action="replace">{{ template "use-phone-login-id-description" }}</a>
+				{{ if $.LoginIDInputType }}{{ if not (eq $.LoginIDInputType "phone") }}{{ if $.PhoneLoginIDEnabled }}
+				<a class="link text-sm self-start block" href="{{ call $.MakeURL "" "q_login_id_input_type" "phone" }}" data-turbo-action="replace">{{ template "use-phone-login-id-description" }}</a>
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if not $.LoginIDDisabled }}
@@ -121,7 +121,7 @@
 			<div class="twc-container-vertical">
 				<a
 				class="not-a btn wallet-btn metamask"
-				href="/confirm_web3_account?provider=metamask"
+				href="{{ call $.MakeURL "/flows/confirm_web3_account" "q_provider" "metamask" }}"
 				data-turbo="false"
 				data-authgear-event="authgear.button.connect_wallet"
 				>

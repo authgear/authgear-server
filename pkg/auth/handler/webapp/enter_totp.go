@@ -32,7 +32,7 @@ var EnterTOTPSchema = validation.NewSimpleSchema(`
 func ConfigureEnterTOTPRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/enter_totp")
+		WithPathPattern("/flows/enter_totp")
 }
 
 type EnterTOTPHandler struct {

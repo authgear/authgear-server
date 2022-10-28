@@ -74,7 +74,10 @@ func (r *Router) AddRoutes(h http.Handler, routes ...Route) {
 	}
 }
 
-func (r *Router) NotFound(h http.Handler) {
+func (r *Router) NotFound(route Route, h http.Handler) {
+	if route.Middleware != nil {
+		h = route.Middleware.Handle(h)
+	}
 	r.router.NotFound = h
 }
 

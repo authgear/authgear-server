@@ -27,7 +27,7 @@
 <div class="text-center text-sm">
     {{ template "error-web-ui-invalid-session-retry" }}
 </div>
-<a class="as-btn not-a btn primary-btn my-5" href="/" data-turbo="false">
+<a class="as-btn not-a btn primary-btn my-5" href="{{ call $.MakeURL "/" }}" data-turbo="false">
     {{ template "error-web-ui-invalid-session-action" }}
 </a>
 {{ end }}

@@ -563,9 +563,9 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 func deriveFinishRedirectURI(session *Session, graph *interaction.Graph) string {
 	switch graph.CurrentNode().(type) {
 	case *nodes.NodeForgotPasswordEnd:
-		return "/forgot_password/success"
+		return "/flows/forgot_password/success"
 	case *nodes.NodeResetPasswordEnd:
-		return "/reset_password/success"
+		return "/flows/reset_password/success"
 	}
 	return session.RedirectURI
 }

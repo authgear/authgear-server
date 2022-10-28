@@ -18,7 +18,7 @@ var TemplateWebPromptCreatePasskeyHTML = template.RegisterHTML(
 func ConfigurePromptCreatePasskeyRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/prompt_create_passkey")
+		WithPathPattern("/flows/prompt_create_passkey")
 }
 
 type PromptCreatePasskeyHandler struct {
@@ -32,7 +32,6 @@ func (h *PromptCreatePasskeyHandler) GetData(r *http.Request, rw http.ResponseWr
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 
-	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
 
 	return data, nil

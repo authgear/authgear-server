@@ -25,7 +25,8 @@ var SettingsChangePasswordSchema = validation.NewSimpleSchema(`
 `)
 
 func ConfigureSettingsChangePasswordRoute(route httproute.Route) httproute.Route {
-	return route.WithMethods("OPTIONS", "POST", "GET").WithPathPattern("/settings/change_password")
+	return route.WithMethods("OPTIONS", "POST", "GET").
+		WithPathPattern("/settings/change_password")
 }
 
 type SettingsChangePasswordHandler struct {

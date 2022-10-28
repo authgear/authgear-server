@@ -3,7 +3,7 @@
 {{ define "page-content" }}
 <div class="pane flex flex-col">
   <div class="px-4">
-    {{ template "__nav_bar.html" "/settings/mfa" }}
+    {{ template "__nav_bar.html" (call $.MakeURL "/settings/mfa") }}
   </div>
 
   <div class="px-5 pt-4 pb-5 row-sep grid grid-cols-1 auto-rows-auto gap-y-1">

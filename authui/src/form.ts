@@ -105,6 +105,7 @@ export class XHRSubmitFormController extends Controller {
 
         case "replace":
         case "advance":
+          // We assume the URL returned by the server have query preserved.
           visit(redirect_uri, { action });
           break;
       }

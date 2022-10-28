@@ -33,7 +33,7 @@ var Web3AccountConfirmationSchema = validation.NewSimpleSchema(`
 func ConfigureConnectWeb3AccountRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/confirm_web3_account")
+		WithPathPattern("/flows/confirm_web3_account")
 }
 
 type ConnectWeb3AccountViewModel struct {
@@ -55,7 +55,7 @@ func (h *ConnectWeb3AccountHandler) GetData(r *http.Request, rw http.ResponseWri
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 
 	provider := ""
-	if p := r.Form.Get("provider"); p == "" {
+	if p := r.Form.Get("q_provider"); p == "" {
 		provider = "metamask"
 	} else {
 		provider = p

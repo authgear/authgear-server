@@ -11,7 +11,7 @@
   {{ template "account-deletion-success-description" (dict "date" $.ExpectedAccountDeletionTime "rfc3339" (rfc3339 $.ExpectedAccountDeletionTime)) }}
 </p>
 
-<a class="not-a btn primary-btn mt-5 flex flex-col items-center justify-center" href="/">
+<a class="not-a btn primary-btn mt-5 flex flex-col items-center justify-center" href="{{ call $.MakeURL "/" }}">
   {{ template "done-button-label" }}
 </a>
 

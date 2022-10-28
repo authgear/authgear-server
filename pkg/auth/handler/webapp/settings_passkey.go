@@ -89,7 +89,7 @@ func (h *SettingsPasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		opts := webapp.SessionOptions{
 			RedirectURI: redirectURI,
 		}
-		identityID := r.Form.Get("x_identity_id")
+		identityID := r.Form.Get("q_identity_id")
 		intent := intents.NewIntentRemoveIdentity(userID)
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
 			input = &InputRemoveIdentity{

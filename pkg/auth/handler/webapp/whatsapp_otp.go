@@ -23,7 +23,7 @@ var TemplateWebWhatsappHTML = template.RegisterHTML(
 func ConfigureWhatsappOTPRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/whatsapp_otp")
+		WithPathPattern("/flows/whatsapp_otp")
 }
 
 type WhatsappOTPNode interface {

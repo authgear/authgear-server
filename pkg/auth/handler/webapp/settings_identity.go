@@ -82,7 +82,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 
 	redirectURI := httputil.HostRelative(r.URL).String()
 	providerAlias := r.Form.Get("x_provider_alias")
-	identityID := r.Form.Get("x_identity_id")
+	identityID := r.Form.Get("q_identity_id")
 	userID := ctrl.RequireUserID()
 
 	ctrl.Get(func() error {

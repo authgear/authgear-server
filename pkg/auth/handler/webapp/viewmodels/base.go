@@ -209,23 +209,11 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		SliceContains:               sliceContains,
 		MakeURL: func(path string, pairs ...string) string {
 			u := r.URL
-			inQuery := url.Values{}
+			outQuery := webapp.PreserveQuery(u.Query())
 			for i := 0; i < len(pairs); i += 2 {
-				inQuery.Set(pairs[i], pairs[i+1])
+				outQuery.Set(pairs[i], pairs[i+1])
 			}
-			return webapp.MakeURL(u, path, inQuery).String()
-		},
-		MakeCurrentStepURL: func(pairs ...string) string {
-			u := r.URL
-			inQuery := url.Values{}
-			for i := 0; i < len(pairs); i += 2 {
-				inQuery.Set(pairs[i], pairs[i+1])
-			}
-			step := r.Form.Get("x_step")
-			if step != "" {
-				inQuery.Set("x_step", step)
-			}
-			return webapp.MakeURL(u, u.Path, inQuery).String()
+			return webapp.MakeURL(u, path, outQuery).String()
 		},
 		ForgotPasswordEnabled:       *m.ForgotPassword.Enabled,
 		PublicSignupDisabled:        m.Authentication.PublicSignupDisabled,

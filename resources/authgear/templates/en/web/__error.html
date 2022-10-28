@@ -62,7 +62,7 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
     {{ if $display_error }} {{ $info := .Error.info }} {{ if eq .Error.reason
     "ValidationFailed" }} {{ range .Error.info.causes }} {{ if (eq .kind
     "required") }}
-    {{ if (call $.SliceContains .details.missing "x_login_id") }}
+    {{ if (call $.SliceContains .details.missing "q_login_id") }}
     <li>
       {{ template "error-login-id-required" (dict "variant" $.LoginIDContextualType) }}
     </li>

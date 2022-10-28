@@ -19,7 +19,7 @@
 	{{ if $.PublicSignupDisabled }}
 	<div class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
 		<p class="primary-txt m-0 text-base">{{ template "public-signup-disabled-notice" }}</p>
-		<a class="as-btn not-a btn primary-btn my-5" href="/login" data-turbo="false">{{ template "login-label" }}</a>
+		<a class="as-btn not-a btn primary-btn my-5" href="{{ call $.MakeURL "/login" }} " data-turbo="false">{{ template "login-label" }}</a>
 		{{ template "__watermark.html" . }}
 	</div>
 	{{ else }}
@@ -27,8 +27,8 @@
 	<div class="pane flex flex-col">
 		{{ if not $.PublicSignupDisabled }}{{ if (or $has_login_id $has_siwe) }}
 		<div class="flex flex-row">
-			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt" href="{{ call $.MakeURL "/login" "x_login_id_input_type" $.x_login_id_input_type }}" data-turbo-action="replace">{{ template "login-label" }}</a>
-			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt current" href="{{ call $.MakeURL "/signup" "x_login_id_input_type" $.x_login_id_input_type }}" data-turbo-action="replace">{{ template "signup-label" }}</a>
+			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt" href="{{ call $.MakeURL "/login" "q_login_id_input_type" $.LoginIDInputType }}" data-turbo-action="replace">{{ template "login-label" }}</a>
+			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt current" href="{{ call $.MakeURL "/signup" "q_login_id_input_type" $.LoginIDInputType }}" data-turbo-action="replace">{{ template "signup-label" }}</a>
 		</div>
 		{{ end }}{{ end }}
 
@@ -53,11 +53,11 @@
 					{{ end }}
 				</h1>
 
-				<input type="hidden" name="x_login_id_key" value="{{ $.x_login_id_key }}">
+				<input type="hidden" name="q_login_id_key" value="{{ $.LoginIDKey }}">
 
 				{{ range $.IdentityCandidates }}
-				{{ if eq .type "login_id" }}{{ if eq .login_id_key $.x_login_id_key }}
-				<input type="hidden" name="x_login_id_type" value="{{ .login_id_type }}">
+				{{ if eq .type "login_id" }}{{ if eq .login_id_key $.LoginIDKey }}
+				<input type="hidden" name="q_login_id_type" value="{{ .login_id_type }}">
 				{{ if eq .login_id_type "phone" }}
 					<input
 						data-intl-tel-input="true"
@@ -69,7 +69,7 @@
 						inputmode="tel"
 						autocomplete="tel-national"
 						autocapitalize="none"
-						name="x_login_id"
+						name="q_login_id"
 						placeholder="{{ template "phone-number-placeholder" }}"
 						data-controller="intl-tel-input"
 						data-action="input->intl-tel-input#input countrychange->intl-tel-input#input intl-tel-input:input->retain-form-form#input"
@@ -82,10 +82,10 @@
 						autofocus
 						class="text-input primary-txt"
 						type="{{ $.NonPhoneLoginIDInputType }}"
-						name="x_login_id"
+						name="q_login_id"
 						autocomplete="username"
 						autocapitalize="none"
-						placeholder="{{ template "login-id-placeholder" (dict "variant" $.x_login_id_key) }}"
+						placeholder="{{ template "login-id-placeholder" (dict "variant" $.LoginIDKey) }}"
 						data-controller="retain-form-input"
 						data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
 						data-retain-form-form-target="input"
@@ -96,9 +96,9 @@
 				{{ end }}
 
 				{{ range .IdentityCandidates }}
-				{{ if eq .type "login_id" }}{{ if not (eq .login_id_key $.x_login_id_key) }}
+				{{ if eq .type "login_id" }}{{ if not (eq .login_id_key $.LoginIDKey) }}
 					<a class="link text-sm self-start block" data-turbo-action="replace"
-						href="{{ call $.MakeURL "" "x_login_id_key" .login_id_key "x_login_id_input_type" .login_id_input_type}}">
+						href="{{ call $.MakeURL "" "q_login_id_key" .login_id_key "q_login_id_input_type" .login_id_input_type}}">
 						{{ template "use-login-id-key" (dict "key" .login_id_key) }}
 					</a>
 				{{ end }}{{ end }}
@@ -121,7 +121,7 @@
 			<div class="twc-container-vertical">
 				<a
 				class="not-a btn wallet-btn metamask"
-				href="/confirm_web3_account?provider=metamask"
+				href="{{ call $.MakeURL "/flows/confirm_web3_account" "q_provider" "metamask" }}"
 				data-turbo="false"
 				data-authgear-event="authgear.button.connect_wallet"
 				>

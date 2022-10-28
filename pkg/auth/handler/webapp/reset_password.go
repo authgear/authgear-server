@@ -32,7 +32,7 @@ var ResetPasswordSchema = validation.NewSimpleSchema(`
 func ConfigureResetPasswordRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/reset_password")
+		WithPathPattern("/flows/reset_password")
 }
 
 type ResetPasswordHandler struct {

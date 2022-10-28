@@ -25,10 +25,10 @@ var LoginWithLoginIDSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
-			"x_login_id": { "type": "string" }
+			"q_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
+			"q_login_id": { "type": "string" }
 		},
-		"required": ["x_login_id_input_type", "x_login_id"]
+		"required": ["q_login_id_input_type", "q_login_id"]
 	}
 `)
 
@@ -57,7 +57,16 @@ type ErrorCookie interface {
 }
 
 type LoginViewModel struct {
-	AllowLoginOnly bool
+	AllowLoginOnly   bool
+	LoginIDInputType string
+}
+
+func NewLoginViewModel(allowLoginOnly bool, r *http.Request) LoginViewModel {
+	loginIDInputType := r.Form.Get("q_login_id_input_type")
+	return LoginViewModel{
+		AllowLoginOnly:   allowLoginOnly,
+		LoginIDInputType: loginIDInputType,
+	}
 }
 
 type LoginHandler struct {
@@ -74,17 +83,13 @@ type LoginHandler struct {
 func (h *LoginHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph, allowLoginOnly bool) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	viewModel := LoginViewModel{
-		AllowLoginOnly: allowLoginOnly,
-	}
-	viewmodels.EmbedForm(data, r.Form)
 	if h.TutorialCookie.Pop(r, rw, httputil.SignupLoginTutorialCookieName) {
 		baseViewModel.SetTutorial(httputil.SignupLoginTutorialCookieName)
 	}
 	viewmodels.Embed(data, baseViewModel)
 	authenticationViewModel := h.AuthenticationViewModel.NewWithGraph(graph, r.Form)
 	viewmodels.Embed(data, authenticationViewModel)
-	viewmodels.Embed(data, viewModel)
+	viewmodels.Embed(data, NewLoginViewModel(allowLoginOnly, r))
 	return data, nil
 }
 
@@ -187,7 +192,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			loginID := r.Form.Get("x_login_id")
+			loginID := r.Form.Get("q_login_id")
 
 			input = &InputUseLoginID{
 				LoginID: loginID,

@@ -94,7 +94,7 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 			return err
 		}
 		result := &webapp.Result{
-			RedirectURI: "/return",
+			RedirectURI: "/errors/return",
 		}
 		result.WriteResponse(w, r)
 

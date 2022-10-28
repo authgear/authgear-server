@@ -19,7 +19,7 @@
 {{ template "wechat-open-app" }}
 </a>
 <a class="as-btn not-a btn primary-btn wechat hidden"
-    href="{{ $.CurrentURI }}"
+    href="{{ call $.MakeURL "" }}"
     data-turbo-action="replace"
     data-is-refresh-link="true"
     data-click-to-switch-target="clickToShow"

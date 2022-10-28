@@ -16,7 +16,7 @@ var TemplateWebReturnHTML = template.RegisterHTML(
 func ConfigureReturnRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET").
-		WithPathPattern("/return")
+		WithPathPattern("/errors/return")
 }
 
 type ReturnHandler struct {

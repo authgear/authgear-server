@@ -24,12 +24,12 @@ var SignupWithLoginIDSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_login_id_key": { "type": "string" },
-			"x_login_id_type": { "type": "string" },
-			"x_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
-			"x_login_id": { "type": "string" }
+			"q_login_id_key": { "type": "string" },
+			"q_login_id_type": { "type": "string" },
+			"q_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
+			"q_login_id": { "type": "string" }
 		},
-		"required": ["x_login_id_key", "x_login_id_type", "x_login_id_input_type", "x_login_id"]
+		"required": ["q_login_id_key", "q_login_id_type", "q_login_id_input_type", "q_login_id"]
 	}
 `)
 
@@ -41,6 +41,20 @@ func ConfigureSignupRoute(route httproute.Route) httproute.Route {
 
 type MeterService interface {
 	TrackPageView(VisitorID string, pageType meter.PageType) error
+}
+
+type SignupViewModel struct {
+	LoginIDInputType string
+	LoginIDKey       string
+}
+
+func NewSignupViewModel(r *http.Request) SignupViewModel {
+	loginIDInputType := r.Form.Get("q_login_id_input_type")
+	loginIDKey := r.Form.Get("q_login_id_key")
+	return SignupViewModel{
+		LoginIDInputType: loginIDInputType,
+		LoginIDKey:       loginIDKey,
+	}
 }
 
 type SignupHandler struct {
@@ -56,13 +70,13 @@ type SignupHandler struct {
 func (h *SignupHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	viewmodels.EmbedForm(data, r.Form)
 	if h.TutorialCookie.Pop(r, rw, httputil.SignupLoginTutorialCookieName) {
 		baseViewModel.SetTutorial(httputil.SignupLoginTutorialCookieName)
 	}
 	viewmodels.Embed(data, baseViewModel)
 	authenticationViewModel := h.AuthenticationViewModel.NewWithGraph(graph, r.Form)
 	viewmodels.Embed(data, authenticationViewModel)
+	viewmodels.Embed(data, NewSignupViewModel(r))
 	return data, nil
 }
 
@@ -148,9 +162,9 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			loginIDValue := r.Form.Get("x_login_id")
-			loginIDKey := r.Form.Get("x_login_id_key")
-			loginIDType := r.Form.Get("x_login_id_type")
+			loginIDValue := r.Form.Get("q_login_id")
+			loginIDKey := r.Form.Get("q_login_id_key")
+			loginIDType := r.Form.Get("q_login_id_type")
 
 			input = &InputNewLoginID{
 				LoginIDType:  loginIDType,

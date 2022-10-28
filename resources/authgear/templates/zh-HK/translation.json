@@ -85,6 +85,8 @@
   "error-metamask-unsupported-method": "無效的請求方式。",
   "error-metamask-disconnected": "已從區塊鏈斷開連接。",
   "error-failed-to-connect-wallet": "無法連接到錢包。",
+  "error-page-not-found": "找不到頁面",
+  "error-page-not-found-action": "返回主頁",
 
   "success-resend-code": "成功重發驗證碼！",
 

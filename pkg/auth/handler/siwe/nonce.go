@@ -13,7 +13,7 @@ import (
 func ConfigureNonceRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET").
-		WithPathPattern("/siwe/nonce")
+		WithPathPattern("/_internals/siwe/nonce")
 }
 
 type NonceHandlerSIWEService interface {
