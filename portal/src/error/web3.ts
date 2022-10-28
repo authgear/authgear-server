@@ -5,3 +5,8 @@ export interface APIBadNFTCollectionError {
     type: string;
   };
 }
+
+export interface APIAlchemyProtocolError {
+  errorName: string;
+  reason: "AlchemyProtocol";
+}

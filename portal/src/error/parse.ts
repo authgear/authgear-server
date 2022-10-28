@@ -210,6 +210,12 @@ function parseError(error: APIError): ParsedAPIError[] {
       });
       break;
     }
+    case "AlchemyProtocol": {
+      errors.push({
+        messageID: "errors.alchemy-protocol",
+      });
+      break;
+    }
     default:
       errors.push({
         messageID: "errors.unknown",

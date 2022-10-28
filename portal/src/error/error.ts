@@ -32,7 +32,7 @@ import {
   WebHookDeliveryTimeoutError,
   WebHookInvalidResponseError,
 } from "./webhook";
-import { APIBadNFTCollectionError } from "./web3";
+import { APIBadNFTCollectionError, APIAlchemyProtocolError } from "./web3";
 import type { ParsedAPIError } from "./parse";
 
 export interface NetworkError {
@@ -102,7 +102,8 @@ export type APIError =
   | APIResourceNotFoundError
   | APIResourceTooLargeError
   | APIUnsupportedImageFileError
-  | APIBadNFTCollectionError;
+  | APIBadNFTCollectionError
+  | APIAlchemyProtocolError;
 
 export function isAPIError(value: unknown): value is APIError {
   return (
