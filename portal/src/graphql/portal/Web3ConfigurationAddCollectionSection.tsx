@@ -172,7 +172,10 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionSectionProps> =
     );
 
     return (
-      <div className={cn(styles.addCollection, className)}>
+      <form
+        className={cn(styles.addCollection, className)}
+        onSubmit={onAddCollection}
+      >
         <TextField
           label={renderToString(
             "Web3ConfigurationScreen.collection-list.add-collection.contract-address"
@@ -191,7 +194,7 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionSectionProps> =
         />
         <div className={styles.addCollectionButtonContainer}>
           <PrimaryButton
-            type="button"
+            type="submit"
             className={styles.addCollectionAddButton}
             disabled={!isModified || isLoading}
             onClick={onAddCollection}
@@ -219,7 +222,7 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionSectionProps> =
           onContinue={handleAddCollection}
           onDismiss={dismissDialogs}
         />
-      </div>
+      </form>
     );
   };
 
