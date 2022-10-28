@@ -305,12 +305,21 @@ As the first project `accounts` is created by the script instead of by user, we 
 
 ## Known issues
 
+cert-manager@v1.7.3 has transitive dependency problem.
+
+siwe has to be 1.1.6. siwe@2.x has runtime error on page load. siwe@1.1.6 requires ethers@5.5.1.
+
 ### Portal
 
 As `useBlocker` is removed since react-router-domv6.0.0-beta.7 and have no promise which version will
 come back, we introduce the custom `useBlocker` hook by referencing the last commit which this hook
 still exist.
 See [https://github.com/remix-run/react-router/commit/256cad70d3fd4500b1abcfea66f3ee622fb90874](https://github.com/remix-run/react-router/commit/256cad70d3fd4500b1abcfea66f3ee622fb90874)
+react-router-dom@6.4.0 removed the `block` function from NavigationContext.
+We have to remain on react-router-dom@6.3.0 until we find an alternative.
+
+@tabler/icons@1.92.0 is the last version that can be built with our current setup.
+Newer version will cause our `npm run build` command to fail.
 
 NPM has an outstanding issue related to optional native dependencies.
 https://github.com/npm/cli/issues/4828
@@ -369,6 +378,7 @@ Various files in this project have versioned dependencies.
 - [The go directive in go.mod](./go.mod)
 - [The dependencies listed in go.mod](./go.mod)
 - [The tool versions listed in .tool-versions](./.tool-versions)
+- [The version of golangci-lint in Makefile](./Makefile)
 - [The versions appearing in ./github/workflows/ci.yaml](./github/workflows/ci.yaml)
 - [The FROM directives in ./cmd/authgear/Dockerfile](./cmd/authgear/Dockerfile)
 - [The FROM directives in ./cmd/portal/Dockerfile](./cmd/portal/Dockerfile)

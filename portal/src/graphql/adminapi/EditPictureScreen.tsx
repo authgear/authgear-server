@@ -15,7 +15,7 @@ import {
   ProgressIndicator,
 } from "@fluentui/react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import axios, { AxiosProgressEvent } from "axios";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import CommandBarContainer from "../../CommandBarContainer";
@@ -232,12 +232,13 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
   );
 
   const onProgress = useCallback(
-    (e: ProgressEvent) => {
-      if (e.lengthComputable) {
+    (e: AxiosProgressEvent) => {
+      const { loaded, total } = e;
+      if (total != null) {
         setState((prev) => {
           return {
             ...prev,
-            percentComplete: e.loaded / e.total,
+            percentComplete: loaded / total,
           };
         });
       }

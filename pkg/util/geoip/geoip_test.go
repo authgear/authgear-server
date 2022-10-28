@@ -17,7 +17,7 @@ func TestIPString(t *testing.T) {
 		// This serves as the documentation of the version of the file.
 		metadata := db.reader.Metadata()
 		build := time.Unix(int64(metadata.BuildEpoch), 0).UTC().Format(time.RFC3339)
-		So(build, ShouldEqual, "2022-09-01T15:36:01Z")
+		So(build, ShouldEqual, "2022-10-24T16:15:31Z")
 
 		info, ok := db.IPString(ipStr)
 		So(ok, ShouldBeTrue)

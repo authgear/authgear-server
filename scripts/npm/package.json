@@ -7,9 +7,9 @@
     "generate-go-timezones": "node generate-go-timezones.js"
   },
   "devDependencies": {
-    "cldr-localenames-modern": "41.0.0",
+    "cldr-localenames-modern": "42.0.0",
     "graphql": "16.6.0",
-    "luxon": "3.0.3",
+    "luxon": "3.0.4",
     "mjml": "4.13.0",
     "tzdata": "1.0.25"
   }

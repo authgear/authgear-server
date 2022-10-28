@@ -7,8 +7,9 @@ import (
 )
 
 // FIXME(admin): Refactor to remove the need of this placeholder provider
-//     Admin API is unable to trigger code paths that leads to these functions.
-//     Implementation of these functions require access to web-app logic.
+//
+//	Admin API is unable to trigger code paths that leads to these functions.
+//	Implementation of these functions require access to web-app logic.
 type WebEndpoints struct {
 }
 

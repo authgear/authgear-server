@@ -90,11 +90,14 @@ type OAuthSessionManager SessionManager
 // Coordinator represents interaction between identities, authenticators, and
 // other high-level features (such as verification).
 // FIXME(interaction): This is used to avoid circular dependency between
-//                     feature implementations. We should investigate a proper
-//                     resolution, as the interactions between features will
-//                     get complicated fast.
+//
+//	feature implementations. We should investigate a proper
+//	resolution, as the interactions between features will
+//	get complicated fast.
+//
 // FIXME(mfa): remove all MFA recovery code when last secondary authenticator is
-//             removed, so that recovery codes are re-generated when setup again.
+//
+//	removed, so that recovery codes are re-generated when setup again.
 type Coordinator struct {
 	Events                EventService
 	Identities            IdentityService
