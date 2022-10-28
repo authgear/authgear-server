@@ -55,11 +55,9 @@ const messageBarStyles = {
   },
 };
 
-const EXAMPLE_QUERY = `# The GraphQL schema follows the Relay GraphQL Server convention.
-# If you find the terms like "Node", "Edge", "Connection" strange to you, you can learn about them
-# at the related documentation of Relay at https://relay.dev/docs/guides/graphql-server-specification/
-#
-# For those who are curious, this is a more formal documentation https://relay.dev/assets/files/connections-932f4f2cdffd79724ac76373deb30dc8.htm
+const EXAMPLE_QUERY = `# The Authgear Admin API follows GraphQL Cursor Connections Specification to handle pagination of results.
+# Read more about the Connection model to understand the types like "Edge", "Node", and "Cursor":
+# https://relay.dev/graphql/connections.htm
 #
 # Here is an example query of fetching a list of users with page size equal to 2.
 query {
