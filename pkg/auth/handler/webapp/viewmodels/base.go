@@ -5,7 +5,6 @@ import (
 	htmltemplate "html/template"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/gorilla/csrf"
 
@@ -210,14 +209,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		SliceContains:               sliceContains,
 		MakeURL: func(path string, pairs ...string) string {
 			u := r.URL
-			q := u.Query()
-			outQuery := url.Values{}
-			for key := range q {
-				// Preserve any query parameter that does not start with q_
-				if !strings.HasPrefix(key, "q_") {
-					outQuery.Set(key, q.Get(key))
-				}
-			}
+			outQuery := webapp.PreserveQuery(u.Query())
 			for i := 0; i < len(pairs); i += 2 {
 				outQuery.Set(pairs[i], pairs[i+1])
 			}

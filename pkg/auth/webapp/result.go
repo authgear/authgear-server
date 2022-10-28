@@ -31,6 +31,14 @@ func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {
 		q.Set("x_color_scheme", r.ColorScheme)
 	}
 
+	// Navigate to self. Preserve query.
+	if redirectURI.Host == "" {
+		original := PreserveQuery(req.URL.Query())
+		for key := range original {
+			q.Set(key, original.Get(key))
+		}
+	}
+
 	redirectURI.RawQuery = q.Encode()
 
 	for _, cookie := range r.Cookies {
