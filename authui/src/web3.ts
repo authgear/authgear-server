@@ -3,9 +3,9 @@ import { handleAxiosError, showErrorMessage } from "./messageBar";
 import jazzicon from "@metamask/jazzicon";
 import axios from "axios";
 import { SiweMessage } from "siwe";
-import { visit } from "@hotwired/turbo";
 import detectEthereumProvider from "@metamask/detect-provider";
 import { ethers } from "ethers";
+import { localVisit } from "./turbo";
 
 enum WalletProvider {
   MetaMask = "metamask",
@@ -196,7 +196,9 @@ export class WalletConfirmationController extends Controller {
     getProvider(this.providerValue)
       .then((provider) => {
         if (!provider) {
-          visit(`/errors/missing_web3_wallet?provider=${this.providerValue}`);
+          const searchParams = new URLSearchParams();
+          searchParams.set("q_provider", this.providerValue);
+          localVisit("/errors/missing_web3_wallet", searchParams);
           return;
         }
         this.provider = provider;
