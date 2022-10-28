@@ -3,7 +3,7 @@
 {{ define "page-content" }}
 <div class="pane flex flex-col">
   <div class="px-4">
-    {{ template "__nav_bar.html" "/settings" }}
+    {{ template "__nav_bar.html" (call $.MakeURL "/settings") }}
   </div>
 
   {{/* picture */}}
@@ -18,7 +18,7 @@
       {{ end }}
     >
     {{ if (call $.IsEditable "/picture") }}
-    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/picture/edit">
+    <a class="link col-start-2 row-span-full self-center" href="{{ call $.MakeURL "/settings/profile/picture/edit" }}">
       <i class="ti ti-edit"></i>
     </a>
     {{ end }}
@@ -31,7 +31,7 @@
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "settings-profile-formatted-names-label" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt whitespace-pre-wrap">{{ $.FormattedNames }}</span>
     {{ if (or (call $.IsEditable "/name") (call $.IsEditable "/given_name") (call $.IsEditable "/family_name") (call $.IsEditable "/middle_name") (call $.IsEditable "/nickname")) }}
-    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/name/edit">
+    <a class="link col-start-2 row-span-full self-center" href="{{ call $.MakeURL "/settings/profile/name/edit" }}">
       <i class="ti ti-edit"></i>
     </a>
     {{ end }}
@@ -44,7 +44,7 @@
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-email" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Email }}</span>
     {{ if (call $.IsEditable "/email") }}
-    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/email/edit">
+    <a class="link col-start-2 row-span-full self-center" href="{{ call $.MakeURL "/settings/profile/email/edit" }}">
       <i class="ti ti-edit"></i>
     </a>
     {{ end }}
@@ -57,7 +57,7 @@
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-phone-number" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.PhoneNumber }}</span>
     {{ if (call $.IsEditable "/phone_number") }}
-    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/phone_number/edit">
+    <a class="link col-start-2 row-span-full self-center" href="{{ call $.MakeURL "/settings/profile/phone_number/edit" }}">
       <i class="ti ti-edit"></i>
     </a>
     {{ end }}
@@ -70,7 +70,7 @@
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-preferred-username" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.PreferredUsername }}</span>
     {{ if (call $.IsEditable "/preferred_username") }}
-    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/preferred_username/edit">
+    <a class="link col-start-2 row-span-full self-center" href="{{ call $.MakeURL "/settings/profile/preferred_username/edit" }}">
       <i class="ti ti-edit"></i>
     </a>
     {{ end }}
@@ -83,7 +83,7 @@
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-profile" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Profile }}</span>
     {{ if (call $.IsEditable "/profile") }}
-    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/profile/edit">
+    <a class="link col-start-2 row-span-full self-center" href="{{ call $.MakeURL "/settings/profile/profile/edit" }}">
       <i class="ti ti-edit"></i>
     </a>
     {{ end }}
@@ -96,7 +96,7 @@
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-website" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Website }}</span>
     {{ if (call $.IsEditable "/website") }}
-    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/website/edit">
+    <a class="link col-start-2 row-span-full self-center" href="{{ call $.MakeURL "/settings/profile/website/edit" }}">
       <i class="ti ti-edit"></i>
     </a>
     {{ end }}
@@ -109,7 +109,7 @@
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-gender" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Gender }}</span>
     {{ if (call $.IsEditable "/gender") }}
-    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/gender/edit">
+    <a class="link col-start-2 row-span-full self-center" href="{{ call $.MakeURL "/settings/profile/gender/edit" }}">
       <i class="ti ti-edit"></i>
     </a>
     {{ end }}
@@ -128,7 +128,7 @@
       {{ $.Birthdate }}
     </span>
     {{ if (call $.IsEditable "/birthdate") }}
-    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/birthdate/edit">
+    <a class="link col-start-2 row-span-full self-center" href="{{ call $.MakeURL "/settings/profile/birthdate/edit" }}">
       <i class="ti ti-edit"></i>
     </a>
     {{ end }}
@@ -145,7 +145,7 @@
       {{ end }}
     </span>
     {{ if (call $.IsEditable "/zoneinfo") }}
-    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/zoneinfo/edit">
+    <a class="link col-start-2 row-span-full self-center" href="{{ call $.MakeURL "/settings/profile/zoneinfo/edit" }}">
       <i class="ti ti-edit"></i>
     </a>
     {{ end }}
@@ -163,7 +163,7 @@
       {{ end }}
     </span>
     {{ if (call $.IsEditable "/locale") }}
-    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/locale/edit">
+    <a class="link col-start-2 row-span-full self-center" href="{{ call $.MakeURL "/settings/profile/locale/edit" }}">
       <i class="ti ti-edit"></i>
     </a>
     {{ end }}
@@ -182,7 +182,7 @@
       {{- if $.AddressCountry }}{{ $.Translations.RenderText (printf "territory-%s" $.AddressCountry) nil }}<br>{{ end }}
     </span>
     {{ if (call $.IsEditable "/address") }}
-    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/address/edit">
+    <a class="link col-start-2 row-span-full self-center" href="{{ call $.MakeURL "/settings/profile/address/edit" }}">
       <i class="ti ti-edit"></i>
     </a>
     {{ end }}
@@ -217,7 +217,7 @@
       {{ end }}
     </span>
     {{ if .IsEditable }}
-    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/custom_attributes/edit?pointer={{ .Pointer }}">
+    <a class="link col-start-2 row-span-full self-center" href="{{ call $.MakeURL "/settings/profile/custom_attributes/edit?pointer={{ .Pointer }}" }}">
       <i class="ti ti-edit"></i>
     </a>
     {{ end }}

@@ -6,7 +6,7 @@
 <h2 class="primary-txt text-center m-0 text-xl font-bold">
     {{ template "error-page-not-found" }}
 </h2>
-<a class="as-btn not-a btn primary-btn my-5" href="/" data-turbo="false">
+<a class="as-btn not-a btn primary-btn my-5" href="{{ call $.MakeURL "/" }}" data-turbo="false">
     {{ template "error-page-not-found-action" }}
 </a>
 

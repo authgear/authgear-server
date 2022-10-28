@@ -4,7 +4,7 @@
 <div class="pane flex flex-col">
 
   <div class="px-4">
-    {{ template "__nav_bar.html" "/settings" }}
+    {{ template "__nav_bar.html" (call $.MakeURL "/settings") }}
   </div>
 
   <div class="px-5 pt-4 pb-5 row-sep grid grid-cols-1 auto-rows-auto gap-y-1">
@@ -184,7 +184,7 @@
 </div>
 
 {{ if $.AccountDeletionAllowed }}
-<a class="pane not-a flex flex-row justify-center items-center primary-txt" href="/settings/delete_account">
+<a class="pane not-a flex flex-row justify-center items-center primary-txt" href="{{ call $.MakeURL "/settings/delete_account" }}">
   <i class="ti ti-user-x"></i>
   <span class="my-4 mx-2.5">
     {{- template "account-deletion-delete-account-link-label" -}}

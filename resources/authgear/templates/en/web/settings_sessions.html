@@ -4,7 +4,7 @@
 <div class="pane flex flex-col">
 
 <div class="px-4">
-  {{ template "__nav_bar.html" "/settings" }}
+  {{ template "__nav_bar.html" (call $.MakeURL "/settings") }}
 </div>
 
 <div class="px-5 pt-4 pb-3 grid grid-cols-1 auto-rows-auto gap-y-1">
