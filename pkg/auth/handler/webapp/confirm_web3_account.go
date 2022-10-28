@@ -55,7 +55,7 @@ func (h *ConnectWeb3AccountHandler) GetData(r *http.Request, rw http.ResponseWri
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 
 	provider := ""
-	if p := r.Form.Get("provider"); p == "" {
+	if p := r.Form.Get("q_provider"); p == "" {
 		provider = "metamask"
 	} else {
 		provider = p
