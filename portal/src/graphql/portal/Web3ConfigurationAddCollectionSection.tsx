@@ -11,7 +11,10 @@ import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import Web3ConfigurationLargeCollectionDialog from "./Web3ConfigurationLargeCollectionDialog";
 import Web3ConfigurationTokenTrackingDialog from "./Web3ConfigurationTokenTrackingDialog";
+import Web3ConfigurationContactUsDialog from "./Web3ConfigurationContactUsDialog";
 import TextField from "../../TextField";
+import { useErrorDialog } from "../../formbinding";
+import { makeReasonErrorParseRule } from "../../error/parse";
 import { NftCollection } from "./globalTypes.generated";
 
 interface AddCollectionSectionValues {
@@ -46,6 +49,15 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionSectionProps> =
       className,
       selectedNetwork,
     } = props;
+
+    const {
+      hidden: contactUsDialogHidden,
+      onDismiss: onDismissContactUsDialog,
+    } = useErrorDialog({
+      parentJSONPointer: "",
+      fieldName: "",
+      rules: [makeReasonErrorParseRule("AlchemyProtocol", "")],
+    });
 
     const [validationErrorId, setValidationErrorId] = useState<string | null>(
       null
@@ -221,6 +233,10 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionSectionProps> =
           isVisible={activeDialog === "tokenTracking"}
           onContinue={handleAddCollection}
           onDismiss={dismissDialogs}
+        />
+        <Web3ConfigurationContactUsDialog
+          isVisible={!contactUsDialogHidden}
+          onDismiss={onDismissContactUsDialog}
         />
       </form>
     );

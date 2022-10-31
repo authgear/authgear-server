@@ -1,6 +1,13 @@
 /* global JSX */
 // This file contains the binding between our form abstraction and fluent ui.
-import React, { useMemo, useContext } from "react";
+import React, {
+  useMemo,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
+import { IDialogProps } from "@fluentui/react";
 import { Context, Values } from "@oursky/react-messageformat";
 import { useFormField } from "./form";
 import { FormField, ParsedAPIError } from "./error/parse";
@@ -9,6 +16,35 @@ import ErrorRenderer from "./ErrorRenderer";
 export interface FieldProps<T> {
   disabled: boolean;
   errorMessage?: T;
+}
+
+export interface DialogProps {
+  hidden: IDialogProps["hidden"];
+  onDismiss: IDialogProps["onDismiss"];
+  errors: readonly ParsedAPIError[];
+}
+
+export function useErrorDialog(formField: FormField): DialogProps {
+  const [hidden, setHidden] = useState(true);
+  const { errors } = useFormField(formField);
+
+  const onDismiss = useCallback((e) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    setHidden(true);
+  }, []);
+
+  useEffect(() => {
+    if (errors.length > 0) {
+      setHidden(false);
+    }
+  }, [errors.length]);
+
+  return {
+    hidden,
+    onDismiss,
+    errors,
+  };
 }
 
 export function useErrorMessage(formField: FormField): FieldProps<JSX.Element> {
