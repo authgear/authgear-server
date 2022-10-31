@@ -111,3 +111,66 @@ Authgear is used in the context of an SSO provider, working just like "Login wit
 - Cookie and refresh tokens' expiry time may be mismatched
     - refresh token created by continuing an IdP session should not exceed the IdP session lifetime.
 
+## Implementation details
+
+### Server-side
+
+- Authorization Endpoint
+    - New query parameter `x_sso_enabled`
+        - When `x_sso_enabled=false`
+            - Equal to `x_suppress_idp_session_cookie=true`.
+            - The existing IdP session in cookie is ignored, and login will NOT create IdP Session.
+            - Mark refresh token's `sso_enabled` to `false`.
+        - When `x_sso_enabled=true`
+            - Equal to `x_suppress_idp_session_cookie=false`.
+            - Mark refresh token's `sso_enabled` to `true`.
+            - Refresh tokens and IdP sessions lifetime are managed separately (Remains unchanged). The only difference is the refresh token's lifetime will be shorter than or equal to the IdP session. e.g. If the IdP session will expire in 1 day, the refresh token will only have 1 day lifetime when it is issued.
+            - When updating the refresh token's last access time, its IdP session's last access time will also be updated. So that the IdP session won't be invalidated due to inactivity.
+    - `x_suppress_idp_session_cookie` remains unchanged for backward compatibility, but the new SDKs won't send this parameter anymore. It is replaced by `x_sso_enabled`.
+    - When the developer uses `x_sso_enabled=true` + `prompt=login`, the enduser will need to log in again. The new refresh token will be linked to the new IdP session, and the old IdP session will be overwritten and revoked.
+
+- Preserve `client_id` and `redirect_uri` query during the whole login flow.
+    - After authentication, redirect the enduser based on following whitelisted
+        1. Redirect URL in query param (must be whitelisted) 
+        2. Default redirect URL of the client
+        3. Post-login URL
+        4. `/settings`
+    - Default redirect URL of the client
+        - In the config, the first item of **redirect_uris** is the default implicitly
+        - Update the Portal UI to allow setting the default
+
+- Logout
+    - Revoke IdP session
+        - Check if any associate refresh tokens that have `sso_enabled=true`, revoke them
+    - Revoke refresh token
+        - If the refresh token's `sso_enabled` is `true`, invalidates its IdP session and all its siblings with `sso_enabled=true`
+        - If the refresh token's `sso_enabled` is `false` (default), revoke the refresh token only
+
+- "Continue as" screen
+    - When the enduser chooses **Login with another account**, the existing IdP session (including its refresh token with `sso_enabled=true`) will be revoked after the new authentication is completed.
+    - Add help text: `After you have signed in another account, your current session as user@example.com will terminate`.
+
+- Update application config
+    - For `x_application_type=spa`, change `post_logout_uris` to optional. Change the label in the Portal to **Post Logout Redirect URI (Legacy)**. See [Web SDK](#web-sdk) for details.
+
+- Session listing
+    - For refresh tokens that have `sso_enabled=true`, its IdP session and siblings will be combined into a single entry. Since revoking one of them will also revoke the others. The entry will be shown as a single entry without grouping.
+    - For the sessions that cannot be combined (Refresh tokens with `sso_enabled=false` and IdP sessions don't have `sso_enabled` refresh tokens).
+        - Group refresh tokens by the same app (Same platform, model, device name and app id).
+        - Add its IdP session into the same group. IdP sessions may appear in more than one group (sessions created by the old SDK).
+        - Show the sessions in group views. They can be revoked separately or in groups.
+    - Changing existing behavior notes:
+        - In the old implementation, refresh tokens are grouped by the same device (Same platform, model and device name). We updated to group them by the same app.
+
+### Web SDK
+
+- Add `ssoEnabled` to `authgear.configure`, it is useful only when `sessionType=refresh_token`. Default `ssoEnabled` is `false`.
+- When `sessionType=refresh_token`
+    - Update authz endpoint to remove `x_suppress_idp_session_cookie` and add `x_sso_enabled`
+    - Update `authgear.logout` to revoke the refresh token only, don't need to redirect to `logout`. (Revoking `sso_enabled` refresh token will also revoke its IdP session and siblings).
+- When `sessionType=cookie`
+    - no change
+
+### Mobile SDK
+
+- Replace `shareSessionWithSystemBrowser` with `ssoEnabled`. Default `ssoEnabled=false`.
