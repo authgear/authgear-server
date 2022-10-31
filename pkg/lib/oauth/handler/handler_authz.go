@@ -374,6 +374,7 @@ func (h *AuthorizationHandler) doHandle(
 		Prompt:                   h.handleMaxAgeAndPrompt(r, sidSession),
 		SuppressIDPSessionCookie: r.SuppressIDPSessionCookie(),
 		OAuthProviderAlias:       r.OAuthProviderAlias(),
+		FromAuthzEndpoint:        true,
 	}
 	uiLocales := strings.Join(r.UILocales(), " ")
 	colorScheme := r.ColorScheme()

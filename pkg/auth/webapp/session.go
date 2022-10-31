@@ -32,6 +32,7 @@ type SessionOptions struct {
 	CanUseIntentReauthenticate bool
 	SuppressIDPSessionCookie   bool
 	OAuthProviderAlias         string
+	FromAuthzEndpoint          bool
 }
 
 func NewSessionOptionsFromSession(s *Session) SessionOptions {
@@ -47,6 +48,7 @@ func NewSessionOptionsFromSession(s *Session) SessionOptions {
 		CanUseIntentReauthenticate: s.CanUseIntentReauthenticate,
 		SuppressIDPSessionCookie:   s.SuppressIDPSessionCookie,
 		OAuthProviderAlias:         s.OAuthProviderAlias,
+		FromAuthzEndpoint:          s.FromAuthzEndpoint,
 	}
 }
 
@@ -96,6 +98,9 @@ type Session struct {
 
 	// OAuthProviderAlias is used to auto redirect user to the given oauth provider in the login page
 	OAuthProviderAlias string `json:"oauth_provider_alias,omitempty"`
+
+	// FromAuthzEndpoint indicates whether the web session is created from the authorization endpoint
+	FromAuthzEndpoint bool `json:"from_authz_endpoint,omitempty"`
 }
 
 func newSessionID() string {
@@ -121,6 +126,7 @@ func NewSession(options SessionOptions) *Session {
 		CanUseIntentReauthenticate: options.CanUseIntentReauthenticate,
 		SuppressIDPSessionCookie:   options.SuppressIDPSessionCookie,
 		OAuthProviderAlias:         options.OAuthProviderAlias,
+		FromAuthzEndpoint:          options.FromAuthzEndpoint,
 	}
 	for k, v := range options.Extra {
 		s.Extra[k] = v

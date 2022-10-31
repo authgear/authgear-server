@@ -98,7 +98,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 	if webSession != nil {
 		loginPrompt = slice.ContainsString(webSession.Prompt, "login")
-		fromAuthzEndpoint = webSession.ClientID != ""
+		fromAuthzEndpoint = webSession.FromAuthzEndpoint
 		userIDHint = webSession.UserIDHint
 		canUseIntentReauthenticate = webSession.CanUseIntentReauthenticate
 		suppressIDPSessionCookie = webSession.SuppressIDPSessionCookie
