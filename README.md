@@ -390,3 +390,4 @@ Various files in this project have versioned dependencies.
   - The version of Debian bullseye is `2021a`, which correspond to `tzdata@v1.0.25`.
 - [The cropperjs type definition in ./authui/src](./authui/src)
 - [GeoLite2-Country.mmdb](./GeoLite2-Country.mmdb)
+- [GraphiQL](./pkg/util/graphqlutil/graphiql.go)

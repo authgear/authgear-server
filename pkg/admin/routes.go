@@ -23,7 +23,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 		httproute.MiddlewareFunc(httputil.StaticSecurityHeaders),
 		httputil.StaticCSPHeader{
 			CSPDirectives: []string{
-				"script-src 'self' 'unsafe-inline' cdn.jsdelivr.net",
+				"script-src 'self' 'unsafe-inline' unpkg.com",
 				"object-src 'none'",
 				"base-uri 'none'",
 				"block-all-mixed-content",

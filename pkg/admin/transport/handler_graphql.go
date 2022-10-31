@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/admin/graphql"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -31,6 +32,20 @@ type GraphQLHandler struct {
 }
 
 func (h *GraphQLHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		graphiql := &graphqlutil.GraphiQL{
+			Title: "GraphiQL: Admin API - Authgear",
+		}
+		graphiql.ServeHTTP(rw, r)
+		return
+	} else {
+		// graphql-go/handler will use "query=" when it is present.
+		// This causes GraphiQL unable to fetch the schema.
+		q := r.URL.Query()
+		q.Del("query")
+		r.URL.RawQuery = q.Encode()
+	}
+
 	invoke := func(f func() error) error {
 		return f()
 	}
@@ -42,9 +57,10 @@ func (h *GraphQLHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		return h.AppDatabase.WithTx(func() error {
 			doRollback := false
 			graphqlHandler := handler.New(&handler.Config{
-				Schema:   graphql.Schema,
-				Pretty:   false,
-				GraphiQL: true,
+				Schema:     graphql.Schema,
+				Pretty:     false,
+				GraphiQL:   false,
+				Playground: false,
 				ResultCallbackFn: func(ctx context.Context, params *gographql.Params, result *gographql.Result, responseBody []byte) {
 					if result.HasErrors() {
 						doRollback = true
