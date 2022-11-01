@@ -1049,6 +1049,7 @@
   "SubscriptionScreen.cancel-transaction.label": "Cancel transaction",
   "SubscriptionScreen.unknown-error.description": "Failed to process payment. Please send an email to {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}} from the email address associated with your Authgear account.",
   "SubscriptionScreen.cancel-transaction-error.description": "Failed to cancel transaction. Please send an email to {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}} from the email address associated with your Authgear account.",
+  "SubscriptionScreen.contact-us.label": "Contact us at hello@authgear.com",
 
   "SMTPConfigurationScreen.title": "Custom Email Provider",
   "SMTPConfigurationScreen.description": "Optimize for email deliverability by using your own SMTP server to send Authgear Emails (such as password reset code, verification) in your own domains",
