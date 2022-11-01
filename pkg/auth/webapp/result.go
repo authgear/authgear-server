@@ -35,7 +35,10 @@ func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {
 	if redirectURI.Host == "" {
 		original := PreserveQuery(req.URL.Query())
 		for key := range original {
-			q.Set(key, original.Get(key))
+			// preserve the query only if it doesn't exist in the new query
+			if q.Get(key) == "" {
+				q.Set(key, original.Get(key))
+			}
 		}
 	}
 
