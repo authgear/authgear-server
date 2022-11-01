@@ -11,7 +11,10 @@ import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import Web3ConfigurationLargeCollectionDialog from "./Web3ConfigurationLargeCollectionDialog";
 import Web3ConfigurationTokenTrackingDialog from "./Web3ConfigurationTokenTrackingDialog";
+import Web3ConfigurationContactUsDialog from "./Web3ConfigurationContactUsDialog";
 import TextField from "../../TextField";
+import { useErrorDialog } from "../../formbinding";
+import { makeReasonErrorParseRule } from "../../error/parse";
 import { NftCollection } from "./globalTypes.generated";
 
 interface AddCollectionSectionValues {
@@ -46,6 +49,15 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionSectionProps> =
       className,
       selectedNetwork,
     } = props;
+
+    const {
+      hidden: contactUsDialogHidden,
+      onDismiss: onDismissContactUsDialog,
+    } = useErrorDialog({
+      parentJSONPointer: "",
+      fieldName: "",
+      rules: [makeReasonErrorParseRule("AlchemyProtocol", "")],
+    });
 
     const [validationErrorId, setValidationErrorId] = useState<string | null>(
       null
@@ -172,47 +184,49 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionSectionProps> =
     );
 
     return (
-      <form
-        className={cn(styles.addCollection, className)}
-        onSubmit={onAddCollection}
-      >
-        <TextField
-          label={renderToString(
-            "Web3ConfigurationScreen.collection-list.add-collection.contract-address"
-          )}
-          className={styles.addCollectionField}
-          placeholder={renderToString(
-            "Web3ConfigurationScreen.collection-list.add-collection.placeholder"
-          )}
-          errorMessage={
-            validationErrorId != null
-              ? renderToString(validationErrorId)
-              : undefined
-          }
-          value={values.contractAddress}
-          onChange={onChangeContractAddress}
-        />
-        <div className={styles.addCollectionButtonContainer}>
-          <PrimaryButton
-            type="submit"
-            className={styles.addCollectionAddButton}
-            disabled={!isModified || isLoading}
-            onClick={onAddCollection}
-            text={
-              isLoading ? (
-                <FormattedMessage id={"adding"} />
-              ) : (
-                <FormattedMessage id={"add"} />
-              )
+      <>
+        <form
+          className={cn(styles.addCollection, className)}
+          onSubmit={onAddCollection}
+        >
+          <TextField
+            label={renderToString(
+              "Web3ConfigurationScreen.collection-list.add-collection.contract-address"
+            )}
+            className={styles.addCollectionField}
+            placeholder={renderToString(
+              "Web3ConfigurationScreen.collection-list.add-collection.placeholder"
+            )}
+            errorMessage={
+              validationErrorId != null
+                ? renderToString(validationErrorId)
+                : undefined
             }
+            value={values.contractAddress}
+            onChange={onChangeContractAddress}
           />
-          <DefaultButton
-            type="reset"
-            disabled={isLoading}
-            onClick={onCancel}
-            text={<FormattedMessage id={"cancel"} />}
-          />
-        </div>
+          <div className={styles.addCollectionButtonContainer}>
+            <PrimaryButton
+              type="submit"
+              className={styles.addCollectionAddButton}
+              disabled={!isModified || isLoading}
+              onClick={onAddCollection}
+              text={
+                isLoading ? (
+                  <FormattedMessage id={"adding"} />
+                ) : (
+                  <FormattedMessage id={"add"} />
+                )
+              }
+            />
+            <DefaultButton
+              type="reset"
+              disabled={isLoading}
+              onClick={onCancel}
+              text={<FormattedMessage id={"cancel"} />}
+            />
+          </div>
+        </form>
         <Web3ConfigurationLargeCollectionDialog
           isVisible={activeDialog === "largeCollection"}
           onDismiss={dismissDialogs}
@@ -222,7 +236,11 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionSectionProps> =
           onContinue={handleAddCollection}
           onDismiss={dismissDialogs}
         />
-      </form>
+        <Web3ConfigurationContactUsDialog
+          isVisible={!contactUsDialogHidden}
+          onDismiss={onDismissContactUsDialog}
+        />
+      </>
     );
   };
 

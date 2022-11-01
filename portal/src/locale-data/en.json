@@ -403,6 +403,9 @@
   "Web3ConfigurationScreen.detail-dialog.remove-collection": "Remove Collection",
   "Web3ConfigurationScreen.deletion-dialog.title": "Remove collection",
   "Web3ConfigurationScreen.deletion-dialog.description": "Are you sure you want to remove {collection} from your project?",
+  "Web3ConfigurationScreen.contact-us-dialog.title": "Contact us",
+  "Web3ConfigurationScreen.contact-us-dialog.description": "The collection you entered cannot be added.{br, react}Please contact us if this is the contract you want to use it in your project.",
+  "Web3ConfigurationScreen.contact-us-dialog.action": "Contact us",
 
   "SIWE.disable-first": "Your project has enabled Sign in with Ethereum. Disable it{ReactRouterLink, react, to{{href}} children{here}} beforing choosing other login methods.",
 
