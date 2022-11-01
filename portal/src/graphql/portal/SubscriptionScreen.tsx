@@ -66,6 +66,7 @@ import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import LinkButton from "../../LinkButton";
 import { useCancelFailedSubscriptionMutation } from "./mutations/cancelFailedSubscriptionMutation";
+import ExternalLink from "../../ExternalLink";
 
 const ALL_KNOWN_PLANS = ["free", "developers", "startups", "business"];
 const PAID_PLANS = ALL_KNOWN_PLANS.slice(1);
@@ -78,6 +79,16 @@ const MAU_LIMIT: Record<string, number> = {
 };
 
 const CHECK_IS_PROCESSING_SUBSCRIPTION_INTERVAL = 5000;
+
+const CONTACT_US_BUTTON_THEME: PartialTheme = {
+  palette: {
+    themePrimary: "#c8c8c8",
+    neutralPrimary: "#c8c8c8",
+  },
+  semanticColors: {
+    linkHovered: "#c8c8c8",
+  },
+};
 
 function previousPlan(planName: string): string | null {
   const idx = ALL_KNOWN_PLANS.indexOf(planName);
@@ -912,19 +923,30 @@ const SubscriptionProcessingPaymentScreen: React.VFC<SubscriptionProcessingPayme
           }}
         >
           {paymentStatus === "IsProcessing" ? (
-            <Spinner
-              className={styles.processingPaymentSpinner}
-              labelPosition="right"
-              label={renderToString("SubscriptionScreen.processing-payment")}
-              size={SpinnerSize.large}
-              styles={{
-                label: {
-                  whiteSpace: "pre-line",
-                  textAlign: "left",
-                  marginLeft: "16px",
-                },
-              }}
-            />
+            <>
+              <Spinner
+                className={styles.processingPaymentSpinner}
+                labelPosition="right"
+                label={renderToString("SubscriptionScreen.processing-payment")}
+                size={SpinnerSize.large}
+                styles={{
+                  label: {
+                    whiteSpace: "pre-line",
+                    textAlign: "left",
+                    marginLeft: "16px",
+                    fontSize: "14px",
+                    lineHeight: "20px",
+                  },
+                }}
+              />
+              <ThemeProvider theme={CONTACT_US_BUTTON_THEME}>
+                <ExternalLink href={"mailto:hello@authgear.com"}>
+                  <Text>
+                    <FormattedMessage id="SubscriptionScreen.contact-us.label" />
+                  </Text>
+                </ExternalLink>
+              </ThemeProvider>
+            </>
           ) : null}
           {paymentStatus === "CardDeclined" ? (
             <>
