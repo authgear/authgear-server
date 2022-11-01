@@ -154,7 +154,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 				path = "/login"
 			}
 			if path != "" {
-				http.Redirect(w, r, path, http.StatusFound)
+				h.continueLoginFlow(w, r, path)
 				return
 			}
 		}
@@ -168,10 +168,10 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			path = "/login"
 		}
 
-		http.Redirect(w, r, path, http.StatusFound)
+		h.continueLoginFlow(w, r, path)
 	}
 	gotoLogin := func() {
-		http.Redirect(w, r, "/login", http.StatusFound)
+		h.continueLoginFlow(w, r, "/login")
 	}
 
 	// ctrl.Serve() always write response.
@@ -264,4 +264,10 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		gotoSignupOrLogin()
 		return nil
 	})
+}
+
+func (h *SelectAccountHandler) continueLoginFlow(w http.ResponseWriter, r *http.Request, path string) {
+	// preserve query only when continuing the login flow
+	u := webapp.MakeRelativeURL(path, webapp.PreserveQuery(r.URL.Query()))
+	http.Redirect(w, r, u.String(), http.StatusFound)
 }

@@ -440,6 +440,8 @@ func (h *AuthorizationHandler) doHandle(
 			UILocales:      uiLocales,
 			ColorScheme:    colorScheme,
 			Cookies:        oauthSessionEntryCookies,
+			ClientID:       r.ClientID(),
+			RedirectURL:    r.RedirectURI(),
 		})
 		if apierrors.IsKind(err, interaction.InvalidCredentials) {
 			return nil, protocol.NewError("invalid_request", err.Error())

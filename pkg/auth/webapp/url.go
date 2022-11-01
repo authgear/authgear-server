@@ -16,6 +16,13 @@ func MakeURL(u *url.URL, path string, inQuery url.Values) *url.URL {
 	return uu
 }
 
+func MakeRelativeURL(path string, inQuery url.Values) *url.URL {
+	u := &url.URL{}
+	u.RawQuery = inQuery.Encode()
+	u.Path = path
+	return u
+}
+
 func PreserveQuery(q url.Values) url.Values {
 	outQuery := url.Values{}
 	for key := range q {
