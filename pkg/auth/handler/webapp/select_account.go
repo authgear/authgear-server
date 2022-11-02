@@ -56,6 +56,8 @@ type SelectAccountHandler struct {
 	Identities                SelectAccountIdentityService
 	AuthenticationInfoService SelectAccountAuthenticationInfoService
 	Cookies                   CookieManager
+	OAuthConfig               *config.OAuthConfig
+	UIConfig                  *config.UIConfig
 }
 
 func (h *SelectAccountHandler) GetData(r *http.Request, rw http.ResponseWriter, userID string) (map[string]interface{}, error) {
@@ -111,7 +113,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 
 	continueWithCurrentAccount := func() error {
-		redirectURI := "/settings"
+		redirectURI := ""
 
 		// Complete the web session and redirect to web session's RedirectURI
 		if webSession != nil {
@@ -119,6 +121,10 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			if err := ctrl.DeleteSession(webSession.ID); err != nil {
 				return err
 			}
+		}
+
+		if redirectURI == "" {
+			redirectURI = webapp.DerivePostLoginRedirectURIFromRequest(r, h.OAuthConfig, h.UIConfig)
 		}
 
 		// Write authentication info cookie

@@ -9515,6 +9515,8 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Identities:                serviceService,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Cookies:                   cookieManager,
+		OAuthConfig:               oAuthConfig,
+		UIConfig:                  uiConfig,
 	}
 	return selectAccountHandler
 }
