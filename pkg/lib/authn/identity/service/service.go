@@ -769,32 +769,3 @@ func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err e
 
 	return
 }
-
-func (s *Service) RemoveBiometric(newIdentity *identity.Info) error {
-	if newIdentity.Type != model.IdentityTypeBiometric {
-		return nil
-	}
-
-	identities, err := s.ListByUser(newIdentity.UserID)
-	if err != nil {
-		return err
-	}
-
-	for _, i := range identities {
-		if i.Type == model.IdentityTypeBiometric {
-			// Do not remove newIdentity!
-			if newIdentity.ID == i.ID {
-				continue
-			}
-
-			if newIdentity.Biometric.ProbablySame(i.Biometric) {
-				err = s.Delete(i)
-				if err != nil {
-					return err
-				}
-			}
-		}
-	}
-
-	return nil
-}

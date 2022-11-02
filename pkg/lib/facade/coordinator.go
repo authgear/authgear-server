@@ -30,7 +30,6 @@ type IdentityService interface {
 	Update(info *identity.Info) error
 	Delete(is *identity.Info) error
 	CheckDuplicated(info *identity.Info) (*identity.Info, error)
-	RemoveBiometric(newIdentity *identity.Info) error
 }
 
 type AuthenticatorService interface {
@@ -142,11 +141,6 @@ func (c *Coordinator) IdentityUpdateWithSpec(is *identity.Info, spec *identity.S
 
 func (c *Coordinator) IdentityCreate(is *identity.Info) error {
 	err := c.Identities.Create(is)
-	if err != nil {
-		return err
-	}
-
-	err = c.Identities.RemoveBiometric(is)
 	if err != nil {
 		return err
 	}
