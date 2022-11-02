@@ -53,6 +53,7 @@ type Service2 struct {
 	Cookies              CookieManager
 	OAuthConfig          *config.OAuthConfig
 	UIConfig             *config.UIConfig
+	TrustProxy           config.TrustProxy
 
 	Graph GraphService
 }
@@ -499,12 +500,15 @@ func (s *Service2) deriveFinishRedirectURI(session *Session, graph *interaction.
 	}
 
 	// 1. WebSession's Redirect URL (e.g. authorization endpoint, settings page)
-	// 2. DerivePostLoginRedirectURIFromRequest
+	// 2. Obtain redirect_uri which is from the same origin by calling GetRedirectURI
+	// 3. DerivePostLoginRedirectURIFromRequest
 	if session.RedirectURI != "" {
 		return session.RedirectURI
 	}
 
-	return DerivePostLoginRedirectURIFromRequest(s.Request, s.OAuthConfig, s.UIConfig)
+	postLoginRedirectURI := DerivePostLoginRedirectURIFromRequest(s.Request, s.OAuthConfig, s.UIConfig)
+	redirectURI := GetRedirectURI(s.Request, bool(s.TrustProxy), postLoginRedirectURI)
+	return redirectURI
 }
 
 // nolint:gocyclo
