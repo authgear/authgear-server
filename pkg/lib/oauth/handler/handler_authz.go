@@ -367,7 +367,6 @@ func (h *AuthorizationHandler) doHandle(
 	}
 
 	sessionOptions := webapp.SessionOptions{
-		ClientID:                 r.ClientID(),
 		WebhookState:             r.State(),
 		Page:                     r.Page(),
 		RedirectURI:              h.OAuthURLs.ConsentURL(r).String(),
