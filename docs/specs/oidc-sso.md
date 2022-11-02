@@ -154,8 +154,14 @@ Authgear is used in the context of an SSO provider, working just like "Login wit
     - For `x_application_type=spa`, change `post_logout_uris` to optional. Change the label in the Portal to **Post Logout Redirect URI (Legacy)**. See [Web SDK](#web-sdk) for details. Show a description to mention that this field is not needed after which SDK version.
 
 - Session listing
-    - For refresh tokens that have `sso_enabled=true`, its IdP session and siblings will be combined into a single entry. Since revoking one of them will also revoke the others. The entry will be shown as a single entry without grouping.
-    - The sessions that cannot be combined will be listed separately without grouping. (Refresh tokens with `sso_enabled=false` and IdP sessions don't have `sso_enabled` refresh tokens)
+    - Combining Sessions
+        - Both the settings page, admin API and Portal combine sessions in the same way
+        - For refresh tokens that have `sso_enabled=true`, its IdP session and siblings will be combined into a single entry. Since revoking one of them will also revoke the others. The entry will be shown as a single entry without grouping.
+        - The sessions that cannot be combined will be listed separately without grouping. (Refresh tokens with `sso_enabled=false` and IdP sessions don't have `sso_enabled` refresh tokens)
+    - Settings page
+        - Sessions will be shown as a list without grouping
+    - Admin API and Portal
+        - The "sessions" API will be updated. For the combined refresh token and IdP sessions, only the IdP session will be added to the list.
 
 ### Web SDK
 
