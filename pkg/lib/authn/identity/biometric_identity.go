@@ -38,10 +38,3 @@ func (i *Biometric) ToInfo() *Info {
 func (i *Biometric) FormattedDeviceInfo() string {
 	return deviceinfo.DeviceModel(i.DeviceInfo)
 }
-
-func (i *Biometric) ProbablySame(that *Biometric) bool {
-	if i == nil || that == nil {
-		return false
-	}
-	return deviceinfo.ProbablySame(i.DeviceInfo, that.DeviceInfo)
-}
