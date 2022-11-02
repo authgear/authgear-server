@@ -71,17 +71,25 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
   const yesterday = useMemo(() => {
     // yesterday
     const d = new Date(
-      Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate())
+      Date.UTC(
+        today.getUTCFullYear(),
+        today.getUTCMonth(),
+        today.getUTCDate() - 1
+      )
     );
-    d.setDate(d.getDate() - 1);
     return d;
   }, [today]);
 
   const defaultRangeTo = useMemo(() => yesterday, [yesterday]);
   const defaultRangeFrom = useMemo(() => {
     // default 1 year range
-    const d = new Date(defaultRangeTo);
-    d.setFullYear(d.getFullYear() - 1);
+    const d = new Date(
+      Date.UTC(
+        defaultRangeTo.getUTCFullYear() - 1,
+        defaultRangeTo.getUTCMonth(),
+        defaultRangeTo.getUTCDate()
+      )
+    );
     if (analyticEpochDate && analyticEpochDate > d) {
       return analyticEpochDate;
     }
@@ -243,8 +251,13 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
         } else {
           setRangeFrom(value);
           // bound date range within 1 year
-          let limitRangeTo = new Date(value);
-          limitRangeTo.setFullYear(limitRangeTo.getFullYear() + 1);
+          let limitRangeTo = new Date(
+            Date.UTC(
+              value.getUTCFullYear() + 1,
+              value.getUTCMonth(),
+              value.getUTCDate()
+            )
+          );
           if (limitRangeTo > yesterday) {
             limitRangeTo = yesterday;
           }
@@ -275,8 +288,13 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
           setRangeTo(value);
 
           // bound date range within 1 year and before epoch date
-          let limitRangeFrom = new Date(value);
-          limitRangeFrom.setFullYear(limitRangeFrom.getFullYear() - 1);
+          let limitRangeFrom = new Date(
+            Date.UTC(
+              value.getUTCFullYear() - 1,
+              value.getUTCMonth(),
+              value.getUTCDate()
+            )
+          );
           if (analyticEpochDate != null && limitRangeFrom < analyticEpochDate) {
             limitRangeFrom = analyticEpochDate;
           }
