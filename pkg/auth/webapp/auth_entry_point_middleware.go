@@ -8,8 +8,9 @@ import (
 )
 
 type AuthEntryPointMiddleware struct {
-	TrustProxy config.TrustProxy
-	UIConfig   *config.UIConfig
+	TrustProxy  config.TrustProxy
+	OAuthConfig *config.OAuthConfig
+	UIConfig    *config.UIConfig
 }
 
 func (m AuthEntryPointMiddleware) Handle(next http.Handler) http.Handler {
@@ -24,7 +25,7 @@ func (m AuthEntryPointMiddleware) Handle(next http.Handler) http.Handler {
 		}
 
 		if userID != nil && !fromAuthzEndpoint {
-			defaultRedirectURI := DefaultPostLoginRedirectURI(m.UIConfig)
+			defaultRedirectURI := DerivePostLoginRedirectURIFromRequest(r, m.OAuthConfig, m.UIConfig)
 			redirectURI := GetRedirectURI(r, bool(m.TrustProxy), defaultRedirectURI)
 
 			http.Redirect(w, r, redirectURI, http.StatusFound)
