@@ -131,9 +131,6 @@ func NewSession(options SessionOptions) *Session {
 	for k, v := range options.Extra {
 		s.Extra[k] = v
 	}
-	if s.RedirectURI == "" {
-		s.RedirectURI = "/"
-	}
 	return s
 }
 
