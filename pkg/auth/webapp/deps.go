@@ -28,6 +28,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(SettingsSubRoutesMiddleware), "*"),
 	wire.Struct(new(SuccessPageMiddleware), "*"),
 	wire.Struct(new(TutorialMiddleware), "*"),
+	wire.Struct(new(CSPNonceMiddleware), "*"),
 	wire.Struct(new(DynamicCSPMiddleware), "*"),
 
 	NewPublicOriginMiddlewareLogger,

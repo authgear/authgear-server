@@ -62,6 +62,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	oauthAPIChain := httproute.Chain(
 		rootChain,
+		p.Middleware(newCSPNonceMiddleware),
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
 		p.Middleware(newSessionMiddleware),
@@ -71,6 +72,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	siweAPIChain := httproute.Chain(
 		rootChain,
+		p.Middleware(newCSPNonceMiddleware),
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
 		httproute.MiddlewareFunc(httputil.NoCache),
@@ -78,6 +80,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	apiChain := httproute.Chain(
 		rootChain,
+		p.Middleware(newCSPNonceMiddleware),
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
 		p.Middleware(newSessionMiddleware),
@@ -101,6 +104,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	webappChain := httproute.Chain(
 		rootChain,
+		p.Middleware(newCSPNonceMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
 		p.Middleware(newPanicWebAppMiddleware),
 		p.Middleware(newSessionMiddleware),

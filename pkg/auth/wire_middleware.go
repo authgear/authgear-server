@@ -59,6 +59,13 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	))
 }
 
+func newCSPNonceMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*webapp.CSPNonceMiddleware)),
+	))
+}
+
 func newDynamicCSPMiddleware(p *deps.RequestProvider, allowInlineScript bool) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,

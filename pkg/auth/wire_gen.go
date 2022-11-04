@@ -46171,7 +46171,7 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	return corsMiddleware
 }
 
-func newDynamicCSPMiddleware(p *deps.RequestProvider, allowInlineScript bool) httproute.Middleware {
+func newCSPNonceMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	request := p.Request
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
@@ -46181,9 +46181,21 @@ func newDynamicCSPMiddleware(p *deps.RequestProvider, allowInlineScript bool) ht
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	cspNonceMiddleware := &webapp2.CSPNonceMiddleware{
+		Cookies: cookieManager,
+	}
+	return cspNonceMiddleware
+}
+
+func newDynamicCSPMiddleware(p *deps.RequestProvider, allowInlineScript bool) httproute.Middleware {
+	appProvider := p.AppProvider
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	dynamicCSPMiddleware := &webapp2.DynamicCSPMiddleware{
-		Cookies:           cookieManager,
 		HTTPConfig:        httpConfig,
 		WebAppCDNHost:     webAppCDNHost,
 		AllowInlineScript: allowInlineScript,
