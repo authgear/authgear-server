@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
 
@@ -15,7 +16,7 @@ const htmlRedirectTemplateString = `<!DOCTYPE html>
 <meta http-equiv="refresh" content="0;url={{ .redirect_uri }}" />
 </head>
 <body>
-<script>
+<script nonce="{{ $.CSPNonce }}">
 window.location.href = "{{ .redirect_uri }}"
 </script>
 </body>
@@ -35,7 +36,7 @@ const formPostTemplateString = `<!DOCTYPE html>
 {{- end }}
 <button type="submit" name="" value="">Submit</button>
 </form>
-<script>
+<script nonce="{{ $.CSPNonce }}">
 document.forms[0].submit();
 </script>
 </body>
@@ -66,17 +67,17 @@ func WriteResponse(w http.ResponseWriter, r *http.Request, redirectURI *url.URL,
 
 	switch responseMode {
 	case "query":
-		HTMLRedirect(w, urlutil.WithQueryParamsAdded(redirectURI, response).String())
+		HTMLRedirect(w, r, urlutil.WithQueryParamsAdded(redirectURI, response).String())
 	case "fragment":
-		HTMLRedirect(w, urlutil.WithQueryParamsSetToFragment(redirectURI, response).String())
+		HTMLRedirect(w, r, urlutil.WithQueryParamsSetToFragment(redirectURI, response).String())
 	case "form_post":
-		FormPost(w, redirectURI, response)
+		FormPost(w, r, redirectURI, response)
 	default:
 		http.Error(w, fmt.Sprintf("oauth: invalid response_mode %s", responseMode), http.StatusBadRequest)
 	}
 }
 
-func HTMLRedirect(rw http.ResponseWriter, redirectURI string) {
+func HTMLRedirect(rw http.ResponseWriter, r *http.Request, redirectURI string) {
 	rw.Header().Set("Content-Type", "text/html; charset=utf-8")
 	// XHR and redirect.
 	//
@@ -88,6 +89,7 @@ func HTMLRedirect(rw http.ResponseWriter, redirectURI string) {
 	// rw.Header().Set("Location", redirectURI)
 	// rw.WriteHeader(http.StatusFound)
 	err := htmlRedirectTemplate.Execute(rw, map[string]string{
+		"CSPNonce":     web.GetCSPNonce(r.Context()),
 		"redirect_uri": redirectURI,
 	})
 	if err != nil {
@@ -95,10 +97,11 @@ func HTMLRedirect(rw http.ResponseWriter, redirectURI string) {
 	}
 }
 
-func FormPost(w http.ResponseWriter, redirectURI *url.URL, response map[string]string) {
+func FormPost(w http.ResponseWriter, r *http.Request, redirectURI *url.URL, response map[string]string) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	err := formPostTemplate.Execute(w, map[string]interface{}{
+		"CSPNonce":     web.GetCSPNonce(r.Context()),
 		"redirect_uri": redirectURI.String(),
 		"response":     response,
 	})

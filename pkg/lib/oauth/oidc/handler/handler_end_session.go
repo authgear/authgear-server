@@ -79,7 +79,7 @@ func (h *EndSessionHandler) Handle(s session.Session, req protocol.EndSessionReq
 		redirectURI = urlutil.WithQueryParamsAdded(uri, map[string]string{"state": state}).String()
 	}
 
-	oauth.HTMLRedirect(rw, redirectURI)
+	oauth.HTMLRedirect(rw, r, redirectURI)
 	return nil
 }
 

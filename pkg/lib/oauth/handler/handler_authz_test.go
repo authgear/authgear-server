@@ -26,7 +26,7 @@ const htmlRedirectTemplateString = `<!DOCTYPE html>
 <meta http-equiv="refresh" content="0;url={{ .redirect_uri }}" />
 </head>
 <body>
-<script>
+<script nonce="">
 window.location.href = "{{ .redirect_uri }}"
 </script>
 </body>
