@@ -133,7 +133,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		// https://github.com/hotwired/turbo/blob/daabebb0575fffbae1b2582dc458967cd638e899/src/core/drive/visit.ts#L316
 		p.Middleware(newSafeDynamicCSPMiddleware),
 	)
-	webappPageAllowInlineScriptChain := httproute.Chain(
+	webappSIWEChain := httproute.Chain(
 		webappChain,
 		p.Middleware(newCSRFMiddleware),
 		p.Middleware(newUnsafeDynamicCSPMiddleware),
@@ -172,7 +172,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	apiAuthenticatedRoute := httproute.Route{Middleware: apiAuthenticatedChain}
 	scopedRoute := httproute.Route{Middleware: scopedChain}
 	webappPageRoute := httproute.Route{Middleware: webappPageChain}
-	webappPageAllowInlineScriptRoute := httproute.Route{Middleware: webappPageAllowInlineScriptChain}
+	webappSIWERoute := httproute.Route{Middleware: webappSIWEChain}
 	webappAuthEntrypointRoute := httproute.Route{Middleware: webappAuthEntrypointChain}
 	webappAuthenticatedRoute := httproute.Route{Middleware: webappAuthenticatedChain}
 	webappSuccessPageRoute := httproute.Route{Middleware: webappSuccessPageChain}
@@ -211,7 +211,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandler.ConfigureErrorRoute(webappPageRoute), p.Handler(newWebAppErrorHandler))
 	router.Add(webapphandler.ConfigureForceChangePasswordRoute(webappPageRoute), p.Handler(newWebAppForceChangePasswordHandler))
 	router.Add(webapphandler.ConfigureForceChangeSecondaryPasswordRoute(webappPageRoute), p.Handler(newWebAppForceChangeSecondaryPasswordHandler))
-	router.Add(webapphandler.ConfigureConnectWeb3AccountRoute(webappPageAllowInlineScriptRoute), p.Handler(newWebAppConnectWeb3AccountHandler))
+	router.Add(webapphandler.ConfigureConnectWeb3AccountRoute(webappSIWERoute), p.Handler(newWebAppConnectWeb3AccountHandler))
 	router.Add(webapphandler.ConfigureMissingWeb3WalletRoute(webappPageRoute), p.Handler(newWebAppMissingWeb3WalletHandler))
 
 	router.Add(webapphandler.ConfigureForgotPasswordSuccessRoute(webappSuccessPageRoute), p.Handler(newWebAppForgotPasswordSuccessHandler))
@@ -260,7 +260,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	router.Add(oauthhandler.ConfigureUserInfoRoute(scopedRoute), p.Handler(newOAuthUserInfoHandler))
 
-	router.Add(oauthhandler.ConfigureConsentRoute(webappPageAllowInlineScriptRoute), p.Handler(newOAuthConsentHandler))
+	router.Add(oauthhandler.ConfigureConsentRoute(webappPageRoute), p.Handler(newOAuthConsentHandler))
 
 	router.Add(siwehandler.ConfigureNonceRoute(siweAPIRoute), p.Handler(newSIWENonceHandler))
 
