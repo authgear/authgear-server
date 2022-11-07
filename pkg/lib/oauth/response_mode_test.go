@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/lib/web"
 )
 
 func TestWriteResponse(t *testing.T) {
@@ -14,6 +16,7 @@ func TestWriteResponse(t *testing.T) {
 		test := func(responseMode string, expected string) {
 			w := httptest.NewRecorder()
 			r, _ := http.NewRequest("GET", "/", nil)
+			r = r.WithContext(web.WithCSPNonce(r.Context(), "nonce"))
 			redirectURI, _ := url.Parse("https://example.com")
 			response := map[string]string{
 				"code":  "this_is_the_code",
@@ -29,7 +32,7 @@ func TestWriteResponse(t *testing.T) {
 <meta http-equiv="refresh" content="0;url=https://example.com?code=this_is_the_code&amp;state=this_is_the_state" />
 </head>
 <body>
-<script>
+<script nonce="nonce">
 window.location.href = "https:\/\/example.com?code=this_is_the_code\u0026state=this_is_the_state"
 </script>
 </body>
@@ -42,7 +45,7 @@ window.location.href = "https:\/\/example.com?code=this_is_the_code\u0026state=t
 <meta http-equiv="refresh" content="0;url=https://example.com?code=this_is_the_code&amp;state=this_is_the_state" />
 </head>
 <body>
-<script>
+<script nonce="nonce">
 window.location.href = "https:\/\/example.com?code=this_is_the_code\u0026state=this_is_the_state"
 </script>
 </body>
@@ -55,7 +58,7 @@ window.location.href = "https:\/\/example.com?code=this_is_the_code\u0026state=t
 <meta http-equiv="refresh" content="0;url=https://example.com#code=this_is_the_code&amp;state=this_is_the_state" />
 </head>
 <body>
-<script>
+<script nonce="nonce">
 window.location.href = "https:\/\/example.com#code=this_is_the_code\u0026state=this_is_the_state"
 </script>
 </body>
@@ -74,7 +77,7 @@ window.location.href = "https:\/\/example.com#code=this_is_the_code\u0026state=t
 <input type="hidden" name="state" value="this_is_the_state">
 <button type="submit" name="" value="">Submit</button>
 </form>
-<script>
+<script nonce="nonce">
 document.forms[0].submit();
 </script>
 </body>
