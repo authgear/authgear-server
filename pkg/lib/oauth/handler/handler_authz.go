@@ -653,6 +653,7 @@ func (h *AuthorizationHandler) generateCodeResponse(
 		RedirectURI:   redirectURI,
 		OIDCNonce:     r.Nonce(),
 		PKCEChallenge: r.CodeChallenge(),
+		SSOEnabled:    r.SSOEnabled(),
 	}
 
 	err := h.CodeGrants.CreateCodeGrant(codeGrant)

@@ -389,11 +389,13 @@ func (h *TokenHandler) handleAnonymousRequest(
 
 	resp := protocol.TokenResponse{}
 
+	// SSOEnabled is false for refresh tokens that are granted by anonymous login
 	opts := IssueOfflineGrantOptions{
 		Scopes:             scopes,
 		AuthorizationID:    authz.ID,
 		AuthenticationInfo: info,
 		DeviceInfo:         deviceInfo,
+		SSOEnabled:         false,
 	}
 	offlineGrant, err := h.TokenService.IssueOfflineGrant(client, opts, resp)
 	if err != nil {
@@ -593,12 +595,14 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 
 	resp := protocol.TokenResponse{}
 
+	// SSOEnabled is false for refresh tokens that are granted by biometric login
 	opts := IssueOfflineGrantOptions{
 		Scopes:             scopes,
 		AuthorizationID:    authz.ID,
 		AuthenticationInfo: info,
 		DeviceInfo:         deviceInfo,
 		IdentityID:         biometricIdentity.ID,
+		SSOEnabled:         false,
 	}
 	offlineGrant, err := h.TokenService.IssueOfflineGrant(client, opts, resp)
 	if err != nil {
@@ -734,6 +738,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 		AuthenticationInfo: info,
 		IDPSessionID:       code.IDPSessionID,
 		DeviceInfo:         deviceInfo,
+		SSOEnabled:         code.SSOEnabled,
 	}
 	if issueRefreshToken {
 		offlineGrant, err := h.TokenService.IssueOfflineGrant(client, opts, resp)
@@ -853,6 +858,7 @@ type IssueOfflineGrantOptions struct {
 	IDPSessionID       string
 	DeviceInfo         map[string]interface{}
 	IdentityID         string
+	SSOEnabled         bool
 }
 
 func (h *TokenHandler) IssueAppSessionToken(refreshToken string) (string, *oauth.AppSessionToken, error) {

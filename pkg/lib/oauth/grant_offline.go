@@ -31,6 +31,8 @@ type OfflineGrant struct {
 	AccessInfo access.Info   `json:"access_info"`
 
 	DeviceInfo map[string]interface{} `json:"device_info,omitempty"`
+
+	SSOEnabled bool `json:"sso_enabled,omitempty"`
 }
 
 func (g *OfflineGrant) SessionID() string         { return g.ID }

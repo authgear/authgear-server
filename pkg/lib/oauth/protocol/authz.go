@@ -64,6 +64,9 @@ func (r AuthorizationRequest) Page() string              { return r["x_page"] }
 func (r AuthorizationRequest) SuppressIDPSessionCookie() bool {
 	return r["x_suppress_idp_session_cookie"] == "true"
 }
+func (r AuthorizationRequest) SSOEnabled() bool {
+	return r["x_sso_enabled"] == "true"
+}
 func (r AuthorizationRequest) ColorScheme() string        { return r["x_color_scheme"] }
 func (r AuthorizationRequest) OAuthProviderAlias() string { return r["x_oauth_provider_alias"] }
 

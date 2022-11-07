@@ -62,6 +62,7 @@ func (s *TokenService) IssueOfflineGrant(
 		},
 
 		DeviceInfo: opts.DeviceInfo,
+		SSOEnabled: opts.SSOEnabled,
 	}
 
 	expiry := oauth.ComputeOfflineGrantExpiryWithClient(offlineGrant, client)
