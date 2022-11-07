@@ -197,11 +197,13 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 	}
 
 	resp := protocol.TokenResponse{}
+	// SSOEnabled is false for refresh tokens that are granted by anonymous login
 	opts := IssueOfflineGrantOptions{
 		Scopes:             scopes,
 		AuthorizationID:    authz.ID,
 		AuthenticationInfo: info,
 		DeviceInfo:         nil,
+		SSOEnabled:         false,
 	}
 	offlineGrant, err := h.TokenService.IssueOfflineGrant(client, opts, resp)
 	if err != nil {
