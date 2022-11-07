@@ -300,10 +300,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitConfig := appConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
