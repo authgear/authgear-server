@@ -67,6 +67,7 @@ audit_log:
 google_tag_manager:
   disabled: false
 rate_limit:
+  disabled: false
   sms:
     size: 100000
     reset_period: 2592000

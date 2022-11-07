@@ -341,10 +341,12 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -1114,10 +1116,12 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -1857,10 +1861,12 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -2599,10 +2605,12 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -3046,10 +3054,12 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  logger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -3388,10 +3398,12 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  logger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -3775,10 +3787,12 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -4241,10 +4255,12 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -4817,10 +4833,13 @@ func newSIWENonceHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: handle,
 	}
+	featureConfig := config.FeatureConfig
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  logger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -5012,10 +5031,12 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -5746,10 +5767,12 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -6355,10 +6378,13 @@ func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  logger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	secretConfig := config.SecretConfig
 	imagesKeyMaterials := deps.ProvideImagesKeyMaterials(secretConfig)
@@ -6580,10 +6606,12 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -7357,10 +7385,12 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -8133,10 +8163,12 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -8892,10 +8924,12 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -9647,10 +9681,12 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -10394,10 +10430,12 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -11144,10 +11182,12 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -11897,10 +11937,12 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -12652,10 +12694,12 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -13405,10 +13449,12 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -14158,10 +14204,12 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -14912,10 +14960,12 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -15665,10 +15715,12 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -16418,10 +16470,12 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -17173,10 +17227,12 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -17926,10 +17982,12 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -18679,10 +18737,12 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -19434,10 +19494,12 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -20187,10 +20249,12 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -20933,10 +20997,12 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: handle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -21367,10 +21433,12 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -22120,10 +22188,12 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -22869,10 +22939,12 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -23620,10 +23692,12 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -24369,10 +24443,12 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -25128,10 +25204,12 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -25877,10 +25955,12 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -26627,10 +26707,12 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -27376,10 +27458,12 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -28156,10 +28240,12 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -28916,10 +29002,12 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -29689,10 +29777,12 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -30446,10 +30536,12 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -31196,10 +31288,12 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -31954,10 +32048,12 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -32704,10 +32800,12 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -33454,10 +33552,12 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -34204,10 +34304,12 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -34955,10 +35057,12 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -35716,10 +35820,12 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -36466,10 +36572,12 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -37216,10 +37324,12 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -37966,10 +38076,12 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -38716,10 +38828,12 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -39473,10 +39587,12 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -40224,10 +40340,12 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -40973,10 +41091,12 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -41741,10 +41861,12 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -42490,10 +42612,12 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -43256,10 +43380,12 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		AppID: appID,
 		Redis: handle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -43971,10 +44097,12 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Redis: handle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -44685,10 +44813,12 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -45444,10 +45574,12 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -46443,10 +46575,12 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AppID: appID,
 		Redis: handle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -46937,10 +47071,12 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		AppID: appID,
 		Redis: appredisHandle,
 	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{

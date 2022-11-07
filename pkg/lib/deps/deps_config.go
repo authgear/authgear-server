@@ -46,6 +46,7 @@ var configDeps = wire.NewSet(
 		"UI",
 		"AuditLog",
 		"Collaborator",
+		"RateLimit",
 	),
 	ProvideDefaultLanguageTag,
 	ProvideSupportedLanguageTags,
