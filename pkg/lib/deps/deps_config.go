@@ -28,6 +28,7 @@ var configDeps = wire.NewSet(
 		"AccountDeletion",
 		"Web3",
 		"GoogleTagManager",
+		"RateLimit",
 	),
 	wire.FieldsOf(new(*config.IdentityConfig),
 		"LoginID",
