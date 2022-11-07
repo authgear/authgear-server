@@ -3,6 +3,7 @@ package ratelimit
 import (
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -20,9 +21,18 @@ type Limiter struct {
 	Logger  Logger
 	Storage Storage
 	Clock   clock.Clock
+	Config  *config.RateLimitConfig
+}
+
+func (l *Limiter) isDisabled() bool {
+	return l.Config != nil && l.Config.Disabled != nil && *(l.Config.Disabled) == true
 }
 
 func (l *Limiter) TakeToken(bucket Bucket) error {
+	if l.isDisabled() {
+		return nil
+	}
+
 	return l.Storage.WithConn(func(conn StorageConn) error {
 		now := l.Clock.NowUTC()
 
@@ -63,6 +73,10 @@ func (l *Limiter) TakeToken(bucket Bucket) error {
 
 // CheckToken return resetDuration and pass based on the given bucket
 func (l *Limiter) CheckToken(bucket Bucket) (pass bool, resetDuration time.Duration, err error) {
+	if l.isDisabled() {
+		return true, time.Duration(0), nil
+	}
+
 	err = l.Storage.WithConn(func(conn StorageConn) error {
 		now := l.Clock.NowUTC()
 

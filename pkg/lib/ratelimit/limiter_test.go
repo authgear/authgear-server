@@ -6,6 +6,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -251,6 +252,22 @@ func TestLimiter(t *testing.T) {
 			So(resetDuration, ShouldEqual, 3*time.Second)
 			So(pass, ShouldBeFalse)
 			So(err, ShouldBeNil)
+		})
+
+		Convey("Disabled", func() {
+			disabled := true
+			limiter.Config = &config.RateLimitConfig{
+				Disabled: &disabled,
+			}
+
+			for i := 0; i < 2*b.Size; i++ {
+				pass, _, err := limiter.CheckToken(b)
+				So(pass, ShouldBeTrue)
+				So(err, ShouldBeNil)
+
+				err = limiter.TakeToken(b)
+				So(err, ShouldBeNil)
+			}
 		})
 	})
 }
