@@ -136,6 +136,7 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
           backButtonDisabled={true}
           primaryButton={
             <PrimaryButton
+              disabled={isUpdating}
               onClick={onSubmitForm}
               text={
                 <FormattedMessage id="CreateProjectScreen.create-project.label" />
