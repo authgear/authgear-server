@@ -875,7 +875,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Events:             eventService,
 	}
 	authorizationService := &oauth2.AuthorizationService{
+		AppID:               appID,
 		Store:               authorizationStore,
+		Clock:               clockClock,
 		OAuthSessionManager: sessionManager,
 	}
 	authorizationFacade := &facade2.AuthorizationFacade{

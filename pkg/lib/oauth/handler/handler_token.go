@@ -69,7 +69,7 @@ type TokenHandler struct {
 	OAuthClientCredentials *config.OAuthClientCredentials
 	Logger                 TokenHandlerLogger
 
-	Authorizations   oauth.AuthorizationStore
+	Authorizations   AuthorizationService
 	CodeGrants       oauth.CodeGrantStore
 	OfflineGrants    oauth.OfflineGrantStore
 	AppSessionTokens oauth.AppSessionTokenStore
@@ -375,10 +375,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 	// TODO(oauth): allow specifying scopes
 	scopes := []string{"openid", oauth.FullAccessScope}
 
-	authz, err := checkAndGrantAuthorization(
-		h.Authorizations,
-		h.Clock.NowUTC(),
-		h.AppID,
+	authz, err := h.Authorizations.CheckAndGrant(
 		client.ClientID,
 		info.UserID,
 		scopes,
@@ -565,10 +562,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	// TODO(oauth): allow specifying scopes
 	scopes := []string{"openid", oauth.FullAccessScope}
 
-	authz, err := checkAndGrantAuthorization(
-		h.Authorizations,
-		h.Clock.NowUTC(),
-		h.AppID,
+	authz, err := h.Authorizations.CheckAndGrant(
 		client.ClientID,
 		info.UserID,
 		scopes,
