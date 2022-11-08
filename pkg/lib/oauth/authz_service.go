@@ -1,7 +1,12 @@
 package oauth
 
 import (
+	"errors"
+
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 type OfflineGrantSessionManager interface {
@@ -10,7 +15,9 @@ type OfflineGrantSessionManager interface {
 }
 
 type AuthorizationService struct {
+	AppID               config.AppID
 	Store               AuthorizationStore
+	Clock               clock.Clock
 	OAuthSessionManager OfflineGrantSessionManager
 }
 
@@ -60,4 +67,64 @@ func (s *AuthorizationService) Delete(a *Authorization) error {
 	}
 
 	return s.Store.Delete(a)
+}
+
+func (s *AuthorizationService) CheckAndGrant(
+	clientID string,
+	userID string,
+	scopes []string,
+) (*Authorization, error) {
+	timestamp := s.Clock.NowUTC()
+
+	authz, err := s.Store.Get(userID, clientID)
+	if err == nil && authz.IsAuthorized(scopes) {
+		return authz, nil
+	} else if err != nil && !errors.Is(err, ErrAuthorizationNotFound) {
+		return nil, err
+	}
+
+	// Authorization of requested scopes not granted, requesting consent.
+	// TODO(oauth): request consent, for now just always implicitly grant scopes.
+	if authz == nil {
+		authz = &Authorization{
+			ID:        uuid.New(),
+			AppID:     string(s.AppID),
+			ClientID:  clientID,
+			UserID:    userID,
+			CreatedAt: timestamp,
+			UpdatedAt: timestamp,
+			Scopes:    scopes,
+		}
+		err = s.Store.Create(authz)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		authz = authz.WithScopesAdded(scopes)
+		authz.UpdatedAt = timestamp
+		err = s.Store.UpdateScopes(authz)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return authz, nil
+}
+
+func (s *AuthorizationService) Check(
+	clientID string,
+	userID string,
+	scopes []string,
+) (*Authorization, error) {
+	authz, err := s.Store.Get(userID, clientID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !authz.IsAuthorized(scopes) {
+		return nil, ErrAuthorizationScopesNotGranted
+	}
+
+	return authz, nil
 }

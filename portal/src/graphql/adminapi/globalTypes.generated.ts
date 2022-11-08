@@ -203,6 +203,19 @@ export type CreateIdentityPayload = {
   user: User;
 };
 
+export type CreateSessionInput = {
+  /** Target client ID. */
+  clientID: Scalars['String'];
+  /** Target user ID. */
+  userID: Scalars['ID'];
+};
+
+export type CreateSessionPayload = {
+  __typename?: 'CreateSessionPayload';
+  accessToken: Scalars['String'];
+  refreshToken: Scalars['String'];
+};
+
 export type CreateUserInput = {
   /** Definition of the identity of new user. */
   definition: IdentityDefinition;
@@ -327,6 +340,8 @@ export type Mutation = {
   __typename?: 'Mutation';
   /** Create new identity for user */
   createIdentity: CreateIdentityPayload;
+  /** Create a session of a given user */
+  createSession: CreateSessionPayload;
   /** Create new user */
   createUser: CreateUserPayload;
   /** Delete authenticator of user */
@@ -358,6 +373,11 @@ export type Mutation = {
 
 export type MutationCreateIdentityArgs = {
   input: CreateIdentityInput;
+};
+
+
+export type MutationCreateSessionArgs = {
+  input: CreateSessionInput;
 };
 
 

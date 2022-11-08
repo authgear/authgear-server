@@ -176,6 +176,17 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clock,
 	}
+	sessionManager := &oauth2.SessionManager{
+		Store:  store,
+		Clock:  clock,
+		Config: oAuthConfig,
+	}
+	authorizationService := &oauth2.AuthorizationService{
+		AppID:               appID,
+		Store:               authorizationStore,
+		Clock:               clock,
+		OAuthSessionManager: sessionManager,
+	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	mainOriginProvider := &MainOriginProvider{
@@ -635,11 +646,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
 	}
-	sessionManager := &oauth2.SessionManager{
-		Store:  store,
-		Clock:  clock,
-		Config: oAuthConfig,
-	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
 		Events:                eventService,
@@ -855,7 +861,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		HTTPConfig:                httpConfig,
 		Logger:                    authorizationHandlerLogger,
 		Sessions:                  provider,
-		Authorizations:            authorizationStore,
+		Authorizations:            authorizationService,
 		OfflineGrants:             store,
 		CodeGrants:                store,
 		OAuthURLs:                 urlProvider,
@@ -950,6 +956,17 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+	}
+	sessionManager := &oauth2.SessionManager{
+		Store:  store,
+		Clock:  clockClock,
+		Config: oAuthConfig,
+	}
+	authorizationService := &oauth2.AuthorizationService{
+		AppID:               appID,
+		Store:               authorizationStore,
+		Clock:               clockClock,
+		OAuthSessionManager: sessionManager,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
@@ -1410,11 +1427,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
 	}
-	sessionManager := &oauth2.SessionManager{
-		Store:  store,
-		Clock:  clockClock,
-		Config: oAuthConfig,
-	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
 		Events:                eventService,
@@ -1630,7 +1642,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		HTTPConfig:                httpConfig,
 		Logger:                    authorizationHandlerLogger,
 		Sessions:                  provider,
-		Authorizations:            authorizationStore,
+		Authorizations:            authorizationService,
 		OfflineGrants:             store,
 		CodeGrants:                store,
 		OAuthURLs:                 urlProvider,
@@ -1705,9 +1717,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	clockClock := _wireSystemClockValue
 	appredisHandle := appProvider.Redis
 	logger := redis.NewLogger(factory)
-	clockClock := _wireSystemClockValue
 	store := &redis.Store{
 		Context:     contextContext,
 		Redis:       appredisHandle,
@@ -1716,6 +1728,17 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+	}
+	sessionManager := &oauth2.SessionManager{
+		Store:  store,
+		Clock:  clockClock,
+		Config: oAuthConfig,
+	}
+	authorizationService := &oauth2.AuthorizationService{
+		AppID:               appID,
+		Store:               authorizationStore,
+		Clock:               clockClock,
+		OAuthSessionManager: sessionManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	rootProvider := appProvider.RootProvider
@@ -2165,11 +2188,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
 	}
-	sessionManager := &oauth2.SessionManager{
-		Store:  store,
-		Clock:  clockClock,
-		Config: oAuthConfig,
-	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
 		Events:                eventService,
@@ -2394,7 +2412,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		IdentityFeatureConfig:  identityFeatureConfig,
 		OAuthClientCredentials: oAuthClientCredentials,
 		Logger:                 handlerTokenHandlerLogger,
-		Authorizations:         authorizationStore,
+		Authorizations:         authorizationService,
 		CodeGrants:             store,
 		OfflineGrants:          store,
 		AppSessionTokens:       store,
@@ -4099,9 +4117,9 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	clockClock := _wireSystemClockValue
 	appredisHandle := appProvider.Redis
 	logger := redis.NewLogger(factory)
-	clockClock := _wireSystemClockValue
 	store := &redis.Store{
 		Context:     contextContext,
 		Redis:       appredisHandle,
@@ -4110,6 +4128,17 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+	}
+	sessionManager := &oauth2.SessionManager{
+		Store:  store,
+		Clock:  clockClock,
+		Config: oAuthConfig,
+	}
+	authorizationService := &oauth2.AuthorizationService{
+		AppID:               appID,
+		Store:               authorizationStore,
+		Clock:               clockClock,
+		OAuthSessionManager: sessionManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	rootProvider := appProvider.RootProvider
@@ -4559,11 +4588,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
 	}
-	sessionManager := &oauth2.SessionManager{
-		Store:  store,
-		Clock:  clockClock,
-		Config: oAuthConfig,
-	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
 		Events:                eventService,
@@ -4788,7 +4812,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		IdentityFeatureConfig:  identityFeatureConfig,
 		OAuthClientCredentials: oAuthClientCredentials,
 		Logger:                 tokenHandlerLogger,
-		Authorizations:         authorizationStore,
+		Authorizations:         authorizationService,
 		CodeGrants:             store,
 		OfflineGrants:          store,
 		AppSessionTokens:       store,
@@ -5544,6 +5568,12 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
+	authorizationService := &oauth2.AuthorizationService{
+		AppID:               appID,
+		Store:               authorizationStore,
+		Clock:               clockClock,
+		OAuthSessionManager: sessionManager,
+	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets: oAuthKeyMaterials,
@@ -5583,7 +5613,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		OAuthConfig:         oAuthConfig,
 		Logger:              anonymousUserHandlerLogger,
 		Graphs:              interactionService,
-		Authorizations:      authorizationStore,
+		Authorizations:      authorizationService,
 		Clock:               clockClock,
 		TokenService:        tokenService,
 		UserProvider:        queries,
@@ -6280,6 +6310,12 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
+	authorizationService := &oauth2.AuthorizationService{
+		AppID:               appID,
+		Store:               authorizationStore,
+		Clock:               clockClock,
+		OAuthSessionManager: sessionManager,
+	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets: oAuthKeyMaterials,
@@ -6319,7 +6355,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		OAuthConfig:         oAuthConfig,
 		Logger:              anonymousUserHandlerLogger,
 		Graphs:              interactionService,
-		Authorizations:      authorizationStore,
+		Authorizations:      authorizationService,
 		Clock:               clockClock,
 		TokenService:        tokenService,
 		UserProvider:        queries,
@@ -35631,7 +35667,9 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	authorizationService := &oauth2.AuthorizationService{
+		AppID:               appID,
 		Store:               authorizationStore,
+		Clock:               clockClock,
 		OAuthSessionManager: sessionManager,
 	}
 	settingsSessionsHandler := &webapp.SettingsSessionsHandler{

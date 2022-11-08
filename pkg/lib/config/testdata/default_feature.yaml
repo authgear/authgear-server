@@ -75,3 +75,5 @@ collaborator: {}
 web3:
   nft:
     maximum: 3
+admin_api:
+  create_session_enabled: false
