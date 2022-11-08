@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
@@ -202,6 +203,10 @@ func (p *Provider) AccessWithID(id string, accessEvent access.Event) (*IDPSessio
 	}
 
 	return s, nil
+}
+
+func (p *Provider) ComputeSessionExpiry(session *IDPSession) time.Time {
+	return computeSessionStorageExpiry(session, p.Config)
 }
 
 func (p *Provider) generateToken(s *IDPSession) string {

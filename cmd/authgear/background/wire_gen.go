@@ -47,12 +47,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/backgroundjob"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -617,8 +619,30 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Clock:       clockClock,
 	}
 	oAuthConfig := appConfig.OAuth
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: configAppID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	rand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         ctx,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           configAppID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          rand,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
 		OAuthConfig: oAuthConfig,
+		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -654,3 +678,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	}
 	return userService
 }
+
+var (
+	_wireRandValue = idpsession.Rand(rand.SecureRand)
+)

@@ -66,8 +66,12 @@ func (s *TokenService) IssueOfflineGrant(
 		SSOEnabled: opts.SSOEnabled,
 	}
 
-	expiry := s.OfflineGrantService.ComputeOfflineGrantExpiryWithClient(offlineGrant, client)
-	err := s.OfflineGrants.CreateOfflineGrant(offlineGrant, expiry)
+	expiry, err := s.OfflineGrantService.ComputeOfflineGrantExpiryWithClient(offlineGrant, client)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.OfflineGrants.CreateOfflineGrant(offlineGrant, expiry)
 	if err != nil {
 		return nil, err
 	}
