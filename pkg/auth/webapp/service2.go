@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
 
 type SessionStore interface {
@@ -426,6 +427,9 @@ func (s *Service2) afterPost(
 
 	// Transition to redirect URI
 	if isFinished {
+		result.RemoveQueries = setutil.Set[string]{
+			"x_step": struct{}{},
+		}
 		result.RedirectURI = s.deriveFinishRedirectURI(session, graph)
 		switch graph.Intent.(type) {
 		case *intents.IntentAuthenticate:
