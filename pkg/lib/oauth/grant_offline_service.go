@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 type ServiceIDPSessionProvider interface {
@@ -16,6 +17,7 @@ type ServiceIDPSessionProvider interface {
 type OfflineGrantService struct {
 	OAuthConfig *config.OAuthConfig
 	IDPSessions ServiceIDPSessionProvider
+	Clock       clock.Clock
 }
 
 func (s *OfflineGrantService) ComputeOfflineGrantExpiryWithClients(session *OfflineGrant) (expiry time.Time, err error) {
@@ -47,16 +49,16 @@ func (s *OfflineGrantService) ComputeOfflineGrantExpiryWithClient(session *Offli
 
 	if session.SSOEnabled {
 		if session.IDPSessionID == "" {
-			// adjust the expiry with best effort
-			// should not block the flow if idp session doesn't exist
+			// expire sso enabled refresh token immediately if idp session is not found
+			expiry = s.Clock.NowUTC()
 			return
 		}
 
 		idp, e := s.IDPSessions.Get(session.IDPSessionID)
 		if e != nil {
 			if errors.Is(e, idpsession.ErrSessionNotFound) {
-				// adjust the expiry with best effort
-				// should not block the flow if idp session doesn't exist
+				// expire sso enabled refresh token immediately if idp session is not found
+				expiry = s.Clock.NowUTC()
 				return
 			}
 			err = e

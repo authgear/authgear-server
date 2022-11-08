@@ -101,6 +101,9 @@ func (s *Store) save(conn *goredis.Conn, key string, value interface{}, expireAt
 		return err
 	}
 	ttl := expireAt.Sub(s.Clock.NowUTC())
+	if ttl < 0 {
+		ttl = 1 * time.Millisecond
+	}
 
 	if ifNotExists {
 		_, err = conn.SetNX(ctx, key, data, ttl).Result()
