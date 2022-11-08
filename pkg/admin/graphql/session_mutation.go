@@ -118,3 +118,66 @@ var _ = registerMutationField(
 		},
 	},
 )
+
+var createSessionInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "CreateSessionInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"userID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target user ID.",
+		},
+		"clientID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "Target client ID.",
+		},
+	},
+})
+
+var createSessionPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "CreateSessionPayload",
+	Fields: graphql.Fields{
+		"refreshToken": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"accessToken": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"createSession",
+	&graphql.Field{
+		Description: "Create a session of a given user",
+		Type:        graphql.NewNonNull(createSessionPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(createSessionInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+
+			userNodeID := input["userID"].(string)
+			resolvedNodeID := relay.FromGlobalID(userNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeUser {
+				return nil, apierrors.NewInvalid("invalid user ID")
+			}
+			userID := resolvedNodeID.ID
+
+			clientID := input["clientID"].(string)
+
+			gqlCtx := GQLContext(p.Context)
+
+			resp, err := gqlCtx.OAuthFacade.CreateSession(clientID, userID)
+			if err != nil {
+				return nil, err
+			}
+
+			return map[string]interface{}{
+				"refreshToken": resp["refresh_token"],
+				"accessToken":  resp["access_token"],
+			}, nil
+		},
+	},
+)
