@@ -654,10 +654,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Clock:   clockClock,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -906,18 +910,19 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	tokenService := &handler.TokenService{
-		RemoteIP:          remoteIP,
-		UserAgentString:   userAgentString,
-		AppID:             appID,
-		Config:            oAuthConfig,
-		Authorizations:    authorizationStore,
-		OfflineGrants:     redisStore,
-		AccessGrants:      redisStore,
-		AccessEvents:      eventProvider,
-		AccessTokenIssuer: accessTokenEncoding,
-		GenerateToken:     tokenGenerator,
-		Clock:             clockClock,
-		Users:             queries,
+		RemoteIP:            remoteIP,
+		UserAgentString:     userAgentString,
+		AppID:               appID,
+		Config:              oAuthConfig,
+		Authorizations:      authorizationStore,
+		OfflineGrants:       redisStore,
+		AccessGrants:        redisStore,
+		OfflineGrantService: offlineGrantService,
+		AccessEvents:        eventProvider,
+		AccessTokenIssuer:   accessTokenEncoding,
+		GenerateToken:       tokenGenerator,
+		Clock:               clockClock,
+		Users:               queries,
 	}
 	oAuthFacade := &facade2.OAuthFacade{
 		Config:         oAuthConfig,

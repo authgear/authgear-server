@@ -10,9 +10,10 @@ import (
 )
 
 type SessionManager struct {
-	Store  OfflineGrantStore
-	Clock  clock.Clock
-	Config *config.OAuthConfig
+	Store   OfflineGrantStore
+	Clock   clock.Clock
+	Config  *config.OAuthConfig
+	Service OfflineGrantService
 }
 
 func (m *SessionManager) ClearCookie() []*http.Cookie {
@@ -46,7 +47,7 @@ func (m *SessionManager) List(userID string) ([]session.Session, error) {
 	now := m.Clock.NowUTC()
 	var sessions []session.Session
 	for _, session := range grants {
-		maxExpiry, err := ComputeOfflineGrantExpiryWithClients(session, m.Config)
+		maxExpiry, err := m.Service.ComputeOfflineGrantExpiryWithClients(session)
 
 		// ignore sessions without client
 		if errors.Is(err, ErrGrantNotFound) {
