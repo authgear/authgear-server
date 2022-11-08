@@ -522,5 +522,3 @@ web3:
   nft:
     collections:
 google_tag_manager: {}
-rate_limit:
-  disabled: false

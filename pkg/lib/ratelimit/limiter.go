@@ -21,7 +21,7 @@ type Limiter struct {
 	Logger  Logger
 	Storage Storage
 	Clock   clock.Clock
-	Config  *config.RateLimitConfig
+	Config  *config.RateLimitFeatureConfig
 }
 
 func (l *Limiter) isDisabled() bool {

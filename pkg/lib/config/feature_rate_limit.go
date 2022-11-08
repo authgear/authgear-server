@@ -16,18 +16,26 @@ var _ = FeatureConfigSchema.Add("RateLimitFeatureConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
+		"disabled": { "type": "boolean" },
 		"sms": { "$ref": "#/$defs/RateLimitBucketConfig" }
 	}
 }
 `)
 
 type RateLimitFeatureConfig struct {
-	SMS *SMSRateLimitBucketConfig `json:"sms,omitempty"`
+	Disabled *bool                     `json:"disabled,omitempty"`
+	SMS      *SMSRateLimitBucketConfig `json:"sms,omitempty"`
 }
 
 type SMSRateLimitBucketConfig struct {
 	Size        *int             `json:"size,omitempty"`
 	ResetPeriod *DurationSeconds `json:"reset_period,omitempty"`
+}
+
+func (c *RateLimitFeatureConfig) SetDefaults() {
+	if c.Disabled == nil {
+		c.Disabled = newBool(false)
+	}
 }
 
 func (c *SMSRateLimitBucketConfig) SetDefaults() {
