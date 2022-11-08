@@ -296,14 +296,6 @@ func (d AuthgearYAMLDescriptor) validateBasedOnFeatureConfig(appConfig *config.A
 		}
 	}
 
-	// Rate limit
-	if appConfig.RateLimit != nil && appConfig.RateLimit.Disabled != nil && *(appConfig.RateLimit.Disabled) == true {
-		validationCtx.Child(
-			"rate_limit",
-			"disabled",
-		).EmitErrorMessage("disabling rate limiting is disallowed")
-	}
-
 	return validationCtx.Error("features are limited by feature config")
 }
 

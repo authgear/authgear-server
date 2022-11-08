@@ -256,7 +256,7 @@ func TestLimiter(t *testing.T) {
 
 		Convey("Disabled", func() {
 			disabled := true
-			limiter.Config = &config.RateLimitConfig{
+			limiter.Config = &config.RateLimitFeatureConfig{
 				Disabled: &disabled,
 			}
 
