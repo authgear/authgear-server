@@ -138,14 +138,12 @@ func (s *TokenService) ParseRefreshToken(token string) (*oauth.Authorization, *o
 		return nil, nil, err
 	}
 
-	expiry, err := s.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
-	if errors.Is(err, oauth.ErrGrantNotFound) {
-		return nil, nil, errInvalidRefreshToken
-	} else if err != nil {
+	isValid, _, err := s.OfflineGrantService.IsValid(offlineGrant)
+	if err != nil {
 		return nil, nil, err
 	}
 
-	if s.Clock.NowUTC().After(expiry) {
+	if !isValid {
 		return nil, nil, errInvalidRefreshToken
 	}
 

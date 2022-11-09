@@ -1,13 +1,28 @@
 package oauth
 
 import (
+	"errors"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 type OfflineGrantService struct {
 	OAuthConfig *config.OAuthConfig
+	Clock       clock.Clock
+}
+
+func (s *OfflineGrantService) IsValid(session *OfflineGrant) (valid bool, expiry time.Time, err error) {
+	now := s.Clock.NowUTC()
+	expiry, err = s.ComputeOfflineGrantExpiry(session)
+	if errors.Is(err, ErrGrantNotFound) {
+		return false, now, nil
+	} else if err != nil {
+		return
+	}
+
+	return now.Before(expiry), expiry, nil
 }
 
 func (s *OfflineGrantService) ComputeOfflineGrantExpiry(session *OfflineGrant) (expiry time.Time, err error) {
