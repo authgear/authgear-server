@@ -5,24 +5,55 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
+
+type ServiceIDPSessionProvider interface {
+	Get(id string) (*idpsession.IDPSession, error)
+	CheckSessionExpired(session *idpsession.IDPSession) (expired bool)
+}
 
 type OfflineGrantService struct {
 	OAuthConfig *config.OAuthConfig
 	Clock       clock.Clock
+	IDPSessions ServiceIDPSessionProvider
 }
 
-func (s *OfflineGrantService) IsValid(session *OfflineGrant) (valid bool, expiry time.Time, err error) {
+func (s *OfflineGrantService) IsValid(session *OfflineGrant) (bool, time.Time, error) {
 	now := s.Clock.NowUTC()
-	expiry, err = s.ComputeOfflineGrantExpiry(session)
+	expiry, err := s.ComputeOfflineGrantExpiry(session)
 	if errors.Is(err, ErrGrantNotFound) {
 		return false, now, nil
 	} else if err != nil {
-		return
+		return false, time.Time{}, err
 	}
 
-	return now.Before(expiry), expiry, nil
+	offlineGrantIsValid := now.Before(expiry)
+	if !offlineGrantIsValid {
+		return false, expiry, nil
+	}
+
+	if session.SSOEnabled {
+		if session.IDPSessionID == "" {
+			return false, now, nil
+		}
+
+		idp, err := s.IDPSessions.Get(session.IDPSessionID)
+		if err != nil {
+			if errors.Is(err, idpsession.ErrSessionNotFound) {
+				return false, now, nil
+			}
+			return false, time.Time{}, err
+		}
+
+		idpSessionExpired := s.IDPSessions.CheckSessionExpired(idp)
+		if idpSessionExpired {
+			return false, now, nil
+		}
+	}
+
+	return true, expiry, nil
 }
 
 func (s *OfflineGrantService) ComputeOfflineGrantExpiry(session *OfflineGrant) (expiry time.Time, err error) {
