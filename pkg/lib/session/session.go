@@ -27,6 +27,13 @@ type Session interface {
 	GetAuthenticationInfo() authenticationinfo.T
 
 	ToAPIModel() *model.Session
+
+	// SSOGroupIDPSessionID returns the IDP session id of the SSO group
+	// if the session is not SSO enabled, SSOGroupIDPSessionID will be empty
+	SSOGroupIDPSessionID() string
+	// IsSameSSOGroup indicates whether the session is in the same SSO group
+	IsSameSSOGroup(s Session) bool
+	Equal(s Session) bool
 }
 
 type DeleteReason string

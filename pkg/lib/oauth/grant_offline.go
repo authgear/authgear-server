@@ -94,3 +94,21 @@ func (g *OfflineGrant) GetAuthenticationInfo() authenticationinfo.T {
 		AMR:             amr,
 	}
 }
+
+func (g *OfflineGrant) SSOGroupIDPSessionID() string {
+	if g.SSOEnabled {
+		return g.IDPSessionID
+	}
+	return ""
+}
+
+func (g *OfflineGrant) IsSameSSOGroup(ss session.Session) bool {
+	if g.SSOGroupIDPSessionID() == "" {
+		return false
+	}
+	return g.SSOGroupIDPSessionID() == ss.SSOGroupIDPSessionID()
+}
+
+func (g *OfflineGrant) Equal(ss session.Session) bool {
+	return g.SessionID() == ss.SessionID() && g.SessionType() == ss.SessionType()
+}

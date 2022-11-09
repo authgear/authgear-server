@@ -75,3 +75,18 @@ func (s *IDPSession) GetAuthenticationInfo() authenticationinfo.T {
 		AMR:             amr,
 	}
 }
+
+func (s *IDPSession) SSOGroupIDPSessionID() string {
+	return s.SessionID()
+}
+
+func (s *IDPSession) IsSameSSOGroup(ss session.Session) bool {
+	if s.SSOGroupIDPSessionID() == "" {
+		return false
+	}
+	return s.SSOGroupIDPSessionID() == ss.SSOGroupIDPSessionID()
+}
+
+func (s *IDPSession) Equal(ss session.Session) bool {
+	return s.SessionID() == ss.SessionID() && s.SessionType() == ss.SessionType()
+}
