@@ -10,7 +10,7 @@ type OfflineGrantService struct {
 	OAuthConfig *config.OAuthConfig
 }
 
-func (s *OfflineGrantService) ComputeOfflineGrantExpiryWithClients(session *OfflineGrant) (expiry time.Time, err error) {
+func (s *OfflineGrantService) ComputeOfflineGrantExpiry(session *OfflineGrant) (expiry time.Time, err error) {
 	var clientConfig *config.OAuthClientConfig
 	for _, c := range s.OAuthConfig.Clients {
 		if c.ClientID == session.ClientID {
@@ -24,11 +24,11 @@ func (s *OfflineGrantService) ComputeOfflineGrantExpiryWithClients(session *Offl
 		return
 	}
 
-	expiry = s.ComputeOfflineGrantExpiryWithClient(session, clientConfig)
+	expiry = s.computeOfflineGrantExpiryWithClient(session, clientConfig)
 	return
 }
 
-func (s *OfflineGrantService) ComputeOfflineGrantExpiryWithClient(session *OfflineGrant, cfg *config.OAuthClientConfig) (expiry time.Time) {
+func (s *OfflineGrantService) computeOfflineGrantExpiryWithClient(session *OfflineGrant, cfg *config.OAuthClientConfig) (expiry time.Time) {
 	expiry = session.CreatedAt.Add(cfg.RefreshTokenLifetime.Duration())
 	if *cfg.RefreshTokenIdleTimeoutEnabled {
 		idleExpiry := session.AccessInfo.LastAccess.Timestamp.Add(cfg.RefreshTokenIdleTimeout.Duration())

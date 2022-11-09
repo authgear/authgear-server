@@ -286,7 +286,14 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, err
 	}
 
-	expiry := h.OfflineGrantService.ComputeOfflineGrantExpiryWithClient(offlineGrant, client)
+	if client.ClientID != offlineGrant.ClientID {
+		return nil, protocol.NewError("invalid_request", "client id doesn't match the refresh token")
+	}
+
+	expiry, err := h.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
+	if err != nil {
+		return nil, err
+	}
 	_, err = h.OfflineGrants.UpdateOfflineGrantDeviceInfo(offlineGrant.ID, deviceInfo, expiry)
 	if err != nil {
 		return nil, err
@@ -707,8 +714,11 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 			offlineGrant, err := h.OfflineGrants.GetOfflineGrant(sessionID)
 			if err == nil {
 				if info.AuthenticatedAt.After(offlineGrant.AuthenticatedAt) {
-					expiry := h.OfflineGrantService.ComputeOfflineGrantExpiryWithClient(offlineGrant, client)
-					_, err := h.OfflineGrants.UpdateOfflineGrantAuthenticatedAt(offlineGrant.ID, info.AuthenticatedAt, expiry)
+					expiry, err := h.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
+					if err != nil {
+						return nil, err
+					}
+					_, err = h.OfflineGrants.UpdateOfflineGrantAuthenticatedAt(offlineGrant.ID, info.AuthenticatedAt, expiry)
 					if err != nil {
 						return nil, err
 					}
