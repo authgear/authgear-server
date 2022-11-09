@@ -653,10 +653,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
 		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
-		Clock:   clockClock,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
