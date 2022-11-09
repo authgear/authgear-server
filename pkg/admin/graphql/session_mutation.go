@@ -156,6 +156,11 @@ var _ = registerMutationField(
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			gqlCtx := GQLContext(p.Context)
+			if !(*gqlCtx.AdminAPIFeatureConfig.CreateSessionEnabled) {
+				return nil, apierrors.NewForbidden("CreateSession is disabled")
+			}
+
 			input := p.Args["input"].(map[string]interface{})
 
 			userNodeID := input["userID"].(string)
@@ -166,8 +171,6 @@ var _ = registerMutationField(
 			userID := resolvedNodeID.ID
 
 			clientID := input["clientID"].(string)
-
-			gqlCtx := GQLContext(p.Context)
 
 			resp, err := gqlCtx.OAuthFacade.CreateSession(clientID, userID)
 			if err != nil {

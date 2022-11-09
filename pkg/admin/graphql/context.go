@@ -103,7 +103,8 @@ func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("admin-graphql")} 
 type Context struct {
 	GQLLogger Logger
 
-	OAuthConfig *config.OAuthConfig
+	OAuthConfig           *config.OAuthConfig
+	AdminAPIFeatureConfig *config.AdminAPIFeatureConfig
 
 	Users          UserLoader
 	Identities     IdentityLoader

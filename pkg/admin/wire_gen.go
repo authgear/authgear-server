@@ -154,6 +154,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	configConfig := appProvider.Config
 	appConfig := configConfig.AppConfig
 	oAuthConfig := appConfig.OAuth
+	featureConfig := configConfig.FeatureConfig
+	adminAPIFeatureConfig := featureConfig.AdminAPI
 	secretConfig := configConfig.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
@@ -173,7 +175,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
-	featureConfig := configConfig.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -925,21 +926,22 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 	}
 	graphqlContext := &graphql.Context{
-		GQLLogger:           logger,
-		OAuthConfig:         oAuthConfig,
-		Users:               userLoader,
-		Identities:          identityLoader,
-		Authenticators:      authenticatorLoader,
-		AuditLogs:           auditLogLoader,
-		UserFacade:          facadeUserFacade,
-		AuditLogFacade:      auditLogFacade,
-		IdentityFacade:      facadeIdentityFacade,
-		AuthenticatorFacade: facadeAuthenticatorFacade,
-		VerificationFacade:  verificationFacade,
-		SessionFacade:       sessionFacade,
-		UserProfileFacade:   userProfileFacade,
-		AuthorizationFacade: authorizationFacade,
-		OAuthFacade:         oAuthFacade,
+		GQLLogger:             logger,
+		OAuthConfig:           oAuthConfig,
+		AdminAPIFeatureConfig: adminAPIFeatureConfig,
+		Users:                 userLoader,
+		Identities:            identityLoader,
+		Authenticators:        authenticatorLoader,
+		AuditLogs:             auditLogLoader,
+		UserFacade:            facadeUserFacade,
+		AuditLogFacade:        auditLogFacade,
+		IdentityFacade:        facadeIdentityFacade,
+		AuthenticatorFacade:   facadeAuthenticatorFacade,
+		VerificationFacade:    verificationFacade,
+		SessionFacade:         sessionFacade,
+		UserProfileFacade:     userProfileFacade,
+		AuthorizationFacade:   authorizationFacade,
+		OAuthFacade:           oAuthFacade,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: graphqlContext,
