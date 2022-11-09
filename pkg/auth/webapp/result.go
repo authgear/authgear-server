@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
 
 type Result struct {
@@ -15,6 +16,7 @@ type Result struct {
 	NavigationAction string
 	Cookies          []*http.Cookie
 	IsInteractionErr bool
+	RemoveQueries    setutil.Set[string]
 }
 
 func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {
@@ -35,8 +37,9 @@ func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {
 	if redirectURI.Host == "" {
 		original := PreserveQuery(req.URL.Query())
 		for key := range original {
+			_, ignoreKey := r.RemoveQueries[key]
 			// preserve the query only if it doesn't exist in the new query
-			if q.Get(key) == "" {
+			if q.Get(key) == "" && !ignoreKey {
 				q.Set(key, original.Get(key))
 			}
 		}

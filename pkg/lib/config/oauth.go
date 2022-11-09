@@ -120,6 +120,14 @@ type OAuthClientConfig struct {
 	TOSURI                         string                     `json:"tos_uri,omitempty"`
 }
 
+func (c *OAuthClientConfig) DefaultRedirectURI() string {
+	if len(c.RedirectURIs) > 0 {
+		return c.RedirectURIs[0]
+	}
+
+	return ""
+}
+
 func (c *OAuthClientConfig) ClientParty() ClientParty {
 	if c.ApplicationType == OAuthClientApplicationTypeThirdPartyApp {
 		return ClientPartyThird

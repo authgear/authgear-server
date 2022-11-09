@@ -203,6 +203,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	uiConfig := appConfig.UI
 	interactionLogger := interaction.NewLogger(factory)
 	featureConfig := config.FeatureConfig
 	eventLogger := event.NewLogger(factory)
@@ -810,6 +811,9 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
 	authenticateURLProvider := &webapp2.AuthenticateURLProvider{
@@ -978,6 +982,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	uiConfig := appConfig.UI
 	interactionLogger := interaction.NewLogger(factory)
 	featureConfig := config.FeatureConfig
 	eventLogger := event.NewLogger(factory)
@@ -1585,6 +1590,9 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
 	authenticateURLProvider := &webapp2.AuthenticateURLProvider{
@@ -1644,7 +1652,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                   cookieManager,
 		OAuthSessionService:       oauthsessionStoreRedis,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -6459,6 +6466,8 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -6923,7 +6932,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -7127,9 +7135,11 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -7238,6 +7248,8 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -7702,7 +7714,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -7906,9 +7917,11 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -8016,6 +8029,8 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -8480,7 +8495,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -8684,9 +8698,11 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -8777,6 +8793,8 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -9241,7 +9259,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -9445,9 +9462,11 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -9502,6 +9521,8 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Identities:                serviceService,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Cookies:                   cookieManager,
+		OAuthConfig:               oAuthConfig,
+		UIConfig:                  uiConfig,
 	}
 	return selectAccountHandler
 }
@@ -9534,6 +9555,8 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -9998,7 +10021,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -10202,9 +10224,11 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -10283,6 +10307,8 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -10747,7 +10773,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -10951,9 +10976,11 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -11035,6 +11062,8 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -11499,7 +11528,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -11703,9 +11731,11 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -11790,6 +11820,8 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -12254,7 +12286,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -12458,9 +12489,11 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -12547,6 +12580,8 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -13011,7 +13046,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -13215,9 +13249,11 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -13302,6 +13338,8 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -13766,7 +13804,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -13970,9 +14007,11 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -14057,6 +14096,8 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -14521,7 +14562,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -14725,9 +14765,11 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -14813,6 +14855,8 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -15277,7 +15321,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -15481,9 +15524,11 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -15568,6 +15613,8 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -16032,7 +16079,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -16236,9 +16282,11 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -16323,6 +16371,8 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -16787,7 +16837,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -16991,9 +17040,11 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -17080,6 +17131,8 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -17544,7 +17597,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -17748,9 +17800,11 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -17835,6 +17889,8 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -18299,7 +18355,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -18503,9 +18558,11 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -18590,6 +18647,8 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -19054,7 +19113,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -19258,9 +19316,11 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -19347,6 +19407,8 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -19811,7 +19873,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -20015,9 +20076,11 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -20102,6 +20165,8 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -20566,7 +20631,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -20770,9 +20834,11 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -21286,6 +21352,8 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -21750,7 +21818,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -21954,9 +22021,11 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -22041,6 +22110,8 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -22505,7 +22576,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -22709,9 +22779,11 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -22792,6 +22864,8 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -23256,7 +23330,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -23460,9 +23533,11 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -23545,6 +23620,8 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -24009,7 +24086,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -24213,9 +24289,11 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -24296,6 +24374,8 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -24760,7 +24840,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -24964,9 +25043,11 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -25057,6 +25138,8 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -25521,7 +25604,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -25725,9 +25807,11 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -25808,6 +25892,8 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -26272,7 +26358,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -26476,9 +26561,11 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -26560,6 +26647,8 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -27024,7 +27113,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -27228,9 +27316,11 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -27311,6 +27401,8 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -27775,7 +27867,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -27979,9 +28070,11 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -28093,6 +28186,8 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -28557,7 +28652,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -28761,9 +28855,11 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -28855,6 +28951,8 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -29319,7 +29417,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -29523,9 +29620,11 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -29630,6 +29729,8 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -30094,7 +30195,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -30298,9 +30398,11 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -30389,6 +30491,8 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -30853,7 +30957,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -31057,9 +31160,11 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -31141,6 +31246,8 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -31605,7 +31712,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -31809,9 +31915,11 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -31901,6 +32009,8 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -32365,7 +32475,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -32569,9 +32678,11 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -32653,6 +32764,8 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -33117,7 +33230,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -33321,9 +33433,11 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -33405,6 +33519,8 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -33869,7 +33985,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -34073,9 +34188,11 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -34157,6 +34274,8 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -34621,7 +34740,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -34825,9 +34943,11 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -34910,6 +35030,8 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -35374,7 +35496,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -35578,9 +35699,11 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -35673,6 +35796,8 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -36137,7 +36262,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -36341,9 +36465,11 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -36425,6 +36551,8 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -36889,7 +37017,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -37093,9 +37220,11 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -37177,6 +37306,8 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -37641,7 +37772,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -37845,9 +37975,11 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -37929,6 +38061,8 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -38393,7 +38527,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -38597,9 +38730,11 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -38681,6 +38816,8 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -39145,7 +39282,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -39349,9 +39485,11 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -39440,6 +39578,8 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -39904,7 +40044,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -40108,9 +40247,11 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -40193,6 +40334,8 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -40657,7 +40800,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -40861,9 +41003,11 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -40944,6 +41088,8 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -41408,7 +41554,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -41612,9 +41757,11 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -41714,6 +41861,8 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -42178,7 +42327,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -42382,9 +42530,11 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -42465,6 +42615,8 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -42929,7 +43081,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -43133,9 +43284,11 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -43216,6 +43369,8 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -43680,7 +43835,6 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -43884,9 +44038,11 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -43983,6 +44139,8 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -44448,7 +44606,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -44652,6 +44809,9 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
 	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
@@ -44700,6 +44860,8 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -45165,7 +45327,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -45369,6 +45530,9 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
 	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
@@ -45417,6 +45581,8 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -45881,7 +46047,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -46085,9 +46250,11 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -46178,6 +46345,8 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:  errorCookieDef,
 		Cookies: cookieManager,
 	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	logger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
@@ -46642,7 +46811,6 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
 		Store:  redisStore,
 		Clock:  clockClock,
@@ -46846,9 +47014,11 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
 		Graph:                interactionService,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
@@ -47100,10 +47270,12 @@ func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	trustProxy := environmentConfig.TrustProxy
 	config := appProvider.Config
 	appConfig := config.AppConfig
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	authEntryPointMiddleware := &webapp2.AuthEntryPointMiddleware{
-		TrustProxy: trustProxy,
-		UIConfig:   uiConfig,
+		TrustProxy:  trustProxy,
+		OAuthConfig: oAuthConfig,
+		UIConfig:    uiConfig,
 	}
 	return authEntryPointMiddleware
 }

@@ -21,7 +21,6 @@ func WithSession(ctx context.Context, session *Session) context.Context {
 
 type SessionOptions struct {
 	RedirectURI                string
-	ClientID                   string
 	KeepAfterFinish            bool
 	Prompt                     []string
 	Extra                      map[string]interface{}
@@ -32,12 +31,12 @@ type SessionOptions struct {
 	CanUseIntentReauthenticate bool
 	SuppressIDPSessionCookie   bool
 	OAuthProviderAlias         string
+	FromAuthzEndpoint          bool
 }
 
 func NewSessionOptionsFromSession(s *Session) SessionOptions {
 	return SessionOptions{
 		RedirectURI:                s.RedirectURI,
-		ClientID:                   s.ClientID,
 		KeepAfterFinish:            s.KeepAfterFinish,
 		Prompt:                     s.Prompt,
 		Extra:                      nil, // Omit extra by default
@@ -47,6 +46,7 @@ func NewSessionOptionsFromSession(s *Session) SessionOptions {
 		CanUseIntentReauthenticate: s.CanUseIntentReauthenticate,
 		SuppressIDPSessionCookie:   s.SuppressIDPSessionCookie,
 		OAuthProviderAlias:         s.OAuthProviderAlias,
+		FromAuthzEndpoint:          s.FromAuthzEndpoint,
 	}
 }
 
@@ -62,9 +62,6 @@ type Session struct {
 	// KeepAfterFinish indicates the session would not be deleted after the
 	// completion of interaction graph.
 	KeepAfterFinish bool `json:"keep_after_finish,omitempty"`
-
-	// ClientID is the client ID associated with this session.
-	ClientID string `json:"client_id,omitempty"`
 
 	// Extra is used to store extra information for use of webapp.
 	Extra map[string]interface{} `json:"extra"`
@@ -96,6 +93,9 @@ type Session struct {
 
 	// OAuthProviderAlias is used to auto redirect user to the given oauth provider in the login page
 	OAuthProviderAlias string `json:"oauth_provider_alias,omitempty"`
+
+	// FromAuthzEndpoint indicates whether the web session is created from the authorization endpoint
+	FromAuthzEndpoint bool `json:"from_authz_endpoint,omitempty"`
 }
 
 func newSessionID() string {
@@ -111,7 +111,6 @@ func NewSession(options SessionOptions) *Session {
 		ID:                         newSessionID(),
 		RedirectURI:                options.RedirectURI,
 		KeepAfterFinish:            options.KeepAfterFinish,
-		ClientID:                   options.ClientID,
 		Extra:                      make(map[string]interface{}),
 		Prompt:                     options.Prompt,
 		Page:                       options.Page,
@@ -121,12 +120,10 @@ func NewSession(options SessionOptions) *Session {
 		CanUseIntentReauthenticate: options.CanUseIntentReauthenticate,
 		SuppressIDPSessionCookie:   options.SuppressIDPSessionCookie,
 		OAuthProviderAlias:         options.OAuthProviderAlias,
+		FromAuthzEndpoint:          options.FromAuthzEndpoint,
 	}
 	for k, v := range options.Extra {
 		s.Extra[k] = v
-	}
-	if s.RedirectURI == "" {
-		s.RedirectURI = "/"
 	}
 	return s
 }

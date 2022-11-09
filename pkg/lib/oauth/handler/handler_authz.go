@@ -367,13 +367,13 @@ func (h *AuthorizationHandler) doHandle(
 	}
 
 	sessionOptions := webapp.SessionOptions{
-		ClientID:                 r.ClientID(),
 		WebhookState:             r.State(),
 		Page:                     r.Page(),
 		RedirectURI:              h.OAuthURLs.ConsentURL(r).String(),
 		Prompt:                   h.handleMaxAgeAndPrompt(r, sidSession),
 		SuppressIDPSessionCookie: r.SuppressIDPSessionCookie(),
 		OAuthProviderAlias:       r.OAuthProviderAlias(),
+		FromAuthzEndpoint:        true,
 	}
 	uiLocales := strings.Join(r.UILocales(), " ")
 	colorScheme := r.ColorScheme()
@@ -439,6 +439,8 @@ func (h *AuthorizationHandler) doHandle(
 			UILocales:      uiLocales,
 			ColorScheme:    colorScheme,
 			Cookies:        oauthSessionEntryCookies,
+			ClientID:       r.ClientID(),
+			RedirectURL:    r.RedirectURI(),
 		})
 		if apierrors.IsKind(err, interaction.InvalidCredentials) {
 			return nil, protocol.NewError("invalid_request", err.Error())

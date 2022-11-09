@@ -10,10 +10,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
 
 type SessionStore interface {
@@ -50,6 +52,9 @@ type Service2 struct {
 	MFADeviceTokenCookie mfa.CookieDef
 	ErrorCookie          *ErrorCookie
 	Cookies              CookieManager
+	OAuthConfig          *config.OAuthConfig
+	UIConfig             *config.UIConfig
+	TrustProxy           config.TrustProxy
 
 	Graph GraphService
 }
@@ -422,7 +427,10 @@ func (s *Service2) afterPost(
 
 	// Transition to redirect URI
 	if isFinished {
-		result.RedirectURI = deriveFinishRedirectURI(session, graph)
+		result.RemoveQueries = setutil.Set[string]{
+			"x_step": struct{}{},
+		}
+		result.RedirectURI = s.deriveFinishRedirectURI(session, graph)
 		switch graph.Intent.(type) {
 		case *intents.IntentAuthenticate:
 			result.NavigationAction = "redirect"
@@ -485,6 +493,26 @@ func (s *Service2) afterPost(
 	}
 
 	return nil
+}
+
+func (s *Service2) deriveFinishRedirectURI(session *Session, graph *interaction.Graph) string {
+	switch graph.CurrentNode().(type) {
+	case *nodes.NodeForgotPasswordEnd:
+		return "/flows/forgot_password/success"
+	case *nodes.NodeResetPasswordEnd:
+		return "/flows/reset_password/success"
+	}
+
+	// 1. WebSession's Redirect URL (e.g. authorization endpoint, settings page)
+	// 2. Obtain redirect_uri which is from the same origin by calling GetRedirectURI
+	// 3. DerivePostLoginRedirectURIFromRequest
+	if session.RedirectURI != "" {
+		return session.RedirectURI
+	}
+
+	postLoginRedirectURI := DerivePostLoginRedirectURIFromRequest(s.Request, s.OAuthConfig, s.UIConfig)
+	redirectURI := GetRedirectURI(s.Request, bool(s.TrustProxy), postLoginRedirectURI)
+	return redirectURI
 }
 
 // nolint:gocyclo
@@ -558,16 +586,6 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 	default:
 		panic(fmt.Errorf("webapp: unexpected node: %T", graph.CurrentNode()))
 	}
-}
-
-func deriveFinishRedirectURI(session *Session, graph *interaction.Graph) string {
-	switch graph.CurrentNode().(type) {
-	case *nodes.NodeForgotPasswordEnd:
-		return "/flows/forgot_password/success"
-	case *nodes.NodeResetPasswordEnd:
-		return "/flows/reset_password/success"
-	}
-	return session.RedirectURI
 }
 
 func collectExtras(node interaction.Node) map[string]interface{} {

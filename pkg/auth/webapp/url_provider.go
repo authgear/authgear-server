@@ -13,7 +13,7 @@ import (
 
 type EndpointsProvider interface {
 	BaseURL() *url.URL
-	OAuthEntrypointURL() *url.URL
+	OAuthEntrypointURL(clientID string, redirectURI string) *url.URL
 	LoginEndpointURL() *url.URL
 	SignupEndpointURL() *url.URL
 	LogoutEndpointURL() *url.URL
@@ -67,10 +67,16 @@ type AuthenticateURLOptions struct {
 	UILocales      string
 	ColorScheme    string
 	Cookies        []*http.Cookie
+	ClientID       string
+	// RedirectURL will be used only when the WebSession doesn't have the redirect URI
+	// When the WebSession has a redirect URI, it usually starts from the authorization endpoint
+	// User will be redirected back to the authorization endpoint after authentication
+	// Authorization endpoint will use the redirect URI in the OAuthSession
+	RedirectURL string
 }
 
 func (p *AuthenticateURLProvider) AuthenticateURL(options AuthenticateURLOptions) (httputil.Result, error) {
-	endpoint := p.Endpoints.OAuthEntrypointURL().String()
+	endpoint := p.Endpoints.OAuthEntrypointURL(options.ClientID, options.RedirectURL).String()
 	now := p.Clock.NowUTC()
 	sessionOpts := options.SessionOptions
 	sessionOpts.UpdatedAt = now

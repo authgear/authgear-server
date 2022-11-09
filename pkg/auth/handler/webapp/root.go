@@ -29,5 +29,6 @@ func (h *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		path = "/login"
 	}
 
-	http.Redirect(w, r, path, http.StatusFound)
+	u := webapp.MakeRelativeURL(path, webapp.PreserveQuery(r.URL.Query()))
+	http.Redirect(w, r, u.String(), http.StatusFound)
 }
