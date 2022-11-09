@@ -49,7 +49,7 @@ type LoginHintPageService interface {
 }
 
 type OfflineGrantService interface {
-	ComputeOfflineGrantExpiryWithClients(session *oauth.OfflineGrant) (expiry time.Time, err error)
+	ComputeOfflineGrantExpiry(session *oauth.OfflineGrant) (expiry time.Time, err error)
 }
 
 type LoginHintHandler struct {
@@ -173,7 +173,7 @@ func (r *LoginHintHandler) resolveAppSessionToken(token string) (string, error) 
 		return "", err
 	}
 
-	expiry, err := r.OfflineGrantService.ComputeOfflineGrantExpiryWithClients(offlineGrant)
+	expiry, err := r.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
 	if err != nil {
 		return "", err
 	}

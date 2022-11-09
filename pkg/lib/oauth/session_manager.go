@@ -47,7 +47,7 @@ func (m *SessionManager) List(userID string) ([]session.Session, error) {
 	now := m.Clock.NowUTC()
 	var sessions []session.Session
 	for _, session := range grants {
-		maxExpiry, err := m.Service.ComputeOfflineGrantExpiryWithClients(session)
+		maxExpiry, err := m.Service.ComputeOfflineGrantExpiry(session)
 
 		// ignore sessions without client
 		if errors.Is(err, ErrGrantNotFound) {

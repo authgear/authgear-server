@@ -66,8 +66,12 @@ func (s *TokenService) IssueOfflineGrant(
 		SSOEnabled: opts.SSOEnabled,
 	}
 
-	expiry := s.OfflineGrantService.ComputeOfflineGrantExpiryWithClient(offlineGrant, client)
-	err := s.OfflineGrants.CreateOfflineGrant(offlineGrant, expiry)
+	expiry, err := s.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.OfflineGrants.CreateOfflineGrant(offlineGrant, expiry)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +138,7 @@ func (s *TokenService) ParseRefreshToken(token string) (*oauth.Authorization, *o
 		return nil, nil, err
 	}
 
-	expiry, err := s.OfflineGrantService.ComputeOfflineGrantExpiryWithClients(offlineGrant)
+	expiry, err := s.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
 	if errors.Is(err, oauth.ErrGrantNotFound) {
 		return nil, nil, errInvalidRefreshToken
 	} else if err != nil {
