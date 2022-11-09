@@ -52,6 +52,54 @@ func (m *Manager) resolveManagementProvider(session Session) ManagementService {
 }
 
 func (m *Manager) invalidate(session Session, reason DeleteReason, isAdminAPI bool) (ManagementService, error) {
+	sessions, err := m.List(session.GetAuthenticationInfo().UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	sort.Slice(sessions, func(i, j int) bool {
+		if sessions[i].SessionType() == sessions[j].SessionType() {
+			// Sort by creation time in ascending order.
+			return sessions[i].GetCreatedAt().Before(sessions[j].GetCreatedAt())
+		}
+
+		// delete offline grant first
+		if sessions[i].SessionType() == TypeOfflineGrant {
+			return true
+		}
+		return false
+	})
+
+	var provider ManagementService
+	for _, s := range sessions {
+		// invalidate the sessions that are in the same sso group
+		if s.IsSameSSOGroup(session) {
+			p, err := m.invalidateSession(s, reason, isAdminAPI)
+			if err != nil {
+				return nil, err
+			}
+			if s.Equal(session) {
+				provider = p
+			}
+		}
+	}
+
+	if provider == nil {
+		// if the current session doesn't appear in the sso group (e.g. sso disabled offline grant)
+		// delete it here
+		provider, err = m.invalidateSession(session, reason, isAdminAPI)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return provider, nil
+
+}
+
+// invalidateSession should not be called directly
+// invalidate should be called instead
+func (m *Manager) invalidateSession(session Session, reason DeleteReason, isAdminAPI bool) (ManagementService, error) {
 	sessionModel := session.ToAPIModel()
 
 	provider := m.resolveManagementProvider(session)
