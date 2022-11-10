@@ -8,7 +8,7 @@
   * [OIDC](./oidc.md)
   * [Templates](./templates.md)
   * [UI](./ui.md)
-  * [Webhook](./webhook.md)
+  * [Hooks](./hook.md)
   * [Configuration](./config.md)
   * Features
     * [Verification](./verification.md)
