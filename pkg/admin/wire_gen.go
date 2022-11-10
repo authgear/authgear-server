@@ -921,6 +921,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthFacade := &facade2.OAuthFacade{
 		Config:         oAuthConfig,
+		Users:          userFacade,
 		Authorizations: authorizationService,
 		Tokens:         tokenService,
 		Clock:          clockClock,

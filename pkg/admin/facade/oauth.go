@@ -37,6 +37,7 @@ type OAuthTokenService interface {
 
 type OAuthFacade struct {
 	Config         *config.OAuthConfig
+	Users          UserService
 	Authorizations OAuthAuthorizationService
 	Tokens         OAuthTokenService
 	Clock          clock.Clock
@@ -60,6 +61,12 @@ func (f *OAuthFacade) CreateSession(clientID string, userID string) (protocol.To
 	}
 	if client.ClientParty() != config.ClientPartyFirst {
 		return nil, apierrors.NewForbidden("cannot create session for non-first party client")
+	}
+
+	// Check user existence.
+	_, err := f.Users.GetRaw(userID)
+	if err != nil {
+		return nil, err
 	}
 
 	authz, err := f.Authorizations.CheckAndGrant(
