@@ -1,59 +1,55 @@
+- [Hooks](#hooks)
+- [Kinds of Hooks](#kinds-of-hooks)
+- [Event Delivery](#event-delivery)
+- [Lifecycle of Event Delivery](#lifecycle-of-event-delivery)
+- [Blocking Events](#blocking-events)
+  * [Blocking Event Mutations](#blocking-event-mutations)
+- [Non-blocking Events](#non-blocking-events)
+  * [Future works of non-blocking events](#future-works-of-non-blocking-events)
 - [Webhook](#webhook)
-  * [Webhook Delivery](#webhook-delivery)
-  * [Webhook Event Lifecycle](#webhook-event-lifecycle)
-  * [Webhook Blocking Events](#webhook-blocking-events)
-    + [Webhook Blocking Event Mutations](#webhook-blocking-event-mutations)
-  * [Webhook Non-blocking Events](#webhook-non-blocking-events)
-    + [Future works of non-blocking events](#future-works-of-non-blocking-events)
-  * [Webhook Event Management](#webhook-event-management)
-    + [Webhook Event Alerts](#webhook-event-alerts)
-    + [Webhook Past Events](#webhook-past-events)
-    + [Webhook Manual Re-delivery](#webhook-manual-re-delivery)
-    + [Webhook Delivery Security](#webhook-delivery-security)
-      - [Webhook HTTPS](#webhook-https)
-      - [Webhook Signature](#webhook-signature)
-  * [Webhook Considerations](#webhook-considerations)
-    + [Recursive Webhooks](#recursive-webhooks)
-    + [Webhook Delivery Reliability](#webhook-delivery-reliability)
-    + [Webhook Eventual Consistency](#webhook-eventual-consistency)
-    + [CAP Theorem](#cap-theorem)
-  * [authgear.yaml](#authgearyaml)
+  * [Webhook Signature](#webhook-signature)
+- [Hooks Event Management](#hooks-event-management)
+  * [Hooks Event Alerts](#hooks-event-alerts)
+  * [Hooks Past Events](#hooks-past-events)
+  * [Hooks Manual Re-delivery](#hooks-manual-re-delivery)
+- [Considerations](#considerations)
+  * [Recursive Hooks](#recursive-hooks)
+  * [Delivery Reliability](#delivery-reliability)
+  * [Eventual Consistency](#eventual-consistency)
+  * [CAP Theorem](#cap-theorem)
+- [Configuration in `authgear.yaml`](#configuration-in-authgearyaml)
 
-# Webhook
+# Hooks
 
-Webhook is the mechanism to notify external services about events.
+Hooks is a mechanism to notify external services about [events](./event.md).
 
-For the definition of events, see [Event](./event.md)
+# Kinds of Hooks
 
-## Webhook Delivery
+There is only 1 kind of Hook at the moment. It is [Webhook](#webhook).
 
-The webhook event is POSTed to the webhook handler endpoint.
+# Event Delivery
 
-The webhook handler endpoint must be an absolute URL.
+Each event can have many Hooks. The order of delivery is unspecified for [non-blocking event](#non-blocking-events). [Blocking events](#blocking-events) are delivered in the source order as in the configuration.
 
-Each event can have many handlers. The order of delivery is unspecified for non-blocking event. Blocking events are delivered in the source order as in the configuration.
+Hooks should be idempotent, since non-blocking events may be delivered multiple times due to retries.
 
-Webhook handler should be idempotent, since non-blocking events may be delivered multiple times due to retries.
-
-Webhook handler must return a status code within the 2xx range. Other status code is considered as a failed delivery.
-
-## Webhook Event Lifecycle
+# Lifecycle of Event Delivery
 
 1. Begin transaction
 1. Perform operation
-1. Deliver blocking events to webhook handlers
+1. Deliver blocking events to Hooks.
 1. If failed, rollback the transaction.
 1. Perform mutations
 1. Commit transaction
-1. Deliver non-blocking events to webhook handlers
+1. Deliver non-blocking events to Hooks.
 
-## Webhook Blocking Events
+# Blocking Events
 
-Blocking events are delivered to webhook handlers synchronously, right before committing changes to the database.
+Blocking events are delivered to hooks synchronously, right before committing changes to the database.
 
-Webhook handler must respond with a JSON body to indicate whether the operation should continue.
+Hooks must return a JSON document to indicate whether the operation should continue.
 
-To let the operation to proceed, respond with `is_allowed` being set to `true`.
+To let the operation to proceed, respond with `is_allowed` set to `true`.
 
 ```json
 {
@@ -61,7 +57,7 @@ To let the operation to proceed, respond with `is_allowed` being set to `true`.
 }
 ```
 
-To fail the operation, respond with `is_allowed` being set to `false` and a non-empty `title` and `reason`.
+To fail the operation, respond with `is_allowed` set to `false`, and a non-empty `title` and `reason`.
 
 ```json
 {
@@ -71,7 +67,7 @@ To fail the operation, respond with `is_allowed` being set to `false` and a non-
 }
 ```
 
-If any handler fails the operation, the operation is failed. The operation fails with error
+If any hook fails the operation, the operation is failed. The operation fails with error
 
 ```json
 {
@@ -90,17 +86,17 @@ If any handler fails the operation, the operation is failed. The operation fails
 }
 ```
 
-The time spent in a blocking event delivery must not exceed 5 seconds, otherwise it would be considered as a failed delivery. Also, the total time spent in all deliveries of the event must not exceed 10 seconds, otherwise it would also be considered as a failed delivery. Both timeouts are configurable.
+The time spent in a blocking event delivery must not exceed 5 seconds, otherwise it will be considered as a failed delivery. Also, the total time spent in all deliveries of the event must not exceed 10 seconds, otherwise it would also be considered as failed delivery. Both timeouts are configurable.
 
 Blocking events are not persisted, and their failed deliveries are not retried.
 
-### Webhook Blocking Event Mutations
+## Blocking Event Mutations
 
-Webhook handler can optionally mutate the object in the payload.
+Hooks can optionally mutate the object in the Event payload.
 
-Webhook handler cannot request mutation if the operation is failed by the handler.
+Hooks cannot request mutation if the operation is failed by them.
 
-Webhook handler specify the mutations in its response.
+Hooks specify the mutations in the JSON document they return.
 
 Given the event
 
@@ -116,7 +112,7 @@ Given the event
 }
 ```
 
-The webhook handler can mutate the user with the following response.
+Hooks can mutate the standard attributes of the user with the following JSON document.
 
 ```json
 {
@@ -135,56 +131,42 @@ Objects not appearing in `mutations` are left intact.
 
 The mutated objects do NOT merge with the original ones.
 
-The mutated payload are NOT validated and are propagated along the handler chain.
-The payload will only be validated after traversing the handler chain.
+The mutated payload are NOT validated and are propagated along the Hooks chain.
+The payload will only be validated after traversing the Hooks chain.
 
 Mutations do NOT generate extra events to avoid infinite loop.
 
 Currently, only `standard_attributes`, `custom_attributes` and `roles` of the user object are mutable.
 
-## Webhook Non-blocking Events
+# Non-blocking Events
 
-Non-blocking events are delivered to webhook handlers asynchronously after the operation is performed (i.e. committed into the database).
+Non-blocking events are delivered to Hooks asynchronously after the operation is performed (i.e. changes committed to the database).
 
-The time spent in an non-blocking event delivery must not exceed 60 seconds, otherwise it would be considered as a failed delivery.
+The time spent in an non-blocking event delivery must no exceed 60 seconds, otherwise it would be considered as a failed delivery.
 
-The response body of non-blocking event webhook handler is ignored.
+The return value of non-blocking event Hooks is ignored.
 
-### Future works of non-blocking events
+## Future works of non-blocking events
 
-All non-blocking events with registered webhook handlers are persisted into the database, with minimum retention period of 30 days.
+All non-blocking events with registered Hooks are persisted in the database, with minimum retention period of 30 days.
 
-If any delivery failed, all deliveries will be retried after some time, regardless of whether some deliveries may have succeeded. The retry is performed with a variant of exponential back-off algorithm. If `Retry-After:` HTTP header is present in the response, the delivery will not be retried before the specific time.
+If any delivery failed, all deliveries will be retried after some time, regardless of whether some deliveries may have succeeded. The retry is performed with a variant of exponential back-off algorithm. Specifically for Webhooks, if `Retry-After:` HTTP header is present in the response, the delivery will not be retried before the specific time.
 
 If the delivery keeps on failing after 3 days from the time of first attempted delivery, the event will be marked as permanently failed and will not be retried automatically.
 
-## Webhook Event Management
+# Webhook
 
-### Webhook Event Alerts
+Webhook is a kind of Hook via the HTTPS protocol. This ensures integrity and confidentiality of the delivery.
 
-If an event delivery is permanently failed, an ERROR log is generated to notify developers.
+Events are POSTed to the Webhook.
 
-### Webhook Past Events
+The endpoint of the Webhook must be an absolute URL.
 
-An API is provided to list past events. This can be used to reconcile self-managed database with the failed events.
+The Webhook must return a status code within the 2xx range. Other status code is considered as a failed delivery.
 
-> NOTE: Blocking events are not persisted, regardless of success or failure.
+## Webhook Signature
 
-### Webhook Manual Re-delivery
-
-The developer can manually trigger a re-delivery of failed event, bypassing the retry interval limit.
-
-> NOTE: Blocking events cannot be re-delivered.
-
-### Webhook Delivery Security
-
-#### Webhook HTTPS
-
-Webhook handlers must be HTTPS. This ensures integrity and confidentiality of the delivery.
-
-#### Webhook Signature
-
-Each webhook event request is signed with a secret key shared between Authgear and the webhook handler. The developer must validate the signature and reject requests with invalid signature to ensure the request originates from Authgear.
+Each request is signed with a secret key shared between Authgear and the Webhook. The developer must validate the signature and reject requests with invalid signature to ensure the request originates from Authgear.
 
 The signature is calculated as the hex encoded value of HMAC-SHA256 of the request body.
 
@@ -193,33 +175,51 @@ The signature is included in the header `x-authgear-body-signature:`.
 > For advanced end-to-end security scenario, some network admin may wish to
 > use mTLS for authentication. It is not supported at the moment.
 
-## Webhook Considerations
+# Hooks Event Management
 
-### Recursive Webhooks
+## Hooks Event Alerts
 
-A ill-designed web-hook handler may be called recursively. For example, calling api that will trigger another events.
+If an event delivery is permanently failed, an ERROR log is generated to notify developers.
+
+## Hooks Past Events
+
+An API is provided to list past events. This can be used to reconcile self-managed database with the failed events.
+
+> NOTE: Blocking events are not persisted, regardless of success or failure.
+
+## Hooks Manual Re-delivery
+
+The developer can manually trigger a re-delivery of failed event, bypassing the retry interval limit.
+
+> NOTE: Blocking events cannot be re-delivered.
+
+# Considerations
+
+## Recursive Hooks
+
+An ill-designed Hook may be triggered recursively. For example, calling API that will trigger other events.
 
 The developer is responsible for ensuring that:
-- webhook handlers would not be called recursively; or
-- recursive web-hook handlers have well-defined termination condition.
+- Hooks would not be triggered recursively; or
+- Recursive Hooks have well-defined termination condition.
 
-### Webhook Delivery Reliability
+## Delivery Reliability
 
-The main purpose of webhook is to allow external services to observe state changes.
+The main purpose of Hooks is to allow external services to observe state changes.
 
 Therefore, AFTER events are persistent, immutable, and delivered reliably. Otherwise, external services may observe inconsistent changes.
 
-It is not recommended to perform side effects in blocking event handlers. Otherwise, the developer should consider how to compensate for the side effects of potential failed operation.
+It is not recommended to perform side effects in blocking event Hooks. Otherwise, the developer should consider how to compensate for the side effects of potential failed operation.
 
-### Webhook Eventual Consistency
+## Eventual Consistency
 
-Fundamentally, webhook is a distributed system. When webhook handlers have side effects, we need to choose between guaranteeing consistency or availability of the system (See [CAP Theorem](#cap-theorem)).
+Fundamentally, Hooks is a distributed system. When Hooks have side effects, we need to choose between guaranteeing consistency or availability of the system (See [CAP Theorem](#cap-theorem)).
 
 We decided to ensure the availability of the system. To maintain consistency, the developer should take eventual consistency into account when designing their system.
 
 The developer should regularly check the past events for unprocessed events to ensure consistency.
 
-### CAP Theorem
+## CAP Theorem
 
 To simplify, the CAP theorem states that a distributed data store can satisfy
 only two of the three properties simultaneously:
@@ -232,7 +232,7 @@ need to choose between consistency and availability. Most microservice
 architecture prefer availability over strong consistency, and instead application
 state is eventually consistent.
 
-## authgear.yaml
+# Configuration in `authgear.yaml`
 
 ```
 hook:
