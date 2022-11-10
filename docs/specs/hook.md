@@ -25,7 +25,10 @@ Hooks is a mechanism to notify external services about [events](./event.md).
 
 # Kinds of Hooks
 
-There is only 1 kind of Hook at the moment. It is [Webhook](#webhook).
+There are 2 kinds of Hooks.
+
+- [Webhook](#webhook)
+- [Deno Hook](#deno-hook)
 
 # Event Delivery
 
@@ -85,6 +88,8 @@ If any hook fails the operation, the operation is failed. The operation fails wi
   }
 }
 ```
+
+> For backward compatibility, the reason is called "WebHookDisallowed".
 
 The time spent in a blocking event delivery must not exceed 5 seconds, otherwise it will be considered as a failed delivery. Also, the total time spent in all deliveries of the event must not exceed 10 seconds, otherwise it would also be considered as failed delivery. Both timeouts are configurable.
 
@@ -175,6 +180,23 @@ The signature is included in the header `x-authgear-body-signature:`.
 > For advanced end-to-end security scenario, some network admin may wish to
 > use mTLS for authentication. It is not supported at the moment.
 
+# Deno Hook
+
+Deno Hook is a kind of Hook in form of a TypeScript / JavaScript module. The module is executed by [Deno](https://deno.land/).
+
+The module **MUST** have a [default export](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export#description) of a function taking 1 argument. The argument is the event payload. The function can either be synchronous or asynchronous. An asynchronous function is a function returning [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise), or an [async function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function)
+
+If the Deno Hook is registered for a [blocking event](#blocking-events), the function **MUST** return a value according to the [specification](#blocking-events).
+
+If the Deno hook is registered for a [non-blocking event](#non-blocking-events), the return value is ignored.
+
+Program run with Deno has [no access](https://deno.land/manual@v1.27.2/basics/permissions) to file, network or environment by default. In case of Deno Hook, it only has access to external network. Other access is blocked. For example, A Deno Hook is **NOT** allowed to read or write the file system.
+
+The stdout and the stderr of the Deno Hook is ignored currently.
+The arguments and the stdin is intentionally unspecified. A Deno Hook **MUST NOT** assume anything on them.
+
+The size limit of a Deno Hook is 100KiB. A module larger than 100KiB **CANNOT** be registered as a Deno Hook.
+
 # Hooks Event Management
 
 ## Hooks Event Alerts
@@ -238,10 +260,14 @@ state is eventually consistent.
 hook:
   blocking_handlers:
     - event: "user.pre_create"
-      url: 'https://myapp.com/check_user_create'
+      url: "https://myapp.com/check_user_create"
+    - event: "user.pre_create"
+      url: "authgeardeno:///deno/randomstring.ts"
   non_blocking_handlers:
     - events: ["*"]
       url: 'https://myapp.com/all_events'
+    - events: ["*"]
+      url: "authgeardeno:///deno/randomstring.ts"
     - events: ["user.created"]
       url: 'https://myapp.com/sync_user_creation'
 ```
