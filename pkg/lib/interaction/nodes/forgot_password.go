@@ -16,8 +16,19 @@ func init() {
 	interaction.RegisterNode(&NodeForgotPasswordEnd{})
 }
 
+type EdgeForgotPasswordBegin struct {
+	IdentityInfo *identity.Info `json:"identity_info"`
+}
+
+func (e *EdgeForgotPasswordBegin) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+	return &NodeForgotPasswordBegin{
+		IdentityInfo: e.IdentityInfo,
+	}, nil
+}
+
 type NodeForgotPasswordBegin struct {
-	LoginIDKeys []config.LoginIDKeyConfig `json:"-"`
+	LoginIDKeys  []config.LoginIDKeyConfig `json:"-"`
+	IdentityInfo *identity.Info            `json:"identity_info"`
 }
 
 func (n *NodeForgotPasswordBegin) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -35,7 +46,8 @@ func (n *NodeForgotPasswordBegin) DeriveEdges(graph *interaction.Graph) ([]inter
 
 func (n *NodeForgotPasswordBegin) edge() *EdgeForgotPasswordSelectLoginID {
 	return &EdgeForgotPasswordSelectLoginID{
-		Configs: n.LoginIDKeys,
+		Configs:      n.LoginIDKeys,
+		IdentityInfo: n.IdentityInfo,
 	}
 }
 
@@ -43,13 +55,10 @@ func (n *NodeForgotPasswordBegin) GetIdentityCandidates() []identity.Candidate {
 	return n.edge().GetIdentityCandidates()
 }
 
-type InputForgotPasswordSelectLoginID interface {
-	GetLoginID() string
-}
-
 type EdgeForgotPasswordSelectLoginID struct {
-	Configs     []config.LoginIDKeyConfig
-	RedirectURI string
+	Configs      []config.LoginIDKeyConfig `json:"-"`
+	RedirectURI  string                    `json:"-"`
+	IdentityInfo *identity.Info            `json:"identity_info"`
 }
 
 // GetIdentityCandidates implements IdentityCandidatesGetter.
@@ -63,12 +72,11 @@ func (e *EdgeForgotPasswordSelectLoginID) GetIdentityCandidates() []identity.Can
 }
 
 func (e *EdgeForgotPasswordSelectLoginID) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	var input InputForgotPasswordSelectLoginID
-	if !interaction.Input(rawInput, &input) {
-		return nil, interaction.ErrIncompatibleInput
+	if e.IdentityInfo == nil {
+		return nil, forgotpasswordFillDetails(interaction.ErrUserNotFound)
 	}
 
-	loginID := input.GetLoginID()
+	loginID := e.IdentityInfo.LoginID.LoginID
 
 	err := ctx.ForgotPassword.SendCode(loginID)
 	if errors.Is(err, forgotpassword.ErrUserNotFound) {
