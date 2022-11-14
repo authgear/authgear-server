@@ -43,7 +43,7 @@ func (e *UserSessionTerminatedEventPayload) GetTriggeredBy() event.TriggeredByTy
 func (e *UserSessionTerminatedEventPayload) FillContext(ctx *event.Context) {
 }
 
-func (e *UserSessionTerminatedEventPayload) ForWebHook() bool {
+func (e *UserSessionTerminatedEventPayload) ForHook() bool {
 	return false
 }
 

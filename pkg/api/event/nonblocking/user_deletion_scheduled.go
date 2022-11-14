@@ -32,7 +32,7 @@ func (e *UserDeletionScheduledEventPayload) GetTriggeredBy() event.TriggeredByTy
 
 func (e *UserDeletionScheduledEventPayload) FillContext(ctx *event.Context) {}
 
-func (e *UserDeletionScheduledEventPayload) ForWebHook() bool {
+func (e *UserDeletionScheduledEventPayload) ForHook() bool {
 	return true
 }
 

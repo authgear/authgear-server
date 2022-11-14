@@ -34,7 +34,7 @@ func (e *IdentityOAuthDisconnectedEventPayload) GetTriggeredBy() event.Triggered
 func (e *IdentityOAuthDisconnectedEventPayload) FillContext(ctx *event.Context) {
 }
 
-func (e *IdentityOAuthDisconnectedEventPayload) ForWebHook() bool {
+func (e *IdentityOAuthDisconnectedEventPayload) ForHook() bool {
 	return true
 }
 

@@ -36,7 +36,7 @@ func (e *UserAnonymousPromotedEventPayload) GetTriggeredBy() event.TriggeredByTy
 func (e *UserAnonymousPromotedEventPayload) FillContext(ctx *event.Context) {
 }
 
-func (e *UserAnonymousPromotedEventPayload) ForWebHook() bool {
+func (e *UserAnonymousPromotedEventPayload) ForHook() bool {
 	return true
 }
 

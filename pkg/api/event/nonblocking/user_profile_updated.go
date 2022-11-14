@@ -33,7 +33,7 @@ func (e *UserProfileUpdatedEventPayload) GetTriggeredBy() event.TriggeredByType 
 func (e *UserProfileUpdatedEventPayload) FillContext(ctx *event.Context) {
 }
 
-func (e *UserProfileUpdatedEventPayload) ForWebHook() bool {
+func (e *UserProfileUpdatedEventPayload) ForHook() bool {
 	return true
 }
 

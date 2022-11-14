@@ -36,7 +36,7 @@ func (e *UserSignedOutEventPayload) GetTriggeredBy() event.TriggeredByType {
 func (e *UserSignedOutEventPayload) FillContext(ctx *event.Context) {
 }
 
-func (e *UserSignedOutEventPayload) ForWebHook() bool {
+func (e *UserSignedOutEventPayload) ForHook() bool {
 	return false
 }
 
