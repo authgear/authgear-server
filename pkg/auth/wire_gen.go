@@ -535,7 +535,8 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clock,
@@ -543,10 +544,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -1335,7 +1332,8 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -1343,10 +1341,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -2133,7 +2127,8 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -2141,10 +2136,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -2875,7 +2866,8 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -2883,10 +2875,6 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -4081,7 +4069,8 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -4089,10 +4078,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -4595,7 +4580,8 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -4603,10 +4589,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -5344,7 +5326,8 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -5352,10 +5335,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -6096,7 +6075,8 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -6104,10 +6084,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -6953,7 +6929,8 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -6961,10 +6938,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -7744,7 +7717,8 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -7752,10 +7726,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -8534,7 +8504,8 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -8542,10 +8513,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -9307,7 +9274,8 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -9315,10 +9283,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -10078,7 +10042,8 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -10086,10 +10051,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -10839,7 +10800,8 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -10847,10 +10809,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -11603,7 +11561,8 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -11611,10 +11570,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -12370,7 +12325,8 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -12378,10 +12334,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -13139,7 +13091,8 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -13147,10 +13100,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -13906,7 +13855,8 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -13914,10 +13864,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -14673,7 +14619,8 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -14681,10 +14628,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -15441,7 +15384,8 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -15449,10 +15393,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -16208,7 +16148,8 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -16216,10 +16157,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -16975,7 +16912,8 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -16983,10 +16921,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -17744,7 +17678,8 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -17752,10 +17687,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -18511,7 +18442,8 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -18519,10 +18451,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -19278,7 +19206,8 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -19286,10 +19215,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -20047,7 +19972,8 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -20055,10 +19981,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -20814,7 +20736,8 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -20822,10 +20745,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -21572,7 +21491,8 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -21580,10 +21500,6 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -22010,7 +21926,8 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -22018,10 +21935,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -22777,7 +22690,8 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -22785,10 +22699,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -23540,7 +23450,8 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -23548,10 +23459,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -24305,7 +24212,8 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -24313,10 +24221,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -25068,7 +24972,8 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -25076,10 +24981,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -25841,7 +25742,8 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -25849,10 +25751,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -26604,7 +26502,8 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -26612,10 +26511,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -27368,7 +27263,8 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -27376,10 +27272,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -28131,7 +28023,8 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -28139,10 +28032,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -28925,7 +28814,8 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -28933,10 +28823,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -29699,7 +29585,8 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -29707,10 +29594,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -30486,7 +30369,8 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -30494,10 +30378,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -31257,7 +31137,8 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -31265,10 +31146,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -32021,7 +31898,8 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -32029,10 +31907,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -32793,7 +32667,8 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -32801,10 +32676,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -33557,7 +33428,8 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -33565,10 +33437,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -34321,7 +34189,8 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -34329,10 +34198,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -35085,7 +34950,8 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -35093,10 +34959,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -35850,7 +35712,8 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -35858,10 +35721,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -36633,7 +36492,8 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -36641,10 +36501,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -37397,7 +37253,8 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -37405,10 +37262,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -38161,7 +38014,8 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -38169,10 +38023,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -38925,7 +38775,8 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -38933,10 +38784,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -39689,7 +39536,8 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -39697,10 +39545,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -40460,7 +40304,8 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -40468,10 +40313,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -41225,7 +41066,8 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -41233,10 +41075,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -41988,7 +41826,8 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -41996,10 +41835,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -42765,7 +42600,8 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -42773,10 +42609,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -43528,7 +43360,8 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -43536,10 +43369,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -44291,7 +44120,8 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -44299,10 +44129,6 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -45071,7 +44897,8 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -45079,10 +44906,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -45801,7 +45624,8 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -45809,10 +45633,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -46530,7 +46350,8 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -46538,10 +46359,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -47303,7 +47120,8 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -47311,10 +47129,6 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -48818,7 +48632,8 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
+	sink := &hook.Sink{
+		Logger:             hookLogger,
 		Config:             hookConfig,
 		Secret:             webhookKeyMaterials,
 		Clock:              clockClock,
@@ -48826,10 +48641,6 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		AsyncHTTP:          asyncHTTPClient,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase

@@ -17,8 +17,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestDeliverer(t *testing.T) {
-	Convey("Event Deliverer", t, func() {
+func TestSink(t *testing.T) {
+	Convey("Sink", t, func() {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
@@ -41,7 +41,7 @@ func TestDeliverer(t *testing.T) {
 		stdAttrsService := NewMockStandardAttributesServiceNoEvent(ctrl)
 		customAttrsService := NewMockCustomAttributesServiceNoEvent(ctrl)
 
-		deliverer := Deliverer{
+		s := Sink{
 			Config:             cfg,
 			Secret:             secret,
 			Clock:              clock,
@@ -62,8 +62,8 @@ func TestDeliverer(t *testing.T) {
 					},
 				}
 
-				So(deliverer.WillDeliverBlockingEvent(MockBlockingEventType1), ShouldBeTrue)
-				So(deliverer.WillDeliverBlockingEvent(MockBlockingEventType2), ShouldBeFalse)
+				So(s.WillDeliverBlockingEvent(MockBlockingEventType1), ShouldBeTrue)
+				So(s.WillDeliverBlockingEvent(MockBlockingEventType2), ShouldBeFalse)
 			})
 
 			Convey("should return correct value for non-blocking events", func() {
@@ -77,9 +77,9 @@ func TestDeliverer(t *testing.T) {
 					},
 				}
 
-				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType1), ShouldBeTrue)
-				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType2), ShouldBeTrue)
-				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType3), ShouldBeFalse)
+				So(s.WillDeliverNonBlockingEvent(MockNonBlockingEventType1), ShouldBeTrue)
+				So(s.WillDeliverNonBlockingEvent(MockNonBlockingEventType2), ShouldBeTrue)
+				So(s.WillDeliverNonBlockingEvent(MockNonBlockingEventType3), ShouldBeFalse)
 			})
 
 			Convey("should return true for all non-blocking events", func() {
@@ -90,10 +90,10 @@ func TestDeliverer(t *testing.T) {
 					},
 				}
 
-				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType1), ShouldBeTrue)
-				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType2), ShouldBeTrue)
-				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType3), ShouldBeTrue)
-				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType4), ShouldBeTrue)
+				So(s.WillDeliverNonBlockingEvent(MockNonBlockingEventType1), ShouldBeTrue)
+				So(s.WillDeliverNonBlockingEvent(MockNonBlockingEventType2), ShouldBeTrue)
+				So(s.WillDeliverNonBlockingEvent(MockNonBlockingEventType3), ShouldBeTrue)
+				So(s.WillDeliverNonBlockingEvent(MockNonBlockingEventType4), ShouldBeTrue)
 			})
 		})
 
@@ -125,7 +125,7 @@ func TestDeliverer(t *testing.T) {
 					})
 				defer func() { gock.Flush() }()
 
-				err := deliverer.DeliverBlockingEvent(&e)
+				err := s.DeliverBlockingEvent(&e)
 
 				So(err, ShouldBeNil)
 				So(gock.IsDone(), ShouldBeTrue)
@@ -225,7 +225,7 @@ func TestDeliverer(t *testing.T) {
 					},
 				).Times(1).Return(nil)
 
-				err := deliverer.DeliverBlockingEvent(originalEvent)
+				err := s.DeliverBlockingEvent(originalEvent)
 
 				So(err, ShouldBeNil)
 				So(gock.IsDone(), ShouldBeTrue)
@@ -261,7 +261,7 @@ func TestDeliverer(t *testing.T) {
 					})
 				defer func() { gock.Flush() }()
 
-				err := deliverer.DeliverBlockingEvent(&e)
+				err := s.DeliverBlockingEvent(&e)
 
 				So(err, ShouldBeError, "disallowed by web-hook event handler")
 				So(gock.IsDone(), ShouldBeTrue)
@@ -281,7 +281,7 @@ func TestDeliverer(t *testing.T) {
 					Reply(500)
 				defer func() { gock.Flush() }()
 
-				err := deliverer.DeliverBlockingEvent(&e)
+				err := s.DeliverBlockingEvent(&e)
 
 				So(err, ShouldBeError, "invalid status code")
 				So(gock.IsDone(), ShouldBeTrue)
@@ -321,7 +321,7 @@ func TestDeliverer(t *testing.T) {
 					})
 				defer func() { gock.Flush() }()
 
-				err := deliverer.DeliverBlockingEvent(&e)
+				err := s.DeliverBlockingEvent(&e)
 
 				So(err, ShouldBeError, "webhook delivery timeout")
 				So(gock.IsDone(), ShouldBeTrue)
@@ -354,7 +354,7 @@ func TestDeliverer(t *testing.T) {
 					BodyString("test")
 				defer func() { gock.Flush() }()
 
-				err := deliverer.DeliverNonBlockingEvent(&e)
+				err := s.DeliverNonBlockingEvent(&e)
 
 				So(err, ShouldBeNil)
 				So(gock.IsDone(), ShouldBeTrue)
