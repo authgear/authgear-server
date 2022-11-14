@@ -26,17 +26,18 @@ type ResolverCookieManager interface {
 }
 
 type Resolver struct {
-	RemoteIP           httputil.RemoteIP
-	UserAgentString    httputil.UserAgentString
-	OAuthConfig        *config.OAuthConfig
-	Authorizations     AuthorizationStore
-	AccessGrants       AccessGrantStore
-	OfflineGrants      OfflineGrantStore
-	AppSessions        AppSessionStore
-	AccessTokenDecoder AccessTokenDecoder
-	Sessions           ResolverSessionProvider
-	Cookies            ResolverCookieManager
-	Clock              clock.Clock
+	RemoteIP            httputil.RemoteIP
+	UserAgentString     httputil.UserAgentString
+	OAuthConfig         *config.OAuthConfig
+	Authorizations      AuthorizationStore
+	AccessGrants        AccessGrantStore
+	OfflineGrants       OfflineGrantStore
+	AppSessions         AppSessionStore
+	AccessTokenDecoder  AccessTokenDecoder
+	Sessions            ResolverSessionProvider
+	Cookies             ResolverCookieManager
+	Clock               clock.Clock
+	OfflineGrantService OfflineGrantService
 }
 
 func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Session, error) {
@@ -120,14 +121,7 @@ func (re *Resolver) resolveHeader(r *http.Request) (session.Session, error) {
 			return nil, err
 		}
 
-		expiry, err := ComputeOfflineGrantExpiryWithClients(g, re.OAuthConfig)
-		if errors.Is(err, ErrGrantNotFound) {
-			return nil, session.ErrInvalidSession
-		} else if err != nil {
-			return nil, err
-		}
-
-		g, err = re.OfflineGrants.AccessWithID(g.ID, event, expiry)
+		g, err = re.accessOfflineGrant(g, event)
 		if err != nil {
 			return nil, err
 		}
@@ -172,15 +166,47 @@ func (re *Resolver) resolveCookie(r *http.Request) (session.Session, error) {
 		return nil, session.ErrInvalidSession
 	}
 
-	expiry, err := ComputeOfflineGrantExpiryWithClients(offlineGrant, re.OAuthConfig)
+	event := access.NewEvent(re.Clock.NowUTC(), re.RemoteIP, re.UserAgentString)
+	offlineGrant, err = re.accessOfflineGrant(offlineGrant, event)
+	if err != nil {
+		return nil, err
+	}
+
+	return offlineGrant, nil
+}
+
+func (re *Resolver) accessOfflineGrant(offlineGrant *OfflineGrant, accessEvent access.Event) (*OfflineGrant, error) {
+	isValid, _, err := re.OfflineGrantService.IsValid(offlineGrant)
+	if err != nil {
+		return nil, err
+	}
+	if !isValid {
+		return nil, session.ErrInvalidSession
+	}
+
+	// When accessing the offline grant, also access its idp session
+	// Access the idp session first, since the idp session expiry will be updated
+	// sso enabled offline grant expiry depends on its idp session
+	if offlineGrant.SSOEnabled {
+		if offlineGrant.IDPSessionID == "" {
+			return nil, session.ErrInvalidSession
+		}
+		_, err := re.Sessions.AccessWithID(offlineGrant.IDPSessionID, accessEvent)
+		if errors.Is(err, idpsession.ErrSessionNotFound) {
+			return nil, session.ErrInvalidSession
+		} else if err != nil {
+			return nil, err
+		}
+	}
+
+	expiry, err := re.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
 	if errors.Is(err, ErrGrantNotFound) {
 		return nil, session.ErrInvalidSession
 	} else if err != nil {
 		return nil, err
 	}
 
-	event := access.NewEvent(re.Clock.NowUTC(), re.RemoteIP, re.UserAgentString)
-	offlineGrant, err = re.OfflineGrants.AccessWithID(offlineGrant.ID, event, expiry)
+	offlineGrant, err = re.OfflineGrants.AccessWithID(offlineGrant.ID, accessEvent, expiry)
 	if err != nil {
 		return nil, err
 	}

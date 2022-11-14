@@ -129,7 +129,7 @@ func (p *Provider) GetByToken(token string) (*IDPSession, error) {
 		return nil, ErrSessionNotFound
 	}
 
-	if checkSessionExpired(s, p.Clock.NowUTC(), p.Config) {
+	if p.CheckSessionExpired(s) {
 		return nil, ErrSessionNotFound
 	}
 
@@ -202,6 +202,25 @@ func (p *Provider) AccessWithID(id string, accessEvent access.Event) (*IDPSessio
 	}
 
 	return s, nil
+}
+
+func (p *Provider) CheckSessionExpired(session *IDPSession) (expired bool) {
+	now := p.Clock.NowUTC()
+	sessionExpiry := session.CreatedAt.Add(p.Config.Lifetime.Duration())
+	if now.After(sessionExpiry) {
+		expired = true
+		return
+	}
+
+	if *p.Config.IdleTimeoutEnabled {
+		sessionIdleExpiry := session.AccessInfo.LastAccess.Timestamp.Add(p.Config.IdleTimeout.Duration())
+		if now.After(sessionIdleExpiry) {
+			expired = true
+			return
+		}
+	}
+
+	return false
 }
 
 func (p *Provider) generateToken(s *IDPSession) string {

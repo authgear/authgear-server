@@ -69,14 +69,15 @@ type TokenHandler struct {
 	OAuthClientCredentials *config.OAuthClientCredentials
 	Logger                 TokenHandlerLogger
 
-	Authorizations   oauth.AuthorizationStore
-	CodeGrants       oauth.CodeGrantStore
-	OfflineGrants    oauth.OfflineGrantStore
-	AppSessionTokens oauth.AppSessionTokenStore
-	Graphs           GraphService
-	IDTokenIssuer    IDTokenIssuer
-	Clock            clock.Clock
-	TokenService     TokenService
+	Authorizations      oauth.AuthorizationStore
+	CodeGrants          oauth.CodeGrantStore
+	OfflineGrants       oauth.OfflineGrantStore
+	AppSessionTokens    oauth.AppSessionTokenStore
+	OfflineGrantService oauth.OfflineGrantService
+	Graphs              GraphService
+	IDTokenIssuer       IDTokenIssuer
+	Clock               clock.Clock
+	TokenService        TokenService
 }
 
 func (h *TokenHandler) Handle(rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result {
@@ -285,7 +286,14 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, err
 	}
 
-	expiry := oauth.ComputeOfflineGrantExpiryWithClient(offlineGrant, client)
+	if client.ClientID != offlineGrant.ClientID {
+		return nil, protocol.NewError("invalid_request", "client id doesn't match the refresh token")
+	}
+
+	expiry, err := h.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
+	if err != nil {
+		return nil, err
+	}
 	_, err = h.OfflineGrants.UpdateOfflineGrantDeviceInfo(offlineGrant.ID, deviceInfo, expiry)
 	if err != nil {
 		return nil, err
@@ -389,11 +397,13 @@ func (h *TokenHandler) handleAnonymousRequest(
 
 	resp := protocol.TokenResponse{}
 
+	// SSOEnabled is false for refresh tokens that are granted by anonymous login
 	opts := IssueOfflineGrantOptions{
 		Scopes:             scopes,
 		AuthorizationID:    authz.ID,
 		AuthenticationInfo: info,
 		DeviceInfo:         deviceInfo,
+		SSOEnabled:         false,
 	}
 	offlineGrant, err := h.TokenService.IssueOfflineGrant(client, opts, resp)
 	if err != nil {
@@ -593,12 +603,14 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 
 	resp := protocol.TokenResponse{}
 
+	// SSOEnabled is false for refresh tokens that are granted by biometric login
 	opts := IssueOfflineGrantOptions{
 		Scopes:             scopes,
 		AuthorizationID:    authz.ID,
 		AuthenticationInfo: info,
 		DeviceInfo:         deviceInfo,
 		IdentityID:         biometricIdentity.ID,
+		SSOEnabled:         false,
 	}
 	offlineGrant, err := h.TokenService.IssueOfflineGrant(client, opts, resp)
 	if err != nil {
@@ -708,8 +720,11 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 			offlineGrant, err := h.OfflineGrants.GetOfflineGrant(sessionID)
 			if err == nil {
 				if info.AuthenticatedAt.After(offlineGrant.AuthenticatedAt) {
-					expiry := oauth.ComputeOfflineGrantExpiryWithClient(offlineGrant, client)
-					_, err := h.OfflineGrants.UpdateOfflineGrantAuthenticatedAt(offlineGrant.ID, info.AuthenticatedAt, expiry)
+					expiry, err := h.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
+					if err != nil {
+						return nil, err
+					}
+					_, err = h.OfflineGrants.UpdateOfflineGrantAuthenticatedAt(offlineGrant.ID, info.AuthenticatedAt, expiry)
 					if err != nil {
 						return nil, err
 					}
@@ -734,6 +749,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 		AuthenticationInfo: info,
 		IDPSessionID:       code.IDPSessionID,
 		DeviceInfo:         deviceInfo,
+		SSOEnabled:         code.SSOEnabled,
 	}
 	if issueRefreshToken {
 		offlineGrant, err := h.TokenService.IssueOfflineGrant(client, opts, resp)
@@ -853,6 +869,7 @@ type IssueOfflineGrantOptions struct {
 	IDPSessionID       string
 	DeviceInfo         map[string]interface{}
 	IdentityID         string
+	SSOEnabled         bool
 }
 
 func (h *TokenHandler) IssueAppSessionToken(refreshToken string) (string, *oauth.AppSessionToken, error) {

@@ -62,7 +62,22 @@ func (r AuthorizationRequest) Platform() string          { return r["x_platform"
 func (r AuthorizationRequest) WeChatRedirectURI() string { return r["x_wechat_redirect_uri"] }
 func (r AuthorizationRequest) Page() string              { return r["x_page"] }
 func (r AuthorizationRequest) SuppressIDPSessionCookie() bool {
-	return r["x_suppress_idp_session_cookie"] == "true"
+	if r["x_suppress_idp_session_cookie"] != "" {
+		return r["x_suppress_idp_session_cookie"] == "true"
+	}
+
+	if r["x_sso_enabled"] != "" {
+		return r["x_sso_enabled"] != "true"
+	}
+
+	// if both x_suppress_idp_session_cookie or sso_enabled is not provided
+	// default is false
+	// - the third party app should not suppress idp session
+	// - to keep the backward compatibility
+	return false
+}
+func (r AuthorizationRequest) SSOEnabled() bool {
+	return r["x_sso_enabled"] == "true"
 }
 func (r AuthorizationRequest) ColorScheme() string        { return r["x_color_scheme"] }
 func (r AuthorizationRequest) OAuthProviderAlias() string { return r["x_oauth_provider_alias"] }

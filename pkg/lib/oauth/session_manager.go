@@ -6,13 +6,12 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
-	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 type SessionManager struct {
-	Store  OfflineGrantStore
-	Clock  clock.Clock
-	Config *config.OAuthConfig
+	Store   OfflineGrantStore
+	Config  *config.OAuthConfig
+	Service OfflineGrantService
 }
 
 func (m *SessionManager) ClearCookie() []*http.Cookie {
@@ -43,20 +42,15 @@ func (m *SessionManager) List(userID string) ([]session.Session, error) {
 		return nil, err
 	}
 
-	now := m.Clock.NowUTC()
 	var sessions []session.Session
 	for _, session := range grants {
-		maxExpiry, err := ComputeOfflineGrantExpiryWithClients(session, m.Config)
-
-		// ignore sessions without client
-		if errors.Is(err, ErrGrantNotFound) {
-			continue
-		} else if err != nil {
+		isValid, _, err := m.Service.IsValid(session)
+		if err != nil {
 			return nil, err
 		}
 
-		// ignore expired sessions
-		if now.After(maxExpiry) {
+		// ignore sessions without client and expired sessions
+		if !isValid {
 			continue
 		}
 
