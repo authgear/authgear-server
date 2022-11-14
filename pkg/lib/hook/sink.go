@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"net"
 	"net/http"
 	"net/url"
+	"os"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
@@ -238,7 +238,7 @@ func (s *Sink) prepareRequest(urlStr string, event *event.Event) (*http.Request,
 func performRequest(client *http.Client, request *http.Request, withResponse bool) (hookResp *event.HookResponse, err error) {
 	var resp *http.Response
 	resp, err = client.Do(request)
-	if reqError, ok := err.(net.Error); ok && reqError.Timeout() {
+	if os.IsTimeout(err) {
 		err = WebHookDeliveryTimeout.New("webhook delivery timeout")
 		return
 	} else if err != nil {
