@@ -288,14 +288,6 @@ func (i *InputChangePassword) GetAuthenticationStage() authn.AuthenticationStage
 func (i *InputChangePassword) GetOldPassword() string { return i.OldPassword }
 func (i *InputChangePassword) GetNewPassword() string { return i.NewPassword }
 
-type InputForgotPassword struct {
-	LoginID string
-}
-
-var _ nodes.InputForgotPasswordSelectLoginID = &InputForgotPassword{}
-
-func (i *InputForgotPassword) GetLoginID() string { return i.LoginID }
-
 type InputResetPassword struct {
 	Code     string
 	Password string

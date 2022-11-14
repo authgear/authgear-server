@@ -105,7 +105,7 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 			loginID := r.Form.Get("q_login_id")
 
-			input = &InputForgotPassword{
+			input = &InputUseLoginID{
 				LoginID: loginID,
 			}
 			return
