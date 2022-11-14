@@ -38,7 +38,7 @@ func (e *MockNonBlockingEvent1) NonBlockingEventType() event.Type {
 func (e *MockNonBlockingEvent1) FillContext(ctx *event.Context) {
 }
 
-func (e *MockNonBlockingEvent1) ForWebHook() bool {
+func (e *MockNonBlockingEvent1) ForHook() bool {
 	return true
 }
 
@@ -65,7 +65,7 @@ func (e *MockNonBlockingEvent2) NonBlockingEventType() event.Type {
 func (e *MockNonBlockingEvent2) FillContext(ctx *event.Context) {
 }
 
-func (e *MockNonBlockingEvent2) ForWebHook() bool {
+func (e *MockNonBlockingEvent2) ForHook() bool {
 	return true
 }
 
@@ -92,7 +92,7 @@ func (e *MockNonBlockingEvent3) NonBlockingEventType() event.Type {
 	return MockNonBlockingEventType3
 }
 
-func (e *MockNonBlockingEvent3) ForWebHook() bool {
+func (e *MockNonBlockingEvent3) ForHook() bool {
 	return true
 }
 
@@ -119,7 +119,7 @@ func (e *MockNonBlockingEvent4) NonBlockingEventType() event.Type {
 func (e *MockNonBlockingEvent4) FillContext(ctx *event.Context) {
 }
 
-func (e *MockNonBlockingEvent4) ForWebHook() bool {
+func (e *MockNonBlockingEvent4) ForHook() bool {
 	return true
 }
 

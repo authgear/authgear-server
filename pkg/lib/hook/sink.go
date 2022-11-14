@@ -41,7 +41,7 @@ func (s *Sink) ReceiveBlockingEvent(e *event.Event) (err error) {
 func (s *Sink) ReceiveNonBlockingEvent(e *event.Event) (err error) {
 	// Skip events that are not for webhook.
 	payload := e.Payload.(event.NonBlockingPayload)
-	if !payload.ForWebHook() {
+	if !payload.ForHook() {
 		return
 	}
 

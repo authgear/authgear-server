@@ -29,7 +29,7 @@ func (e *AuthenticationFailedLoginIDEventPayload) FillContext(ctx *event.Context
 	ctx.UserID = &userID
 }
 
-func (e *AuthenticationFailedLoginIDEventPayload) ForWebHook() bool {
+func (e *AuthenticationFailedLoginIDEventPayload) ForHook() bool {
 	return false
 }
 
