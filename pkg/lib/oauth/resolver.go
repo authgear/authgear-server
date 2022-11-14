@@ -211,7 +211,7 @@ func (re *Resolver) accessOfflineGrant(offlineGrant *OfflineGrant, accessEvent a
 		return nil, err
 	}
 
-	return offlineGrant, err
+	return offlineGrant, nil
 }
 
 func parseAuthorizationHeader(r *http.Request) (token string) {
