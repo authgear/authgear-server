@@ -29,7 +29,7 @@ func (e *EmailSentEventPayload) GetTriggeredBy() event.TriggeredByType {
 func (e *EmailSentEventPayload) FillContext(ctx *event.Context) {
 }
 
-func (e *EmailSentEventPayload) ForWebHook() bool {
+func (e *EmailSentEventPayload) ForHook() bool {
 	return false
 }
 

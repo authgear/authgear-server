@@ -18,7 +18,7 @@ type BlockingPayload interface {
 type NonBlockingPayload interface {
 	Payload
 	NonBlockingEventType() Type
-	ForWebHook() bool
+	ForHook() bool
 	ForAudit() bool
 	ReindexUserNeeded() bool
 	IsUserDeleted() bool

@@ -29,7 +29,7 @@ func (e *UserReenabledEventPayload) GetTriggeredBy() event.TriggeredByType {
 func (e *UserReenabledEventPayload) FillContext(ctx *event.Context) {
 }
 
-func (e *UserReenabledEventPayload) ForWebHook() bool {
+func (e *UserReenabledEventPayload) ForHook() bool {
 	return true
 }
 
