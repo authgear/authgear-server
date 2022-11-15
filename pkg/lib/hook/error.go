@@ -9,6 +9,8 @@ var WebHookDisallowed = apierrors.Forbidden.WithReason("WebHookDisallowed")
 var WebHookDeliveryTimeout = apierrors.InternalError.WithReason("WebHookDeliveryTimeout")
 var WebHookInvalidResponse = apierrors.InternalError.WithReason("WebHookInvalidResponse")
 
+var DenoRunError = apierrors.BadRequest.WithReason("DenoRunError")
+
 type OperationDisallowedItem struct {
 	Title  string `json:"title"`
 	Reason string `json:"reason"`
