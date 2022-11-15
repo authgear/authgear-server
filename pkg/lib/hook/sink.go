@@ -1,20 +1,13 @@
 package hook
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"net/http"
-	"net/url"
-	"os"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/crypto"
-	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -32,13 +25,16 @@ type CustomAttributesServiceNoEvent interface {
 	UpdateAllCustomAttributes(role accesscontrol.Role, userID string, reprForm map[string]interface{}) error
 }
 
+type WebHook interface {
+	DeliverBlockingEvent(cfg config.BlockingHandlersConfig, e *event.Event) (*event.HookResponse, error)
+	DeliverNonBlockingEvent(cfg config.NonBlockingHandlersConfig, e *event.Event) error
+}
+
 type Sink struct {
 	Logger             Logger
 	Config             *config.HookConfig
-	Secret             *config.WebhookKeyMaterials
 	Clock              clock.Clock
-	SyncHTTP           SyncHTTPClient
-	AsyncHTTP          AsyncHTTPClient
+	WebHook            WebHook
 	StandardAttributes StandardAttributesServiceNoEvent
 	CustomAttributes   CustomAttributesServiceNoEvent
 }
@@ -91,12 +87,7 @@ func (s *Sink) DeliverBlockingEvent(e *event.Event) error {
 			})
 		}
 
-		request, err := s.prepareRequest(hook.URL, e)
-		if err != nil {
-			return err
-		}
-
-		resp, err := performRequest(s.SyncHTTP.Client, request, true)
+		resp, err := s.WebHook.DeliverBlockingEvent(hook, e)
 		if err != nil {
 			return err
 		}
@@ -170,12 +161,7 @@ func (s *Sink) DeliverNonBlockingEvent(e *event.Event) error {
 			continue
 		}
 
-		request, err := s.prepareRequest(hook.URL, e)
-		if err != nil {
-			return err
-		}
-
-		_, err = performRequest(s.AsyncHTTP.Client, request, false)
+		err := s.WebHook.DeliverNonBlockingEvent(hook, e)
 		if err != nil {
 			return err
 		}
@@ -205,66 +191,4 @@ func (s *Sink) WillDeliverNonBlockingEvent(eventType event.Type) bool {
 		}
 	}
 	return false
-}
-
-func (s *Sink) prepareRequest(urlStr string, event *event.Event) (*http.Request, error) {
-	hookURL, err := url.Parse(urlStr)
-	if err != nil {
-		return nil, fmt.Errorf("webhook: %w", err)
-	}
-
-	body, err := json.Marshal(event)
-	if err != nil {
-		return nil, fmt.Errorf("webhook: %w", err)
-	}
-
-	key, err := jwkutil.ExtractOctetKey(s.Secret.Set, "")
-	if err != nil {
-		return nil, fmt.Errorf("webhook: %w", err)
-	}
-	signature := crypto.HMACSHA256String(key, body)
-
-	request, err := http.NewRequest("POST", hookURL.String(), bytes.NewReader(body))
-	if err != nil {
-		return nil, fmt.Errorf("webhook: %w", err)
-	}
-
-	request.Header.Add("Content-Type", "application/json")
-	request.Header.Add(HeaderRequestBodySignature, signature)
-
-	return request, nil
-}
-
-func performRequest(client *http.Client, request *http.Request, withResponse bool) (hookResp *event.HookResponse, err error) {
-	var resp *http.Response
-	resp, err = client.Do(request)
-	if os.IsTimeout(err) {
-		err = WebHookDeliveryTimeout.New("webhook delivery timeout")
-		return
-	} else if err != nil {
-		err = fmt.Errorf("webhook: %w", err)
-		return
-	}
-
-	defer resp.Body.Close()
-
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		err = WebHookInvalidResponse.NewWithInfo("invalid status code", apierrors.Details{
-			"status_code": resp.StatusCode,
-		})
-		return
-	}
-
-	if !withResponse {
-		return
-	}
-
-	hookResp, err = event.ParseHookResponse(resp.Body)
-	if err != nil {
-		apiError := apierrors.AsAPIError(err)
-		err = WebHookInvalidResponse.NewWithInfo("invalid response body", apiError.Info)
-		return
-	}
-
-	return
 }
