@@ -16,6 +16,8 @@ type CORSAllowedOrigins string
 
 type NFTIndexerAPIEndpoint string
 
+type DenoEndpoint string
+
 func (c *CORSAllowedOrigins) List() []string {
 	if string(*c) == "" {
 		return []string{}
@@ -51,4 +53,6 @@ type EnvironmentConfig struct {
 	CORSAllowedOrigins CORSAllowedOrigins `envconfig:"CORS_ALLOWED_ORIGINS"`
 
 	NFTIndexerAPIEndpoint NFTIndexerAPIEndpoint `envconfig:"NFT_INDEXER_API_ENDPOINT"`
+
+	DenoEndpoint DenoEndpoint `envconfig:"DENO_ENDPOINT"`
 }
