@@ -7,6 +7,8 @@ package hook
 import (
 	reflect "reflect"
 
+	event "github.com/authgear/authgear-server/pkg/api/event"
+	config "github.com/authgear/authgear-server/pkg/lib/config"
 	accesscontrol "github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -83,4 +85,56 @@ func (m *MockCustomAttributesServiceNoEvent) UpdateAllCustomAttributes(role acce
 func (mr *MockCustomAttributesServiceNoEventMockRecorder) UpdateAllCustomAttributes(role, userID, reprForm interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAllCustomAttributes", reflect.TypeOf((*MockCustomAttributesServiceNoEvent)(nil).UpdateAllCustomAttributes), role, userID, reprForm)
+}
+
+// MockWebHook is a mock of WebHook interface.
+type MockWebHook struct {
+	ctrl     *gomock.Controller
+	recorder *MockWebHookMockRecorder
+}
+
+// MockWebHookMockRecorder is the mock recorder for MockWebHook.
+type MockWebHookMockRecorder struct {
+	mock *MockWebHook
+}
+
+// NewMockWebHook creates a new mock instance.
+func NewMockWebHook(ctrl *gomock.Controller) *MockWebHook {
+	mock := &MockWebHook{ctrl: ctrl}
+	mock.recorder = &MockWebHookMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockWebHook) EXPECT() *MockWebHookMockRecorder {
+	return m.recorder
+}
+
+// DeliverBlockingEvent mocks base method.
+func (m *MockWebHook) DeliverBlockingEvent(cfg config.BlockingHandlersConfig, e *event.Event) (*event.HookResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeliverBlockingEvent", cfg, e)
+	ret0, _ := ret[0].(*event.HookResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeliverBlockingEvent indicates an expected call of DeliverBlockingEvent.
+func (mr *MockWebHookMockRecorder) DeliverBlockingEvent(cfg, e interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeliverBlockingEvent", reflect.TypeOf((*MockWebHook)(nil).DeliverBlockingEvent), cfg, e)
+}
+
+// DeliverNonBlockingEvent mocks base method.
+func (m *MockWebHook) DeliverNonBlockingEvent(cfg config.NonBlockingHandlersConfig, e *event.Event) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeliverNonBlockingEvent", cfg, e)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeliverNonBlockingEvent indicates an expected call of DeliverNonBlockingEvent.
+func (mr *MockWebHookMockRecorder) DeliverNonBlockingEvent(cfg, e interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeliverNonBlockingEvent", reflect.TypeOf((*MockWebHook)(nil).DeliverNonBlockingEvent), cfg, e)
 }
