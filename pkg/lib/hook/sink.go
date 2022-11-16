@@ -2,6 +2,7 @@ package hook
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
@@ -26,8 +27,15 @@ type CustomAttributesServiceNoEvent interface {
 }
 
 type WebHook interface {
-	DeliverBlockingEvent(cfg config.BlockingHandlersConfig, e *event.Event) (*event.HookResponse, error)
-	DeliverNonBlockingEvent(cfg config.NonBlockingHandlersConfig, e *event.Event) error
+	SupportURL(u *url.URL) bool
+	DeliverBlockingEvent(u *url.URL, e *event.Event) (*event.HookResponse, error)
+	DeliverNonBlockingEvent(u *url.URL, e *event.Event) error
+}
+
+type DenoHook interface {
+	SupportURL(u *url.URL) bool
+	DeliverBlockingEvent(u *url.URL, e *event.Event) (*event.HookResponse, error)
+	DeliverNonBlockingEvent(u *url.URL, e *event.Event) error
 }
 
 type Sink struct {
@@ -35,6 +43,7 @@ type Sink struct {
 	Config             *config.HookConfig
 	Clock              clock.Clock
 	WebHook            WebHook
+	DenoHook           DenoHook
 	StandardAttributes StandardAttributesServiceNoEvent
 	CustomAttributes   CustomAttributesServiceNoEvent
 }
@@ -87,7 +96,7 @@ func (s *Sink) DeliverBlockingEvent(e *event.Event) error {
 			})
 		}
 
-		resp, err := s.WebHook.DeliverBlockingEvent(hook, e)
+		resp, err := s.deliverBlockingEvent(hook, e)
 		if err != nil {
 			return err
 		}
@@ -161,7 +170,7 @@ func (s *Sink) DeliverNonBlockingEvent(e *event.Event) error {
 			continue
 		}
 
-		err := s.WebHook.DeliverNonBlockingEvent(hook, e)
+		err := s.deliverNonBlockingEvent(hook, e)
 		if err != nil {
 			return err
 		}
@@ -191,4 +200,34 @@ func (s *Sink) WillDeliverNonBlockingEvent(eventType event.Type) bool {
 		}
 	}
 	return false
+}
+
+func (s *Sink) deliverBlockingEvent(cfg config.BlockingHandlersConfig, e *event.Event) (*event.HookResponse, error) {
+	u, err := url.Parse(cfg.URL)
+	if err != nil {
+		return nil, err
+	}
+	switch {
+	case s.WebHook.SupportURL(u):
+		return s.WebHook.DeliverBlockingEvent(u, e)
+	case s.DenoHook.SupportURL(u):
+		return s.DenoHook.DeliverBlockingEvent(u, e)
+	default:
+		return nil, fmt.Errorf("unsupported hook URL: %v", u)
+	}
+}
+
+func (s *Sink) deliverNonBlockingEvent(cfg config.NonBlockingHandlersConfig, e *event.Event) error {
+	u, err := url.Parse(cfg.URL)
+	if err != nil {
+		return err
+	}
+	switch {
+	case s.WebHook.SupportURL(u):
+		return s.WebHook.DeliverNonBlockingEvent(u, e)
+	case s.DenoHook.SupportURL(u):
+		return s.DenoHook.DeliverNonBlockingEvent(u, e)
+	default:
+		return fmt.Errorf("unsupported hook URL: %v", u)
+	}
 }
