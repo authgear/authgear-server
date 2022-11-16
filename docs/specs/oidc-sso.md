@@ -125,7 +125,7 @@ Authgear is used in the context of an SSO provider, working just like "Login wit
         - When `x_sso_enabled=true`
             - Equal to `x_suppress_idp_session_cookie=false`.
             - Mark refresh token's `sso_enabled` to `true`.
-            - Refresh tokens and IdP sessions lifetime are managed separately (Remains unchanged). The only difference is the refresh token's lifetime will be shorter than or equal to the IdP session. e.g. If the IdP session will expire in 1 day, the refresh token will only have 1 day lifetime when it is issued.
+            - SSO enabled refresh token will be valid only if its IdP session is valid
             - When updating the refresh token's last access time, its IdP session's last access time will also be updated. So that the IdP session won't be invalidated due to inactivity.
     - `x_suppress_idp_session_cookie` remains unchanged for backward compatibility, but the new SDKs won't send this parameter anymore. It is replaced by `x_sso_enabled`.
     - When the developer uses `x_sso_enabled=true` + `prompt=login`, the enduser will need to log in again. The new refresh token will be linked to the new IdP session, and the old IdP session will be overwritten and revoked.
