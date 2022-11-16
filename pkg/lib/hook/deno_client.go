@@ -17,11 +17,12 @@ type SyncDenoClient struct {
 	*DenoClient
 }
 
-func NewSyncDenoClient(endpoint config.DenoEndpoint, c *config.HookConfig) SyncDenoClient {
+func NewSyncDenoClient(endpoint config.DenoEndpoint, c *config.HookConfig, logger Logger) SyncDenoClient {
 	return SyncDenoClient{
 		&DenoClient{
 			Endpoint:   string(endpoint),
 			HTTPClient: httputil.NewExternalClient(c.SyncTimeout.Duration()),
+			Logger:     logger,
 		},
 	}
 }
@@ -30,11 +31,12 @@ type AsyncDenoClient struct {
 	*DenoClient
 }
 
-func NewAsyncDenoClient(endpoint config.DenoEndpoint) AsyncDenoClient {
+func NewAsyncDenoClient(endpoint config.DenoEndpoint, logger Logger) AsyncDenoClient {
 	return AsyncDenoClient{
 		&DenoClient{
 			Endpoint:   string(endpoint),
 			HTTPClient: httputil.NewExternalClient(60 * time.Second),
+			Logger:     logger,
 		},
 	}
 }
@@ -42,6 +44,7 @@ func NewAsyncDenoClient(endpoint config.DenoEndpoint) AsyncDenoClient {
 type DenoClient struct {
 	Endpoint   string
 	HTTPClient *http.Client
+	Logger     Logger
 }
 
 func (c *DenoClient) Run(ctx context.Context, snippet string, input interface{}) (interface{}, error) {
@@ -82,6 +85,13 @@ func (c *DenoClient) Run(ctx context.Context, snippet string, input interface{})
 	if err != nil {
 		return nil, err
 	}
+
+	c.Logger.WithFields(map[string]interface{}{
+		"error":  runResponse.Error,
+		"output": runResponse.Output,
+		"stdout": runResponse.Stdout,
+		"stderr": runResponse.Stderr,
+	}).Info("run deno script")
 
 	if runResponse.Error != "" {
 		return nil, DenoRunError.NewWithInfo(runResponse.Error, apierrors.Details{
