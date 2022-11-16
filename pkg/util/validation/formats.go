@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/mail"
 	"net/url"
-	"path/filepath"
+	"path"
 	"strings"
 	"time"
 
@@ -103,21 +103,8 @@ func (f FormatURI) CheckFormat(value interface{}) error {
 		return errors.New("input URL must be absolute")
 	}
 	p := u.EscapedPath()
-	if p == "" {
-		p = "/"
-	}
 
-	hasTrailingSlash := strings.HasSuffix(p, "/")
-	cleaned := filepath.Clean(p)
-	if hasTrailingSlash && !strings.HasSuffix(cleaned, "/") {
-		cleaned = cleaned + "/"
-	}
-
-	if !filepath.IsAbs(p) || cleaned != p {
-		return errors.New("input URL must be normalized")
-	}
-
-	return nil
+	return FormatAbsolutePath{}.CheckFormat(p)
 }
 
 type FormatPicture struct{}
@@ -143,20 +130,8 @@ func (FormatPicture) CheckFormat(value interface{}) error {
 			return errors.New("authgearimages URI does not have host")
 		}
 		p := u.EscapedPath()
-		if p == "" {
-			p = "/"
-		}
 
-		hasTrailingSlash := strings.HasSuffix(p, "/")
-		cleaned := filepath.Clean(p)
-		if hasTrailingSlash && !strings.HasSuffix(cleaned, "/") {
-			cleaned = cleaned + "/"
-		}
-		if !filepath.IsAbs(p) || cleaned != p {
-			return errors.New("authgearimages URI must be normalized")
-		}
-
-		return nil
+		return FormatAbsolutePath{}.CheckFormat(p)
 	default:
 		return fmt.Errorf("invalid scheme: %v", u.Scheme)
 	}
@@ -429,6 +404,31 @@ func (FormatNetworkID) CheckFormat(value interface{}) error {
 
 	if contractID.Address != "0x0" {
 		return fmt.Errorf("invalid network ID: %#v", str)
+	}
+
+	return nil
+}
+
+type FormatAbsolutePath struct{}
+
+func (FormatAbsolutePath) CheckFormat(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	if str == "" {
+		str = "/"
+	}
+
+	hasTrailingSlash := strings.HasSuffix(str, "/")
+	cleaned := path.Clean(str)
+	if hasTrailingSlash && !strings.HasSuffix(cleaned, "/") {
+		cleaned = cleaned + "/"
+	}
+
+	if !path.IsAbs(str) || cleaned != str {
+		return fmt.Errorf("invalid path: %v", str)
 	}
 
 	return nil
