@@ -13,6 +13,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
+type signedOutEventOption struct {
+	IsAdminAPI bool
+}
+
 var ErrSessionNotFound = errors.New("session not found")
 
 type UserQuery interface {
@@ -51,7 +55,7 @@ func (m *Manager) resolveManagementProvider(session Session) ManagementService {
 	}
 }
 
-func (m *Manager) invalidate(session Session, isAdminAPI bool) (ManagementService, error) {
+func (m *Manager) invalidate(session Session, option *signedOutEventOption) (ManagementService, error) {
 	sessions, err := m.List(session.GetAuthenticationInfo().UserID)
 	if err != nil {
 		return nil, err
@@ -74,7 +78,7 @@ func (m *Manager) invalidate(session Session, isAdminAPI bool) (ManagementServic
 	for _, s := range sessions {
 		// invalidate the sessions that are in the same sso group
 		if s.IsSameSSOGroup(session) {
-			p, err := m.invalidateSession(s, isAdminAPI)
+			p, err := m.invalidateSession(s, option)
 			if err != nil {
 				return nil, err
 			}
@@ -87,7 +91,7 @@ func (m *Manager) invalidate(session Session, isAdminAPI bool) (ManagementServic
 	if provider == nil {
 		// if the current session doesn't appear in the sso group (e.g. sso disabled offline grant)
 		// delete it here
-		provider, err = m.invalidateSession(session, isAdminAPI)
+		provider, err = m.invalidateSession(session, option)
 		if err != nil {
 			return nil, err
 		}
@@ -99,7 +103,7 @@ func (m *Manager) invalidate(session Session, isAdminAPI bool) (ManagementServic
 
 // invalidateSession should not be called directly
 // invalidate should be called instead
-func (m *Manager) invalidateSession(session Session, isAdminAPI bool) (ManagementService, error) {
+func (m *Manager) invalidateSession(session Session, option *signedOutEventOption) (ManagementService, error) {
 	sessionModel := session.ToAPIModel()
 
 	provider := m.resolveManagementProvider(session)
@@ -108,24 +112,26 @@ func (m *Manager) invalidateSession(session Session, isAdminAPI bool) (Managemen
 		return nil, err
 	}
 
-	err = m.Events.DispatchEvent(&nonblocking.UserSignedOutEventPayload{
-		UserRef: model.UserRef{
-			Meta: model.Meta{
-				ID: session.GetAuthenticationInfo().UserID,
+	if option != nil {
+		err = m.Events.DispatchEvent(&nonblocking.UserSignedOutEventPayload{
+			UserRef: model.UserRef{
+				Meta: model.Meta{
+					ID: session.GetAuthenticationInfo().UserID,
+				},
 			},
-		},
-		Session:  *sessionModel,
-		AdminAPI: isAdminAPI,
-	})
-	if err != nil {
-		return nil, err
+			Session:  *sessionModel,
+			AdminAPI: option.IsAdminAPI,
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return provider, nil
 }
 
 func (m *Manager) Logout(session Session, rw http.ResponseWriter) error {
-	provider, err := m.invalidate(session, false)
+	provider, err := m.invalidate(session, &signedOutEventOption{IsAdminAPI: false})
 	if err != nil {
 		return err
 	}
@@ -138,7 +144,16 @@ func (m *Manager) Logout(session Session, rw http.ResponseWriter) error {
 }
 
 func (m *Manager) Revoke(session Session, isAdminAPI bool) error {
-	_, err := m.invalidate(session, isAdminAPI)
+	_, err := m.invalidate(session, &signedOutEventOption{IsAdminAPI: isAdminAPI})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Manager) Delete(session Session) error {
+	_, err := m.invalidate(session, nil)
 	if err != nil {
 		return err
 	}

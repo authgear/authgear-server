@@ -755,6 +755,11 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -799,7 +804,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  provider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -1551,6 +1556,11 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -1595,7 +1605,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  provider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -2353,6 +2363,11 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -2398,7 +2413,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  provider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef,
 		MFADeviceTokenCookie:      mfaCookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -4812,6 +4827,11 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -4857,7 +4877,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  provider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef,
 		MFADeviceTokenCookie:      mfaCookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -5609,6 +5629,11 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -5654,7 +5679,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef,
 		MFADeviceTokenCookie:      mfaCookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -6357,6 +6382,11 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -6402,7 +6432,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef,
 		MFADeviceTokenCookie:      mfaCookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -7209,6 +7239,11 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -7253,7 +7288,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -7996,6 +8031,11 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -8040,7 +8080,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -8782,6 +8822,11 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -8826,7 +8871,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -9551,6 +9596,11 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -9595,7 +9645,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -10318,6 +10368,11 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -10362,7 +10417,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -11075,6 +11130,11 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -11119,7 +11179,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -11835,6 +11895,11 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -11879,7 +11944,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -12598,6 +12663,11 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -12642,7 +12712,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -13363,6 +13433,11 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -13407,7 +13482,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -14126,6 +14201,11 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -14170,7 +14250,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -14889,6 +14969,11 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -14933,7 +15018,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -15653,6 +15738,11 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -15697,7 +15787,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -16416,6 +16506,11 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -16460,7 +16555,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -17179,6 +17274,11 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -17223,7 +17323,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -17944,6 +18044,11 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -17988,7 +18093,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -18707,6 +18812,11 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -18751,7 +18861,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -19470,6 +19580,11 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -19514,7 +19629,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -20235,6 +20350,11 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -20279,7 +20399,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -20998,6 +21118,11 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -21042,7 +21167,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -22190,6 +22315,11 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -22234,7 +22364,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -22953,6 +23083,11 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -22997,7 +23132,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -23712,6 +23847,11 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -23756,7 +23896,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -24473,6 +24613,11 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -24517,7 +24662,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -25232,6 +25377,11 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -25276,7 +25426,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -26001,6 +26151,11 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -26045,7 +26200,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -26760,6 +26915,11 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -26804,7 +26964,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -27520,6 +27680,11 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -27564,7 +27729,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -28279,6 +28444,11 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -28323,7 +28493,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -29069,6 +29239,11 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -29113,7 +29288,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -29839,6 +30014,11 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -29883,7 +30063,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -30622,6 +30802,11 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -30666,7 +30851,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -31389,6 +31574,11 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -31433,7 +31623,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -32149,6 +32339,11 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -32193,7 +32388,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -32917,6 +33112,11 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -32961,7 +33161,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -33677,6 +33877,11 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -33721,7 +33926,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -34437,6 +34642,11 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -34481,7 +34691,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -35197,6 +35407,11 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -35241,7 +35456,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -35958,6 +36173,11 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -36002,7 +36222,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -36073,11 +36293,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
-	}
-	manager2 := &session.Manager{
-		IDPSessions:         idpsessionManager,
-		AccessTokenSessions: sessionManager,
-		Events:              eventService,
 	}
 	authorizationService := &oauth2.AuthorizationService{
 		AppID:               appID,
@@ -36731,6 +36946,11 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -36775,7 +36995,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -37491,6 +37711,11 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -37535,7 +37760,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -38251,6 +38476,11 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -38295,7 +38525,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -39011,6 +39241,11 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -39055,7 +39290,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -39771,6 +40006,11 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -39815,7 +40055,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -40538,6 +40778,11 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -40582,7 +40827,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -41299,6 +41544,11 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -41343,7 +41593,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -42058,6 +42308,11 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -42102,7 +42357,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -42173,11 +42428,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
-	}
-	manager2 := &session.Manager{
-		IDPSessions:         idpsessionManager,
-		AccessTokenSessions: sessionManager,
-		Events:              eventService,
 	}
 	logoutHandler := &webapp.LogoutHandler{
 		ControllerFactory: controllerFactory,
@@ -42836,6 +43086,11 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -42880,7 +43135,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -43595,6 +43850,11 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -43639,7 +43899,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -44354,6 +44614,11 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -44398,7 +44663,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -45130,6 +45395,11 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Redis:   handle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   handle,
@@ -45174,7 +45444,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -45856,6 +46126,11 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Redis:   handle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   handle,
@@ -45900,7 +46175,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -46581,6 +46856,11 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -46625,7 +46905,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -47350,6 +47630,11 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -47394,7 +47679,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
