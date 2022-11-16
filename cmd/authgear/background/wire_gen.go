@@ -483,8 +483,8 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         ctx,
 		SyncDenoClient:  syncDenoClient,

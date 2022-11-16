@@ -541,8 +541,8 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -1351,8 +1351,8 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -2159,8 +2159,8 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -2911,8 +2911,8 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -4127,8 +4127,8 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -4651,8 +4651,8 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -5410,8 +5410,8 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -6172,8 +6172,8 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -7039,8 +7039,8 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -7840,8 +7840,8 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -8640,8 +8640,8 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -9423,8 +9423,8 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -10204,8 +10204,8 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -10975,8 +10975,8 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -11749,8 +11749,8 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -12526,8 +12526,8 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -13305,8 +13305,8 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -14082,8 +14082,8 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -14859,8 +14859,8 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -15637,8 +15637,8 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -16414,8 +16414,8 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -17191,8 +17191,8 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -17970,8 +17970,8 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -18747,8 +18747,8 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -19524,8 +19524,8 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -20303,8 +20303,8 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -21080,8 +21080,8 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -21848,8 +21848,8 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -22296,8 +22296,8 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -23073,8 +23073,8 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -23846,8 +23846,8 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -24621,8 +24621,8 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -25394,8 +25394,8 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -26177,8 +26177,8 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -26950,8 +26950,8 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -27724,8 +27724,8 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -28497,8 +28497,8 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -29301,8 +29301,8 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -30085,8 +30085,8 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -30882,8 +30882,8 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -31663,8 +31663,8 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -32437,8 +32437,8 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -33219,8 +33219,8 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -33993,8 +33993,8 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -34767,8 +34767,8 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -35541,8 +35541,8 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -36316,8 +36316,8 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -37109,8 +37109,8 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -37883,8 +37883,8 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -38657,8 +38657,8 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -39431,8 +39431,8 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -40205,8 +40205,8 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -40986,8 +40986,8 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -41761,8 +41761,8 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -42534,8 +42534,8 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -43321,8 +43321,8 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -44094,8 +44094,8 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -44867,8 +44867,8 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -45657,8 +45657,8 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -46397,8 +46397,8 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -47136,8 +47136,8 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -47919,8 +47919,8 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
@@ -49445,8 +49445,8 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		AsyncHTTP: asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
 		Context:         contextContext,
 		SyncDenoClient:  syncDenoClient,
