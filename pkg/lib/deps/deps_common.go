@@ -122,7 +122,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oauth.ServiceIDPSessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(oauthhandler.SessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(interaction.SessionProvider), new(*idpsession.Provider)),
-		wire.Bind(new(interaction.SessionManager), new(*idpsession.Manager)),
 		wire.Bind(new(facade.IDPSessionManager), new(*idpsession.Manager)),
 	),
 
@@ -132,6 +131,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(idpsession.AccessEventProvider), new(*access.EventProvider)),
 		wire.Bind(new(oidchandler.LogoutSessionManager), new(*session.Manager)),
 		wire.Bind(new(oauthhandler.SessionManager), new(*session.Manager)),
+		wire.Bind(new(interaction.SessionManager), new(*session.Manager)),
 	),
 
 	wire.NewSet(

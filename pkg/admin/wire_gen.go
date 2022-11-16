@@ -789,6 +789,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -834,7 +839,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef,
 		MFADeviceTokenCookie:      mfaCookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -873,11 +878,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationFacade := &facade2.VerificationFacade{
 		Verification: verificationService,
-	}
-	manager2 := &session.Manager{
-		IDPSessions:         idpsessionManager,
-		AccessTokenSessions: sessionManager,
-		Events:              eventService,
 	}
 	sessionFacade := &facade2.SessionFacade{
 		Sessions: manager2,
