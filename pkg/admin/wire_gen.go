@@ -517,11 +517,21 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
+	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
 		Clock:              clockClock,
 		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 	}

@@ -2,6 +2,7 @@ package hook
 
 import (
 	"net/http"
+	"net/url"
 	"testing"
 
 	"github.com/lestrrat-go/jwx/jwk"
@@ -13,6 +14,14 @@ import (
 )
 
 func TestWebHook(t *testing.T) {
+	mustURL := func(s string) *url.URL {
+		u, err := url.Parse(s)
+		if err != nil {
+			panic(err)
+		}
+		return u
+	}
+
 	Convey("WebHook", t, func() {
 		key, err := jwk.New([]byte("aG9vay1zZWNyZXQ"))
 		So(err, ShouldBeNil)
@@ -47,10 +56,8 @@ func TestWebHook(t *testing.T) {
 				})
 			defer func() { gock.Flush() }()
 
-			resp, err := webhook.DeliverBlockingEvent(config.BlockingHandlersConfig{
-				Event: string(MockBlockingEventType1),
-				URL:   "https://example.com/a",
-			}, &e)
+			resp, err := webhook.DeliverBlockingEvent(mustURL("https://example.com/a"), &e)
+
 			So(err, ShouldBeNil)
 			So(resp, ShouldResemble, &event.HookResponse{
 				IsAllowed: true,
@@ -69,10 +76,7 @@ func TestWebHook(t *testing.T) {
 				Reply(200)
 			defer func() { gock.Flush() }()
 
-			err := webhook.DeliverNonBlockingEvent(config.NonBlockingHandlersConfig{
-				Events: []string{string(MockNonBlockingEventType1)},
-				URL:    "https://example.com/a",
-			}, &e)
+			err := webhook.DeliverNonBlockingEvent(mustURL("https://example.com/a"), &e)
 			So(err, ShouldBeNil)
 		})
 
@@ -88,10 +92,7 @@ func TestWebHook(t *testing.T) {
 				Reply(500)
 			defer func() { gock.Flush() }()
 
-			_, err := webhook.DeliverBlockingEvent(config.BlockingHandlersConfig{
-				Event: string(MockBlockingEventType1),
-				URL:   "https://example.com/a",
-			}, &e)
+			err := webhook.DeliverNonBlockingEvent(mustURL("https://example.com/a"), &e)
 			So(err, ShouldBeError, "invalid status code")
 		})
 
@@ -107,10 +108,7 @@ func TestWebHook(t *testing.T) {
 				Reply(200)
 			defer func() { gock.Flush() }()
 
-			_, err := webhook.DeliverBlockingEvent(config.BlockingHandlersConfig{
-				Event: string(MockBlockingEventType1),
-				URL:   "https://example.com/a",
-			}, &e)
+			_, err := webhook.DeliverBlockingEvent(mustURL("https://example.com/a"), &e)
 			So(err, ShouldBeError, "invalid response body")
 		})
 	})

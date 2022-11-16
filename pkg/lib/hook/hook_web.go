@@ -22,8 +22,12 @@ type WebHookImpl struct {
 
 var _ WebHook = &WebHookImpl{}
 
-func (h *WebHookImpl) DeliverBlockingEvent(cfg config.BlockingHandlersConfig, e *event.Event) (*event.HookResponse, error) {
-	request, err := h.prepareRequest(cfg.URL, e)
+func (h *WebHookImpl) SupportURL(u *url.URL) bool {
+	return u.Scheme == "http" || u.Scheme == "https"
+}
+
+func (h *WebHookImpl) DeliverBlockingEvent(u *url.URL, e *event.Event) (*event.HookResponse, error) {
+	request, err := h.prepareRequest(u, e)
 	if err != nil {
 		return nil, err
 	}
@@ -36,8 +40,8 @@ func (h *WebHookImpl) DeliverBlockingEvent(cfg config.BlockingHandlersConfig, e 
 	return resp, nil
 }
 
-func (h *WebHookImpl) DeliverNonBlockingEvent(cfg config.NonBlockingHandlersConfig, e *event.Event) error {
-	request, err := h.prepareRequest(cfg.URL, e)
+func (h *WebHookImpl) DeliverNonBlockingEvent(u *url.URL, e *event.Event) error {
+	request, err := h.prepareRequest(u, e)
 	if err != nil {
 		return err
 	}
@@ -50,12 +54,7 @@ func (h *WebHookImpl) DeliverNonBlockingEvent(cfg config.NonBlockingHandlersConf
 	return nil
 }
 
-func (h *WebHookImpl) prepareRequest(urlStr string, event *event.Event) (*http.Request, error) {
-	hookURL, err := url.Parse(urlStr)
-	if err != nil {
-		return nil, err
-	}
-
+func (h *WebHookImpl) prepareRequest(u *url.URL, event *event.Event) (*http.Request, error) {
 	body, err := json.Marshal(event)
 	if err != nil {
 		return nil, err
@@ -67,7 +66,7 @@ func (h *WebHookImpl) prepareRequest(urlStr string, event *event.Event) (*http.R
 	}
 	signature := crypto.HMACSHA256String(key, body)
 
-	request, err := http.NewRequest("POST", hookURL.String(), bytes.NewReader(body))
+	request, err := http.NewRequest("POST", u.String(), bytes.NewReader(body))
 	if err != nil {
 		return nil, err
 	}
