@@ -36,13 +36,6 @@ type Session interface {
 	Equal(s Session) bool
 }
 
-type DeleteReason string
-
-const (
-	DeleteReasonLogout DeleteReason = "logout"
-	DeleteReasonRevoke DeleteReason = "revoke"
-)
-
 type CreateReason string
 
 const (
