@@ -39,6 +39,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["x_recovery_code"] = secretcode.RecoveryCode
 	jsonschemaformat.DefaultChecker["x_custom_attribute_pointer"] = FormatCustomAttributePointer{}
 	jsonschemaformat.DefaultChecker["x_picture"] = FormatPicture{}
+	jsonschemaformat.DefaultChecker["x_hook_uri"] = FormatHookURI{}
 	jsonschemaformat.DefaultChecker["google_tag_manager_container_id"] = FormatGoogleTagManagerContainerID{}
 	jsonschemaformat.DefaultChecker["x_web3_contract_id"] = FormatContractID{}
 	jsonschemaformat.DefaultChecker["x_web3_network_id"] = FormatNetworkID{}
@@ -432,4 +433,32 @@ func (FormatAbsolutePath) CheckFormat(value interface{}) error {
 	}
 
 	return nil
+}
+
+type FormatHookURI struct{}
+
+func (FormatHookURI) CheckFormat(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	u, err := url.Parse(str)
+	if err != nil {
+		return err
+	}
+
+	switch u.Scheme {
+	case "http", "https":
+		return FormatURI{}.CheckFormat(value)
+	case "authgeardeno":
+		if u.Host != "" {
+			return fmt.Errorf("authgeardeno URI does not have host")
+		}
+		p := u.EscapedPath()
+
+		return FormatAbsolutePath{}.CheckFormat(p)
+	default:
+		return fmt.Errorf("invalid scheme: %v", u.Scheme)
+	}
 }

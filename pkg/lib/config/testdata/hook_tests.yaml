@@ -21,7 +21,7 @@ name: invalid-rel-path
 error: |-
   invalid value:
   /url: format
-    map[error:input URL must be absolute format:uri]
+    map[error:invalid scheme:  format:x_hook_uri]
 value:
   event: user.pre_create
   url: "/pre_signup"
