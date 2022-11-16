@@ -51,7 +51,7 @@ func (m *Manager) resolveManagementProvider(session Session) ManagementService {
 	}
 }
 
-func (m *Manager) invalidate(session Session, reason DeleteReason, isAdminAPI bool) (ManagementService, error) {
+func (m *Manager) invalidate(session Session, isAdminAPI bool) (ManagementService, error) {
 	sessions, err := m.List(session.GetAuthenticationInfo().UserID)
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func (m *Manager) invalidate(session Session, reason DeleteReason, isAdminAPI bo
 	for _, s := range sessions {
 		// invalidate the sessions that are in the same sso group
 		if s.IsSameSSOGroup(session) {
-			p, err := m.invalidateSession(s, reason, isAdminAPI)
+			p, err := m.invalidateSession(s, isAdminAPI)
 			if err != nil {
 				return nil, err
 			}
@@ -87,7 +87,7 @@ func (m *Manager) invalidate(session Session, reason DeleteReason, isAdminAPI bo
 	if provider == nil {
 		// if the current session doesn't appear in the sso group (e.g. sso disabled offline grant)
 		// delete it here
-		provider, err = m.invalidateSession(session, reason, isAdminAPI)
+		provider, err = m.invalidateSession(session, isAdminAPI)
 		if err != nil {
 			return nil, err
 		}
@@ -99,7 +99,7 @@ func (m *Manager) invalidate(session Session, reason DeleteReason, isAdminAPI bo
 
 // invalidateSession should not be called directly
 // invalidate should be called instead
-func (m *Manager) invalidateSession(session Session, reason DeleteReason, isAdminAPI bool) (ManagementService, error) {
+func (m *Manager) invalidateSession(session Session, isAdminAPI bool) (ManagementService, error) {
 	sessionModel := session.ToAPIModel()
 
 	provider := m.resolveManagementProvider(session)
@@ -125,7 +125,7 @@ func (m *Manager) invalidateSession(session Session, reason DeleteReason, isAdmi
 }
 
 func (m *Manager) Logout(session Session, rw http.ResponseWriter) error {
-	provider, err := m.invalidate(session, DeleteReasonLogout, false)
+	provider, err := m.invalidate(session, false)
 	if err != nil {
 		return err
 	}
@@ -138,7 +138,7 @@ func (m *Manager) Logout(session Session, rw http.ResponseWriter) error {
 }
 
 func (m *Manager) Revoke(session Session, isAdminAPI bool) error {
-	_, err := m.invalidate(session, DeleteReasonRevoke, isAdminAPI)
+	_, err := m.invalidate(session, isAdminAPI)
 	if err != nil {
 		return err
 	}
