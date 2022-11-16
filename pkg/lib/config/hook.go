@@ -39,7 +39,7 @@ var _ = Schema.Add("BlockingHookHandlersConfig", `
 			"user.profile.pre_update",
 			"user.pre_schedule_deletion"
 		] },
-		"url": { "type": "string", "format": "uri" }
+		"url": { "type": "string", "format": "x_hook_uri" }
 	},
 	"required": ["event", "url"]
 }
@@ -86,7 +86,7 @@ var _ = Schema.Add("NonBlockingHookHandlersConfig", `
 				]
 			}
 		},
-		"url": { "type": "string", "format": "uri" }
+		"url": { "type": "string", "format": "x_hook_uri" }
 	},
 	"required": ["events", "url"]
 }
