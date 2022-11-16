@@ -6,31 +6,54 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-// FIXME(admin): Refactor to remove the need of this placeholder provider
-//
-//	Admin API is unable to trigger code paths that leads to these functions.
-//	Implementation of these functions require access to web-app logic.
-type WebEndpoints struct {
+type BaseURLProvider struct {
+	HTTP *config.HTTPConfig
 }
 
-func (WebEndpoints) BaseURL() *url.URL {
+func (p *BaseURLProvider) BaseURL() *url.URL {
+	u, err := url.Parse(p.HTTP.PublicOrigin)
+	if err != nil {
+		panic(err)
+	}
+	return u
+}
+
+type OAuthURLProvider struct{}
+
+func (*OAuthURLProvider) AuthorizeEndpointURL() *url.URL {
 	panic("not implemented")
 }
 
-func (WebEndpoints) ResetPasswordURL(code string) *url.URL {
+func (*OAuthURLProvider) ConsentEndpointURL() *url.URL {
 	panic("not implemented")
 }
 
-func (WebEndpoints) SSOCallbackURL(providerConfig config.OAuthSSOProviderConfig) *url.URL {
+func (*OAuthURLProvider) TokenEndpointURL() *url.URL {
 	panic("not implemented")
 }
 
-func (WebEndpoints) AuthorizeEndpointURL(config.OAuthSSOProviderConfig) *url.URL {
-	// WechatURLProvider
+func (*OAuthURLProvider) RevokeEndpointURL() *url.URL {
 	panic("not implemented")
 }
 
-func (WebEndpoints) CallbackEndpointURL() *url.URL {
-	// WechatURLProvider
+type WechatURLProvider struct{}
+
+func (*WechatURLProvider) AuthorizeEndpointURL(config.OAuthSSOProviderConfig) *url.URL {
+	panic("not implemented")
+}
+
+func (*WechatURLProvider) CallbackEndpointURL() *url.URL {
+	panic("not implemented")
+}
+
+type ResetPasswordURLProvider struct{}
+
+func (*ResetPasswordURLProvider) ResetPasswordURL(code string) *url.URL {
+	panic("not implemented")
+}
+
+type SSOCallbackURLProvider struct{}
+
+func (*SSOCallbackURLProvider) SSOCallbackURL(providerConfig config.OAuthSSOProviderConfig) *url.URL {
 	panic("not implemented")
 }

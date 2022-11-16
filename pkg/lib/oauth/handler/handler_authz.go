@@ -30,6 +30,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
+//go:generate mockgen -source=handler_authz.go -destination=handler_authz_mock_test.go -package handler_test
+
 const CodeGrantValidDuration = duration.Short
 
 type IDTokenVerifier interface {
@@ -69,6 +71,20 @@ type OAuthSessionService interface {
 	Delete(entryID string) error
 }
 
+type AuthorizationService interface {
+	GetByID(id string) (*oauth.Authorization, error)
+	CheckAndGrant(
+		clientID string,
+		userID string,
+		scopes []string,
+	) (*oauth.Authorization, error)
+	Check(
+		clientID string,
+		userID string,
+		scopes []string,
+	) (*oauth.Authorization, error)
+}
+
 type AuthorizationHandlerLogger struct{ *log.Logger }
 
 func NewAuthorizationHandlerLogger(lf *log.Factory) AuthorizationHandlerLogger {
@@ -83,7 +99,7 @@ type AuthorizationHandler struct {
 	Logger     AuthorizationHandlerLogger
 
 	Sessions                  SessionProvider
-	Authorizations            oauth.AuthorizationStore
+	Authorizations            AuthorizationService
 	OfflineGrants             oauth.OfflineGrantStore
 	CodeGrants                oauth.CodeGrantStore
 	OAuthURLs                 OAuthURLProvider
@@ -488,17 +504,13 @@ func (h *AuthorizationHandler) finish(
 	var authz *oauth.Authorization
 	var err error
 	if grantAuthz {
-		authz, err = checkAndGrantAuthorization(
-			h.Authorizations,
-			h.Clock.NowUTC(),
-			h.AppID,
+		authz, err = h.Authorizations.CheckAndGrant(
 			r.ClientID(),
 			authenticationInfo.UserID,
 			r.Scope(),
 		)
 	} else {
-		authz, err = checkAuthorization(
-			h.Authorizations,
+		authz, err = h.Authorizations.Check(
 			r.ClientID(),
 			authenticationInfo.UserID,
 			r.Scope(),

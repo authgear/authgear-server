@@ -73,7 +73,7 @@ type AnonymousUserHandler struct {
 	Logger      AnonymousUserHandlerLogger
 
 	Graphs              GraphService
-	Authorizations      oauth.AuthorizationStore
+	Authorizations      AuthorizationService
 	Clock               clock.Clock
 	TokenService        TokenService
 	UserProvider        UserProvider
@@ -187,10 +187,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		AuthenticatedAt: h.Clock.NowUTC(),
 	}
 
-	authz, err := checkAndGrantAuthorization(
-		h.Authorizations,
-		h.Clock.NowUTC(),
-		h.AppID,
+	authz, err := h.Authorizations.CheckAndGrant(
 		client.ClientID,
 		info.UserID,
 		scopes,

@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
@@ -48,22 +49,26 @@ func TestAuthorizationHandler(t *testing.T) {
 	}
 
 	Convey("Authorization handler", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
 		clock := clock.NewMockClockAt("2020-02-01T00:00:00Z")
-		authzStore := &mockAuthzStore{}
+		authzService := NewMockAuthorizationService(ctrl)
 		codeGrantStore := &mockCodeGrantStore{}
 		authenticationInfoService := &mockAuthenticationInfoService{}
 		cookieManager := &mockCookieManager{}
 		oauthSessionService := &mockOAuthSessionService{}
 
+		appID := config.AppID("app-id")
 		h := &handler.AuthorizationHandler{
 			Context: context.Background(),
-			AppID:   "app-id",
+			AppID:   appID,
 			Config:  &config.OAuthConfig{},
 			HTTPConfig: &config.HTTPConfig{
 				PublicOrigin: "http://accounts.example.com",
 			},
 
-			Authorizations:            authzStore,
+			Authorizations:            authzService,
 			CodeGrants:                codeGrantStore,
 			OAuthURLs:                 mockURLsProvider{},
 			WebAppURLs:                mockURLsProvider{},
@@ -219,6 +224,21 @@ func TestAuthorizationHandler(t *testing.T) {
 					ToContext(context.Background())
 
 				Convey("create new authorization implicitly", func() {
+					authorization := &oauth.Authorization{
+						ID:        "authz-id",
+						AppID:     string(appID),
+						ClientID:  "client-id",
+						UserID:    "user-id",
+						CreatedAt: time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
+						UpdatedAt: time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
+						Scopes:    []string{"openid"},
+					}
+					authzService.EXPECT().CheckAndGrant(
+						"client-id",
+						"user-id",
+						[]string{"openid"},
+					).Times(1).Return(authorization, nil)
+
 					resp := handle(protocol.AuthorizationRequest{
 						"client_id":             "client-id",
 						"response_type":         "code",
@@ -234,20 +254,10 @@ func TestAuthorizationHandler(t *testing.T) {
 						"https://example.com/?code=authz-code&state=my-state",
 					))
 
-					So(authzStore.authzs, ShouldHaveLength, 1)
-					So(authzStore.authzs[0], ShouldResemble, oauth.Authorization{
-						ID:        authzStore.authzs[0].ID,
-						AppID:     "app-id",
-						ClientID:  "client-id",
-						UserID:    "user-id",
-						CreatedAt: time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
-						UpdatedAt: time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
-						Scopes:    []string{"openid"},
-					})
 					So(codeGrantStore.grants, ShouldHaveLength, 1)
 					So(codeGrantStore.grants[0], ShouldResemble, oauth.CodeGrant{
 						AppID:           "app-id",
-						AuthorizationID: authzStore.authzs[0].ID,
+						AuthorizationID: authorization.ID,
 						IDPSessionID:    "session-id",
 						AuthenticationInfo: authenticationinfo.T{
 							UserID: "user-id",
@@ -263,15 +273,20 @@ func TestAuthorizationHandler(t *testing.T) {
 				})
 
 				Convey("reuse existing authorization implicitly", func() {
-					authzStore.authzs = []oauth.Authorization{{
+					authorization := &oauth.Authorization{
 						ID:        "authz-id",
-						AppID:     "app-id",
+						AppID:     string(appID),
 						ClientID:  "client-id",
 						UserID:    "user-id",
-						CreatedAt: time.Date(2020, 1, 31, 0, 0, 0, 0, time.UTC),
-						UpdatedAt: time.Date(2020, 1, 31, 0, 0, 0, 0, time.UTC),
-						Scopes:    []string{"openid"},
-					}}
+						CreatedAt: time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
+						UpdatedAt: time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
+						Scopes:    []string{"openid", "offline_access"},
+					}
+					authzService.EXPECT().CheckAndGrant(
+						"client-id",
+						"user-id",
+						[]string{"openid", "offline_access"},
+					).Times(1).Return(authorization, nil)
 
 					resp := handle(protocol.AuthorizationRequest{
 						"client_id":             "client-id",
@@ -286,16 +301,6 @@ func TestAuthorizationHandler(t *testing.T) {
 						"https://example.com/?code=authz-code",
 					))
 
-					So(authzStore.authzs, ShouldHaveLength, 1)
-					So(authzStore.authzs[0], ShouldResemble, oauth.Authorization{
-						ID:        "authz-id",
-						AppID:     "app-id",
-						ClientID:  "client-id",
-						UserID:    "user-id",
-						CreatedAt: time.Date(2020, 1, 31, 0, 0, 0, 0, time.UTC),
-						UpdatedAt: time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
-						Scopes:    []string{"openid", "offline_access"},
-					})
 					So(codeGrantStore.grants, ShouldHaveLength, 1)
 					So(codeGrantStore.grants[0], ShouldResemble, oauth.CodeGrant{
 						AppID:           "app-id",
@@ -371,6 +376,21 @@ func TestAuthorizationHandler(t *testing.T) {
 					ToContext(context.Background())
 
 				Convey("create new authorization implicitly", func() {
+					authorization := &oauth.Authorization{
+						ID:        "authz-id",
+						AppID:     string(appID),
+						ClientID:  "client-id",
+						UserID:    "user-id",
+						CreatedAt: time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
+						UpdatedAt: time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
+						Scopes:    []string{"openid"},
+					}
+					authzService.EXPECT().CheckAndGrant(
+						"client-id",
+						"user-id",
+						[]string{"openid"},
+					).Times(1).Return(authorization, nil)
+
 					resp := handle(protocol.AuthorizationRequest{
 						"client_id":     "client-id",
 						"response_type": "none",
@@ -383,16 +403,6 @@ func TestAuthorizationHandler(t *testing.T) {
 						"https://example.com/?state=my-state",
 					))
 
-					So(authzStore.authzs, ShouldHaveLength, 1)
-					So(authzStore.authzs[0], ShouldResemble, oauth.Authorization{
-						ID:        authzStore.authzs[0].ID,
-						AppID:     "app-id",
-						ClientID:  "client-id",
-						UserID:    "user-id",
-						CreatedAt: time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
-						UpdatedAt: time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
-						Scopes:    []string{"openid"},
-					})
 					So(codeGrantStore.grants, ShouldBeEmpty)
 				})
 			})

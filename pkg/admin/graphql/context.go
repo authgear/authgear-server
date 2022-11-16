@@ -12,6 +12,7 @@ import (
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -91,6 +92,10 @@ type AuthorizationFacade interface {
 	Delete(a *oauth.Authorization) error
 }
 
+type OAuthFacade interface {
+	CreateSession(clientID string, userID string) (protocol.TokenResponse, error)
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("admin-graphql")} }
@@ -98,7 +103,8 @@ func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("admin-graphql")} 
 type Context struct {
 	GQLLogger Logger
 
-	OAuthConfig *config.OAuthConfig
+	OAuthConfig           *config.OAuthConfig
+	AdminAPIFeatureConfig *config.AdminAPIFeatureConfig
 
 	Users          UserLoader
 	Identities     IdentityLoader
@@ -113,6 +119,7 @@ type Context struct {
 	SessionFacade       SessionFacade
 	UserProfileFacade   UserProfileFacade
 	AuthorizationFacade AuthorizationFacade
+	OAuthFacade         OAuthFacade
 }
 
 func (c *Context) Logger() *log.Logger {

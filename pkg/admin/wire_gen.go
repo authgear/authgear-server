@@ -57,6 +57,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
@@ -152,6 +154,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	configConfig := appProvider.Config
 	appConfig := configConfig.AppConfig
 	oAuthConfig := appConfig.OAuth
+	featureConfig := configConfig.FeatureConfig
+	adminAPIFeatureConfig := featureConfig.AdminAPI
 	secretConfig := configConfig.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
@@ -171,7 +175,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
-	featureConfig := configConfig.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -685,13 +688,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	webEndpoints := &WebEndpoints{}
+	baseURLProvider := &BaseURLProvider{
+		HTTP: httpConfig,
+	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
-		Endpoints:       webEndpoints,
+		Endpoints:       baseURLProvider,
 		TaskQueue:       queue,
 		Events:          eventService,
 		RateLimiter:     limiter,
@@ -701,16 +706,18 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
+	ssoCallbackURLProvider := &SSOCallbackURLProvider{}
+	wechatURLProvider := &WechatURLProvider{}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    webEndpoints,
+		Endpoints:                    baseURLProvider,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
-		RedirectURL:                  webEndpoints,
+		RedirectURL:                  ssoCallbackURLProvider,
 		Clock:                        clockClock,
-		WechatURLProvider:            webEndpoints,
+		WechatURLProvider:            wechatURLProvider,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -719,6 +726,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Redis:   appredisHandle,
 	}
+	resetPasswordURLProvider := &ResetPasswordURLProvider{}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:        remoteIP,
@@ -726,7 +734,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Config:          forgotPasswordConfig,
 		Store:           forgotpasswordStore,
 		Clock:           clockClock,
-		URLs:            webEndpoints,
+		URLs:            resetPasswordURLProvider,
 		TaskQueue:       queue,
 		Logger:          providerLogger,
 		Identities:      identityFacade,
@@ -875,27 +883,66 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Events:             eventService,
 	}
 	authorizationService := &oauth2.AuthorizationService{
+		AppID:               appID,
 		Store:               authorizationStore,
+		Clock:               clockClock,
 		OAuthSessionManager: sessionManager,
 	}
 	authorizationFacade := &facade2.AuthorizationFacade{
 		Authorizations: authorizationService,
 	}
+	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
+	idTokenIssuer := &oidc.IDTokenIssuer{
+		Secrets: oAuthKeyMaterials,
+		BaseURL: baseURLProvider,
+		Users:   queries,
+		Clock:   clockClock,
+	}
+	accessTokenEncoding := &oauth2.AccessTokenEncoding{
+		Secrets:    oAuthKeyMaterials,
+		Clock:      clockClock,
+		UserClaims: idTokenIssuer,
+		BaseURL:    baseURLProvider,
+	}
+	tokenGenerator := _wireTokenGeneratorValue
+	tokenService := &handler.TokenService{
+		RemoteIP:          remoteIP,
+		UserAgentString:   userAgentString,
+		AppID:             appID,
+		Config:            oAuthConfig,
+		Authorizations:    authorizationStore,
+		OfflineGrants:     redisStore,
+		AccessGrants:      redisStore,
+		AccessEvents:      eventProvider,
+		AccessTokenIssuer: accessTokenEncoding,
+		GenerateToken:     tokenGenerator,
+		Clock:             clockClock,
+		Users:             queries,
+	}
+	oAuthFacade := &facade2.OAuthFacade{
+		Config:         oAuthConfig,
+		Users:          userFacade,
+		Authorizations: authorizationService,
+		Tokens:         tokenService,
+		Clock:          clockClock,
+	}
 	graphqlContext := &graphql.Context{
-		GQLLogger:           logger,
-		OAuthConfig:         oAuthConfig,
-		Users:               userLoader,
-		Identities:          identityLoader,
-		Authenticators:      authenticatorLoader,
-		AuditLogs:           auditLogLoader,
-		UserFacade:          facadeUserFacade,
-		AuditLogFacade:      auditLogFacade,
-		IdentityFacade:      facadeIdentityFacade,
-		AuthenticatorFacade: facadeAuthenticatorFacade,
-		VerificationFacade:  verificationFacade,
-		SessionFacade:       sessionFacade,
-		UserProfileFacade:   userProfileFacade,
-		AuthorizationFacade: authorizationFacade,
+		GQLLogger:             logger,
+		OAuthConfig:           oAuthConfig,
+		AdminAPIFeatureConfig: adminAPIFeatureConfig,
+		Users:                 userLoader,
+		Identities:            identityLoader,
+		Authenticators:        authenticatorLoader,
+		AuditLogs:             auditLogLoader,
+		UserFacade:            facadeUserFacade,
+		AuditLogFacade:        auditLogFacade,
+		IdentityFacade:        facadeIdentityFacade,
+		AuthenticatorFacade:   facadeAuthenticatorFacade,
+		VerificationFacade:    verificationFacade,
+		SessionFacade:         sessionFacade,
+		UserProfileFacade:     userProfileFacade,
+		AuthorizationFacade:   authorizationFacade,
+		OAuthFacade:           oAuthFacade,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: graphqlContext,
@@ -906,7 +953,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 }
 
 var (
-	_wireRandValue = idpsession.Rand(rand.SecureRand)
+	_wireRandValue           = idpsession.Rand(rand.SecureRand)
+	_wireTokenGeneratorValue = handler.TokenGenerator(oauth2.GenerateToken)
 )
 
 func newPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {

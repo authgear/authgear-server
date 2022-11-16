@@ -27,6 +27,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -60,6 +62,8 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(facade.AuditLogQuery), new(*audit.Query)),
 	wire.Bind(new(facade.EventService), new(*event.Service)),
 	wire.Bind(new(facade.AuthorizationService), new(*oauth.AuthorizationService)),
+	wire.Bind(new(facade.OAuthAuthorizationService), new(*oauth.AuthorizationService)),
+	wire.Bind(new(facade.OAuthTokenService), new(*oauthhandler.TokenService)),
 
 	graphql.DependencySet,
 	wire.Bind(new(graphql.UserLoader), new(*loader.UserLoader)),
@@ -74,16 +78,24 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.AuditLogFacade), new(*facade.AuditLogFacade)),
 	wire.Bind(new(graphql.UserProfileFacade), new(*facade.UserProfileFacade)),
 	wire.Bind(new(graphql.AuthorizationFacade), new(*facade.AuthorizationFacade)),
+	wire.Bind(new(graphql.OAuthFacade), new(*facade.OAuthFacade)),
 
 	service.DependencySet,
 	wire.Bind(new(service.InteractionGraphService), new(*interaction.Service)),
 
-	wire.Struct(new(WebEndpoints), "*"),
-	wire.Bind(new(sso.EndpointsProvider), new(*WebEndpoints)),
-	wire.Bind(new(sso.RedirectURLProvider), new(*WebEndpoints)),
-	wire.Bind(new(otp.EndpointsProvider), new(*WebEndpoints)),
-	wire.Bind(new(forgotpassword.URLProvider), new(*WebEndpoints)),
-	wire.Bind(new(sso.WechatURLProvider), new(*WebEndpoints)),
+	wire.Struct(new(BaseURLProvider), "*"),
+	wire.Struct(new(SSOCallbackURLProvider), "*"),
+	wire.Struct(new(ResetPasswordURLProvider), "*"),
+	wire.Struct(new(WechatURLProvider), "*"),
+	wire.Struct(new(OAuthURLProvider), "*"),
+	wire.Bind(new(sso.EndpointsProvider), new(*BaseURLProvider)),
+	wire.Bind(new(sso.RedirectURLProvider), new(*SSOCallbackURLProvider)),
+	wire.Bind(new(otp.EndpointsProvider), new(*BaseURLProvider)),
+	wire.Bind(new(forgotpassword.URLProvider), new(*ResetPasswordURLProvider)),
+	wire.Bind(new(sso.WechatURLProvider), new(*WechatURLProvider)),
+	wire.Bind(new(oauth.EndpointsProvider), new(*OAuthURLProvider)),
+	wire.Bind(new(oauth.BaseURLProvider), new(*BaseURLProvider)),
+	wire.Bind(new(oidc.BaseURLProvider), new(*BaseURLProvider)),
 
 	transport.DependencySet,
 	wire.Bind(new(transport.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
