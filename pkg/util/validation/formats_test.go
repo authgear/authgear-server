@@ -229,3 +229,29 @@ func TestFormatGoogleTagManagerContainerID(t *testing.T) {
 		So(f("GTM-AAAAAA"), ShouldBeNil)
 	})
 }
+
+func TestFormatHookURI(t *testing.T) {
+	Convey("FormatHookURI", t, func() {
+		f := FormatHookURI{}.CheckFormat
+
+		So(f(1), ShouldBeNil)
+		So(f(""), ShouldBeError, "invalid scheme: ")
+		So(f("foobar:"), ShouldBeError, "invalid scheme: foobar")
+
+		So(f("http://example.com"), ShouldBeNil)
+		So(f("http://example.com/"), ShouldBeNil)
+		So(f("http://example.com/a"), ShouldBeNil)
+		So(f("http://example.com/a/"), ShouldBeNil)
+
+		So(f("http://example.com?"), ShouldBeNil)
+		So(f("http://example.com?a"), ShouldBeNil)
+		So(f("http://example.com?a=b"), ShouldBeNil)
+
+		So(f("http://example.com#"), ShouldBeNil)
+		So(f("http://example.com#a"), ShouldBeNil)
+
+		So(f("authgeardeno:///deno/a.ts"), ShouldBeNil)
+		So(f("authgeardeno:///../deno/a.ts"), ShouldBeError, "invalid path: /../deno/a.ts")
+		So(f("authgeardeno://host/"), ShouldBeError, "authgeardeno URI does not have host")
+	})
+}
