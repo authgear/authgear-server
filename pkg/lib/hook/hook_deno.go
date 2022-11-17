@@ -56,7 +56,7 @@ func (h *DenoHookImpl) DeliverNonBlockingEvent(u *url.URL, e *event.Event) error
 		return err
 	}
 
-	_, err = h.SyncDenoClient.Run(h.Context, string(script), e)
+	_, err = h.AsyncDenoClient.Run(h.Context, string(script), e)
 	if err != nil {
 		return err
 	}
