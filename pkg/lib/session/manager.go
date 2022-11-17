@@ -74,11 +74,15 @@ func (m *Manager) invalidate(session Session, option *signedOutEventOption) (Man
 		return false
 	})
 
+	sessionModels := []model.Session{}
+
 	var provider ManagementService
 	for _, s := range sessions {
 		// invalidate the sessions that are in the same sso group
 		if s.IsSameSSOGroup(session) {
-			p, err := m.invalidateSession(s, option)
+			sessionModel := s.ToAPIModel()
+			sessionModels = append(sessionModels, *sessionModel)
+			p, err := m.invalidateSession(s)
 			if err != nil {
 				return nil, err
 			}
@@ -91,7 +95,24 @@ func (m *Manager) invalidate(session Session, option *signedOutEventOption) (Man
 	if provider == nil {
 		// if the current session doesn't appear in the sso group (e.g. sso disabled offline grant)
 		// delete it here
-		provider, err = m.invalidateSession(session, option)
+		sessionModel := session.ToAPIModel()
+		sessionModels = append(sessionModels, *sessionModel)
+		provider, err = m.invalidateSession(session)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if option != nil && len(sessionModels) > 0 {
+		err = m.Events.DispatchEvent(&nonblocking.UserSignedOutEventPayload{
+			UserRef: model.UserRef{
+				Meta: model.Meta{
+					ID: session.GetAuthenticationInfo().UserID,
+				},
+			},
+			Sessions: sessionModels,
+			AdminAPI: option.IsAdminAPI,
+		})
 		if err != nil {
 			return nil, err
 		}
@@ -103,30 +124,12 @@ func (m *Manager) invalidate(session Session, option *signedOutEventOption) (Man
 
 // invalidateSession should not be called directly
 // invalidate should be called instead
-func (m *Manager) invalidateSession(session Session, option *signedOutEventOption) (ManagementService, error) {
-	sessionModel := session.ToAPIModel()
-
+func (m *Manager) invalidateSession(session Session) (ManagementService, error) {
 	provider := m.resolveManagementProvider(session)
 	err := provider.Delete(session)
 	if err != nil {
 		return nil, err
 	}
-
-	if option != nil {
-		err = m.Events.DispatchEvent(&nonblocking.UserSignedOutEventPayload{
-			UserRef: model.UserRef{
-				Meta: model.Meta{
-					ID: session.GetAuthenticationInfo().UserID,
-				},
-			},
-			Session:  *sessionModel,
-			AdminAPI: option.IsAdminAPI,
-		})
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	return provider, nil
 }
 
