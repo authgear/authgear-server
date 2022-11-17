@@ -195,6 +195,7 @@ Program run with Deno has [no access](https://deno.land/manual@v1.27.2/basics/pe
 The stdout and the stderr of the Deno Hook is ignored currently.
 The arguments and the stdin is intentionally unspecified. A Deno Hook **MUST NOT** assume anything on them.
 
+Deno Hooks are stored along with other app resources, such as `authgear.yaml` and templates.
 The size limit of a Deno Hook is 100KiB. A module larger than 100KiB **CANNOT** be registered as a Deno Hook.
 
 ## Example of a blocking Deno Hook
