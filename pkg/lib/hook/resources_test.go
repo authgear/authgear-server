@@ -41,13 +41,15 @@ func TestDenoFileDescriptor(t *testing.T) {
 		})
 
 		Convey("Read", func() {
-			writeFile(app, "deno/c.ts", "c.ts")
+			writeFile(builtin, "deno/c.ts", "c.ts from builtin")
+			writeFile(app, "deno/b.ts", "b.ts from app")
+			writeFile(app, "deno/c.ts", "c.ts from app")
 
 			out, err := manager.Read(DenoFile, resource.AppFile{
 				Path: "deno/c.ts",
 			})
 			So(err, ShouldBeNil)
-			So(out, ShouldResemble, []byte("c.ts"))
+			So(out, ShouldResemble, []byte("c.ts from app"))
 		})
 	})
 }
