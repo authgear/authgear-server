@@ -47,10 +47,10 @@ func (d DenoFileDescriptor) FindResources(fs resource.Fs) ([]resource.Location, 
 func (DenoFileDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
 	output := bytes.Buffer{}
 
-	app := func() error {
+	app := func(view resource.AppFileView) error {
 		var target *resource.ResourceFile
 		for _, resrc := range resources {
-			if resrc.Location.Fs.GetFsLevel() == resource.FsLevelApp {
+			if resrc.Location.Fs.GetFsLevel() == resource.FsLevelApp && resrc.Location.Path == view.AppFilePath() {
 				s := resrc
 				target = &s
 			}
@@ -63,9 +63,9 @@ func (DenoFileDescriptor) ViewResources(resources []resource.ResourceFile, rawVi
 		return nil
 	}
 
-	switch rawView.(type) {
+	switch view := rawView.(type) {
 	case resource.AppFileView:
-		err := app()
+		err := app(view)
 		if err != nil {
 			return nil, err
 		}
