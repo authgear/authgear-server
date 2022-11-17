@@ -197,6 +197,26 @@ The arguments and the stdin is intentionally unspecified. A Deno Hook **MUST NOT
 
 The size limit of a Deno Hook is 100KiB. A module larger than 100KiB **CANNOT** be registered as a Deno Hook.
 
+## Example of a blocking Deno Hook
+
+```typescript
+import { HookEvent, HookResponse } from "https://deno.land/x/authgear-deno-hook@0.1.0/mod.ts"
+
+export default async function(e: HookEvent): Promise<HookResponse> {
+  return { is_allowed: true };
+}
+```
+
+## Example of a non-blocking Deno Hook
+
+```typescript
+import { HookEvent } from "https://deno.land/x/authgear-deno-hook@0.1.0/mod.ts"
+
+export default async function(e: HookEvent): Promise<void> {
+  // Do something with e.
+}
+```
+
 # Hooks Event Management
 
 ## Hooks Event Alerts
