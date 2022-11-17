@@ -13,31 +13,29 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-type SyncDenoClient struct {
-	*DenoClient
+//go:generate mockgen -source=deno_client.go -destination=deno_client_mock_test.go -package hook
+
+type SyncDenoClient interface {
+	Run(ctx context.Context, script string, input interface{}) (out interface{}, err error)
 }
 
 func NewSyncDenoClient(endpoint config.DenoEndpoint, c *config.HookConfig, logger Logger) SyncDenoClient {
-	return SyncDenoClient{
-		&DenoClient{
-			Endpoint:   string(endpoint),
-			HTTPClient: httputil.NewExternalClient(c.SyncTimeout.Duration()),
-			Logger:     logger,
-		},
+	return &DenoClient{
+		Endpoint:   string(endpoint),
+		HTTPClient: httputil.NewExternalClient(c.SyncTimeout.Duration()),
+		Logger:     logger,
 	}
 }
 
-type AsyncDenoClient struct {
-	*DenoClient
+type AsyncDenoClient interface {
+	Run(ctx context.Context, script string, input interface{}) (out interface{}, err error)
 }
 
 func NewAsyncDenoClient(endpoint config.DenoEndpoint, logger Logger) AsyncDenoClient {
-	return AsyncDenoClient{
-		&DenoClient{
-			Endpoint:   string(endpoint),
-			HTTPClient: httputil.NewExternalClient(60 * time.Second),
-			Logger:     logger,
-		},
+	return &DenoClient{
+		Endpoint:   string(endpoint),
+		HTTPClient: httputil.NewExternalClient(60 * time.Second),
+		Logger:     logger,
 	}
 }
 
