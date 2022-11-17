@@ -12,8 +12,10 @@ const (
 type UserSignedOutEventPayload struct {
 	UserRef   model.UserRef `json:"-" resolve:"user"`
 	UserModel model.User    `json:"user"`
-	Session   model.Session `json:"session"`
-	AdminAPI  bool          `json:"-"`
+	// Replaced by sessions
+	// Session   model.Session `json:"session"`
+	Sessions []model.Session `json:"sessions"`
+	AdminAPI bool            `json:"-"`
 }
 
 func (e *UserSignedOutEventPayload) NonBlockingEventType() event.Type {
