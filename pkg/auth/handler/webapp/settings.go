@@ -51,7 +51,7 @@ type SettingsVerificationService interface {
 type SettingsSessionManager interface {
 	List(userID string) ([]session.Session, error)
 	Get(id string) (session.Session, error)
-	Revoke(s session.Session, isAdminAPI bool) error
+	RevokeWithEvent(s session.Session, isAdminAPI bool) error
 }
 
 type SettingsAuthorizationService interface {

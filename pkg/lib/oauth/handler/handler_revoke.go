@@ -10,7 +10,7 @@ import (
 )
 
 type SessionManager interface {
-	Revoke(session session.Session, isAdminAPI bool) error
+	RevokeWithEvent(session session.Session, isAdminAPI bool) error
 }
 
 type RevokeHandler struct {
@@ -40,7 +40,7 @@ func (h *RevokeHandler) revokeOfflineGrant(token, grantID string) error {
 		return nil
 	}
 
-	err = h.SessionManager.Revoke(offlineGrant, false)
+	err = h.SessionManager.RevokeWithEvent(offlineGrant, false)
 	if err != nil {
 		return err
 	}
