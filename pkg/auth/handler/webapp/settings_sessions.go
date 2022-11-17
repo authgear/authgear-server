@@ -131,7 +131,7 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 			return err
 		}
 
-		err = h.Sessions.Revoke(s, false)
+		err = h.Sessions.RevokeWithEvent(s, false)
 		if err != nil {
 			return err
 		}
@@ -151,7 +151,7 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 			if s.SessionID() == currentSession.SessionID() {
 				continue
 			}
-			if err = h.Sessions.Revoke(s, false); err != nil {
+			if err = h.Sessions.RevokeWithEvent(s, false); err != nil {
 				return err
 			}
 		}
@@ -187,7 +187,7 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		for _, id := range targetIDs {
 			for _, s := range ss {
 				if s.SessionID() == id {
-					err := h.Sessions.Revoke(s, false)
+					err := h.Sessions.RevokeWithEvent(s, false)
 					if err != nil {
 						return err
 					}

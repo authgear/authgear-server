@@ -146,7 +146,7 @@ func (m *Manager) Logout(session Session, rw http.ResponseWriter) error {
 	return nil
 }
 
-func (m *Manager) Revoke(session Session, isAdminAPI bool) error {
+func (m *Manager) RevokeWithEvent(session Session, isAdminAPI bool) error {
 	_, err := m.invalidate(session, &signedOutEventOption{IsAdminAPI: isAdminAPI})
 	if err != nil {
 		return err
@@ -155,7 +155,7 @@ func (m *Manager) Revoke(session Session, isAdminAPI bool) error {
 	return nil
 }
 
-func (m *Manager) Delete(session Session) error {
+func (m *Manager) RevokeWithoutEvent(session Session) error {
 	_, err := m.invalidate(session, nil)
 	if err != nil {
 		return err

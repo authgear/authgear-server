@@ -126,7 +126,7 @@ type SessionProvider interface {
 }
 
 type SessionManager interface {
-	Delete(session.Session) error
+	RevokeWithoutEvent(session.Session) error
 }
 
 type OAuthProviderFactory interface {
