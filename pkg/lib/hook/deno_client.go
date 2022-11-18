@@ -100,3 +100,48 @@ func (c *DenoClient) Run(ctx context.Context, snippet string, input interface{})
 
 	return runResponse.Output, nil
 }
+
+func (c *DenoClient) Check(ctx context.Context, snippet string) error {
+	u, err := url.JoinPath(c.Endpoint, "/check")
+	if err != nil {
+		return err
+	}
+
+	var buf bytes.Buffer
+	err = json.NewEncoder(&buf).Encode(CheckRequest{
+		Script: snippet,
+	})
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", u, &buf)
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return WebHookInvalidResponse.NewWithInfo("invalid status code", apierrors.Details{
+			"status_code": resp.StatusCode,
+		})
+	}
+
+	var checkResponse CheckResponse
+	err = json.NewDecoder(resp.Body).Decode(&checkResponse)
+	if err != nil {
+		return err
+	}
+
+	if checkResponse.Stderr != "" {
+		return DenoCheckError.New(checkResponse.Stderr)
+	}
+
+	return nil
+}

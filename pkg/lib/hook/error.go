@@ -11,6 +11,8 @@ var WebHookInvalidResponse = apierrors.InternalError.WithReason("WebHookInvalidR
 
 var DenoRunError = apierrors.BadRequest.WithReason("DenoRunError")
 
+var DenoCheckError = apierrors.Invalid.WithReason("DenoCheckError")
+
 type OperationDisallowedItem struct {
 	Title  string `json:"title"`
 	Reason string `json:"reason"`
