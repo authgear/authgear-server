@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
@@ -22,15 +23,21 @@ import (
 
 const ConfigFileMaxSize = 100 * 1024
 
+type DenoClient interface {
+	Check(ctx context.Context, snippet string) error
+}
+
 type TutorialService interface {
 	OnUpdateResource(ctx context.Context, appID string, resourcesInAllFss []resource.ResourceFile, resourceInTargetFs *resource.ResourceFile, data []byte) (err error)
 }
 
 type Manager struct {
+	Context            context.Context
 	AppResourceManager *resource.Manager
 	AppFS              resource.Fs
 	AppFeatureConfig   *config.FeatureConfig
 	Tutorials          TutorialService
+	DenoClient         DenoClient
 	Clock              clock.Clock
 }
 
@@ -224,9 +231,10 @@ func (m *Manager) applyUpdates(appID string, appFs resource.Fs, updates []Update
 			return nil, nil, err
 		}
 
-		ctx := context.Background()
+		ctx := m.Context
 		ctx = context.WithValue(ctx, configsource.ContextKeyFeatureConfig, m.AppFeatureConfig)
 		ctx = context.WithValue(ctx, configsource.ContextKeyClock, m.Clock)
+		ctx = context.WithValue(ctx, hook.ContextKeyDenoClient, m.DenoClient)
 
 		err = m.Tutorials.OnUpdateResource(ctx, appID, all, resrc, u.Data)
 		if err != nil {

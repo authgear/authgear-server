@@ -1,6 +1,7 @@
 package appresource_test
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 
@@ -39,12 +40,16 @@ func TestManager(t *testing.T) {
 		})
 		tutorialService := NewMockTutorialService(ctrl)
 		tutorialService.EXPECT().OnUpdateResource(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
+		denoClient := NewMockDenoClient(ctrl)
+		denoClient.EXPECT().Check(gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
 
 		portalResMgr := &appresource.Manager{
+			Context:            context.Background(),
 			AppResourceManager: resMgr,
 			AppFS:              appResourceFs,
 			AppFeatureConfig:   cfg.FeatureConfig,
 			Tutorials:          tutorialService,
+			DenoClient:         denoClient,
 			Clock:              clock.NewMockClock(),
 		}
 
@@ -95,12 +100,7 @@ func TestManager(t *testing.T) {
 			applyUpdatesWithPlan := func(planName configtest.FixturePlanName, updates []appresource.Update) error {
 				fc := configtest.FixtureFeatureConfig(planName)
 				config.PopulateFeatureConfigDefaultValues(fc)
-				portalResMgr := &appresource.Manager{
-					AppResourceManager: resMgr,
-					AppFS:              appResourceFs,
-					AppFeatureConfig:   fc,
-					Tutorials:          tutorialService,
-				}
+				portalResMgr.AppFeatureConfig = fc
 				_, err := portalResMgr.ApplyUpdates(appID, updates)
 				return err
 			}

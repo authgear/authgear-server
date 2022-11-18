@@ -13,6 +13,10 @@ var DenoFileFilenameRegexp = regexp.MustCompile(`^deno/[.0-9a-zA-Z]+\.ts$`)
 
 //go:generate mockgen -source=resources.go -destination=resources_mock_test.go -package hook
 
+type denoClientContextKeyType struct{}
+
+var ContextKeyDenoClient = denoClientContextKeyType{}
+
 type ResourceManager interface {
 	Read(desc resource.Descriptor, view resource.View) (interface{}, error)
 }
@@ -86,7 +90,12 @@ func (DenoFileDescriptor) ViewResources(resources []resource.ResourceFile, rawVi
 	}
 }
 
-func (DenoFileDescriptor) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
+func (DenoFileDescriptor) UpdateResource(ctx context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
+	denoClient := ctx.Value(ContextKeyDenoClient).(*DenoClient)
+	err := denoClient.Check(ctx, string(data))
+	if err != nil {
+		return nil, err
+	}
 	return &resource.ResourceFile{
 		Location: resrc.Location,
 		Data:     data,
