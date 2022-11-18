@@ -60,6 +60,10 @@ type SettingsAuthorizationService interface {
 	Delete(a *oauth.Authorization) error
 }
 
+type SettingsSessionListingService interface {
+	FilterForDisplay(sessions []session.Session) ([]*model.Session, error)
+}
+
 type SettingsHandler struct {
 	ControllerFactory        ControllerFactory
 	BaseViewModel            *viewmodels.BaseViewModeler

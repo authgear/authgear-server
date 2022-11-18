@@ -49,6 +49,7 @@ type SettingsSessionsHandler struct {
 	Sessions          SettingsSessionManager
 	Authorizations    SettingsAuthorizationService
 	OAuthConfig       *config.OAuthConfig
+	SessionListing    SettingsSessionListingService
 }
 
 func (h *SettingsSessionsHandler) GetData(r *http.Request, rw http.ResponseWriter, s session.Session) (map[string]interface{}, error) {
@@ -58,13 +59,16 @@ func (h *SettingsSessionsHandler) GetData(r *http.Request, rw http.ResponseWrite
 
 	userID := s.GetAuthenticationInfo().UserID
 	viewModel := SettingsSessionsViewModel{}
-	ss, err := h.listSessions(userID)
+
+	ss, err := h.Sessions.List(userID)
 	if err != nil {
 		return nil, err
 	}
-	for _, s := range ss {
-		viewModel.Sessions = append(viewModel.Sessions, s.ToAPIModel())
+	sessionModels, err := h.SessionListing.FilterForDisplay(ss)
+	if err != nil {
+		return nil, err
 	}
+	viewModel.Sessions = sessionModels
 
 	// Get third party app authorization
 	clientNameMap := map[string]string{}
@@ -139,19 +143,21 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	})
 
 	ctrl.PostAction("revoke_all", func() error {
-		ss, err := h.listSessions(currentSession.GetAuthenticationInfo().UserID)
-		if err != nil {
-			return err
-		}
 
-		for _, s := range ss {
-			if s.SessionID() == currentSession.SessionID() {
-				continue
-			}
-			if err = h.Sessions.RevokeWithEvent(s, false); err != nil {
-				return err
-			}
-		}
+		// fixme(sso): implement revoke all
+		// ss, err := h.listSessions(currentSession.GetAuthenticationInfo().UserID)
+		// if err != nil {
+		// 	return err
+		// }
+
+		// for _, s := range ss {
+		// 	if s.SessionID() == currentSession.SessionID() {
+		// 		continue
+		// 	}
+		// 	if err = h.Sessions.RevokeWithEvent(s, false); err != nil {
+		// 		return err
+		// 	}
+		// }
 
 		result := webapp.Result{RedirectURI: redirectURI}
 		result.WriteResponse(w, r)
@@ -178,16 +184,4 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		result.WriteResponse(w, r)
 		return nil
 	})
-}
-
-func (h *SettingsSessionsHandler) listSessions(userID string) ([]session.Session, error) {
-	ss, err := h.Sessions.List(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	removeThirdPartySessionFilter := oauth.NewRemoveThirdPartySessionFilter(h.OAuthConfig)
-	ss = oauth.ApplySessionFilters(ss, removeThirdPartySessionFilter)
-
-	return ss, nil
 }
