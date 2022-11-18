@@ -11,7 +11,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
-	"github.com/authgear/authgear-server/pkg/lib/sessiongroup"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -40,7 +39,6 @@ type Authorization struct {
 type SettingsSessionsViewModel struct {
 	CurrentSessionID string
 	Sessions         []*model.Session
-	SessionGroups    []*model.SessionGroup
 	Authorizations   []Authorization
 }
 
@@ -93,7 +91,6 @@ func (h *SettingsSessionsHandler) GetData(r *http.Request, rw http.ResponseWrite
 	viewModel.Authorizations = authzs
 
 	viewModel.CurrentSessionID = s.SessionID()
-	viewModel.SessionGroups = sessiongroup.Group(ss)
 	viewmodels.Embed(data, viewModel)
 
 	return data, nil
@@ -153,45 +150,6 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 			}
 			if err = h.Sessions.RevokeWithEvent(s, false); err != nil {
 				return err
-			}
-		}
-
-		result := webapp.Result{RedirectURI: redirectURI}
-		result.WriteResponse(w, r)
-		return nil
-	})
-
-	ctrl.PostAction("revoke_group", func() error {
-		sessionID := r.Form.Get("x_session_id")
-
-		ss, err := h.listSessions(currentSession.GetAuthenticationInfo().UserID)
-		if err != nil {
-			return err
-		}
-
-		// Group the sessions again to find out the target group.
-		var targetIDs []string
-		groups := sessiongroup.Group(ss)
-		for _, group := range groups {
-			for _, offlineGrantID := range group.OfflineGrantIDs {
-				if sessionID == offlineGrantID {
-					for _, s := range group.Sessions {
-						if s.ID != currentSession.SessionID() {
-							targetIDs = append(targetIDs, s.ID)
-						}
-					}
-				}
-			}
-		}
-
-		for _, id := range targetIDs {
-			for _, s := range ss {
-				if s.SessionID() == id {
-					err := h.Sessions.RevokeWithEvent(s, false)
-					if err != nil {
-						return err
-					}
-				}
 			}
 		}
 
