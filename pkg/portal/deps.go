@@ -1,12 +1,15 @@
 package portal
 
 import (
+	"time"
+
 	"github.com/google/wire"
 
 	adminauthz "github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
@@ -23,6 +26,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/task"
 	"github.com/authgear/authgear-server/pkg/portal/transport"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/template"
 
@@ -33,6 +37,19 @@ import (
 func ProvideEmptyAppID() config.AppID {
 	return config.AppID("")
 }
+
+func ProvideDenoClient(endpoint config.DenoEndpoint, logger hook.Logger) *hook.DenoClient {
+	return &hook.DenoClient{
+		Endpoint:   string(endpoint),
+		HTTPClient: httputil.NewExternalClient(5 * time.Second),
+		Logger:     logger,
+	}
+}
+
+var denoDependencySet = wire.NewSet(
+	ProvideDenoClient,
+	hook.NewLogger,
+)
 
 var DependencySet = wire.NewSet(
 	deps.DependencySet,
@@ -109,4 +126,6 @@ var DependencySet = wire.NewSet(
 	tutorial.DependencySet,
 
 	libstripe.DependencySet,
+
+	denoDependencySet,
 )
