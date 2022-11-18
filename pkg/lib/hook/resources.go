@@ -78,13 +78,19 @@ func (DenoFileDescriptor) ViewResources(resources []resource.ResourceFile, rawVi
 			return nil, err
 		}
 		return output.Bytes(), nil
+	case resource.ValidateResourceView:
+		// Actual validation happens in UpdateResource.
+		return nil, nil
 	default:
 		return nil, fmt.Errorf("unsupported view: %T", rawView)
 	}
 }
 
-func (DenoFileDescriptor) UpdateResource(_ context.Context, _ []resource.ResourceFile, _ *resource.ResourceFile, _ []byte) (*resource.ResourceFile, error) {
-	return nil, fmt.Errorf("not yet implemented")
+func (DenoFileDescriptor) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
+	return &resource.ResourceFile{
+		Location: resrc.Location,
+		Data:     data,
+	}, nil
 }
 
 var DenoFile = resource.RegisterResource(DenoFileDescriptor{})
