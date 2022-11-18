@@ -7,7 +7,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
-	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
@@ -17,7 +16,6 @@ type CookieManager interface {
 
 type Manager struct {
 	Store     Store
-	Clock     clock.Clock
 	Config    *config.SessionConfig
 	Cookies   CookieManager
 	CookieDef session.CookieDef
@@ -54,15 +52,8 @@ func (m *Manager) List(userID string) ([]session.Session, error) {
 		return nil, fmt.Errorf("failed to list sessions: %w", err)
 	}
 
-	now := m.Clock.NowUTC()
 	var sessions []session.Session
 	for _, session := range storedSessions {
-		maxExpiry := computeSessionStorageExpiry(session, m.Config)
-		// ignore expired sessions
-		if now.After(maxExpiry) {
-			continue
-		}
-
 		sessions = append(sessions, session)
 	}
 	return sessions, nil

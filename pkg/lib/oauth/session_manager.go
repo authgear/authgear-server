@@ -44,16 +44,6 @@ func (m *SessionManager) List(userID string) ([]session.Session, error) {
 
 	var sessions []session.Session
 	for _, session := range grants {
-		isValid, _, err := m.Service.IsValid(session)
-		if err != nil {
-			return nil, err
-		}
-
-		// ignore sessions without client and expired sessions
-		if !isValid {
-			continue
-		}
-
 		sessions = append(sessions, session)
 	}
 	return sessions, nil
