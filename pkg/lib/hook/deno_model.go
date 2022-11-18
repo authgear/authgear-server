@@ -16,3 +16,11 @@ type RunResponse struct {
 	Stderr *Stream     `json:"stderr,omitempty"`
 	Stdout *Stream     `json:"stdout,omitempty"`
 }
+
+type CheckRequest struct {
+	Script string `json:"script"`
+}
+
+type CheckResponse struct {
+	Stderr string `json:"stderr,omitempty"`
+}
