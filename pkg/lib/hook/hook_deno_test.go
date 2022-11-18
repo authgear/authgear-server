@@ -9,6 +9,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
 func TestDenoHook(t *testing.T) {
@@ -29,13 +30,15 @@ func TestDenoHook(t *testing.T) {
 
 		Convey("DeliverBlockingEvent", func() {
 			e := &event.Event{}
-			u, _ := url.Parse("http://localhost/")
+			u, _ := url.Parse("authgeardeno:///deno/a.ts")
 			resp := &event.HookResponse{
 				IsAllowed: true,
 			}
 
-			resourceManager.EXPECT().Read(gomock.Any(), gomock.Any()).Times(1).Return([]byte(nil), nil)
-			syncDenoClient.EXPECT().Run(ctx, "", e).Times(1).Return(map[string]interface{}{
+			resourceManager.EXPECT().Read(DenoFile, resource.AppFile{
+				Path: "deno/a.ts",
+			}).Times(1).Return([]byte("script"), nil)
+			syncDenoClient.EXPECT().Run(ctx, "script", e).Times(1).Return(map[string]interface{}{
 				"is_allowed": true,
 			}, nil)
 
@@ -46,10 +49,12 @@ func TestDenoHook(t *testing.T) {
 
 		Convey("DeliverNonBlockingEvent", func() {
 			e := &event.Event{}
-			u, _ := url.Parse("http://localhost/")
+			u, _ := url.Parse("authgeardeno:///deno/a.ts")
 
-			resourceManager.EXPECT().Read(gomock.Any(), gomock.Any()).Times(1).Return([]byte(nil), nil)
-			asyncDenoClient.EXPECT().Run(ctx, "", e).Times(1).Return(nil, nil)
+			resourceManager.EXPECT().Read(DenoFile, resource.AppFile{
+				Path: "deno/a.ts",
+			}).Times(1).Return([]byte("script"), nil)
+			asyncDenoClient.EXPECT().Run(ctx, "script", e).Times(1).Return(nil, nil)
 
 			err := denohook.DeliverNonBlockingEvent(u, e)
 			So(err, ShouldBeNil)

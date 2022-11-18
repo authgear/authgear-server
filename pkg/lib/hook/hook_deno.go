@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/url"
+	"strings"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
@@ -66,11 +67,16 @@ func (h *DenoHookImpl) DeliverNonBlockingEvent(u *url.URL, e *event.Event) error
 
 func (h *DenoHookImpl) loadScript(u *url.URL) ([]byte, error) {
 	out, err := h.ResourceManager.Read(DenoFile, resource.AppFile{
-		Path: u.Path,
+		Path: h.rel(u.Path),
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	return out.([]byte), nil
+}
+
+// rel is a simplified version of filepath.Rel.
+func (h *DenoHookImpl) rel(p string) string {
+	return strings.TrimPrefix(p, "/")
 }
