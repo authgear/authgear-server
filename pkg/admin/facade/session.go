@@ -10,6 +10,7 @@ type SessionManager interface {
 	List(userID string) ([]session.Session, error)
 	Get(id string) (session.Session, error)
 	RevokeWithEvent(session session.Session, isTermination bool, isAdminAPI bool) error
+	TerminateAllExcept(userID string, idpSessionID string, isAdminAPI bool) error
 }
 
 type SessionFacade struct {
@@ -36,15 +37,9 @@ func (f *SessionFacade) Revoke(id string) error {
 }
 
 func (f *SessionFacade) RevokeAll(userID string) error {
-	ss, err := f.Sessions.List(userID)
+	err := f.Sessions.TerminateAllExcept(userID, "", true)
 	if err != nil {
 		return err
-	}
-
-	for _, s := range ss {
-		if err := f.Sessions.RevokeWithEvent(s, true, true); err != nil {
-			return err
-		}
 	}
 	return nil
 }
