@@ -132,7 +132,7 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 			return err
 		}
 
-		err = h.Sessions.RevokeWithEvent(s, false)
+		err = h.Sessions.RevokeWithEvent(s, true, false)
 		if err != nil {
 			return err
 		}

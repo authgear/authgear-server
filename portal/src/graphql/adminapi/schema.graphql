@@ -133,6 +133,9 @@ enum AuditLogActivityType {
   USER_REENABLED
 
   """"""
+  USER_SESSION_TERMINATED
+
+  """"""
   USER_SIGNED_OUT
 
   """"""
