@@ -29,6 +29,7 @@ type ManagementService interface {
 	Get(id string) (Session, error)
 	Delete(Session) error
 	List(userID string) ([]Session, error)
+	TerminateAllExcept(userID string, idpSessionID string) ([]Session, error)
 }
 
 type IDPSessionManager ManagementService
@@ -160,6 +161,31 @@ func (m *Manager) RevokeWithoutEvent(session Session) error {
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (m *Manager) TerminateAllExcept(userID string, idpSessionID string, isAdminAPI bool) error {
+	idpSessions, err := m.IDPSessions.TerminateAllExcept(userID, idpSessionID)
+	if err != nil {
+		return err
+	}
+	accessGrantSessions, err := m.AccessTokenSessions.TerminateAllExcept(userID, idpSessionID)
+	if err != nil {
+		return err
+	}
+
+	sessionModels := []model.Session{}
+	for _, s := range idpSessions {
+		sessionModel := s.ToAPIModel()
+		sessionModels = append(sessionModels, *sessionModel)
+	}
+	for _, s := range accessGrantSessions {
+		sessionModel := s.ToAPIModel()
+		sessionModels = append(sessionModels, *sessionModel)
+	}
+
+	// fixme(sso): dispatch terminated session events
 
 	return nil
 }

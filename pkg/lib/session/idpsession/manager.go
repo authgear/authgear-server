@@ -58,3 +58,24 @@ func (m *Manager) List(userID string) ([]session.Session, error) {
 	}
 	return sessions, nil
 }
+
+func (m *Manager) TerminateAllExcept(userID string, idpSessionID string) ([]session.Session, error) {
+	sessions, err := m.Store.List(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	deletedSessions := []session.Session{}
+	for _, ss := range sessions {
+		if idpSessionID == ss.ID {
+			continue
+		}
+
+		if err := m.Delete(ss); err != nil {
+			return nil, err
+		}
+		deletedSessions = append(deletedSessions, ss)
+	}
+
+	return deletedSessions, nil
+}

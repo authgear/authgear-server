@@ -143,21 +143,12 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	})
 
 	ctrl.PostAction("revoke_all", func() error {
-
-		// fixme(sso): implement revoke all
-		// ss, err := h.listSessions(currentSession.GetAuthenticationInfo().UserID)
-		// if err != nil {
-		// 	return err
-		// }
-
-		// for _, s := range ss {
-		// 	if s.SessionID() == currentSession.SessionID() {
-		// 		continue
-		// 	}
-		// 	if err = h.Sessions.RevokeWithEvent(s, false); err != nil {
-		// 		return err
-		// 	}
-		// }
+		userID := currentSession.GetAuthenticationInfo().UserID
+		currentSSOGroupIDPSessionID := currentSession.SSOGroupIDPSessionID()
+		err := h.Sessions.TerminateAllExcept(userID, currentSSOGroupIDPSessionID, false)
+		if err != nil {
+			return err
+		}
 
 		result := webapp.Result{RedirectURI: redirectURI}
 		result.WriteResponse(w, r)
