@@ -185,12 +185,14 @@ var nodeUser = node(
 						return nil, err
 					}
 
-					filter := oauth.NewRemoveThirdPartySessionFilter(gqlCtx.OAuthConfig)
-					ss = oauth.ApplySessionFilters(ss, filter)
+					sessionModels, err := gqlCtx.SessionListing.FilterForDisplay(ss)
+					if err != nil {
+						return nil, err
+					}
 
 					var sessions []interface{}
-					for _, i := range ss {
-						sessions = append(sessions, i.ToAPIModel())
+					for _, i := range sessionModels {
+						sessions = append(sessions, i.Session)
 					}
 					args := relay.NewConnectionArguments(p.Args)
 					return graphqlutil.NewConnectionFromArray(sessions, args), nil
