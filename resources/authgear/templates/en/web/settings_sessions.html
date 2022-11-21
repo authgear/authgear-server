@@ -27,7 +27,7 @@
 <div class="px-5 flex flex-col divide-y">
   <div class="flex flex-row space-x-2 py-1.5 items-center">
     {{ $icon := "" }}
-    {{ if eq .Type "grouped" }}{{ $icon = "devices" }}{{ else }}{{ $icon = "device-laptop" }}{{ end }}
+    {{ if .IsDevice }}{{ $icon = "devices" }}{{ else }}{{ $icon = "device-laptop" }}{{ end }}
     <i class="twc-title-icon ti ti-{{ $icon }} primary-txt text-sm" aria-hidden="true"></i>
     <h2 class="flex-1 primary-txt text-base m-0 truncate text-sm font-normal">{{ .DisplayName }}</h2>
   </div>

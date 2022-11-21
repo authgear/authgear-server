@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -105,10 +104,10 @@ func TestSessionListingService(t *testing.T) {
 				idpSession2,
 			})
 			So(err, ShouldBeNil)
-			So(session, ShouldResemble, []*model.Session{
-				offlineGrant.ToAPIModel(),
-				idpSession2.ToAPIModel(),
-				idpSession.ToAPIModel(),
+			So(session, ShouldResemble, []*sessionlisting.Session{
+				{Session: offlineGrant.ToAPIModel(), IsDevice: true},
+				{Session: idpSession2.ToAPIModel()},
+				{Session: idpSession.ToAPIModel()},
 			})
 		})
 
@@ -129,11 +128,11 @@ func TestSessionListingService(t *testing.T) {
 				idpSession2,
 			})
 			So(err, ShouldBeNil)
-			So(session, ShouldResemble, []*model.Session{
-				offlineGrant2.ToAPIModel(),
-				offlineGrant.ToAPIModel(),
-				idpSession2.ToAPIModel(),
-				idpSession.ToAPIModel(),
+			So(session, ShouldResemble, []*sessionlisting.Session{
+				{Session: offlineGrant2.ToAPIModel(), IsDevice: true},
+				{Session: offlineGrant.ToAPIModel(), IsDevice: true},
+				{Session: idpSession2.ToAPIModel()},
+				{Session: idpSession.ToAPIModel()},
 			})
 		})
 
@@ -156,9 +155,9 @@ func TestSessionListingService(t *testing.T) {
 				idpSession2,
 			})
 			So(err, ShouldBeNil)
-			So(session, ShouldResemble, []*model.Session{
-				offlineGrant2.ToAPIModel(),
-				idpSession2.ToAPIModel(),
+			So(session, ShouldResemble, []*sessionlisting.Session{
+				{Session: offlineGrant2.ToAPIModel(), IsDevice: true},
+				{Session: idpSession2.ToAPIModel()},
 			})
 		})
 
@@ -187,10 +186,10 @@ func TestSessionListingService(t *testing.T) {
 				offlineGrant3,
 			})
 			So(err, ShouldBeNil)
-			So(session, ShouldResemble, []*model.Session{
-				updatedIDPSessionModel,
-				offlineGrant.ToAPIModel(),
-				idpSession2.ToAPIModel(),
+			So(session, ShouldResemble, []*sessionlisting.Session{
+				{Session: updatedIDPSessionModel, IsDevice: true},
+				{Session: offlineGrant.ToAPIModel(), IsDevice: true},
+				{Session: idpSession2.ToAPIModel()},
 			})
 		})
 
