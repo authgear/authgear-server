@@ -81,7 +81,8 @@ var _ = Schema.Add("NonBlockingHookHandlersConfig", `
 					"identity.username.updated",
 					"identity.oauth.connected",
 					"identity.oauth.disconnected",
-					"identity.biometric.enabled"
+					"identity.biometric.enabled",
+					"identity.biometric.disabled"
 				]
 			}
 		},
