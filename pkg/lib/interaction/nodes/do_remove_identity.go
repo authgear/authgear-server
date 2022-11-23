@@ -70,6 +70,12 @@ func (n *NodeDoRemoveIdentity) GetEffects() ([]interaction.Effect, error) {
 					Identity: n.Identity.ToModel(),
 					AdminAPI: n.IsAdminAPI,
 				}
+			case model.IdentityTypeBiometric:
+				e = &nonblocking.IdentityBiometricDisabledEventPayload{
+					UserRef:  userRef,
+					Identity: n.Identity.ToModel(),
+					AdminAPI: n.IsAdminAPI,
+				}
 			}
 
 			if e != nil {

@@ -924,6 +924,7 @@
   "AuditLogActivityType.IDENTITY_OAUTH_CONNECTED": "OAuth connected",
   "AuditLogActivityType.IDENTITY_OAUTH_DISCONNECTED": "OAuth disconnected",
   "AuditLogActivityType.IDENTITY_BIOMETRIC_ENABLED": "Biometric enabled",
+  "AuditLogActivityType.IDENTITY_BIOMETRIC_DISABLED": "Biometric disabled",
   "AuditLogActivityType.IDENTITY_PHONE_ADDED": "Phone added",
   "AuditLogActivityType.IDENTITY_PHONE_REMOVED": "Phone removed",
   "AuditLogActivityType.IDENTITY_PHONE_UPDATED": "Phone updated",

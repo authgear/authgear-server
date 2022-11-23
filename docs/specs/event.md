@@ -42,6 +42,7 @@
       - [identity.oauth.connected](#identityoauthconnected)
       - [identity.oauth.disconnected](#identityoauthdisconnected)
       - [identity.biometric.enabled](#identitybiometricenabled)
+      - [identity.biometric.disabled](#identitybiometricdisabled)
 
 # Event
 
@@ -174,6 +175,7 @@ Occurs right before the end-user schedules account deletion.
 - [identity.oauth.connected](#identityoauthconnected)
 - [identity.oauth.disconnected](#identityoauthdisconnected)
 - [identity.biometric.enabled](#identitybiometricenabled)
+- [identity.biometric.disabled](#identitybiometricdisabled)
 
 #### user.created
 
@@ -589,6 +591,17 @@ Occurs when user disconnected from an OAuth provider. It can be done by user dis
 #### identity.biometric.enabled
 
 Occurs when user enabled biometric login.
+
+{
+  "payload": {
+    "user": { /* ... */ },
+    "identity": { /* ... */ }
+  }
+}
+
+#### identity.biometric.disabled
+
+Occurs when biometric login is disabled. It will be triggered only when the user disabled it from the settings page or the admin disabled it from the admin api or portal.
 
 {
   "payload": {

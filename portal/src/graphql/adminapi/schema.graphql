@@ -64,6 +64,9 @@ enum AuditLogActivityType {
   EMAIL_SENT
 
   """"""
+  IDENTITY_BIOMETRIC_DISABLED
+
+  """"""
   IDENTITY_BIOMETRIC_ENABLED
 
   """"""
