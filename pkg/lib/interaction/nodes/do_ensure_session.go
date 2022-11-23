@@ -183,6 +183,9 @@ func (n *NodeDoEnsureSession) GetEffects() ([]interaction.Effect, error) {
 
 			if n.SessionToCreate != nil {
 				if n.CreateReason == session.CreateReasonLogin || n.CreateReason == session.CreateReasonReauthenticate {
+					// For authentication that involves IDP session will dispatch user.authenticated event here
+					// For authentication that suppresses IDP session. e.g. biometric login
+					// They are handled in their own node.
 					err = ctx.Events.DispatchEvent(&nonblocking.UserAuthenticatedEventPayload{
 						UserRef:  userRef,
 						Session:  *n.SessionToCreate.ToAPIModel(),

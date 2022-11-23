@@ -102,6 +102,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(featurecustomattrs.EventService), new(*event.Service)),
 		wire.Bind(new(facade.EventService), new(*event.Service)),
 		wire.Bind(new(whatsapp.EventService), new(*event.Service)),
+		wire.Bind(new(oauthhandler.EventService), new(*event.Service)),
 	),
 
 	wire.NewSet(
