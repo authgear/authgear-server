@@ -132,6 +132,16 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 					Identity: n.Identity.ToModel(),
 					AdminAPI: n.IsAdminAPI,
 				}
+			case model.IdentityTypeBiometric:
+				e = &nonblocking.IdentityBiometricEnabledEventPayload{
+					UserRef: model.UserRef{
+						Meta: model.Meta{
+							ID: n.Identity.UserID,
+						},
+					},
+					Identity: n.Identity.ToModel(),
+					AdminAPI: n.IsAdminAPI,
+				}
 			}
 
 			if e != nil {
