@@ -107,6 +107,9 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"IDENTITY_OAUTH_DISCONNECTED": &graphql.EnumValueConfig{
 			Value: "identity.oauth.disconnected",
 		},
+		"IDENTITY_BIOMETRIC_ENABLED": &graphql.EnumValueConfig{
+			Value: "identity.biometric.enabled",
+		},
 		"EMAIL_SENT": &graphql.EnumValueConfig{
 			Value: "email.sent",
 		},
