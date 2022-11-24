@@ -9,6 +9,9 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	identitybiometric "github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -52,6 +55,10 @@ type AccessTokenIssuer interface {
 	EncodeAccessToken(client *config.OAuthClientConfig, grant *oauth.AccessGrant, userID string, token string) (string, error)
 }
 
+type EventService interface {
+	DispatchEvent(payload event.Payload) error
+}
+
 type TokenHandlerUserFacade interface {
 	GetRaw(id string) (*user.User, error)
 }
@@ -77,6 +84,7 @@ type TokenHandler struct {
 	IDTokenIssuer    IDTokenIssuer
 	Clock            clock.Clock
 	TokenService     TokenService
+	Events           EventService
 }
 
 func (h *TokenHandler) Handle(rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result {
@@ -621,6 +629,21 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		return nil, err
 	}
 	resp.IDToken(idToken)
+
+	// Dispatch event user.authenticated
+	userRef := model.UserRef{
+		Meta: model.Meta{
+			ID: authz.UserID,
+		},
+	}
+	err = h.Events.DispatchEvent(&nonblocking.UserAuthenticatedEventPayload{
+		UserRef:  userRef,
+		Session:  *offlineGrant.ToAPIModel(),
+		AdminAPI: false,
+	})
+	if err != nil {
+		return nil, err
+	}
 
 	return tokenResultOK{Response: resp}, nil
 }
