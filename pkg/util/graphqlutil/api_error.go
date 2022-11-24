@@ -7,6 +7,7 @@ import (
 	"github.com/graphql-go/graphql/gqlerrors"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 type APIErrorExtension struct{}
@@ -52,6 +53,7 @@ func (a APIErrorExtension) ExecutionDidStart(ctx context.Context) (context.Conte
 				logger.
 					WithError(err).
 					WithField("path", gqlError.Path).
+					WithField("stack", errorutil.Callers(10000)).
 					Error("unexpected error when executing GraphQL query")
 				continue
 			}

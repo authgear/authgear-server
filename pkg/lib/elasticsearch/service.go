@@ -144,7 +144,7 @@ func (s *Service) QueryUser(
 		o.From = &from
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("failed to connect to elasticsearch: %w", err)
 	}
 	defer res.Body.Close()
 
