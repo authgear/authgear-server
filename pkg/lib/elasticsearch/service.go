@@ -14,7 +14,6 @@ import (
 	identityoauth "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/tasks"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
@@ -41,6 +40,7 @@ type queryUserResponse struct {
 		} `json:"total"`
 		Hits []struct {
 			Source model.ElasticsearchUserSource `json:"_source"`
+			Sort   interface{}                   `json:"sort"`
 		} `json:"hits"`
 	} `json:"hits"`
 }
@@ -115,6 +115,16 @@ func (s *Service) QueryUser(
 
 	// Prepare body
 	bodyJSONValue := MakeSearchBody(s.AppID, searchKeyword, sortOption)
+
+	// Prepare search_after
+	searchAfter, err := CursorToSearchAfter(model.PageCursor(pageArgs.After))
+	if err != nil {
+		return nil, nil, err
+	}
+	if searchAfter != nil {
+		bodyJSONValue["search_after"] = searchAfter
+	}
+
 	bodyJSONBytes, err := json.Marshal(bodyJSONValue)
 	if err != nil {
 		return nil, nil, err
@@ -127,21 +137,10 @@ func (s *Service) QueryUser(
 		size = 20
 	}
 
-	// Prepare from
-	pageKey, err := db.NewFromPageCursor(model.PageCursor(pageArgs.After))
-	if err != nil {
-		return nil, nil, err
-	}
-	from := 0
-	if pageKey != nil {
-		from = int(pageKey.Offset) + 1
-	}
-
 	res, err := s.Client.Search(func(o *esapi.SearchRequest) {
 		o.Index = []string{IndexNameUser}
 		o.Body = body
 		o.Size = &size
-		o.From = &from
 	})
 	if err != nil {
 		return nil, nil, err
@@ -165,12 +164,10 @@ func (s *Service) QueryUser(
 	items := make([]model.PageItemRef, len(r.Hits.Hits))
 	for i, u := range r.Hits.Hits {
 		user := u.Source
-		pageKey := db.PageKey{Offset: uint64(from) + uint64(i)}
-		cursor, err := pageKey.ToPageCursor()
+		cursor, err := SortToCursor(u.Sort)
 		if err != nil {
 			return nil, nil, err
 		}
-
 		items[i] = model.PageItemRef{ID: user.ID, Cursor: cursor}
 	}
 
