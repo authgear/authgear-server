@@ -1,6 +1,8 @@
 package graphqlutil
 
 import (
+	"reflect"
+
 	"github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 )
@@ -17,15 +19,20 @@ type Connection struct {
 }
 
 func NewConnectionFromResult(lazyItems []LazyItem, result *PageResult) (*Connection, error) {
-	var edges = make([]*relay.Edge, len(lazyItems))
-	for i, item := range lazyItems {
+	var edges = make([]*relay.Edge, 0, len(lazyItems))
+	for _, item := range lazyItems {
 		node, err := item.Lazy.Value()
 		if err != nil {
 			return nil, err
 		}
-		edges[i] = &relay.Edge{
-			Node:   node,
-			Cursor: relay.ConnectionCursor(item.Cursor),
+		// I have no idea why node != nil is false even node is really nil.
+		// We have to use reflect and use IsNil to check nil.
+		nodeValue := reflect.ValueOf(node)
+		if !nodeValue.IsNil() {
+			edges = append(edges, &relay.Edge{
+				Node:   node,
+				Cursor: relay.ConnectionCursor(item.Cursor),
+			})
 		}
 	}
 	pageInfo := relay.PageInfo{
