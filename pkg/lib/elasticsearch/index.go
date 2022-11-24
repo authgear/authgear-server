@@ -14,7 +14,7 @@ func MakeSearchBody(
 	appID config.AppID,
 	searchKeyword string,
 	sortOption libuser.SortOption,
-) interface{} {
+) map[string]interface{} {
 	should := []interface{}{
 		map[string]interface{}{
 			"term": map[string]interface{}{
@@ -282,20 +282,24 @@ func MakeSearchBody(
 		},
 	}
 
-	var sort []interface{}
-	if sortOption.SortBy == libuser.SortByDefault {
-		sort = append(sort, "_score")
-	} else {
-		dir := sortOption.SortDirection
-		if dir == model.SortDirectionDefault {
-			dir = model.SortDirectionDesc
-		}
-		sort = append(sort, map[string]interface{}{
-			string(sortOption.SortBy): map[string]interface{}{
-				"order": dir,
-			},
-		})
+	// To order to use search_after, "sort" must appear in the response.
+	// To make "sort" appear in the response, we MUST NOT sort by _score.
+	sortBy := sortOption.SortBy
+	if sortBy == libuser.SortByDefault {
+		sortBy = libuser.SortByCreatedAt
 	}
+
+	dir := sortOption.SortDirection
+	if dir == model.SortDirectionDefault {
+		dir = model.SortDirectionDesc
+	}
+
+	var sort []interface{}
+	sort = append(sort, map[string]interface{}{
+		string(sortBy): map[string]interface{}{
+			"order": dir,
+		},
+	})
 	body["sort"] = sort
 
 	return body
