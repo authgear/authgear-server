@@ -211,7 +211,7 @@ func TestMakeSearchBody(t *testing.T) {
 				}
 			},
 			"sort": [
-			"_score"
+			{ "created_at": { "order": "desc" } }
 			]
 		}
 		`)
@@ -470,7 +470,7 @@ func TestMakeSearchBody(t *testing.T) {
 				}
 			},
 			"sort": [
-			"_score"
+			{ "created_at": { "order": "desc" } }
 			]
 		}
 		`)
@@ -729,7 +729,7 @@ func TestMakeSearchBody(t *testing.T) {
 				}
 			},
 			"sort": [
-			"_score"
+			{ "created_at": { "order": "desc" } }
 			]
 		}
 		`)
