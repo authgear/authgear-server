@@ -94,17 +94,6 @@ func (m *Manager) invalidate(session Session, option *revokeEventOption) (Manage
 		}
 	}
 
-	if provider == nil {
-		// if the current session doesn't appear in the sso group (e.g. sso disabled offline grant)
-		// delete it here
-		sessionModel := session.ToAPIModel()
-		sessionModels = append(sessionModels, *sessionModel)
-		provider, err = m.invalidateSession(session)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	if option != nil && len(sessionModels) > 0 {
 		if option.IsTermination {
 			err = m.Events.DispatchEvent(&nonblocking.UserSessionTerminatedEventPayload{

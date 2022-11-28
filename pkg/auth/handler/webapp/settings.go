@@ -63,7 +63,7 @@ type SettingsAuthorizationService interface {
 }
 
 type SettingsSessionListingService interface {
-	FilterForDisplay(sessions []session.Session) ([]*sessionlisting.Session, error)
+	FilterForDisplay(sessions []session.Session, currentSession session.Session) ([]*sessionlisting.Session, error)
 }
 
 type SettingsHandler struct {

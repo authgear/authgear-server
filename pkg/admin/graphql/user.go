@@ -185,7 +185,7 @@ var nodeUser = node(
 						return nil, err
 					}
 
-					sessionModels, err := gqlCtx.SessionListing.FilterForDisplay(ss)
+					sessionModels, err := gqlCtx.SessionListing.FilterForDisplay(ss, nil)
 					if err != nil {
 						return nil, err
 					}

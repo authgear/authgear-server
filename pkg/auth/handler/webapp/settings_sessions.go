@@ -64,7 +64,7 @@ func (h *SettingsSessionsHandler) GetData(r *http.Request, rw http.ResponseWrite
 	if err != nil {
 		return nil, err
 	}
-	sessionModels, err := h.SessionListing.FilterForDisplay(ss)
+	sessionModels, err := h.SessionListing.FilterForDisplay(ss, s)
 	if err != nil {
 		return nil, err
 	}

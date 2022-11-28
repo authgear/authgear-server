@@ -23,6 +23,8 @@ type Session struct {
 	// So it may change.
 	// All offline grant's IsDevice is true.
 	IsDevice bool `json:"-"`
+	// IsCurrent indicates if the session is current session
+	IsCurrent bool `json:"-"`
 }
 
 type IDPSessionProvider interface {
@@ -39,7 +41,7 @@ type SessionListingService struct {
 	OfflineGrants OfflineGrantService
 }
 
-func (s *SessionListingService) FilterForDisplay(sessions []session.Session) ([]*Session, error) {
+func (s *SessionListingService) FilterForDisplay(sessions []session.Session, currentSession session.Session) ([]*Session, error) {
 	sess := make([]session.Session, len(sessions))
 	copy(sess, sessions)
 	sortSessions(sess)
@@ -90,6 +92,11 @@ func (s *SessionListingService) FilterForDisplay(sessions []session.Session) ([]
 			}
 			continue
 		}
+
+		if currentSession != nil {
+			apiModel.IsCurrent = offlineGrant.IsSameSSOGroup(currentSession)
+		}
+
 		result = append(result, apiModel)
 	}
 
@@ -106,6 +113,10 @@ func (s *SessionListingService) FilterForDisplay(sessions []session.Session) ([]
 		if displayName, ok := idpSessionToDisplayNameMap[idpSession.ID]; ok {
 			apiModel.DisplayName = displayName
 			apiModel.IsDevice = true
+		}
+
+		if currentSession != nil {
+			apiModel.IsCurrent = idpSession.IsSameSSOGroup(currentSession)
 		}
 
 		result = append(result, apiModel)
