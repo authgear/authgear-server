@@ -76,15 +76,16 @@ type TokenHandler struct {
 	OAuthClientCredentials *config.OAuthClientCredentials
 	Logger                 TokenHandlerLogger
 
-	Authorizations   AuthorizationService
-	CodeGrants       oauth.CodeGrantStore
-	OfflineGrants    oauth.OfflineGrantStore
-	AppSessionTokens oauth.AppSessionTokenStore
-	Graphs           GraphService
-	IDTokenIssuer    IDTokenIssuer
-	Clock            clock.Clock
-	TokenService     TokenService
-	Events           EventService
+	Authorizations      AuthorizationService
+	CodeGrants          oauth.CodeGrantStore
+	OfflineGrants       oauth.OfflineGrantStore
+	AppSessionTokens    oauth.AppSessionTokenStore
+	OfflineGrantService oauth.OfflineGrantService
+	Graphs              GraphService
+	IDTokenIssuer       IDTokenIssuer
+	Clock               clock.Clock
+	TokenService        TokenService
+	Events              EventService
 }
 
 func (h *TokenHandler) Handle(rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result {
@@ -293,7 +294,7 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, err
 	}
 
-	expiry := oauth.ComputeOfflineGrantExpiryWithClient(offlineGrant, client)
+	expiry := h.OfflineGrantService.ComputeOfflineGrantExpiryWithClient(offlineGrant, client)
 	_, err = h.OfflineGrants.UpdateOfflineGrantDeviceInfo(offlineGrant.ID, deviceInfo, expiry)
 	if err != nil {
 		return nil, err
@@ -729,7 +730,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 			offlineGrant, err := h.OfflineGrants.GetOfflineGrant(sessionID)
 			if err == nil {
 				if info.AuthenticatedAt.After(offlineGrant.AuthenticatedAt) {
-					expiry := oauth.ComputeOfflineGrantExpiryWithClient(offlineGrant, client)
+					expiry := h.OfflineGrantService.ComputeOfflineGrantExpiryWithClient(offlineGrant, client)
 					_, err := h.OfflineGrants.UpdateOfflineGrantAuthenticatedAt(offlineGrant.ID, info.AuthenticatedAt, expiry)
 					if err != nil {
 						return nil, err

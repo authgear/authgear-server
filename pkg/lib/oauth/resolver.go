@@ -26,17 +26,18 @@ type ResolverCookieManager interface {
 }
 
 type Resolver struct {
-	RemoteIP           httputil.RemoteIP
-	UserAgentString    httputil.UserAgentString
-	OAuthConfig        *config.OAuthConfig
-	Authorizations     AuthorizationStore
-	AccessGrants       AccessGrantStore
-	OfflineGrants      OfflineGrantStore
-	AppSessions        AppSessionStore
-	AccessTokenDecoder AccessTokenDecoder
-	Sessions           ResolverSessionProvider
-	Cookies            ResolverCookieManager
-	Clock              clock.Clock
+	RemoteIP            httputil.RemoteIP
+	UserAgentString     httputil.UserAgentString
+	OAuthConfig         *config.OAuthConfig
+	Authorizations      AuthorizationStore
+	AccessGrants        AccessGrantStore
+	OfflineGrants       OfflineGrantStore
+	AppSessions         AppSessionStore
+	AccessTokenDecoder  AccessTokenDecoder
+	Sessions            ResolverSessionProvider
+	Cookies             ResolverCookieManager
+	Clock               clock.Clock
+	OfflineGrantService OfflineGrantService
 }
 
 func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Session, error) {
@@ -190,7 +191,7 @@ func (re *Resolver) accessOfflineGrant(offlineGrant *OfflineGrant, accessEvent a
 		}
 	}
 
-	expiry, err := ComputeOfflineGrantExpiryWithClients(offlineGrant, re.OAuthConfig)
+	expiry, err := re.OfflineGrantService.ComputeOfflineGrantExpiryWithClients(offlineGrant)
 	if errors.Is(err, ErrGrantNotFound) {
 		return nil, session.ErrInvalidSession
 	} else if err != nil {
