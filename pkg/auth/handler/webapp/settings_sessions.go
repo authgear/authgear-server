@@ -144,8 +144,7 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 
 	ctrl.PostAction("revoke_all", func() error {
 		userID := currentSession.GetAuthenticationInfo().UserID
-		currentSSOGroupIDPSessionID := currentSession.SSOGroupIDPSessionID()
-		err := h.Sessions.TerminateAllExcept(userID, currentSSOGroupIDPSessionID, false)
+		err := h.Sessions.TerminateAllExcept(userID, currentSession, false)
 		if err != nil {
 			return err
 		}

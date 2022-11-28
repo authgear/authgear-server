@@ -30,7 +30,7 @@ type ManagementService interface {
 	Get(id string) (Session, error)
 	Delete(Session) error
 	List(userID string) ([]Session, error)
-	TerminateAllExcept(userID string, idpSessionID string) ([]Session, error)
+	TerminateAllExcept(userID string, currentSession Session) ([]Session, error)
 }
 
 type IDPSessionManager ManagementService
@@ -182,12 +182,12 @@ func (m *Manager) RevokeWithoutEvent(session Session) error {
 	return nil
 }
 
-func (m *Manager) TerminateAllExcept(userID string, idpSessionID string, isAdminAPI bool) error {
-	idpSessions, err := m.IDPSessions.TerminateAllExcept(userID, idpSessionID)
+func (m *Manager) TerminateAllExcept(userID string, currentSession Session, isAdminAPI bool) error {
+	idpSessions, err := m.IDPSessions.TerminateAllExcept(userID, currentSession)
 	if err != nil {
 		return err
 	}
-	accessGrantSessions, err := m.AccessTokenSessions.TerminateAllExcept(userID, idpSessionID)
+	accessGrantSessions, err := m.AccessTokenSessions.TerminateAllExcept(userID, currentSession)
 	if err != nil {
 		return err
 	}
@@ -203,7 +203,7 @@ func (m *Manager) TerminateAllExcept(userID string, idpSessionID string, isAdmin
 	}
 
 	var sessionTerminationType nonblocking.UserSessionTerminationType
-	if idpSessionID == "" {
+	if currentSession == nil {
 		sessionTerminationType = nonblocking.UserSessionTerminationTypeAll
 	} else {
 		sessionTerminationType = nonblocking.UserSessionTerminationTypeAllOthers
