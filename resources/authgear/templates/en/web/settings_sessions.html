@@ -22,7 +22,7 @@
   </p>
 </div>
 
-<div class="twc-container-vertical pt-5">
+<div class="twc-container-vertical py-5">
 {{ range .Sessions }}
 <div class="px-5 flex flex-col divide-y">
   <div class="flex flex-row space-x-2 py-1.5 items-center">
@@ -76,7 +76,7 @@
 
 {{/* excludes the current session */}}
 {{ if gt (len .Sessions) 1 }}
-<div class="p-5 row-sep">
+<div class="px-5 pb-5 row-sep">
   <form method="post" novalidate>
     {{ $.CSRFField }}
     <button
