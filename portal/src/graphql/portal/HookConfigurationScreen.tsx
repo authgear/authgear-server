@@ -1,12 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useParams } from "react-router-dom";
-import {
-  Dropdown,
-  IDropdownOption,
-  ISelectableOption,
-  Label,
-} from "@fluentui/react";
+import { Dropdown, IDropdownOption, Label } from "@fluentui/react";
 import produce from "immer";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
@@ -96,11 +91,11 @@ function constructConfig(
   return [newConfig, secrets];
 }
 
-const blockingEventTypes: IDropdownOption[] = [
+const BLOCK_EVENT_TYPES: string[] = [
   "user.pre_create",
   "user.profile.pre_update",
   "user.pre_schedule_deletion",
-].map((type): IDropdownOption => ({ key: type, text: type }));
+];
 
 interface BlockingHandlerItemEditProps {
   index: number;
@@ -110,6 +105,8 @@ interface BlockingHandlerItemEditProps {
 const BlockingHandlerItemEdit: React.VFC<BlockingHandlerItemEditProps> =
   function BlockingHandlerItemEdit(props) {
     const { index, value, onChange } = props;
+
+    const { renderToString } = useContext(Context);
 
     const eventField = useMemo(
       () => ({
@@ -141,40 +138,22 @@ const BlockingHandlerItemEdit: React.VFC<BlockingHandlerItemEditProps> =
       [onChange, value]
     );
 
-    const renderBlockingEventDropdownItem = useCallback(
-      (item?: ISelectableOption) => {
-        return (
-          <span>
-            <FormattedMessage
-              id={`HookConfigurationScreen.blocking-event-type.${item?.key}`}
-            />
-          </span>
-        );
-      },
-      []
-    );
-    const renderBlockingEventDropdownTitle = useCallback(
-      (items?: IDropdownOption[]) => {
-        return (
-          <span>
-            <FormattedMessage
-              id={`HookConfigurationScreen.blocking-event-type.${items?.[0].key}`}
-            />
-          </span>
-        );
-      },
-      []
-    );
+    const options = useMemo(() => {
+      return BLOCK_EVENT_TYPES.map((t) => ({
+        key: t,
+        text: renderToString(
+          "HookConfigurationScreen.blocking-event-type." + t
+        ),
+      }));
+    }, [renderToString]);
 
     return (
       <div className={styles.handlerEdit}>
         <Dropdown
           className={styles.handlerEventField}
-          options={blockingEventTypes}
+          options={options}
           selectedKey={value.event}
           onChange={onBlockingEventChange}
-          onRenderOption={renderBlockingEventDropdownItem}
-          onRenderTitle={renderBlockingEventDropdownTitle}
           ariaLabel={"HookConfigurationScreen.blocking-events.label"}
           {...eventFieldProps}
         />
@@ -268,7 +247,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
 
     const makeDefaultHandler = useCallback(
       (): BlockingEventHandler => ({
-        event: String(blockingEventTypes[0].key),
+        event: BLOCK_EVENT_TYPES[0],
         url: "",
       }),
       []
