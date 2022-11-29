@@ -259,8 +259,8 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         children: [
           {
             type: "link" as const,
-            textKey: "ScreenNav.webhooks",
-            url: `/project/${appID}/advanced/webhooks`,
+            textKey: "ScreenNav.hooks",
+            url: `/project/${appID}/advanced/hooks`,
           },
           {
             type: "link" as const,

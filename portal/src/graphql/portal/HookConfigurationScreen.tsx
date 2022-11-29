@@ -30,7 +30,7 @@ import FormContainer from "../../FormContainer";
 import FormTextField from "../../FormTextField";
 import { clearEmptyObject } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
-import styles from "./WebhookConfigurationScreen.module.css";
+import styles from "./HookConfigurationScreen.module.css";
 import WidgetDescription from "../../WidgetDescription";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { startReauthentication } from "./Authenticated";
@@ -146,7 +146,7 @@ const BlockingHandlerItemEdit: React.VFC<BlockingHandlerItemEditProps> =
         return (
           <span>
             <FormattedMessage
-              id={`WebhookConfigurationScreen.blocking-event-type.${item?.key}`}
+              id={`HookConfigurationScreen.blocking-event-type.${item?.key}`}
             />
           </span>
         );
@@ -158,7 +158,7 @@ const BlockingHandlerItemEdit: React.VFC<BlockingHandlerItemEditProps> =
         return (
           <span>
             <FormattedMessage
-              id={`WebhookConfigurationScreen.blocking-event-type.${items?.[0].key}`}
+              id={`HookConfigurationScreen.blocking-event-type.${items?.[0].key}`}
             />
           </span>
         );
@@ -175,7 +175,7 @@ const BlockingHandlerItemEdit: React.VFC<BlockingHandlerItemEditProps> =
           onChange={onBlockingEventChange}
           onRenderOption={renderBlockingEventDropdownItem}
           onRenderTitle={renderBlockingEventDropdownTitle}
-          ariaLabel={"WebhookConfigurationScreen.blocking-events.label"}
+          ariaLabel={"HookConfigurationScreen.blocking-events.label"}
           {...eventFieldProps}
         />
         <TextField
@@ -219,7 +219,7 @@ const NonBlockingHandlerItemEdit: React.VFC<NonBlockingHandlerItemEditProps> =
     );
   };
 
-interface WebhookConfigurationScreenContentProps {
+interface HookConfigurationScreenContentProps {
   form: AppSecretConfigFormModel<FormState>;
   hookFeatureConfig?: HookFeatureConfig;
 }
@@ -228,9 +228,9 @@ interface LocationState {
   isOAuthRedirect: boolean;
 }
 
-const WebhookConfigurationScreenContent: React.VFC<WebhookConfigurationScreenContentProps> =
+const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentProps> =
   // eslint-disable-next-line complexity
-  function WebhookConfigurationScreenContent(props) {
+  function HookConfigurationScreenContent(props) {
     const { renderToString } = useContext(Context);
     const { hookFeatureConfig } = props;
     const { state, setState } = props.form;
@@ -386,18 +386,18 @@ const WebhookConfigurationScreenContent: React.VFC<WebhookConfigurationScreenCon
     return (
       <ScreenContent>
         <ScreenTitle className={styles.widget}>
-          <FormattedMessage id="WebhookConfigurationScreen.title" />
+          <FormattedMessage id="HookConfigurationScreen.title" />
         </ScreenTitle>
         <ScreenDescription className={styles.widget}>
-          <FormattedMessage id="WebhookConfigurationScreen.description" />
+          <FormattedMessage id="HookConfigurationScreen.description" />
         </ScreenDescription>
 
         <Widget className={styles.widget}>
           <WidgetTitle>
-            <FormattedMessage id="WebhookConfigurationScreen.blocking-events" />
+            <FormattedMessage id="HookConfigurationScreen.blocking-events" />
           </WidgetTitle>
           <WidgetDescription>
-            <FormattedMessage id="WebhookConfigurationScreen.blocking-events.description" />
+            <FormattedMessage id="HookConfigurationScreen.blocking-events.description" />
           </WidgetDescription>
           {blockingHandlerMax < 99 ? (
             blockingHandlerDisabled ? (
@@ -415,7 +415,7 @@ const WebhookConfigurationScreenContent: React.VFC<WebhookConfigurationScreenCon
             <FieldList
               label={
                 <Label>
-                  <FormattedMessage id="WebhookConfigurationScreen.blocking-handlers.label" />
+                  <FormattedMessage id="HookConfigurationScreen.blocking-handlers.label" />
                 </Label>
               }
               parentJSONPointer="/hook"
@@ -432,10 +432,10 @@ const WebhookConfigurationScreenContent: React.VFC<WebhookConfigurationScreenCon
 
         <Widget className={styles.widget}>
           <WidgetTitle>
-            <FormattedMessage id="WebhookConfigurationScreen.non-blocking-events" />
+            <FormattedMessage id="HookConfigurationScreen.non-blocking-events" />
           </WidgetTitle>
           <WidgetDescription>
-            <FormattedMessage id="WebhookConfigurationScreen.non-blocking-events.description" />
+            <FormattedMessage id="HookConfigurationScreen.non-blocking-events.description" />
           </WidgetDescription>
           {nonBlockingHandlerMax < 99 ? (
             nonBlockingHandlerDisabled ? (
@@ -453,7 +453,7 @@ const WebhookConfigurationScreenContent: React.VFC<WebhookConfigurationScreenCon
             <FieldList
               label={
                 <Label>
-                  <FormattedMessage id="WebhookConfigurationScreen.non-blocking-events-endpoints.label" />
+                  <FormattedMessage id="HookConfigurationScreen.non-blocking-events-endpoints.label" />
                 </Label>
               }
               parentJSONPointer="/hook"
@@ -470,19 +470,19 @@ const WebhookConfigurationScreenContent: React.VFC<WebhookConfigurationScreenCon
 
         <Widget className={styles.widget}>
           <WidgetTitle>
-            <FormattedMessage id="WebhookConfigurationScreen.webhook-settings" />
+            <FormattedMessage id="HookConfigurationScreen.hook-settings" />
           </WidgetTitle>
           <TextField
             type="text"
             label={renderToString(
-              "WebhookConfigurationScreen.total-timeout.label"
+              "HookConfigurationScreen.total-timeout.label"
             )}
             value={state.totalTimeout?.toFixed(0) ?? ""}
             onChange={onTotalTimeoutChange}
           />
           <TextField
             type="text"
-            label={renderToString("WebhookConfigurationScreen.timeout.label")}
+            label={renderToString("HookConfigurationScreen.timeout.label")}
             value={state.timeout?.toFixed(0) ?? ""}
             onChange={onTimeoutChange}
           />
@@ -490,16 +490,16 @@ const WebhookConfigurationScreenContent: React.VFC<WebhookConfigurationScreenCon
 
         <Widget className={styles.widget} contentLayout="grid">
           <WidgetTitle className={styles.columnFull} id={WEBHOOK_SIGNATURE_ID}>
-            <FormattedMessage id="WebhookConfigurationScreen.signature.title" />
+            <FormattedMessage id="HookConfigurationScreen.signature.title" />
           </WidgetTitle>
           <WidgetDescription className={styles.columnFull}>
-            <FormattedMessage id="WebhookConfigurationScreen.signature.description" />
+            <FormattedMessage id="HookConfigurationScreen.signature.description" />
           </WidgetDescription>
           <TextField
             className={styles.secretInput}
             type="text"
             label={renderToString(
-              "WebhookConfigurationScreen.signature.secret-key"
+              "HookConfigurationScreen.signature.secret-key"
             )}
             value={
               revealed && state.secret != null ? state.secret : MASKED_SECRET
@@ -525,43 +525,42 @@ const WebhookConfigurationScreenContent: React.VFC<WebhookConfigurationScreenCon
     );
   };
 
-const WebhookConfigurationScreen: React.VFC =
-  function WebhookConfigurationScreen() {
-    const { appID } = useParams() as { appID: string };
-    const form = useAppSecretConfigForm({
-      appID,
-      constructFormState,
-      constructConfig,
-    });
-    const featureConfig = useAppFeatureConfigQuery(appID);
+const HookConfigurationScreen: React.VFC = function HookConfigurationScreen() {
+  const { appID } = useParams() as { appID: string };
+  const form = useAppSecretConfigForm({
+    appID,
+    constructFormState,
+    constructConfig,
+  });
+  const featureConfig = useAppFeatureConfigQuery(appID);
 
-    if (form.isLoading || featureConfig.loading) {
-      return <ShowLoading />;
-    }
+  if (form.isLoading || featureConfig.loading) {
+    return <ShowLoading />;
+  }
 
-    if (form.loadError) {
-      return <ShowError error={form.loadError} onRetry={form.reload} />;
-    }
+  if (form.loadError) {
+    return <ShowError error={form.loadError} onRetry={form.reload} />;
+  }
 
-    if (featureConfig.error) {
-      return (
-        <ShowError
-          error={featureConfig.error}
-          onRetry={() => {
-            featureConfig.refetch().finally(() => {});
-          }}
-        />
-      );
-    }
-
+  if (featureConfig.error) {
     return (
-      <FormContainer form={form}>
-        <WebhookConfigurationScreenContent
-          form={form}
-          hookFeatureConfig={featureConfig.effectiveFeatureConfig?.hook}
-        />
-      </FormContainer>
+      <ShowError
+        error={featureConfig.error}
+        onRetry={() => {
+          featureConfig.refetch().finally(() => {});
+        }}
+      />
     );
-  };
+  }
 
-export default WebhookConfigurationScreen;
+  return (
+    <FormContainer form={form}>
+      <HookConfigurationScreenContent
+        form={form}
+        hookFeatureConfig={featureConfig.effectiveFeatureConfig?.hook}
+      />
+    </FormContainer>
+  );
+};
+
+export default HookConfigurationScreen;

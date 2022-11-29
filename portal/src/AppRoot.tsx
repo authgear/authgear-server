@@ -78,8 +78,8 @@ const InviteAdminScreen = lazy(
 const PortalAdminsSettings = lazy(
   async () => import("./graphql/portal/PortalAdminsSettings")
 );
-const WebhookConfigurationScreen = lazy(
-  async () => import("./graphql/portal/WebhookConfigurationScreen")
+const HookConfigurationScreen = lazy(
+  async () => import("./graphql/portal/HookConfigurationScreen")
 );
 const AdminAPIConfigurationScreen = lazy(
   async () => import("./graphql/portal/AdminAPIConfigurationScreen")
@@ -506,10 +506,10 @@ const AppRoot: React.VFC = function AppRoot() {
                 element={<Navigate to="password-reset-code" replace={true} />}
               />
               <Route
-                path="webhooks"
+                path="hooks"
                 element={
                   <Suspense fallback={<ShowLoading />}>
-                    <WebhookConfigurationScreen />
+                    <HookConfigurationScreen />
                   </Suspense>
                 }
               />
