@@ -90,7 +90,8 @@ func (r *LoginHintHandler) HandleLoginHint(options HandleLoginHintOptions) (http
 	case "anonymous":
 		startPromotionInteraction := func(inputer func() (interface{}, error)) (httputil.Result, error) {
 			intent := &intents.IntentAuthenticate{
-				Kind: intents.IntentAuthenticateKindPromote,
+				Kind:                     intents.IntentAuthenticateKindPromote,
+				SuppressIDPSessionCookie: options.SessionOptions.SuppressIDPSessionCookie,
 			}
 
 			now := r.Clock.NowUTC()
