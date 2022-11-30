@@ -175,3 +175,21 @@ Authgear is used in the context of an SSO provider, working just like "Login wit
 ### Mobile SDK
 
 - Replace `shareSessionWithSystemBrowser` with `ssoEnabled`. Default `ssoEnabled=false`.
+
+## Backward compatibility
+
+- If the developer updates the server and the apps are still using the old version SDK.
+    - The app's behavior should remind unchanged. The updated server handles `x_suppress_idp_session_cookie` for backward compatibility.
+- If the developer updates the SDK, but the server is not updated. (Don't recommend)
+    - Web SDK (`sessionType=cookie`)
+        - The app's behavior should remind unchanged.
+    - Web SDK (`sessionType=refresh_token`)
+        - Login
+            - The new SDK will send both `x_suppress_idp_session_cookie=true` and `x_sso_enabled=false` to the server when `ssoEnabled` is `false` (default). The old version will read `x_suppress_idp_session_cookie=true` and no IdP session will be generated, so the behavior reminds unchanged.
+            - If developers set `ssoEnabled` to `true`. The new SDK will send `x_sso_enabled=true`, but the old server won't be able to handle it. Both the Idp session and refresh token will be generated, but they will not be in the same SSO group.
+        - Logout
+            - The old SDK will redirect the user to the Authgear logout page after revoking the refresh token. But after updating the SDK, only the current refresh token will be revoked. So if there is any IdP session/refresh token of other apps, they will not be revoked.
+    - Mobile SDK
+        - If the developer specifies `shareSessionWithSystemBrowser` when calling `authgear.configure`, there will be compilation error.
+        - If the developer doesn't specify either `shareSessionWithSystemBrowser` or `ssoEnabled` (this is the case we want to handle). The new SDK will send both `x_suppress_idp_session_cookie=true` and `x_sso_enabled=false` to the server when `ssoEnabled` is `false` (default). Only refresh token will be generated and no Idp session will be created, which matches the original default behavior.
+        - If developers set `ssoEnabled` to `true`. The new SDK will send `x_sso_enabled=true`, but the old server won't be able to handle it. Both the Idp session and refresh token will be generated, but they will not be in the same SSO group.
