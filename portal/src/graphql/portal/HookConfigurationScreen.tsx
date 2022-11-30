@@ -36,6 +36,7 @@ import { useErrorMessage, useErrorMessageString } from "../../formbinding";
 import TextField from "../../TextField";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import PrimaryButton from "../../PrimaryButton";
+import ActionButton from "../../ActionButton";
 
 type HookKind = "webhook" | "denohook";
 
@@ -62,6 +63,19 @@ interface FormState {
 const MASKED_SECRET = "***************";
 
 const WEBHOOK_SIGNATURE_ID = "webhook-signature";
+
+const EDIT_BUTTON_ICON_PROPS = {
+  iconName: "Edit",
+};
+
+const EDIT_BUTTON_STYLES = {
+  root: {
+    // The native height is 40px.
+    // But we want to make sure everything in the same row has the same height,
+    // So we force it to 32px.
+    height: "32px",
+  },
+};
 
 function blockingConfigToState(
   c: BlockingHookHandlerConfig
@@ -190,6 +204,14 @@ const BlockingHandlerItemEdit: React.VFC<BlockingHandlerItemEditProps> =
       },
       [onChange, value]
     );
+    const onChangeHookKind = useCallback(
+      (_, event?: IDropdownOption) => {
+        if (event?.key != null) {
+          onChange({ ...value, kind: event.key as HookKind, url: "" });
+        }
+      },
+      [onChange, value]
+    );
 
     const eventOptions = useMemo(() => {
       return BLOCK_EVENT_TYPES.map((t) => ({
@@ -205,6 +227,10 @@ const BlockingHandlerItemEdit: React.VFC<BlockingHandlerItemEditProps> =
         {
           key: "webhook",
           text: renderToString("HookConfigurationScreen.hook-kind.webhook"),
+        },
+        {
+          key: "denohook",
+          text: renderToString("HookConfigurationScreen.hook-kind.denohook"),
         },
       ];
     }, [renderToString]);
@@ -223,6 +249,8 @@ const BlockingHandlerItemEdit: React.VFC<BlockingHandlerItemEditProps> =
           className={styles.handlerKindField}
           options={kindOptions}
           selectedKey={value.kind}
+          onChange={onChangeHookKind}
+          ariaLabel={"HookConfigurationScreen.hook-kind.label"}
         />
         {value.kind === "webhook" ? (
           <TextField
@@ -231,6 +259,15 @@ const BlockingHandlerItemEdit: React.VFC<BlockingHandlerItemEditProps> =
             onChange={onURLChange}
             placeholder="https://example.com/callback"
             {...urlFieldProps}
+          />
+        ) : null}
+        {value.kind === "denohook" ? (
+          <ActionButton
+            iconProps={EDIT_BUTTON_ICON_PROPS}
+            styles={EDIT_BUTTON_STYLES}
+            text={
+              <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
+            }
           />
         ) : null}
       </div>
@@ -254,12 +291,24 @@ const NonBlockingHandlerItemEdit: React.VFC<NonBlockingHandlerItemEditProps> =
       },
       [onChange, value]
     );
+    const onChangeHookKind = useCallback(
+      (_, event?: IDropdownOption) => {
+        if (event?.key != null) {
+          onChange({ ...value, kind: event.key as HookKind, url: "" });
+        }
+      },
+      [onChange, value]
+    );
 
     const kindOptions = useMemo(() => {
       return [
         {
           key: "webhook",
           text: renderToString("HookConfigurationScreen.hook-kind.webhook"),
+        },
+        {
+          key: "denohook",
+          text: renderToString("HookConfigurationScreen.hook-kind.denohook"),
         },
       ];
     }, [renderToString]);
@@ -270,15 +319,28 @@ const NonBlockingHandlerItemEdit: React.VFC<NonBlockingHandlerItemEditProps> =
           className={styles.handlerKindField}
           options={kindOptions}
           selectedKey={value.kind}
+          onChange={onChangeHookKind}
+          ariaLabel={"HookConfigurationScreen.hook-kind.label"}
         />
-        <FormTextField
-          parentJSONPointer={`/hook/non_blocking_handlers/${index}`}
-          fieldName="url"
-          className={styles.handlerURLField}
-          value={value.url}
-          onChange={onURLChange}
-          placeholder="https://example.com/callback"
-        />
+        {value.kind === "webhook" ? (
+          <FormTextField
+            parentJSONPointer={`/hook/non_blocking_handlers/${index}`}
+            fieldName="url"
+            className={styles.handlerURLField}
+            value={value.url}
+            onChange={onURLChange}
+            placeholder="https://example.com/callback"
+          />
+        ) : null}
+        {value.kind === "denohook" ? (
+          <ActionButton
+            iconProps={EDIT_BUTTON_ICON_PROPS}
+            styles={EDIT_BUTTON_STYLES}
+            text={
+              <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
+            }
+          />
+        ) : null}
       </div>
     );
   };

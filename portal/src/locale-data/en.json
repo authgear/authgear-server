@@ -785,7 +785,10 @@
   "HookConfigurationScreen.total-timeout.label": "Timeout (seconds)",
   "HookConfigurationScreen.timeout.label": "Per-handler timeout (seconds)",
 
+  "HookConfigurationScreen.hook-kind.label": "Kind",
   "HookConfigurationScreen.hook-kind.webhook": "Webhook",
+  "HookConfigurationScreen.hook-kind.denohook": "TypeScript / JavaScript",
+  "HookConfigurationScreen.edit-hook.label": "Edit Script",
   "HookConfigurationScreen.blocking-events": "Blocking Events",
   "HookConfigurationScreen.blocking-events.description": "Blocking Events allow your hooks to check and abort operations in different scenarios. {br, react} {DocLink, react, href{https://docs.authgear.com/webhooks#blocking-events} children{Learn more about blocking events}}.",
   "HookConfigurationScreen.blocking-handlers.label": "Blocking Handlers",
