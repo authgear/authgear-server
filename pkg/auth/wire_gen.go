@@ -69,6 +69,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
+	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
@@ -647,7 +648,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     storeRedis,
-		Clock:     clock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -1448,7 +1448,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     storeRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -2248,7 +2247,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     storeRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
@@ -2508,7 +2506,6 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	manager := &idpsession.Manager{
 		Store:     storeRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
@@ -3718,7 +3715,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	manager := &idpsession.Manager{
 		Store:     storeRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
@@ -4713,7 +4709,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     storeRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
@@ -5475,7 +5470,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
@@ -6228,7 +6222,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
@@ -7085,7 +7078,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -7877,7 +7869,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -8668,7 +8659,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -9442,7 +9432,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -10214,7 +10203,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -10976,7 +10964,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -11741,7 +11728,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -12509,7 +12495,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -13279,7 +13264,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -14047,7 +14031,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -14815,7 +14798,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -15584,7 +15566,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -16352,7 +16333,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -17120,7 +17100,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -17890,7 +17869,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -18658,7 +18636,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -19426,7 +19403,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -20196,7 +20172,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -20964,7 +20939,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -22161,7 +22135,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -22929,7 +22902,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -23693,7 +23665,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -24459,7 +24430,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -25223,7 +25193,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -25997,7 +25966,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -26761,7 +26729,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -27526,7 +27493,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -28290,7 +28256,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -29085,7 +29050,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -29860,7 +29824,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -30648,7 +30611,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -31420,7 +31382,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -32185,7 +32146,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -32958,7 +32918,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -33723,7 +33682,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -34488,7 +34446,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -35253,7 +35210,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -36019,7 +35975,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -36302,6 +36257,16 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:               clockClock,
 		OAuthSessionManager: sessionManager,
 	}
+	oauthOfflineGrantService := &oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
+	sessionListingService := &sessionlisting.SessionListingService{
+		OAuthConfig:   oAuthConfig,
+		IDPSessions:   idpsessionProvider,
+		OfflineGrants: oauthOfflineGrantService,
+	}
 	settingsSessionsHandler := &webapp.SettingsSessionsHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
@@ -36309,6 +36274,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:          manager2,
 		Authorizations:    authorizationService,
 		OAuthConfig:       oAuthConfig,
+		SessionListing:    sessionListingService,
 	}
 	return settingsSessionsHandler
 }
@@ -36792,7 +36758,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -37557,7 +37522,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -38322,7 +38286,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -39087,7 +39050,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -39852,7 +39814,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -40624,7 +40585,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -41390,7 +41350,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -42154,7 +42113,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -42932,7 +42890,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -43696,7 +43653,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -44460,7 +44416,6 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -45241,7 +45196,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -45972,7 +45926,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -46702,7 +46655,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -47476,7 +47428,6 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -48993,7 +48944,6 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,

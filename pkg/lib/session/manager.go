@@ -13,8 +13,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-type signedOutEventOption struct {
-	IsAdminAPI bool
+type revokeEventOption struct {
+	IsAdminAPI    bool
+	IsTermination bool
 }
 
 var ErrSessionNotFound = errors.New("session not found")
@@ -29,6 +30,7 @@ type ManagementService interface {
 	Get(id string) (Session, error)
 	Delete(Session) error
 	List(userID string) ([]Session, error)
+	TerminateAllExcept(userID string, idpSessionID string) ([]Session, error)
 }
 
 type IDPSessionManager ManagementService
@@ -55,7 +57,7 @@ func (m *Manager) resolveManagementProvider(session Session) ManagementService {
 	}
 }
 
-func (m *Manager) invalidate(session Session, option *signedOutEventOption) (ManagementService, error) {
+func (m *Manager) invalidate(session Session, option *revokeEventOption) (ManagementService, error) {
 	sessions, err := m.List(session.GetAuthenticationInfo().UserID)
 	if err != nil {
 		return nil, err
@@ -104,15 +106,28 @@ func (m *Manager) invalidate(session Session, option *signedOutEventOption) (Man
 	}
 
 	if option != nil && len(sessionModels) > 0 {
-		err = m.Events.DispatchEvent(&nonblocking.UserSignedOutEventPayload{
-			UserRef: model.UserRef{
-				Meta: model.Meta{
-					ID: session.GetAuthenticationInfo().UserID,
+		if option.IsTermination {
+			err = m.Events.DispatchEvent(&nonblocking.UserSessionTerminatedEventPayload{
+				UserRef: model.UserRef{
+					Meta: model.Meta{
+						ID: session.GetAuthenticationInfo().UserID,
+					},
 				},
-			},
-			Sessions: sessionModels,
-			AdminAPI: option.IsAdminAPI,
-		})
+				Sessions:        sessionModels,
+				AdminAPI:        option.IsAdminAPI,
+				TerminationType: nonblocking.UserSessionTerminationTypeIndividual,
+			})
+		} else {
+			err = m.Events.DispatchEvent(&nonblocking.UserSignedOutEventPayload{
+				UserRef: model.UserRef{
+					Meta: model.Meta{
+						ID: session.GetAuthenticationInfo().UserID,
+					},
+				},
+				Sessions: sessionModels,
+				AdminAPI: option.IsAdminAPI,
+			})
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -134,7 +149,7 @@ func (m *Manager) invalidateSession(session Session) (ManagementService, error) 
 }
 
 func (m *Manager) Logout(session Session, rw http.ResponseWriter) error {
-	provider, err := m.invalidate(session, &signedOutEventOption{IsAdminAPI: false})
+	provider, err := m.invalidate(session, &revokeEventOption{IsAdminAPI: false, IsTermination: false})
 	if err != nil {
 		return err
 	}
@@ -146,8 +161,11 @@ func (m *Manager) Logout(session Session, rw http.ResponseWriter) error {
 	return nil
 }
 
-func (m *Manager) RevokeWithEvent(session Session, isAdminAPI bool) error {
-	_, err := m.invalidate(session, &signedOutEventOption{IsAdminAPI: isAdminAPI})
+func (m *Manager) RevokeWithEvent(session Session, isTermination bool, isAdminAPI bool) error {
+	_, err := m.invalidate(session, &revokeEventOption{
+		IsAdminAPI:    isAdminAPI,
+		IsTermination: isTermination,
+	})
 	if err != nil {
 		return err
 	}
@@ -159,6 +177,52 @@ func (m *Manager) RevokeWithoutEvent(session Session) error {
 	_, err := m.invalidate(session, nil)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (m *Manager) TerminateAllExcept(userID string, idpSessionID string, isAdminAPI bool) error {
+	idpSessions, err := m.IDPSessions.TerminateAllExcept(userID, idpSessionID)
+	if err != nil {
+		return err
+	}
+	accessGrantSessions, err := m.AccessTokenSessions.TerminateAllExcept(userID, idpSessionID)
+	if err != nil {
+		return err
+	}
+
+	sessionModels := []model.Session{}
+	for _, s := range idpSessions {
+		sessionModel := s.ToAPIModel()
+		sessionModels = append(sessionModels, *sessionModel)
+	}
+	for _, s := range accessGrantSessions {
+		sessionModel := s.ToAPIModel()
+		sessionModels = append(sessionModels, *sessionModel)
+	}
+
+	var sessionTerminationType nonblocking.UserSessionTerminationType
+	if idpSessionID == "" {
+		sessionTerminationType = nonblocking.UserSessionTerminationTypeAll
+	} else {
+		sessionTerminationType = nonblocking.UserSessionTerminationTypeAllOthers
+	}
+
+	if len(sessionModels) > 0 {
+		err = m.Events.DispatchEvent(&nonblocking.UserSessionTerminatedEventPayload{
+			UserRef: model.UserRef{
+				Meta: model.Meta{
+					ID: userID,
+				},
+			},
+			Sessions:        sessionModels,
+			AdminAPI:        isAdminAPI,
+			TerminationType: sessionTerminationType,
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

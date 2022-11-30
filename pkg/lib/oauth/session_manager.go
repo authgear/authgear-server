@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
 
 type SessionManager struct {
@@ -44,17 +45,42 @@ func (m *SessionManager) List(userID string) ([]session.Session, error) {
 
 	var sessions []session.Session
 	for _, session := range grants {
-		isValid, _, err := m.Service.IsValid(session)
-		if err != nil {
-			return nil, err
-		}
-
-		// ignore sessions without client and expired sessions
-		if !isValid {
-			continue
-		}
-
 		sessions = append(sessions, session)
 	}
 	return sessions, nil
+}
+
+func (m *SessionManager) TerminateAllExcept(userID string, idpSessionID string) ([]session.Session, error) {
+	sessions, err := m.Store.ListOfflineGrants(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	thirdPartyClientIDSet := make(setutil.Set[string])
+	for _, c := range m.Config.Clients {
+		if c.ClientParty() == config.ClientPartyThird {
+			thirdPartyClientIDSet[c.ClientID] = struct{}{}
+		}
+	}
+
+	deletedSessions := []session.Session{}
+	for _, ss := range sessions {
+		// skip third party client app refresh token
+		// third party refresh token should be deleted through deleting authorization
+		if _, ok := thirdPartyClientIDSet[ss.ClientID]; ok {
+			continue
+		}
+
+		// skip the sessions that belongs to the IDP sessions
+		if idpSessionID == ss.SSOGroupIDPSessionID() {
+			continue
+		}
+
+		if err := m.Delete(ss); err != nil {
+			return nil, err
+		}
+		deletedSessions = append(deletedSessions, ss)
+	}
+
+	return deletedSessions, nil
 }

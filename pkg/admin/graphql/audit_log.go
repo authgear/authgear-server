@@ -29,6 +29,9 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"USER_SIGNED_OUT": &graphql.EnumValueConfig{
 			Value: "user.signed_out",
 		},
+		"USER_SESSION_TERMINATED": &graphql.EnumValueConfig{
+			Value: "user.session.terminated",
+		},
 		"USER_ANONYMOUS_PROMOTED": &graphql.EnumValueConfig{
 			Value: "user.anonymous.promoted",
 		},

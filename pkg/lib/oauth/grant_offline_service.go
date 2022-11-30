@@ -21,19 +21,15 @@ type OfflineGrantService struct {
 }
 
 func (s *OfflineGrantService) IsValid(session *OfflineGrant) (bool, time.Time, error) {
-	now := s.Clock.NowUTC()
-	expiry, err := s.ComputeOfflineGrantExpiry(session)
-	if errors.Is(err, ErrGrantNotFound) {
-		return false, now, nil
-	} else if err != nil {
+	offlineSessionExpired, expiry, err := s.CheckSessionExpired(session)
+	if err != nil {
 		return false, time.Time{}, err
 	}
-
-	offlineGrantIsValid := now.Before(expiry)
-	if !offlineGrantIsValid {
+	if offlineSessionExpired {
 		return false, expiry, nil
 	}
 
+	now := s.Clock.NowUTC()
 	if session.SSOEnabled {
 		if session.IDPSessionID == "" {
 			return false, now, nil
@@ -72,6 +68,19 @@ func (s *OfflineGrantService) ComputeOfflineGrantExpiry(session *OfflineGrant) (
 
 	expiry = s.computeOfflineGrantExpiryWithClient(session, clientConfig)
 	return
+}
+
+func (s *OfflineGrantService) CheckSessionExpired(session *OfflineGrant) (bool, time.Time, error) {
+	now := s.Clock.NowUTC()
+	expiry, err := s.ComputeOfflineGrantExpiry(session)
+	if errors.Is(err, ErrGrantNotFound) {
+		return true, now, nil
+	} else if err != nil {
+		return false, time.Time{}, err
+	}
+
+	offlineGrantExpired := now.After(expiry)
+	return offlineGrantExpired, expiry, nil
 }
 
 func (s *OfflineGrantService) computeOfflineGrantExpiryWithClient(session *OfflineGrant, cfg *config.OAuthClientConfig) (expiry time.Time) {
