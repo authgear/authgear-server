@@ -11,7 +11,9 @@ import ScreenDescription from "../../ScreenDescription";
 import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
 import {
+  BlockingHookHandlerConfig,
   HookFeatureConfig,
+  NonBlockingHookHandlerConfig,
   PortalAPIAppConfig,
   PortalAPISecretConfig,
 } from "../../types";
@@ -35,15 +37,20 @@ import TextField from "../../TextField";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import PrimaryButton from "../../PrimaryButton";
 
+type HookKind = "webhook" | "denohook";
+
 interface BlockingEventHandler {
   event: string;
+  kind: HookKind;
   url: string;
 }
 
 interface NonBlockingEventHandler {
   events: string[];
+  kind: HookKind;
   url: string;
 }
+
 interface FormState {
   timeout: number | undefined;
   totalTimeout: number | undefined;
@@ -56,6 +63,44 @@ const MASKED_SECRET = "***************";
 
 const WEBHOOK_SIGNATURE_ID = "webhook-signature";
 
+function blockingConfigToState(
+  c: BlockingHookHandlerConfig
+): BlockingEventHandler {
+  const kind = c.url.startsWith("authgeardeno:") ? "denohook" : "webhook";
+  return {
+    kind,
+    ...c,
+  };
+}
+
+function blockingStateToConfig(
+  s: BlockingEventHandler
+): BlockingHookHandlerConfig {
+  return {
+    event: s.event,
+    url: s.url,
+  };
+}
+
+function nonBlockingConfigToState(
+  c: NonBlockingHookHandlerConfig
+): NonBlockingEventHandler {
+  const kind = c.url.startsWith("authgeardeno:") ? "denohook" : "webhook";
+  return {
+    kind,
+    ...c,
+  };
+}
+
+function nonBlockingStateToConfig(
+  s: NonBlockingEventHandler
+): NonBlockingHookHandlerConfig {
+  return {
+    events: s.events,
+    url: s.url,
+  };
+}
+
 function constructFormState(
   config: PortalAPIAppConfig,
   secrets: PortalAPISecretConfig
@@ -63,8 +108,12 @@ function constructFormState(
   return {
     timeout: config.hook?.sync_hook_timeout_seconds,
     totalTimeout: config.hook?.sync_hook_total_timeout_seconds,
-    blocking_handlers: config.hook?.blocking_handlers ?? [],
-    non_blocking_handlers: config.hook?.non_blocking_handlers ?? [],
+    blocking_handlers: (config.hook?.blocking_handlers ?? []).map(
+      blockingConfigToState
+    ),
+    non_blocking_handlers: (config.hook?.non_blocking_handlers ?? []).map(
+      nonBlockingConfigToState
+    ),
     secret: secrets.webhookSecret?.secret ?? null,
   };
 }
@@ -84,8 +133,12 @@ function constructConfig(
     if (initialState.totalTimeout !== currentState.totalTimeout) {
       config.hook.sync_hook_total_timeout_seconds = currentState.totalTimeout;
     }
-    config.hook.blocking_handlers = currentState.blocking_handlers;
-    config.hook.non_blocking_handlers = currentState.non_blocking_handlers;
+    config.hook.blocking_handlers = currentState.blocking_handlers.map(
+      blockingStateToConfig
+    );
+    config.hook.non_blocking_handlers = currentState.non_blocking_handlers.map(
+      nonBlockingStateToConfig
+    );
     clearEmptyObject(config);
   });
   return [newConfig, secrets];
@@ -138,7 +191,7 @@ const BlockingHandlerItemEdit: React.VFC<BlockingHandlerItemEditProps> =
       [onChange, value]
     );
 
-    const options = useMemo(() => {
+    const eventOptions = useMemo(() => {
       return BLOCK_EVENT_TYPES.map((t) => ({
         key: t,
         text: renderToString(
@@ -147,23 +200,39 @@ const BlockingHandlerItemEdit: React.VFC<BlockingHandlerItemEditProps> =
       }));
     }, [renderToString]);
 
+    const kindOptions = useMemo(() => {
+      return [
+        {
+          key: "webhook",
+          text: renderToString("HookConfigurationScreen.hook-kind.webhook"),
+        },
+      ];
+    }, [renderToString]);
+
     return (
       <div className={styles.handlerEdit}>
         <Dropdown
           className={styles.handlerEventField}
-          options={options}
+          options={eventOptions}
           selectedKey={value.event}
           onChange={onBlockingEventChange}
           ariaLabel={"HookConfigurationScreen.blocking-events.label"}
           {...eventFieldProps}
         />
-        <TextField
-          className={styles.handlerURLField}
-          value={value.url}
-          onChange={onURLChange}
-          placeholder="https://example.com/callback"
-          {...urlFieldProps}
+        <Dropdown
+          className={styles.handlerKindField}
+          options={kindOptions}
+          selectedKey={value.kind}
         />
+        {value.kind === "webhook" ? (
+          <TextField
+            className={styles.handlerURLField}
+            value={value.url}
+            onChange={onURLChange}
+            placeholder="https://example.com/callback"
+            {...urlFieldProps}
+          />
+        ) : null}
       </div>
     );
   };
@@ -177,6 +246,8 @@ const NonBlockingHandlerItemEdit: React.VFC<NonBlockingHandlerItemEditProps> =
   function NonBlockingHandlerItemEdit(props) {
     const { index, value, onChange } = props;
 
+    const { renderToString } = useContext(Context);
+
     const onURLChange = useCallback(
       (_, url?: string) => {
         onChange({ ...value, url: url ?? "" });
@@ -184,8 +255,22 @@ const NonBlockingHandlerItemEdit: React.VFC<NonBlockingHandlerItemEditProps> =
       [onChange, value]
     );
 
+    const kindOptions = useMemo(() => {
+      return [
+        {
+          key: "webhook",
+          text: renderToString("HookConfigurationScreen.hook-kind.webhook"),
+        },
+      ];
+    }, [renderToString]);
+
     return (
       <div className={styles.handlerEdit}>
+        <Dropdown
+          className={styles.handlerKindField}
+          options={kindOptions}
+          selectedKey={value.kind}
+        />
         <FormTextField
           parentJSONPointer={`/hook/non_blocking_handlers/${index}`}
           fieldName="url"
@@ -248,6 +333,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
     const makeDefaultHandler = useCallback(
       (): BlockingEventHandler => ({
         event: BLOCK_EVENT_TYPES[0],
+        kind: "webhook",
         url: "",
       }),
       []
@@ -276,6 +362,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
     const makeDefaultNonBlockingHandler = useCallback(
       (): NonBlockingEventHandler => ({
         events: ["*"],
+        kind: "webhook",
         url: "",
       }),
       []
