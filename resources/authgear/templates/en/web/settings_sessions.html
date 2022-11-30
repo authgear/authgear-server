@@ -44,9 +44,9 @@
       {{ if .ApplicationName }}
       {{ $desc = .ApplicationName }}
       {{ end }}
-      {{ template "settings-sessions-item-description" (dict "time" .LastAccessedAt "rfc3339" (rfc3339 .LastAccessedAt) "desc" $desc "isCurrent" (eq .ID $.CurrentSessionID)) }}
+      {{ template "settings-sessions-item-description" (dict "time" .LastAccessedAt "rfc3339" (rfc3339 .LastAccessedAt) "desc" $desc "isCurrent" .IsCurrent) }}
     </p>
-    {{ if not (eq .ID $.CurrentSessionID) }}
+    {{ if not .IsCurrent }}
     <form class="col-start-2 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate>
       {{ $.CSRFField }}
       <input type="hidden" name="x_session_id" value="{{ .ID }}">

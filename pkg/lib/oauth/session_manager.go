@@ -50,7 +50,7 @@ func (m *SessionManager) List(userID string) ([]session.Session, error) {
 	return sessions, nil
 }
 
-func (m *SessionManager) TerminateAllExcept(userID string, idpSessionID string) ([]session.Session, error) {
+func (m *SessionManager) TerminateAllExcept(userID string, currentSession session.Session) ([]session.Session, error) {
 	sessions, err := m.Store.ListOfflineGrants(userID)
 	if err != nil {
 		return nil, err
@@ -71,8 +71,8 @@ func (m *SessionManager) TerminateAllExcept(userID string, idpSessionID string) 
 			continue
 		}
 
-		// skip the sessions that belongs to the IDP sessions
-		if idpSessionID == ss.SSOGroupIDPSessionID() {
+		// skip the sessions that are in the same sso group
+		if currentSession != nil && ss.IsSameSSOGroup(currentSession) {
 			continue
 		}
 

@@ -102,11 +102,23 @@ func (g *OfflineGrant) SSOGroupIDPSessionID() string {
 	return ""
 }
 
+// IsSameSSOGroup returns true when the session argument
+// - is the same offline grant
+// - is idp session in the same sso group (current offline grant needs to be sso enabled)
+// - is offline grant in the same sso group (current offline grant needs to be sso enabled)
 func (g *OfflineGrant) IsSameSSOGroup(ss session.Session) bool {
-	if g.SSOGroupIDPSessionID() == "" {
-		return false
+	if g.Equal(ss) {
+		return true
 	}
-	return g.SSOGroupIDPSessionID() == ss.SSOGroupIDPSessionID()
+
+	if g.SSOEnabled {
+		if g.SSOGroupIDPSessionID() == "" {
+			return false
+		}
+		return g.SSOGroupIDPSessionID() == ss.SSOGroupIDPSessionID()
+	}
+
+	return false
 }
 
 func (g *OfflineGrant) Equal(ss session.Session) bool {

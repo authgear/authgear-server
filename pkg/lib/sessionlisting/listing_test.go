@@ -102,7 +102,7 @@ func TestSessionListingService(t *testing.T) {
 				idpSession,
 				offlineGrant,
 				idpSession2,
-			})
+			}, nil)
 			So(err, ShouldBeNil)
 			So(session, ShouldResemble, []*sessionlisting.Session{
 				{Session: offlineGrant.ToAPIModel(), IsDevice: true},
@@ -126,7 +126,7 @@ func TestSessionListingService(t *testing.T) {
 				idpSession,
 				offlineGrant,
 				idpSession2,
-			})
+			}, nil)
 			So(err, ShouldBeNil)
 			So(session, ShouldResemble, []*sessionlisting.Session{
 				{Session: offlineGrant2.ToAPIModel(), IsDevice: true},
@@ -153,7 +153,7 @@ func TestSessionListingService(t *testing.T) {
 				idpSession,
 				offlineGrant,
 				idpSession2,
-			})
+			}, nil)
 			So(err, ShouldBeNil)
 			So(session, ShouldResemble, []*sessionlisting.Session{
 				{Session: offlineGrant2.ToAPIModel(), IsDevice: true},
@@ -161,7 +161,7 @@ func TestSessionListingService(t *testing.T) {
 			})
 		})
 
-		Convey("should show idp sessions only in the same SSO group", func() {
+		Convey("test sso group", func() {
 			deviceInfo1 := makeDeviceInfo("myiphone", "iPhone14,2")
 			deviceInfo2 := makeDeviceInfo("myiphone", "iPhone15,2")
 			idpSession := makeIDPSession("1", time.Date(2006, 5, 1, 1, 1, 1, 0, time.UTC))
@@ -178,19 +178,70 @@ func TestSessionListingService(t *testing.T) {
 			// For the same SSO group, idp should use the last accessed offline grant display name
 			updatedIDPSessionModel.DisplayName = offlineGrant3SessionModel.DisplayName
 
-			session, err := svc.FilterForDisplay([]session.Session{
-				offlineGrant2,
-				idpSession,
-				offlineGrant,
-				idpSession2,
-				offlineGrant3,
+			Convey("should show idp sessions only in the same SSO group", func() {
+				session, err := svc.FilterForDisplay([]session.Session{
+					offlineGrant2,
+					idpSession,
+					offlineGrant,
+					idpSession2,
+					offlineGrant3,
+				}, nil)
+				So(err, ShouldBeNil)
+				So(session, ShouldResemble, []*sessionlisting.Session{
+					{Session: updatedIDPSessionModel, IsDevice: true},
+					{Session: offlineGrant.ToAPIModel(), IsDevice: true},
+					{Session: idpSession2.ToAPIModel()},
+				})
 			})
-			So(err, ShouldBeNil)
-			So(session, ShouldResemble, []*sessionlisting.Session{
-				{Session: updatedIDPSessionModel, IsDevice: true},
-				{Session: offlineGrant.ToAPIModel(), IsDevice: true},
-				{Session: idpSession2.ToAPIModel()},
+
+			Convey("should show session IsCurrent for idp session", func() {
+				session, err := svc.FilterForDisplay([]session.Session{
+					offlineGrant2,
+					idpSession,
+					offlineGrant,
+					idpSession2,
+					offlineGrant3,
+				}, idpSession)
+				So(err, ShouldBeNil)
+				So(session, ShouldResemble, []*sessionlisting.Session{
+					{Session: updatedIDPSessionModel, IsDevice: true, IsCurrent: true},
+					{Session: offlineGrant.ToAPIModel(), IsDevice: true},
+					{Session: idpSession2.ToAPIModel()},
+				})
 			})
+
+			Convey("should show session IsCurrent for offline grant in same sso group", func() {
+				session, err := svc.FilterForDisplay([]session.Session{
+					offlineGrant2,
+					idpSession,
+					offlineGrant,
+					idpSession2,
+					offlineGrant3,
+				}, offlineGrant2)
+				So(err, ShouldBeNil)
+				So(session, ShouldResemble, []*sessionlisting.Session{
+					{Session: updatedIDPSessionModel, IsDevice: true, IsCurrent: true},
+					{Session: offlineGrant.ToAPIModel(), IsDevice: true},
+					{Session: idpSession2.ToAPIModel()},
+				})
+			})
+
+			Convey("should show session IsCurrent for sso disabled offline grant", func() {
+				session, err := svc.FilterForDisplay([]session.Session{
+					offlineGrant2,
+					idpSession,
+					offlineGrant,
+					idpSession2,
+					offlineGrant3,
+				}, offlineGrant)
+				So(err, ShouldBeNil)
+				So(session, ShouldResemble, []*sessionlisting.Session{
+					{Session: updatedIDPSessionModel, IsDevice: true},
+					{Session: offlineGrant.ToAPIModel(), IsDevice: true, IsCurrent: true},
+					{Session: idpSession2.ToAPIModel()},
+				})
+			})
+
 		})
 
 	})

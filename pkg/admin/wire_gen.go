@@ -66,6 +66,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
+	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
@@ -931,6 +932,16 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Tokens:         tokenService,
 		Clock:          clockClock,
 	}
+	oauthOfflineGrantService := &oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
+	sessionListingService := &sessionlisting.SessionListingService{
+		OAuthConfig:   oAuthConfig,
+		IDPSessions:   idpsessionProvider,
+		OfflineGrants: oauthOfflineGrantService,
+	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:             logger,
 		OAuthConfig:           oAuthConfig,
@@ -948,6 +959,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileFacade:     userProfileFacade,
 		AuthorizationFacade:   authorizationFacade,
 		OAuthFacade:           oAuthFacade,
+		SessionListing:        sessionListingService,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: graphqlContext,

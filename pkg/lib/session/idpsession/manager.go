@@ -59,7 +59,7 @@ func (m *Manager) List(userID string) ([]session.Session, error) {
 	return sessions, nil
 }
 
-func (m *Manager) TerminateAllExcept(userID string, idpSessionID string) ([]session.Session, error) {
+func (m *Manager) TerminateAllExcept(userID string, currentSession session.Session) ([]session.Session, error) {
 	sessions, err := m.Store.List(userID)
 	if err != nil {
 		return nil, err
@@ -67,7 +67,7 @@ func (m *Manager) TerminateAllExcept(userID string, idpSessionID string) ([]sess
 
 	deletedSessions := []session.Session{}
 	for _, ss := range sessions {
-		if idpSessionID == ss.ID {
+		if currentSession != nil && ss.IsSameSSOGroup(currentSession) {
 			continue
 		}
 
