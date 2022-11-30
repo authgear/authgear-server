@@ -23,13 +23,18 @@
 .handlerEdit {
   flex-grow: 1;
   display: flex;
+  column-gap: 8px;
 }
 
-.handlerEdit .handlerEventField {
-  width: 200px;
-  margin-right: 8px;
+.handlerEventField {
+  width: 180px;
 }
 
-.handlerEdit .handlerURLField {
+.handlerKindField {
+  width: 180px;
+}
+
+.handlerURLField {
+  min-width: 0;
   flex: 1 0 0;
 }
