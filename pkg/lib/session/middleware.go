@@ -108,8 +108,10 @@ func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (s Session
 func (m *Middleware) resolveSession(rw http.ResponseWriter, r *http.Request) (Session, error) {
 	isInvalid := false
 
-	// IDP session in cookie takes priority over access token in header
-	for _, resolver := range []Resolver{m.IDPSessionResolver, m.AccessTokenSessionResolver} {
+	// Access token in header/App session token in cookie takes priority over IDP session in cookie
+	// If both the app session and IDP session exist in the cookie
+	// Middleware will read the app session first, so SDK will always open the correct settings page
+	for _, resolver := range []Resolver{m.AccessTokenSessionResolver, m.IDPSessionResolver} {
 		session, err := resolver.Resolve(rw, r)
 		if errors.Is(err, ErrInvalidSession) {
 			// Continue to attempt resolving session, even if one of the resolver reported invalid.
