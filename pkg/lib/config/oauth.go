@@ -72,7 +72,7 @@ var _ = Schema.Add("OAuthClientConfig", `
 			"if": {
 				"properties": {
 					"x_application_type": {
-						"enum": ["spa", "traditional_webapp"]
+						"enum": ["traditional_webapp"]
 					}
 				},
 				"required": ["x_application_type"]
