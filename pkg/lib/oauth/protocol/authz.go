@@ -62,14 +62,15 @@ func (r AuthorizationRequest) Platform() string          { return r["x_platform"
 func (r AuthorizationRequest) WeChatRedirectURI() string { return r["x_wechat_redirect_uri"] }
 func (r AuthorizationRequest) Page() string              { return r["x_page"] }
 func (r AuthorizationRequest) SuppressIDPSessionCookie() bool {
-	if r["x_suppress_idp_session_cookie"] != "" {
-		return r["x_suppress_idp_session_cookie"] == "true"
-	}
-
+	// Read x_sso_enabled first if it is provided in the request
+	// x_suppress_idp_session_cookie is for backward compatibility only
 	if r["x_sso_enabled"] != "" {
 		return r["x_sso_enabled"] != "true"
 	}
 
+	if r["x_suppress_idp_session_cookie"] != "" {
+		return r["x_suppress_idp_session_cookie"] == "true"
+	}
 	// if both x_suppress_idp_session_cookie or sso_enabled is not provided
 	// default is false
 	// - the third party app should not suppress idp session
