@@ -424,7 +424,9 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                 </Label>
               }
               description={renderToString(
-                "EditOAuthClientForm.post-logout-redirect-uris.description"
+                clientConfig.x_application_type === "spa"
+                  ? "EditOAuthClientForm.post-logout-redirect-uris.spa.description"
+                  : "EditOAuthClientForm.post-logout-redirect-uris.description"
               )}
             />
           ) : null}
