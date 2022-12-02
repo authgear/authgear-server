@@ -109,6 +109,7 @@
   "errors.service-unavailable": "Service Unavailable. Please Try again later.",
   "errors.bad-nft-collection": "This NFT collection is either not supported or is from another network.",
   "errors.alchemy-protocol": "We have some problem with this NFT collection. Please contact us at {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}}.",
+  "errors.deno-hook.typecheck": "{pre, react, children{{message}}}",
 
   "TodoButtonWrapper.dialog-title": "Feature Not Ready",
   "TodoButtonWrapper.dialog-message": "This feature is not yet implemented",

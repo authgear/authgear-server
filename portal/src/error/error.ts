@@ -58,9 +58,6 @@ export interface ServiceUnavailableError {
 export interface UnknownError {
   errorName: "Unknown";
   reason: "Unknown";
-  info: {
-    message: string;
-  };
 }
 
 export interface LocalError {
@@ -71,7 +68,12 @@ export interface LocalError {
   };
 }
 
-export type APIError =
+export interface APIDenoCheckError {
+  errorName: string;
+  reason: "DenoCheckError";
+}
+
+export type APIError = { message?: string } & (
   | NetworkError
   | RequestEntityTooLargeError
   | UnknownError
@@ -103,7 +105,9 @@ export type APIError =
   | APIResourceTooLargeError
   | APIUnsupportedImageFileError
   | APIBadNFTCollectionError
-  | APIAlchemyProtocolError;
+  | APIAlchemyProtocolError
+  | APIDenoCheckError
+);
 
 export function isAPIError(value: unknown): value is APIError {
   return (
