@@ -38,3 +38,21 @@
   min-width: 0;
   flex: 1 0 0;
 }
+
+.codeEditorContainer {
+  display: flex;
+  flex-direction: column;
+  row-gap: 8px;
+}
+
+.codeEditor {
+  width: 80vw;
+  height: 80vh;
+}
+
+.codeEditorFooter {
+  display: flex;
+  flex-direction: row;
+  column-gap: 8px;
+  padding: 0 8px 8px;
+}
