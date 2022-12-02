@@ -47,10 +47,10 @@ func (d DenoFileDescriptor) FindResources(fs resource.Fs) ([]resource.Location, 
 func (DenoFileDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
 	output := bytes.Buffer{}
 
-	app := func(view resource.AppFileView) error {
+	app := func(p string) error {
 		var target *resource.ResourceFile
 		for _, resrc := range resources {
-			if resrc.Location.Fs.GetFsLevel() == resource.FsLevelApp && resrc.Location.Path == view.AppFilePath() {
+			if resrc.Location.Fs.GetFsLevel() == resource.FsLevelApp && resrc.Location.Path == p {
 				s := resrc
 				target = &s
 			}
@@ -63,9 +63,17 @@ func (DenoFileDescriptor) ViewResources(resources []resource.ResourceFile, rawVi
 		return nil
 	}
 
+	// We have to support AppFileView and EffectiveFileView
+	// because the portal assumes every editable resources support these two views.
 	switch view := rawView.(type) {
 	case resource.AppFileView:
-		err := app(view)
+		err := app(view.AppFilePath())
+		if err != nil {
+			return nil, err
+		}
+		return output.Bytes(), nil
+	case resource.EffectiveFileView:
+		err := app(view.EffectiveFilePath())
 		if err != nil {
 			return nil, err
 		}
