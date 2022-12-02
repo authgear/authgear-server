@@ -9,7 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
-var DenoFileFilenameRegexp = regexp.MustCompile(`^deno/[0-9a-zA-Z]+\.ts$`)
+var DenoFileFilenameRegexp = regexp.MustCompile(`^deno/[.0-9a-zA-Z]+\.ts$`)
 
 //go:generate mockgen -source=resources.go -destination=resources_mock_test.go -package hook
 
