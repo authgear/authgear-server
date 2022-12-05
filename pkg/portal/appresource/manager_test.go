@@ -53,9 +53,8 @@ func TestManager(t *testing.T) {
 			Clock:              clock.NewMockClock(),
 		}
 
-		applyUpdates := func(updates []appresource.Update) error {
-			_, err := portalResMgr.ApplyUpdates(appID, updates)
-			return err
+		applyUpdates := func(updates []appresource.Update) ([]*resource.ResourceFile, error) {
+			return portalResMgr.ApplyUpdates(appID, updates)
 		}
 
 		func() {
@@ -67,12 +66,12 @@ func TestManager(t *testing.T) {
 
 		Convey("validate new config without crash", func() {
 			// We do not use updates to create new config.
-			err := applyUpdates(nil)
+			_, err := applyUpdates(nil)
 			So(err, ShouldBeNil)
 		})
 
 		Convey("validate file size", func() {
-			err := applyUpdates([]appresource.Update{{
+			_, err := applyUpdates([]appresource.Update{{
 				Path: "authgear.yaml",
 				Data: []byte("id: " + string(make([]byte, 1024*1024))),
 			}})
@@ -80,7 +79,7 @@ func TestManager(t *testing.T) {
 		})
 
 		Convey("validate configuration YAML", func() {
-			err := applyUpdates([]appresource.Update{{
+			_, err := applyUpdates([]appresource.Update{{
 				Path: "authgear.yaml",
 				Data: []byte("{}"),
 			}})
@@ -88,7 +87,7 @@ func TestManager(t *testing.T) {
 <root>: required
   map[actual:<nil> expected:[http id] missing:[http id]]`)
 
-			err = applyUpdates([]appresource.Update{{
+			_, err = applyUpdates([]appresource.Update{{
 				Path: "authgear.yaml",
 				Data: []byte("id: test\nhttp:\n  public_origin: \"http://test\""),
 			}})
@@ -119,7 +118,7 @@ func TestManager(t *testing.T) {
 			bytes, err := json.Marshal(updateSecretConfigInstructions)
 			So(err, ShouldBeNil)
 
-			err = applyUpdates([]appresource.Update{{
+			_, err = applyUpdates([]appresource.Update{{
 				Path: "authgear.secrets.yaml",
 				Data: bytes,
 			}})
@@ -127,13 +126,13 @@ func TestManager(t *testing.T) {
 		})
 
 		Convey("forbid deleting configuration YAML", func() {
-			err := applyUpdates([]appresource.Update{{
+			_, err := applyUpdates([]appresource.Update{{
 				Path: "authgear.yaml",
 				Data: nil,
 			}})
 			So(err, ShouldBeError, "cannot delete 'authgear.yaml'")
 
-			err = applyUpdates([]appresource.Update{{
+			_, err = applyUpdates([]appresource.Update{{
 				Path: "authgear.secrets.yaml",
 				Data: nil,
 			}})
@@ -141,11 +140,27 @@ func TestManager(t *testing.T) {
 		})
 
 		Convey("forbid unknown resource files", func() {
-			err := applyUpdates([]appresource.Update{{
+			_, err := applyUpdates([]appresource.Update{{
 				Path: "unknown.txt",
 				Data: nil,
 			}})
 			So(err, ShouldBeError, `invalid resource 'unknown.txt': unknown resource path`)
+		})
+
+		Convey("clean up orphaned resources files", func() {
+			_ = appFs.MkdirAll("deno", 0777)
+			_ = afero.WriteFile(appFs, "deno/a.ts", []byte("a.ts"), 0666)
+			appConfigYAML, _ := yaml.Marshal(cfg.AppConfig)
+
+			files, err := applyUpdates([]appresource.Update{{
+				Path: "authgear.yaml",
+				Data: appConfigYAML,
+			}})
+			So(err, ShouldBeNil)
+			So(len(files), ShouldEqual, 2)
+			So(files[1].Location.Fs.GetFsLevel(), ShouldEqual, resource.FsLevelApp)
+			So(files[1].Location.Path, ShouldEqual, "deno/a.ts")
+			So(files[1].Data, ShouldEqual, nil)
 		})
 	})
 
