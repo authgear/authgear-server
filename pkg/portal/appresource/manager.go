@@ -5,9 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path"
 	"sort"
+	"strings"
 
 	"github.com/spf13/afero"
 
@@ -145,7 +147,78 @@ func (m *Manager) ApplyUpdates(appID string, updates []Update) ([]*resource.Reso
 		return nil, fmt.Errorf("invalid resource '%s': incorrect app ID", configsource.AuthgearYAML)
 	}
 
+	// Clean up orphaned resources if authgear.yaml is updated.
+	// It is because the portal updates the resources, and then
+	// update authgear.yaml in 2 consecutive calls.
+	// If we cleans up unconditionally, we cannot save new Deno hooks.
+	for _, update := range updates {
+		if update.Path == configsource.AuthgearYAML {
+			filesToDelete, err := m.cleanupOrphanedResources(newManager, cfg)
+			if err != nil {
+				return nil, err
+			}
+
+			if len(filesToDelete) > 0 {
+				files = append(files, filesToDelete...)
+			}
+		}
+	}
+
 	return files, nil
+}
+
+func (m *Manager) cleanupOrphanedResources(manager *resource.Manager, cfg *config.Config) ([]*resource.ResourceFile, error) {
+	paths := make(map[string]struct{})
+
+	addToPaths := func(urlStr string) error {
+		u, err := url.Parse(urlStr)
+		if err != nil {
+			return err
+		}
+		if u.Scheme == "authgeardeno" {
+			key := strings.TrimPrefix(u.Path, "/")
+			paths[key] = struct{}{}
+		}
+		return nil
+	}
+
+	for _, h := range cfg.AppConfig.Hook.BlockingHandlers {
+		err := addToPaths(h.URL)
+		if err != nil {
+			return nil, err
+		}
+	}
+	for _, h := range cfg.AppConfig.Hook.NonBlockingHandlers {
+		err := addToPaths(h.URL)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var filesToDelete []*resource.ResourceFile
+	for _, fs := range manager.Filesystems() {
+		if fs.GetFsLevel() == resource.FsLevelApp {
+			locations, err := hook.DenoFile.FindResources(fs)
+			if err != nil {
+				return nil, err
+			}
+
+			for _, location := range locations {
+
+				_, ok := paths[location.Path]
+				// No longer referenced by the config, i.e. orphaned.
+				if !ok {
+					l := location
+					filesToDelete = append(filesToDelete, &resource.ResourceFile{
+						Location: l,
+						Data:     nil,
+					})
+				}
+			}
+		}
+	}
+
+	return filesToDelete, nil
 }
 
 func (m *Manager) getFromAppFs(newAppFs resource.LeveledAferoFs, location resource.Location) (*resource.ResourceFile, error) {
