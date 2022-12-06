@@ -19,6 +19,7 @@ export interface ResourceFormModel<State> {
   reload: () => void;
   reset: () => void;
   save: () => Promise<void>;
+  diff: ResourcesDiffResult | null;
 }
 
 export type StateConstructor<State> = (resources: Resource[]) => State;
@@ -123,5 +124,6 @@ export function useResourceForm<State>(
     reload,
     reset,
     save,
+    diff,
   };
 }

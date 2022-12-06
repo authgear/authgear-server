@@ -1,7 +1,14 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useParams } from "react-router-dom";
-import { Dropdown, IDropdownOption, Label, Modal } from "@fluentui/react";
+import {
+  Dropdown,
+  IDropdownOption,
+  Label,
+  Modal,
+  FontIcon,
+  useTheme,
+} from "@fluentui/react";
 import produce from "immer";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
@@ -22,7 +29,12 @@ import {
   useAppSecretConfigForm,
 } from "../../hook/useAppSecretConfigForm";
 import { useResourceForm } from "../../hook/useResourceForm";
-import { resourcePath, ResourceSpecifier, Resource } from "../../util/resource";
+import {
+  resourcePath,
+  ResourceSpecifier,
+  Resource,
+  ResourcesDiffResult,
+} from "../../util/resource";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import FieldList, { ListItemProps } from "../../FieldList";
 import FormContainer from "../../FormContainer";
@@ -67,24 +79,59 @@ interface BlockingEventHandler {
   event: string;
   kind: HookKind;
   url: string;
+  isDirty: boolean;
 }
 
 interface NonBlockingEventHandler {
   events: string[];
   kind: HookKind;
   url: string;
+  isDirty: boolean;
 }
 
 interface ConfigFormState {
   timeout: number | undefined;
   totalTimeout: number | undefined;
-  blocking_handlers: BlockingEventHandler[];
-  non_blocking_handlers: NonBlockingEventHandler[];
+  blocking_handlers: BlockingHookHandlerConfig[];
+  non_blocking_handlers: NonBlockingHookHandlerConfig[];
   secret: string | null;
+}
+
+function getKind(url: string): HookKind {
+  if (url.startsWith("authgeardeno:")) {
+    return "denohook";
+  }
+  return "webhook";
+}
+
+function checkDirty(diff: ResourcesDiffResult | null, url: string): boolean {
+  if (diff == null) {
+    return false;
+  }
+
+  const kind = getKind(url);
+  if (kind !== "denohook") {
+    return false;
+  }
+
+  const path = url.slice("authgeardeno:///".length);
+  for (const a of diff.newResources) {
+    if (a.path === path) {
+      return true;
+    }
+  }
+  for (const a of diff.editedResources) {
+    if (a.path === path) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 interface FormState extends ConfigFormState {
   resources: Resource[];
+  diff: ResourcesDiffResult | null;
 }
 
 interface FormModel {
@@ -115,45 +162,12 @@ const EDIT_BUTTON_STYLES = {
     // So we force it to 32px.
     height: "32px",
   },
+  label: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+  },
 };
-
-function blockingConfigToState(
-  c: BlockingHookHandlerConfig
-): BlockingEventHandler {
-  const kind = c.url.startsWith("authgeardeno:") ? "denohook" : "webhook";
-  return {
-    kind,
-    ...c,
-  };
-}
-
-function blockingStateToConfig(
-  s: BlockingEventHandler
-): BlockingHookHandlerConfig {
-  return {
-    event: s.event,
-    url: s.url,
-  };
-}
-
-function nonBlockingConfigToState(
-  c: NonBlockingHookHandlerConfig
-): NonBlockingEventHandler {
-  const kind = c.url.startsWith("authgeardeno:") ? "denohook" : "webhook";
-  return {
-    kind,
-    ...c,
-  };
-}
-
-function nonBlockingStateToConfig(
-  s: NonBlockingEventHandler
-): NonBlockingHookHandlerConfig {
-  return {
-    events: s.events,
-    url: s.url,
-  };
-}
 
 function constructConfigFormState(
   config: PortalAPIAppConfig,
@@ -162,12 +176,8 @@ function constructConfigFormState(
   return {
     timeout: config.hook?.sync_hook_timeout_seconds,
     totalTimeout: config.hook?.sync_hook_total_timeout_seconds,
-    blocking_handlers: (config.hook?.blocking_handlers ?? []).map(
-      blockingConfigToState
-    ),
-    non_blocking_handlers: (config.hook?.non_blocking_handlers ?? []).map(
-      nonBlockingConfigToState
-    ),
+    blocking_handlers: config.hook?.blocking_handlers ?? [],
+    non_blocking_handlers: config.hook?.non_blocking_handlers ?? [],
     secret: secrets.webhookSecret?.secret ?? null,
   };
 }
@@ -187,12 +197,8 @@ function constructConfig(
     if (initialState.totalTimeout !== currentState.totalTimeout) {
       config.hook.sync_hook_total_timeout_seconds = currentState.totalTimeout;
     }
-    config.hook.blocking_handlers = currentState.blocking_handlers.map(
-      blockingStateToConfig
-    );
-    config.hook.non_blocking_handlers = currentState.non_blocking_handlers.map(
-      nonBlockingStateToConfig
-    );
+    config.hook.blocking_handlers = currentState.blocking_handlers;
+    config.hook.non_blocking_handlers = currentState.non_blocking_handlers;
     clearEmptyObject(config);
   });
   return [newConfig, secrets];
@@ -224,12 +230,12 @@ function makeSpecifier(url: string): ResourceSpecifier {
 function makeSpecifiersFromState(state: ConfigFormState): ResourceSpecifier[] {
   const specifiers = [];
   for (const h of state.blocking_handlers) {
-    if (h.kind === "denohook") {
+    if (getKind(h.url) === "denohook") {
       specifiers.push(makeSpecifier(h.url));
     }
   }
   for (const h of state.non_blocking_handlers) {
-    if (h.kind === "denohook") {
+    if (getKind(h.url) === "denohook") {
       specifiers.push(makeSpecifier(h.url));
     }
   }
@@ -239,7 +245,7 @@ function makeSpecifiersFromState(state: ConfigFormState): ResourceSpecifier[] {
 function addMissingResources(state: FormState) {
   for (let i = 0; i < state.blocking_handlers.length; ++i) {
     const h = state.blocking_handlers[i];
-    if (h.kind === "denohook") {
+    if (getKind(h.url) === "denohook") {
       const path = getPathFromURL(h.url);
       const specifier = makeSpecifier(h.url);
       const r = state.resources.find((r) => r.path === path);
@@ -254,7 +260,7 @@ function addMissingResources(state: FormState) {
   }
   for (let i = 0; i < state.non_blocking_handlers.length; ++i) {
     const h = state.non_blocking_handlers[i];
-    if (h.kind === "denohook") {
+    if (getKind(h.url) === "denohook") {
       const path = getPathFromURL(h.url);
       const specifier = makeSpecifier(h.url);
       const r = state.resources.find((r) => r.path === path);
@@ -286,6 +292,8 @@ const BlockingHandlerItemEdit: React.VFC<BlockingHandlerItemEditProps> =
     const { index, value, onChange, onEdit } = props;
 
     const { renderToString } = useContext(Context);
+
+    const theme = useTheme();
 
     const eventField = useMemo(
       () => ({
@@ -400,7 +408,18 @@ const BlockingHandlerItemEdit: React.VFC<BlockingHandlerItemEditProps> =
             iconProps={EDIT_BUTTON_ICON_PROPS}
             styles={EDIT_BUTTON_STYLES}
             text={
-              <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
+              <>
+                <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
+                {value.isDirty ? (
+                  <FontIcon
+                    iconName="LocationDot"
+                    className={styles.dot}
+                    style={{
+                      color: theme.palette.themePrimary,
+                    }}
+                  />
+                ) : null}
+              </>
             }
             onClick={onClickEdit}
           />
@@ -418,6 +437,8 @@ interface NonBlockingHandlerItemEditProps {
 const NonBlockingHandlerItemEdit: React.VFC<NonBlockingHandlerItemEditProps> =
   function NonBlockingHandlerItemEdit(props) {
     const { index, value, onChange, onEdit } = props;
+
+    const theme = useTheme();
 
     const { renderToString } = useContext(Context);
 
@@ -495,7 +516,18 @@ const NonBlockingHandlerItemEdit: React.VFC<NonBlockingHandlerItemEditProps> =
             iconProps={EDIT_BUTTON_ICON_PROPS}
             styles={EDIT_BUTTON_STYLES}
             text={
-              <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
+              <>
+                <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
+                {value.isDirty ? (
+                  <FontIcon
+                    iconName="LocationDot"
+                    className={styles.dot}
+                    style={{
+                      color: theme.palette.themePrimary,
+                    }}
+                  />
+                ) : null}
+              </>
             }
             onClick={onClickEdit}
           />
@@ -544,8 +576,9 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       return {
         ...config.state,
         resources: resources.state,
+        diff: resources.diff,
       };
-    }, [config.state, resources.state]);
+    }, [config.state, resources.state, resources.diff]);
 
     const form: FormModel = {
       isLoading: config.isLoading || resources.isLoading,
@@ -746,6 +779,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
         event: BLOCK_EVENT_TYPES[0],
         kind: "webhook",
         url: "",
+        isDirty: false,
       }),
       []
     );
@@ -767,7 +801,13 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       (value: BlockingEventHandler[]) => {
         setState((state) =>
           produce(state, (state) => {
-            state.blocking_handlers = value;
+            const newValue: BlockingHookHandlerConfig[] = value.map((h) => {
+              return {
+                event: h.event,
+                url: h.url,
+              };
+            });
+            state.blocking_handlers = newValue;
             addMissingResources(state);
           })
         );
@@ -781,6 +821,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
         events: ["*"],
         kind: "webhook",
         url: "",
+        isDirty: false,
       }),
       []
     );
@@ -804,7 +845,13 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       (value: NonBlockingEventHandler[]) => {
         setState((state) =>
           produce(state, (state) => {
-            state.non_blocking_handlers = value;
+            const newValue = value.map((h) => {
+              return {
+                events: h.events,
+                url: h.url,
+              };
+            });
+            state.non_blocking_handlers = newValue;
             addMissingResources(state);
           })
         );
@@ -872,6 +919,34 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       );
     }, [state.non_blocking_handlers.length, nonBlockingHandlerDisabled]);
 
+    const blockingHandlers: BlockingEventHandler[] = useMemo(() => {
+      const diff = state.diff;
+      const cfgs = state.blocking_handlers;
+      const out = [];
+      for (const c of cfgs) {
+        out.push({
+          ...c,
+          kind: getKind(c.url),
+          isDirty: checkDirty(diff, c.url),
+        });
+      }
+      return out;
+    }, [state.diff, state.blocking_handlers]);
+
+    const nonBlockingHandlers: NonBlockingEventHandler[] = useMemo(() => {
+      const diff = state.diff;
+      const cfgs = state.non_blocking_handlers;
+      const out = [];
+      for (const c of cfgs) {
+        out.push({
+          ...c,
+          kind: getKind(c.url),
+          isDirty: checkDirty(diff, c.url),
+        });
+      }
+      return out;
+    }, [state.diff, state.non_blocking_handlers]);
+
     return (
       <>
         <Modal
@@ -933,7 +1008,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                   }
                   parentJSONPointer="/hook"
                   fieldName="blocking_handlers"
-                  list={state.blocking_handlers}
+                  list={blockingHandlers}
                   onListChange={onBlockingHandlersChange}
                   makeDefaultItem={makeDefaultHandler}
                   ListItemComponent={BlockingHandlerListItem}
@@ -971,7 +1046,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                   }
                   parentJSONPointer="/hook"
                   fieldName="non_blocking_handlers"
-                  list={state.non_blocking_handlers}
+                  list={nonBlockingHandlers}
                   onListChange={onNonBlockingHandlersChange}
                   makeDefaultItem={makeDefaultNonBlockingHandler}
                   ListItemComponent={NonBlockingHandlerListItem}
