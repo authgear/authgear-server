@@ -46,8 +46,8 @@
 }
 
 .codeEditor {
-  width: 80vw;
-  height: 80vh;
+  width: 60vw;
+  height: 60vh;
 }
 
 .codeEditorFooter {
@@ -59,4 +59,13 @@
 
 .dot {
   margin: 0 4px;
+}
+
+.codeEditorTitle {
+  font-weight: 600;
+  padding: 16px 24px;
+}
+
+.codeEditorDescription {
+  padding: 0 24px 12px;
 }
