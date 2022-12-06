@@ -8,6 +8,7 @@ import {
   Modal,
   FontIcon,
   useTheme,
+  Text,
 } from "@fluentui/react";
 import produce from "immer";
 import ShowError from "../../ShowError";
@@ -558,6 +559,8 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
     const { renderToString } = useContext(Context);
     const { hookFeatureConfig, form: config } = props;
 
+    const theme = useTheme();
+
     const [codeEditorState, setCodeEditorState] =
       useState<CodeEditorState | null>(null);
 
@@ -947,6 +950,14 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       return out;
     }, [state.diff, state.non_blocking_handlers]);
 
+    const codeEditorDescriptionStyles = useMemo(() => {
+      return {
+        root: {
+          color: theme.semanticColors.bodySubtext,
+        },
+      };
+    }, [theme.semanticColors.bodySubtext]);
+
     return (
       <>
         <Modal
@@ -955,6 +966,20 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
           isBlocking={true}
         >
           <div className={styles.codeEditorContainer}>
+            <Text
+              block={true}
+              className={styles.codeEditorTitle}
+              variant="large"
+            >
+              <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
+            </Text>
+            <Text
+              block={true}
+              className={styles.codeEditorDescription}
+              styles={codeEditorDescriptionStyles}
+            >
+              <FormattedMessage id="HookConfigurationScreen.edit-hook.description" />
+            </Text>
             <CodeEditor
               className={styles.codeEditor}
               language="typescript"
