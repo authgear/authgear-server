@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -96,6 +97,10 @@ type OAuthFacade interface {
 	CreateSession(clientID string, userID string) (protocol.TokenResponse, error)
 }
 
+type SessionListingService interface {
+	FilterForDisplay(sessions []session.Session, currentSession session.Session) ([]*sessionlisting.Session, error)
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("admin-graphql")} }
@@ -120,6 +125,7 @@ type Context struct {
 	UserProfileFacade   UserProfileFacade
 	AuthorizationFacade AuthorizationFacade
 	OAuthFacade         OAuthFacade
+	SessionListing      SessionListingService
 }
 
 func (c *Context) Logger() *log.Logger {

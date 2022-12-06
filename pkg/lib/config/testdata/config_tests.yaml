@@ -99,7 +99,7 @@ config:
         redirect_uris:
           - "myapp://hostname/path"
 ---
-name: oauth-spa-client-post-logout-redirect-uris
+name: oauth-traditional-webapp-client-post-logout-redirect-uris
 error: null
 config:
   id: test
@@ -109,17 +109,31 @@ config:
     clients:
       - name: Test Client
         client_id: test-client
-        x_application_type: "spa"
+        x_application_type: "traditional_webapp"
         redirect_uris:
           - "http://example.com/"
         post_logout_redirect_uris:
           - "http://example.com/"
 ---
-name: oauth-spa-client-must-have-post-logout-redirect-uris
+name: oauth-traditional-webapp-client-must-have-post-logout-redirect-uris
 error: |-
   invalid configuration:
   /oauth/clients/0: required
     map[actual:[client_id name redirect_uris x_application_type] expected:[post_logout_redirect_uris] missing:[post_logout_redirect_uris]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: test-client
+        x_application_type: "traditional_webapp"
+        redirect_uris:
+          - "myapp://hostname/path"
+---
+name: oauth-spa-client-post-logout-redirect-uris-can-be-empty
+error: null
 config:
   id: test
   http:

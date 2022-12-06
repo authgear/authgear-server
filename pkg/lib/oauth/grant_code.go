@@ -21,4 +21,6 @@ type CodeGrant struct {
 	RedirectURI   string `json:"redirect_uri"`
 	OIDCNonce     string `json:"nonce,omitempty"`
 	PKCEChallenge string `json:"challenge,omitempty"`
+
+	SSOEnabled bool `json:"sso_enabled,omitempty"`
 }

@@ -53,6 +53,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
+	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
@@ -119,9 +120,10 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(session.IDPSessionResolver), new(*idpsession.Resolver)),
 		wire.Bind(new(session.IDPSessionManager), new(*idpsession.Manager)),
 		wire.Bind(new(oauth.ResolverSessionProvider), new(*idpsession.Provider)),
+		wire.Bind(new(oauth.ServiceIDPSessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(oauthhandler.SessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(interaction.SessionProvider), new(*idpsession.Provider)),
-		wire.Bind(new(interaction.SessionManager), new(*idpsession.Manager)),
+		wire.Bind(new(sessionlisting.IDPSessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(facade.IDPSessionManager), new(*idpsession.Manager)),
 	),
 
@@ -131,6 +133,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(idpsession.AccessEventProvider), new(*access.EventProvider)),
 		wire.Bind(new(oidchandler.LogoutSessionManager), new(*session.Manager)),
 		wire.Bind(new(oauthhandler.SessionManager), new(*session.Manager)),
+		wire.Bind(new(interaction.SessionManager), new(*session.Manager)),
 	),
 
 	wire.NewSet(
@@ -268,6 +271,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(session.AccessTokenSessionManager), new(*oauth.SessionManager)),
 		wire.Bind(new(facade.OAuthSessionManager), new(*oauth.SessionManager)),
 		wire.Bind(new(oauthhandler.OAuthURLProvider), new(*oauth.URLProvider)),
+		wire.Bind(new(sessionlisting.OfflineGrantService), new(*oauth.OfflineGrantService)),
 		wire.Value(oauthhandler.TokenGenerator(oauth.GenerateToken)),
 		wire.Bind(new(oauthhandler.AuthorizationService), new(*oauth.AuthorizationService)),
 
@@ -344,6 +348,8 @@ var CommonDependencySet = wire.NewSet(
 	presign.DependencySet,
 
 	tutorial.DependencySet,
+
+	sessionlisting.DependencySet,
 
 	wire.NewSet(
 		usage.DependencySet,

@@ -22,38 +22,15 @@
   </p>
 </div>
 
-<div class="twc-container-vertical pt-5">
-{{ range $.SessionGroups }}
+<div class="twc-container-vertical py-5">
+{{ range .Sessions }}
 <div class="px-5 flex flex-col divide-y">
   <div class="flex flex-row space-x-2 py-1.5 items-center">
     {{ $icon := "" }}
-    {{ if eq .Type "grouped" }}{{ $icon = "devices" }}{{ else }}{{ $icon = "device-laptop" }}{{ end }}
+    {{ if .IsDevice }}{{ $icon = "devices" }}{{ else }}{{ $icon = "device-laptop" }}{{ end }}
     <i class="twc-title-icon ti ti-{{ $icon }} primary-txt text-sm" aria-hidden="true"></i>
     <h2 class="flex-1 primary-txt text-base m-0 truncate text-sm font-normal">{{ .DisplayName }}</h2>
-    {{ if .OfflineGrantIDs }}
-    <form method="post" novalidate>
-      {{ $.CSRFField }}
-      <input type="hidden" name="x_session_id" value="{{ index .OfflineGrantIDs 0 }}">
-      <button
-        class="btn destructive-secondary-btn text-sm"
-        type="submit"
-        name="x_action"
-        value="revoke_group"
-        data-modal-title="{{ template "settings-sessions-confirmation-title" }}"
-        data-modal-body="{{ template "settings-sessions-confirmation-group-desc" }}"
-        data-modal-action-label="{{ template "settings-sessions-confirmation-action-label" }}"
-        data-modal-cancel-label="{{ template "settings-sessions-confirmation-cancel-label" }}"
-        data-authgear-event="authgear.button.revoke_session_group"
-        {{/* confirmFormSubmit requires data-turbo="false" to work */}}
-        data-turbo="false"
-        data-action="click->modal#confirmFormSubmit"
-      >
-        {{ template "settings-sessions-revoke-group-label" }}
-      </button>
-    </form>
-    {{ end }}
   </div>
-  {{ range .Sessions }}
   <div class="grid grid-cols-[minmax(0,_1fr)_auto] py-1.5">
     <p class="col-start-1 text-sm leading-normal m-0 secondary-txt">
       {{ if and .LastAccessedByIPEnglishCountryName .LastAccessedByIPCountryCode }}
@@ -67,9 +44,9 @@
       {{ if .ApplicationName }}
       {{ $desc = .ApplicationName }}
       {{ end }}
-      {{ template "settings-sessions-item-description" (dict "time" .LastAccessedAt "rfc3339" (rfc3339 .LastAccessedAt) "desc" $desc "isCurrent" (eq .ID $.CurrentSessionID)) }}
+      {{ template "settings-sessions-item-description" (dict "time" .LastAccessedAt "rfc3339" (rfc3339 .LastAccessedAt) "desc" $desc "isCurrent" .IsCurrent) }}
     </p>
-    {{ if not (eq .ID $.CurrentSessionID) }}
+    {{ if not .IsCurrent }}
     <form class="col-start-2 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate>
       {{ $.CSRFField }}
       <input type="hidden" name="x_session_id" value="{{ .ID }}">
@@ -93,12 +70,13 @@
     </form>
     {{ end }}
   </div>
-  {{ end }}
 </div>
 {{ end }}
 </div>
 
-<div class="p-5 row-sep">
+{{/* excludes the current session */}}
+{{ if gt (len .Sessions) 1 }}
+<div class="px-5 pb-5 row-sep">
   <form method="post" novalidate>
     {{ $.CSRFField }}
     <button
@@ -119,6 +97,7 @@
     </button>
   </form>
 </div>
+{{ end }}
 
 
 {{ if .HasThirdPartyClient }}

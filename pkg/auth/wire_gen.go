@@ -69,6 +69,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
+	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
@@ -176,10 +177,15 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clock,
 	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clock,
+		IDPSessions: provider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  store,
-		Clock:  clock,
-		Config: oAuthConfig,
+		Store:   store,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	authorizationService := &oauth2.AuthorizationService{
 		AppID:               appID,
@@ -642,7 +648,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     storeRedis,
-		Clock:     clock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -750,6 +755,11 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -794,7 +804,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  provider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -835,6 +845,11 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clock,
 	}
+	oauthOfflineGrantService := &oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clock,
+		IDPSessions: provider,
+	}
 	loginHintHandler := &webapp2.LoginHintHandler{
 		Config:                  oAuthConfig,
 		Anonymous:               anonymousProvider,
@@ -845,6 +860,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                   clock,
 		Cookies:                 cookieManager,
 		Pages:                   webappService2,
+		OfflineGrantService:     oauthOfflineGrantService,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
@@ -961,10 +977,15 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: provider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  store,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   store,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	authorizationService := &oauth2.AuthorizationService{
 		AppID:               appID,
@@ -1427,7 +1448,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     storeRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -1535,6 +1555,11 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -1579,7 +1604,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  provider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -1620,6 +1645,11 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	oauthOfflineGrantService := &oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: provider,
+	}
 	loginHintHandler := &webapp2.LoginHintHandler{
 		Config:                  oAuthConfig,
 		Anonymous:               anonymousProvider,
@@ -1630,6 +1660,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                   clockClock,
 		Cookies:                 cookieManager,
 		Pages:                   webappService2,
+		OfflineGrantService:     oauthOfflineGrantService,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
@@ -1736,10 +1767,49 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	sessionManager := &oauth2.SessionManager{
-		Store:  store,
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	userAgentString := deps.ProvideUserAgentString(request)
+	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
+	storeRedis := &idpsession.StoreRedis{
+		Redis:  appredisHandle,
+		AppID:  appID,
 		Clock:  clockClock,
-		Config: oAuthConfig,
+		Logger: storeRedisLogger,
+	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	sessionConfig := appConfig.Session
+	idpsessionRand := _wireRandValue
+	provider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           storeRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: provider,
+	}
+	sessionManager := &oauth2.SessionManager{
+		Store:   store,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	authorizationService := &oauth2.AuthorizationService{
 		AppID:               appID,
@@ -1748,11 +1818,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		OAuthSessionManager: sessionManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
@@ -1791,7 +1856,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
-	provider := &loginid.Provider{
+	loginidProvider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
@@ -1880,7 +1945,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	web3Config := appConfig.Web3
-	storeRedis := &siwe2.StoreRedis{
+	siweStoreRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
 		AppID:   appID,
@@ -1904,7 +1969,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		HTTPConfig:  httpConfig,
 		Web3Config:  web3Config,
 		Clock:       clockClock,
-		NonceStore:  storeRedis,
+		NonceStore:  siweStoreRedis,
 		RateLimiter: limiter,
 		Logger:      siweLogger,
 	}
@@ -1918,7 +1983,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Identity:              identityConfig,
 		IdentityFeatureConfig: identityFeatureConfig,
 		Store:                 serviceStore,
-		LoginID:               provider,
+		LoginID:               loginidProvider,
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
@@ -2178,19 +2243,10 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:         userStore,
 		Events:            eventService,
 	}
-	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
-	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  appredisHandle,
-		AppID:  appID,
-		Clock:  clockClock,
-		Logger: storeRedisLogger,
-	}
-	sessionConfig := appConfig.Session
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
+		Store:     storeRedis,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
@@ -2305,26 +2361,10 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	whatsappStoreRedis := &whatsapp.StoreRedis{
@@ -2370,8 +2410,8 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
-		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		Sessions:                  provider,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef,
 		MFADeviceTokenCookie:      mfaCookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -2400,18 +2440,19 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	tokenService := handler.TokenService{
-		RemoteIP:          remoteIP,
-		UserAgentString:   userAgentString,
-		AppID:             appID,
-		Config:            oAuthConfig,
-		Authorizations:    authorizationStore,
-		OfflineGrants:     store,
-		AccessGrants:      store,
-		AccessEvents:      eventProvider,
-		AccessTokenIssuer: accessTokenEncoding,
-		GenerateToken:     tokenGenerator,
-		Clock:             clockClock,
-		Users:             queries,
+		RemoteIP:            remoteIP,
+		UserAgentString:     userAgentString,
+		AppID:               appID,
+		Config:              oAuthConfig,
+		Authorizations:      authorizationStore,
+		OfflineGrants:       store,
+		AccessGrants:        store,
+		OfflineGrantService: offlineGrantService,
+		AccessEvents:        eventProvider,
+		AccessTokenIssuer:   accessTokenEncoding,
+		GenerateToken:       tokenGenerator,
+		Clock:               clockClock,
+		Users:               queries,
 	}
 	tokenHandler := &handler.TokenHandler{
 		AppID:                  appID,
@@ -2423,6 +2464,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		CodeGrants:             store,
 		OfflineGrants:          store,
 		AppSessionTokens:       store,
+		OfflineGrantService:    offlineGrantService,
 		Graphs:                 interactionService,
 		IDTokenIssuer:          idTokenIssuer,
 		Clock:                  clockClock,
@@ -2464,7 +2506,6 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	manager := &idpsession.Manager{
 		Store:     storeRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
@@ -2485,13 +2526,39 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	oAuthConfig := appConfig.OAuth
-	sessionManager := &oauth2.SessionManager{
-		Store:  store,
-		Clock:  clockClock,
-		Config: oAuthConfig,
-	}
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	userAgentString := deps.ProvideUserAgentString(request)
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	provider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           storeRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: provider,
+	}
+	sessionManager := &oauth2.SessionManager{
+		Store:   store,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
+	}
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
@@ -2532,7 +2599,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
-	provider := &loginid.Provider{
+	loginidProvider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
@@ -2658,7 +2725,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Identity:              identityConfig,
 		IdentityFeatureConfig: identityFeatureConfig,
 		Store:                 serviceStore,
-		LoginID:               provider,
+		LoginID:               loginidProvider,
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
@@ -3648,7 +3715,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	manager := &idpsession.Manager{
 		Store:     storeRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
@@ -3668,13 +3734,39 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	sessionManager := &oauth2.SessionManager{
-		Store:  store,
-		Clock:  clockClock,
-		Config: oAuthConfig,
-	}
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	userAgentString := deps.ProvideUserAgentString(request)
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	provider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           storeRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: provider,
+	}
+	sessionManager := &oauth2.SessionManager{
+		Store:   store,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
+	}
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
@@ -3715,7 +3807,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
-	provider := &loginid.Provider{
+	loginidProvider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
@@ -3840,7 +3932,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Identity:              identityConfig,
 		IdentityFeatureConfig: identityFeatureConfig,
 		Store:                 serviceStore,
-		LoginID:               provider,
+		LoginID:               loginidProvider,
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
@@ -4137,10 +4229,49 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	sessionManager := &oauth2.SessionManager{
-		Store:  store,
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	userAgentString := deps.ProvideUserAgentString(request)
+	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
+	storeRedis := &idpsession.StoreRedis{
+		Redis:  appredisHandle,
+		AppID:  appID,
 		Clock:  clockClock,
-		Config: oAuthConfig,
+		Logger: storeRedisLogger,
+	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	sessionConfig := appConfig.Session
+	idpsessionRand := _wireRandValue
+	provider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           storeRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: provider,
+	}
+	sessionManager := &oauth2.SessionManager{
+		Store:   store,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	authorizationService := &oauth2.AuthorizationService{
 		AppID:               appID,
@@ -4149,11 +4280,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		OAuthSessionManager: sessionManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
@@ -4192,7 +4318,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
-	provider := &loginid.Provider{
+	loginidProvider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
@@ -4281,7 +4407,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	web3Config := appConfig.Web3
-	storeRedis := &siwe2.StoreRedis{
+	siweStoreRedis := &siwe2.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
 		AppID:   appID,
@@ -4305,7 +4431,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		HTTPConfig:  httpConfig,
 		Web3Config:  web3Config,
 		Clock:       clockClock,
-		NonceStore:  storeRedis,
+		NonceStore:  siweStoreRedis,
 		RateLimiter: limiter,
 		Logger:      siweLogger,
 	}
@@ -4319,7 +4445,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Identity:              identityConfig,
 		IdentityFeatureConfig: identityFeatureConfig,
 		Store:                 serviceStore,
-		LoginID:               provider,
+		LoginID:               loginidProvider,
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
@@ -4579,19 +4705,10 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:         userStore,
 		Events:            eventService,
 	}
-	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
-	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  appredisHandle,
-		AppID:  appID,
-		Clock:  clockClock,
-		Logger: storeRedisLogger,
-	}
-	sessionConfig := appConfig.Session
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
+		Store:     storeRedis,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
@@ -4706,26 +4823,10 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	whatsappStoreRedis := &whatsapp.StoreRedis{
@@ -4771,8 +4872,8 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
-		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		Sessions:                  provider,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef,
 		MFADeviceTokenCookie:      mfaCookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -4801,18 +4902,19 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	tokenService := handler.TokenService{
-		RemoteIP:          remoteIP,
-		UserAgentString:   userAgentString,
-		AppID:             appID,
-		Config:            oAuthConfig,
-		Authorizations:    authorizationStore,
-		OfflineGrants:     store,
-		AccessGrants:      store,
-		AccessEvents:      eventProvider,
-		AccessTokenIssuer: accessTokenEncoding,
-		GenerateToken:     tokenGenerator,
-		Clock:             clockClock,
-		Users:             queries,
+		RemoteIP:            remoteIP,
+		UserAgentString:     userAgentString,
+		AppID:               appID,
+		Config:              oAuthConfig,
+		Authorizations:      authorizationStore,
+		OfflineGrants:       store,
+		AccessGrants:        store,
+		OfflineGrantService: offlineGrantService,
+		AccessEvents:        eventProvider,
+		AccessTokenIssuer:   accessTokenEncoding,
+		GenerateToken:       tokenGenerator,
+		Clock:               clockClock,
+		Users:               queries,
 	}
 	tokenHandler := &handler.TokenHandler{
 		AppID:                  appID,
@@ -4824,6 +4926,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		CodeGrants:             store,
 		OfflineGrants:          store,
 		AppSessionTokens:       store,
+		OfflineGrantService:    offlineGrantService,
 		Graphs:                 interactionService,
 		IDTokenIssuer:          idTokenIssuer,
 		Clock:                  clockClock,
@@ -5367,7 +5470,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
@@ -5382,10 +5484,36 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -5497,26 +5625,10 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	whatsappStoreRedis := &whatsapp.StoreRedis{
@@ -5563,7 +5675,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef,
 		MFADeviceTokenCookie:      mfaCookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -5598,18 +5710,19 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	tokenService := handler.TokenService{
-		RemoteIP:          remoteIP,
-		UserAgentString:   userAgentString,
-		AppID:             appID,
-		Config:            oAuthConfig,
-		Authorizations:    authorizationStore,
-		OfflineGrants:     redisStore,
-		AccessGrants:      redisStore,
-		AccessEvents:      eventProvider,
-		AccessTokenIssuer: accessTokenEncoding,
-		GenerateToken:     tokenGenerator,
-		Clock:             clockClock,
-		Users:             queries,
+		RemoteIP:            remoteIP,
+		UserAgentString:     userAgentString,
+		AppID:               appID,
+		Config:              oAuthConfig,
+		Authorizations:      authorizationStore,
+		OfflineGrants:       redisStore,
+		AccessGrants:        redisStore,
+		OfflineGrantService: offlineGrantService,
+		AccessEvents:        eventProvider,
+		AccessTokenIssuer:   accessTokenEncoding,
+		GenerateToken:       tokenGenerator,
+		Clock:               clockClock,
+		Users:               queries,
 	}
 	anonymousStoreRedis := &anonymous.StoreRedis{
 		Context: contextContext,
@@ -6109,7 +6222,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
@@ -6124,10 +6236,36 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -6239,26 +6377,10 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	whatsappStoreRedis := &whatsapp.StoreRedis{
@@ -6305,7 +6427,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef,
 		MFADeviceTokenCookie:      mfaCookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -6340,18 +6462,19 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	tokenService := handler.TokenService{
-		RemoteIP:          remoteIP,
-		UserAgentString:   userAgentString,
-		AppID:             appID,
-		Config:            oAuthConfig,
-		Authorizations:    authorizationStore,
-		OfflineGrants:     redisStore,
-		AccessGrants:      redisStore,
-		AccessEvents:      eventProvider,
-		AccessTokenIssuer: accessTokenEncoding,
-		GenerateToken:     tokenGenerator,
-		Clock:             clockClock,
-		Users:             queries,
+		RemoteIP:            remoteIP,
+		UserAgentString:     userAgentString,
+		AppID:               appID,
+		Config:              oAuthConfig,
+		Authorizations:      authorizationStore,
+		OfflineGrants:       redisStore,
+		AccessGrants:        redisStore,
+		OfflineGrantService: offlineGrantService,
+		AccessEvents:        eventProvider,
+		AccessTokenIssuer:   accessTokenEncoding,
+		GenerateToken:       tokenGenerator,
+		Clock:               clockClock,
+		Users:               queries,
 	}
 	anonymousStoreRedis := &anonymous.StoreRedis{
 		Context: contextContext,
@@ -6955,7 +7078,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -6970,10 +7092,36 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -7085,26 +7233,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -7150,7 +7282,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -7737,7 +7869,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -7752,10 +7883,36 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -7867,26 +8024,10 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -7932,7 +8073,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -8518,7 +8659,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -8533,10 +8673,36 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -8648,26 +8814,10 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -8713,7 +8863,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -9282,7 +9432,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -9297,10 +9446,36 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -9412,26 +9587,10 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -9477,7 +9636,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -10044,7 +10203,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -10059,10 +10217,36 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -10174,26 +10358,10 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -10239,7 +10407,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -10796,7 +10964,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -10811,10 +10978,36 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -10926,26 +11119,10 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -10991,7 +11168,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -11551,7 +11728,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -11566,10 +11742,36 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -11681,26 +11883,10 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -11746,7 +11932,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -12309,7 +12495,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -12324,10 +12509,36 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -12439,26 +12650,10 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -12504,7 +12699,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -13069,7 +13264,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -13084,10 +13278,36 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -13199,26 +13419,10 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -13264,7 +13468,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -13827,7 +14031,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -13842,10 +14045,36 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -13957,26 +14186,10 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -14022,7 +14235,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -14585,7 +14798,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -14600,10 +14812,36 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -14715,26 +14953,10 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -14780,7 +15002,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -15344,7 +15566,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -15359,10 +15580,36 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -15474,26 +15721,10 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -15539,7 +15770,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -16102,7 +16333,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -16117,10 +16347,36 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -16232,26 +16488,10 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -16297,7 +16537,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -16860,7 +17100,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -16875,10 +17114,36 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -16990,26 +17255,10 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -17055,7 +17304,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -17620,7 +17869,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -17635,10 +17883,36 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -17750,26 +18024,10 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -17815,7 +18073,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -18378,7 +18636,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -18393,10 +18650,36 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -18508,26 +18791,10 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -18573,7 +18840,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -19136,7 +19403,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -19151,10 +19417,36 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -19266,26 +19558,10 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -19331,7 +19607,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -19896,7 +20172,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -19911,10 +20186,36 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -20026,26 +20327,10 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -20091,7 +20376,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -20654,7 +20939,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -20669,10 +20953,36 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -20784,26 +21094,10 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -20849,7 +21143,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -21841,7 +22135,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -21856,10 +22149,36 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -21971,26 +22290,10 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -22036,7 +22339,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -22599,7 +22902,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -22614,10 +22916,36 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -22729,26 +23057,10 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -22794,7 +23106,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -23353,7 +23665,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -23368,10 +23679,36 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -23483,26 +23820,10 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -23548,7 +23869,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -24109,7 +24430,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -24124,10 +24444,36 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -24239,26 +24585,10 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -24304,7 +24634,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -24863,7 +25193,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -24878,10 +25207,36 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -24993,26 +25348,10 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -25058,7 +25397,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -25627,7 +25966,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -25642,10 +25980,36 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -25757,26 +26121,10 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -25822,7 +26170,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -26381,7 +26729,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -26396,10 +26743,36 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -26511,26 +26884,10 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -26576,7 +26933,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -27136,7 +27493,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -27151,10 +27507,36 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -27266,26 +27648,10 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -27331,7 +27697,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -27890,7 +28256,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -27905,10 +28270,36 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -28020,26 +28411,10 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -28085,7 +28460,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -28675,7 +29050,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -28690,10 +29064,36 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -28805,26 +29205,10 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -28870,7 +29254,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -29440,7 +29824,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -29455,10 +29838,36 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -29570,26 +29979,10 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -29635,7 +30028,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -30218,7 +30611,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -30233,10 +30625,36 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -30348,26 +30766,10 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -30413,7 +30815,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -30980,7 +31382,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -30995,10 +31396,36 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -31110,26 +31537,10 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -31175,7 +31586,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -31735,7 +32146,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -31750,10 +32160,36 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -31865,26 +32301,10 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -31930,7 +32350,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -32498,7 +32918,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -32513,10 +32932,36 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -32628,26 +33073,10 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -32693,7 +33122,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -33253,7 +33682,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -33268,10 +33696,36 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -33383,26 +33837,10 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -33448,7 +33886,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -34008,7 +34446,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -34023,10 +34460,36 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -34138,26 +34601,10 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -34203,7 +34650,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -34763,7 +35210,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -34778,10 +35224,36 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -34893,26 +35365,10 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -34958,7 +35414,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -35519,7 +35975,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -35534,10 +35989,36 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -35649,26 +36130,10 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -35714,7 +36179,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -35786,16 +36251,21 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	manager2 := &session.Manager{
-		IDPSessions:         idpsessionManager,
-		AccessTokenSessions: sessionManager,
-		Events:              eventService,
-	}
 	authorizationService := &oauth2.AuthorizationService{
 		AppID:               appID,
 		Store:               authorizationStore,
 		Clock:               clockClock,
 		OAuthSessionManager: sessionManager,
+	}
+	oauthOfflineGrantService := &oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
+	sessionListingService := &sessionlisting.SessionListingService{
+		OAuthConfig:   oAuthConfig,
+		IDPSessions:   idpsessionProvider,
+		OfflineGrants: oauthOfflineGrantService,
 	}
 	settingsSessionsHandler := &webapp.SettingsSessionsHandler{
 		ControllerFactory: controllerFactory,
@@ -35804,6 +36274,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:          manager2,
 		Authorizations:    authorizationService,
 		OAuthConfig:       oAuthConfig,
+		SessionListing:    sessionListingService,
 	}
 	return settingsSessionsHandler
 }
@@ -36287,7 +36758,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -36302,10 +36772,36 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -36417,26 +36913,10 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -36482,7 +36962,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -37042,7 +37522,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -37057,10 +37536,36 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -37172,26 +37677,10 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -37237,7 +37726,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -37797,7 +38286,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -37812,10 +38300,36 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -37927,26 +38441,10 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -37992,7 +38490,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -38552,7 +39050,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -38567,10 +39064,36 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -38682,26 +39205,10 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -38747,7 +39254,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -39307,7 +39814,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -39322,10 +39828,36 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -39437,26 +39969,10 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -39502,7 +40018,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -40069,7 +40585,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -40084,10 +40599,36 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -40199,26 +40740,10 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -40264,7 +40789,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -40825,7 +41350,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -40840,10 +41364,36 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -40955,26 +41505,10 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -41020,7 +41554,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -41579,7 +42113,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -41594,10 +42127,36 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -41709,26 +42268,10 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -41774,7 +42317,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -41845,11 +42388,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
-	}
-	manager2 := &session.Manager{
-		IDPSessions:         idpsessionManager,
-		AccessTokenSessions: sessionManager,
-		Events:              eventService,
 	}
 	logoutHandler := &webapp.LogoutHandler{
 		ControllerFactory: controllerFactory,
@@ -42352,7 +42890,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -42367,10 +42904,36 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -42482,26 +43045,10 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -42547,7 +43094,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -43106,7 +43653,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -43121,10 +43667,36 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -43236,26 +43808,10 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -43301,7 +43857,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -43860,7 +44416,6 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -43875,10 +44430,36 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -43990,26 +44571,10 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -44055,7 +44620,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -44631,7 +45196,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -44646,10 +45210,36 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: handle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           handle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -44761,26 +45351,10 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Redis:   handle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: handle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           handle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -44826,7 +45400,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -45352,7 +45926,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -45367,10 +45940,36 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: handle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           handle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -45482,26 +46081,10 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Redis:   handle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: handle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           handle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -45547,7 +46130,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -46072,7 +46655,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -46087,10 +46669,36 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -46202,26 +46810,10 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -46267,7 +46859,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -46836,7 +47428,6 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
@@ -46851,10 +47442,36 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -46966,26 +47583,10 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	whatsappStoreRedis := &whatsapp.StoreRedis{
 		Context: contextContext,
@@ -47031,7 +47632,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef2,
 		MFADeviceTokenCookie:      cookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -47718,18 +48319,24 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		UserClaims: idTokenIssuer,
 		BaseURL:    endpointsProvider,
 	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: provider,
+	}
 	oauthResolver := &oauth2.Resolver{
-		RemoteIP:           remoteIP,
-		UserAgentString:    userAgentString,
-		OAuthConfig:        oAuthConfig,
-		Authorizations:     authorizationStore,
-		AccessGrants:       store,
-		OfflineGrants:      store,
-		AppSessions:        store,
-		AccessTokenDecoder: accessTokenEncoding,
-		Sessions:           provider,
-		Cookies:            cookieManager,
-		Clock:              clockClock,
+		RemoteIP:            remoteIP,
+		UserAgentString:     userAgentString,
+		OAuthConfig:         oAuthConfig,
+		Authorizations:      authorizationStore,
+		AccessGrants:        store,
+		OfflineGrants:       store,
+		AppSessions:         store,
+		AccessTokenDecoder:  accessTokenEncoding,
+		Sessions:            provider,
+		Cookies:             cookieManager,
+		Clock:               clockClock,
+		OfflineGrantService: offlineGrantService,
 	}
 	middlewareLogger := session.NewMiddlewareLogger(factory)
 	analyticredisHandle := appProvider.AnalyticRedis
@@ -48337,7 +48944,6 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
@@ -48353,10 +48959,36 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Clock:       clockClock,
 	}
 	oAuthConfig := appConfig.OAuth
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{

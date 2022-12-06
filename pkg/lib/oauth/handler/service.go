@@ -23,14 +23,15 @@ type TokenService struct {
 	AppID           config.AppID
 	Config          *config.OAuthConfig
 
-	Authorizations    oauth.AuthorizationStore
-	OfflineGrants     oauth.OfflineGrantStore
-	AccessGrants      oauth.AccessGrantStore
-	AccessEvents      *access.EventProvider
-	AccessTokenIssuer AccessTokenIssuer
-	GenerateToken     TokenGenerator
-	Clock             clock.Clock
-	Users             TokenHandlerUserFacade
+	Authorizations      oauth.AuthorizationStore
+	OfflineGrants       oauth.OfflineGrantStore
+	AccessGrants        oauth.AccessGrantStore
+	OfflineGrantService oauth.OfflineGrantService
+	AccessEvents        *access.EventProvider
+	AccessTokenIssuer   AccessTokenIssuer
+	GenerateToken       TokenGenerator
+	Clock               clock.Clock
+	Users               TokenHandlerUserFacade
 }
 
 func (s *TokenService) IssueOfflineGrant(
@@ -62,10 +63,15 @@ func (s *TokenService) IssueOfflineGrant(
 		},
 
 		DeviceInfo: opts.DeviceInfo,
+		SSOEnabled: opts.SSOEnabled,
 	}
 
-	expiry := oauth.ComputeOfflineGrantExpiryWithClient(offlineGrant, client)
-	err := s.OfflineGrants.CreateOfflineGrant(offlineGrant, expiry)
+	expiry, err := s.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.OfflineGrants.CreateOfflineGrant(offlineGrant, expiry)
 	if err != nil {
 		return nil, err
 	}
@@ -132,14 +138,12 @@ func (s *TokenService) ParseRefreshToken(token string) (*oauth.Authorization, *o
 		return nil, nil, err
 	}
 
-	expiry, err := oauth.ComputeOfflineGrantExpiryWithClients(offlineGrant, s.Config)
-	if errors.Is(err, oauth.ErrGrantNotFound) {
-		return nil, nil, errInvalidRefreshToken
-	} else if err != nil {
+	isValid, _, err := s.OfflineGrantService.IsValid(offlineGrant)
+	if err != nil {
 		return nil, nil, err
 	}
 
-	if s.Clock.NowUTC().After(expiry) {
+	if !isValid {
 		return nil, nil, errInvalidRefreshToken
 	}
 

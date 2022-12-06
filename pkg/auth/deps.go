@@ -40,6 +40,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -91,6 +92,7 @@ var DependencySet = wire.NewSet(
 
 	wire.Bind(new(webapp.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 	wire.Bind(new(webapp.AnonymousPromotionCodeStore), new(*identityanonymous.StoreRedis)),
+	wire.Bind(new(webapp.OfflineGrantService), new(*oauth.OfflineGrantService)),
 
 	middleware.DependencySet,
 	wire.Bind(new(webapp.SettingsSubRoutesMiddlewareIdentityService), new(*facade.IdentityFacade)),
@@ -140,6 +142,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.SettingsProfileEditCustomAttrsService), new(*featurecustomattrs.Service)),
 	wire.Bind(new(handlerwebapp.SettingsDeleteAccountUserService), new(*facade.UserFacade)),
 	wire.Bind(new(handlerwebapp.SettingsAuthorizationService), new(*oauth.AuthorizationService)),
+	wire.Bind(new(handlerwebapp.SettingsSessionListingService), new(*sessionlisting.SessionListingService)),
 	wire.Bind(new(handlerwebapp.EnterLoginIDService), new(*identityservice.Service)),
 	wire.Bind(new(handlerwebapp.PasswordPolicy), new(*password.Checker)),
 	wire.Bind(new(handlerwebapp.LogoutSessionManager), new(*session.Manager)),

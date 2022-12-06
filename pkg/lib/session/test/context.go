@@ -73,3 +73,15 @@ func (m *MockSession) ToRequest(r *http.Request) *http.Request {
 func (m *MockSession) ToContext(ctx context.Context) context.Context {
 	return session.WithSession(ctx, m)
 }
+
+func (s *MockSession) SSOGroupIDPSessionID() string {
+	return ""
+}
+
+func (s *MockSession) IsSameSSOGroup(ss session.Session) bool {
+	return false
+}
+
+func (s *MockSession) Equal(ss session.Session) bool {
+	return false
+}

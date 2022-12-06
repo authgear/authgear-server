@@ -76,6 +76,7 @@ export enum AuditLogActivityType {
   UserDisabled = 'USER_DISABLED',
   UserProfileUpdated = 'USER_PROFILE_UPDATED',
   UserReenabled = 'USER_REENABLED',
+  UserSessionTerminated = 'USER_SESSION_TERMINATED',
   UserSignedOut = 'USER_SIGNED_OUT',
   WhatsappOtpVerified = 'WHATSAPP_OTP_VERIFIED'
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -51,13 +52,18 @@ type SettingsVerificationService interface {
 type SettingsSessionManager interface {
 	List(userID string) ([]session.Session, error)
 	Get(id string) (session.Session, error)
-	Revoke(s session.Session, isAdminAPI bool) error
+	RevokeWithEvent(s session.Session, isTermination bool, isAdminAPI bool) error
+	TerminateAllExcept(userID string, currentSession session.Session, isAdminAPI bool) error
 }
 
 type SettingsAuthorizationService interface {
 	GetByID(id string) (*oauth.Authorization, error)
 	ListByUser(userID string, filters ...oauth.AuthorizationFilter) ([]*oauth.Authorization, error)
 	Delete(a *oauth.Authorization) error
+}
+
+type SettingsSessionListingService interface {
+	FilterForDisplay(sessions []session.Session, currentSession session.Session) ([]*sessionlisting.Session, error)
 }
 
 type SettingsHandler struct {

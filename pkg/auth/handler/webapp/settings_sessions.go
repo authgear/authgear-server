@@ -5,13 +5,12 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
-	"github.com/authgear/authgear-server/pkg/lib/sessiongroup"
+	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -39,8 +38,7 @@ type Authorization struct {
 
 type SettingsSessionsViewModel struct {
 	CurrentSessionID string
-	Sessions         []*model.Session
-	SessionGroups    []*model.SessionGroup
+	Sessions         []*sessionlisting.Session
 	Authorizations   []Authorization
 }
 
@@ -51,6 +49,7 @@ type SettingsSessionsHandler struct {
 	Sessions          SettingsSessionManager
 	Authorizations    SettingsAuthorizationService
 	OAuthConfig       *config.OAuthConfig
+	SessionListing    SettingsSessionListingService
 }
 
 func (h *SettingsSessionsHandler) GetData(r *http.Request, rw http.ResponseWriter, s session.Session) (map[string]interface{}, error) {
@@ -60,13 +59,16 @@ func (h *SettingsSessionsHandler) GetData(r *http.Request, rw http.ResponseWrite
 
 	userID := s.GetAuthenticationInfo().UserID
 	viewModel := SettingsSessionsViewModel{}
-	ss, err := h.listSessions(userID)
+
+	ss, err := h.Sessions.List(userID)
 	if err != nil {
 		return nil, err
 	}
-	for _, s := range ss {
-		viewModel.Sessions = append(viewModel.Sessions, s.ToAPIModel())
+	sessionModels, err := h.SessionListing.FilterForDisplay(ss, s)
+	if err != nil {
+		return nil, err
 	}
+	viewModel.Sessions = sessionModels
 
 	// Get third party app authorization
 	clientNameMap := map[string]string{}
@@ -93,7 +95,6 @@ func (h *SettingsSessionsHandler) GetData(r *http.Request, rw http.ResponseWrite
 	viewModel.Authorizations = authzs
 
 	viewModel.CurrentSessionID = s.SessionID()
-	viewModel.SessionGroups = sessiongroup.Group(ss)
 	viewmodels.Embed(data, viewModel)
 
 	return data, nil
@@ -131,7 +132,7 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 			return err
 		}
 
-		err = h.Sessions.Revoke(s, false)
+		err = h.Sessions.RevokeWithEvent(s, true, false)
 		if err != nil {
 			return err
 		}
@@ -142,57 +143,10 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	})
 
 	ctrl.PostAction("revoke_all", func() error {
-		ss, err := h.listSessions(currentSession.GetAuthenticationInfo().UserID)
+		userID := currentSession.GetAuthenticationInfo().UserID
+		err := h.Sessions.TerminateAllExcept(userID, currentSession, false)
 		if err != nil {
 			return err
-		}
-
-		for _, s := range ss {
-			if s.SessionID() == currentSession.SessionID() {
-				continue
-			}
-			if err = h.Sessions.Revoke(s, false); err != nil {
-				return err
-			}
-		}
-
-		result := webapp.Result{RedirectURI: redirectURI}
-		result.WriteResponse(w, r)
-		return nil
-	})
-
-	ctrl.PostAction("revoke_group", func() error {
-		sessionID := r.Form.Get("x_session_id")
-
-		ss, err := h.listSessions(currentSession.GetAuthenticationInfo().UserID)
-		if err != nil {
-			return err
-		}
-
-		// Group the sessions again to find out the target group.
-		var targetIDs []string
-		groups := sessiongroup.Group(ss)
-		for _, group := range groups {
-			for _, offlineGrantID := range group.OfflineGrantIDs {
-				if sessionID == offlineGrantID {
-					for _, s := range group.Sessions {
-						if s.ID != currentSession.SessionID() {
-							targetIDs = append(targetIDs, s.ID)
-						}
-					}
-				}
-			}
-		}
-
-		for _, id := range targetIDs {
-			for _, s := range ss {
-				if s.SessionID() == id {
-					err := h.Sessions.Revoke(s, false)
-					if err != nil {
-						return err
-					}
-				}
-			}
 		}
 
 		result := webapp.Result{RedirectURI: redirectURI}
@@ -220,16 +174,4 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		result.WriteResponse(w, r)
 		return nil
 	})
-}
-
-func (h *SettingsSessionsHandler) listSessions(userID string) ([]session.Session, error) {
-	ss, err := h.Sessions.List(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	removeThirdPartySessionFilter := oauth.NewRemoveThirdPartySessionFilter(h.OAuthConfig)
-	ss = oauth.ApplySessionFilters(ss, removeThirdPartySessionFilter)
-
-	return ss, nil
 }

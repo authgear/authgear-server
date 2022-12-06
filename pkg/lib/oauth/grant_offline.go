@@ -31,6 +31,8 @@ type OfflineGrant struct {
 	AccessInfo access.Info   `json:"access_info"`
 
 	DeviceInfo map[string]interface{} `json:"device_info,omitempty"`
+
+	SSOEnabled bool `json:"sso_enabled,omitempty"`
 }
 
 func (g *OfflineGrant) SessionID() string         { return g.ID }
@@ -91,4 +93,34 @@ func (g *OfflineGrant) GetAuthenticationInfo() authenticationinfo.T {
 		AuthenticatedAt: g.GetAuthenticatedAt(),
 		AMR:             amr,
 	}
+}
+
+func (g *OfflineGrant) SSOGroupIDPSessionID() string {
+	if g.SSOEnabled {
+		return g.IDPSessionID
+	}
+	return ""
+}
+
+// IsSameSSOGroup returns true when the session argument
+// - is the same offline grant
+// - is idp session in the same sso group (current offline grant needs to be sso enabled)
+// - is offline grant in the same sso group (current offline grant needs to be sso enabled)
+func (g *OfflineGrant) IsSameSSOGroup(ss session.Session) bool {
+	if g.Equal(ss) {
+		return true
+	}
+
+	if g.SSOEnabled {
+		if g.SSOGroupIDPSessionID() == "" {
+			return false
+		}
+		return g.SSOGroupIDPSessionID() == ss.SSOGroupIDPSessionID()
+	}
+
+	return false
+}
+
+func (g *OfflineGrant) Equal(ss session.Session) bool {
+	return g.SessionID() == ss.SessionID() && g.SessionType() == ss.SessionType()
 }

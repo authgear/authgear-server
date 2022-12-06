@@ -18,6 +18,10 @@ func NewMockClockAt(timestamp string) *MockClock {
 	return &MockClock{Time: dt}
 }
 
+func NewMockClockAtTime(t time.Time) *MockClock {
+	return &MockClock{Time: t}
+}
+
 func (c *MockClock) NowUTC() time.Time {
 	return c.Time.UTC()
 }

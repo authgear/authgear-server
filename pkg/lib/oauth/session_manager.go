@@ -6,13 +6,13 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
-	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
 
 type SessionManager struct {
-	Store  OfflineGrantStore
-	Clock  clock.Clock
-	Config *config.OAuthConfig
+	Store   OfflineGrantStore
+	Config  *config.OAuthConfig
+	Service OfflineGrantService
 }
 
 func (m *SessionManager) ClearCookie() []*http.Cookie {
@@ -43,24 +43,44 @@ func (m *SessionManager) List(userID string) ([]session.Session, error) {
 		return nil, err
 	}
 
-	now := m.Clock.NowUTC()
 	var sessions []session.Session
 	for _, session := range grants {
-		maxExpiry, err := ComputeOfflineGrantExpiryWithClients(session, m.Config)
-
-		// ignore sessions without client
-		if errors.Is(err, ErrGrantNotFound) {
-			continue
-		} else if err != nil {
-			return nil, err
-		}
-
-		// ignore expired sessions
-		if now.After(maxExpiry) {
-			continue
-		}
-
 		sessions = append(sessions, session)
 	}
 	return sessions, nil
+}
+
+func (m *SessionManager) TerminateAllExcept(userID string, currentSession session.Session) ([]session.Session, error) {
+	sessions, err := m.Store.ListOfflineGrants(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	thirdPartyClientIDSet := make(setutil.Set[string])
+	for _, c := range m.Config.Clients {
+		if c.ClientParty() == config.ClientPartyThird {
+			thirdPartyClientIDSet[c.ClientID] = struct{}{}
+		}
+	}
+
+	deletedSessions := []session.Session{}
+	for _, ss := range sessions {
+		// skip third party client app refresh token
+		// third party refresh token should be deleted through deleting authorization
+		if _, ok := thirdPartyClientIDSet[ss.ClientID]; ok {
+			continue
+		}
+
+		// skip the sessions that are in the same sso group
+		if currentSession != nil && ss.IsSameSSOGroup(currentSession) {
+			continue
+		}
+
+		if err := m.Delete(ss); err != nil {
+			return nil, err
+		}
+		deletedSessions = append(deletedSessions, ss)
+	}
+
+	return deletedSessions, nil
 }

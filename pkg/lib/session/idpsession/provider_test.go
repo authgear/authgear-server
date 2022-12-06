@@ -3,6 +3,7 @@ package idpsession
 import (
 	"math/rand"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 
@@ -118,6 +119,57 @@ func TestProvider(t *testing.T) {
 				So(err, ShouldBeError, ErrSessionNotFound)
 				So(session, ShouldBeNil)
 			})
+		})
+	})
+
+	enabled := true
+	disabled := false
+
+	Convey("checkSessionExpired", t, func() {
+
+		session := &IDPSession{
+			ID:        "session-id",
+			CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+			AccessInfo: access.Info{
+				LastAccess: access.Event{
+					Timestamp: time.Date(2020, 1, 1, 0, 0, 25, 0, time.UTC),
+				},
+			},
+		}
+		var cfg *config.SessionConfig
+		check := func(cfg *config.SessionConfig, mins, secs int) bool {
+			clock := clock.NewMockClockAtTime(time.Date(2020, 1, 1, 0, mins, secs, 0, time.UTC))
+			provider := &Provider{
+				Config: cfg,
+				Clock:  clock,
+			}
+			return !provider.CheckSessionExpired(session)
+		}
+
+		Convey("check session lifetime", func() {
+			cfg = &config.SessionConfig{
+				Lifetime:           120,
+				IdleTimeoutEnabled: &disabled,
+				IdleTimeout:        30,
+			}
+
+			So(check(cfg, 0, 0), ShouldBeTrue)
+			So(check(cfg, 0, 56), ShouldBeTrue)
+			So(check(cfg, 2, 0), ShouldBeTrue)
+			So(check(cfg, 2, 1), ShouldBeFalse)
+		})
+
+		Convey("check idle timeout", func() {
+			cfg = &config.SessionConfig{
+				Lifetime:           120,
+				IdleTimeoutEnabled: &enabled,
+				IdleTimeout:        30,
+			}
+
+			So(check(cfg, 0, 0), ShouldBeTrue)
+			So(check(cfg, 0, 55), ShouldBeTrue)
+			So(check(cfg, 0, 56), ShouldBeFalse)
+			So(check(cfg, 2, 1), ShouldBeFalse)
 		})
 	})
 }

@@ -66,6 +66,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
+	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
@@ -639,7 +640,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
@@ -654,10 +654,36 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	rand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          rand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -763,26 +789,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	rand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          rand,
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	whatsappStoreRedis := &whatsapp.StoreRedis{
@@ -829,7 +839,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Sessions:                  idpsessionProvider,
-		SessionManager:            idpsessionManager,
+		SessionManager:            manager2,
 		SessionCookie:             cookieDef,
 		MFADeviceTokenCookie:      mfaCookieDef,
 		WhatsappCodeProvider:      whatsappProvider,
@@ -869,11 +879,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	verificationFacade := &facade2.VerificationFacade{
 		Verification: verificationService,
 	}
-	manager2 := &session.Manager{
-		IDPSessions:         idpsessionManager,
-		AccessTokenSessions: sessionManager,
-		Events:              eventService,
-	}
 	sessionFacade := &facade2.SessionFacade{
 		Sessions: manager2,
 	}
@@ -906,18 +911,19 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	tokenService := &handler.TokenService{
-		RemoteIP:          remoteIP,
-		UserAgentString:   userAgentString,
-		AppID:             appID,
-		Config:            oAuthConfig,
-		Authorizations:    authorizationStore,
-		OfflineGrants:     redisStore,
-		AccessGrants:      redisStore,
-		AccessEvents:      eventProvider,
-		AccessTokenIssuer: accessTokenEncoding,
-		GenerateToken:     tokenGenerator,
-		Clock:             clockClock,
-		Users:             queries,
+		RemoteIP:            remoteIP,
+		UserAgentString:     userAgentString,
+		AppID:               appID,
+		Config:              oAuthConfig,
+		Authorizations:      authorizationStore,
+		OfflineGrants:       redisStore,
+		AccessGrants:        redisStore,
+		OfflineGrantService: offlineGrantService,
+		AccessEvents:        eventProvider,
+		AccessTokenIssuer:   accessTokenEncoding,
+		GenerateToken:       tokenGenerator,
+		Clock:               clockClock,
+		Users:               queries,
 	}
 	oAuthFacade := &facade2.OAuthFacade{
 		Config:         oAuthConfig,
@@ -925,6 +931,16 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Authorizations: authorizationService,
 		Tokens:         tokenService,
 		Clock:          clockClock,
+	}
+	oauthOfflineGrantService := &oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
+	sessionListingService := &sessionlisting.SessionListingService{
+		OAuthConfig:   oAuthConfig,
+		IDPSessions:   idpsessionProvider,
+		OfflineGrants: oauthOfflineGrantService,
 	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:             logger,
@@ -943,6 +959,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileFacade:     userProfileFacade,
 		AuthorizationFacade:   authorizationFacade,
 		OAuthFacade:           oAuthFacade,
+		SessionListing:        sessionListingService,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: graphqlContext,

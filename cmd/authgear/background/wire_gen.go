@@ -47,12 +47,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/backgroundjob"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -601,7 +603,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
@@ -617,10 +618,36 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Clock:       clockClock,
 	}
 	oAuthConfig := appConfig.OAuth
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: configAppID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	rand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         ctx,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           configAppID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          rand,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig: oAuthConfig,
+		Clock:       clockClock,
+		IDPSessions: idpsessionProvider,
+	}
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	coordinator := &facade.Coordinator{
@@ -650,3 +677,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	}
 	return userService
 }
+
+var (
+	_wireRandValue = idpsession.Rand(rand.SecureRand)
+)
