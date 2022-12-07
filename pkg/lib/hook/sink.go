@@ -112,7 +112,7 @@ func (s *Sink) DeliverBlockingEvent(e *event.Event) error {
 		}
 
 		var applied bool
-		e, applied = e.ApplyMutations(resp.Mutations)
+		applied = e.ApplyMutations(resp.Mutations)
 		if applied {
 			mutationsEverApplied = true
 		}
