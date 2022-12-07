@@ -40,15 +40,14 @@ func (e *UserPreCreateBlockingEventPayload) FillContext(ctx *event.Context) {
 	}
 }
 
-func (e *UserPreCreateBlockingEventPayload) ApplyMutations(mutations event.Mutations) (event.BlockingPayload, bool) {
+func (e *UserPreCreateBlockingEventPayload) ApplyMutations(mutations event.Mutations) bool {
 	user, mutated := ApplyUserMutations(e.UserModel, mutations.User)
 	if mutated {
-		copied := *e
-		copied.UserModel = user
-		return &copied, true
+		e.UserModel = user
+		return true
 	}
 
-	return e, false
+	return false
 }
 
 func (e *UserPreCreateBlockingEventPayload) PerformEffects(ctx event.MutationsEffectContext) error {

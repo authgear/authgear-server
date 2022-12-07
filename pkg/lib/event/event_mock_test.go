@@ -147,15 +147,14 @@ func (e *MockBlockingEvent1) BlockingEventType() event.Type {
 func (e *MockBlockingEvent1) FillContext(ctx *event.Context) {
 }
 
-func (e *MockBlockingEvent1) ApplyMutations(mutations event.Mutations) (event.BlockingPayload, bool) {
+func (e *MockBlockingEvent1) ApplyMutations(mutations event.Mutations) bool {
 	if mutations.User.StandardAttributes != nil {
-		copied := *e
-		copied.User.StandardAttributes = mutations.User.StandardAttributes
-		return &copied, true
+		e.User.StandardAttributes = mutations.User.StandardAttributes
+		return true
 
 	}
 
-	return e, false
+	return false
 }
 
 func (e *MockBlockingEvent1) PerformEffects(ctx event.MutationsEffectContext) error {
@@ -175,15 +174,13 @@ func (e *MockBlockingEvent2) BlockingEventType() event.Type {
 func (e *MockBlockingEvent2) FillContext(ctx *event.Context) {
 }
 
-func (e *MockBlockingEvent2) ApplyMutations(mutations event.Mutations) (event.BlockingPayload, bool) {
+func (e *MockBlockingEvent2) ApplyMutations(mutations event.Mutations) bool {
 	if mutations.User.StandardAttributes != nil {
-		copied := *e
-		copied.User.StandardAttributes = mutations.User.StandardAttributes
-		return &copied, true
-
+		e.User.StandardAttributes = mutations.User.StandardAttributes
+		return true
 	}
 
-	return e, false
+	return false
 }
 
 func (e *MockBlockingEvent2) PerformEffects(ctx event.MutationsEffectContext) error {

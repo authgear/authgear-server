@@ -147,15 +147,14 @@ func (e *MockBlockingEvent1) BlockingEventType() event.Type {
 func (e *MockBlockingEvent1) FillContext(ctx *event.Context) {
 }
 
-func (e *MockBlockingEvent1) ApplyMutations(mutations event.Mutations) (event.BlockingPayload, bool) {
+func (e *MockBlockingEvent1) ApplyMutations(mutations event.Mutations) bool {
 	user, mutated := ApplyMutations(e.User, mutations)
 	if mutated {
-		copied := *e
-		copied.User = user
-		return &copied, true
+		e.User = user
+		return true
 	}
 
-	return e, false
+	return false
 }
 
 func (e *MockBlockingEvent1) PerformEffects(ctx event.MutationsEffectContext) error {
@@ -175,15 +174,14 @@ func (e *MockBlockingEvent2) BlockingEventType() event.Type {
 func (e *MockBlockingEvent2) FillContext(ctx *event.Context) {
 }
 
-func (e *MockBlockingEvent2) ApplyMutations(mutations event.Mutations) (event.BlockingPayload, bool) {
+func (e *MockBlockingEvent2) ApplyMutations(mutations event.Mutations) bool {
 	user, mutated := ApplyMutations(e.User, mutations)
 	if mutated {
-		copied := *e
-		copied.User = user
-		return &copied, true
+		e.User = user
+		return true
 	}
 
-	return e, false
+	return false
 }
 
 func (e *MockBlockingEvent2) PerformEffects(ctx event.MutationsEffectContext) error {

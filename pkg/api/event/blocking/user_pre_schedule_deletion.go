@@ -32,15 +32,14 @@ func (e *UserPreScheduleDeletionBlockingEventPayload) GetTriggeredBy() event.Tri
 
 func (e *UserPreScheduleDeletionBlockingEventPayload) FillContext(ctx *event.Context) {}
 
-func (e *UserPreScheduleDeletionBlockingEventPayload) ApplyMutations(mutations event.Mutations) (event.BlockingPayload, bool) {
+func (e *UserPreScheduleDeletionBlockingEventPayload) ApplyMutations(mutations event.Mutations) bool {
 	user, mutated := ApplyUserMutations(e.UserModel, mutations.User)
 	if mutated {
-		copied := *e
-		copied.UserModel = user
-		return &copied, true
+		e.UserModel = user
+		return true
 	}
 
-	return e, false
+	return false
 }
 
 func (e *UserPreScheduleDeletionBlockingEventPayload) PerformEffects(ctx event.MutationsEffectContext) error {
