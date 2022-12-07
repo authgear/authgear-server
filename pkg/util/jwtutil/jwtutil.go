@@ -81,3 +81,11 @@ func SplitWithoutVerify(compact []byte) (hdr jws.Headers, payload jwt.Token, err
 
 	return
 }
+
+func BuildFromMap(m map[string]interface{}) (jwt.Token, error) {
+	b := jwt.NewBuilder()
+	for key, val := range m {
+		b.Claim(key, val)
+	}
+	return b.Build()
+}

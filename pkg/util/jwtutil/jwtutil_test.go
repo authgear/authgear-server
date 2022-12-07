@@ -137,3 +137,36 @@ func TestSplitWithoutVerify(t *testing.T) {
 		`)
 	})
 }
+
+func TestBuildFromMap(t *testing.T) {
+	// testToken ignores signature because the private key is generated freshly every time.
+	testToken := func(actual []byte, expected string) {
+		actualHdr, actualPayload, _, err := jws.SplitCompact(actual)
+		So(err, ShouldBeNil)
+
+		expectedHdr, expectedPayload, _, err := jws.SplitCompact([]byte(expected))
+		So(err, ShouldBeNil)
+
+		So(string(actualHdr), ShouldEqual, string(expectedHdr))
+		So(string(actualPayload), ShouldEqual, string(expectedPayload))
+	}
+
+	Convey("BuildFromMap", t, func() {
+		m := map[string]interface{}{
+			"https://example.com": map[string]interface{}{
+				"foo": "bar",
+			},
+		}
+
+		payload, err := BuildFromMap(m)
+		So(err, ShouldBeNil)
+
+		alg := jwa.HS256
+		key := []byte("secret")
+
+		token, err := Sign(payload, alg, key)
+		So(err, ShouldBeNil)
+
+		testToken(token, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwczovL2V4YW1wbGUuY29tIjp7ImZvbyI6ImJhciJ9fQ.HkXJRxSFoHUHvk1nZ36rcf4ZJDuKd2xExdjKIEv48dw")
+	})
+}
