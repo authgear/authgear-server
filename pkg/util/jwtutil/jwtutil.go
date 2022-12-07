@@ -89,3 +89,18 @@ func BuildFromMap(m map[string]interface{}) (jwt.Token, error) {
 	}
 	return b.Build()
 }
+
+func ToMap(t jwt.Token) (map[string]interface{}, error) {
+	bytes, err := json.Marshal(t)
+	if err != nil {
+		return nil, err
+	}
+
+	var m map[string]interface{}
+	err = json.Unmarshal(bytes, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	return m, nil
+}

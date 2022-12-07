@@ -7,6 +7,7 @@ import (
 	"crypto/rsa"
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwk"
@@ -168,5 +169,21 @@ func TestBuildFromMap(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		testToken(token, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwczovL2V4YW1wbGUuY29tIjp7ImZvbyI6ImJhciJ9fQ.HkXJRxSFoHUHvk1nZ36rcf4ZJDuKd2xExdjKIEv48dw")
+	})
+
+	Convey("ToMap", t, func() {
+		b := jwt.NewBuilder()
+		b.Expiration(time.Date(2006, 1, 2, 3, 4, 5, 6, time.UTC))
+		payload, err := b.Build()
+		So(err, ShouldBeNil)
+
+		actual, err := ToMap(payload)
+		So(err, ShouldBeNil)
+
+		expected := map[string]interface{}{
+			"exp": 1136171045.0,
+		}
+
+		So(actual, ShouldResemble, expected)
 	})
 }
