@@ -2467,6 +2467,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:      clockClock,
 		UserClaims: idTokenIssuer,
 		BaseURL:    endpointsProvider,
+		Events:     eventService,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	tokenService := handler.TokenService{
@@ -4959,6 +4960,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:      clockClock,
 		UserClaims: idTokenIssuer,
 		BaseURL:    endpointsProvider,
+		Events:     eventService,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	tokenService := handler.TokenService{
@@ -5777,6 +5779,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:      clockClock,
 		UserClaims: idTokenIssuer,
 		BaseURL:    endpointsProvider,
+		Events:     eventService,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	tokenService := handler.TokenService{
@@ -6539,6 +6542,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Clock:      clockClock,
 		UserClaims: idTokenIssuer,
 		BaseURL:    endpointsProvider,
+		Events:     eventService,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	tokenService := handler.TokenService{
@@ -48933,11 +48937,99 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Users:   queries,
 		Clock:   clockClock,
 	}
+	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	resolverImpl := &event.ResolverImpl{
+		Users: queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
+	}
+	sink := &hook.Sink{
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilderApp,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	pool := rootProvider.DatabasePool
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
+	tutorialStoreImpl := &tutorial.StoreImpl{
+		SQLBuilder:  globaldbSQLBuilder,
+		SQLExecutor: globaldbSQLExecutor,
+	}
+	tutorialService := &tutorial.Service{
+		Store: tutorialStoreImpl,
+	}
+	tutorialSink := &tutorial.Sink{
+		AppID:        appID,
+		Service:      tutorialService,
+		GlobalHandle: globaldbHandle,
+	}
+	elasticsearchLogger := elasticsearch.NewLogger(factory)
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	queue := appProvider.TaskQueue
+	elasticsearchService := elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     queries,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
+	elasticsearchSink := &elasticsearch.Sink{
+		Logger:   elasticsearchLogger,
+		Service:  elasticsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
 		Secrets:    oAuthKeyMaterials,
 		Clock:      clockClock,
 		UserClaims: idTokenIssuer,
 		BaseURL:    endpointsProvider,
+		Events:     eventService,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
 		OAuthConfig: oAuthConfig,

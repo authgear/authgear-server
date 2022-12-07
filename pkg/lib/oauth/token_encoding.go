@@ -12,6 +12,9 @@ import (
 	"github.com/lestrrat-go/jwx/jws"
 	"github.com/lestrrat-go/jwx/jwt"
 
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/blocking"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
@@ -25,11 +28,16 @@ type BaseURLProvider interface {
 	BaseURL() *url.URL
 }
 
+type EventService interface {
+	DispatchEvent(payload event.Payload) error
+}
+
 type AccessTokenEncoding struct {
 	Secrets    *config.OAuthKeyMaterials
 	Clock      clock.Clock
 	UserClaims UserClaimsProvider
 	BaseURL    BaseURLProvider
+	Events     EventService
 }
 
 func (e *AccessTokenEncoding) EncodeAccessToken(client *config.OAuthClientConfig, grant *AccessGrant, userID string, token string) (string, error) {
@@ -52,6 +60,30 @@ func (e *AccessTokenEncoding) EncodeAccessToken(client *config.OAuthClientConfig
 	// to be confidential. Put token hash to allow looking up access grant from
 	// verified JWT.
 	_ = claims.Set(jwt.JwtIDKey, grant.TokenHash)
+
+	claimsMap, err := jwtutil.ToMap(claims)
+	if err != nil {
+		return "", err
+	}
+
+	eventPayload := &blocking.UserSessionJWTPreCreateBlockingEventPayload{
+		UserRef: model.UserRef{
+			Meta: model.Meta{
+				ID: userID,
+			},
+		},
+		Payload: claimsMap,
+	}
+
+	err = e.Events.DispatchEvent(eventPayload)
+	if err != nil {
+		return "", err
+	}
+
+	claims, err = jwtutil.BuildFromMap(eventPayload.Payload)
+	if err != nil {
+		return "", err
+	}
 
 	jwk, _ := e.Secrets.Set.Get(0)
 

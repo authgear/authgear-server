@@ -278,6 +278,7 @@ const BLOCK_EVENT_TYPES: string[] = [
   "user.pre_create",
   "user.profile.pre_update",
   "user.pre_schedule_deletion",
+  "user.session.jwt.pre_create",
 ];
 
 interface BlockingHandlerItemEditProps {

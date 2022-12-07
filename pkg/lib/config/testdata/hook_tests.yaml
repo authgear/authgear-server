@@ -32,7 +32,7 @@ name: invalid-blocking-event
 error: |-
   invalid value:
   /event: enum
-    map[actual:before_user_create expected:[user.pre_create user.profile.pre_update user.pre_schedule_deletion]]
+    map[actual:before_user_create expected:[user.pre_create user.profile.pre_update user.pre_schedule_deletion user.session.jwt.pre_create]]
 value:
   event: before_user_create
   url: "https://example.com/callback/before_user_create"
