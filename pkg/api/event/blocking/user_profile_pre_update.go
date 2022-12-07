@@ -34,7 +34,7 @@ func (e *UserProfilePreUpdateBlockingEventPayload) FillContext(ctx *event.Contex
 }
 
 func (e *UserProfilePreUpdateBlockingEventPayload) ApplyMutations(mutations event.Mutations) (event.BlockingPayload, bool) {
-	user, mutated := ApplyMutations(e.UserModel, mutations)
+	user, mutated := ApplyUserMutations(e.UserModel, mutations.User)
 	if mutated {
 		copied := *e
 		copied.UserModel = user
@@ -44,8 +44,10 @@ func (e *UserProfilePreUpdateBlockingEventPayload) ApplyMutations(mutations even
 	return e, false
 }
 
-func (e *UserProfilePreUpdateBlockingEventPayload) GenerateFullMutations() event.Mutations {
-	return GenerateFullMutations(e.UserModel)
+func (e *UserProfilePreUpdateBlockingEventPayload) PerformEffects(ctx event.MutationsEffectContext) error {
+	userID := e.UserID()
+	userMutations := MakeUserMutations(e.UserModel)
+	return PerformEffectsOnUser(ctx, userID, userMutations)
 }
 
 var _ event.BlockingPayload = &UserProfilePreUpdateBlockingEventPayload{}

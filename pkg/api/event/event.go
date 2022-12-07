@@ -1,6 +1,23 @@
 package event
 
+import (
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+)
+
 type Type string
+
+type StandardAttributesServiceNoEvent interface {
+	UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
+}
+
+type CustomAttributesServiceNoEvent interface {
+	UpdateAllCustomAttributes(role accesscontrol.Role, userID string, reprForm map[string]interface{}) error
+}
+
+type MutationsEffectContext struct {
+	StandardAttributes StandardAttributesServiceNoEvent
+	CustomAttributes   CustomAttributesServiceNoEvent
+}
 
 type Payload interface {
 	UserID() string
@@ -11,8 +28,10 @@ type Payload interface {
 type BlockingPayload interface {
 	Payload
 	BlockingEventType() Type
+	// ApplyMutations applies mutations to itself.
 	ApplyMutations(mutations Mutations) (BlockingPayload, bool)
-	GenerateFullMutations() Mutations
+	// PerformEffects performs the side effects of the mutations.
+	PerformEffects(ctx MutationsEffectContext) error
 }
 
 type NonBlockingPayload interface {
@@ -45,11 +64,14 @@ func (e *Event) ApplyMutations(mutations Mutations) (*Event, bool) {
 	return e, false
 }
 
-func (e *Event) GenerateFullMutations() (*Mutations, bool) {
+func (e *Event) PerformEffects(ctx MutationsEffectContext) error {
 	if blockingPayload, ok := e.Payload.(BlockingPayload); ok {
-		mutations := blockingPayload.GenerateFullMutations()
-		return &mutations, true
+		err := blockingPayload.PerformEffects(ctx)
+		if err != nil {
+			return err
+		}
+		return nil
 	}
 
-	return nil, false
+	return nil
 }

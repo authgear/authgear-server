@@ -2,6 +2,7 @@ package event
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
@@ -157,12 +158,10 @@ func (e *MockBlockingEvent1) ApplyMutations(mutations event.Mutations) (event.Bl
 	return e, false
 }
 
-func (e *MockBlockingEvent1) GenerateFullMutations() event.Mutations {
-	return event.Mutations{
-		User: event.UserMutations{
-			StandardAttributes: e.User.StandardAttributes,
-		},
-	}
+func (e *MockBlockingEvent1) PerformEffects(ctx event.MutationsEffectContext) error {
+	userID := e.UserID()
+	userMutations := blocking.MakeUserMutations(e.User)
+	return blocking.PerformEffectsOnUser(ctx, userID, userMutations)
 }
 
 type MockBlockingEvent2 struct {
@@ -187,12 +186,10 @@ func (e *MockBlockingEvent2) ApplyMutations(mutations event.Mutations) (event.Bl
 	return e, false
 }
 
-func (e *MockBlockingEvent2) GenerateFullMutations() (out event.Mutations) {
-	return event.Mutations{
-		User: event.UserMutations{
-			StandardAttributes: e.User.StandardAttributes,
-		},
-	}
+func (e *MockBlockingEvent2) PerformEffects(ctx event.MutationsEffectContext) error {
+	userID := e.UserID()
+	userMutations := blocking.MakeUserMutations(e.User)
+	return blocking.PerformEffectsOnUser(ctx, userID, userMutations)
 }
 
 var _ event.NonBlockingPayload = &MockNonBlockingEvent1{}

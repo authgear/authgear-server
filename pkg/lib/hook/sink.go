@@ -119,28 +119,12 @@ func (s *Sink) DeliverBlockingEvent(e *event.Event) error {
 	}
 
 	if mutationsEverApplied {
-		userID := e.Payload.UserID()
-		if mutations, ok := e.GenerateFullMutations(); ok {
-			if mutations.User.StandardAttributes != nil {
-				err := s.StandardAttributes.UpdateStandardAttributes(
-					accesscontrol.RoleGreatest,
-					userID,
-					mutations.User.StandardAttributes,
-				)
-				if err != nil {
-					return err
-				}
-			}
-			if mutations.User.CustomAttributes != nil {
-				err := s.CustomAttributes.UpdateAllCustomAttributes(
-					accesscontrol.RoleGreatest,
-					userID,
-					mutations.User.CustomAttributes,
-				)
-				if err != nil {
-					return err
-				}
-			}
+		err := e.PerformEffects(event.MutationsEffectContext{
+			StandardAttributes: s.StandardAttributes,
+			CustomAttributes:   s.CustomAttributes,
+		})
+		if err != nil {
+			return err
 		}
 	}
 
