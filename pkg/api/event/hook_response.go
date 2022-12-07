@@ -40,6 +40,9 @@ var HookResponseSchema = validation.NewSimpleSchema(`
 							"properties": {
 								"standard_attributes": {
 									"type": "object"
+								},
+								"custom_attributes": {
+									"type": "object"
 								}
 							}
 						}

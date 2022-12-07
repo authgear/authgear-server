@@ -48,14 +48,24 @@ func TestParseHookResponse(t *testing.T) {
 			"is_allowed": true,
 			"mutations": {
 				"user": {
-					"standard_attributes": {}
+					"standard_attributes": {
+						"given_name": "johndoe"
+					},
+					"custom_attributes": {
+						"foobar": "42"
+					}
 				}
 			}
 		}`, &HookResponse{
 			IsAllowed: true,
 			Mutations: Mutations{
 				User: UserMutations{
-					StandardAttributes: map[string]interface{}{},
+					StandardAttributes: map[string]interface{}{
+						"given_name": "johndoe",
+					},
+					CustomAttributes: map[string]interface{}{
+						"foobar": "42",
+					},
 				},
 			},
 		})
@@ -83,6 +93,16 @@ func TestParseHookResponse(t *testing.T) {
 			Title:     "Title",
 			Reason:    "Reason",
 		})
+
+		fail(`{
+			"is_allowed": true,
+			"mutations": {
+				"user": {
+					"standard_attributes": 1,
+					"custom_attributes": 2
+				}
+			}
+		}`)
 
 		fail(`{
 			"is_allowed": false,
