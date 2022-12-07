@@ -918,6 +918,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:      clockClock,
 		UserClaims: idTokenIssuer,
 		BaseURL:    baseURLProvider,
+		Events:     eventService,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	tokenService := &handler.TokenService{
