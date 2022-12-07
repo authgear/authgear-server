@@ -71,6 +71,30 @@ func TestParseHookResponse(t *testing.T) {
 		})
 
 		pass(`{
+			"is_allowed": true,
+			"mutations": {
+				"jwt": {
+					"payload": {
+						"https://example.com": {
+							"foo": "bar"
+						}
+					}
+				}
+			}
+		}`, &HookResponse{
+			IsAllowed: true,
+			Mutations: Mutations{
+				JWT: JWTMutations{
+					Payload: map[string]interface{}{
+						"https://example.com": map[string]interface{}{
+							"foo": "bar",
+						},
+					},
+				},
+			},
+		})
+
+		pass(`{
 			"is_allowed": false
 		}`, &HookResponse{
 			IsAllowed: false,
