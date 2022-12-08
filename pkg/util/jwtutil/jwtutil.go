@@ -3,12 +3,17 @@ package jwtutil
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jws"
 	"github.com/lestrrat-go/jwx/jwt"
+
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
+
+var ErrInvalidJWTMutations = apierrors.Invalid.WithReason("InvalidJWTMutations")
 
 func Sign(t jwt.Token, alg jwa.SignatureAlgorithm, key interface{}) (token []byte, err error) {
 	return SignWithHeader(t, jws.NewHeaders(), alg, key)
@@ -103,4 +108,67 @@ func ToMap(t jwt.Token) (map[string]interface{}, error) {
 	}
 
 	return m, nil
+}
+
+func PrepareForMutations(t jwt.Token) (
+	forMutation map[string]interface{},
+	forBackup map[string]interface{},
+	err error,
+) {
+	cloned, err := t.Clone()
+	if err != nil {
+		return
+	}
+
+	forMutation, err = ToMap(t)
+	if err != nil {
+		return
+	}
+
+	forBackup, err = ToMap(cloned)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func ApplyMutations(
+	forMutation map[string]interface{},
+	forBackup map[string]interface{},
+) (applied jwt.Token, err error) {
+	// We need to check 2 things here.
+	// 1. No keys in forBackup were removed.
+	// 2. All keys in forBackup were intact.
+
+	removed := []string{}
+	changed := []string{}
+
+	for key := range forBackup {
+		_, ok := forMutation[key]
+		if !ok {
+			removed = append(removed, key)
+		} else {
+			v1 := forBackup[key]
+			v2 := forMutation[key]
+			if !reflect.DeepEqual(v1, v2) {
+				changed = append(changed, key)
+			}
+		}
+	}
+
+	if len(removed) > 0 || len(changed) > 0 {
+		err = ErrInvalidJWTMutations.NewWithInfo("invalid JWT mutations", apierrors.Details{
+			"removed": removed,
+			"changed": changed,
+		})
+		return
+	}
+
+	applied, err = BuildFromMap(forMutation)
+	if err != nil {
+		return
+	}
+
+	return
 }
