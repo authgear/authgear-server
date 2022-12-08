@@ -155,10 +155,12 @@ Use this event to add custom fields to the JWT access token.
 {
   "payload": {
     "user": { /* ... */ },
-    "payload": {
-      "iss": "issuer",
-      "aud": ["audience"]
-      "sub": "user_id"
+    "jwt": {
+      "payload": {
+        "iss": "issuer",
+        "aud": ["audience"]
+        "sub": "user_id"
+      }
     }
   }
 }
