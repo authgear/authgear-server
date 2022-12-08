@@ -39,6 +39,7 @@ export interface FormContainerProps {
   beforeSave?: () => Promise<void>;
   afterSave?: () => void;
   children?: React.ReactNode;
+  hideCommandBar?: boolean;
 }
 
 const FormContainer: React.VFC<FormContainerProps> = function FormContainer(
@@ -63,6 +64,7 @@ const FormContainer: React.VFC<FormContainerProps> = function FormContainer(
     messageBar,
     beforeSave = async () => Promise.resolve(),
     afterSave,
+    hideCommandBar,
   } = props;
 
   const contextError = useConsumeError();
@@ -164,14 +166,18 @@ const FormContainer: React.VFC<FormContainerProps> = function FormContainer(
       rules={errorRules}
       fallbackErrorMessageID={fallbackErrorMessageID}
     >
-      <CommandBarContainer
-        isLoading={isUpdating}
-        primaryItems={items}
-        secondaryItems={farItems}
-        messageBar={<FormErrorMessageBar>{messageBar}</FormErrorMessageBar>}
-      >
+      {hideCommandBar === true ? (
         <form onSubmit={onFormSubmit}>{props.children}</form>
-      </CommandBarContainer>
+      ) : (
+        <CommandBarContainer
+          isLoading={isUpdating}
+          primaryItems={items}
+          secondaryItems={farItems}
+          messageBar={<FormErrorMessageBar>{messageBar}</FormErrorMessageBar>}
+        >
+          <form onSubmit={onFormSubmit}>{props.children}</form>
+        </CommandBarContainer>
+      )}
       <Dialog
         hidden={!isResetDialogVisible}
         dialogContentProps={resetDialogContentProps}

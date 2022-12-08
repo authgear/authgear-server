@@ -40,32 +40,20 @@
 }
 
 .codeEditorContainer {
-  display: flex;
-  flex-direction: column;
-  row-gap: 8px;
+  @apply flex flex-col;
+  @apply gap-y-5;
 }
 
 .codeEditor {
-  width: 60vw;
-  height: 60vh;
+  height: 50vh;
 }
 
 .codeEditorFooter {
   display: flex;
   flex-direction: row;
   column-gap: 8px;
-  padding: 0 8px 8px;
 }
 
 .dot {
   margin: 0 4px;
-}
-
-.codeEditorTitle {
-  font-weight: 600;
-  padding: 16px 24px;
-}
-
-.codeEditorDescription {
-  padding: 0 24px 12px;
 }
