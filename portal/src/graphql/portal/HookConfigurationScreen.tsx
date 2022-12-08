@@ -628,6 +628,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
         if (codeEditorState != null) {
           const { eventKind, index, value } = codeEditorState;
           setState((prev) =>
+            // eslint-disable-next-line complexity
             produce(prev, (prev) => {
               switch (eventKind) {
                 case "blocking": {
@@ -635,7 +636,11 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                   const path = getPathFromURL(h.url);
                   for (const r of prev.resources) {
                     if (r.path === path) {
-                      r.nullableValue = value ?? DENOHOOK_BLOCKING_DEFAULT;
+                      // value is nullable because onEditBlocking and onEditNonBlocking cannot have deps.
+                      // If they had deps, they would change when deps change, causing the ListItemComponent to change as well.
+                      // If ListItemComponent changes on every key stroke, the DOM will unmount, result in losing focus on every key stroke.
+                      // We encountered this bug before.
+                      r.nullableValue = value ?? r.nullableValue ?? "";
                     }
                   }
                   break;
@@ -645,7 +650,11 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                   const path = getPathFromURL(h.url);
                   for (const r of prev.resources) {
                     if (r.path === path) {
-                      r.nullableValue = value ?? DENOHOOK_NONBLOCKING_DEFAULT;
+                      // value is nullable because onEditBlocking and onEditNonBlocking cannot have deps.
+                      // If they had deps, they would change when deps change, causing the ListItemComponent to change as well.
+                      // If ListItemComponent changes on every key stroke, the DOM will unmount, result in losing focus on every key stroke.
+                      // We encountered this bug before.
+                      r.nullableValue = value ?? r.nullableValue ?? "";
                     }
                   }
                   break;
