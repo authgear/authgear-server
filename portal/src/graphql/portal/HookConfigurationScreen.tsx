@@ -1,3 +1,4 @@
+import cn from "classnames";
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useParams } from "react-router-dom";
@@ -5,10 +6,8 @@ import {
   Dropdown,
   IDropdownOption,
   Label,
-  Modal,
   FontIcon,
   useTheme,
-  Text,
 } from "@fluentui/react";
 import produce from "immer";
 import ShowError from "../../ShowError";
@@ -55,7 +54,6 @@ import PrimaryButton from "../../PrimaryButton";
 import ActionButton from "../../ActionButton";
 import CodeEditor from "../../CodeEditor";
 import DefaultButton from "../../DefaultButton";
-import HorizontalDivider from "../../HorizontalDivider";
 
 const DENOHOOK_BLOCKING_DEFAULT = `import { HookEvent, HookResponse } from "https://deno.land/x/authgear_deno_hook@v0.2.0/mod.ts";
 
@@ -559,8 +557,6 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
     const { renderToString } = useContext(Context);
     const { hookFeatureConfig, form: config } = props;
 
-    const theme = useTheme();
-
     const [codeEditorState, setCodeEditorState] =
       useState<CodeEditorState | null>(null);
 
@@ -586,7 +582,8 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
     const form: FormModel = {
       isLoading: config.isLoading || resources.isLoading,
       isUpdating: config.isUpdating || resources.isUpdating,
-      isDirty: config.isDirty || resources.isDirty,
+      isDirty:
+        config.isDirty || resources.isDirty || codeEditorState?.value != null,
       loadError: config.loadError ?? resources.loadError,
       updateError: config.updateError ?? resources.updateError,
       state,
@@ -959,200 +956,182 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       return out;
     }, [state.diff, state.non_blocking_handlers]);
 
-    const codeEditorDescriptionStyles = useMemo(() => {
-      return {
-        root: {
-          color: theme.semanticColors.bodySubtext,
-        },
-      };
-    }, [theme.semanticColors.bodySubtext]);
-
     return (
-      <>
-        <Modal
-          isOpen={codeEditorState != null}
-          onDismiss={onClickCancelEditing}
-          isBlocking={true}
-        >
-          <div className={styles.codeEditorContainer}>
-            <Text
-              block={true}
-              className={styles.codeEditorTitle}
-              variant="large"
-            >
-              <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
-            </Text>
-            <Text
-              block={true}
-              className={styles.codeEditorDescription}
-              styles={codeEditorDescriptionStyles}
-            >
-              <FormattedMessage id="HookConfigurationScreen.edit-hook.description" />
-            </Text>
-            <CodeEditor
-              className={styles.codeEditor}
-              language="typescript"
-              value={code}
-              onChange={onChangeCode}
-            />
-            <HorizontalDivider />
-            <div className={styles.codeEditorFooter}>
-              <PrimaryButton
-                text="Finish Editing"
-                onClick={onClickFinishEditing}
+      <FormContainer form={form} hideCommandBar={codeEditorState != null}>
+        <ScreenContent>
+          {codeEditorState != null ? (
+            <div className={cn(styles.widget, styles.codeEditorContainer)}>
+              <WidgetTitle>
+                <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
+              </WidgetTitle>
+              <WidgetDescription>
+                <FormattedMessage id="HookConfigurationScreen.edit-hook.description" />
+              </WidgetDescription>
+              <CodeEditor
+                className={styles.codeEditor}
+                language="typescript"
+                value={code}
+                onChange={onChangeCode}
               />
-              <DefaultButton text="Cancel" onClick={onClickCancelEditing} />
+              <div className={styles.codeEditorFooter}>
+                <PrimaryButton
+                  text="Finish Editing"
+                  onClick={onClickFinishEditing}
+                />
+                <DefaultButton text="Cancel" onClick={onClickCancelEditing} />
+              </div>
             </div>
-          </div>
-        </Modal>
-        <FormContainer form={form}>
-          <ScreenContent>
-            <ScreenTitle className={styles.widget}>
-              <FormattedMessage id="HookConfigurationScreen.title" />
-            </ScreenTitle>
-            <ScreenDescription className={styles.widget}>
-              <FormattedMessage id="HookConfigurationScreen.description" />
-            </ScreenDescription>
+          ) : (
+            <>
+              <ScreenTitle className={styles.widget}>
+                <FormattedMessage id="HookConfigurationScreen.title" />
+              </ScreenTitle>
+              <ScreenDescription className={styles.widget}>
+                <FormattedMessage id="HookConfigurationScreen.description" />
+              </ScreenDescription>
 
-            <Widget className={styles.widget}>
-              <WidgetTitle>
-                <FormattedMessage id="HookConfigurationScreen.blocking-events" />
-              </WidgetTitle>
-              <WidgetDescription>
-                <FormattedMessage id="HookConfigurationScreen.blocking-events.description" />
-              </WidgetDescription>
-              {blockingHandlerMax < 99 ? (
-                blockingHandlerDisabled ? (
-                  <FeatureDisabledMessageBar messageID="FeatureConfig.webhook.blocking-events.disabled" />
-                ) : (
-                  <FeatureDisabledMessageBar
-                    messageID="FeatureConfig.webhook.blocking-events.maximum"
-                    messageValues={{
-                      maximum: blockingHandlerMax,
-                    }}
-                  />
-                )
-              ) : null}
-              {!hideBlockingHandlerList ? (
-                <FieldList
-                  label={
-                    <Label>
-                      <FormattedMessage id="HookConfigurationScreen.blocking-handlers.label" />
-                    </Label>
-                  }
-                  parentJSONPointer="/hook"
-                  fieldName="blocking_handlers"
-                  list={blockingHandlers}
-                  onListChange={onBlockingHandlersChange}
-                  makeDefaultItem={makeDefaultHandler}
-                  ListItemComponent={BlockingHandlerListItem}
-                  addButtonLabelMessageID="add"
-                  addDisabled={blockingHandlerLimitReached}
-                />
-              ) : null}
-            </Widget>
-
-            <Widget className={styles.widget}>
-              <WidgetTitle>
-                <FormattedMessage id="HookConfigurationScreen.non-blocking-events" />
-              </WidgetTitle>
-              <WidgetDescription>
-                <FormattedMessage id="HookConfigurationScreen.non-blocking-events.description" />
-              </WidgetDescription>
-              {nonBlockingHandlerMax < 99 ? (
-                nonBlockingHandlerDisabled ? (
-                  <FeatureDisabledMessageBar messageID="FeatureConfig.webhook.non-blocking-events.disabled" />
-                ) : (
-                  <FeatureDisabledMessageBar
-                    messageID="FeatureConfig.webhook.non-blocking-events.maximum"
-                    messageValues={{
-                      maximum: nonBlockingHandlerMax,
-                    }}
-                  />
-                )
-              ) : null}
-              {!hideNonBlockingHandlerList ? (
-                <FieldList
-                  label={
-                    <Label>
-                      <FormattedMessage id="HookConfigurationScreen.non-blocking-events-endpoints.label" />
-                    </Label>
-                  }
-                  parentJSONPointer="/hook"
-                  fieldName="non_blocking_handlers"
-                  list={nonBlockingHandlers}
-                  onListChange={onNonBlockingHandlersChange}
-                  makeDefaultItem={makeDefaultNonBlockingHandler}
-                  ListItemComponent={NonBlockingHandlerListItem}
-                  addButtonLabelMessageID="add"
-                  addDisabled={nonBlockingHandlerLimitReached}
-                />
-              ) : null}
-            </Widget>
-
-            <Widget className={styles.widget}>
-              <WidgetTitle>
-                <FormattedMessage id="HookConfigurationScreen.hook-settings" />
-              </WidgetTitle>
-              <TextField
-                type="text"
-                label={renderToString(
-                  "HookConfigurationScreen.total-timeout.label"
-                )}
-                value={state.totalTimeout?.toFixed(0) ?? ""}
-                onChange={onTotalTimeoutChange}
-              />
-              <TextField
-                type="text"
-                label={renderToString("HookConfigurationScreen.timeout.label")}
-                value={state.timeout?.toFixed(0) ?? ""}
-                onChange={onTimeoutChange}
-              />
-            </Widget>
-
-            <Widget className={styles.widget} contentLayout="grid">
-              <WidgetTitle
-                className={styles.columnFull}
-                id={WEBHOOK_SIGNATURE_ID}
-              >
-                <FormattedMessage id="HookConfigurationScreen.signature.title" />
-              </WidgetTitle>
-              <WidgetDescription className={styles.columnFull}>
-                <FormattedMessage id="HookConfigurationScreen.signature.description" />
-              </WidgetDescription>
-              <TextField
-                className={styles.secretInput}
-                type="text"
-                label={renderToString(
-                  "HookConfigurationScreen.signature.secret-key"
-                )}
-                value={
-                  revealed && state.secret != null
-                    ? state.secret
-                    : MASKED_SECRET
-                }
-                readOnly={true}
-              />
-              <PrimaryButton
-                className={styles.secretButton}
-                id={copyButtonProps.id}
-                onClick={revealed ? copyButtonProps.onClick : onClickReveal}
-                onMouseLeave={
-                  revealed ? copyButtonProps.onMouseLeave : undefined
-                }
-                text={
-                  revealed ? (
-                    <FormattedMessage id="copy" />
+              <Widget className={styles.widget}>
+                <WidgetTitle>
+                  <FormattedMessage id="HookConfigurationScreen.blocking-events" />
+                </WidgetTitle>
+                <WidgetDescription>
+                  <FormattedMessage id="HookConfigurationScreen.blocking-events.description" />
+                </WidgetDescription>
+                {blockingHandlerMax < 99 ? (
+                  blockingHandlerDisabled ? (
+                    <FeatureDisabledMessageBar messageID="FeatureConfig.webhook.blocking-events.disabled" />
                   ) : (
-                    <FormattedMessage id="reveal" />
+                    <FeatureDisabledMessageBar
+                      messageID="FeatureConfig.webhook.blocking-events.maximum"
+                      messageValues={{
+                        maximum: blockingHandlerMax,
+                      }}
+                    />
                   )
-                }
-              />
-              <Feedback />
-            </Widget>
-          </ScreenContent>
-        </FormContainer>
-      </>
+                ) : null}
+                {!hideBlockingHandlerList ? (
+                  <FieldList
+                    label={
+                      <Label>
+                        <FormattedMessage id="HookConfigurationScreen.blocking-handlers.label" />
+                      </Label>
+                    }
+                    parentJSONPointer="/hook"
+                    fieldName="blocking_handlers"
+                    list={blockingHandlers}
+                    onListChange={onBlockingHandlersChange}
+                    makeDefaultItem={makeDefaultHandler}
+                    ListItemComponent={BlockingHandlerListItem}
+                    addButtonLabelMessageID="add"
+                    addDisabled={blockingHandlerLimitReached}
+                  />
+                ) : null}
+              </Widget>
+
+              <Widget className={styles.widget}>
+                <WidgetTitle>
+                  <FormattedMessage id="HookConfigurationScreen.non-blocking-events" />
+                </WidgetTitle>
+                <WidgetDescription>
+                  <FormattedMessage id="HookConfigurationScreen.non-blocking-events.description" />
+                </WidgetDescription>
+                {nonBlockingHandlerMax < 99 ? (
+                  nonBlockingHandlerDisabled ? (
+                    <FeatureDisabledMessageBar messageID="FeatureConfig.webhook.non-blocking-events.disabled" />
+                  ) : (
+                    <FeatureDisabledMessageBar
+                      messageID="FeatureConfig.webhook.non-blocking-events.maximum"
+                      messageValues={{
+                        maximum: nonBlockingHandlerMax,
+                      }}
+                    />
+                  )
+                ) : null}
+                {!hideNonBlockingHandlerList ? (
+                  <FieldList
+                    label={
+                      <Label>
+                        <FormattedMessage id="HookConfigurationScreen.non-blocking-events-endpoints.label" />
+                      </Label>
+                    }
+                    parentJSONPointer="/hook"
+                    fieldName="non_blocking_handlers"
+                    list={nonBlockingHandlers}
+                    onListChange={onNonBlockingHandlersChange}
+                    makeDefaultItem={makeDefaultNonBlockingHandler}
+                    ListItemComponent={NonBlockingHandlerListItem}
+                    addButtonLabelMessageID="add"
+                    addDisabled={nonBlockingHandlerLimitReached}
+                  />
+                ) : null}
+              </Widget>
+
+              <Widget className={styles.widget}>
+                <WidgetTitle>
+                  <FormattedMessage id="HookConfigurationScreen.hook-settings" />
+                </WidgetTitle>
+                <TextField
+                  type="text"
+                  label={renderToString(
+                    "HookConfigurationScreen.total-timeout.label"
+                  )}
+                  value={state.totalTimeout?.toFixed(0) ?? ""}
+                  onChange={onTotalTimeoutChange}
+                />
+                <TextField
+                  type="text"
+                  label={renderToString(
+                    "HookConfigurationScreen.timeout.label"
+                  )}
+                  value={state.timeout?.toFixed(0) ?? ""}
+                  onChange={onTimeoutChange}
+                />
+              </Widget>
+
+              <Widget className={styles.widget} contentLayout="grid">
+                <WidgetTitle
+                  className={styles.columnFull}
+                  id={WEBHOOK_SIGNATURE_ID}
+                >
+                  <FormattedMessage id="HookConfigurationScreen.signature.title" />
+                </WidgetTitle>
+                <WidgetDescription className={styles.columnFull}>
+                  <FormattedMessage id="HookConfigurationScreen.signature.description" />
+                </WidgetDescription>
+                <TextField
+                  className={styles.secretInput}
+                  type="text"
+                  label={renderToString(
+                    "HookConfigurationScreen.signature.secret-key"
+                  )}
+                  value={
+                    revealed && state.secret != null
+                      ? state.secret
+                      : MASKED_SECRET
+                  }
+                  readOnly={true}
+                />
+                <PrimaryButton
+                  className={styles.secretButton}
+                  id={copyButtonProps.id}
+                  onClick={revealed ? copyButtonProps.onClick : onClickReveal}
+                  onMouseLeave={
+                    revealed ? copyButtonProps.onMouseLeave : undefined
+                  }
+                  text={
+                    revealed ? (
+                      <FormattedMessage id="copy" />
+                    ) : (
+                      <FormattedMessage id="reveal" />
+                    )
+                  }
+                />
+                <Feedback />
+              </Widget>
+            </>
+          )}
+        </ScreenContent>
+      </FormContainer>
     );
   };
 
