@@ -61,7 +61,7 @@ func (e *AccessTokenEncoding) EncodeAccessToken(client *config.OAuthClientConfig
 	// verified JWT.
 	_ = claims.Set(jwt.JwtIDKey, grant.TokenHash)
 
-	claimsMap, err := jwtutil.ToMap(claims)
+	forMutation, forBackup, err := jwtutil.PrepareForMutations(claims)
 	if err != nil {
 		return "", err
 	}
@@ -73,7 +73,7 @@ func (e *AccessTokenEncoding) EncodeAccessToken(client *config.OAuthClientConfig
 			},
 		},
 		JWT: blocking.UserSessionJWT{
-			Payload: claimsMap,
+			Payload: forMutation,
 		},
 	}
 
@@ -82,7 +82,10 @@ func (e *AccessTokenEncoding) EncodeAccessToken(client *config.OAuthClientConfig
 		return "", err
 	}
 
-	claims, err = jwtutil.BuildFromMap(eventPayload.JWT.Payload)
+	claims, err = jwtutil.ApplyMutations(
+		eventPayload.JWT.Payload,
+		forBackup,
+	)
 	if err != nil {
 		return "", err
 	}

@@ -15,6 +15,8 @@ import (
 	"github.com/lestrrat-go/jwx/jwt"
 
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
 func TestSign(t *testing.T) {
@@ -185,5 +187,56 @@ func TestBuildFromMap(t *testing.T) {
 		}
 
 		So(actual, ShouldResemble, expected)
+	})
+}
+
+func TestPrepareForMutations(t *testing.T) {
+	Convey("PrepareForMutations", t, func() {
+		token, err := jwt.NewBuilder().Claim("iss", "issuer").Build()
+		So(err, ShouldBeNil)
+
+		forMutation, forBackup, err := PrepareForMutations(token)
+		So(err, ShouldBeNil)
+
+		forMutation["foo"] = "bar"
+
+		_, ok := forBackup["foo"]
+		So(ok, ShouldBeFalse)
+	})
+}
+
+func TestApplyMutations(t *testing.T) {
+	Convey("ApplyMutations", t, func() {
+		test := func(forMutation map[string]interface{}, forBackup map[string]interface{}, expectedErr error) {
+			_, err := ApplyMutations(forMutation, forBackup)
+			if expectedErr != nil {
+				So(err, ShouldResemble, expectedErr)
+			} else {
+				So(err, ShouldBeNil)
+			}
+		}
+
+		test(map[string]interface{}{}, map[string]interface{}{
+			"iss": "issuer",
+		}, ErrInvalidJWTMutations.NewWithInfo("invalid JWT mutations", apierrors.Details{
+			"removed": []string{"iss"},
+			"changed": []string{},
+		}))
+
+		test(map[string]interface{}{
+			"iss": "another-issuer",
+		}, map[string]interface{}{
+			"iss": "issuer",
+		}, ErrInvalidJWTMutations.NewWithInfo("invalid JWT mutations", apierrors.Details{
+			"removed": []string{},
+			"changed": []string{"iss"},
+		}))
+
+		test(map[string]interface{}{
+			"iat": 1,
+			"foo": "bar",
+		}, map[string]interface{}{
+			"iat": 1,
+		}, nil)
 	})
 }
