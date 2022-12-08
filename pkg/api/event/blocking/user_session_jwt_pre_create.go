@@ -9,10 +9,14 @@ const (
 	UserSessionJWTPreCreate event.Type = "user.session.jwt.pre_create"
 )
 
+type UserSessionJWT struct {
+	Payload map[string]interface{} `json:"payload"`
+}
+
 type UserSessionJWTPreCreateBlockingEventPayload struct {
-	UserRef   model.UserRef          `json:"-" resolve:"user"`
-	UserModel model.User             `json:"user"`
-	Payload   map[string]interface{} `json:"payload"`
+	UserRef   model.UserRef  `json:"-" resolve:"user"`
+	UserModel model.User     `json:"user"`
+	JWT       UserSessionJWT `json:"jwt"`
 }
 
 func (e *UserSessionJWTPreCreateBlockingEventPayload) BlockingEventType() event.Type {
@@ -31,7 +35,7 @@ func (e *UserSessionJWTPreCreateBlockingEventPayload) FillContext(ctx *event.Con
 
 func (e *UserSessionJWTPreCreateBlockingEventPayload) ApplyMutations(mutations event.Mutations) bool {
 	if mutations.JWT.Payload != nil {
-		e.Payload = mutations.JWT.Payload
+		e.JWT.Payload = mutations.JWT.Payload
 		return true
 	}
 

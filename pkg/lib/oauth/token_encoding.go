@@ -72,7 +72,9 @@ func (e *AccessTokenEncoding) EncodeAccessToken(client *config.OAuthClientConfig
 				ID: userID,
 			},
 		},
-		Payload: claimsMap,
+		JWT: blocking.UserSessionJWT{
+			Payload: claimsMap,
+		},
 	}
 
 	err = e.Events.DispatchEvent(eventPayload)
@@ -80,7 +82,7 @@ func (e *AccessTokenEncoding) EncodeAccessToken(client *config.OAuthClientConfig
 		return "", err
 	}
 
-	claims, err = jwtutil.BuildFromMap(eventPayload.Payload)
+	claims, err = jwtutil.BuildFromMap(eventPayload.JWT.Payload)
 	if err != nil {
 		return "", err
 	}
