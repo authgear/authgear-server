@@ -43,6 +43,40 @@ func TestDenoClient(t *testing.T) {
 			So(actual, ShouldEqual, 42)
 		})
 
+		Convey("Check", func() {
+			ctx := context.Background()
+
+			gock.New("http://localhost:8090").
+				Post("/check").
+				JSON(map[string]interface{}{
+					"script": "export default function(a) { return a }",
+				}).
+				Reply(200).
+				JSON(map[string]interface{}{})
+			defer func() { gock.Flush() }()
+
+			err := denoClient.Check(ctx, "export default function(a) { return a }")
+			So(err, ShouldBeNil)
+		})
+
+		Convey("Check with error", func() {
+			ctx := context.Background()
+
+			gock.New("http://localhost:8090").
+				Post("/check").
+				JSON(map[string]interface{}{
+					"script": "syntax error",
+				}).
+				Reply(200).
+				JSON(map[string]interface{}{
+					"stderr": "error: The module's source code could not be parsed: Expected ';', '}' or <eof> at FILE:1:8",
+				})
+			defer func() { gock.Flush() }()
+
+			err := denoClient.Check(ctx, "syntax error")
+			So(err, ShouldBeError, "error: The module's source code could not be parsed: Expected ';', '}' or <eof> at FILE:1:8")
+		})
+
 		Convey("invalid status code", func() {
 			ctx := context.Background()
 

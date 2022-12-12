@@ -23,13 +23,37 @@
 .handlerEdit {
   flex-grow: 1;
   display: flex;
+  column-gap: 8px;
 }
 
-.handlerEdit .handlerEventField {
-  width: 200px;
-  margin-right: 8px;
+.handlerEventField {
+  width: 180px;
 }
 
-.handlerEdit .handlerURLField {
+.handlerKindField {
+  width: 180px;
+}
+
+.handlerURLField {
+  min-width: 0;
   flex: 1 0 0;
+}
+
+.codeEditorContainer {
+  @apply flex flex-col;
+  @apply gap-y-5;
+}
+
+.codeEditor {
+  height: 50vh;
+}
+
+.codeEditorFooter {
+  display: flex;
+  flex-direction: row;
+  column-gap: 8px;
+}
+
+.dot {
+  margin: 0 4px;
 }

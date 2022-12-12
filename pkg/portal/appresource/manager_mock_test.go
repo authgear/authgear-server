@@ -12,6 +12,43 @@ import (
 	gomock "github.com/golang/mock/gomock"
 )
 
+// MockDenoClient is a mock of DenoClient interface.
+type MockDenoClient struct {
+	ctrl     *gomock.Controller
+	recorder *MockDenoClientMockRecorder
+}
+
+// MockDenoClientMockRecorder is the mock recorder for MockDenoClient.
+type MockDenoClientMockRecorder struct {
+	mock *MockDenoClient
+}
+
+// NewMockDenoClient creates a new mock instance.
+func NewMockDenoClient(ctrl *gomock.Controller) *MockDenoClient {
+	mock := &MockDenoClient{ctrl: ctrl}
+	mock.recorder = &MockDenoClientMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockDenoClient) EXPECT() *MockDenoClientMockRecorder {
+	return m.recorder
+}
+
+// Check mocks base method.
+func (m *MockDenoClient) Check(ctx context.Context, snippet string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Check", ctx, snippet)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Check indicates an expected call of Check.
+func (mr *MockDenoClientMockRecorder) Check(ctx, snippet interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Check", reflect.TypeOf((*MockDenoClient)(nil).Check), ctx, snippet)
+}
+
 // MockTutorialService is a mock of TutorialService interface.
 type MockTutorialService struct {
 	ctrl     *gomock.Controller

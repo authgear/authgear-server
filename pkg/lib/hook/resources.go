@@ -9,9 +9,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
-var DenoFileFilenameRegexp = regexp.MustCompile(`^deno/[0-9a-zA-Z]+\.ts$`)
+var DenoFileFilenameRegexp = regexp.MustCompile(`^deno/[.0-9a-zA-Z]+\.ts$`)
 
 //go:generate mockgen -source=resources.go -destination=resources_mock_test.go -package hook
+
+type denoClientContextKeyType struct{}
+
+var ContextKeyDenoClient = denoClientContextKeyType{}
 
 type ResourceManager interface {
 	Read(desc resource.Descriptor, view resource.View) (interface{}, error)
@@ -47,10 +51,10 @@ func (d DenoFileDescriptor) FindResources(fs resource.Fs) ([]resource.Location, 
 func (DenoFileDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
 	output := bytes.Buffer{}
 
-	app := func(view resource.AppFileView) error {
+	app := func(p string) error {
 		var target *resource.ResourceFile
 		for _, resrc := range resources {
-			if resrc.Location.Fs.GetFsLevel() == resource.FsLevelApp && resrc.Location.Path == view.AppFilePath() {
+			if resrc.Location.Fs.GetFsLevel() == resource.FsLevelApp && resrc.Location.Path == p {
 				s := resrc
 				target = &s
 			}
@@ -63,20 +67,39 @@ func (DenoFileDescriptor) ViewResources(resources []resource.ResourceFile, rawVi
 		return nil
 	}
 
+	// We have to support AppFileView and EffectiveFileView
+	// because the portal assumes every editable resources support these two views.
 	switch view := rawView.(type) {
 	case resource.AppFileView:
-		err := app(view)
+		err := app(view.AppFilePath())
 		if err != nil {
 			return nil, err
 		}
 		return output.Bytes(), nil
+	case resource.EffectiveFileView:
+		err := app(view.EffectiveFilePath())
+		if err != nil {
+			return nil, err
+		}
+		return output.Bytes(), nil
+	case resource.ValidateResourceView:
+		// Actual validation happens in UpdateResource.
+		return nil, nil
 	default:
 		return nil, fmt.Errorf("unsupported view: %T", rawView)
 	}
 }
 
-func (DenoFileDescriptor) UpdateResource(_ context.Context, _ []resource.ResourceFile, _ *resource.ResourceFile, _ []byte) (*resource.ResourceFile, error) {
-	return nil, fmt.Errorf("not yet implemented")
+func (DenoFileDescriptor) UpdateResource(ctx context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
+	denoClient := ctx.Value(ContextKeyDenoClient).(*DenoClient)
+	err := denoClient.Check(ctx, string(data))
+	if err != nil {
+		return nil, err
+	}
+	return &resource.ResourceFile{
+		Location: resrc.Location,
+		Data:     data,
+	}, nil
 }
 
 var DenoFile = resource.RegisterResource(DenoFileDescriptor{})
