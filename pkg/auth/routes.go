@@ -22,6 +22,10 @@ func newSafeDynamicCSPMiddleware(deps *deps.RequestProvider) httproute.Middlewar
 	return newDynamicCSPMiddleware(deps, false)
 }
 
+func newAllSessionMiddleware(deps *deps.RequestProvider) httproute.Middleware {
+	return newSessionMiddleware(deps, false)
+}
+
 func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *httproute.Router {
 	router := httproute.NewRouter()
 
@@ -64,7 +68,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		rootChain,
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
-		p.Middleware(newSessionMiddleware),
+		p.Middleware(newAllSessionMiddleware),
 		httproute.MiddlewareFunc(httputil.NoStore),
 		p.Middleware(newWebAppWeChatRedirectURIMiddleware),
 	)
@@ -80,7 +84,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		rootChain,
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
-		p.Middleware(newSessionMiddleware),
+		p.Middleware(newAllSessionMiddleware),
 		httproute.MiddlewareFunc(httputil.NoStore),
 	)
 
@@ -93,7 +97,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		rootChain,
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
-		p.Middleware(newSessionMiddleware),
+		p.Middleware(newAllSessionMiddleware),
 		httproute.MiddlewareFunc(httputil.NoStore),
 		// Current we only require valid session and do not require any scope.
 		httproute.MiddlewareFunc(oauth.RequireScope()),
@@ -103,7 +107,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		rootChain,
 		p.Middleware(newPublicOriginMiddleware),
 		p.Middleware(newPanicWebAppMiddleware),
-		p.Middleware(newSessionMiddleware),
+		p.Middleware(newAllSessionMiddleware),
 		httproute.MiddlewareFunc(httputil.NoStore),
 		httproute.MiddlewareFunc(webapp.IntlMiddleware),
 		p.Middleware(newWebAppSessionMiddleware),
