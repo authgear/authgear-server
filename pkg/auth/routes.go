@@ -110,7 +110,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.Middleware(newAPIRRequireAuthenticatedMiddlewareMiddleware),
 	)
 
-	scopedChain := httproute.Chain(
+	oauthAPIScopedChain := httproute.Chain(
 		rootChain,
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
@@ -206,7 +206,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	siweAPIRoute := httproute.Route{Middleware: siweAPIChain}
 	apiRoute := httproute.Route{Middleware: apiChain}
 	apiAuthenticatedRoute := httproute.Route{Middleware: apiAuthenticatedChain}
-	scopedRoute := httproute.Route{Middleware: scopedChain}
+	oauthAPIScopedRoute := httproute.Route{Middleware: oauthAPIScopedChain}
 	webappPageRoute := httproute.Route{Middleware: webappPageChain}
 	webappSIWERoute := httproute.Route{Middleware: webappSIWEChain}
 	webappAuthEntrypointRoute := httproute.Route{Middleware: webappAuthEntrypointChain}
@@ -296,7 +296,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(oauthhandler.ConfigureChallengeRoute(apiRoute), p.Handler(newOAuthChallengeHandler))
 	router.Add(oauthhandler.ConfigureAppSessionTokenRoute(apiRoute), p.Handler(newOAuthAppSessionTokenHandler))
 
-	router.Add(oauthhandler.ConfigureUserInfoRoute(scopedRoute), p.Handler(newOAuthUserInfoHandler))
+	router.Add(oauthhandler.ConfigureUserInfoRoute(oauthAPIScopedRoute), p.Handler(newOAuthUserInfoHandler))
 
 	router.Add(oauthhandler.ConfigureConsentRoute(webappConsentPageRoute), p.Handler(newOAuthConsentHandler))
 
