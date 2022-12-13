@@ -8,6 +8,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
+func newAllSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	return newSessionMiddleware(p, false)
+}
+
 func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *httproute.Router {
 	router := httproute.NewRouter()
 
@@ -25,7 +29,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 			RootProvider: p,
 			ConfigSource: configSource,
 		},
-		p.Middleware(newSessionMiddleware),
+		p.Middleware(newAllSessionMiddleware),
 	)
 
 	route := httproute.Route{Middleware: chain}

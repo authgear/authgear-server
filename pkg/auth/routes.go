@@ -22,7 +22,23 @@ func newSafeDynamicCSPMiddleware(deps *deps.RequestProvider) httproute.Middlewar
 	return newDynamicCSPMiddleware(deps, false)
 }
 
+func newAllSessionMiddleware(deps *deps.RequestProvider) httproute.Middleware {
+	return newSessionMiddleware(deps, false)
+}
+
+func newIDPSessionOnlySessionMiddleware(deps *deps.RequestProvider) httproute.Middleware {
+	return newSessionMiddleware(deps, true)
+}
+
 func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *httproute.Router {
+
+	newSessionMiddleware := func(idpSessionOnly bool) httproute.Middleware {
+		if idpSessionOnly {
+			return p.Middleware(newIDPSessionOnlySessionMiddleware)
+		}
+		return p.Middleware(newAllSessionMiddleware)
+	}
+
 	router := httproute.NewRouter()
 
 	router.Add(httproute.Route{
@@ -60,15 +76,20 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.Middleware(newPublicOriginMiddleware),
 	)
 
-	oauthAPIChain := httproute.Chain(
-		rootChain,
-		p.Middleware(newCORSMiddleware),
-		p.Middleware(newPublicOriginMiddleware),
-		p.Middleware(newSessionMiddleware),
-		httproute.MiddlewareFunc(httputil.NoStore),
-		p.Middleware(newWebAppWeChatRedirectURIMiddleware),
-	)
+	newOAuthAPIChain := func(idpSessionOnly bool) httproute.Middleware {
+		return httproute.Chain(
+			rootChain,
+			p.Middleware(newCORSMiddleware),
+			p.Middleware(newPublicOriginMiddleware),
+			newSessionMiddleware(idpSessionOnly),
+			httproute.MiddlewareFunc(httputil.NoStore),
+			p.Middleware(newWebAppWeChatRedirectURIMiddleware),
+		)
+	}
 
+	oauthAPIChain := newOAuthAPIChain(false)
+	// authz endpoint only accepts idp session
+	oauthAuthzAPIChain := newOAuthAPIChain(true)
 	siweAPIChain := httproute.Chain(
 		rootChain,
 		p.Middleware(newCORSMiddleware),
@@ -80,7 +101,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		rootChain,
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
-		p.Middleware(newSessionMiddleware),
+		p.Middleware(newAllSessionMiddleware),
 		httproute.MiddlewareFunc(httputil.NoStore),
 	)
 
@@ -93,26 +114,29 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		rootChain,
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
-		p.Middleware(newSessionMiddleware),
+		p.Middleware(newAllSessionMiddleware),
 		httproute.MiddlewareFunc(httputil.NoStore),
 		// Current we only require valid session and do not require any scope.
 		httproute.MiddlewareFunc(oauth.RequireScope()),
 	)
 
-	webappChain := httproute.Chain(
-		rootChain,
-		p.Middleware(newPublicOriginMiddleware),
-		p.Middleware(newPanicWebAppMiddleware),
-		p.Middleware(newSessionMiddleware),
-		httproute.MiddlewareFunc(httputil.NoStore),
-		httproute.MiddlewareFunc(webapp.IntlMiddleware),
-		p.Middleware(newWebAppSessionMiddleware),
-		p.Middleware(newWebAppUILocalesMiddleware),
-		p.Middleware(newWebAppColorSchemeMiddleware),
-		p.Middleware(newWebAppWeChatRedirectURIMiddleware),
-		p.Middleware(newWebAppClientIDMiddleware),
-		p.Middleware(newTutorialMiddleware),
-	)
+	newWebappChain := func(idpSessionOnly bool) httproute.Middleware {
+		return httproute.Chain(
+			rootChain,
+			p.Middleware(newPublicOriginMiddleware),
+			p.Middleware(newPanicWebAppMiddleware),
+			newSessionMiddleware(idpSessionOnly),
+			httproute.MiddlewareFunc(httputil.NoStore),
+			httproute.MiddlewareFunc(webapp.IntlMiddleware),
+			p.Middleware(newWebAppSessionMiddleware),
+			p.Middleware(newWebAppUILocalesMiddleware),
+			p.Middleware(newWebAppColorSchemeMiddleware),
+			p.Middleware(newWebAppWeChatRedirectURIMiddleware),
+			p.Middleware(newWebAppClientIDMiddleware),
+			p.Middleware(newTutorialMiddleware),
+		)
+	}
+	webappChain := newWebappChain(false)
 	webappSSOCallbackChain := httproute.Chain(
 		webappChain,
 	)
@@ -125,14 +149,18 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	webappAPIChain := httproute.Chain(
 		webappChain,
 	)
-	webappPageChain := httproute.Chain(
-		webappChain,
-		p.Middleware(newCSRFMiddleware),
-		// Turbo no longer requires us to tell the redirected location.
-		// It can now determine redirection from the response.
-		// https://github.com/hotwired/turbo/blob/daabebb0575fffbae1b2582dc458967cd638e899/src/core/drive/visit.ts#L316
-		p.Middleware(newSafeDynamicCSPMiddleware),
-	)
+
+	newWebappPageChain := func(idpSessionOnly bool) httproute.Middleware {
+		return httproute.Chain(
+			newWebappChain(idpSessionOnly),
+			p.Middleware(newCSRFMiddleware),
+			// Turbo no longer requires us to tell the redirected location.
+			// It can now determine redirection from the response.
+			// https://github.com/hotwired/turbo/blob/daabebb0575fffbae1b2582dc458967cd638e899/src/core/drive/visit.ts#L316
+			p.Middleware(newSafeDynamicCSPMiddleware),
+		)
+	}
+	webappPageChain := newWebappPageChain(false)
 	webappSIWEChain := httproute.Chain(
 		webappChain,
 		p.Middleware(newCSRFMiddleware),
@@ -144,6 +172,13 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		// A unique visit is started when the user visit auth entry point
 		p.Middleware(newWebAppVisitorIDMiddleware),
 	)
+	// select account page only accepts idp session
+	webappSelectAccountChain := httproute.Chain(
+		newWebappPageChain(true),
+		p.Middleware(newAuthEntryPointMiddleware),
+	)
+	// consent page only accepts idp session
+	webappConsentPageChain := newWebappPageChain(true)
 	webappAuthenticatedChain := httproute.Chain(
 		webappPageChain,
 		webapp.RequireAuthenticatedMiddleware{},
@@ -167,6 +202,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	generatedStaticRoute := httproute.Route{Middleware: generatedStaticChain}
 	oauthStaticRoute := httproute.Route{Middleware: oauthStaticChain}
 	oauthAPIRoute := httproute.Route{Middleware: oauthAPIChain}
+	oauthAuthzAPIRoute := httproute.Route{Middleware: oauthAuthzAPIChain}
 	siweAPIRoute := httproute.Route{Middleware: siweAPIChain}
 	apiRoute := httproute.Route{Middleware: apiChain}
 	apiAuthenticatedRoute := httproute.Route{Middleware: apiAuthenticatedChain}
@@ -174,6 +210,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	webappPageRoute := httproute.Route{Middleware: webappPageChain}
 	webappSIWERoute := httproute.Route{Middleware: webappSIWEChain}
 	webappAuthEntrypointRoute := httproute.Route{Middleware: webappAuthEntrypointChain}
+	webappSelectAccountRoute := httproute.Route{Middleware: webappSelectAccountChain}
+	webappConsentPageRoute := httproute.Route{Middleware: webappConsentPageChain}
 	webappAuthenticatedRoute := httproute.Route{Middleware: webappAuthenticatedChain}
 	webappSuccessPageRoute := httproute.Route{Middleware: webappSuccessPageChain}
 	webappSettingsSubRoutesRoute := httproute.Route{Middleware: webappSettingsSubRoutesChain}
@@ -186,7 +224,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandler.ConfigureOAuthEntrypointRoute(webappAuthEntrypointRoute), p.Handler(newWebAppOAuthEntrypointHandler))
 	router.Add(webapphandler.ConfigureLoginRoute(webappAuthEntrypointRoute), p.Handler(newWebAppLoginHandler))
 	router.Add(webapphandler.ConfigureSignupRoute(webappAuthEntrypointRoute), p.Handler(newWebAppSignupHandler))
-	router.Add(webapphandler.ConfigureSelectAccountRoute(webappAuthEntrypointRoute), p.Handler(newWebAppSelectAccountHandler))
+	router.Add(webapphandler.ConfigureSelectAccountRoute(webappSelectAccountRoute), p.Handler(newWebAppSelectAccountHandler))
 
 	router.Add(webapphandler.ConfigurePromoteRoute(webappPageRoute), p.Handler(newWebAppPromoteHandler))
 	router.Add(webapphandler.ConfigureEnterPasswordRoute(webappPageRoute), p.Handler(newWebAppEnterPasswordHandler))
@@ -250,7 +288,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(oauthhandler.ConfigureOAuthMetadataRoute(oauthStaticRoute), p.Handler(newOAuthMetadataHandler))
 	router.Add(oauthhandler.ConfigureJWKSRoute(oauthStaticRoute), p.Handler(newOAuthJWKSHandler))
 
-	router.Add(oauthhandler.ConfigureAuthorizeRoute(oauthAPIRoute), p.Handler(newOAuthAuthorizeHandler))
+	router.Add(oauthhandler.ConfigureAuthorizeRoute(oauthAuthzAPIRoute), p.Handler(newOAuthAuthorizeHandler))
 	router.Add(oauthhandler.ConfigureTokenRoute(oauthAPIRoute), p.Handler(newOAuthTokenHandler))
 	router.Add(oauthhandler.ConfigureRevokeRoute(oauthAPIRoute), p.Handler(newOAuthRevokeHandler))
 	router.Add(oauthhandler.ConfigureEndSessionRoute(oauthAPIRoute), p.Handler(newOAuthEndSessionHandler))
@@ -260,7 +298,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	router.Add(oauthhandler.ConfigureUserInfoRoute(scopedRoute), p.Handler(newOAuthUserInfoHandler))
 
-	router.Add(oauthhandler.ConfigureConsentRoute(webappPageRoute), p.Handler(newOAuthConsentHandler))
+	router.Add(oauthhandler.ConfigureConsentRoute(webappConsentPageRoute), p.Handler(newOAuthConsentHandler))
 
 	router.Add(siwehandler.ConfigureNonceRoute(siweAPIRoute), p.Handler(newSIWENonceHandler))
 
