@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -83,7 +84,9 @@ func (h *AppSessionTokenHandler) Handle(resp http.ResponseWriter, req *http.Requ
 
 	token, sToken, err := h.AppSessionTokens.IssueAppSessionToken(payload.RefreshToken)
 	var oauthError *protocol.OAuthProtocolError
-	if errors.As(err, &oauthError) {
+	if errors.Is(err, handler.ErrInvalidRefreshToken) {
+		return nil, InvalidGrant.New(err.Error())
+	} else if errors.As(err, &oauthError) {
 		return nil, apierrors.NewForbidden(oauthError.Error())
 	} else if err != nil {
 		return nil, err
