@@ -16,6 +16,7 @@ import (
 	identitybiometric "github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
@@ -418,6 +419,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 	err = h.TokenService.IssueAccessGrant(client, scopes, authz.ID, authz.UserID,
 		offlineGrant.ID, oauth.GrantSessionKindOffline, resp)
 	if err != nil {
+		err = h.translateAccessTokenError(err)
 		return nil, err
 	}
 
@@ -622,6 +624,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	err = h.TokenService.IssueAccessGrant(client, scopes, authz.ID, authz.UserID,
 		offlineGrant.ID, oauth.GrantSessionKindOffline, resp)
 	if err != nil {
+		err = h.translateAccessTokenError(err)
 		return nil, err
 	}
 
@@ -807,6 +810,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 
 	err := h.TokenService.IssueAccessGrant(client, code.Scopes, authz.ID, authz.UserID, accessTokenSessionID, accessTokenSessionKind, resp)
 	if err != nil {
+		err = h.translateAccessTokenError(err)
 		return nil, err
 	}
 
@@ -873,6 +877,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 	err := h.TokenService.IssueAccessGrant(client, offlineGrant.Scopes,
 		authz.ID, authz.UserID, offlineGrant.ID, oauth.GrantSessionKindOffline, resp)
 	if err != nil {
+		err = h.translateAccessTokenError(err)
 		return nil, err
 	}
 
@@ -916,6 +921,16 @@ func (h *TokenHandler) IssueAppSessionToken(refreshToken string) (string, *oauth
 	}
 
 	return token, sToken, err
+}
+
+func (h *TokenHandler) translateAccessTokenError(err error) error {
+	if apiErr := apierrors.AsAPIError(err); apiErr != nil {
+		if apiErr.Reason == hook.WebHookDisallowed.Reason {
+			return protocol.NewError("server_error", "access token generation is disallowed by hook")
+		}
+	}
+
+	return err
 }
 
 func verifyPKCE(challenge, verifier string) bool {

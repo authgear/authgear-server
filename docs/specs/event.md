@@ -8,6 +8,7 @@
       - [user.pre_create](#userpre_create)
       - [user.profile.pre_update](#userprofilepre_update)
       - [user.pre_schedule_deletion](#userpre_schedule_deletion)
+      - [user.session.jwt.pre_create](#usersessionjwtpre_create)
     + [Non-blocking Events](#non-blocking-events)
       - [user.created](#usercreated)
       - [user.profile.updated](#userprofileupdated)
@@ -141,6 +142,26 @@ Occurs right before the end-user schedules account deletion.
 {
   "payload": {
     "user": { /* ... */ }
+  }
+}
+```
+
+#### user.session.jwt.pre_create
+
+Occurs right before the access token is issued.
+Use this event to add custom fields to the JWT access token.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "jwt": {
+      "payload": {
+        "iss": "issuer",
+        "aud": ["audience"]
+        "sub": "user_id"
+      }
+    }
   }
 }
 ```

@@ -1,6 +1,23 @@
 package event
 
+import (
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+)
+
 type Type string
+
+type StandardAttributesServiceNoEvent interface {
+	UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
+}
+
+type CustomAttributesServiceNoEvent interface {
+	UpdateAllCustomAttributes(role accesscontrol.Role, userID string, reprForm map[string]interface{}) error
+}
+
+type MutationsEffectContext struct {
+	StandardAttributes StandardAttributesServiceNoEvent
+	CustomAttributes   CustomAttributesServiceNoEvent
+}
 
 type Payload interface {
 	UserID() string
@@ -11,8 +28,10 @@ type Payload interface {
 type BlockingPayload interface {
 	Payload
 	BlockingEventType() Type
-	ApplyMutations(mutations Mutations) (BlockingPayload, bool)
-	GenerateFullMutations() Mutations
+	// ApplyMutations applies mutations to itself.
+	ApplyMutations(mutations Mutations) bool
+	// PerformEffects performs the side effects of the mutations.
+	PerformEffects(ctx MutationsEffectContext) error
 }
 
 type NonBlockingPayload interface {
@@ -33,23 +52,26 @@ type Event struct {
 	IsNonBlocking bool    `json:"-"`
 }
 
-func (e *Event) ApplyMutations(mutations Mutations) (*Event, bool) {
+func (e *Event) ApplyMutations(mutations Mutations) bool {
 	if blockingPayload, ok := e.Payload.(BlockingPayload); ok {
-		if payload, applied := blockingPayload.ApplyMutations(mutations); applied {
-			copied := *e
-			copied.Payload = payload
-			return &copied, true
+		applied := blockingPayload.ApplyMutations(mutations)
+		if applied {
+			e.Payload = blockingPayload
+			return true
 		}
 	}
 
-	return e, false
+	return false
 }
 
-func (e *Event) GenerateFullMutations() (*Mutations, bool) {
+func (e *Event) PerformEffects(ctx MutationsEffectContext) error {
 	if blockingPayload, ok := e.Payload.(BlockingPayload); ok {
-		mutations := blockingPayload.GenerateFullMutations()
-		return &mutations, true
+		err := blockingPayload.PerformEffects(ctx)
+		if err != nil {
+			return err
+		}
+		return nil
 	}
 
-	return nil, false
+	return nil
 }
