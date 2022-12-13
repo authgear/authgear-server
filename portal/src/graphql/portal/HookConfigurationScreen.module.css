@@ -20,23 +20,31 @@
   align-self: end;
 }
 
-.handlerEdit {
-  flex-grow: 1;
+.blockingHookContainer {
   display: flex;
+  flex-direction: column;
+  row-gap: 8px;
+  flex: 1 0 0;
+  min-width: 0;
+}
+
+.blockingHookRow {
+  display: flex;
+  flex-direction: row;
   column-gap: 8px;
 }
 
-.handlerEventField {
-  width: 180px;
-}
-
-.handlerKindField {
-  width: 180px;
-}
-
-.handlerURLField {
-  min-width: 0;
+.nonblockingHookContainer {
+  display: flex;
+  flex-direction: row;
+  column-gap: 8px;
   flex: 1 0 0;
+  min-width: 0;
+}
+
+.hookItemFlex1 {
+  flex: 1 0 0;
+  min-width: 0;
 }
 
 .codeEditorContainer {
