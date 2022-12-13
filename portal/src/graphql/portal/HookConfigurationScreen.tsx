@@ -378,52 +378,56 @@ const BlockingHandlerItemEdit: React.VFC<BlockingHandlerItemEditProps> =
     }, [renderToString]);
 
     return (
-      <div className={styles.handlerEdit}>
-        <Dropdown
-          className={styles.handlerEventField}
-          options={eventOptions}
-          selectedKey={value.event}
-          onChange={onBlockingEventChange}
-          ariaLabel={"HookConfigurationScreen.blocking-events.label"}
-          {...eventFieldProps}
-        />
-        <Dropdown
-          className={styles.handlerKindField}
-          options={kindOptions}
-          selectedKey={value.kind}
-          onChange={onChangeHookKind}
-          ariaLabel={"HookConfigurationScreen.hook-kind.label"}
-        />
-        {value.kind === "webhook" ? (
-          <TextField
-            className={styles.handlerURLField}
-            value={value.url}
-            onChange={onURLChange}
-            placeholder="https://example.com/callback"
-            {...urlFieldProps}
+      <div className={styles.blockingHookContainer}>
+        <div className={styles.blockingHookRow}>
+          <Dropdown
+            className={styles.hookItemFlex1}
+            options={eventOptions}
+            selectedKey={value.event}
+            onChange={onBlockingEventChange}
+            ariaLabel={"HookConfigurationScreen.blocking-events.label"}
+            {...eventFieldProps}
           />
-        ) : null}
-        {value.kind === "denohook" ? (
-          <ActionButton
-            iconProps={EDIT_BUTTON_ICON_PROPS}
-            styles={EDIT_BUTTON_STYLES}
-            text={
-              <>
-                <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
-                {value.isDirty ? (
-                  <FontIcon
-                    iconName="LocationDot"
-                    className={styles.dot}
-                    style={{
-                      color: theme.palette.themePrimary,
-                    }}
-                  />
-                ) : null}
-              </>
-            }
-            onClick={onClickEdit}
+          <Dropdown
+            className={styles.hookItemFlex1}
+            options={kindOptions}
+            selectedKey={value.kind}
+            onChange={onChangeHookKind}
+            ariaLabel={"HookConfigurationScreen.hook-kind.label"}
           />
-        ) : null}
+        </div>
+        <div className={styles.blockingHookRow}>
+          {value.kind === "webhook" ? (
+            <TextField
+              className={styles.hookItemFlex1}
+              value={value.url}
+              onChange={onURLChange}
+              placeholder="https://example.com/callback"
+              {...urlFieldProps}
+            />
+          ) : null}
+          {value.kind === "denohook" ? (
+            <ActionButton
+              iconProps={EDIT_BUTTON_ICON_PROPS}
+              styles={EDIT_BUTTON_STYLES}
+              text={
+                <>
+                  <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
+                  {value.isDirty ? (
+                    <FontIcon
+                      iconName="LocationDot"
+                      className={styles.dot}
+                      style={{
+                        color: theme.palette.themePrimary,
+                      }}
+                    />
+                  ) : null}
+                </>
+              }
+              onClick={onClickEdit}
+            />
+          ) : null}
+        </div>
       </div>
     );
   };
@@ -493,9 +497,9 @@ const NonBlockingHandlerItemEdit: React.VFC<NonBlockingHandlerItemEditProps> =
     }, [renderToString]);
 
     return (
-      <div className={styles.handlerEdit}>
+      <div className={styles.nonblockingHookContainer}>
         <Dropdown
-          className={styles.handlerKindField}
+          className={styles.hookItemFlex1}
           options={kindOptions}
           selectedKey={value.kind}
           onChange={onChangeHookKind}
@@ -505,32 +509,34 @@ const NonBlockingHandlerItemEdit: React.VFC<NonBlockingHandlerItemEditProps> =
           <FormTextField
             parentJSONPointer={`/hook/non_blocking_handlers/${index}`}
             fieldName="url"
-            className={styles.handlerURLField}
+            className={styles.hookItemFlex1}
             value={value.url}
             onChange={onURLChange}
             placeholder="https://example.com/callback"
           />
         ) : null}
         {value.kind === "denohook" ? (
-          <ActionButton
-            iconProps={EDIT_BUTTON_ICON_PROPS}
-            styles={EDIT_BUTTON_STYLES}
-            text={
-              <>
-                <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
-                {value.isDirty ? (
-                  <FontIcon
-                    iconName="LocationDot"
-                    className={styles.dot}
-                    style={{
-                      color: theme.palette.themePrimary,
-                    }}
-                  />
-                ) : null}
-              </>
-            }
-            onClick={onClickEdit}
-          />
+          <div className={styles.hookItemFlex1}>
+            <ActionButton
+              iconProps={EDIT_BUTTON_ICON_PROPS}
+              styles={EDIT_BUTTON_STYLES}
+              text={
+                <>
+                  <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
+                  {value.isDirty ? (
+                    <FontIcon
+                      iconName="LocationDot"
+                      className={styles.dot}
+                      style={{
+                        color: theme.palette.themePrimary,
+                      }}
+                    />
+                  ) : null}
+                </>
+              }
+              onClick={onClickEdit}
+            />
+          </div>
         ) : null}
       </div>
     );
