@@ -55,7 +55,7 @@ import ActionButton from "../../ActionButton";
 import CodeEditor from "../../CodeEditor";
 import DefaultButton from "../../DefaultButton";
 
-const DENOHOOK_BLOCKING_DEFAULT = `import { HookEvent, HookResponse } from "https://deno.land/x/authgear_deno_hook@v0.2.0/mod.ts";
+const DENOHOOK_BLOCKING_DEFAULT = `import { HookEvent, HookResponse } from "https://deno.land/x/authgear_deno_hook@v0.3.0/mod.ts";
 
 export default async function(e: HookEvent): Promise<HookResponse> {
   // Write your hook with the help of the type definition.
@@ -63,7 +63,7 @@ export default async function(e: HookEvent): Promise<HookResponse> {
 }
 `;
 
-const DENOHOOK_NONBLOCKING_DEFAULT = `import { HookEvent } from "https://deno.land/x/authgear_deno_hook@v0.2.0/mod.ts";
+const DENOHOOK_NONBLOCKING_DEFAULT = `import { HookEvent } from "https://deno.land/x/authgear_deno_hook@v0.3.0/mod.ts";
 
 export default async function(e: HookEvent): Promise<void> {
   // Write your hook with the help of the type definition.
