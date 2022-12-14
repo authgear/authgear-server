@@ -1,0 +1,11 @@
+mutation checkDenoHookMutation(
+  $appID: ID!
+  $content: String!
+) {
+  checkDenoHook(
+    input: {
+      appID: $appID
+      content: $content
+    }
+  )
+}

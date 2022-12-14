@@ -167,7 +167,10 @@ const FormContainer: React.VFC<FormContainerProps> = function FormContainer(
       fallbackErrorMessageID={fallbackErrorMessageID}
     >
       {hideCommandBar === true ? (
-        <form onSubmit={onFormSubmit}>{props.children}</form>
+        <div>
+          <FormErrorMessageBar>{messageBar}</FormErrorMessageBar>
+          <form onSubmit={onFormSubmit}>{props.children}</form>
+        </div>
       ) : (
         <CommandBarContainer
           isLoading={isUpdating}

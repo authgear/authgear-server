@@ -45,9 +45,12 @@ import { genRandomHexadecimalString } from "../../util/random";
 import styles from "./HookConfigurationScreen.module.css";
 import WidgetDescription from "../../WidgetDescription";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
+import { useCheckDenoHookMutation } from "./mutations/checkDenoHook";
 import { startReauthentication } from "./Authenticated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useErrorMessage, useErrorMessageString } from "../../formbinding";
+import { useLoading, useIsLoading } from "../../hook/loading";
+import { useProvideError } from "../../hook/error";
 import TextField from "../../TextField";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import PrimaryButton from "../../PrimaryButton";
@@ -567,6 +570,8 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
     const [codeEditorState, setCodeEditorState] =
       useState<CodeEditorState | null>(null);
 
+    const isLoading = useIsLoading();
+
     const specifiers = useMemo(() => {
       return makeSpecifiersFromState(config.state);
     }, [config.state]);
@@ -577,6 +582,15 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       (resources) => resources,
       (resources) => resources
     );
+
+    const {
+      checkDenoHook,
+      loading: checkDenoHookLoading,
+      error: checkDenoHookError,
+      reset: checkDenoHookReset,
+    } = useCheckDenoHookMutation(appID);
+    useLoading(checkDenoHookLoading);
+    useProvideError(codeEditorState != null ? checkDenoHookError : null);
 
     const state = useMemo<FormState>(() => {
       return {
@@ -618,19 +632,33 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
 
     const { setState } = form;
 
-    const onClickCancelEditing = useCallback((e) => {
-      if (e.nativeEvent instanceof KeyboardEvent && e.key === "Escape") {
-        return;
-      }
-      setCodeEditorState(null);
-    }, []);
+    const onClickCancelEditing = useCallback(
+      (e) => {
+        if (e.nativeEvent instanceof KeyboardEvent && e.key === "Escape") {
+          return;
+        }
+        setCodeEditorState(null);
+        checkDenoHookReset();
+      },
+      [checkDenoHookReset]
+    );
 
     const onClickFinishEditing = useCallback(
-      (e) => {
+      async (e) => {
         e.preventDefault();
         e.stopPropagation();
         if (codeEditorState != null) {
           const { eventKind, index, value } = codeEditorState;
+
+          if (value != null) {
+            try {
+              await checkDenoHook(value);
+            } catch {
+              // error is handled in the hook.
+              return;
+            }
+          }
+
           setState((prev) =>
             // eslint-disable-next-line complexity
             produce(prev, (prev) => {
@@ -670,6 +698,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
         setCodeEditorState(null);
       },
       [
+        checkDenoHook,
         codeEditorState,
         setState,
         state.blocking_handlers,
@@ -984,8 +1013,13 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                 <PrimaryButton
                   text="Finish Editing"
                   onClick={onClickFinishEditing}
+                  disabled={isLoading}
                 />
-                <DefaultButton text="Cancel" onClick={onClickCancelEditing} />
+                <DefaultButton
+                  text="Cancel"
+                  onClick={onClickCancelEditing}
+                  disabled={isLoading}
+                />
               </div>
             </div>
           ) : (
