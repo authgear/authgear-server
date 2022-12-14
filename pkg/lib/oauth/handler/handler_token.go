@@ -474,7 +474,7 @@ func (h *TokenHandler) handleBiometricSetup(
 ) (httputil.Result, error) {
 	s := session.GetSession(req.Context())
 	if s == nil {
-		return nil, protocol.NewErrorStatusCode("invalid_request", "biometric setup requires authenticated user", http.StatusUnauthorized)
+		return nil, protocol.NewErrorStatusCode("invalid_grant", "biometric setup requires authenticated user", http.StatusUnauthorized)
 	}
 
 	var graph *interaction.Graph
@@ -675,7 +675,7 @@ func (h *TokenHandler) handleIDToken(
 
 	s := session.GetSession(req.Context())
 	if s == nil {
-		return nil, protocol.NewErrorStatusCode("invalid_request", "valid session is required", http.StatusUnauthorized)
+		return nil, protocol.NewErrorStatusCode("invalid_grant", "valid session is required", http.StatusUnauthorized)
 	}
 	idToken, err := h.IDTokenIssuer.IssueIDToken(oidc.IssueIDTokenOptions{
 		ClientID:           client.ClientID,

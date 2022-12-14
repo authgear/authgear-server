@@ -15,7 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-var errInvalidRefreshToken = protocol.NewError("invalid_grant", "invalid refresh token")
+var ErrInvalidRefreshToken = protocol.NewError("invalid_grant", "invalid refresh token")
 
 type TokenService struct {
 	RemoteIP        httputil.RemoteIP
@@ -128,12 +128,12 @@ func (s *TokenService) IssueAccessGrant(
 func (s *TokenService) ParseRefreshToken(token string) (*oauth.Authorization, *oauth.OfflineGrant, error) {
 	token, grantID, err := oauth.DecodeRefreshToken(token)
 	if err != nil {
-		return nil, nil, errInvalidRefreshToken
+		return nil, nil, ErrInvalidRefreshToken
 	}
 
 	offlineGrant, err := s.OfflineGrants.GetOfflineGrant(grantID)
 	if errors.Is(err, oauth.ErrGrantNotFound) {
-		return nil, nil, errInvalidRefreshToken
+		return nil, nil, ErrInvalidRefreshToken
 	} else if err != nil {
 		return nil, nil, err
 	}
@@ -144,17 +144,17 @@ func (s *TokenService) ParseRefreshToken(token string) (*oauth.Authorization, *o
 	}
 
 	if !isValid {
-		return nil, nil, errInvalidRefreshToken
+		return nil, nil, ErrInvalidRefreshToken
 	}
 
 	tokenHash := oauth.HashToken(token)
 	if subtle.ConstantTimeCompare([]byte(tokenHash), []byte(offlineGrant.TokenHash)) != 1 {
-		return nil, nil, errInvalidRefreshToken
+		return nil, nil, ErrInvalidRefreshToken
 	}
 
 	authz, err := s.Authorizations.GetByID(offlineGrant.AuthorizationID)
 	if errors.Is(err, oauth.ErrAuthorizationNotFound) {
-		return nil, nil, errInvalidRefreshToken
+		return nil, nil, ErrInvalidRefreshToken
 	} else if err != nil {
 		return nil, nil, err
 	}
@@ -163,13 +163,13 @@ func (s *TokenService) ParseRefreshToken(token string) (*oauth.Authorization, *o
 	u, err := s.Users.GetRaw(offlineGrant.Attrs.UserID)
 	if err != nil {
 		if errors.Is(err, user.ErrUserNotFound) {
-			return nil, nil, errInvalidRefreshToken
+			return nil, nil, ErrInvalidRefreshToken
 		}
 		return nil, nil, err
 	}
 	err = u.AccountStatus().Check()
 	if err != nil {
-		return nil, nil, errInvalidRefreshToken
+		return nil, nil, ErrInvalidRefreshToken
 	}
 
 	return authz, offlineGrant, nil

@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -40,6 +41,11 @@ func RequireScope(scopes ...string) func(http.Handler) http.Handler {
 				h := errResp.ToWWWAuthenticateHeader()
 				rw.Header().Add("WWW-Authenticate", h)
 				rw.WriteHeader(status)
+				encoder := json.NewEncoder(rw)
+				err := encoder.Encode(errResp)
+				if err != nil {
+					http.Error(rw, err.Error(), 500)
+				}
 				return
 			}
 			next.ServeHTTP(rw, r)
@@ -49,7 +55,7 @@ func RequireScope(scopes ...string) func(http.Handler) http.Handler {
 
 func checkAuthz(session session.Session, requiredScopes map[string]struct{}, scope string) (int, protocol.ErrorResponse) {
 	if session == nil {
-		return http.StatusUnauthorized, protocol.NewErrorResponse("invalid_token", "invalid access token")
+		return http.StatusUnauthorized, protocol.NewErrorResponse("invalid_grant", "invalid session")
 	}
 
 	// Check scopes only if there are required scopes.

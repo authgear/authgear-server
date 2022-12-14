@@ -151,7 +151,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 
 	if refreshToken != "" {
 		authz, grant, err := h.TokenService.ParseRefreshToken(refreshToken)
-		if errors.Is(err, errInvalidRefreshToken) {
+		if errors.Is(err, ErrInvalidRefreshToken) {
 			return nil, apierrors.NewInvalid("invalid refresh token")
 		} else if err != nil {
 			return nil, err
