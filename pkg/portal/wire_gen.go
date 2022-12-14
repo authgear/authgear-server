@@ -312,6 +312,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		StripeService:           libstripeService,
 		SubscriptionService:     subscriptionService,
 		NFTService:              nftService,
+		DenoService:             denoClient,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		DevMode:        devMode,
