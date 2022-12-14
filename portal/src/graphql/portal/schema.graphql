@@ -363,6 +363,9 @@ type Mutation {
   """Cancel failed subscription"""
   cancelFailedSubscription(input: cancelFailedSubscriptionInput!): CancelFailedSubscriptionPayload!
 
+  """Check Deno Hook"""
+  checkDenoHook(input: sendDenoHookInput!): Boolean
+
   """Create new app"""
   createApp(input: CreateAppInput!): CreateAppPayload!
 
@@ -1022,6 +1025,15 @@ input reconcileCheckoutSession {
 type reconcileCheckoutSessionPayload {
   """"""
   app: App!
+}
+
+""""""
+input sendDenoHookInput {
+  """App ID."""
+  appID: ID!
+
+  """The content of the hook."""
+  content: String!
 }
 
 """"""

@@ -131,6 +131,10 @@ type NFTService interface {
 	GetContractMetadata(contracts []web3.ContractID) ([]apimodel.NFTCollection, error)
 }
 
+type DenoService interface {
+	Check(ctx context.Context, snippet string) error
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("portal-graphql")} }
@@ -155,6 +159,7 @@ type Context struct {
 	StripeService        StripeService
 	SubscriptionService  SubscriptionService
 	NFTService           NFTService
+	DenoService          DenoService
 }
 
 func (c *Context) Logger() *log.Logger {

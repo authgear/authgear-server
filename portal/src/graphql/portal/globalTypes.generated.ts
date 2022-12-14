@@ -270,6 +270,8 @@ export type Mutation = {
   acceptCollaboratorInvitation: AcceptCollaboratorInvitationPayload;
   /** Cancel failed subscription */
   cancelFailedSubscription: CancelFailedSubscriptionPayload;
+  /** Check Deno Hook */
+  checkDenoHook?: Maybe<Scalars['Boolean']>;
   /** Create new app */
   createApp: CreateAppPayload;
   /** Create stripe checkout session */
@@ -316,6 +318,11 @@ export type MutationAcceptCollaboratorInvitationArgs = {
 
 export type MutationCancelFailedSubscriptionArgs = {
   input: CancelFailedSubscriptionInput;
+};
+
+
+export type MutationCheckDenoHookArgs = {
+  input: SendDenoHookInput;
 };
 
 
@@ -821,6 +828,13 @@ export type ReconcileCheckoutSession = {
 export type ReconcileCheckoutSessionPayload = {
   __typename?: 'reconcileCheckoutSessionPayload';
   app: App;
+};
+
+export type SendDenoHookInput = {
+  /** App ID. */
+  appID: Scalars['ID'];
+  /** The content of the hook. */
+  content: Scalars['String'];
 };
 
 export type SendTestSmtpConfigurationEmailInput = {
