@@ -65,3 +65,8 @@
 .dot {
   margin: 0 4px;
 }
+
+.blockingList {
+  /* stylelint-disable-next-line */
+  row-gap: 24px !important;
+}
