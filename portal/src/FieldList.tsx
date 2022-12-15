@@ -1,5 +1,6 @@
+import cn from "classnames";
 import React, { ComponentType, useCallback, useMemo } from "react";
-import { IconButton, Stack, Text } from "@fluentui/react";
+import { IconButton, Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import { useFormField } from "./form";
@@ -16,6 +17,7 @@ export interface ListItemProps<T> {
 
 export interface FieldListProps<T> {
   className?: string;
+  listClassName?: string;
   label?: React.ReactNode;
   parentJSONPointer: string | RegExp;
   fieldName: string;
@@ -34,6 +36,7 @@ const FieldList = function FieldList<T>(
 ): React.ReactElement {
   const {
     className,
+    listClassName,
     label,
     parentJSONPointer,
     fieldName,
@@ -83,9 +86,9 @@ const FieldList = function FieldList<T>(
   );
 
   return (
-    <section className={className}>
+    <div className={className}>
       {label ?? null}
-      <Stack className={styles.list} tokens={{ childrenGap: 10 }}>
+      <div className={cn(styles.list, listClassName)}>
         {list.map((value, index) => (
           <FieldListItem
             key={index}
@@ -97,7 +100,7 @@ const FieldList = function FieldList<T>(
             deleteDisabled={deleteDisabled}
           />
         ))}
-      </Stack>
+      </div>
       <Text className={styles.errorMessage}>
         <ErrorRenderer errors={errors} />
       </Text>
@@ -114,7 +117,7 @@ const FieldList = function FieldList<T>(
           {description}
         </Text>
       ) : null}
-    </section>
+    </div>
   );
 };
 

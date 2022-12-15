@@ -1057,6 +1057,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                         <FormattedMessage id="HookConfigurationScreen.blocking-handlers.label" />
                       </Label>
                     }
+                    listClassName={styles.blockingList}
                     parentJSONPointer="/hook"
                     fieldName="blocking_handlers"
                     list={blockingHandlers}
