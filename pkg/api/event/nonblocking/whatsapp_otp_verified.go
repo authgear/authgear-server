@@ -27,7 +27,7 @@ func (e *WhatsappOTPVerifiedEventPayload) GetTriggeredBy() event.TriggeredByType
 func (e *WhatsappOTPVerifiedEventPayload) FillContext(ctx *event.Context) {
 }
 
-func (e *WhatsappOTPVerifiedEventPayload) ForWebHook() bool {
+func (e *WhatsappOTPVerifiedEventPayload) ForHook() bool {
 	return false
 }
 

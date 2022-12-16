@@ -7,6 +7,7 @@ import (
 	"crypto/rsa"
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwk"
@@ -14,6 +15,8 @@ import (
 	"github.com/lestrrat-go/jwx/jwt"
 
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
 func TestSign(t *testing.T) {
@@ -135,5 +138,105 @@ func TestSplitWithoutVerify(t *testing.T) {
 			"foobar": 42
 		}
 		`)
+	})
+}
+
+func TestBuildFromMap(t *testing.T) {
+	// testToken ignores signature because the private key is generated freshly every time.
+	testToken := func(actual []byte, expected string) {
+		actualHdr, actualPayload, _, err := jws.SplitCompact(actual)
+		So(err, ShouldBeNil)
+
+		expectedHdr, expectedPayload, _, err := jws.SplitCompact([]byte(expected))
+		So(err, ShouldBeNil)
+
+		So(string(actualHdr), ShouldEqual, string(expectedHdr))
+		So(string(actualPayload), ShouldEqual, string(expectedPayload))
+	}
+
+	Convey("BuildFromMap", t, func() {
+		m := map[string]interface{}{
+			"https://example.com": map[string]interface{}{
+				"foo": "bar",
+			},
+		}
+
+		payload, err := BuildFromMap(m)
+		So(err, ShouldBeNil)
+
+		alg := jwa.HS256
+		key := []byte("secret")
+
+		token, err := Sign(payload, alg, key)
+		So(err, ShouldBeNil)
+
+		testToken(token, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwczovL2V4YW1wbGUuY29tIjp7ImZvbyI6ImJhciJ9fQ.HkXJRxSFoHUHvk1nZ36rcf4ZJDuKd2xExdjKIEv48dw")
+	})
+
+	Convey("ToMap", t, func() {
+		b := jwt.NewBuilder()
+		b.Expiration(time.Date(2006, 1, 2, 3, 4, 5, 6, time.UTC))
+		payload, err := b.Build()
+		So(err, ShouldBeNil)
+
+		actual, err := ToMap(payload)
+		So(err, ShouldBeNil)
+
+		expected := map[string]interface{}{
+			"exp": 1136171045.0,
+		}
+
+		So(actual, ShouldResemble, expected)
+	})
+}
+
+func TestPrepareForMutations(t *testing.T) {
+	Convey("PrepareForMutations", t, func() {
+		token, err := jwt.NewBuilder().Claim("iss", "issuer").Build()
+		So(err, ShouldBeNil)
+
+		forMutation, forBackup, err := PrepareForMutations(token)
+		So(err, ShouldBeNil)
+
+		forMutation["foo"] = "bar"
+
+		_, ok := forBackup["foo"]
+		So(ok, ShouldBeFalse)
+	})
+}
+
+func TestApplyMutations(t *testing.T) {
+	Convey("ApplyMutations", t, func() {
+		test := func(forMutation map[string]interface{}, forBackup map[string]interface{}, expectedErr error) {
+			_, err := ApplyMutations(forMutation, forBackup)
+			if expectedErr != nil {
+				So(err, ShouldResemble, expectedErr)
+			} else {
+				So(err, ShouldBeNil)
+			}
+		}
+
+		test(map[string]interface{}{}, map[string]interface{}{
+			"iss": "issuer",
+		}, ErrInvalidJWTMutations.NewWithInfo("invalid JWT mutations", apierrors.Details{
+			"removed": []string{"iss"},
+			"changed": []string{},
+		}))
+
+		test(map[string]interface{}{
+			"iss": "another-issuer",
+		}, map[string]interface{}{
+			"iss": "issuer",
+		}, ErrInvalidJWTMutations.NewWithInfo("invalid JWT mutations", apierrors.Details{
+			"removed": []string{},
+			"changed": []string{"iss"},
+		}))
+
+		test(map[string]interface{}{
+			"iat": 1,
+			"foo": "bar",
+		}, map[string]interface{}{
+			"iat": 1,
+		}, nil)
 	})
 }

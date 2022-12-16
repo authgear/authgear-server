@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/accountdeletion"
+	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
@@ -100,5 +101,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(template.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(loginid.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(web.ResourceManager), new(*resource.Manager)),
+	wire.Bind(new(hook.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(web.EmbeddedResourceManager), new(*web.GlobalEmbeddedResourceManager)),
 )

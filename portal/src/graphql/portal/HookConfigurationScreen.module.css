@@ -1,0 +1,72 @@
+.widget {
+  grid-column: 1 / span 8;
+
+  @apply tablet:col-span-full;
+}
+
+.columnFull {
+  grid-column: 1 / span 8;
+
+  @apply tablet:col-span-full;
+}
+
+.secretInput {
+  grid-column: 1 / span 7;
+}
+
+.secretButton {
+  grid-column: span 1 / span 1;
+  justify-self: center;
+  align-self: end;
+}
+
+.blockingHookContainer {
+  display: flex;
+  flex-direction: column;
+  row-gap: 8px;
+  flex: 1 0 0;
+  min-width: 0;
+}
+
+.blockingHookRow {
+  display: flex;
+  flex-direction: row;
+  column-gap: 8px;
+}
+
+.nonblockingHookContainer {
+  display: flex;
+  flex-direction: row;
+  column-gap: 8px;
+  flex: 1 0 0;
+  min-width: 0;
+}
+
+.hookItemFlex1 {
+  flex: 1 0 0;
+  min-width: 0;
+}
+
+.codeEditorContainer {
+  @apply flex flex-col;
+  @apply gap-y-5;
+}
+
+.codeEditor {
+  height: 50vh;
+}
+
+.codeEditorFooter {
+  display: flex;
+  flex-direction: row;
+  column-gap: 8px;
+}
+
+.dot {
+  margin: 0 4px;
+}
+
+.blockingList {
+  /* stylelint-disable-next-line */
+  row-gap: 24px !important;
+}

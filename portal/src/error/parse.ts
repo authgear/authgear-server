@@ -38,12 +38,15 @@ export function parseRawError(error: unknown): APIError[] {
     }
     for (const e of error.graphQLErrors) {
       if (isAPIError(e.extensions)) {
-        errors.push(e.extensions);
+        errors.push({
+          ...e.extensions,
+          message: e.message,
+        });
       } else {
         errors.push({
           reason: "Unknown",
           errorName: "Unknown",
-          info: { message: e.message },
+          message: e.message,
         });
       }
     }
@@ -51,7 +54,7 @@ export function parseRawError(error: unknown): APIError[] {
     errors.push({
       reason: "Unknown",
       errorName: "Unknown",
-      info: { message: error.message },
+      message: error.message,
     });
   } else if (typeof error === "object" && isAPIError(error)) {
     errors.push(error);
@@ -59,7 +62,7 @@ export function parseRawError(error: unknown): APIError[] {
     errors.push({
       reason: "Unknown",
       errorName: "Unknown",
-      info: { message: String(error) },
+      message: String(error),
     });
   }
   return errors;
@@ -169,7 +172,7 @@ function parseError(error: APIError): ParsedAPIError[] {
     case "Unknown":
       errors.push({
         messageID: "errors.unknown",
-        arguments: { message: error.info.message },
+        arguments: { message: error.message ?? "" },
       });
       break;
     case "ResourceTooLarge": {
@@ -213,6 +216,15 @@ function parseError(error: APIError): ParsedAPIError[] {
     case "AlchemyProtocol": {
       errors.push({
         messageID: "errors.alchemy-protocol",
+      });
+      break;
+    }
+    case "DenoCheckError": {
+      errors.push({
+        messageID: "errors.deno-hook.typecheck",
+        arguments: {
+          message: error.message ?? "",
+        },
       });
       break;
     }

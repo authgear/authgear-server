@@ -535,18 +535,28 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -1335,18 +1345,28 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -2133,18 +2153,28 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -2437,6 +2467,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:      clockClock,
 		UserClaims: idTokenIssuer,
 		BaseURL:    endpointsProvider,
+		Events:     eventService,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	tokenService := handler.TokenService{
@@ -2875,18 +2906,28 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: resourceManager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -4081,18 +4122,28 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: resourceManager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -4595,18 +4646,28 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -4899,6 +4960,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:      clockClock,
 		UserClaims: idTokenIssuer,
 		BaseURL:    endpointsProvider,
+		Events:     eventService,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	tokenService := handler.TokenService{
@@ -5344,18 +5406,28 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -5707,6 +5779,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:      clockClock,
 		UserClaims: idTokenIssuer,
 		BaseURL:    endpointsProvider,
+		Events:     eventService,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	tokenService := handler.TokenService{
@@ -6096,18 +6169,28 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -6459,6 +6542,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Clock:      clockClock,
 		UserClaims: idTokenIssuer,
 		BaseURL:    endpointsProvider,
+		Events:     eventService,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	tokenService := handler.TokenService{
@@ -6953,18 +7037,28 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -7744,18 +7838,28 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -8534,18 +8638,28 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -9307,18 +9421,28 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -10078,18 +10202,28 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -10839,18 +10973,28 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -11603,18 +11747,28 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -12370,18 +12524,28 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -13139,18 +13303,28 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -13906,18 +14080,28 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -14673,18 +14857,28 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -15441,18 +15635,28 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -16208,18 +16412,28 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -16975,18 +17189,28 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -17744,18 +17968,28 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -18511,18 +18745,28 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -19278,18 +19522,28 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -20047,18 +20301,28 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -20814,18 +21078,28 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -21572,18 +21846,28 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -22010,18 +22294,28 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -22777,18 +23071,28 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -23540,18 +23844,28 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -24305,18 +24619,28 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -25068,18 +25392,28 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -25841,18 +26175,28 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -26604,18 +26948,28 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -27368,18 +27722,28 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -28131,18 +28495,28 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -28925,18 +29299,28 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -29699,18 +30083,28 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -30486,18 +30880,28 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -31257,18 +31661,28 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -32021,18 +32435,28 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -32793,18 +33217,28 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -33557,18 +33991,28 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -34321,18 +34765,28 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -35085,18 +35539,28 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -35850,18 +36314,28 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -36633,18 +37107,28 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -37397,18 +37881,28 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -38161,18 +38655,28 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -38925,18 +39429,28 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -39689,18 +40203,28 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -40460,18 +40984,28 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -41225,18 +41759,28 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -41988,18 +42532,28 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -42765,18 +43319,28 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -43528,18 +44092,28 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -44291,18 +44865,28 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -45071,18 +45655,28 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -45801,18 +46395,28 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -46530,18 +47134,28 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -47303,18 +47917,28 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
@@ -48313,11 +48937,99 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Users:   queries,
 		Clock:   clockClock,
 	}
+	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	resolverImpl := &event.ResolverImpl{
+		Users: queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
+	}
+	sink := &hook.Sink{
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilderApp,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	pool := rootProvider.DatabasePool
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
+	tutorialStoreImpl := &tutorial.StoreImpl{
+		SQLBuilder:  globaldbSQLBuilder,
+		SQLExecutor: globaldbSQLExecutor,
+	}
+	tutorialService := &tutorial.Service{
+		Store: tutorialStoreImpl,
+	}
+	tutorialSink := &tutorial.Sink{
+		AppID:        appID,
+		Service:      tutorialService,
+		GlobalHandle: globaldbHandle,
+	}
+	elasticsearchLogger := elasticsearch.NewLogger(factory)
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	queue := appProvider.TaskQueue
+	elasticsearchService := elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     queries,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
+	elasticsearchSink := &elasticsearch.Sink{
+		Logger:   elasticsearchLogger,
+		Service:  elasticsearchService,
+		Database: appdbHandle,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
 		Secrets:    oAuthKeyMaterials,
 		Clock:      clockClock,
 		UserClaims: idTokenIssuer,
 		BaseURL:    endpointsProvider,
+		Events:     eventService,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
 		OAuthConfig: oAuthConfig,
@@ -48819,18 +49531,28 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         contextContext,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase

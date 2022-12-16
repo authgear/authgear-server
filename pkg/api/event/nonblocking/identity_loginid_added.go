@@ -60,7 +60,7 @@ func (e *IdentityLoginIDAddedEventPayload) GetTriggeredBy() event.TriggeredByTyp
 func (e *IdentityLoginIDAddedEventPayload) FillContext(ctx *event.Context) {
 }
 
-func (e *IdentityLoginIDAddedEventPayload) ForWebHook() bool {
+func (e *IdentityLoginIDAddedEventPayload) ForHook() bool {
 	return true
 }
 

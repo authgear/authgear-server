@@ -33,19 +33,20 @@ func (e *UserProfilePreUpdateBlockingEventPayload) GetTriggeredBy() event.Trigge
 func (e *UserProfilePreUpdateBlockingEventPayload) FillContext(ctx *event.Context) {
 }
 
-func (e *UserProfilePreUpdateBlockingEventPayload) ApplyMutations(mutations event.Mutations) (event.BlockingPayload, bool) {
-	user, mutated := ApplyMutations(e.UserModel, mutations)
+func (e *UserProfilePreUpdateBlockingEventPayload) ApplyMutations(mutations event.Mutations) bool {
+	user, mutated := ApplyUserMutations(e.UserModel, mutations.User)
 	if mutated {
-		copied := *e
-		copied.UserModel = user
-		return &copied, true
+		e.UserModel = user
+		return true
 	}
 
-	return e, false
+	return false
 }
 
-func (e *UserProfilePreUpdateBlockingEventPayload) GenerateFullMutations() event.Mutations {
-	return GenerateFullMutations(e.UserModel)
+func (e *UserProfilePreUpdateBlockingEventPayload) PerformEffects(ctx event.MutationsEffectContext) error {
+	userID := e.UserID()
+	userMutations := MakeUserMutations(e.UserModel)
+	return PerformEffectsOnUser(ctx, userID, userMutations)
 }
 
 var _ event.BlockingPayload = &UserProfilePreUpdateBlockingEventPayload{}

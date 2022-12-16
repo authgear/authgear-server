@@ -477,18 +477,28 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:             hookConfig,
-		Secret:             webhookKeyMaterials,
-		Clock:              clockClock,
-		SyncHTTP:           syncHTTPClient,
-		AsyncHTTP:          asyncHTTPClient,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
+	webHookImpl := &hook.WebHookImpl{
+		Secret:    webhookKeyMaterials,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         ctx,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
 	}
 	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		WebHook:            webHookImpl,
+		DenoHook:           denoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	auditLogger := audit.NewLogger(factory)
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)

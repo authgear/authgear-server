@@ -79,6 +79,7 @@ var DependencySet = wire.NewSet(
 		"GlobalDatabase",
 		"DatabaseConfig",
 		"NFTIndexerAPIEndpoint",
+		"DenoEndpoint",
 	),
 	wire.FieldsOf(new(*RequestProvider),
 		"RootProvider",

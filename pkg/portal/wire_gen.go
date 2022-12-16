@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
@@ -201,9 +202,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	tutorialService := &tutorial.Service{
 		Store: storeImpl,
 	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	hookLogger := hook.NewLogger(logFactory)
+	denoClient := ProvideDenoClient(denoEndpoint, hookLogger)
 	managerFactory := &factory.ManagerFactory{
+		Context:          context,
 		AppBaseResources: appBaseResources,
 		Tutorials:        tutorialService,
+		DenoClient:       denoClient,
 		Clock:            clock,
 	}
 	store := &plan.Store{
@@ -306,6 +312,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		StripeService:           libstripeService,
 		SubscriptionService:     subscriptionService,
 		NFTService:              nftService,
+		DenoService:             denoClient,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		DevMode:        devMode,

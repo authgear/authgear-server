@@ -2,6 +2,7 @@ package hook
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
@@ -38,7 +39,7 @@ func (e *MockNonBlockingEvent1) NonBlockingEventType() event.Type {
 func (e *MockNonBlockingEvent1) FillContext(ctx *event.Context) {
 }
 
-func (e *MockNonBlockingEvent1) ForWebHook() bool {
+func (e *MockNonBlockingEvent1) ForHook() bool {
 	return true
 }
 
@@ -65,7 +66,7 @@ func (e *MockNonBlockingEvent2) NonBlockingEventType() event.Type {
 func (e *MockNonBlockingEvent2) FillContext(ctx *event.Context) {
 }
 
-func (e *MockNonBlockingEvent2) ForWebHook() bool {
+func (e *MockNonBlockingEvent2) ForHook() bool {
 	return true
 }
 
@@ -92,7 +93,7 @@ func (e *MockNonBlockingEvent3) NonBlockingEventType() event.Type {
 	return MockNonBlockingEventType3
 }
 
-func (e *MockNonBlockingEvent3) ForWebHook() bool {
+func (e *MockNonBlockingEvent3) ForHook() bool {
 	return true
 }
 
@@ -119,7 +120,7 @@ func (e *MockNonBlockingEvent4) NonBlockingEventType() event.Type {
 func (e *MockNonBlockingEvent4) FillContext(ctx *event.Context) {
 }
 
-func (e *MockNonBlockingEvent4) ForWebHook() bool {
+func (e *MockNonBlockingEvent4) ForHook() bool {
 	return true
 }
 
@@ -146,19 +147,20 @@ func (e *MockBlockingEvent1) BlockingEventType() event.Type {
 func (e *MockBlockingEvent1) FillContext(ctx *event.Context) {
 }
 
-func (e *MockBlockingEvent1) ApplyMutations(mutations event.Mutations) (event.BlockingPayload, bool) {
+func (e *MockBlockingEvent1) ApplyMutations(mutations event.Mutations) bool {
 	user, mutated := ApplyMutations(e.User, mutations)
 	if mutated {
-		copied := *e
-		copied.User = user
-		return &copied, true
+		e.User = user
+		return true
 	}
 
-	return e, false
+	return false
 }
 
-func (e *MockBlockingEvent1) GenerateFullMutations() event.Mutations {
-	return GenerateFullMutations(e.User)
+func (e *MockBlockingEvent1) PerformEffects(ctx event.MutationsEffectContext) error {
+	userID := e.UserID()
+	userMutations := blocking.MakeUserMutations(e.User)
+	return blocking.PerformEffectsOnUser(ctx, userID, userMutations)
 }
 
 type MockBlockingEvent2 struct {
@@ -172,19 +174,20 @@ func (e *MockBlockingEvent2) BlockingEventType() event.Type {
 func (e *MockBlockingEvent2) FillContext(ctx *event.Context) {
 }
 
-func (e *MockBlockingEvent2) ApplyMutations(mutations event.Mutations) (event.BlockingPayload, bool) {
+func (e *MockBlockingEvent2) ApplyMutations(mutations event.Mutations) bool {
 	user, mutated := ApplyMutations(e.User, mutations)
 	if mutated {
-		copied := *e
-		copied.User = user
-		return &copied, true
+		e.User = user
+		return true
 	}
 
-	return e, false
+	return false
 }
 
-func (e *MockBlockingEvent2) GenerateFullMutations() (out event.Mutations) {
-	return GenerateFullMutations(e.User)
+func (e *MockBlockingEvent2) PerformEffects(ctx event.MutationsEffectContext) error {
+	userID := e.UserID()
+	userMutations := blocking.MakeUserMutations(e.User)
+	return blocking.PerformEffectsOnUser(ctx, userID, userMutations)
 }
 
 var _ event.NonBlockingPayload = &MockNonBlockingEvent1{}
@@ -207,13 +210,4 @@ func ApplyMutations(user model.User, mutations event.Mutations) (out model.User,
 
 	out = user
 	return
-}
-
-func GenerateFullMutations(user model.User) event.Mutations {
-	return event.Mutations{
-		User: event.UserMutations{
-			StandardAttributes: user.StandardAttributes,
-			CustomAttributes:   user.CustomAttributes,
-		},
-	}
 }

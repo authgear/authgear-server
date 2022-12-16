@@ -34,7 +34,7 @@ func (e *IdentityBiometricDisabledEventPayload) GetTriggeredBy() event.Triggered
 func (e *IdentityBiometricDisabledEventPayload) FillContext(ctx *event.Context) {
 }
 
-func (e *IdentityBiometricDisabledEventPayload) ForWebHook() bool {
+func (e *IdentityBiometricDisabledEventPayload) ForHook() bool {
 	return true
 }
 

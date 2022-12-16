@@ -29,7 +29,7 @@ func (e *SMSSentEventPayload) GetTriggeredBy() event.TriggeredByType {
 func (e *SMSSentEventPayload) FillContext(ctx *event.Context) {
 }
 
-func (e *SMSSentEventPayload) ForWebHook() bool {
+func (e *SMSSentEventPayload) ForHook() bool {
 	return false
 }
 

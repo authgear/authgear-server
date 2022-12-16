@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/event"
+	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/web"
@@ -31,6 +32,7 @@ var envConfigDeps = wire.NewSet(
 		"CORSAllowedOrigins",
 		"RedisConfig",
 		"NFTIndexerAPIEndpoint",
+		"DenoEndpoint",
 	),
 )
 
@@ -72,6 +74,7 @@ var appRootDeps = wire.NewSet(
 	wire.Bind(new(loginid.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(web.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(web.EmbeddedResourceManager), new(*web.GlobalEmbeddedResourceManager)),
+	wire.Bind(new(hook.ResourceManager), new(*resource.Manager)),
 )
 
 var RootDependencySet = wire.NewSet(

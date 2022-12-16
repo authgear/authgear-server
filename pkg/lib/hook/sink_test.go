@@ -1,12 +1,10 @@
 package hook
 
 import (
-	"net/http"
+	"net/url"
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/lestrrat-go/jwx/jwk"
-	"gopkg.in/h2non/gock.v1"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -17,8 +15,16 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestDeliverer(t *testing.T) {
-	Convey("Event Deliverer", t, func() {
+func TestSink(t *testing.T) {
+	mustURL := func(s string) *url.URL {
+		u, err := url.Parse(s)
+		if err != nil {
+			panic(err)
+		}
+		return u
+	}
+
+	Convey("Sink", t, func() {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
@@ -26,32 +32,22 @@ func TestDeliverer(t *testing.T) {
 			SyncTimeout:      5,
 			SyncTotalTimeout: 10,
 		}
-		key, err := jwk.New([]byte("aG9vay1zZWNyZXQ"))
-		So(err, ShouldBeNil)
-		set := jwk.NewSet()
-		_ = set.Add(key)
-		secret := &config.WebhookKeyMaterials{
-			Set: set,
-		}
 
 		clock := clock.NewMockClockAt("2006-01-02T15:04:05Z")
 
-		httpClient := &http.Client{}
-		gock.InterceptClient(httpClient)
 		stdAttrsService := NewMockStandardAttributesServiceNoEvent(ctrl)
 		customAttrsService := NewMockCustomAttributesServiceNoEvent(ctrl)
+		webhook := NewMockWebHook(ctrl)
+		denohook := NewMockDenoHook(ctrl)
 
-		deliverer := Deliverer{
+		s := Sink{
 			Config:             cfg,
-			Secret:             secret,
 			Clock:              clock,
-			SyncHTTP:           SyncHTTPClient{httpClient},
-			AsyncHTTP:          AsyncHTTPClient{httpClient},
+			WebHook:            webhook,
+			DenoHook:           denohook,
 			StandardAttributes: stdAttrsService,
 			CustomAttributes:   customAttrsService,
 		}
-
-		defer gock.Off()
 
 		Convey("determining whether the event will be delivered", func() {
 			Convey("should return correct value for blocking events", func() {
@@ -62,8 +58,8 @@ func TestDeliverer(t *testing.T) {
 					},
 				}
 
-				So(deliverer.WillDeliverBlockingEvent(MockBlockingEventType1), ShouldBeTrue)
-				So(deliverer.WillDeliverBlockingEvent(MockBlockingEventType2), ShouldBeFalse)
+				So(s.WillDeliverBlockingEvent(MockBlockingEventType1), ShouldBeTrue)
+				So(s.WillDeliverBlockingEvent(MockBlockingEventType2), ShouldBeFalse)
 			})
 
 			Convey("should return correct value for non-blocking events", func() {
@@ -77,9 +73,9 @@ func TestDeliverer(t *testing.T) {
 					},
 				}
 
-				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType1), ShouldBeTrue)
-				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType2), ShouldBeTrue)
-				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType3), ShouldBeFalse)
+				So(s.WillDeliverNonBlockingEvent(MockNonBlockingEventType1), ShouldBeTrue)
+				So(s.WillDeliverNonBlockingEvent(MockNonBlockingEventType2), ShouldBeTrue)
+				So(s.WillDeliverNonBlockingEvent(MockNonBlockingEventType3), ShouldBeFalse)
 			})
 
 			Convey("should return true for all non-blocking events", func() {
@@ -90,10 +86,10 @@ func TestDeliverer(t *testing.T) {
 					},
 				}
 
-				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType1), ShouldBeTrue)
-				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType2), ShouldBeTrue)
-				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType3), ShouldBeTrue)
-				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType4), ShouldBeTrue)
+				So(s.WillDeliverNonBlockingEvent(MockNonBlockingEventType1), ShouldBeTrue)
+				So(s.WillDeliverNonBlockingEvent(MockNonBlockingEventType2), ShouldBeTrue)
+				So(s.WillDeliverNonBlockingEvent(MockNonBlockingEventType3), ShouldBeTrue)
+				So(s.WillDeliverNonBlockingEvent(MockNonBlockingEventType4), ShouldBeTrue)
 			})
 		})
 
@@ -115,20 +111,14 @@ func TestDeliverer(t *testing.T) {
 					},
 				}
 
-				gock.New("https://example.com").
-					Post("/a").
-					JSON(e).
-					HeaderPresent(HeaderRequestBodySignature).
-					Reply(200).
-					JSON(map[string]interface{}{
-						"is_allowed": true,
-					})
-				defer func() { gock.Flush() }()
+				webhook.EXPECT().SupportURL(mustURL(cfg.BlockingHandlers[0].URL)).AnyTimes().Return(true)
+				webhook.EXPECT().DeliverBlockingEvent(mustURL(cfg.BlockingHandlers[0].URL), &e).Times(1).Return(&event.HookResponse{
+					IsAllowed: true,
+				}, nil)
 
-				err := deliverer.DeliverBlockingEvent(&e)
+				err := s.DeliverBlockingEvent(&e)
 
 				So(err, ShouldBeNil)
-				So(gock.IsDone(), ShouldBeTrue)
 			})
 
 			Convey("should apply mutations along the chain", func() {
@@ -170,44 +160,48 @@ func TestDeliverer(t *testing.T) {
 					},
 				}
 
-				gock.New("https://example.com").
-					Post("/do-not-mutate").
-					JSON(originalEvent).
-					HeaderPresent(HeaderRequestBodySignature).
-					Reply(200).
-					JSON(map[string]interface{}{
-						"is_allowed": true,
-					})
+				webhook.EXPECT().SupportURL(mustURL(cfg.BlockingHandlers[0].URL)).AnyTimes().Return(true)
+				webhook.EXPECT().DeliverBlockingEvent(
+					mustURL(cfg.BlockingHandlers[0].URL),
+					originalEvent,
+				).Times(1).Return(
+					&event.HookResponse{
+						IsAllowed: true,
+					},
+					nil,
+				)
 
-				gock.New("https://example.com").
-					Post("/mutate-something").
-					JSON(originalEvent).
-					HeaderPresent(HeaderRequestBodySignature).
-					Reply(200).
-					JSON(map[string]interface{}{
-						"is_allowed": true,
-						"mutations": map[string]interface{}{
-							"user": map[string]interface{}{
-								"standard_attributes": map[string]interface{}{
+				webhook.EXPECT().SupportURL(mustURL(cfg.BlockingHandlers[1].URL)).AnyTimes().Return(true)
+				webhook.EXPECT().DeliverBlockingEvent(
+					mustURL(cfg.BlockingHandlers[1].URL),
+					originalEvent,
+				).Times(1).Return(
+					&event.HookResponse{
+						IsAllowed: true,
+						Mutations: event.Mutations{
+							User: event.UserMutations{
+								StandardAttributes: map[string]interface{}{
 									"name": "John Doe",
 								},
-								"custom_attributes": map[string]interface{}{
+								CustomAttributes: map[string]interface{}{
 									"a": "a",
 								},
 							},
 						},
-					})
+					},
+					nil,
+				)
 
-				gock.New("https://example.com").
-					Post("/see-mutated-thing").
-					JSON(mutatedEvent).
-					HeaderPresent(HeaderRequestBodySignature).
-					Reply(200).
-					JSON(map[string]interface{}{
-						"is_allowed": true,
-					})
-
-				defer func() { gock.Flush() }()
+				webhook.EXPECT().SupportURL(mustURL(cfg.BlockingHandlers[2].URL)).AnyTimes().Return(true)
+				webhook.EXPECT().DeliverBlockingEvent(
+					mustURL(cfg.BlockingHandlers[2].URL),
+					mutatedEvent,
+				).Times(1).Return(
+					&event.HookResponse{
+						IsAllowed: true,
+					},
+					nil,
+				)
 
 				stdAttrsService.EXPECT().UpdateStandardAttributes(
 					accesscontrol.RoleGreatest,
@@ -225,10 +219,9 @@ func TestDeliverer(t *testing.T) {
 					},
 				).Times(1).Return(nil)
 
-				err := deliverer.DeliverBlockingEvent(originalEvent)
+				err := s.DeliverBlockingEvent(originalEvent)
 
 				So(err, ShouldBeNil)
-				So(gock.IsDone(), ShouldBeTrue)
 			})
 
 			Convey("should disallow operation", func() {
@@ -243,48 +236,32 @@ func TestDeliverer(t *testing.T) {
 					},
 				}
 
-				gock.New("https://example.com").
-					Post("/a").
-					JSON(e).
-					Reply(200).
-					JSON(map[string]interface{}{
-						"is_allowed": true,
-					})
+				webhook.EXPECT().SupportURL(mustURL(cfg.BlockingHandlers[0].URL)).AnyTimes().Return(true)
+				webhook.EXPECT().DeliverBlockingEvent(
+					mustURL(cfg.BlockingHandlers[0].URL),
+					&e,
+				).Times(1).Return(
+					&event.HookResponse{
+						IsAllowed: true,
+					},
+					nil,
+				)
 
-				gock.New("https://example.com").
-					Post("/b").
-					JSON(e).
-					Reply(200).
-					JSON(map[string]interface{}{
-						"is_allowed": false,
-						"reason":     "nope",
-					})
-				defer func() { gock.Flush() }()
+				webhook.EXPECT().SupportURL(mustURL(cfg.BlockingHandlers[1].URL)).AnyTimes().Return(true)
+				webhook.EXPECT().DeliverBlockingEvent(
+					mustURL(cfg.BlockingHandlers[1].URL),
+					&e,
+				).Times(1).Return(
+					&event.HookResponse{
+						IsAllowed: false,
+						Reason:    "nope",
+					},
+					nil,
+				)
 
-				err := deliverer.DeliverBlockingEvent(&e)
+				err := s.DeliverBlockingEvent(&e)
 
 				So(err, ShouldBeError, "disallowed by web-hook event handler")
-				So(gock.IsDone(), ShouldBeTrue)
-			})
-
-			Convey("should reject invalid status code", func() {
-				cfg.BlockingHandlers = []config.BlockingHandlersConfig{
-					{
-						Event: string(MockBlockingEventType1),
-						URL:   "https://example.com/a",
-					},
-				}
-
-				gock.New("https://example.com").
-					Post("/a").
-					JSON(e).
-					Reply(500)
-				defer func() { gock.Flush() }()
-
-				err := deliverer.DeliverBlockingEvent(&e)
-
-				So(err, ShouldBeError, "invalid status code")
-				So(gock.IsDone(), ShouldBeTrue)
 			})
 
 			Convey("should time out long requests", func() {
@@ -307,24 +284,20 @@ func TestDeliverer(t *testing.T) {
 					},
 				}
 
-				gock.New("https://example.com").
-					Post("/a").
-					Times(3).
-					JSON(e).
-					Reply(200).
-					Map(func(resp *http.Response) *http.Response {
-						clock.AdvanceSeconds(5)
-						return resp
-					}).
-					JSON(map[string]interface{}{
-						"is_allowed": true,
-					})
-				defer func() { gock.Flush() }()
+				webhook.EXPECT().SupportURL(mustURL(cfg.BlockingHandlers[0].URL)).AnyTimes().Return(true)
+				webhook.EXPECT().DeliverBlockingEvent(
+					mustURL(cfg.BlockingHandlers[0].URL),
+					&e,
+				).AnyTimes().DoAndReturn(func(_ *url.URL, _ *event.Event) (*event.HookResponse, error) {
+					clock.AdvanceSeconds(5)
+					return &event.HookResponse{
+						IsAllowed: true,
+					}, nil
+				})
 
-				err := deliverer.DeliverBlockingEvent(&e)
+				err := s.DeliverBlockingEvent(&e)
 
 				So(err, ShouldBeError, "webhook delivery timeout")
-				So(gock.IsDone(), ShouldBeTrue)
 			})
 		})
 
@@ -347,17 +320,15 @@ func TestDeliverer(t *testing.T) {
 					},
 				}
 
-				gock.New("https://example.com").
-					Post("/a").
-					JSON(e).
-					Reply(200).
-					BodyString("test")
-				defer func() { gock.Flush() }()
+				webhook.EXPECT().SupportURL(mustURL(cfg.NonBlockingHandlers[0].URL)).AnyTimes().Return(true)
+				webhook.EXPECT().DeliverNonBlockingEvent(
+					mustURL(cfg.NonBlockingHandlers[0].URL),
+					&e,
+				).Times(1).Return(nil)
 
-				err := deliverer.DeliverNonBlockingEvent(&e)
+				err := s.DeliverNonBlockingEvent(&e)
 
 				So(err, ShouldBeNil)
-				So(gock.IsDone(), ShouldBeTrue)
 			})
 		})
 	})

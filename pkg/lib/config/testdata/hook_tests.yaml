@@ -21,7 +21,7 @@ name: invalid-rel-path
 error: |-
   invalid value:
   /url: format
-    map[error:input URL must be absolute format:uri]
+    map[error:invalid scheme:  format:x_hook_uri]
 value:
   event: user.pre_create
   url: "/pre_signup"
@@ -32,7 +32,7 @@ name: invalid-blocking-event
 error: |-
   invalid value:
   /event: enum
-    map[actual:before_user_create expected:[user.pre_create user.profile.pre_update user.pre_schedule_deletion]]
+    map[actual:before_user_create expected:[user.pre_create user.profile.pre_update user.pre_schedule_deletion user.session.jwt.pre_create]]
 value:
   event: before_user_create
   url: "https://example.com/callback/before_user_create"

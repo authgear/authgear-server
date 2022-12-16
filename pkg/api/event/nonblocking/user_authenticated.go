@@ -34,7 +34,7 @@ func (e *UserAuthenticatedEventPayload) GetTriggeredBy() event.TriggeredByType {
 func (e *UserAuthenticatedEventPayload) FillContext(ctx *event.Context) {
 }
 
-func (e *UserAuthenticatedEventPayload) ForWebHook() bool {
+func (e *UserAuthenticatedEventPayload) ForHook() bool {
 	return true
 }
 

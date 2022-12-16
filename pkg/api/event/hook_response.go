@@ -6,24 +6,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-/*
-	@ID HookResponse
-	@Response
-		Validation result of the event, and optionally mutate the user object.
-
-		@JSONSchema
-		@JSONExample Allowed - Allow operation
-			{
-				"is_allowed": true
-			}
-		@JSONExample Disallowed - Disallow operation with reason
-			{
-				"is_allowed": false,
-				"title": "Validation failure",
-				"reason": "Username is not allowed"
-			}
-*/
-
 var HookResponseSchema = validation.NewSimpleSchema(`
 {
 	"oneOf": [
@@ -39,6 +21,17 @@ var HookResponseSchema = validation.NewSimpleSchema(`
 							"type": "object",
 							"properties": {
 								"standard_attributes": {
+									"type": "object"
+								},
+								"custom_attributes": {
+									"type": "object"
+								}
+							}
+						},
+						"jwt": {
+							"type": "object",
+							"properties": {
+								"payload": {
 									"type": "object"
 								}
 							}
@@ -64,18 +57,23 @@ var HookResponseSchema = validation.NewSimpleSchema(`
 
 type HookResponse struct {
 	IsAllowed bool      `json:"is_allowed"`
-	Title     string    `json:"title"`
-	Reason    string    `json:"reason"`
-	Mutations Mutations `json:"mutations"`
+	Title     string    `json:"title,omitempty"`
+	Reason    string    `json:"reason,omitempty"`
+	Mutations Mutations `json:"mutations,omitempty"`
 }
 
 type Mutations struct {
-	User UserMutations `json:"user"`
+	User UserMutations `json:"user,omitempty"`
+	JWT  JWTMutations  `json:"jwt,omitempty"`
 }
 
 type UserMutations struct {
 	StandardAttributes map[string]interface{} `json:"standard_attributes,omitempty"`
 	CustomAttributes   map[string]interface{} `json:"custom_attributes,omitempty"`
+}
+
+type JWTMutations struct {
+	Payload map[string]interface{} `json:"payload,omitempty"`
 }
 
 func ParseHookResponse(r io.Reader) (*HookResponse, error) {

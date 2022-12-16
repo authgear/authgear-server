@@ -33,7 +33,7 @@ func (e *UserDeletedEventPayload) GetTriggeredBy() event.TriggeredByType {
 func (e *UserDeletedEventPayload) FillContext(ctx *event.Context) {
 }
 
-func (e *UserDeletedEventPayload) ForWebHook() bool {
+func (e *UserDeletedEventPayload) ForHook() bool {
 	return true
 }
 
