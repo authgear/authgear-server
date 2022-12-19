@@ -418,6 +418,38 @@ Once used, a recovery code is invalidated.
 The codes are cryptographically secure random 10-letter string in Crockford's
 Base32 alphabet.
 
+## Unverified Secondary Authenticator
+
+Users can add the secondary authenticator during signup and verify it later.
+
+The secondary authenticators allow unverified:
+- Email OOB OTP
+- SMS OOB OTP
+
+When the project configured the authenticator to allow unverified. Auth UI will only
+ask the user to input the email/phone during signup without verifying it.
+
+The user can verify it later when logging in or on the settings page.
+
+Users can choose to use an unverified authenticator when logging in, they will still pass
+the MFA during authentication. And the authenticator will be marked as verified at
+that moment.
+
+Secondary authenticators added via the settings page must be verified.
+
+Configuration:
+
+```yaml
+authenticator:
+  oob_otp:
+    sms:
+      allow_unverified: (true|false)
+    email:
+      allow_unverified: (true|false)
+```
+
+The default value of `allow_unverified` is `false`.
+
 ## Deleting a user
 
 Deleting a user will hard-delete all data from the database,
