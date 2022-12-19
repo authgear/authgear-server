@@ -53,7 +53,7 @@ Events are triggered when an operation is performed.
 
 Events have two kinds, namely Blocking and Non-blocking.
 
-Blocking event is triggered before the operation is performed. The operation can be aborted by webhook handler.
+Blocking event is triggered before the operation is performed. The operation can be aborted by Hooks.
 
 Non-blocking event is triggered after the operation is performed.
 
@@ -99,7 +99,7 @@ All fields are guaranteed that only backward-compatible changes would be made.
 - [user.pre_create](#userpre_create)
 - [user.profile.pre_update](#userprofilepre_update)
 
-Blocking event handler can perform mutations. See [Webhook Blocking Event Mutations](./webhook.md#webhook-blocking-event-mutations).
+Blocking event Hooks can perform mutations. See [Blocking Event Mutations](./hook.md#blocking-event-mutations).
 
 #### user.pre_create
 
