@@ -85,6 +85,7 @@ Supported [standard client metadata](https://openid.net/specs/openid-connect-reg
 - `access_token_lifetime`: Access token lifetime in seconds, default to 1800.
 - `refresh_token_lifetime`: Refresh token lifetime in seconds, default to max(access_token_lifetime, 86400). It must be greater than or equal to `access_token_lifetime`.
 - `x_application_type`: Indicate the application type. Except `third_party_app`, all clients are [first-party client](#first-party-clients) even it is not specified. The application type is not changeable after creation on the portal. Supported values: `spa`, `traditional_webapp`, `native`, `third_party_app`.
+- `x_max_concurrent_session`: Indicate whether the client restricts the number of concurrent sessions, `0` means no restriction, default is `0`. Currently, only `0` or `1` are supported. If `x_max_concurrent_session` is `1`, all refresh tokens of the client will be revoked when a new one is requested.
 
 #### Generic RP Client Metadata example
 
