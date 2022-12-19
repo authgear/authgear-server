@@ -8,6 +8,7 @@
       - [user.pre_create](#userpre_create)
       - [user.profile.pre_update](#userprofilepre_update)
       - [user.pre_schedule_deletion](#userpre_schedule_deletion)
+      - [user.pre_schedule_anonymization](#userpre_schedule_anonymization)
       - [user.session.jwt.pre_create](#usersessionjwtpre_create)
     + [Non-blocking Events](#non-blocking-events)
       - [user.created](#usercreated)
@@ -20,6 +21,9 @@
       - [user.deletion_scheduled](#userdeletion_scheduled)
       - [user.deletion_unscheduled](#userdeletion_unscheduled)
       - [user.deleted](#userdeleted)
+      - [user.anonymization_scheduled](#useranonymization_scheduled)
+      - [user.anonymization_unscheduled](#useranonymization_unscheduled)
+      - [user.anonymized](#useranonymized)
       - [authentication.identity.login_id.failed](#authenticationidentitylogin_idfailed)
       - [authentication.identity.anonymous.failed](#authenticationidentityanonymousfailed)
       - [authentication.identity.biometric.failed](#authenticationidentitybiometricfailed)
@@ -136,7 +140,19 @@ Occurs right before the update of user profile.
 
 #### user.pre_schedule_deletion
 
-Occurs right before the end-user schedules account deletion.
+Occurs right before the account deletion is scheduled.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
+
+#### user.pre_schedule_anonymization
+
+Occurs right before the account anonymization is scheduled.
 
 ```json5
 {
@@ -315,6 +331,42 @@ Occurs when an account deletion was unscheduled.
 #### user.deleted
 
 Occurs when the user was deleted.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
+
+#### user.anonymization_scheduled
+
+Occurs when an account anonymization was scheduled.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
+
+#### user.anonymization_unscheduled
+
+Occurs when an account anonymization was unscheduled.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
+
+#### user.anonymized
+
+Occurs when the user was anonymized.
 
 ```json5
 {

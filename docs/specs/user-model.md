@@ -41,11 +41,12 @@
     + [Device Token](#device-token)
     + [Recovery Code](#recovery-code)
   * [Deleting a user](#deleting-a-user)
-    + [Cached data](#cached-data)
-  * [Disabled user, deactivated user, and scheduled account deletion](#disabled-user-deactivated-user-and-scheduled-account-deletion)
+  * [Anonymizing a user](#anonymizing-a-user)
+  * [Cached data of deleted or anonymized users](#cached-data-of-deleted-or-anonymized-users)
+  * [Disabled user, deactivated user, anonymized user, scheduled account deletion and scheduled account anonymization](#disabled-user-deactivated-user-anonymized-user-scheduled-account-deletion-and-scheduled-account-anonymization)
     + [Disabled user](#disabled-user)
     + [Deactivated user](#deactivated-user)
-    + [Scheduled account deletion](#scheduled-account-deletion)
+    + [Scheduled account deletion or anonymization](#scheduled-account-deletion-or-anonymization)
     + [Sessions](#sessions)
 
 # User Model
@@ -405,25 +406,40 @@ including identities, authenticators, sessions, etc.
 The developer can delete a user via the Admin API, or
 the admin can delete a user on the portal.
 
-### Cached data
+## Anonymizing a user
+
+Anonymizing a user is similar to deleting a user. 
+Except for the user record, all data including identities,
+authenticators, sessions, etc will be deleted from the database.
+All the standard or custom attributes of the user will be cleared.
+
+The developer can anonymize a user via the Admin API, or
+the admin can anonymize a user on the portal.
+
+Once the user is anonymized, it cannot be reverted.
+
+## Cached data of deleted or anonymized users
 
 Some internal data may still present in cache (Redis), such as OAuth states,
 MFA device tokens, rate limit counter. There data will remain in the cache
 until its natural expiry.
 
-## Disabled user, deactivated user, and scheduled account deletion
+## Disabled user, deactivated user, anonymized user, scheduled account deletion and scheduled account anonymization
 
 This section specifies the feature of disabled user, deactivated user, and scheduled account deletion.
 
 There are 3 attributes to represent the state of these features, summarized in the following table.
 
-|is\_disabled|is\_deactivated|delete\_at|state|
-|---|---|---|---|
-|false|false|null|Normal|
-|true|false|null|Disabled|
-|true|true|null|Deactivated|
-|true|false|non-null|Scheduled deletion by admin|
-|true|true|non-null|Scheduled deletion by end-user|
+|is\_disabled|is\_deactivated|is_anonymized|delete\_at|anonymize_at|state|
+|---|---|---|---|---|---|
+|false|false|false|null|null|Normal|
+|true|false|false|null|null|Disabled|
+|true|true|false|null|null|Deactivated|
+|true|false|false|non-null|null|Scheduled deletion by admin|
+|true|true|false|non-null|null|Scheduled deletion by end-user|
+|true|false|false|null|non-null|Scheduled anonymization by admin|
+|true|true|false|null|non-null|Scheduled anonymization by end-user|
+|true|any|true|null|any|Anonymized|
 
 List of valid state transitions:
 
@@ -436,6 +452,10 @@ List of valid state transitions:
 - Deactivated --[Re-enable]--> Normal
 - Scheduled deletion by admin --[Unschedule deletion]--> Normal
 - Scheduled deletion by end-user --[Unschedule deletion]--> Normal
+- Normal --[Schedule anonymization by admin]--> Scheduled anonymization by admin
+- Normal --[Schedule anonymization by end-user]--> Scheduled anonymization by end-user
+- Scheduled anonymization by admin --[Unschedule anonymization]--> Normal
+- Scheduled anonymization by end-user --[Unschedule anonymization]--> Normal
 
 ### Disabled user
 
@@ -455,20 +475,32 @@ When a deactivated user signs in, they can reactivate their account.
 
 > Reactivating a user is NOT yet implemented!
 
-### Scheduled account deletion
+### Scheduled account deletion or anonymization
 
-Instead of deleting a user immediately, a deletion can be scheduled.
+Instead of deleting or anonymizing a user immediately, it can be scheduled.
 
 The schedule is measured in terms of days. The default value is 30 days. Valid values are [1, 180].
 
-When the deletion is scheduled via Admin API or by admin, the user is disabled.
-When the deletion is unscheduled, the user is re-enabled.
+When the deletion or anonymization is scheduled via Admin API or by admin, the user is disabled.
+When the deletion or anonymization is unscheduled, the user is re-enabled.
 
-When the deletion is scheduled by the end-user, the user is deactivated.
-To cancel the scheduled deletion, the end-user has to reactivate their account.
-It is possible to cancel the scheduled deletion on behalf of the end-user.
-Whether the end-user can schedule deletion on their account is configurable.
+When the deletion or anonymization is scheduled by the end-user, the user is deactivated.
+To cancel the schedule, the end-user has to reactivate their account.
+It is possible to cancel the schedule on behalf of the end-user.
+Whether the end-user can schedule deletion or anonymization on their account is configurable.
 
 ### Sessions
 
 When a user is disabled, deactivated or scheduled for deletion, all sessions are deleted.
+
+### Configuration
+
+```yaml
+account_deletion:
+  scheduled_by_end_user_enabled: false
+  grace_period_days: 30
+account_anonymization:
+  scheduled_by_end_user_enabled: false
+  grace_period_days: 30
+```
+
