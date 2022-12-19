@@ -296,6 +296,8 @@ Primary authenticators authenticate the identity.
 
 ### Secondary Authenticator
 
+#### Secondary authentication mode
+
 Secondary authenticators are additional authentication methods to ensure higher degree of confidence in authenticity.
 
 The mode of secondary authentication is configurable. They are as follows:
@@ -305,6 +307,25 @@ The mode of secondary authentication is configurable. They are as follows:
 - `if_exists`: secondary authentication is opt-in. If the user has at least one secondary authenticator, then the user must perform secondary authentication.
 
 The default mode is `if_exists`.
+
+```yaml
+authentication:
+  secondary_authentication_mode: (disabled|required|if_exists)
+```
+
+#### Secondary Authenticator Create Policy
+
+The secondary authenticator creation policy specifies how the secondary authenticators are set up during signup.
+
+- `any`: When `secondary_authentication_mode` is `required`, users have to set up one authenticator during signup. If multiple secondary authenticators are enabled in the project, users can choose one of them from the list.
+- `all`: When `secondary_authentication_mode` is `required` or `if_exists`, users need to set up all the enabled secondary authenticators based on the configuration order during signup.
+
+The default value is `any`.
+
+```yaml
+authentication:
+  secondary_authenticator_creation_policy: (any|all)
+```
 
 ### Authenticator Types
 
