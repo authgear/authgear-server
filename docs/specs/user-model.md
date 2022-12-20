@@ -492,6 +492,8 @@ To cancel the schedule, the end-user has to reactivate their account.
 It is possible to cancel the schedule on behalf of the end-user.
 Whether the end-user can schedule deletion or anonymization on their account is configurable.
 
+> Scheduling anonymization by the end-user is not implemented yet.
+
 ### Sessions
 
 When a user is disabled, deactivated or scheduled for deletion, all sessions are deleted.
@@ -503,7 +505,8 @@ account_deletion:
   scheduled_by_end_user_enabled: false
   grace_period_days: 30
 account_anonymization:
-  scheduled_by_end_user_enabled: false
+  # Should be added when scheduling anonymization by the end-user is supported
+  # scheduled_by_end_user_enabled: false
   grace_period_days: 30
 ```
 
