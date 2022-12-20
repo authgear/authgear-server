@@ -64,6 +64,7 @@ type UserQueries interface {
 type UserCommands interface {
 	UpdateAccountStatus(userID string, accountStatus user.AccountStatus) error
 	Delete(userID string) error
+	Anonymize(userID string) error
 }
 
 type PasswordHistoryStore interface {
@@ -655,6 +656,78 @@ func (c *Coordinator) UserUnscheduleDeletionByAdmin(userID string) error {
 	}
 
 	err = c.Events.DispatchEvent(e)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Coordinator) UserAnonymize(userID string, IsScheduledAnonymization bool) error {
+	// Delete dependents of user entity.
+
+	// Identities:
+	identities, err := c.Identities.ListByUser(userID)
+	if err != nil {
+		return err
+	}
+	for _, i := range identities {
+		if err = c.Identities.Delete(i); err != nil {
+			return err
+		}
+	}
+
+	// Authenticators:
+	authenticators, err := c.Authenticators.List(userID)
+	if err != nil {
+		return err
+	}
+	for _, a := range authenticators {
+		if err = c.Authenticators.Delete(a); err != nil {
+			return err
+		}
+	}
+
+	// MFA recovery codes:
+	if err = c.MFA.InvalidateAllRecoveryCode(userID); err != nil {
+		return err
+	}
+
+	// OAuth authorizations:
+	if err = c.OAuth.ResetAll(userID); err != nil {
+		return err
+	}
+
+	// Verified claims:
+	if err = c.Verification.ResetVerificationStatus(userID); err != nil {
+		return err
+	}
+
+	// Password history:
+	if err = c.PasswordHistory.ResetPasswordHistory(userID); err != nil {
+		return err
+	}
+
+	// Sessions:
+	if err = c.terminateAllSessions(userID); err != nil {
+		return err
+	}
+
+	userModel, err := c.UserQueries.Get(userID, accesscontrol.RoleGreatest)
+	if err != nil {
+		return err
+	}
+
+	// Anonymize user record:
+	err = c.UserCommands.Anonymize(userID)
+	if err != nil {
+		return err
+	}
+
+	err = c.Events.DispatchEvent(&nonblocking.UserAnonymizedEventPayload{
+		UserModel:                *userModel,
+		IsScheduledAnonymization: IsScheduledAnonymization,
+	})
 	if err != nil {
 		return err
 	}

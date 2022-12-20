@@ -241,6 +241,10 @@ var nodeUser = node(
 				Type:        graphql.DateTime,
 				Description: "The scheduled deletion time of the user",
 			},
+			"isAnonymized": &graphql.Field{
+				Type:        graphql.NewNonNull(graphql.Boolean),
+				Description: "Indicates if the user is anonymized",
+			},
 			"standardAttributes": &graphql.Field{
 				Type:        graphql.NewNonNull(UserStandardAttributes),
 				Description: "The user's standard attributes",

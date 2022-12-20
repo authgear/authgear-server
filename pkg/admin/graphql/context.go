@@ -49,6 +49,7 @@ type UserFacade interface {
 	ScheduleDeletion(id string) error
 	UnscheduleDeletion(id string) error
 	Delete(id string) error
+	Anonymize(id string) error
 }
 
 type IdentityFacade interface {

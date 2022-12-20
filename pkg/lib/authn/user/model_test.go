@@ -70,5 +70,22 @@ func TestAccountStatus(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(normal.Type(), ShouldEqual, AccountStatusTypeNormal)
 		})
+
+		Convey("anonymize", func() {
+			anonymized := AccountStatus{
+				IsDisabled:   true,
+				IsAnonymized: true,
+			}
+			var err error
+
+			_, err = anonymized.Disable(nil)
+			So(err, ShouldBeError, "invalid account status transition: anonymized -> disabled")
+
+			_, err = anonymized.Reenable()
+			So(err, ShouldBeError, "invalid account status transition: anonymized -> normal")
+
+			_, err = anonymized.Anonymize()
+			So(err, ShouldBeError, "invalid account status transition: anonymized -> anonymized")
+		})
 	})
 }

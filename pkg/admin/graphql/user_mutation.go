@@ -1,7 +1,7 @@
 package graphql
 
 import (
-	"github.com/authgear/graphql-go-relay"
+	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
@@ -486,6 +486,59 @@ var _ = registerMutationField(
 
 			return map[string]interface{}{
 				"deletedUserID": userNodeID,
+			}, nil
+		},
+	},
+)
+
+var anonymizeUserInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "AnonymizeUserInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"userID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target user ID.",
+		},
+	},
+})
+
+var anonymizeUserPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "AnonymizeUserPayload",
+	Fields: graphql.Fields{
+		"anonymizedUserID": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.ID),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"anonymizeUser",
+	&graphql.Field{
+		Description: "Anonymize specified user",
+		Type:        graphql.NewNonNull(anonymizeUserPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(anonymizeUserInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+
+			userNodeID := input["userID"].(string)
+			resolvedNodeID := relay.FromGlobalID(userNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeUser {
+				return nil, apierrors.NewInvalid("invalid user ID")
+			}
+			userID := resolvedNodeID.ID
+
+			gqlCtx := GQLContext(p.Context)
+
+			err := gqlCtx.UserFacade.Anonymize(userID)
+			if err != nil {
+				return nil, err
+			}
+
+			return map[string]interface{}{
+				"anonymizedUserID": userNodeID,
 			}, nil
 		},
 	},
