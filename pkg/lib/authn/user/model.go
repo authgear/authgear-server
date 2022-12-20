@@ -48,6 +48,7 @@ const (
 	AccountStatusTypeDeactivated                  AccountStatusType = "deactivated"
 	AccountStatusTypeScheduledDeletionDisabled    AccountStatusType = "scheduled_deletion_disabled"
 	AccountStatusTypeScheduledDeletionDeactivated AccountStatusType = "scheduled_deletion_deactivated"
+	AccountStatusTypeAnonymized                   AccountStatusType = "anonymized"
 )
 
 // AccountStatus represents disabled, deactivated, or scheduled deletion state.
@@ -57,6 +58,7 @@ type AccountStatus struct {
 	IsDeactivated bool
 	DisableReason *string
 	DeleteAt      *time.Time
+	IsAnonymized  bool
 }
 
 func (s AccountStatus) Type() AccountStatusType {
@@ -72,6 +74,9 @@ func (s AccountStatus) Type() AccountStatusType {
 	if s.IsDeactivated {
 		return AccountStatusTypeDeactivated
 	}
+	if s.IsAnonymized {
+		return AccountStatusTypeAnonymized
+	}
 	return AccountStatusTypeDisabled
 }
 
@@ -84,6 +89,8 @@ func (s AccountStatus) Check() error {
 		return NewErrDisabledUser(s.DisableReason)
 	case AccountStatusTypeDeactivated:
 		return ErrDeactivatedUser
+	case AccountStatusTypeAnonymized:
+		return ErrAnonymizedUser
 	case AccountStatusTypeScheduledDeletionDisabled:
 		return NewErrScheduledDeletionByAdmin(*s.DeleteAt)
 	case AccountStatusTypeScheduledDeletionDeactivated:
@@ -143,6 +150,17 @@ func (s AccountStatus) UnscheduleDeletionByAdmin() (*AccountStatus, error) {
 	return &target, nil
 }
 
+func (s AccountStatus) Anonymize() (*AccountStatus, error) {
+	target := AccountStatus{
+		IsDisabled:   true,
+		IsAnonymized: true,
+	}
+	if s.Type() == AccountStatusTypeNormal {
+		return &target, nil
+	}
+	return nil, s.makeTransitionError(target.Type())
+}
+
 func (s AccountStatus) makeTransitionError(targetType AccountStatusType) error {
 	return InvalidAccountStatusTransition.NewWithInfo(
 		fmt.Sprintf("invalid account status transition: %v -> %v", s.Type(), targetType),
@@ -163,6 +181,7 @@ type User struct {
 	DisableReason      *string
 	IsDeactivated      bool
 	DeleteAt           *time.Time
+	IsAnonymized       bool
 	StandardAttributes map[string]interface{}
 	CustomAttributes   map[string]interface{}
 }
@@ -187,6 +206,7 @@ func (u *User) AccountStatus() AccountStatus {
 		DisableReason: u.DisableReason,
 		IsDeactivated: u.IsDeactivated,
 		DeleteAt:      u.DeleteAt,
+		IsAnonymized:  u.IsAnonymized,
 	}
 }
 
@@ -230,6 +250,7 @@ func newUserModel(
 		DisableReason:      user.DisableReason,
 		IsDeactivated:      user.IsDeactivated,
 		DeleteAt:           user.DeleteAt,
+		IsAnonymized:       user.IsAnonymized,
 		CanReauthenticate:  canReauthenticate,
 		StandardAttributes: derivedStandardAttributes,
 		CustomAttributes:   customAttributes,

@@ -23,6 +23,7 @@ type UserService interface {
 	Reenable(userID string) error
 	ScheduleDeletionByAdmin(userID string) error
 	UnscheduleDeletionByAdmin(userID string) error
+	Anonymize(userID string) error
 }
 
 type UserSearchService interface {
@@ -133,6 +134,14 @@ func (f *UserFacade) UnscheduleDeletion(id string) error {
 
 func (f *UserFacade) Delete(id string) error {
 	err := f.Users.Delete(id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (f *UserFacade) Anonymize(id string) error {
+	err := f.Users.Anonymize(id)
 	if err != nil {
 		return err
 	}

@@ -64,3 +64,7 @@ func (c *RawCommands) UpdateAccountStatus(userID string, accountStatus AccountSt
 func (c *RawCommands) Delete(userID string) error {
 	return c.Store.Delete(userID)
 }
+
+func (c *RawCommands) Anonymize(userID string) error {
+	return c.Store.Anonymize(userID)
+}
