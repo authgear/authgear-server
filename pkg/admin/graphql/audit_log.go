@@ -44,6 +44,15 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"USER_DELETED": &graphql.EnumValueConfig{
 			Value: "user.deleted",
 		},
+		"USER_ANONYMIZATION_SCHEDULED": &graphql.EnumValueConfig{
+			Value: "user.anonymization_scheduled",
+		},
+		"USER_ANONYMIZATION_UNSCHEDULED": &graphql.EnumValueConfig{
+			Value: "user.anonymization_unscheduled",
+		},
+		"USER_ANONYMIZED": &graphql.EnumValueConfig{
+			Value: "user.anonymized",
+		},
 		"AUTHENTICATION_IDENTITY_LOGIN_ID_FAILED": &graphql.EnumValueConfig{
 			Value: "authentication.identity.login_id.failed",
 		},

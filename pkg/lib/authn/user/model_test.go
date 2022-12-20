@@ -10,6 +10,7 @@ import (
 func TestAccountStatus(t *testing.T) {
 	Convey("AccountStatus", t, func() {
 		deleteAt := time.Date(2006, 1, 2, 3, 4, 5, 6, time.UTC)
+		anonymizeAt := time.Date(2006, 1, 2, 3, 4, 5, 6, time.UTC)
 		Convey("normal", func() {
 			var normal AccountStatus
 			var err error
@@ -86,6 +87,27 @@ func TestAccountStatus(t *testing.T) {
 
 			_, err = anonymized.Anonymize()
 			So(err, ShouldBeError, "invalid account status transition: anonymized -> anonymized")
+		})
+
+		Convey("scheduled anonymization by admin", func() {
+			scheduledAnonymization := AccountStatus{
+				IsDisabled:  true,
+				AnonymizeAt: &anonymizeAt,
+			}
+			var err error
+
+			_, err = scheduledAnonymization.Disable(nil)
+			So(err, ShouldBeError, "invalid account status transition: scheduled_anonymization_disabled -> disabled")
+
+			_, err = scheduledAnonymization.Reenable()
+			So(err, ShouldBeError, "invalid account status transition: scheduled_anonymization_disabled -> normal")
+
+			_, err = scheduledAnonymization.ScheduleAnonymizationByAdmin(deleteAt)
+			So(err, ShouldBeError, "invalid account status transition: scheduled_anonymization_disabled -> scheduled_anonymization_disabled")
+
+			normal, err := scheduledAnonymization.UnscheduleAnonymizationByAdmin()
+			So(err, ShouldBeNil)
+			So(normal.Type(), ShouldEqual, AccountStatusTypeNormal)
 		})
 	})
 }

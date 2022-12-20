@@ -1,6 +1,8 @@
 package facade
 
 import (
+	"errors"
+
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
@@ -99,21 +101,22 @@ type OAuthSessionManager SessionManager
 //
 //	removed, so that recovery codes are re-generated when setup again.
 type Coordinator struct {
-	Events                EventService
-	Identities            IdentityService
-	Authenticators        AuthenticatorService
-	Verification          VerificationService
-	MFA                   MFAService
-	UserCommands          UserCommands
-	UserQueries           UserQueries
-	StdAttrsService       StdAttrsService
-	PasswordHistory       PasswordHistoryStore
-	OAuth                 OAuthService
-	IDPSessions           IDPSessionManager
-	OAuthSessions         OAuthSessionManager
-	IdentityConfig        *config.IdentityConfig
-	AccountDeletionConfig *config.AccountDeletionConfig
-	Clock                 clock.Clock
+	Events                     EventService
+	Identities                 IdentityService
+	Authenticators             AuthenticatorService
+	Verification               VerificationService
+	MFA                        MFAService
+	UserCommands               UserCommands
+	UserQueries                UserQueries
+	StdAttrsService            StdAttrsService
+	PasswordHistory            PasswordHistoryStore
+	OAuth                      OAuthService
+	IDPSessions                IDPSessionManager
+	OAuthSessions              OAuthSessionManager
+	IdentityConfig             *config.IdentityConfig
+	AccountDeletionConfig      *config.AccountDeletionConfig
+	AccountAnonymizationConfig *config.AccountAnonymizationConfig
+	Clock                      clock.Clock
 }
 
 func (c *Coordinator) IdentityGet(id string) (*identity.Info, error) {
@@ -728,6 +731,99 @@ func (c *Coordinator) UserAnonymize(userID string, IsScheduledAnonymization bool
 		UserModel:                *userModel,
 		IsScheduledAnonymization: IsScheduledAnonymization,
 	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Coordinator) UserScheduleAnonymizationByAdmin(userID string) error {
+	return c.userScheduleAnonymization(userID, true)
+}
+
+func (c *Coordinator) userScheduleAnonymization(userID string, byAdmin bool) error {
+	u, err := c.UserQueries.GetRaw(userID)
+	if err != nil {
+		return err
+	}
+
+	now := c.Clock.NowUTC()
+	anonymizeAt := now.Add(c.AccountAnonymizationConfig.GracePeriod.Duration())
+
+	var accountStatus *user.AccountStatus
+	if byAdmin {
+		accountStatus, err = u.AccountStatus().ScheduleAnonymizationByAdmin(anonymizeAt)
+	} else {
+		err = errors.New("not implemented")
+	}
+	if err != nil {
+		return err
+	}
+
+	err = c.UserCommands.UpdateAccountStatus(userID, *accountStatus)
+	if err != nil {
+		return err
+	}
+
+	err = c.terminateAllSessions(userID)
+	if err != nil {
+		return err
+	}
+
+	userRef := model.UserRef{
+		Meta: model.Meta{
+			ID: userID,
+		},
+	}
+
+	events := []event.Payload{
+		&blocking.UserPreScheduleAnonymizationBlockingEventPayload{
+			UserRef:  userRef,
+			AdminAPI: byAdmin,
+		},
+		&nonblocking.UserAnonymizationScheduledEventPayload{
+			UserRef:  userRef,
+			AdminAPI: byAdmin,
+		},
+	}
+
+	for _, e := range events {
+		err := c.Events.DispatchEvent(e)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *Coordinator) UserUnscheduleAnonymizationByAdmin(userID string) error {
+	u, err := c.UserQueries.GetRaw(userID)
+	if err != nil {
+		return err
+	}
+
+	accountStatus, err := u.AccountStatus().UnscheduleAnonymizationByAdmin()
+	if err != nil {
+		return err
+	}
+
+	err = c.UserCommands.UpdateAccountStatus(userID, *accountStatus)
+	if err != nil {
+		return err
+	}
+
+	e := &nonblocking.UserAnonymizationUnscheduledEventPayload{
+		UserRef: model.UserRef{
+			Meta: model.Meta{
+				ID: userID,
+			},
+		},
+		AdminAPI: true,
+	}
+
+	err = c.Events.DispatchEvent(e)
 	if err != nil {
 		return err
 	}

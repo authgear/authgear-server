@@ -22,6 +22,7 @@ var ErrAnonymizedUser = apierrors.Forbidden.WithReason("AnonymizedUser").New("us
 
 var ScheduledDeletionByAdmin = apierrors.Forbidden.WithReason("ScheduledDeletionByAdmin")
 var ScheduledDeletionByEndUser = apierrors.Forbidden.WithReason("ScheduledDeletionByEndUser")
+var ScheduledAnonymizationByAdmin = apierrors.Forbidden.WithReason("ScheduledAnonymizationByAdmin")
 
 func NewErrScheduledDeletionByAdmin(deleteAt time.Time) error {
 	return ScheduledDeletionByAdmin.NewWithInfo("user was scheduled for deletion by admin", map[string]interface{}{
@@ -32,5 +33,11 @@ func NewErrScheduledDeletionByAdmin(deleteAt time.Time) error {
 func NewErrScheduledDeletionByEndUser(deleteAt time.Time) error {
 	return ScheduledDeletionByEndUser.NewWithInfo("user was scheduled for deletion by end-user", map[string]interface{}{
 		"delete_at": deleteAt,
+	})
+}
+
+func NewErrScheduledAnonymizationByAdmin(anonymizeAt time.Time) error {
+	return ScheduledAnonymizationByAdmin.NewWithInfo("user was scheduled for anonymization by admin", map[string]interface{}{
+		"anonymize_at": anonymizeAt,
 	})
 }
