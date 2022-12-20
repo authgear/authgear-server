@@ -20,31 +20,57 @@
   align-self: end;
 }
 
-.blockingHookContainer {
-  display: flex;
-  flex-direction: column;
-  row-gap: 8px;
-  flex: 1 0 0;
-  min-width: 0;
-}
-
-.blockingHookRow {
+.hookContainer {
   display: flex;
   flex-direction: row;
-  column-gap: 8px;
+  column-gap: 12px;
+  flex: 1 0 0;
+  padding: 10px 0;
 }
 
-.nonblockingHookContainer {
+.hookHeader {
   display: flex;
   flex-direction: row;
-  column-gap: 8px;
-  flex: 1 0 0;
-  min-width: 0;
+  column-gap: 12px;
+  padding: 8px 32px 8px 0;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
 }
 
-.hookItemFlex1 {
+.blockingHookKind {
+  flex: 0.15 0 0;
+  min-width: 100px;
+}
+
+.blockingHookEvent {
+  flex: 0.35 0 0;
+  min-width: 150px;
+}
+
+.blockingHookConfig {
+  flex: 0.5 0 0;
+  min-width: 200px;
+}
+
+.hookConfig {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  column-gap: 4px;
+}
+
+.hookConfigConfig {
   flex: 1 0 0;
-  min-width: 0;
+}
+
+.nonblockingHookEvent {
+  flex: 0.4 0 0;
+  min-width: 100px;
+}
+
+.nonblockingHookConfig {
+  flex: 0.6 0 0;
+  min-width: 200px;
 }
 
 .codeEditorContainer {
@@ -66,7 +92,15 @@
   margin: 0 4px;
 }
 
-.blockingList {
+.hookList {
   /* stylelint-disable-next-line */
-  row-gap: 24px !important;
+  row-gap: 0 !important;
+}
+
+.hookListItem {
+  column-gap: 4px;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  overflow-y: hidden;
+  overflow-x: auto;
 }

@@ -1,5 +1,10 @@
 import cn from "classnames";
-import React, { ComponentType, useCallback, useMemo } from "react";
+import React, {
+  ComponentType,
+  CSSProperties,
+  useCallback,
+  useMemo,
+} from "react";
 import { IconButton, Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "./context/SystemConfigContext";
@@ -18,6 +23,8 @@ export interface ListItemProps<T> {
 export interface FieldListProps<T> {
   className?: string;
   listClassName?: string;
+  listItemClassName?: string;
+  listItemStyle?: CSSProperties;
   label?: React.ReactNode;
   parentJSONPointer: string | RegExp;
   fieldName: string;
@@ -37,6 +44,8 @@ const FieldList = function FieldList<T>(
   const {
     className,
     listClassName,
+    listItemClassName,
+    listItemStyle,
     label,
     parentJSONPointer,
     fieldName,
@@ -91,6 +100,8 @@ const FieldList = function FieldList<T>(
       <div className={cn(styles.list, listClassName)}>
         {list.map((value, index) => (
           <FieldListItem
+            className={listItemClassName}
+            style={listItemStyle}
             key={index}
             index={index}
             value={value}
@@ -122,6 +133,8 @@ const FieldList = function FieldList<T>(
 };
 
 interface FieldListItemProps<T> {
+  className?: string;
+  style?: CSSProperties;
   index: number;
   value: T;
   onItemChange: (index: number, newValue: T) => void;
@@ -132,6 +145,8 @@ interface FieldListItemProps<T> {
 
 function FieldListItem<T>(props: FieldListItemProps<T>) {
   const {
+    className,
+    style,
     index,
     value,
     onItemChange,
@@ -151,7 +166,7 @@ function FieldListItem<T>(props: FieldListItemProps<T>) {
   );
 
   return (
-    <div className={styles.listItem}>
+    <div className={cn(styles.listItem, className)} style={style}>
       <ListItemComponent index={index} value={value} onChange={onChange} />
       <IconButton
         className={styles.deleteButton}
