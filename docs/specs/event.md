@@ -260,14 +260,14 @@ Occurs after the user terminates sessions via the settings page, or the admin re
 
   - `individual`: The user/admin revokes an individual session. Multiple sessions may be deleted if they are in the same SSO group.
   - `all`: All sessions of a user are terminated. It usually happens when the admin terminates all sessions of a user.
-  - `all_others`: All sessions except the current session are terminated. It usually happens when the user clicks terminated all other sessions on the settings page.
+  - `all_except_current`: All sessions except the current session are terminated. It usually happens when the user clicks terminated all other sessions on the settings page.
 
 ```json5
 {
   "payload": {
     "user": { /* ... */ },
     "sessions": [ {/* ... */} ],
-    "termination_type": "(individual|all|all_others)"
+    "termination_type": "(individual|all|all_except_current)"
   }
 }
 ```
