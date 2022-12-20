@@ -411,7 +411,9 @@ the admin can delete a user on the portal.
 Anonymizing a user is similar to deleting a user. 
 Except for the user record, all data including identities,
 authenticators, sessions, etc will be deleted from the database.
-All the standard or custom attributes of the user will be cleared.
+All the standard and custom attributes of the user will be cleared.
+The user record's fields `is_anonymized` and `anonymized_at` will be updated when
+the user is anonymized.
 
 The developer can anonymize a user via the Admin API, or
 the admin can anonymize a user on the portal.
@@ -426,20 +428,21 @@ until its natural expiry.
 
 ## Disabled user, deactivated user, anonymized user, scheduled account deletion and scheduled account anonymization
 
-This section specifies the feature of disabled user, deactivated user, and scheduled account deletion.
+This section specifies the feature of disabled user, deactivated user, anonymized user,
+scheduled account deletion and scheduled account anonymization.
 
-There are 3 attributes to represent the state of these features, summarized in the following table.
+There are 6 attributes to represent the state of these features, summarized in the following table.
 
-|is\_disabled|is\_deactivated|is_anonymized|delete\_at|anonymize_at|state|
-|---|---|---|---|---|---|
-|false|false|false|null|null|Normal|
-|true|false|false|null|null|Disabled|
-|true|true|false|null|null|Deactivated|
-|true|false|false|non-null|null|Scheduled deletion by admin|
-|true|true|false|non-null|null|Scheduled deletion by end-user|
-|true|false|false|null|non-null|Scheduled anonymization by admin|
-|true|true|false|null|non-null|Scheduled anonymization by end-user|
-|true|any|true|null|any|Anonymized|
+|is\_disabled|is\_deactivated|is_anonymized|delete\_at|anonymize_at|anonymized_at|state|
+|---|---|---|---|---|---|---|
+|false|false|false|null|null|null|Normal|
+|true|false|false|null|null|null|Disabled|
+|true|true|false|null|null|null|Deactivated|
+|true|false|false|non-null|null|null|Scheduled deletion by admin|
+|true|true|false|non-null|null|null|Scheduled deletion by end-user|
+|true|false|false|null|non-null|null|Scheduled anonymization by admin|
+|true|true|false|null|non-null|null|Scheduled anonymization by end-user|
+|true|any|true|null|any|non-null|Anonymized|
 
 List of valid state transitions:
 
