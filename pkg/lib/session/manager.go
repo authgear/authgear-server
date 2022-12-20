@@ -195,7 +195,7 @@ func (m *Manager) TerminateAllExcept(userID string, currentSession Session, isAd
 	if currentSession == nil {
 		sessionTerminationType = nonblocking.UserSessionTerminationTypeAll
 	} else {
-		sessionTerminationType = nonblocking.UserSessionTerminationTypeAllOthers
+		sessionTerminationType = nonblocking.UserSessionTerminationTypeAllExceptCurrent
 	}
 
 	if len(sessionModels) > 0 {
