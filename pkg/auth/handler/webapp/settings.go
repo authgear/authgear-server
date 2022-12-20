@@ -76,6 +76,7 @@ type SettingsHandler struct {
 	Identities               SettingsIdentityService
 	Verification             SettingsVerificationService
 	AccountDeletion          *config.AccountDeletionConfig
+	AccountAnonymization     *config.AccountAnonymizationConfig
 	TutorialCookie           TutorialCookie
 }
 

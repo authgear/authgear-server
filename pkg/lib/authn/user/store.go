@@ -69,6 +69,7 @@ func (s *Store) Create(u *User) (err error) {
 			"is_deactivated",
 			"delete_at",
 			"is_anonymized",
+			"anonymize_at",
 			"standard_attributes",
 			"custom_attributes",
 		).
@@ -83,6 +84,7 @@ func (s *Store) Create(u *User) (err error) {
 			u.IsDeactivated,
 			u.DeleteAt,
 			u.IsAnonymized,
+			u.AnonymizeAt,
 			stdAttrsBytes,
 			customAttrsBytes,
 		)
@@ -108,6 +110,7 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"is_deactivated",
 			"delete_at",
 			"is_anonymized",
+			"anonymize_at",
 			"standard_attributes",
 			"custom_attributes",
 		).
@@ -131,6 +134,7 @@ func (s *Store) scan(scn db.Scanner) (*User, error) {
 		&isDeactivated,
 		&u.DeleteAt,
 		&u.IsAnonymized,
+		&u.AnonymizeAt,
 		&stdAttrsBytes,
 		&customAttrsBytes,
 	); err != nil {
@@ -265,6 +269,7 @@ func (s *Store) UpdateAccountStatus(userID string, accountStatus AccountStatus) 
 		Set("is_deactivated", accountStatus.IsDeactivated).
 		Set("delete_at", accountStatus.DeleteAt).
 		Set("is_anonymized", accountStatus.IsAnonymized).
+		Set("anonymize_at", accountStatus.AnonymizeAt).
 		Where("id = ?", userID)
 
 	_, err := s.SQLExecutor.ExecWith(builder)

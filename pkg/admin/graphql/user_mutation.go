@@ -491,6 +491,112 @@ var _ = registerMutationField(
 	},
 )
 
+var scheduleAccountAnonymizationInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "ScheduleAccountAnonymizationInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"userID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target user ID.",
+		},
+	},
+})
+
+var scheduleAccountAnonymizationPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "ScheduleAccountAnonymizationPayload",
+	Fields: graphql.Fields{
+		"user": &graphql.Field{
+			Type: graphql.NewNonNull(nodeUser),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"scheduleAccountAnonymization",
+	&graphql.Field{
+		Description: "Schedule account anonymization",
+		Type:        graphql.NewNonNull(scheduleAccountAnonymizationPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(scheduleAccountAnonymizationInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+
+			userNodeID := input["userID"].(string)
+			resolvedNodeID := relay.FromGlobalID(userNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeUser {
+				return nil, apierrors.NewInvalid("invalid user ID")
+			}
+			userID := resolvedNodeID.ID
+
+			gqlCtx := GQLContext(p.Context)
+
+			err := gqlCtx.UserFacade.ScheduleAnonymization(userID)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"user": gqlCtx.Users.Load(userID),
+			}).Value, nil
+		},
+	},
+)
+
+var unscheduleAccountAnonymizationInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "UnscheduleAccountAnonymizationInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"userID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target user ID.",
+		},
+	},
+})
+
+var unscheduleAccountAnonymizationPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "UnscheduleAccountAnonymizationPayload",
+	Fields: graphql.Fields{
+		"user": &graphql.Field{
+			Type: graphql.NewNonNull(nodeUser),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"unscheduleAccountAnonymization",
+	&graphql.Field{
+		Description: "Unschedule account anonymization",
+		Type:        graphql.NewNonNull(unscheduleAccountAnonymizationPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(unscheduleAccountAnonymizationInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+
+			userNodeID := input["userID"].(string)
+			resolvedNodeID := relay.FromGlobalID(userNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeUser {
+				return nil, apierrors.NewInvalid("invalid user ID")
+			}
+			userID := resolvedNodeID.ID
+
+			gqlCtx := GQLContext(p.Context)
+
+			err := gqlCtx.UserFacade.UnscheduleAnonymization(userID)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"user": gqlCtx.Users.Load(userID),
+			}).Value, nil
+		},
+	},
+)
+
 var anonymizeUserInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "AnonymizeUserInput",
 	Fields: graphql.InputObjectConfigFieldMap{

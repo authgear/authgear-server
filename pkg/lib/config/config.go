@@ -37,6 +37,7 @@ var _ = Schema.Add("AppConfig", `
 		"authenticator": { "$ref": "#/$defs/AuthenticatorConfig" },
 		"user_profile": { "$ref": "#/$defs/UserProfileConfig" },
 		"account_deletion": { "$ref": "#/$defs/AccountDeletionConfig" },
+		"account_anonymization": { "$ref": "#/$defs/AccountAnonymizationConfig" },
 		"forgot_password": { "$ref": "#/$defs/ForgotPasswordConfig" },
 		"welcome_message": { "$ref": "#/$defs/WelcomeMessageConfig" },
 		"verification": { "$ref": "#/$defs/VerificationConfig" },
@@ -57,13 +58,14 @@ type AppConfig struct {
 	Localization *LocalizationConfig `json:"localization,omitempty"`
 	Messaging    *MessagingConfig    `json:"messaging,omitempty"`
 
-	Authentication  *AuthenticationConfig  `json:"authentication,omitempty"`
-	Session         *SessionConfig         `json:"session,omitempty"`
-	OAuth           *OAuthConfig           `json:"oauth,omitempty"`
-	Identity        *IdentityConfig        `json:"identity,omitempty"`
-	Authenticator   *AuthenticatorConfig   `json:"authenticator,omitempty"`
-	UserProfile     *UserProfileConfig     `json:"user_profile,omitempty"`
-	AccountDeletion *AccountDeletionConfig `json:"account_deletion,omitempty"`
+	Authentication       *AuthenticationConfig       `json:"authentication,omitempty"`
+	Session              *SessionConfig              `json:"session,omitempty"`
+	OAuth                *OAuthConfig                `json:"oauth,omitempty"`
+	Identity             *IdentityConfig             `json:"identity,omitempty"`
+	Authenticator        *AuthenticatorConfig        `json:"authenticator,omitempty"`
+	UserProfile          *UserProfileConfig          `json:"user_profile,omitempty"`
+	AccountDeletion      *AccountDeletionConfig      `json:"account_deletion,omitempty"`
+	AccountAnonymization *AccountAnonymizationConfig `json:"account_anonymization,omitempty"`
 
 	ForgotPassword *ForgotPasswordConfig `json:"forgot_password,omitempty"`
 	WelcomeMessage *WelcomeMessageConfig `json:"welcome_message,omitempty"`

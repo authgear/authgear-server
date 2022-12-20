@@ -106,6 +106,15 @@ enum AuditLogActivityType {
   SMS_SENT
 
   """"""
+  USER_ANONYMIZATION_SCHEDULED
+
+  """"""
+  USER_ANONYMIZATION_UNSCHEDULED
+
+  """"""
+  USER_ANONYMIZED
+
+  """"""
   USER_ANONYMOUS_PROMOTED
 
   """"""
