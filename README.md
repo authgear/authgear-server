@@ -237,30 +237,30 @@ Make a copy of `.env.example` as `.env`, and update it if necessary.
          # Create a client for the portal.
          # Since we assume the cookie is shared, there is no grant nor response.
          - name: Portal
-            client_id: portal
-            # Note that the trailing slash is very important here
-            # URIs are compared byte by byte.
-            redirect_uris:
-               # This redirect URI is used by the portal development server.
-               - "http://portal.localhost:8000/oauth-redirect"
-               # This redirect URI is used by the portal production build.
-               - "http://portal.localhost:8010/oauth-redirect"
-               # This redirect URI is used by the iOS and Android demo app.
-               - "com.authgear.example://host/path"
-               # This redirect URI is used by the React Native demo app.
-               - "com.authgear.example.rn://host/path"
-               # This redirect URI is used by the Flutter demo app.
-               - com.authgear.exampleapp.flutter://host/path
-               # This redirect URI is used by the Xamarin demo app.
-               - com.authgear.exampleapp.xamarin://host/path
-            post_logout_redirect_uris:
-               # This redirect URI is used by the portal development server.
-               - "http://portal.localhost:8000/"
-               # This redirect URI is used by the portal production build.
-               - "http://portal.localhost:8010/"
-            grant_types: []
-            response_types:
-               - none
+           client_id: portal
+           # Note that the trailing slash is very important here
+           # URIs are compared byte by byte.
+           redirect_uris:
+              # This redirect URI is used by the portal development server.
+              - "http://portal.localhost:8000/oauth-redirect"
+              # This redirect URI is used by the portal production build.
+              - "http://portal.localhost:8010/oauth-redirect"
+              # This redirect URI is used by the iOS and Android demo app.
+              - "com.authgear.example://host/path"
+              # This redirect URI is used by the React Native demo app.
+              - "com.authgear.example.rn://host/path"
+              # This redirect URI is used by the Flutter demo app.
+              - com.authgear.exampleapp.flutter://host/path
+              # This redirect URI is used by the Xamarin demo app.
+              - com.authgear.exampleapp.xamarin://host/path
+           post_logout_redirect_uris:
+              # This redirect URI is used by the portal development server.
+              - "http://portal.localhost:8000/"
+              # This redirect URI is used by the portal production build.
+              - "http://portal.localhost:8010/"
+           grant_types: []
+           response_types:
+              - none
    ```
 
 ## Initial project setup
