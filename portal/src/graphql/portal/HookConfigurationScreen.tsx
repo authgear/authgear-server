@@ -59,13 +59,12 @@ import ActionButton from "../../ActionButton";
 import CodeEditor from "../../CodeEditor";
 import DefaultButton from "../../DefaultButton";
 
-const DENOHOOK_BLOCKING_DEFAULT = `import { HookEvent, HookResponse } from "https://deno.land/x/authgear_deno_hook@v0.3.0/mod.ts";
-
-export default async function(e: HookEvent): Promise<HookResponse> {
-  // Write your hook with the help of the type definition.
-  return { is_allowed: true };
-}
-`;
+const BLOCKING_EVENT_NAME_TO_TYPE_NAME: Record<string, string | undefined> = {
+  "user.pre_create": "EventUserPreCreate",
+  "user.profile.pre_update": "EventUserProfilePreUpdate",
+  "user.pre_schedule_deletion": "EventUserPreScheduleDeletion",
+  "user.session.jwt.pre_create": "EventUserSessionJWTPreCreate",
+};
 
 const DENOHOOK_NONBLOCKING_DEFAULT = `import { HookEvent } from "https://deno.land/x/authgear_deno_hook@v0.3.0/mod.ts";
 
@@ -73,6 +72,17 @@ export default async function(e: HookEvent): Promise<void> {
   // Write your hook with the help of the type definition.
 }
 `;
+
+function makeDefaultDenoHookBlockingScript(event: string): string {
+  const typeName = BLOCKING_EVENT_NAME_TO_TYPE_NAME[event] ?? "HookEvent";
+  return `import { ${typeName}, HookResponse } from "https://deno.land/x/authgear_deno_hook@v0.3.0/mod.ts";
+
+export default async function(e: ${typeName}): Promise<HookResponse> {
+  // Write your hook with the help of the type definition.
+  return { is_allowed: true };
+}
+`;
+}
 
 type HookKind = "webhook" | "denohook";
 
@@ -256,7 +266,7 @@ function addMissingResources(state: FormState) {
         state.resources.push({
           path,
           specifier,
-          nullableValue: DENOHOOK_BLOCKING_DEFAULT,
+          nullableValue: makeDefaultDenoHookBlockingScript(h.event),
         });
       }
     }
@@ -805,10 +815,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
         }
       }
 
-      if (eventKind === "nonblocking") {
-        return DENOHOOK_NONBLOCKING_DEFAULT;
-      }
-      return DENOHOOK_BLOCKING_DEFAULT;
+      return "";
     }, [
       codeEditorState,
       state.blocking_handlers,
@@ -873,6 +880,32 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
             });
             state.blocking_handlers = newValue;
             addMissingResources(state);
+          })
+        );
+      },
+      [setState]
+    );
+    const onBlockingHandlersChangeItemChange = useCallback(
+      (
+        value: BlockingEventHandler[],
+        _index: number,
+        item: BlockingEventHandler
+      ) => {
+        setState((state) =>
+          produce(state, (state) => {
+            const newValue: BlockingHookHandlerConfig[] = value.map((h) => {
+              return {
+                event: h.event,
+                url: h.url,
+              };
+            });
+            state.blocking_handlers = newValue;
+            addMissingResources(state);
+            for (const r of state.resources) {
+              if (r.path === getPathFromURL(item.url)) {
+                r.nullableValue = makeDefaultDenoHookBlockingScript(item.event);
+              }
+            }
           })
         );
       },
@@ -1127,7 +1160,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                     fieldName="blocking_handlers"
                     list={blockingHandlers}
                     onListItemAdd={onBlockingHandlersChange}
-                    onListItemChange={onBlockingHandlersChange}
+                    onListItemChange={onBlockingHandlersChangeItemChange}
                     onListItemDelete={onBlockingHandlersChange}
                     makeDefaultItem={makeDefaultHandler}
                     ListItemComponent={BlockingHandlerListItem}
