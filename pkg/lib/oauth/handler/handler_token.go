@@ -87,6 +87,7 @@ type TokenHandler struct {
 	Clock               clock.Clock
 	TokenService        TokenService
 	Events              EventService
+	SessionManager      SessionManager
 }
 
 func (h *TokenHandler) Handle(rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result {
@@ -261,6 +262,13 @@ func (h *TokenHandler) handleAuthorizationCode(
 		return nil, errInvalidAuthzCode
 	} else if err != nil {
 		return nil, err
+	}
+
+	if client.MaxConcurrentSession == 1 {
+		err := h.revokeClientOfflineGrants(client, codeGrant.AuthenticationInfo.UserID)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	resp, err := h.issueTokensForAuthorizationCode(client, codeGrant, authz, deviceInfo)
@@ -699,6 +707,22 @@ func (h *TokenHandler) handleIDToken(
 	resp := protocol.TokenResponse{}
 	resp.IDToken(idToken)
 	return tokenResultOK{Response: resp}, nil
+}
+
+func (h *TokenHandler) revokeClientOfflineGrants(
+	client *config.OAuthClientConfig,
+	userID string) error {
+	offlineGrants, err := h.OfflineGrants.ListOfflineGrants(userID)
+	if err != nil {
+		return err
+	}
+	for _, offlineGrant := range offlineGrants {
+		if offlineGrant.ClientID != client.ClientID {
+			continue
+		}
+		h.SessionManager.RevokeWithEvent(offlineGrant, false, false)
+	}
+	return nil
 }
 
 func (h *TokenHandler) issueTokensForAuthorizationCode(
