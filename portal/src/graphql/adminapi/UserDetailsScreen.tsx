@@ -52,6 +52,7 @@ import { formatDatetime } from "../../util/formatDatetime";
 import styles from "./UserDetailsScreen.module.css";
 import { makeInvariantViolatedErrorParseRule } from "../../error/parse";
 import { IdentityType } from "./globalTypes.generated";
+import AnonymizeUserDialog from "./AnonymizeUserDialog";
 
 interface UserDetailsProps {
   form: SimpleFormModel<FormState>;
@@ -428,6 +429,41 @@ function useDeleteUserCommandBarItem(
   return itemProps;
 }
 
+function useAnonymizeUserCommandBarItem(
+  onClick: IButtonProps["onClick"]
+): ICommandBarItemProps {
+  const { renderToString } = useContext(Context);
+  const { themes } = useSystemConfig();
+
+  const itemProps: ICommandBarItemProps = useMemo(() => {
+    return {
+      key: "anonymize",
+      text: renderToString("UserDetailsScreen.anonymize-user"),
+      iconProps: { iconName: "Archive" },
+      onRender: (props) => {
+        return (
+          <CommandButton
+            {...props}
+            theme={themes.destructive}
+            onClick={onClick}
+            styles={{
+              root: {
+                height: "44px",
+              },
+              // https://github.com/authgear/authgear-server/issues/2348#issuecomment-1226545493
+              label: {
+                whiteSpace: "nowrap",
+              },
+            }}
+          />
+        );
+      },
+    };
+  }, [onClick, renderToString, themes.destructive]);
+
+  return itemProps;
+}
+
 function useSetUserDisabledCommandBarItem(
   user: UserQueryNodeFragment,
   onClick: IButtonProps["onClick"]
@@ -532,6 +568,25 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
     const onClickDeleteUser = useCallback(() => {
       setDeleteUserDialogIsHidden(false);
     }, []);
+    const deleteUserCommandBarItem =
+      useDeleteUserCommandBarItem(onClickDeleteUser);
+
+    const [anonymizeUserDialogIsHidden, setAnonymizeUserDialogIsHidden] =
+      useState(true);
+    const onDismissAnonymizeUserDialog = useCallback(
+      (anonymizedUser: boolean) => {
+        setAnonymizeUserDialogIsHidden(true);
+        if (anonymizedUser) {
+          setTimeout(() => navigate("./../.."), 0);
+        }
+      },
+      [navigate]
+    );
+    const onClickAnonymizeUser = useCallback(() => {
+      setAnonymizeUserDialogIsHidden(false);
+    }, []);
+    const anonymizeUserCommandBarItem =
+      useAnonymizeUserCommandBarItem(onClickAnonymizeUser);
 
     const [setUserDisabledDialogIsHidden, setSetUserDisabledDialogIsHidden] =
       useState(true);
@@ -539,21 +594,32 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
     const onDismissSetUserDisabledDialog = useCallback(() => {
       setSetUserDisabledDialogIsHidden(true);
     }, []);
-    const deleteUserCommandBarItem =
-      useDeleteUserCommandBarItem(onClickDeleteUser);
     const onClickSetUserDisabled = useCallback(() => {
       setSetUserDisabledDialogIsHidden(false);
       setUserIsDisabled(user.isDisabled);
     }, [user.isDisabled]);
-
     const setUserDisabledCommandBarItem = useSetUserDisabledCommandBarItem(
       user,
       onClickSetUserDisabled
     );
 
     const primaryItems: ICommandBarItemProps[] = useMemo(() => {
-      return [deleteUserCommandBarItem, setUserDisabledCommandBarItem];
-    }, [deleteUserCommandBarItem, setUserDisabledCommandBarItem]);
+      if (user.isAnonymized) {
+        return [deleteUserCommandBarItem];
+      }
+
+      return [
+        deleteUserCommandBarItem,
+        anonymizeUserCommandBarItem,
+        setUserDisabledCommandBarItem,
+      ];
+    }, [
+      deleteUserCommandBarItem,
+      anonymizeUserCommandBarItem,
+      setUserDisabledCommandBarItem,
+      user.deleteAt,
+      user.isAnonymized,
+    ]);
 
     const defaultState = useMemo(() => {
       return {
@@ -612,6 +678,13 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
           onDismiss={onDismissDeleteUserDialog}
           userID={user.id}
           userDeleteAt={user.deleteAt}
+          endUserAccountIdentifier={user.endUserAccountID ?? undefined}
+        />
+        <AnonymizeUserDialog
+          isHidden={anonymizeUserDialogIsHidden}
+          onDismiss={onDismissAnonymizeUserDialog}
+          userID={user.id}
+          userAnonymizeAt={user.anonymizeAt}
           endUserAccountIdentifier={user.endUserAccountID ?? undefined}
         />
         <SetUserDisabledDialog

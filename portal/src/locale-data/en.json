@@ -164,6 +164,7 @@
 
   "UserDetailsScreen.title": "User Details",
   "UserDetailsScreen.remove-user": "Remove User",
+  "UserDetailsScreen.anonymize-user": "Anonymize User",
   "UserDetailsScreen.reenable-user": "Re-enable User",
   "UserDetailsScreen.disable-user": "Disable User",
   "UserDetailsScreen.cancel-removal": "Cancel Removal",
@@ -195,6 +196,11 @@
   "DeleteUserDialog.text": "Are you really want to remove user {username}? This action cannot be undone.",
   "DeleteUserDialog.label.remove-immediately": "Remove Immediately",
   "DeleteUserDialog.label.schedule-removal": "Schedule Removal",
+
+  "AnonymizeUserDialog.title": "Anonymize User",
+  "AnonymizeUserDialog.text": "Are you really want to anonymize user {username}? This action cannot be undone.",
+  "AnonymizeUserDialog.label.remove-immediately": "Anonymize Immediately",
+  "AnonymizeUserDialog.label.schedule-removal": "Schedule Anonymization",
 
   "UserDetails.signed-up": "Signed Up: {datetime}",
   "UserDetails.last-login-at": "Last Login: {datetime}",
