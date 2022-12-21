@@ -262,6 +262,8 @@ func (s *Store) UpdateLoginTime(userID string, loginAt time.Time) error {
 }
 
 func (s *Store) UpdateAccountStatus(userID string, accountStatus AccountStatus) error {
+	now := s.Clock.NowUTC()
+
 	builder := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_user")).
 		Set("is_disabled", accountStatus.IsDisabled).
@@ -270,6 +272,7 @@ func (s *Store) UpdateAccountStatus(userID string, accountStatus AccountStatus) 
 		Set("delete_at", accountStatus.DeleteAt).
 		Set("is_anonymized", accountStatus.IsAnonymized).
 		Set("anonymize_at", accountStatus.AnonymizeAt).
+		Set("updated_at", now).
 		Where("id = ?", userID)
 
 	_, err := s.SQLExecutor.ExecWith(builder)
@@ -355,6 +358,7 @@ func (s *Store) Anonymize(userID string) error {
 		Set("anonymized_at", now).
 		Set("standard_attributes", nil).
 		Set("custom_attributes", nil).
+		Set("updated_at", now).
 		Where("id = ?", userID)
 
 	_, err := s.SQLExecutor.ExecWith(builder)
