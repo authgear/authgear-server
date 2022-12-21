@@ -1126,7 +1126,9 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                     parentJSONPointer="/hook"
                     fieldName="blocking_handlers"
                     list={blockingHandlers}
-                    onListChange={onBlockingHandlersChange}
+                    onListItemAdd={onBlockingHandlersChange}
+                    onListItemChange={onBlockingHandlersChange}
+                    onListItemDelete={onBlockingHandlersChange}
                     makeDefaultItem={makeDefaultHandler}
                     ListItemComponent={BlockingHandlerListItem}
                     addButtonLabelMessageID="add"
@@ -1200,7 +1202,9 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                     parentJSONPointer="/hook"
                     fieldName="non_blocking_handlers"
                     list={nonBlockingHandlers}
-                    onListChange={onNonBlockingHandlersChange}
+                    onListItemAdd={onNonBlockingHandlersChange}
+                    onListItemChange={onNonBlockingHandlersChange}
+                    onListItemDelete={onNonBlockingHandlersChange}
                     makeDefaultItem={makeDefaultNonBlockingHandler}
                     ListItemComponent={NonBlockingHandlerListItem}
                     addButtonLabelMessageID="add"

@@ -29,7 +29,9 @@ export interface FieldListProps<T> {
   parentJSONPointer: string | RegExp;
   fieldName: string;
   list: T[];
-  onListChange: (list: T[]) => void;
+  onListItemChange: (list: T[], index: number, item: T) => void;
+  onListItemAdd: (list: T[], item: T) => void;
+  onListItemDelete: (list: T[], index: number, item: T) => void;
   makeDefaultItem: () => T;
   ListItemComponent: ComponentType<ListItemProps<T>>;
   addButtonLabelMessageID?: string;
@@ -50,7 +52,9 @@ const FieldList = function FieldList<T>(
     parentJSONPointer,
     fieldName,
     list,
-    onListChange,
+    onListItemChange,
+    onListItemAdd,
+    onListItemDelete,
     ListItemComponent,
     makeDefaultItem,
     addButtonLabelMessageID,
@@ -74,24 +78,26 @@ const FieldList = function FieldList<T>(
     (index: number, newValue: T) => {
       const newList = list.slice();
       newList[index] = newValue;
-      onListChange(newList);
+      onListItemChange(newList, index, newValue);
     },
-    [onListChange, list]
+    [onListItemChange, list]
   );
 
   const onItemAdd = useCallback(() => {
     const newList = list.slice();
-    newList.push(makeDefaultItem());
-    onListChange(newList);
-  }, [list, onListChange, makeDefaultItem]);
+    const newItem = makeDefaultItem();
+    newList.push(newItem);
+    onListItemAdd(newList, newItem);
+  }, [list, onListItemAdd, makeDefaultItem]);
 
   const onItemDelete = useCallback(
     (index: number) => {
+      const item = list[index];
       const newList = list.slice();
       newList.splice(index, 1);
-      onListChange(newList);
+      onListItemDelete(newList, index, item);
     },
-    [onListChange, list]
+    [onListItemDelete, list]
   );
 
   return (
