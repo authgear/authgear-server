@@ -1,0 +1,5 @@
+mutation anonymizeUserMutation($userID: ID!) {
+  anonymizeUser(input: { userID: $userID }) {
+    anonymizedUserID
+  }
+}

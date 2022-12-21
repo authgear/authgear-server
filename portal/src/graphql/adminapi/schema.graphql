@@ -1,3 +1,15 @@
+""""""
+input AnonymizeUserInput {
+  """Target user ID."""
+  userID: ID!
+}
+
+""""""
+type AnonymizeUserPayload {
+  """"""
+  anonymizedUserID: ID!
+}
+
 """Audit log"""
 type AuditLog implements Node {
   """"""
@@ -503,6 +515,9 @@ enum IdentityType {
 
 """"""
 type Mutation {
+  """Anonymize specified user"""
+  anonymizeUser(input: AnonymizeUserInput!): AnonymizeUserPayload!
+
   """Create new identity for user"""
   createIdentity(input: CreateIdentityInput!): CreateIdentityPayload!
 
@@ -533,6 +548,9 @@ type Mutation {
   """Revoke session of user"""
   revokeSession(input: RevokeSessionInput!): RevokeSessionPayload!
 
+  """Schedule account anonymization"""
+  scheduleAccountAnonymization(input: ScheduleAccountAnonymizationInput!): ScheduleAccountAnonymizationPayload!
+
   """Schedule account deletion"""
   scheduleAccountDeletion(input: ScheduleAccountDeletionInput!): ScheduleAccountDeletionPayload!
 
@@ -541,6 +559,9 @@ type Mutation {
 
   """Set verified status of a claim of user"""
   setVerifiedStatus(input: SetVerifiedStatusInput!): SetVerifiedStatusPayload!
+
+  """Unschedule account anonymization"""
+  unscheduleAccountAnonymization(input: UnscheduleAccountAnonymizationInput!): UnscheduleAccountAnonymizationPayload!
 
   """Unschedule account deletion"""
   unscheduleAccountDeletion(input: UnscheduleAccountDeletionInput!): UnscheduleAccountDeletionPayload!
@@ -626,6 +647,18 @@ input RevokeSessionInput {
 
 """"""
 type RevokeSessionPayload {
+  """"""
+  user: User!
+}
+
+""""""
+input ScheduleAccountAnonymizationInput {
+  """Target user ID."""
+  userID: ID!
+}
+
+""""""
+type ScheduleAccountAnonymizationPayload {
   """"""
   user: User!
 }
@@ -756,6 +789,18 @@ enum SortDirection {
 }
 
 """"""
+input UnscheduleAccountAnonymizationInput {
+  """Target user ID."""
+  userID: ID!
+}
+
+""""""
+type UnscheduleAccountAnonymizationPayload {
+  """"""
+  user: User!
+}
+
+""""""
 input UnscheduleAccountDeletionInput {
   """Target user ID."""
   userID: ID!
@@ -787,6 +832,9 @@ type UpdateUserPayload {
 
 """Authgear user"""
 type User implements Entity & Node {
+  """The scheduled anonymization time of the user"""
+  anonymizeAt: DateTime
+
   """The list of authenticators"""
   authenticators(after: String, authenticatorKind: AuthenticatorKind, authenticatorType: AuthenticatorType, before: String, first: Int, last: Int): AuthenticatorConnection
 
@@ -821,6 +869,9 @@ type User implements Entity & Node {
 
   """The list of identities"""
   identities(after: String, before: String, first: Int, identityType: IdentityType, last: Int): IdentityConnection
+
+  """Indicates if the user is anonymized"""
+  isAnonymized: Boolean!
 
   """Indicates if the user is anonymous"""
   isAnonymous: Boolean!
