@@ -1,4 +1,4 @@
-package accountdeletion
+package accountanonymization
 
 import (
 	"context"
@@ -12,7 +12,7 @@ type AppContextResolver interface {
 }
 
 type UserService interface {
-	DeleteFromScheduledDeletion(userID string) error
+	AnonymizeFromScheduledAnonymization(userID string) error
 }
 
 type UserServiceFactory interface {
@@ -22,7 +22,7 @@ type UserServiceFactory interface {
 type RunnableLogger struct{ *log.Logger }
 
 func NewRunnableLogger(lf *log.Factory) RunnableLogger {
-	return RunnableLogger{lf.New("account-deletion-runner")}
+	return RunnableLogger{lf.New("account-anonymization-runner")}
 }
 
 type Runnable struct {
@@ -43,14 +43,14 @@ func (r *Runnable) Run(ctx context.Context) error {
 			return err
 		}
 		userService := r.UserServiceFactory.MakeUserService(ctx, appUser.AppID, appContext)
-		err = userService.DeleteFromScheduledDeletion(appUser.UserID)
+		err = userService.AnonymizeFromScheduledAnonymization(appUser.UserID)
 		if err != nil {
 			return err
 		}
 		r.Logger.WithFields(map[string]interface{}{
 			"app_id":  appUser.AppID,
 			"user_id": appUser.UserID,
-		}).Infof("executed scheduled account deletion")
+		}).Infof("executed scheduled account anonymization")
 	}
 	return nil
 }

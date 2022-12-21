@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/feature/accountanonymization"
 	"github.com/authgear/authgear-server/pkg/lib/feature/accountdeletion"
 	"github.com/authgear/authgear-server/pkg/util/backgroundjob"
 )
@@ -20,6 +21,14 @@ func newConfigSourceController(p *deps.BackgroundProvider, c context.Context) *c
 		configsource.NewResolveAppIDTypeDomain,
 		configsource.DependencySet,
 		configsource.ControllerDependencySet,
+	))
+}
+
+func newAccountAnonymizationRunner(p *deps.BackgroundProvider, c context.Context, ctrl *configsource.Controller) *backgroundjob.Runner {
+	panic(wire.Build(
+		DependencySet,
+		accountanonymization.DependencySet,
+		wire.Bind(new(accountanonymization.AppContextResolver), new(*configsource.Controller)),
 	))
 }
 

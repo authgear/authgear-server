@@ -56,6 +56,7 @@ func NewRunner(logger *log.Logger, runnable Runnable, opts ...RunnerOption) *Run
 }
 
 func (r *Runner) Start() {
+	r.runRunnable()
 loop:
 	for {
 		select {

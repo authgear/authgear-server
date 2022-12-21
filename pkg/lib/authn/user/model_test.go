@@ -76,6 +76,7 @@ func TestAccountStatus(t *testing.T) {
 			anonymized := AccountStatus{
 				IsDisabled:   true,
 				IsAnonymized: true,
+				AnonymizeAt:  &anonymizeAt,
 			}
 			var err error
 
@@ -105,9 +106,19 @@ func TestAccountStatus(t *testing.T) {
 			_, err = scheduledAnonymization.ScheduleAnonymizationByAdmin(deleteAt)
 			So(err, ShouldBeError, "invalid account status transition: scheduled_anonymization_disabled -> scheduled_anonymization_disabled")
 
-			normal, err := scheduledAnonymization.UnscheduleAnonymizationByAdmin()
+			_, err = scheduledAnonymization.ScheduleDeletionByEndUser(deleteAt)
+			So(err, ShouldBeError, "invalid account status transition: scheduled_anonymization_disabled -> scheduled_deletion_deactivated")
+
+			_, err = scheduledAnonymization.Anonymize()
+			So(err, ShouldBeError, "invalid account status transition: scheduled_anonymization_disabled -> anonymized")
+
+			unscheduleAnonymization, err := scheduledAnonymization.UnscheduleAnonymizationByAdmin()
 			So(err, ShouldBeNil)
-			So(normal.Type(), ShouldEqual, AccountStatusTypeNormal)
+			So(unscheduleAnonymization.Type(), ShouldEqual, AccountStatusTypeNormal)
+
+			scheduleDeletion, err := scheduledAnonymization.ScheduleDeletionByAdmin(deleteAt)
+			So(err, ShouldBeNil)
+			So(scheduleDeletion.Type(), ShouldEqual, AccountStatusTypeScheduledDeletionDisabled)
 		})
 	})
 }
