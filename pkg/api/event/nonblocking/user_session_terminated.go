@@ -8,9 +8,9 @@ import (
 type UserSessionTerminationType string
 
 const (
-	UserSessionTerminationTypeIndividual UserSessionTerminationType = "individual"
-	UserSessionTerminationTypeAll        UserSessionTerminationType = "all"
-	UserSessionTerminationTypeAllOthers  UserSessionTerminationType = "all_others"
+	UserSessionTerminationTypeIndividual       UserSessionTerminationType = "individual"
+	UserSessionTerminationTypeAll              UserSessionTerminationType = "all"
+	UserSessionTerminationTypeAllExceptCurrent UserSessionTerminationType = "all_except_current"
 )
 
 const (
