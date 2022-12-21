@@ -117,6 +117,9 @@ const CreateCustomAttributeScreen = lazy(
 const AccountDeletionConfigurationScreen = lazy(
   async () => import("./graphql/portal/AccountDeletionConfigurationScreen")
 );
+const AccountAnonymizationConfigurationScreen = lazy(
+  async () => import("./graphql/portal/AccountAnonymizationConfigurationScreen")
+);
 const AnalyticsScreen = lazy(
   async () => import("./graphql/portal/AnalyticsScreen")
 );
@@ -526,6 +529,14 @@ const AppRoot: React.VFC = function AppRoot() {
                 element={
                   <Suspense fallback={<ShowLoading />}>
                     <AccountDeletionConfigurationScreen />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="account-anonymization"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <AccountAnonymizationConfigurationScreen />
                   </Suspense>
                 }
               />
