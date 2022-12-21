@@ -14,6 +14,7 @@
       - [user.profile.updated](#userprofileupdated)
       - [user.authenticated](#userauthenticated)
       - [user.signed_out](#usersigned_out)
+      - [user.session.terminated](#usersessionterminated)
       - [user.anonymous.promoted](#useranonymouspromoted)
       - [user.disabled](#userdisabled)
       - [user.reenabled](#userreenabled)
@@ -172,6 +173,7 @@ Use this event to add custom fields to the JWT access token.
 - [user.profile.updated](#userprofileupdated)
 - [user.authenticated](#userauthenticated)
 - [user.signed_out](#usersigned-out)
+- [user.session.terminated](#usersessionterminated)
 - [user.anonymous.promoted](#useranonymouspromoted)
 - [authentication.identity.login_id.failed](#authenticationidentitylogin-idfailed)
 - [authentication.identity.anonymous.failed](#authenticationidentityanonymousfailed)
@@ -238,14 +240,34 @@ Occurs after user logged in.
 
 #### user.signed_out
 
-Occurs after the user signed out, or revoked their session.
+Occurs after the user signed out.
 Note that there is no event when the session expires normally.
 
 ```json5
 {
   "payload": {
     "user": { /* ... */ },
-    "session": { /* ... */ }
+    "sessions": [ {/* ... */} ]
+  }
+}
+```
+
+#### user.session.terminated
+
+Occurs after the user terminates sessions via the settings page, or the admin revokes users' sessions via the portal/admin api.
+
+`termination_type` indicates how the sessions are terminated.
+
+  - `individual`: The user/admin revokes an individual session. Multiple sessions may be deleted if they are in the same SSO group.
+  - `all`: All sessions of a user are terminated. It usually happens when the admin terminates all sessions of a user.
+  - `all_except_current`: All sessions except the current session are terminated. It usually happens when the user clicks terminated all other sessions on the settings page.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "sessions": [ {/* ... */} ],
+    "termination_type": "(individual|all|all_except_current)"
   }
 }
 ```
