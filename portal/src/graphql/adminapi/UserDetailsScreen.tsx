@@ -323,10 +323,31 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     [identities]
   );
 
+  if (data?.isAnonymized) {
+    return (
+      <div className={styles.widget}>
+        <UserDetailSummary
+          isAnonymous={data.isAnonymous}
+          isAnonymized={data.isAnonymized}
+          profileImageURL={data.standardAttributes.picture}
+          profileImageEditable={profileImageEditable}
+          formattedName={data.formattedName ?? undefined}
+          endUserAccountIdentifier={data.endUserAccountID ?? undefined}
+          createdAtISO={data.createdAt ?? null}
+          lastLoginAtISO={data.lastLoginAt ?? null}
+        />
+        <MessageBar messageBarType={MessageBarType.info}>
+          <FormattedMessage id="UserDetailsScreen.user-anonymized.message" />
+        </MessageBar>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.widget}>
       <UserDetailSummary
         isAnonymous={data?.isAnonymous ?? false}
+        isAnonymized={data?.isAnonymized ?? false}
         profileImageURL={data?.standardAttributes.picture}
         profileImageEditable={profileImageEditable}
         formattedName={data?.formattedName ?? undefined}

@@ -23,6 +23,7 @@ function shouldRenderExplorerURL(addressURL: string): boolean {
 interface UserDetailSummaryProps {
   className?: string;
   isAnonymous: boolean;
+  isAnonymized: boolean;
   formattedName?: string;
   endUserAccountIdentifier: string | undefined;
   profileImageURL: string | undefined;
@@ -35,6 +36,7 @@ const UserDetailSummary: React.VFC<UserDetailSummaryProps> =
   function UserDetailSummary(props: UserDetailSummaryProps) {
     const {
       isAnonymous,
+      isAnonymized,
       formattedName,
       endUserAccountIdentifier,
       profileImageURL,
@@ -69,6 +71,11 @@ const UserDetailSummary: React.VFC<UserDetailSummaryProps> =
           {isAnonymous ? (
             <Text className={styles.anonymousUserLabel} variant="medium">
               <FormattedMessage id="UsersList.anonymous-user" />
+            </Text>
+          ) : null}
+          {isAnonymized ? (
+            <Text className={styles.anonymizedUserLabel} variant="medium">
+              <FormattedMessage id="UsersList.anonymized-user" />
             </Text>
           ) : null}
           {endUserAccountIdentifier &&
