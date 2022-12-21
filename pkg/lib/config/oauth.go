@@ -50,6 +50,7 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"client_name": { "type": "string", "minLength": 1 },
 		"name": { "type": "string" },
 		"x_application_type": { "type": "string", "enum": ["spa", "traditional_webapp", "native", "third_party_app"] },
+		"x_max_concurrent_session": { "type": "integer", "enum": [0, 1] },
 		"redirect_uris": {
 			"type": "array",
 			"items": { "type": "string", "format": "uri" },
@@ -108,6 +109,7 @@ type OAuthClientConfig struct {
 	ClientName                     string                     `json:"client_name,omitempty"`
 	Name                           string                     `json:"name,omitempty"`
 	ApplicationType                OAuthClientApplicationType `json:"x_application_type,omitempty"`
+	MaxConcurrentSession           int                        `json:"x_max_concurrent_session,omitempty"`
 	RedirectURIs                   []string                   `json:"redirect_uris,omitempty"`
 	GrantTypes                     []string                   `json:"grant_types,omitempty"`
 	ResponseTypes                  []string                   `json:"response_types,omitempty"`

@@ -362,6 +362,22 @@ config:
           client_id: client_id
 
 ---
+name: oauth-client-max-concurrent-session
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: test-client
+        redirect_uris:
+          - "https://example.com"
+        x_max_concurrent_session: 1
+        
+
+---
 name: dupe-authenticator-type
 error: null
 config:
