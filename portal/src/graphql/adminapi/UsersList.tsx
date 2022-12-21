@@ -50,6 +50,7 @@ interface UserListItem {
   isDisabled: boolean;
   isDeactivated: boolean;
   deleteAt: string | null;
+  anonymizeAt: string | null;
   createdAt: string | null;
   lastLoginAt: string | null;
   profilePictureURL: string | null;
@@ -64,6 +65,7 @@ interface DisableUserDialogData {
   userID: string;
   userDeleteAt: string | null;
   userIsDisabled: boolean;
+  userAnonymizeAt: string | null;
   endUserAccountIdentitifer: string | null;
 }
 
@@ -212,6 +214,7 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
             isDisabled: node.isDisabled,
             isDeactivated: node.isDeactivated,
             deleteAt: formatDatetime(locale, node.deleteAt),
+            anonymizeAt: formatDatetime(locale, node.anonymizeAt),
             createdAt: formatDatetime(locale, node.createdAt),
             lastLoginAt: formatDatetime(locale, node.lastLoginAt),
             profilePictureURL: node.standardAttributes.picture ?? null,
@@ -252,6 +255,7 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
         userID: item.id,
         userDeleteAt: item.deleteAt,
         userIsDisabled: item.isDisabled,
+        userAnonymizeAt: item.anonymizeAt,
         endUserAccountIdentitifer: item.endUserAccountIdentitifer,
       });
       setIsDisableUserDialogHidden(false);
@@ -276,6 +280,8 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
           const children =
             item.deleteAt != null ? (
               <FormattedMessage id="UsersList.cancel-removal" />
+            ) : item.anonymizeAt != null ? (
+              <FormattedMessage id="UsersList.cancel-anonymization" />
             ) : item.isDisabled ? (
               <FormattedMessage id="UsersList.reenable-user" />
             ) : (
@@ -366,6 +372,7 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
           onDismiss={dismissDisableUserDialog}
           userID={disableUserDialogData.userID}
           userDeleteAt={disableUserDialogData.userDeleteAt}
+          userAnonymizeAt={disableUserDialogData.userAnonymizeAt}
           userIsDisabled={disableUserDialogData.userIsDisabled}
           endUserAccountIdentifier={
             disableUserDialogData.endUserAccountIdentitifer ?? undefined

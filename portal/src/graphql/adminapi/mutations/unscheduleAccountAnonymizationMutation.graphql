@@ -1,0 +1,13 @@
+mutation unscheduleAccountAnonymizationMutation($userID: ID!) {
+  unscheduleAccountAnonymization(input: { userID: $userID }) {
+    user {
+      id
+      isDisabled
+      disableReason
+      isDeactivated
+      deleteAt
+      isAnonymized
+      anonymizeAt
+    }
+  }
+}

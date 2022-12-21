@@ -240,6 +240,7 @@ func (u *User) AccountStatus() AccountStatus {
 		IsDeactivated: u.IsDeactivated,
 		DeleteAt:      u.DeleteAt,
 		IsAnonymized:  u.IsAnonymized,
+		AnonymizeAt:   u.AnonymizeAt,
 	}
 }
 

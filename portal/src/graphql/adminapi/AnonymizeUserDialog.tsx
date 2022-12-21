@@ -4,7 +4,7 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import ErrorDialog from "../../error/ErrorDialog";
 import { useAnonymizeUserMutation } from "./mutations/anonymizeUserMutation";
-import { useScheduleAccountDeletionMutation } from "./mutations/scheduleAccountDeletion";
+import { useScheduleAccountAnonymizationMutation } from "./mutations/scheduleAccountAnonymization";
 import { extractRawID } from "../../util/graphql";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
@@ -34,13 +34,13 @@ const AnonymizeUserDialog: React.VFC<AnonymizeUserDialogProps> = React.memo(
       error: anonymizeUserError,
     } = useAnonymizeUserMutation();
     const {
-      scheduleAccountDeletion,
-      loading: scheduleAccountDeletionLoading,
-      error: scheduleAccountDeletionError,
-    } = useScheduleAccountDeletionMutation();
+      scheduleAccountAnonymization,
+      loading: scheduleAccountAnonymizationLoading,
+      error: scheduleAccountAnonymizationError,
+    } = useScheduleAccountAnonymizationMutation();
 
-    const loading = anonymizeUserLoading || scheduleAccountDeletionLoading;
-    const error = anonymizeUserError || scheduleAccountDeletionError;
+    const loading = anonymizeUserLoading || scheduleAccountAnonymizationLoading;
+    const error = anonymizeUserError || scheduleAccountAnonymizationError;
 
     const onDialogDismiss = useCallback(() => {
       if (loading || isHidden) {
@@ -58,15 +58,15 @@ const AnonymizeUserDialog: React.VFC<AnonymizeUserDialogProps> = React.memo(
         .catch(() => onDismiss(false));
     }, [loading, isHidden, anonymizeUser, userID, onDismiss]);
 
-    const onClickScheduleDeletion = useCallback(() => {
+    const onClickScheduleAnonymization = useCallback(() => {
       if (loading || isHidden) {
         return;
       }
-      scheduleAccountDeletion(userID)
+      scheduleAccountAnonymization(userID)
         .then(() => onDismiss(true))
         .catch(() => onDismiss(false));
       onDismiss(false);
-    }, [loading, isHidden, scheduleAccountDeletion, userID, onDismiss]);
+    }, [loading, isHidden, scheduleAccountAnonymization, userID, onDismiss]);
 
     const dialogContentProps: IDialogContentProps = useMemo(
       () => ({
@@ -89,7 +89,7 @@ const AnonymizeUserDialog: React.VFC<AnonymizeUserDialogProps> = React.memo(
           <DialogFooter>
             {userAnonymizeAt == null ? (
               <PrimaryButton
-                onClick={onClickScheduleDeletion}
+                onClick={onClickScheduleAnonymization}
                 disabled={loading}
                 text={
                   <FormattedMessage id="AnonymizeUserDialog.label.schedule-removal" />
