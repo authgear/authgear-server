@@ -11,6 +11,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
+
+	"github.com/authgear/authgear-server/pkg/lib/feature/accountanonymization"
 	"github.com/authgear/authgear-server/pkg/lib/feature/accountdeletion"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -54,16 +56,25 @@ func ProvideUserAgentString() httputil.UserAgentString {
 	return "authgear"
 }
 
-type UserServiceFactory struct {
+type AccountDeletionServiceFactory struct {
 	BackgroundProvider *deps.BackgroundProvider
 }
 
-func (f *UserServiceFactory) NewUserService(ctx context.Context, appID string, appContext *config.AppContext) accountdeletion.UserService {
+func (f *AccountDeletionServiceFactory) MakeUserService(ctx context.Context, appID string, appContext *config.AppContext) accountdeletion.UserService {
+	return newUserService(ctx, f.BackgroundProvider, appID, appContext)
+}
+
+type AccountAnonymizationServiceFactory struct {
+	BackgroundProvider *deps.BackgroundProvider
+}
+
+func (f *AccountAnonymizationServiceFactory) MakeUserService(ctx context.Context, appID string, appContext *config.AppContext) accountanonymization.UserService {
 	return newUserService(ctx, f.BackgroundProvider, appID, appContext)
 }
 
 type UserFacade interface {
 	DeleteFromScheduledDeletion(userID string) error
+	AnonymizeFromScheduledAnonymization(userID string) error
 }
 
 type UserService struct {
@@ -74,6 +85,12 @@ type UserService struct {
 func (s *UserService) DeleteFromScheduledDeletion(userID string) (err error) {
 	return s.AppDBHandle.WithTx(func() error {
 		return s.UserFacade.DeleteFromScheduledDeletion(userID)
+	})
+}
+
+func (s *UserService) AnonymizeFromScheduledAnonymization(userID string) (err error) {
+	return s.AppDBHandle.WithTx(func() error {
+		return s.UserFacade.AnonymizeFromScheduledAnonymization(userID)
 	})
 }
 
@@ -92,10 +109,12 @@ var DependencySet = wire.NewSet(
 	ProvideUserAgentString,
 	ProvideHTTPHost,
 	ProvideHTTPProto,
-	wire.Struct(new(UserServiceFactory), "*"),
+	wire.Struct(new(AccountDeletionServiceFactory), "*"),
+	wire.Struct(new(AccountAnonymizationServiceFactory), "*"),
 	wire.Struct(new(UserService), "*"),
 	wire.Bind(new(UserFacade), new(*facade.UserFacade)),
-	wire.Bind(new(accountdeletion.UserServiceFactory), new(*UserServiceFactory)),
+	wire.Bind(new(accountdeletion.UserServiceFactory), new(*AccountDeletionServiceFactory)),
+	wire.Bind(new(accountanonymization.UserServiceFactory), new(*AccountAnonymizationServiceFactory)),
 	wire.Bind(new(task.Queue), new(NoopTaskQueue)),
 	wire.Bind(new(event.Database), new(*appdb.Handle)),
 	wire.Bind(new(template.ResourceManager), new(*resource.Manager)),

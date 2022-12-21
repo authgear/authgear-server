@@ -166,6 +166,7 @@ func (s AccountStatus) Anonymize() (*AccountStatus, error) {
 	target := AccountStatus{
 		IsDisabled:   true,
 		IsAnonymized: true,
+		AnonymizeAt:  s.AnonymizeAt,
 	}
 	if s.Type() == AccountStatusTypeNormal {
 		return &target, nil

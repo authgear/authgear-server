@@ -41,6 +41,7 @@ func (c *Controller) Start() {
 
 	runners := []*backgroundjob.Runner{
 		newAccountDeletionRunner(p, context.Background(), configSrcController),
+		newAccountAnonymizationRunner(p, context.Background(), configSrcController),
 	}
 	backgroundjob.Main(c.logger, runners)
 }
