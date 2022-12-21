@@ -402,7 +402,9 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             parentJSONPointer={parentJSONPointer}
             fieldName="redirect_uris"
             list={clientConfig.redirect_uris}
-            onListChange={onRedirectUrisChange}
+            onListItemAdd={onRedirectUrisChange}
+            onListItemChange={onRedirectUrisChange}
+            onListItemDelete={onRedirectUrisChange}
             addButtonLabelMessageID="EditOAuthClientForm.add-uri"
             label={
               <Label>
@@ -416,7 +418,9 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
               parentJSONPointer={parentJSONPointer}
               fieldName="post_logout_redirect_uris"
               list={clientConfig.post_logout_redirect_uris ?? []}
-              onListChange={onPostLogoutRedirectUrisChange}
+              onListItemAdd={onPostLogoutRedirectUrisChange}
+              onListItemChange={onPostLogoutRedirectUrisChange}
+              onListItemDelete={onPostLogoutRedirectUrisChange}
               addButtonLabelMessageID="EditOAuthClientForm.add-uri"
               label={
                 <Label>

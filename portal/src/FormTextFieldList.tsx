@@ -73,7 +73,9 @@ export interface FormTextFieldListProps {
   fieldName: string;
   inputProps?: TextFieldProps;
   list: string[];
-  onListChange: (list: string[]) => void;
+  onListItemAdd: (list: string[], item: string) => void;
+  onListItemChange: (list: string[], index: number, item: string) => void;
+  onListItemDelete: (list: string[], index: number, item: string) => void;
   addButtonLabelMessageID?: string;
   disabled?: boolean;
 }
@@ -88,7 +90,9 @@ const FormTextFieldList: React.VFC<FormTextFieldListProps> =
       fieldName,
       inputProps,
       list,
-      onListChange,
+      onListItemAdd,
+      onListItemChange,
+      onListItemDelete,
       addButtonLabelMessageID,
       disabled,
     } = props;
@@ -119,7 +123,9 @@ const FormTextFieldList: React.VFC<FormTextFieldListProps> =
         parentJSONPointer={parentJSONPointer}
         fieldName={fieldName}
         list={list}
-        onListChange={onListChange}
+        onListItemAdd={onListItemAdd}
+        onListItemChange={onListItemChange}
+        onListItemDelete={onListItemDelete}
         makeDefaultItem={makeDefaultItem}
         ListItemComponent={ListItemComponent}
         addButtonLabelMessageID={addButtonLabelMessageID}

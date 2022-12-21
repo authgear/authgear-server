@@ -542,7 +542,9 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
             parentJSONPointer={jsonPointer}
             fieldName="wechat_redirect_uris"
             list={config.wechat_redirect_uris ?? []}
-            onListChange={onWeChatRedirectUrisChange}
+            onListItemChange={onWeChatRedirectUrisChange}
+            onListItemAdd={onWeChatRedirectUrisChange}
+            onListItemDelete={onWeChatRedirectUrisChange}
             addButtonLabelMessageID="SingleSignOnConfigurationScreen.widget.add-uri"
             className={styles.fieldList}
             label={

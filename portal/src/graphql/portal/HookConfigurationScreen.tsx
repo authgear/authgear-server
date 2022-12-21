@@ -7,6 +7,7 @@ import {
   IDropdownOption,
   Label,
   FontIcon,
+  Text,
   useTheme,
 } from "@fluentui/react";
 import produce from "immer";
@@ -58,20 +59,44 @@ import ActionButton from "../../ActionButton";
 import CodeEditor from "../../CodeEditor";
 import DefaultButton from "../../DefaultButton";
 
-const DENOHOOK_BLOCKING_DEFAULT = `import { HookEvent, HookResponse } from "https://deno.land/x/authgear_deno_hook@v0.3.0/mod.ts";
-
-export default async function(e: HookEvent): Promise<HookResponse> {
-  // Write your hook with the help of the type definition.
-  return { is_allowed: true };
-}
-`;
+const BLOCKING_EVENT_NAME_TO_TYPE_NAME: Record<string, string | undefined> = {
+  "user.pre_create": "EventUserPreCreate",
+  "user.profile.pre_update": "EventUserProfilePreUpdate",
+  "user.pre_schedule_deletion": "EventUserPreScheduleDeletion",
+  "user.session.jwt.pre_create": "EventUserSessionJWTPreCreate",
+};
 
 const DENOHOOK_NONBLOCKING_DEFAULT = `import { HookEvent } from "https://deno.land/x/authgear_deno_hook@v0.3.0/mod.ts";
 
 export default async function(e: HookEvent): Promise<void> {
   // Write your hook with the help of the type definition.
+  //
+  // Since this hook will receive all events,
+  // you usually want to differentiate the exact event type,
+  // and handle the events accordingly.
+  // This can be done by using a switch statement as shown below.
+  switch (e.type) {
+  case "user.created":
+    // Thanks to TypeScript compiler, e is now of type EventUserCreated.
+    break;
+  default:
+    // Add a default case to catch the rest.
+    // You can add more case to match other events.
+    break;
+  }
 }
 `;
+
+function makeDefaultDenoHookBlockingScript(event: string): string {
+  const typeName = BLOCKING_EVENT_NAME_TO_TYPE_NAME[event] ?? "HookEvent";
+  return `import { ${typeName}, HookResponse } from "https://deno.land/x/authgear_deno_hook@v0.3.0/mod.ts";
+
+export default async function(e: ${typeName}): Promise<HookResponse> {
+  // Write your hook with the help of the type definition.
+  return { is_allowed: true };
+}
+`;
+}
 
 type HookKind = "webhook" | "denohook";
 
@@ -255,7 +280,7 @@ function addMissingResources(state: FormState) {
         state.resources.push({
           path,
           specifier,
-          nullableValue: DENOHOOK_BLOCKING_DEFAULT,
+          nullableValue: makeDefaultDenoHookBlockingScript(h.event),
         });
       }
     }
@@ -381,36 +406,43 @@ const BlockingHandlerItemEdit: React.VFC<BlockingHandlerItemEditProps> =
     }, [renderToString]);
 
     return (
-      <div className={styles.blockingHookContainer}>
-        <div className={styles.blockingHookRow}>
-          <Dropdown
-            className={styles.hookItemFlex1}
-            options={eventOptions}
-            selectedKey={value.event}
-            onChange={onBlockingEventChange}
-            ariaLabel={"HookConfigurationScreen.blocking-events.label"}
-            {...eventFieldProps}
-          />
-          <Dropdown
-            className={styles.hookItemFlex1}
-            options={kindOptions}
-            selectedKey={value.kind}
-            onChange={onChangeHookKind}
-            ariaLabel={"HookConfigurationScreen.hook-kind.label"}
-          />
-        </div>
-        <div className={styles.blockingHookRow}>
-          {value.kind === "webhook" ? (
+      <div className={styles.hookContainer}>
+        <Dropdown
+          className={styles.blockingHookKind}
+          options={kindOptions}
+          selectedKey={value.kind}
+          onChange={onChangeHookKind}
+          ariaLabel={"HookConfigurationScreen.hook-kind.label"}
+        />
+        <Dropdown
+          className={styles.blockingHookEvent}
+          options={eventOptions}
+          selectedKey={value.event}
+          onChange={onBlockingEventChange}
+          ariaLabel={"HookConfigurationScreen.blocking-events.label"}
+          {...eventFieldProps}
+        />
+        {value.kind === "webhook" ? (
+          <div className={cn(styles.blockingHookConfig, styles.hookConfig)}>
+            <Label>
+              <FormattedMessage id="HookConfigurationScreen.action.endpoint.label" />
+            </Label>
             <TextField
-              className={styles.hookItemFlex1}
+              className={styles.hookConfigConfig}
               value={value.url}
               onChange={onURLChange}
               placeholder="https://example.com/callback"
               {...urlFieldProps}
             />
-          ) : null}
-          {value.kind === "denohook" ? (
+          </div>
+        ) : null}
+        {value.kind === "denohook" ? (
+          <div className={cn(styles.blockingHookConfig, styles.hookConfig)}>
+            <Label>
+              <FormattedMessage id="HookConfigurationScreen.action.script.label" />
+            </Label>
             <ActionButton
+              className={styles.hookConfigConfig}
               iconProps={EDIT_BUTTON_ICON_PROPS}
               styles={EDIT_BUTTON_STYLES}
               text={
@@ -429,8 +461,8 @@ const BlockingHandlerItemEdit: React.VFC<BlockingHandlerItemEditProps> =
               }
               onClick={onClickEdit}
             />
-          ) : null}
-        </div>
+          </div>
+        ) : null}
       </div>
     );
   };
@@ -500,27 +532,36 @@ const NonBlockingHandlerItemEdit: React.VFC<NonBlockingHandlerItemEditProps> =
     }, [renderToString]);
 
     return (
-      <div className={styles.nonblockingHookContainer}>
+      <div className={styles.hookContainer}>
         <Dropdown
-          className={styles.hookItemFlex1}
+          className={styles.nonblockingHookEvent}
           options={kindOptions}
           selectedKey={value.kind}
           onChange={onChangeHookKind}
           ariaLabel={"HookConfigurationScreen.hook-kind.label"}
         />
         {value.kind === "webhook" ? (
-          <FormTextField
-            parentJSONPointer={`/hook/non_blocking_handlers/${index}`}
-            fieldName="url"
-            className={styles.hookItemFlex1}
-            value={value.url}
-            onChange={onURLChange}
-            placeholder="https://example.com/callback"
-          />
+          <div className={cn(styles.nonblockingHookConfig, styles.hookConfig)}>
+            <Label>
+              <FormattedMessage id="HookConfigurationScreen.action.endpoint.label" />
+            </Label>
+            <FormTextField
+              className={styles.hookConfigConfig}
+              parentJSONPointer={`/hook/non_blocking_handlers/${index}`}
+              fieldName="url"
+              value={value.url}
+              onChange={onURLChange}
+              placeholder="https://example.com/callback"
+            />
+          </div>
         ) : null}
         {value.kind === "denohook" ? (
-          <div className={styles.hookItemFlex1}>
+          <div className={cn(styles.nonblockingHookConfig, styles.hookConfig)}>
+            <Label>
+              <FormattedMessage id="HookConfigurationScreen.action.script.label" />
+            </Label>
             <ActionButton
+              className={styles.hookConfigConfig}
               iconProps={EDIT_BUTTON_ICON_PROPS}
               styles={EDIT_BUTTON_STYLES}
               text={
@@ -566,6 +607,8 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
     const { appID } = useParams() as { appID: string };
     const { renderToString } = useContext(Context);
     const { hookFeatureConfig, form: config } = props;
+
+    const theme = useTheme();
 
     const [codeEditorState, setCodeEditorState] =
       useState<CodeEditorState | null>(null);
@@ -786,10 +829,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
         }
       }
 
-      if (eventKind === "nonblocking") {
-        return DENOHOOK_NONBLOCKING_DEFAULT;
-      }
-      return DENOHOOK_BLOCKING_DEFAULT;
+      return "";
     }, [
       codeEditorState,
       state.blocking_handlers,
@@ -854,6 +894,32 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
             });
             state.blocking_handlers = newValue;
             addMissingResources(state);
+          })
+        );
+      },
+      [setState]
+    );
+    const onBlockingHandlersChangeItemChange = useCallback(
+      (
+        value: BlockingEventHandler[],
+        _index: number,
+        item: BlockingEventHandler
+      ) => {
+        setState((state) =>
+          produce(state, (state) => {
+            const newValue: BlockingHookHandlerConfig[] = value.map((h) => {
+              return {
+                event: h.event,
+                url: h.url,
+              };
+            });
+            state.blocking_handlers = newValue;
+            addMissingResources(state);
+            for (const r of state.resources) {
+              if (r.path === getPathFromURL(item.url)) {
+                r.nullableValue = makeDefaultDenoHookBlockingScript(item.event);
+              }
+            }
           })
         );
       },
@@ -1052,16 +1118,64 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                 ) : null}
                 {!hideBlockingHandlerList ? (
                   <FieldList
+                    listClassName={styles.hookList}
+                    listItemClassName={styles.hookListItem}
+                    listItemStyle={{
+                      borderBottomColor: theme.semanticColors.bodyDivider,
+                    }}
                     label={
-                      <Label>
-                        <FormattedMessage id="HookConfigurationScreen.blocking-handlers.label" />
-                      </Label>
+                      <>
+                        <Label>
+                          <FormattedMessage id="HookConfigurationScreen.blocking-handlers.label" />
+                        </Label>
+                        <div
+                          className={styles.hookHeader}
+                          style={{
+                            borderBottomColor: theme.semanticColors.bodyDivider,
+                          }}
+                        >
+                          <Text
+                            block={true}
+                            className={styles.blockingHookKind}
+                            styles={{
+                              root: {
+                                color: theme.semanticColors.bodySubtext,
+                              },
+                            }}
+                          >
+                            <FormattedMessage id="HookConfigurationScreen.header.type.label" />
+                          </Text>
+                          <Text
+                            block={true}
+                            className={styles.blockingHookEvent}
+                            styles={{
+                              root: {
+                                color: theme.semanticColors.bodySubtext,
+                              },
+                            }}
+                          >
+                            <FormattedMessage id="HookConfigurationScreen.header.event.label" />
+                          </Text>
+                          <Text
+                            block={true}
+                            className={styles.blockingHookConfig}
+                            styles={{
+                              root: {
+                                color: theme.semanticColors.bodySubtext,
+                              },
+                            }}
+                          >
+                            <FormattedMessage id="HookConfigurationScreen.header.config.label" />
+                          </Text>
+                        </div>
+                      </>
                     }
-                    listClassName={styles.blockingList}
                     parentJSONPointer="/hook"
                     fieldName="blocking_handlers"
                     list={blockingHandlers}
-                    onListChange={onBlockingHandlersChange}
+                    onListItemAdd={onBlockingHandlersChange}
+                    onListItemChange={onBlockingHandlersChangeItemChange}
+                    onListItemDelete={onBlockingHandlersChange}
                     makeDefaultItem={makeDefaultHandler}
                     ListItemComponent={BlockingHandlerListItem}
                     addButtonLabelMessageID="add"
@@ -1091,15 +1205,53 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                 ) : null}
                 {!hideNonBlockingHandlerList ? (
                   <FieldList
+                    listClassName={styles.hookList}
+                    listItemClassName={styles.hookListItem}
+                    listItemStyle={{
+                      borderBottomColor: theme.semanticColors.bodyDivider,
+                    }}
                     label={
-                      <Label>
-                        <FormattedMessage id="HookConfigurationScreen.non-blocking-events-endpoints.label" />
-                      </Label>
+                      <>
+                        <Label>
+                          <FormattedMessage id="HookConfigurationScreen.non-blocking-events-endpoints.label" />
+                        </Label>
+                        <div
+                          className={styles.hookHeader}
+                          style={{
+                            borderBottomColor: theme.semanticColors.bodyDivider,
+                          }}
+                        >
+                          <Text
+                            block={true}
+                            className={styles.nonblockingHookEvent}
+                            styles={{
+                              root: {
+                                color: theme.semanticColors.bodySubtext,
+                              },
+                            }}
+                          >
+                            <FormattedMessage id="HookConfigurationScreen.header.event.label" />
+                          </Text>
+                          <Text
+                            block={true}
+                            className={styles.nonblockingHookConfig}
+                            styles={{
+                              root: {
+                                color: theme.semanticColors.bodySubtext,
+                              },
+                            }}
+                          >
+                            <FormattedMessage id="HookConfigurationScreen.header.config.label" />
+                          </Text>
+                        </div>
+                      </>
                     }
                     parentJSONPointer="/hook"
                     fieldName="non_blocking_handlers"
                     list={nonBlockingHandlers}
-                    onListChange={onNonBlockingHandlersChange}
+                    onListItemAdd={onNonBlockingHandlersChange}
+                    onListItemChange={onNonBlockingHandlersChange}
+                    onListItemDelete={onNonBlockingHandlersChange}
                     makeDefaultItem={makeDefaultNonBlockingHandler}
                     ListItemComponent={NonBlockingHandlerListItem}
                     addButtonLabelMessageID="add"
