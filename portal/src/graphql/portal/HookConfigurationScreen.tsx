@@ -70,6 +70,20 @@ const DENOHOOK_NONBLOCKING_DEFAULT = `import { HookEvent } from "https://deno.la
 
 export default async function(e: HookEvent): Promise<void> {
   // Write your hook with the help of the type definition.
+  //
+  // Since this hook will receive all events,
+  // you usually want to differentiate the exact event type,
+  // and handle the events accordingly.
+  // This can be done by using a switch statement as shown below.
+  switch (e.type) {
+  case "user.created":
+    // Thanks to TypeScript compiler, e is now of type EventUserCreated.
+    break;
+  default:
+    // Add a default case to catch the rest.
+    // You can add more case to match other events.
+    break;
+  }
 }
 `;
 
