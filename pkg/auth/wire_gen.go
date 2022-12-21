@@ -2447,6 +2447,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		TokenService:           tokenService,
 		Events:                 eventService,
+		SessionManager:         manager2,
 	}
 	oauthTokenHandler := &oauth.TokenHandler{
 		Logger:       tokenHandlerLogger,
@@ -4890,6 +4891,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		TokenService:           tokenService,
 		Events:                 eventService,
+		SessionManager:         manager2,
 	}
 	appSessionTokenHandler := &oauth.AppSessionTokenHandler{
 		Database:         handle,
