@@ -47,6 +47,7 @@ interface UserListItem {
   id: string;
   rawID: string;
   isAnonymous: boolean;
+  isAnonymized: boolean;
   isDisabled: boolean;
   isDeactivated: boolean;
   deleteAt: string | null;
@@ -92,6 +93,7 @@ function UserInfo(props: UserInfoProps) {
       endUserAccountIdentitifer,
       rawID,
       isAnonymous,
+      isAnonymized,
     },
   } = props;
   return (
@@ -108,6 +110,10 @@ function UserInfo(props: UserInfoProps) {
         {isAnonymous ? (
           <Text className={styles.anonymousUserLabel}>
             <FormattedMessage id="UsersList.anonymous-user" />
+          </Text>
+        ) : isAnonymized ? (
+          <Text className={styles.anonymizedUserLabel}>
+            <FormattedMessage id="UsersList.anonymized-user" />
           </Text>
         ) : (
           formattedName ?? endUserAccountIdentitifer
@@ -211,6 +217,7 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
             id: node.id,
             rawID: extractRawID(node.id),
             isAnonymous: node.isAnonymous,
+            isAnonymized: node.isAnonymized,
             isDisabled: node.isDisabled,
             isDeactivated: node.isDeactivated,
             deleteAt: formatDatetime(locale, node.deleteAt),
@@ -282,7 +289,7 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
               <FormattedMessage id="UsersList.cancel-removal" />
             ) : item.anonymizeAt != null ? (
               <FormattedMessage id="UsersList.cancel-anonymization" />
-            ) : item.isDisabled ? (
+            ) : item.isAnonymized ? null : item.isDisabled ? (
               <FormattedMessage id="UsersList.reenable-user" />
             ) : (
               <FormattedMessage id="UsersList.disable-user" />

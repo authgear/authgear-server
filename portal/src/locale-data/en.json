@@ -173,6 +173,8 @@
   "UserDetailsScreen.scheduled-deletion": "This user is disabled and scheduled to be removed on {date}",
   "UserDetailsScreen.scheduled-anonymization": "This user is disabled and scheduled to be anonymized on {date}",
   "UserDetailsScreen.user-account-security.siwe-enabled": "This tab is not available when the user signs in with Ethereum.",
+  "UserDetailsScreen.user-anonymized": "User data erased",
+  "UserDetailsScreen.user-anonymized.message": "This user is anonymized and all data are erased.",
 
   "UsersList.column.raw-id": "ID",
   "UsersList.column.username": "Username",
@@ -185,6 +187,7 @@
   "UsersList.cancel-removal": "Cancel Removal",
   "UsersList.cancel-anonymization": "Cancel Anonymization",
   "UsersList.anonymous-user": "Anonymous User",
+  "UsersList.anonymized-user": "User data erased",
   "UsersList.empty.normal": "No users yet.",
   "UsersList.empty.search": "No results matched your search.",
 
