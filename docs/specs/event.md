@@ -49,6 +49,16 @@
       - [identity.oauth.disconnected](#identityoauthdisconnected)
       - [identity.biometric.enabled](#identitybiometricenabled)
       - [identity.biometric.disabled](#identitybiometricdisabled)
+      - [authenticator.secondary.totp.added](#authenticatorsecondarytotpadded)
+      - [authenticator.secondary.totp.removed](#authenticatorsecondarytotpremoved)
+      - [authenticator.secondary.password.added](#authenticatorsecondarypasswordadded)
+      - [authenticator.secondary.password.removed](#authenticatorsecondarypasswordremoved)
+      - [authenticator.secondary.oob_otp_email.added](#authenticatorsecondaryoob_otp_emailadded)
+      - [authenticator.secondary.oob_otp_email.removed](#authenticatorsecondaryoob_otp_emailremoved)
+      - [authenticator.secondary.oob_otp_sms.added](#authenticatorsecondaryoob_otp_smsadded)
+      - [authenticator.secondary.oob_otp_sms.removed](#authenticatorsecondaryoob_otp_smsremoved)
+      - [user.email.verified](#useremailverified)
+      - [user.phone.verified](#userphoneverified)
 
 # Event
 
@@ -215,6 +225,14 @@ Use this event to add custom fields to the JWT access token.
 - [identity.oauth.disconnected](#identityoauthdisconnected)
 - [identity.biometric.enabled](#identitybiometricenabled)
 - [identity.biometric.disabled](#identitybiometricdisabled)
+- [authenticator.secondary.totp.added](#authenticatorsecondarytotpadded)
+- [authenticator.secondary.totp.removed](#authenticatorsecondarytotpremoved)
+- [authenticator.secondary.password.added](#authenticatorsecondarypasswordadded)
+- [authenticator.secondary.password.removed](#authenticatorsecondarypasswordremoved)
+- [authenticator.secondary.oob_otp_email.added](#authenticatorsecondaryoob_otp_emailadded)
+- [authenticator.secondary.oob_otp_email.removed](#authenticatorsecondaryoob_otp_emailremoved)
+- [authenticator.secondary.oob_otp_sms.added](#authenticatorsecondaryoob_otp_smsadded)
+- [authenticator.secondary.oob_otp_sms.removed](#authenticatorsecondaryoob_otp_smsremoved)
 
 #### user.created
 
@@ -687,20 +705,156 @@ Occurs when user disconnected from an OAuth provider. It can be done by user dis
 
 Occurs when user enabled biometric login.
 
+```json5
 {
   "payload": {
     "user": { /* ... */ },
     "identity": { /* ... */ }
   }
 }
+```
 
 #### identity.biometric.disabled
 
 Occurs when biometric login is disabled. It will be triggered only when the user disabled it from the settings page or the admin disabled it from the admin api or portal.
 
+
+```json5
 {
   "payload": {
     "user": { /* ... */ },
     "identity": { /* ... */ }
   }
 }
+```
+
+#### authenticator.secondary.totp.added
+
+Occurs when a user added totp authenticator from the setting page.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "authenticator": { /* ... */ }
+  }
+}
+```
+
+#### authenticator.secondary.totp.removed
+
+Occurs when a totp authenticator is removed by the user from the setting page or by the admin from the admin api or portal.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "authenticator": { /* ... */ }
+  }
+}
+```
+
+#### authenticator.secondary.password.added
+
+Occurs when a user added additional password from the setting page.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "authenticator": { /* ... */ }
+  }
+}
+```
+
+
+#### authenticator.secondary.password.removed
+
+Occurs when an additional password is removed by the user from the setting page or by the admin from the admin api or portal.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "authenticator": { /* ... */ }
+  }
+}
+```
+
+#### authenticator.secondary.oob_otp_email.added
+
+Occurs when a user added an OOB OTP email secondary authenticator from the setting page.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "authenticator": { /* ... */ }
+  }
+}
+```
+
+#### authenticator.secondary.oob_otp_email.removed
+
+Occurs when an OOB OTP email secondary authenticator is removed by the user from the setting page or by the admin from the admin api or portal.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "authenticator": { /* ... */ }
+  }
+}
+```
+
+#### authenticator.secondary.oob_otp_sms.added
+
+
+Occurs when a user added an OOB OTP SMS secondary authenticator from the setting page.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "authenticator": { /* ... */ }
+  }
+}
+```
+
+#### authenticator.secondary.oob_otp_sms.removed
+
+Occurs when an OOB OTP SMS secondary authenticator is removed by the user from the setting page or by the admin from the admin api or portal.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "authenticator": { /* ... */ }
+  }
+}
+```
+
+#### user.email.verified
+
+Occurs when the user verified their email from the setting page or the admin marked the email as verified.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
+
+
+#### user.phone.verified
+
+Occurs when the user verified their phone from the setting page or the admin marked the phone as verified.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
