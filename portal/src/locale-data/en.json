@@ -142,6 +142,7 @@
   "ScreenNav.admin-api": "Admin API",
   "ScreenNav.smtp": "Custom Email Provider",
   "ScreenNav.account-deletion": "Account Deletion",
+  "ScreenNav.account-anonymization": "Account Anonymization",
   "ScreenNav.session": "Cookie Lifetime",
   "ScreenNav.integrations": "Integrations",
 
@@ -1132,6 +1133,11 @@
   "AccountDeletionConfigurationScreen.grace-period.description": "The end-user account will be disabled immediately upon request and deleted after the grace period",
   "AccountDeletionConfigurationScreen.scheduled-by-end-user.label": "Show \"Delete Account\" button in the end-user settings page",
   "AccountDeletionConfigurationScreen.apple-app-store.description": "Apps submitted to Apple App Store must offer account deletion within the app. Please refer to {ExternalLink, react, href{https://developer.apple.com/app-store/review/guidelines/#5.1.1} children{App Store Review Guidelines 5.1.1(v)}}",
+
+  "AccountAnonymizationConfigurationScreen.title": "Account Anonymization",
+  "AccountAnonymizationConfigurationScreen.anonymization-schedule.title": "Anonymization Schedule",
+  "AccountAnonymizationConfigurationScreen.grace-period.label": "Grace Period (Days)",
+  "AccountAnonymizationConfigurationScreen.grace-period.description": "The end-user account will be disabled immediately upon request and anonymized after the grace period",
 
   "standard-attribute.name": "Name",
   "standard-attribute.given_name": "Given Name",

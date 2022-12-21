@@ -274,6 +274,11 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
           },
           {
             type: "link" as const,
+            textKey: "ScreenNav.account-anonymization",
+            url: `/project/${appID}/advanced/account-anonymization`,
+          },
+          {
+            type: "link" as const,
             textKey: "ScreenNav.session",
             url: `/project/${appID}/advanced/session`,
           },
