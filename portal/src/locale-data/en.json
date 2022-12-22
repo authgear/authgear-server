@@ -788,7 +788,7 @@
   "HookConfigurationScreen.action.script.label": "Script:",
   "HookConfigurationScreen.hook-kind.label": "Kind",
   "HookConfigurationScreen.hook-kind.webhook": "Webhook",
-  "HookConfigurationScreen.hook-kind.denohook": "JS / TS",
+  "HookConfigurationScreen.hook-kind.denohook": "TypeScript",
   "HookConfigurationScreen.edit-hook.label": "Edit Script",
   "HookConfigurationScreen.edit-hook.description": "Refer to the {DocLink, react, href{https://docs.authgear.com/integrate/events-hooks/denohooks} children{documentation}} to learn how to write the script.",
   "HookConfigurationScreen.blocking-events": "Blocking Events",
