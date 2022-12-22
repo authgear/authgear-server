@@ -64,7 +64,7 @@
                     <input type="hidden" name="{{ $name }}" value="{{ $value }}">
                 {{ end }}
                 <div class="text-sm">
-                <button class="btn secondary-btn" type="submit" name="x_action" value="choose_step">
+                <button class="btn secondary-btn text-left" type="submit" name="x_action" value="choose_step">
                     {{ if eq .Step "setup-totp" }}
                         {{ template "setup-totp-instead" .Data }}
                     {{ end }}
