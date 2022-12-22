@@ -1,7 +1,9 @@
-Join {{ .AppName }} as a collaborator
+Join "{{ .AppName }}" as a collaborator
 
-You have been invited to join {{ .AppName }} as a collaborator. Please click the link below to view the invitation.
+You have been invited to join as a collaborator to manage the project "{{ .AppName }}" in Authgear. Please click the link below to view the invitation.
 
 {{ .Link }}
+
+Authgear is a user identity and authentication software that helps you manage users and log them in securely.
 
 If you want to reject the invitation please ignore this email.
