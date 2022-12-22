@@ -61,3 +61,7 @@ func (u UserFacade) ScheduleAnonymizationByAdmin(userID string) error {
 func (u UserFacade) UnscheduleAnonymizationByAdmin(userID string) error {
 	return u.Coordinator.UserUnscheduleAnonymizationByAdmin(userID)
 }
+
+func (u UserFacade) CheckUserAnonymized(userID string) error {
+	return u.Coordinator.UserCheckAnonymized(userID)
+}

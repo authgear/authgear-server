@@ -25,6 +25,7 @@ type EventService interface {
 }
 
 type UserProfileFacade struct {
+	User               UserService
 	StandardAttributes StandardAttributesService
 	CustomAttributes   CustomAttributesService
 	Events             EventService
@@ -49,6 +50,11 @@ func (f *UserProfileFacade) UpdateUserProfile(
 	customAttrs map[string]interface{},
 ) (err error) {
 	updated := false
+	err = f.User.CheckUserAnonymized(userID)
+	if err != nil {
+		return err
+	}
+
 	if stdAttrs != nil {
 		updated = true
 		err = f.StandardAttributes.UpdateStandardAttributes(role, userID, stdAttrs)
