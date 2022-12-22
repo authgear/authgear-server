@@ -830,3 +830,16 @@ func (c *Coordinator) UserUnscheduleAnonymizationByAdmin(userID string) error {
 
 	return nil
 }
+
+func (c *Coordinator) UserCheckAnonymized(userID string) error {
+	u, err := c.UserQueries.GetRaw(userID)
+	if err != nil {
+		return err
+	}
+
+	if u.IsAnonymized {
+		return ErrUserIsAnonymized
+	}
+
+	return nil
+}

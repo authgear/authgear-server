@@ -875,6 +875,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Sessions: manager2,
 	}
 	userProfileFacade := &facade2.UserProfileFacade{
+		User:               userFacade,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Events:             eventService,
