@@ -180,6 +180,22 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [onClientConfigChange, clientConfig]
     );
 
+    const onChangeExpireWhenLoginOnOtherDevice = useCallback(
+      (_, value?: boolean) => {
+        if (value == null) {
+          return;
+        }
+        onClientConfigChange(
+          updateClientConfig(
+            clientConfig,
+            "x_max_concurrent_session",
+            value === true ? 1 : undefined
+          )
+        );
+      },
+      [onClientConfigChange, clientConfig]
+    );
+
     const onIssueJWTAccessTokenChange = useCallback(
       (_, value?: boolean) => {
         onClientConfigChange(
@@ -583,6 +599,16 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             >
               {refreshTokenHelpText}
             </Text>
+            <Toggle
+              checked={clientConfig.x_max_concurrent_session === 1}
+              onChange={onChangeExpireWhenLoginOnOtherDevice}
+              label={renderToString(
+                "EditOAuthClientForm.expire-when-login-on-other-device.label"
+              )}
+              description={renderToString(
+                "EditOAuthClientForm.expire-when-login-on-other-device.description"
+              )}
+            />
           </Widget>
         ) : null}
         {showTokenSettings ? (
