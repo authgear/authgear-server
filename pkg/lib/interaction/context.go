@@ -61,6 +61,7 @@ type OOBAuthenticatorProvider interface {
 
 type OTPCodeService interface {
 	GenerateCode(target string, expireAt time.Time) (*otp.Code, error)
+	VerifyCode(target string, code string) error
 }
 
 type OOBCodeSender interface {
