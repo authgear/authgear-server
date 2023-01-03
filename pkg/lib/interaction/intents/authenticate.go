@@ -357,6 +357,10 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 			panic(fmt.Errorf("interaction: unexpected authentication stage: %v", node.Stage))
 		}
 	case *nodes.NodePromptCreatePasskeyEnd:
+		return []interaction.Edge{
+			&nodes.EdgeConfirmTerminateOtherSessionsBegin{},
+		}, nil
+	case *nodes.NodeConfirmTerminateOtherSessionsEnd:
 		return ensureSession()
 	case *nodes.NodeDoEnsureSession:
 		// Intent is finished

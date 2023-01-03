@@ -583,6 +583,8 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 		}
 	case *nodes.NodePromptCreatePasskeyBegin:
 		return SessionStepPromptCreatePasskey
+	case *nodes.NodeConfirmTerminateOtherSessionsBegin:
+		return SessionStepConfirmTerminateOtherSessions
 	default:
 		panic(fmt.Errorf("webapp: unexpected node: %T", graph.CurrentNode()))
 	}
