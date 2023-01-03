@@ -59,6 +59,10 @@ type OOBAuthenticatorProvider interface {
 	CreateCode(authenticatorID string) (*oob.Code, error)
 }
 
+type OTPCodeService interface {
+	GenerateCode(target string, expireAt time.Time) (*otp.Code, error)
+}
+
 type OOBCodeSender interface {
 	SendCode(
 		channel model.AuthenticatorOOBChannel,
@@ -205,6 +209,7 @@ type Context struct {
 	AnonymousIdentities      AnonymousIdentityProvider
 	BiometricIdentities      BiometricIdentityProvider
 	OOBAuthenticators        OOBAuthenticatorProvider
+	OTPCodeService           OTPCodeService
 	OOBCodeSender            OOBCodeSender
 	OAuthProviderFactory     OAuthProviderFactory
 	MFA                      MFAService
