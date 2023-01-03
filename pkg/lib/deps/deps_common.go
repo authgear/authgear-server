@@ -304,6 +304,8 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		otp.DependencySet,
+		wire.Bind(new(authenticatorservice.OTPCodeService), new(*otp.Service)),
+		wire.Bind(new(interaction.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(authenticatoroob.OTPMessageSender), new(*otp.MessageSender)),
 		wire.Bind(new(verification.OTPMessageSender), new(*otp.MessageSender)),
 	),

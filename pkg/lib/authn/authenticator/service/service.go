@@ -5,8 +5,8 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
 
@@ -58,7 +58,10 @@ type OOBOTPAuthenticatorProvider interface {
 	New(id string, userID string, oobAuthenticatorType model.AuthenticatorType, target string, isDefault bool, kind string) *authenticator.OOBOTP
 	Create(*authenticator.OOBOTP) error
 	Delete(*authenticator.OOBOTP) error
-	VerifyCode(authenticatorID string, code string) (*oob.Code, error)
+}
+
+type OTPCodeService interface {
+	VerifyCode(target string, code string) error
 }
 
 type RateLimiter interface {
@@ -66,12 +69,13 @@ type RateLimiter interface {
 }
 
 type Service struct {
-	Store       *Store
-	Password    PasswordAuthenticatorProvider
-	Passkey     PasskeyAuthenticatorProvider
-	TOTP        TOTPAuthenticatorProvider
-	OOBOTP      OOBOTPAuthenticatorProvider
-	RateLimiter RateLimiter
+	Store          *Store
+	Password       PasswordAuthenticatorProvider
+	Passkey        PasskeyAuthenticatorProvider
+	TOTP           TOTPAuthenticatorProvider
+	OOBOTP         OOBOTPAuthenticatorProvider
+	OTPCodeService OTPCodeService
+	RateLimiter    RateLimiter
 }
 
 func (s *Service) Get(id string) (*authenticator.Info, error) {
@@ -456,8 +460,8 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 	case model.AuthenticatorTypeOOBEmail, model.AuthenticatorTypeOOBSMS:
 		code := spec.OOBOTP.Code
 		a := info.OOBOTP
-		_, err = s.OOBOTP.VerifyCode(a.ID, code)
-		if errors.Is(err, oob.ErrInvalidCode) {
+		err = s.OTPCodeService.VerifyCode(a.ToTarget(), code)
+		if errors.Is(err, otp.ErrInvalidCode) {
 			err = authenticator.ErrInvalidCredentials
 			return
 		} else if err != nil {
