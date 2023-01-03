@@ -339,3 +339,11 @@ func (i *InputConfirmWeb3AccountRequest) GetMessage() string   { return i.Messag
 func (i *InputConfirmWeb3AccountRequest) GetSignature() string { return i.Signature }
 
 var _ nodes.InputUseIdentitySIWE = &InputConfirmWeb3AccountRequest{}
+
+type InputConfirmTerminateOtherSessions struct {
+	IsConfirm bool
+}
+
+func (i *InputConfirmTerminateOtherSessions) GetIsConfirmed() bool { return i.IsConfirm }
+
+var _ nodes.InputConfirmTerminateOtherSessionsEnd = &InputConfirmTerminateOtherSessions{}

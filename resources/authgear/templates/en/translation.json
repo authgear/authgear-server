@@ -260,6 +260,10 @@
   "logout-button-hint": "Click the button to log out",
   "logout-button-label": "Log out",
 
+  "confirm-terminate-other-sessions-hint": "You will be logged out in other devices",
+  "confirm-terminate-other-sessions-continue-button-label": "Continue",
+  "confirm-terminate-other-sessions-cancel-button-label": "Cancel",
+
   "consent-title": "Continue to {clientName}",
   "consent-scopes-label": "<b>{clientName}</b> would like to:",
   "consent-scopes-full-userinfo": "Access full information in your profile such as email address, phone number, name.",

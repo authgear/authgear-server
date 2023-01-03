@@ -210,6 +210,13 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.ConfirmTerminateOtherSessionsHandler)),
+	))
+}
+
 func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
