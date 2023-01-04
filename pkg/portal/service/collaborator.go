@@ -368,7 +368,7 @@ func (s *CollaboratorService) SendInvitation(
 				// TODO(collaborator): We should reuse translation service.
 				Sender:    s.MailConfig.Sender,
 				ReplyTo:   s.MailConfig.ReplyTo,
-				Subject:   "Collaborator invitation",
+				Subject:   "You are invited to collaborate on \"" + appID + "\" in Authgear",
 				Recipient: inviteeEmail,
 				TextBody:  textBody,
 				HTMLBody:  htmlBody,
