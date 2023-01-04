@@ -26,7 +26,7 @@ func (e *EdgeAuthenticationWhatsapp) Instantiate(ctx *interaction.Context, graph
 	}
 
 	phone := e.Authenticator.OOBOTP.Phone
-	_, err := ctx.WhatsappCodeProvider.VerifyCode(phone, ctx.WebSessionID, true)
+	err := ctx.WhatsappCodeProvider.VerifyCode(phone, true)
 	if err != nil {
 		return nil, err
 	}

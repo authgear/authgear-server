@@ -25,7 +25,7 @@ func (e *EdgeCreateAuthenticatorWhatsappOTP) Instantiate(ctx *interaction.Contex
 		return nil, interaction.ErrIncompatibleInput
 	}
 	phone := e.Authenticator.OOBOTP.Phone
-	_, err := ctx.WhatsappCodeProvider.VerifyCode(phone, ctx.WebSessionID, true)
+	err := ctx.WhatsappCodeProvider.VerifyCode(phone, true)
 	if err != nil {
 		return nil, err
 	}
