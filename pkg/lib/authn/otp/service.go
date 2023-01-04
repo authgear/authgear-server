@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/whatsapp"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
@@ -31,13 +32,9 @@ func (s *Service) getCode(target string) (*Code, error) {
 	return s.CodeStore.Get(target)
 }
 
-func (s *Service) createCode(target string, expireAt time.Time) (*Code, error) {
+func (s *Service) createCode(target string, codeModel *Code) (*Code, error) {
 	code := secretcode.OOBOTPSecretCode.Generate()
-
-	codeModel := &Code{
-		Code:     code,
-		ExpireAt: expireAt,
-	}
+	codeModel.Code = code
 
 	err := s.CodeStore.Create(target, codeModel)
 	if err != nil {
@@ -45,6 +42,12 @@ func (s *Service) createCode(target string, expireAt time.Time) (*Code, error) {
 	}
 
 	return codeModel, nil
+}
+
+func (s *Service) deleteCode(target string) {
+	if err := s.CodeStore.Delete(target); err != nil {
+		s.Logger.WithError(err).Error("failed to delete code after validation")
+	}
 }
 
 func (s *Service) GenerateCode(target string, expireAt time.Time) (*Code, error) {
@@ -56,7 +59,29 @@ func (s *Service) GenerateCode(target string, expireAt time.Time) (*Code, error)
 	}
 
 	if code == nil || s.Clock.NowUTC().After(code.ExpireAt) {
-		code, err = s.createCode(target, expireAt)
+		code, err = s.createCode(target, &Code{ExpireAt: expireAt})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return code, nil
+}
+
+func (s *Service) GenerateWhatsappCode(target string, appID string, webSessionID string) (*Code, error) {
+	code, err := s.getCode(target)
+	if errors.Is(err, ErrCodeNotFound) {
+		code = nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	if code == nil || s.Clock.NowUTC().After(code.ExpireAt) {
+		code, err = s.createCode(target, &Code{
+			ExpireAt: s.Clock.NowUTC().Add(whatsapp.WhatsappCodeDuration),
+			AppID: appID,
+			WebSessionID: webSessionID,
+		})
 		if err != nil {
 			return nil, err
 		}
@@ -66,7 +91,7 @@ func (s *Service) GenerateCode(target string, expireAt time.Time) (*Code, error)
 }
 
 func (s *Service) VerifyCode(target string, code string) error {
-	codeModel, err := s.CodeStore.Get(target)
+	codeModel, err := s.getCode(target)
 	if errors.Is(err, ErrCodeNotFound) {
 		return ErrInvalidCode
 	} else if err != nil {
@@ -77,15 +102,36 @@ func (s *Service) VerifyCode(target string, code string) error {
 		return ErrInvalidCode
 	}
 
-	if err = s.CodeStore.Delete(target); err != nil {
-		s.Logger.WithError(err).Error("failed to delete code after validation")
+	s.deleteCode(target)
+
+	return nil
+}
+
+func (s *Service) VerifyWhatsappCode(target string, consume bool) error {
+	codeModel, err := s.getCode(target)
+	if errors.Is(err, ErrCodeNotFound) {
+		return ErrInvalidCode
+	} else if err != nil {
+		return err
+	}
+
+	if codeModel.UserInputtedCode == "" {
+		return whatsapp.ErrInputRequired
+	}
+
+	if !secretcode.OOBOTPSecretCode.Compare(codeModel.UserInputtedCode, codeModel.Code) {
+		return ErrInvalidCode
+	}
+
+	if consume {
+		s.deleteCode(target)
 	}
 
 	return nil
 }
 
 func (s *Service) SetUserInputtedCode(target string, userInputtedCode string) (*Code, error) {
-	codeModel, err := s.CodeStore.Get(target)
+	codeModel, err := s.getCode(target)
 	if err != nil {
 		return nil, err
 	}

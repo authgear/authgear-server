@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/whatsapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -74,10 +75,14 @@ func ConfigureWhatsappWATICallbackRoute(route httproute.Route) httproute.Route {
 }
 
 type WhatsappWATICallbackHandler struct {
-	WhatsappCodeProvider        WhatsappCodeProvider
+	OTPCodeService              OTPCodeService
 	Logger                      WhatsappWATICallbackHandlerLogger
 	WATICredentials             *config.WATICredentials
 	GlobalSessionServiceFactory *GlobalSessionServiceFactory
+}
+
+type OTPCodeService interface {
+	SetUserInputtedCode(target string, userInputtedCode string) (*otp.Code, error)
 }
 
 type WhatsappWATICallbackHandlerLogger struct{ *log.Logger }
@@ -147,7 +152,7 @@ func (h *WhatsappWATICallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	codeModel, err := h.WhatsappCodeProvider.SetUserInputtedCode(phone, code)
+	codeModel, err := h.OTPCodeService.SetUserInputtedCode(phone, code)
 	if err != nil {
 		if errors.Is(err, whatsapp.ErrCodeNotFound) {
 			err = errors.New("whatsapp code not found")

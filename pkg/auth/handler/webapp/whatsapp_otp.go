@@ -138,14 +138,13 @@ func (h *WhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	})
 
 	ctrl.PostAction("dryrun_verify", func() error {
-		webSession := webapp.GetSession(r.Context())
 		phone, err := getPhoneFromGraph()
 		if err != nil {
 			return err
 		}
 
 		var state WhatsappOTPPageQueryState
-		_, err = h.WhatsappCodeProvider.VerifyCode(phone, webSession.ID, false)
+		err = h.WhatsappCodeProvider.VerifyCode(phone, true)
 		if err == nil {
 			state = WhatsappOTPPageQueryStateMatched
 		} else if errors.Is(err, whatsapp.ErrInvalidCode) {

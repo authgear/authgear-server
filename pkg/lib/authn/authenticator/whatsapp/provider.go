@@ -1,8 +1,6 @@
 package whatsapp
 
 import (
-	"errors"
-
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -19,12 +17,17 @@ type EventService interface {
 	DispatchEvent(payload event.Payload) error
 }
 
+type OTPCodeService interface {
+	VerifyWhatsappCode(target string, consume bool) error
+}
+
 type Provider struct {
 	CodeStore       *StoreRedis
 	Clock           clock.Clock
 	Logger          Logger
 	WATICredentials *config.WATICredentials
 	Events          EventService
+	OTPCodeService  OTPCodeService
 }
 
 func (p *Provider) GetServerWhatsappPhone() string {
@@ -56,38 +59,21 @@ func (p *Provider) CreateCode(phone string, appID string, webSessionID string) (
 	return codeModel, nil
 }
 
-func (p *Provider) VerifyCode(phone string, webSessionID string, consume bool) (*Code, error) {
-	codeModel, err := p.CodeStore.Get(phone)
-	if errors.Is(err, ErrCodeNotFound) {
-		return nil, ErrInvalidCode
-	} else if err != nil {
-		return nil, err
-	}
-
-	if webSessionID != codeModel.WebSessionID {
-		return nil, ErrWebSessionIDMismatch
-	}
-
-	if codeModel.UserInputtedCode == "" {
-		return nil, ErrInputRequired
-	}
-
-	if !secretcode.OOBOTPSecretCode.Compare(codeModel.UserInputtedCode, codeModel.Code) {
-		return nil, ErrInvalidCode
+func (p *Provider) VerifyCode(phone string, consume bool) error {
+	err := p.OTPCodeService.VerifyWhatsappCode(phone, consume)
+	if err != nil {
+		return err
 	}
 
 	if consume {
-		if err := p.CodeStore.Delete(phone); err != nil {
-			p.Logger.WithError(err).Error("whatsapp: failed to delete code")
-		}
 		if err := p.Events.DispatchEvent(&nonblocking.WhatsappOTPVerifiedEventPayload{
 			Phone: phone,
 		}); err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return codeModel, nil
+	return nil
 }
 
 func (p *Provider) SetUserInputtedCode(phone string, userInputtedCode string) (*Code, error) {
