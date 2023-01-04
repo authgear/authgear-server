@@ -22,6 +22,7 @@ type OfflineGrantStore interface {
 	UpdateOfflineGrantAuthenticatedAt(id string, authenticatedAt time.Time, expireAt time.Time) (*OfflineGrant, error)
 
 	ListOfflineGrants(userID string) ([]*OfflineGrant, error)
+	ListClientOfflineGrants(clientID string, userID string) ([]*OfflineGrant, error)
 }
 
 type AccessGrantStore interface {

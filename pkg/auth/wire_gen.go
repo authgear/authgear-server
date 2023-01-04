@@ -774,6 +774,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -1566,6 +1567,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -2365,6 +2367,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -4809,6 +4812,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -4983,24 +4987,35 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	appredisHandle := appProvider.Redis
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
@@ -5063,7 +5078,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	appredisHandle := appProvider.Redis
 	store2 := &passkey2.Store{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -5264,14 +5278,14 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -5280,7 +5294,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -5394,7 +5408,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -5413,7 +5427,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -5435,16 +5449,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -5473,7 +5477,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -5605,6 +5609,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -5668,8 +5673,8 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		AppID:               appID,
 		Config:              oAuthConfig,
 		Authorizations:      authorizationStore,
-		OfflineGrants:       redisStore,
-		AccessGrants:        redisStore,
+		OfflineGrants:       store,
+		AccessGrants:        store,
 		OfflineGrantService: offlineGrantService,
 		AccessEvents:        eventProvider,
 		AccessTokenIssuer:   accessTokenEncoding,
@@ -5728,24 +5733,35 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	appredisHandle := appProvider.Redis
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
@@ -5808,7 +5824,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	appredisHandle := appProvider.Redis
 	store2 := &passkey2.Store{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -6009,14 +6024,14 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -6025,7 +6040,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -6139,7 +6154,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -6158,7 +6173,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -6180,16 +6195,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -6218,7 +6223,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -6350,6 +6355,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -6413,8 +6419,8 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		AppID:               appID,
 		Config:              oAuthConfig,
 		Authorizations:      authorizationStore,
-		OfflineGrants:       redisStore,
-		AccessGrants:        redisStore,
+		OfflineGrants:       store,
+		AccessGrants:        store,
 		OfflineGrantService: offlineGrantService,
 		AccessEvents:        eventProvider,
 		AccessTokenIssuer:   accessTokenEncoding,
@@ -6581,24 +6587,34 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -6859,14 +6875,14 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -6875,7 +6891,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -6989,7 +7005,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -7008,7 +7024,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -7029,16 +7045,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -7067,7 +7073,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -7198,6 +7204,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -7364,24 +7371,34 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -7642,14 +7659,14 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -7658,7 +7675,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -7772,7 +7789,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -7791,7 +7808,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -7812,16 +7829,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -7850,7 +7857,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -7981,6 +7988,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -8146,24 +8154,34 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -8424,14 +8442,14 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -8440,7 +8458,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -8554,7 +8572,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -8573,7 +8591,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -8594,16 +8612,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -8632,7 +8640,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -8763,6 +8771,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -8911,24 +8920,34 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -9189,14 +9208,14 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -9205,7 +9224,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -9319,7 +9338,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -9338,7 +9357,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -9359,16 +9378,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -9397,7 +9406,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -9528,6 +9537,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -9674,24 +9684,34 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -9952,14 +9972,14 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -9968,7 +9988,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -10082,7 +10102,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -10101,7 +10121,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -10122,16 +10142,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -10160,7 +10170,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -10291,6 +10301,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -10427,24 +10438,34 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -10705,14 +10726,14 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -10721,7 +10742,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -10835,7 +10856,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -10854,7 +10875,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -10875,16 +10896,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -10913,7 +10924,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -11044,6 +11055,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -11183,24 +11195,34 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -11461,14 +11483,14 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -11477,7 +11499,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -11591,7 +11613,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -11610,7 +11632,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -11631,16 +11653,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -11669,7 +11681,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -11800,6 +11812,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -11942,24 +11955,34 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -12220,14 +12243,14 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -12236,7 +12259,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -12350,7 +12373,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -12369,7 +12392,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -12390,16 +12413,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -12428,7 +12441,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -12559,6 +12572,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -12703,24 +12717,34 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -12981,14 +13005,14 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -12997,7 +13021,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -13111,7 +13135,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -13130,7 +13154,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -13151,16 +13175,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -13189,7 +13203,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -13320,6 +13334,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -13462,24 +13477,34 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -13748,14 +13773,14 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -13764,7 +13789,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -13878,7 +13903,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -13897,7 +13922,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -13918,16 +13943,6 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -13956,7 +13971,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -14096,6 +14111,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -14235,24 +14251,34 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -14513,14 +14539,14 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -14529,7 +14555,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -14643,7 +14669,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -14662,7 +14688,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -14683,16 +14709,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -14721,7 +14737,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -14852,6 +14868,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -14994,24 +15011,34 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -15272,14 +15299,14 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -15288,7 +15315,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -15402,7 +15429,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -15421,7 +15448,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -15442,16 +15469,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -15480,7 +15497,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -15611,6 +15628,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -15754,24 +15772,34 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -16032,14 +16060,14 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -16048,7 +16076,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -16162,7 +16190,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -16181,7 +16209,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -16202,16 +16230,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -16240,7 +16258,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -16371,6 +16389,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -16513,24 +16532,34 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -16791,14 +16820,14 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -16807,7 +16836,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -16921,7 +16950,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -16940,7 +16969,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -16961,16 +16990,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -16999,7 +17018,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -17130,6 +17149,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -17272,24 +17292,34 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -17550,14 +17580,14 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -17566,7 +17596,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -17680,7 +17710,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -17699,7 +17729,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -17720,16 +17750,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -17758,7 +17778,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -17889,6 +17909,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -18033,24 +18054,34 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -18311,14 +18342,14 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -18327,7 +18358,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -18441,7 +18472,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -18460,7 +18491,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -18481,16 +18512,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -18519,7 +18540,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -18650,6 +18671,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -18792,24 +18814,34 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -19070,14 +19102,14 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -19086,7 +19118,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -19200,7 +19232,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -19219,7 +19251,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -19240,16 +19272,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -19278,7 +19300,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -19409,6 +19431,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -19551,24 +19574,34 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -19829,14 +19862,14 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -19845,7 +19878,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -19959,7 +19992,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -19978,7 +20011,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -19999,16 +20032,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -20037,7 +20060,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -20168,6 +20191,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -20312,24 +20336,34 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -20590,14 +20624,14 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -20606,7 +20640,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -20720,7 +20754,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -20739,7 +20773,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -20760,16 +20794,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -20798,7 +20822,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -20929,6 +20953,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -21071,24 +21096,34 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -21349,14 +21384,14 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -21365,7 +21400,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -21479,7 +21514,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -21498,7 +21533,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -21519,16 +21554,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -21557,7 +21582,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -21688,6 +21713,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -21866,24 +21892,34 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -22144,14 +22180,14 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -22160,7 +22196,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -22274,7 +22310,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -22293,7 +22329,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -22314,16 +22350,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -22352,7 +22378,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -22483,6 +22509,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -22625,24 +22652,34 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -22903,14 +22940,14 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -22919,7 +22956,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -23033,7 +23070,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -23052,7 +23089,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -23073,16 +23110,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -23111,7 +23138,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -23242,6 +23269,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -23380,24 +23408,34 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -23658,14 +23696,14 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -23674,7 +23712,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -23788,7 +23826,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -23807,7 +23845,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -23828,16 +23866,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -23866,7 +23894,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -23997,6 +24025,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -24137,24 +24166,34 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -24415,14 +24454,14 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -24431,7 +24470,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -24545,7 +24584,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -24564,7 +24603,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -24585,16 +24624,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -24623,7 +24652,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -24754,6 +24783,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -24892,24 +24922,34 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -25170,14 +25210,14 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -25186,7 +25226,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -25300,7 +25340,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -25319,7 +25359,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -25340,16 +25380,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -25378,7 +25408,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -25509,6 +25539,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -25657,24 +25688,34 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -25935,14 +25976,14 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -25951,7 +25992,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -26065,7 +26106,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -26084,7 +26125,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -26105,16 +26146,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -26143,7 +26174,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -26274,6 +26305,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -26412,24 +26444,34 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -26690,14 +26732,14 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -26706,7 +26748,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -26820,7 +26862,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -26839,7 +26881,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -26860,16 +26902,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -26898,7 +26930,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -27029,6 +27061,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -27168,24 +27201,34 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -27446,14 +27489,14 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -27462,7 +27505,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -27576,7 +27619,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -27595,7 +27638,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -27616,16 +27659,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -27654,7 +27687,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -27785,6 +27818,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -27923,24 +27957,34 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -28201,14 +28245,14 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -28217,7 +28261,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -28331,7 +28375,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -28350,7 +28394,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -28371,16 +28415,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -28409,7 +28443,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -28540,6 +28574,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -28710,24 +28745,34 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -28988,14 +29033,14 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -29004,7 +29049,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -29118,7 +29163,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -29137,7 +29182,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -29158,16 +29203,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -29196,7 +29231,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -29327,6 +29362,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -29476,24 +29512,34 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -29754,14 +29800,14 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -29770,7 +29816,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -29884,7 +29930,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -29903,7 +29949,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -29924,16 +29970,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -29962,7 +29998,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -30093,6 +30129,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -30255,24 +30292,34 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -30533,14 +30580,14 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -30549,7 +30596,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -30663,7 +30710,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -30682,7 +30729,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -30703,16 +30750,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -30741,7 +30778,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -30872,6 +30909,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -31018,24 +31056,34 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -31296,14 +31344,14 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -31312,7 +31360,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -31426,7 +31474,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -31445,7 +31493,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -31466,16 +31514,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -31504,7 +31542,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -31635,6 +31673,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -31774,24 +31813,34 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -32052,14 +32101,14 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -32068,7 +32117,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -32182,7 +32231,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -32201,7 +32250,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -32222,16 +32271,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -32260,7 +32299,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -32391,6 +32430,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -32538,24 +32578,34 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -32816,14 +32866,14 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -32832,7 +32882,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -32946,7 +32996,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -32965,7 +33015,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -32986,16 +33036,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -33024,7 +33064,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -33155,6 +33195,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -33294,24 +33335,34 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -33572,14 +33623,14 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -33588,7 +33639,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -33702,7 +33753,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -33721,7 +33772,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -33742,16 +33793,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -33780,7 +33821,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -33911,6 +33952,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -34050,24 +34092,34 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -34328,14 +34380,14 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -34344,7 +34396,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -34458,7 +34510,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -34477,7 +34529,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -34498,16 +34550,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -34536,7 +34578,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -34667,6 +34709,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -34806,24 +34849,34 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -35084,14 +35137,14 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -35100,7 +35153,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -35214,7 +35267,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -35233,7 +35286,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -35254,16 +35307,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -35292,7 +35335,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -35423,6 +35466,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -35563,24 +35607,34 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -35841,14 +35895,14 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -35857,7 +35911,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -35971,7 +36025,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -35990,7 +36044,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -36011,16 +36065,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -36049,7 +36093,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -36180,6 +36224,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -36338,24 +36383,34 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -36616,14 +36671,14 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -36632,7 +36687,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -36746,7 +36801,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -36765,7 +36820,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -36786,16 +36841,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -36824,7 +36869,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -36955,6 +37000,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -37094,24 +37140,34 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -37372,14 +37428,14 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -37388,7 +37444,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -37502,7 +37558,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -37521,7 +37577,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -37542,16 +37598,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -37580,7 +37626,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -37711,6 +37757,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -37850,24 +37897,34 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -38128,14 +38185,14 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -38144,7 +38201,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -38258,7 +38315,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -38277,7 +38334,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -38298,16 +38355,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -38336,7 +38383,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -38467,6 +38514,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -38606,24 +38654,34 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -38884,14 +38942,14 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -38900,7 +38958,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -39014,7 +39072,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -39033,7 +39091,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -39054,16 +39112,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -39092,7 +39140,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -39223,6 +39271,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -39362,24 +39411,34 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -39640,14 +39699,14 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -39656,7 +39715,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -39770,7 +39829,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -39789,7 +39848,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -39810,16 +39869,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -39848,7 +39897,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -39979,6 +40028,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -40125,24 +40175,34 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -40403,14 +40463,14 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -40419,7 +40479,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -40533,7 +40593,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -40552,7 +40612,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -40573,16 +40633,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -40611,7 +40661,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -40742,6 +40792,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -40882,24 +40933,34 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -41160,14 +41221,14 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -41176,7 +41237,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -41290,7 +41351,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -41309,7 +41370,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -41330,16 +41391,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -41368,7 +41419,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -41499,6 +41550,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -41637,24 +41689,34 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -41915,14 +41977,14 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -41931,7 +41993,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -42045,7 +42107,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -42064,7 +42126,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -42085,16 +42147,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -42123,7 +42175,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -42254,6 +42306,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -42406,24 +42459,34 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -42684,14 +42747,14 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -42700,7 +42763,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -42814,7 +42877,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -42833,7 +42896,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -42854,16 +42917,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -42892,7 +42945,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -43023,6 +43076,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -43161,24 +43215,34 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -43439,14 +43503,14 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -43455,7 +43519,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -43569,7 +43633,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -43588,7 +43652,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -43609,16 +43673,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -43647,7 +43701,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -43778,6 +43832,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -43916,24 +43971,34 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -44194,14 +44259,14 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -44210,7 +44275,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -44324,7 +44389,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -44343,7 +44408,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -44364,16 +44429,6 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -44402,7 +44457,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -44533,6 +44588,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -44688,24 +44744,34 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, appdbHandle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       handle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -44966,14 +45032,14 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -44982,7 +45048,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -45096,7 +45162,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -45115,7 +45181,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -45136,16 +45202,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       handle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: handle,
@@ -45174,7 +45230,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -45305,6 +45361,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -45410,24 +45467,34 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, appdbHandle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       handle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -45688,14 +45755,14 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -45704,7 +45771,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -45818,7 +45885,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -45837,7 +45904,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -45858,16 +45925,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       handle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: handle,
@@ -45896,7 +45953,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -46027,6 +46084,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -46131,24 +46189,34 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -46409,14 +46477,14 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -46425,7 +46493,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -46539,7 +46607,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -46558,7 +46626,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -46579,16 +46647,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -46617,7 +46675,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -46748,6 +46806,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -46896,24 +46955,34 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -47174,14 +47243,14 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -47190,7 +47259,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -47304,7 +47373,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -47323,7 +47392,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -47344,16 +47413,6 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -47382,7 +47441,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -47513,6 +47572,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,

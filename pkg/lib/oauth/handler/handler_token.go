@@ -712,14 +712,11 @@ func (h *TokenHandler) handleIDToken(
 func (h *TokenHandler) revokeClientOfflineGrants(
 	client *config.OAuthClientConfig,
 	userID string) error {
-	offlineGrants, err := h.OfflineGrants.ListOfflineGrants(userID)
+	offlineGrants, err := h.OfflineGrants.ListClientOfflineGrants(client.ClientID, userID)
 	if err != nil {
 		return err
 	}
 	for _, offlineGrant := range offlineGrants {
-		if offlineGrant.ClientID != client.ClientID {
-			continue
-		}
 		h.SessionManager.RevokeWithEvent(offlineGrant, false, false)
 	}
 	return nil
