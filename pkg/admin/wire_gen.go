@@ -809,6 +809,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             redisStore,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,

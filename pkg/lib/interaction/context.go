@@ -20,6 +20,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -175,6 +176,10 @@ type AuthenticationInfoService interface {
 	Save(entry *authenticationinfo.Entry) error
 }
 
+type OfflineGrantStore interface {
+	ListClientOfflineGrants(clientID string, userID string) ([]*oauth.OfflineGrant, error)
+}
+
 type Context struct {
 	IsCommitting bool   `wire:"-"`
 	WebSessionID string `wire:"-"`
@@ -187,6 +192,7 @@ type Context struct {
 	Config        *config.AppConfig
 	FeatureConfig *config.FeatureConfig
 
+	OfflineGrants            OfflineGrantStore
 	Identities               IdentityService
 	Authenticators           AuthenticatorService
 	AnonymousIdentities      AnonymousIdentityProvider

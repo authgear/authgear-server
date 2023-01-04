@@ -409,6 +409,21 @@ func (s *Store) ListOfflineGrants(userID string) ([]*oauth.OfflineGrant, error) 
 	return grants, nil
 }
 
+func (s *Store) ListClientOfflineGrants(clientID string, userID string) ([]*oauth.OfflineGrant, error) {
+	offlineGrants, err := s.ListOfflineGrants(userID)
+	if err != nil {
+		return nil, err
+	}
+	result := []*oauth.OfflineGrant{}
+	for _, offlineGrant := range offlineGrants {
+		if offlineGrant.ClientID != clientID {
+			continue
+		}
+		result = append(result, offlineGrant)
+	}
+	return result, nil
+}
+
 func (s *Store) GetAppSessionToken(tokenHash string) (*oauth.AppSessionToken, error) {
 	t := &oauth.AppSessionToken{}
 

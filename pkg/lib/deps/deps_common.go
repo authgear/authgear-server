@@ -275,6 +275,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(sessionlisting.OfflineGrantService), new(*oauth.OfflineGrantService)),
 		wire.Value(oauthhandler.TokenGenerator(oauth.GenerateToken)),
 		wire.Bind(new(oauthhandler.AuthorizationService), new(*oauth.AuthorizationService)),
+		wire.Bind(new(interaction.OfflineGrantStore), new(*oauthredis.Store)),
 
 		oauthhandler.DependencySet,
 

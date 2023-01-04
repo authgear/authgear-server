@@ -13,10 +13,25 @@ type InputConfirmTerminateOtherSessionsEnd interface {
 }
 
 type EdgeConfirmTerminateOtherSessionsEnd struct {
-	IsConfirmed bool
 }
 
 func (e *EdgeConfirmTerminateOtherSessionsEnd) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+	clientID := ctx.Request.URL.Query().Get("client_id")
+	client, success := ctx.Config.OAuth.GetClient(clientID)
+	if clientID == "" || !success || client.MaxConcurrentSession != 1 {
+		return &NodeConfirmTerminateOtherSessionsEnd{
+			IsConfirmed: true,
+		}, nil
+	}
+	existingGrants, err := ctx.OfflineGrants.ListClientOfflineGrants(client.ClientID, graph.MustGetUserID())
+	if err != nil {
+		return nil, err
+	}
+	if len(existingGrants) == 0 {
+		return &NodeConfirmTerminateOtherSessionsEnd{
+			IsConfirmed: true,
+		}, nil
+	}
 
 	var confirmInput InputConfirmTerminateOtherSessionsEnd
 	if !interaction.Input(rawInput, &confirmInput) {
