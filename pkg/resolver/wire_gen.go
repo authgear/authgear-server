@@ -21,6 +21,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/siwe"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
@@ -401,53 +402,45 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Config: authenticatorTOTPConfig,
 		Clock:  clock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: handle,
 		AppID: appID,
 		Clock: clock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -815,27 +808,17 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:               passkeyProvider,
 		SIWE:                  siweProvider,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	resolveHandlerLogger := handler.NewResolveHandlerLogger(factory)
 	userStore := &user.Store{
@@ -898,31 +881,33 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       serviceStore,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          serviceStore,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost

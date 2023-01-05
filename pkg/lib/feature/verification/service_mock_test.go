@@ -7,75 +7,8 @@ package verification
 import (
 	reflect "reflect"
 
-	ratelimit "github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	gomock "github.com/golang/mock/gomock"
 )
-
-// MockCodeStore is a mock of CodeStore interface.
-type MockCodeStore struct {
-	ctrl     *gomock.Controller
-	recorder *MockCodeStoreMockRecorder
-}
-
-// MockCodeStoreMockRecorder is the mock recorder for MockCodeStore.
-type MockCodeStoreMockRecorder struct {
-	mock *MockCodeStore
-}
-
-// NewMockCodeStore creates a new mock instance.
-func NewMockCodeStore(ctrl *gomock.Controller) *MockCodeStore {
-	mock := &MockCodeStore{ctrl: ctrl}
-	mock.recorder = &MockCodeStoreMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockCodeStore) EXPECT() *MockCodeStoreMockRecorder {
-	return m.recorder
-}
-
-// Create mocks base method.
-func (m *MockCodeStore) Create(code *Code) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", code)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Create indicates an expected call of Create.
-func (mr *MockCodeStoreMockRecorder) Create(code interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockCodeStore)(nil).Create), code)
-}
-
-// Delete mocks base method.
-func (m *MockCodeStore) Delete(codeKey *CodeKey) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", codeKey)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Delete indicates an expected call of Delete.
-func (mr *MockCodeStoreMockRecorder) Delete(codeKey interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockCodeStore)(nil).Delete), codeKey)
-}
-
-// Get mocks base method.
-func (m *MockCodeStore) Get(codeKey *CodeKey) (*Code, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", codeKey)
-	ret0, _ := ret[0].(*Code)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Get indicates an expected call of Get.
-func (mr *MockCodeStoreMockRecorder) Get(codeKey interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockCodeStore)(nil).Get), codeKey)
-}
 
 // MockClaimStore is a mock of ClaimStore interface.
 type MockClaimStore struct {
@@ -185,41 +118,4 @@ func (m *MockClaimStore) ListByUser(userID string) ([]*Claim, error) {
 func (mr *MockClaimStoreMockRecorder) ListByUser(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByUser", reflect.TypeOf((*MockClaimStore)(nil).ListByUser), userID)
-}
-
-// MockRateLimiter is a mock of RateLimiter interface.
-type MockRateLimiter struct {
-	ctrl     *gomock.Controller
-	recorder *MockRateLimiterMockRecorder
-}
-
-// MockRateLimiterMockRecorder is the mock recorder for MockRateLimiter.
-type MockRateLimiterMockRecorder struct {
-	mock *MockRateLimiter
-}
-
-// NewMockRateLimiter creates a new mock instance.
-func NewMockRateLimiter(ctrl *gomock.Controller) *MockRateLimiter {
-	mock := &MockRateLimiter{ctrl: ctrl}
-	mock.recorder = &MockRateLimiterMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockRateLimiter) EXPECT() *MockRateLimiterMockRecorder {
-	return m.recorder
-}
-
-// TakeToken mocks base method.
-func (m *MockRateLimiter) TakeToken(bucket ratelimit.Bucket) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TakeToken", bucket)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// TakeToken indicates an expected call of TakeToken.
-func (mr *MockRateLimiterMockRecorder) TakeToken(bucket interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TakeToken", reflect.TypeOf((*MockRateLimiter)(nil).TakeToken), bucket)
 }
