@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -104,6 +105,10 @@ type SessionListingService interface {
 	FilterForDisplay(sessions []session.Session, currentSession session.Session) ([]*sessionlisting.Session, error)
 }
 
+type OTPCodeService interface {
+	GenerateCode(target string) (*otp.Code, error)
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("admin-graphql")} }
@@ -129,6 +134,7 @@ type Context struct {
 	AuthorizationFacade AuthorizationFacade
 	OAuthFacade         OAuthFacade
 	SessionListing      SessionListingService
+	OTPCode             OTPCodeService
 }
 
 func (c *Context) Logger() *log.Logger {

@@ -293,6 +293,16 @@ export type Entity = {
   updatedAt: Scalars['DateTime'];
 };
 
+export type GenerateOobotpCodeInput = {
+  /** Target user's email or phone number. */
+  target: Scalars['String'];
+};
+
+export type GenerateOobotpCodePayload = {
+  __typename?: 'GenerateOOBOTPCodePayload';
+  code: Scalars['String'];
+};
+
 export type Identity = Entity & Node & {
   __typename?: 'Identity';
   claims: Scalars['IdentityClaims'];
@@ -370,6 +380,8 @@ export type Mutation = {
   deleteIdentity: DeleteIdentityPayload;
   /** Delete specified user */
   deleteUser: DeleteUserPayload;
+  /** Generate OOB OTP code for user */
+  generateOOBOTPCode: GenerateOobotpCodePayload;
   /** Reset password of user */
   resetPassword: ResetPasswordPayload;
   /** Revoke all sessions of user */
@@ -430,6 +442,11 @@ export type MutationDeleteIdentityArgs = {
 
 export type MutationDeleteUserArgs = {
   input: DeleteUserInput;
+};
+
+
+export type MutationGenerateOobotpCodeArgs = {
+  input: GenerateOobotpCodeInput;
 };
 
 

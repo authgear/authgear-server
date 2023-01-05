@@ -432,6 +432,18 @@ interface Entity {
 }
 
 """"""
+input GenerateOOBOTPCodeInput {
+  """Target user's email or phone number."""
+  target: String!
+}
+
+""""""
+type GenerateOOBOTPCodePayload {
+  """"""
+  code: String!
+}
+
+""""""
 type Identity implements Entity & Node {
   """"""
   claims(names: [String!]): IdentityClaims!
@@ -538,6 +550,9 @@ type Mutation {
 
   """Delete specified user"""
   deleteUser(input: DeleteUserInput!): DeleteUserPayload!
+
+  """Generate OOB OTP code for user"""
+  generateOOBOTPCode(input: GenerateOOBOTPCodeInput!): GenerateOOBOTPCodePayload!
 
   """Reset password of user"""
   resetPassword(input: ResetPasswordInput!): ResetPasswordPayload!
