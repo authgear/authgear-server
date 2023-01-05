@@ -43,3 +43,7 @@ func InstantiateIntent(kind string) Intent {
 type IntentWithWebhookState interface {
 	GetWebhookState() string
 }
+
+type IntentWithCancelURI interface {
+	GetCancelURI() string
+}
