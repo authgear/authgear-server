@@ -61,9 +61,7 @@ type OOBAuthenticatorProvider interface {
 
 type OTPCodeService interface {
 	GenerateCode(target string, expireAt time.Time) (*otp.Code, error)
-	GenerateWhatsappCode(target string, appID string, webSessionID string) (*otp.Code, error)
 	VerifyCode(target string, code string) error
-	VerifyWhatsappCode(target string, consume bool) error
 }
 
 type OOBCodeSender interface {
@@ -77,6 +75,7 @@ type OOBCodeSender interface {
 
 type WhatsappCodeProvider interface {
 	CreateCode(phone string, appID string, webSessionID string) (*whatsapp.Code, error)
+	GenerateCode(phone string, appID string, webSessionID string) (*otp.Code, error)
 	VerifyCode(phone string, consume bool) error
 }
 

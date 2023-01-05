@@ -4,7 +4,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/whatsapp"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
@@ -78,7 +77,7 @@ func (s *Service) GenerateWhatsappCode(target string, appID string, webSessionID
 
 	if code == nil || s.Clock.NowUTC().After(code.ExpireAt) {
 		code, err = s.createCode(target, &Code{
-			ExpireAt: s.Clock.NowUTC().Add(whatsapp.WhatsappCodeDuration),
+			ExpireAt: s.Clock.NowUTC().Add(WhatsappCodeDuration),
 			AppID: appID,
 			WebSessionID: webSessionID,
 		})
@@ -116,7 +115,7 @@ func (s *Service) VerifyWhatsappCode(target string, consume bool) error {
 	}
 
 	if codeModel.UserInputtedCode == "" {
-		return whatsapp.ErrInputRequired
+		return ErrInputRequired
 	}
 
 	if !secretcode.OOBOTPSecretCode.Compare(codeModel.UserInputtedCode, codeModel.Code) {
