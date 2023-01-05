@@ -1,7 +1,7 @@
 package graphql
 
 import (
-	"github.com/authgear/graphql-go-relay"
+	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
@@ -122,6 +122,53 @@ var _ = registerMutationField(
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"user": gqlCtx.Users.Load(userID),
+			}).Value, nil
+		},
+	},
+)
+
+var generateOOBOTPCodeInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "GenerateOOBOTPCodeInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"target": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "Target user's email or phone number.",
+		},
+	},
+})
+
+var generateOOBOTPCodePayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "GenerateOOBOTPCodePayload",
+	Fields: graphql.Fields{
+		"code": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"generateOOBOTPCode",
+	&graphql.Field{
+		Description: "Generate OOB OTP code for user",
+		Type:        graphql.NewNonNull(generateOOBOTPCodePayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(generateOOBOTPCodeInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+			target := input["target"].(string)
+
+			gqlCtx := GQLContext(p.Context)
+
+			code, err := gqlCtx.OTPCode.GenerateCode(target)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"code": code.Code,
 			}).Value, nil
 		},
 	},
