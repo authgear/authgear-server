@@ -78,7 +78,7 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 	code, err := p.Context.OTPCodeService.GenerateCode(
 		p.AuthenticatorInfo.OOBOTP.ToTarget(),
 		// TODO(oob): Expiry should be configurable
-		p.Clock.NowUTC().Add(time.Duration(3600)*time.Second))
+		time.Time{})
 	if err != nil {
 		return nil, err
 	}
