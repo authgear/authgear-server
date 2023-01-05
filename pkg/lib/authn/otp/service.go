@@ -77,8 +77,8 @@ func (s *Service) GenerateWhatsappCode(target string, appID string, webSessionID
 
 	if code == nil || s.Clock.NowUTC().After(code.ExpireAt) {
 		code, err = s.createCode(target, &Code{
-			ExpireAt: s.Clock.NowUTC().Add(WhatsappCodeDuration),
-			AppID: appID,
+			ExpireAt:     s.Clock.NowUTC().Add(WhatsappCodeDuration),
+			AppID:        appID,
 			WebSessionID: webSessionID,
 		})
 		if err != nil {
