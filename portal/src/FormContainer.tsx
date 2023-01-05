@@ -166,21 +166,15 @@ const FormContainer: React.VFC<FormContainerProps> = function FormContainer(
       rules={errorRules}
       fallbackErrorMessageID={fallbackErrorMessageID}
     >
-      {hideCommandBar === true ? (
-        <div>
-          <FormErrorMessageBar>{messageBar}</FormErrorMessageBar>
-          <form onSubmit={onFormSubmit}>{props.children}</form>
-        </div>
-      ) : (
-        <CommandBarContainer
-          isLoading={isUpdating}
-          primaryItems={items}
-          secondaryItems={farItems}
-          messageBar={<FormErrorMessageBar>{messageBar}</FormErrorMessageBar>}
-        >
-          <form onSubmit={onFormSubmit}>{props.children}</form>
-        </CommandBarContainer>
-      )}
+      <CommandBarContainer
+        hideCommandBar={hideCommandBar}
+        isLoading={isUpdating}
+        primaryItems={items}
+        secondaryItems={farItems}
+        messageBar={<FormErrorMessageBar>{messageBar}</FormErrorMessageBar>}
+      >
+        <form onSubmit={onFormSubmit}>{props.children}</form>
+      </CommandBarContainer>
       <Dialog
         hidden={!isResetDialogVisible}
         dialogContentProps={resetDialogContentProps}
