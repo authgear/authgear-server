@@ -8,6 +8,7 @@ pkg/api/model/siwe.go cannot import github.com/authgear/authgear-server/pkg/util
 pkg/api/model/web3.go cannot import github.com/authgear/authgear-server/pkg/util/web3
 
 exit status 1
+pkg/lib/deps/deps_common.go cannot import github.com/authgear/authgear-server/pkg/auth/handler/webapp
 pkg/lib/oauth/handler/handler_authz.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
 pkg/lib/oauth/handler/handler_authz_mock_test.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
 pkg/lib/oauth/handler/mock_test.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
