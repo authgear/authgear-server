@@ -39,12 +39,12 @@
 
 .blockingHookKind {
   flex: 0.15 0 0;
-  min-width: 150px;
+  min-width: 120px;
 }
 
 .blockingHookEvent {
   flex: 0.35 0 0;
-  min-width: 150px;
+  min-width: 220px;
 }
 
 .blockingHookConfig {
