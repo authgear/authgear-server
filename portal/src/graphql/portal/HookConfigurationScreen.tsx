@@ -8,7 +8,9 @@ import {
   Label,
   FontIcon,
   Text,
+  Dialog,
   useTheme,
+  DialogFooter,
 } from "@fluentui/react";
 import produce from "immer";
 import ShowError from "../../ShowError";
@@ -58,6 +60,7 @@ import PrimaryButton from "../../PrimaryButton";
 import ActionButton from "../../ActionButton";
 import CodeEditor from "../../CodeEditor";
 import DefaultButton from "../../DefaultButton";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
 const CODE_EDITOR_OPTIONS = {
   minimap: {
@@ -324,8 +327,10 @@ interface BlockingHandlerItemEditProps {
 const BlockingHandlerItemEdit: React.VFC<BlockingHandlerItemEditProps> =
   function BlockingHandlerItemEdit(props) {
     const { index, value, onChange, onEdit } = props;
+    const [newEventName, setNewEventName] = useState<string | null>(null);
 
     const { renderToString } = useContext(Context);
+    const { themes } = useSystemConfig();
 
     const theme = useTheme();
 
@@ -346,11 +351,36 @@ const BlockingHandlerItemEdit: React.VFC<BlockingHandlerItemEditProps> =
     const eventFieldProps = useErrorMessageString(eventField);
     const urlFieldProps = useErrorMessage(urlField);
 
+    const onDismissDialog = useCallback((e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setNewEventName(null);
+    }, []);
+    const onConfirmChangeEvent = useCallback(
+      (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (newEventName != null) {
+          onChange({ ...value, event: newEventName });
+          setNewEventName(null);
+        }
+      },
+      [onChange, value, newEventName]
+    );
     const onBlockingEventChange = useCallback(
       (_, event?: IDropdownOption) => {
-        onChange({ ...value, event: String(event?.key ?? "") });
+        // Show the dialog to confirm overwriting the script if
+        // the kind is denohook.
+        if (value.kind === "denohook") {
+          const key = event?.key ?? null;
+          if (typeof key === "string") {
+            setNewEventName(key);
+          }
+        } else {
+          onChange({ ...value, event: String(event?.key ?? "") });
+        }
       },
-      [onChange, value]
+      [value, onChange]
     );
     const onURLChange = useCallback(
       (_, url?: string) => {
@@ -411,65 +441,95 @@ const BlockingHandlerItemEdit: React.VFC<BlockingHandlerItemEditProps> =
       ];
     }, [renderToString]);
 
+    const dialogContentProps = useMemo(() => {
+      return {
+        title: renderToString("HookConfigurationScreen.change-event.title"),
+        subText: renderToString(
+          "HookConfigurationScreen.change-event.description"
+        ),
+      };
+    }, [renderToString]);
+
     return (
-      <div className={styles.hookContainer}>
-        <Dropdown
-          className={styles.blockingHookKind}
-          options={kindOptions}
-          selectedKey={value.kind}
-          onChange={onChangeHookKind}
-          ariaLabel={"HookConfigurationScreen.hook-kind.label"}
-        />
-        <Dropdown
-          className={styles.blockingHookEvent}
-          options={eventOptions}
-          selectedKey={value.event}
-          onChange={onBlockingEventChange}
-          ariaLabel={"HookConfigurationScreen.blocking-events.label"}
-          {...eventFieldProps}
-        />
-        {value.kind === "webhook" ? (
-          <div className={cn(styles.blockingHookConfig, styles.hookConfig)}>
-            <Label>
-              <FormattedMessage id="HookConfigurationScreen.action.endpoint.label" />
-            </Label>
-            <TextField
-              className={styles.hookConfigConfig}
-              value={value.url}
-              onChange={onURLChange}
-              placeholder="https://example.com/callback"
-              {...urlFieldProps}
-            />
-          </div>
-        ) : null}
-        {value.kind === "denohook" ? (
-          <div className={cn(styles.blockingHookConfig, styles.hookConfig)}>
-            <Label>
-              <FormattedMessage id="HookConfigurationScreen.action.script.label" />
-            </Label>
-            <ActionButton
-              className={styles.hookConfigConfig}
-              iconProps={EDIT_BUTTON_ICON_PROPS}
-              styles={EDIT_BUTTON_STYLES}
+      <>
+        <Dialog
+          hidden={newEventName == null}
+          onDismiss={onDismissDialog}
+          dialogContentProps={dialogContentProps}
+        >
+          <DialogFooter>
+            <PrimaryButton
+              theme={themes.destructive}
               text={
-                <>
-                  <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
-                  {value.isDirty ? (
-                    <FontIcon
-                      iconName="LocationDot"
-                      className={styles.dot}
-                      style={{
-                        color: theme.palette.themePrimary,
-                      }}
-                    />
-                  ) : null}
-                </>
+                <FormattedMessage id="HookConfigurationScreen.change-event.label" />
               }
-              onClick={onClickEdit}
+              onClick={onConfirmChangeEvent}
             />
-          </div>
-        ) : null}
-      </div>
+            <DefaultButton
+              text={<FormattedMessage id="cancel" />}
+              onClick={onDismissDialog}
+            />
+          </DialogFooter>
+        </Dialog>
+        <div className={styles.hookContainer}>
+          <Dropdown
+            className={styles.blockingHookKind}
+            options={kindOptions}
+            selectedKey={value.kind}
+            onChange={onChangeHookKind}
+            ariaLabel={"HookConfigurationScreen.hook-kind.label"}
+          />
+          <Dropdown
+            className={styles.blockingHookEvent}
+            options={eventOptions}
+            selectedKey={value.event}
+            onChange={onBlockingEventChange}
+            ariaLabel={"HookConfigurationScreen.blocking-events.label"}
+            {...eventFieldProps}
+          />
+          {value.kind === "webhook" ? (
+            <div className={cn(styles.blockingHookConfig, styles.hookConfig)}>
+              <Label>
+                <FormattedMessage id="HookConfigurationScreen.action.endpoint.label" />
+              </Label>
+              <TextField
+                className={styles.hookConfigConfig}
+                value={value.url}
+                onChange={onURLChange}
+                placeholder="https://example.com/callback"
+                {...urlFieldProps}
+              />
+            </div>
+          ) : null}
+          {value.kind === "denohook" ? (
+            <div className={cn(styles.blockingHookConfig, styles.hookConfig)}>
+              <Label>
+                <FormattedMessage id="HookConfigurationScreen.action.script.label" />
+              </Label>
+              <ActionButton
+                className={styles.hookConfigConfig}
+                iconProps={EDIT_BUTTON_ICON_PROPS}
+                styles={EDIT_BUTTON_STYLES}
+                text={
+                  <>
+                    <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
+                    {value.isDirty ? (
+                      <FontIcon
+                        iconName="LocationDot"
+                        className={styles.dot}
+                        style={{
+                          color: theme.palette.themePrimary,
+                        }}
+                      />
+                    ) : null}
+                  </>
+                }
+                onClick={onClickEdit}
+              />
+            </div>
+          ) : null}
+        </div>
+      </>
     );
   };
 
