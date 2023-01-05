@@ -59,6 +59,12 @@ import ActionButton from "../../ActionButton";
 import CodeEditor from "../../CodeEditor";
 import DefaultButton from "../../DefaultButton";
 
+const CODE_EDITOR_OPTIONS = {
+  minimap: {
+    enabled: false,
+  },
+};
+
 const BLOCKING_EVENT_NAME_TO_TYPE_NAME: Record<string, string | undefined> = {
   "user.pre_create": "EventUserPreCreate",
   "user.profile.pre_update": "EventUserProfilePreUpdate",
@@ -1062,7 +1068,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       <FormContainer form={form} hideCommandBar={codeEditorState != null}>
         <ScreenContent>
           {codeEditorState != null ? (
-            <div className={cn(styles.widget, styles.codeEditorContainer)}>
+            <div className={cn(styles.codeEditorContainer)}>
               <WidgetTitle>
                 <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
               </WidgetTitle>
@@ -1074,6 +1080,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                 language="typescript"
                 value={code}
                 onChange={onChangeCode}
+                options={CODE_EDITOR_OPTIONS}
               />
               <div className={styles.codeEditorFooter}>
                 <PrimaryButton
