@@ -142,7 +142,6 @@ var CommonDependencySet = wire.NewSet(
 		authenticatorpassword.DependencySet,
 		wire.Bind(new(facade.PasswordHistoryStore), new(*authenticatorpassword.HistoryStore)),
 		authenticatoroob.DependencySet,
-		wire.Bind(new(interaction.OOBAuthenticatorProvider), new(*authenticatoroob.Provider)),
 		wire.Bind(new(interaction.OOBCodeSender), new(*authenticatoroob.CodeSender)),
 		authenticatortotp.DependencySet,
 		authenticatorpasskey.DependencySet,
@@ -334,7 +333,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(forgotpassword.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(welcomemessage.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(mfa.RateLimiter), new(*ratelimit.Limiter)),
-		wire.Bind(new(verification.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(featuresiwe.RateLimiter), new(*ratelimit.Limiter)),
 	),
 

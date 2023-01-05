@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	coreimage "github.com/authgear/authgear-server/pkg/util/image"
@@ -53,7 +52,6 @@ func getStateFromQuery(r *http.Request) WhatsappOTPPageQueryState {
 type WhatsappCodeProvider interface {
 	GetServerWhatsappPhone() string
 	VerifyCode(phone string, consume bool) error
-	SetUserInputtedCode(phone string, userInputtedCode string) (*whatsapp.Code, error)
 }
 
 type WhatsappOTPViewModel struct {
