@@ -27,22 +27,31 @@ export interface CommandBarContainerProps {
   primaryItems?: ICommandBarItemProps[];
   secondaryItems?: ICommandBarItemProps[];
   children?: React.ReactNode;
+  hideCommandBar?: boolean;
 }
 
 const CommandBarContainer: React.VFC<CommandBarContainerProps> =
   function CommandBarContainer(props) {
-    const { className, isLoading, primaryItems, secondaryItems, messageBar } =
-      props;
+    const {
+      className,
+      isLoading,
+      primaryItems,
+      secondaryItems,
+      messageBar,
+      hideCommandBar,
+    } = props;
 
     return (
       <>
         <div className={styles.header}>
-          <CommandBar
-            className={styles.commandBar}
-            styles={commandBarStyles}
-            items={primaryItems ?? []}
-            farItems={secondaryItems}
-          />
+          {hideCommandBar === true ? null : (
+            <CommandBar
+              className={styles.commandBar}
+              styles={commandBarStyles}
+              items={primaryItems ?? []}
+              farItems={secondaryItems}
+            />
+          )}
           {messageBar}
           <ProgressIndicator
             styles={progressIndicatorStyles}

@@ -4,6 +4,14 @@
   @apply tablet:col-span-full;
 }
 
+.codeEditorContainer {
+  grid-column: 1 / span 10;
+  @apply tablet:col-span-full;
+
+  @apply flex flex-col;
+  @apply gap-y-5;
+}
+
 .columnFull {
   grid-column: 1 / span 8;
 
@@ -71,11 +79,6 @@
 .nonblockingHookConfig {
   flex: 0.6 0 0;
   min-width: 200px;
-}
-
-.codeEditorContainer {
-  @apply flex flex-col;
-  @apply gap-y-5;
 }
 
 .codeEditor {
