@@ -2,6 +2,12 @@ package otp
 
 import (
 	"time"
+
+	"github.com/authgear/authgear-server/pkg/util/duration"
+)
+
+const (
+	WhatsappCodeDuration = duration.UserInteraction
 )
 
 type Code struct {

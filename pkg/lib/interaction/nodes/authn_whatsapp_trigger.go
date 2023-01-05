@@ -58,7 +58,7 @@ func (e *EdgeAuthenticationWhatsappTrigger) Instantiate(ctx *interaction.Context
 	}
 	targetInfo := e.Authenticators[idx]
 	phone := targetInfo.OOBOTP.Phone
-	code, err := ctx.OTPCodeService.GenerateWhatsappCode(phone, string(ctx.Config.ID), ctx.WebSessionID)
+	code, err := ctx.WhatsappCodeProvider.GenerateCode(phone, string(ctx.Config.ID), ctx.WebSessionID)
 	if err != nil {
 		return nil, err
 	}

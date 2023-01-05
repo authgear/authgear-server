@@ -1,8 +1,11 @@
 package whatsapp
 
 import (
+	"errors"
+
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -18,6 +21,7 @@ type EventService interface {
 }
 
 type OTPCodeService interface {
+	GenerateWhatsappCode(target string, appID string, webSessionID string) (*otp.Code, error)
 	VerifyWhatsappCode(target string, consume bool) error
 }
 
@@ -57,6 +61,19 @@ func (p *Provider) CreateCode(phone string, appID string, webSessionID string) (
 		return nil, err
 	}
 	return codeModel, nil
+}
+
+func (p *Provider) GenerateCode(phone string, appID string, webSessionID string) (*otp.Code, error) {
+	code, err := p.OTPCodeService.GenerateWhatsappCode(phone, appID, webSessionID)
+	if errors.Is(err, otp.ErrInvalidCode) {
+		return nil, ErrInvalidCode
+	} else if errors.Is(err, otp.ErrInputRequired) {
+		return nil, ErrInputRequired
+	} else if err != nil {
+		return nil, err
+	}
+
+	return code, nil
 }
 
 func (p *Provider) VerifyCode(phone string, consume bool) error {
