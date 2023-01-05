@@ -109,6 +109,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		WebhookState:             webhookState,
 		UserIDHint:               userIDHint,
 		SuppressIDPSessionCookie: suppressIDPSessionCookie,
+		CancelURI:                r.URL.String(),
 	}
 
 	ctrl.Get(func() error {

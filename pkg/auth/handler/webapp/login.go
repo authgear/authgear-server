@@ -124,6 +124,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		WebhookState:             webhookState,
 		UserIDHint:               userIDHint,
 		SuppressIDPSessionCookie: suppressIDPSessionCookie,
+		CancelURI:                r.URL.String(),
 	}
 
 	allowLoginOnly := intent.UserIDHint != ""
