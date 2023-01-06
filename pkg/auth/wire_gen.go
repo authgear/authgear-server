@@ -734,9 +734,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -788,7 +785,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -1528,9 +1524,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -1582,7 +1575,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -2328,9 +2320,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -2383,7 +2372,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -4773,9 +4761,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -4828,7 +4813,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -5570,9 +5554,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -5625,7 +5606,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -6317,9 +6297,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -6372,7 +6349,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -7168,9 +7144,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -7222,7 +7195,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -7953,9 +7925,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -8007,7 +7976,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -8737,9 +8705,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -8791,7 +8756,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -9504,9 +9468,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -9558,7 +9519,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -10269,9 +10229,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -10323,7 +10280,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -11024,9 +10980,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -11078,7 +11031,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -11782,9 +11734,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -11836,7 +11785,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -12543,9 +12491,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -12597,7 +12542,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -13306,9 +13250,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -13360,7 +13301,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -14067,9 +14007,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -14121,7 +14058,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -14828,9 +14764,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -14882,7 +14815,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -15590,9 +15522,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -15644,7 +15573,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -16351,9 +16279,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -16405,7 +16330,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -17112,9 +17036,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -17166,7 +17087,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -17875,9 +17795,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -17929,7 +17846,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -18636,9 +18552,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -18690,7 +18603,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -19397,9 +19309,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -19451,7 +19360,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -20160,9 +20068,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -20214,7 +20119,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -20921,9 +20825,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -20975,7 +20876,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -21718,9 +21618,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -21772,7 +21669,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -22479,9 +22375,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -22533,7 +22426,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -23236,9 +23128,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -23290,7 +23179,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -23995,9 +23883,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -24049,7 +23934,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -24752,9 +24636,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -24806,7 +24687,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -25519,9 +25399,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -25573,7 +25450,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -26276,9 +26152,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -26330,7 +26203,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -27034,9 +26906,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -27088,7 +26957,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -27791,9 +27659,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -27845,7 +27710,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -28579,9 +28443,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -28633,7 +28494,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -29347,9 +29207,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -29401,7 +29258,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -30128,9 +29984,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -30182,7 +30035,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -30893,9 +30745,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -30947,7 +30796,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -31651,9 +31499,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -31705,7 +31550,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -32417,9 +32261,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -32471,7 +32312,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -33175,9 +33015,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -33229,7 +33066,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -33933,9 +33769,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -33987,7 +33820,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -34691,9 +34523,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -34745,7 +34574,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -35450,9 +35278,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -35504,7 +35329,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -36227,9 +36051,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -36281,7 +36102,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -36985,9 +36805,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -37039,7 +36856,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -37743,9 +37559,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -37797,7 +37610,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -38501,9 +38313,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -38555,7 +38364,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -39259,9 +39067,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -39313,7 +39118,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -40024,9 +39828,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -40078,7 +39879,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -40783,9 +40583,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -40837,7 +40634,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -41540,9 +41336,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -41594,7 +41387,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -42311,9 +42103,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -42365,7 +42154,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -43068,9 +42856,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -43122,7 +42907,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -43825,9 +43609,6 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -43879,7 +43660,6 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -44599,9 +44379,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -44653,7 +44430,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -45323,9 +45099,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -45377,7 +45150,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -46046,9 +45818,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -46100,7 +45869,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -46813,9 +46581,6 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -46867,7 +46632,6 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,

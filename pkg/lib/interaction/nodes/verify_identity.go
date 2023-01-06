@@ -100,7 +100,9 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context, ignoreRatelimitE
 	channel, target := n.Identity.LoginID.ToChannelTarget()
 
 	code, err := ctx.OTPCodeService.GenerateCode(target)
-	if err != nil {
+	if errors.Is(err, otp.ErrCodeNotFound) {
+		return nil, verification.ErrCodeNotFound
+	} else if err != nil {
 		return nil, err
 	}
 
@@ -158,7 +160,9 @@ func (e *EdgeVerifyIdentityCheckCode) Instantiate(ctx *interaction.Context, grap
 		return nil, err
 	}
 	err = ctx.OTPCodeService.VerifyCode(target, input.GetVerificationCode())
-	if err != nil {
+	if errors.Is(err, otp.ErrInvalidCode) {
+		return nil, verification.ErrInvalidVerificationCode
+	} else if err != nil {
 		return nil, err
 	}
 

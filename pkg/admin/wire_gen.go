@@ -772,9 +772,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -823,7 +820,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,

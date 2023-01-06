@@ -6,5 +6,4 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(StorePQ), "*"),
 	wire.Bind(new(ClaimStore), new(*StorePQ)),
 	wire.Struct(new(Service), "*"),
-	wire.Struct(new(CodeSender), "*"),
 )

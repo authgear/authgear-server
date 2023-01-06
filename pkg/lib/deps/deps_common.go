@@ -299,7 +299,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(user.VerificationService), new(*verification.Service)),
 		wire.Bind(new(facade.VerificationService), new(*verification.Service)),
 		wire.Bind(new(interaction.VerificationService), new(*verification.Service)),
-		wire.Bind(new(interaction.VerificationCodeSender), new(*verification.CodeSender)),
 	),
 
 	wire.NewSet(
@@ -309,7 +308,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(whatsapp.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(webapp.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(authenticatoroob.OTPMessageSender), new(*otp.MessageSender)),
-		wire.Bind(new(verification.OTPMessageSender), new(*otp.MessageSender)),
 	),
 
 	wire.NewSet(
