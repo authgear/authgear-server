@@ -54,42 +54,14 @@ func (s *Service) deleteCode(target string) {
 }
 
 func (s *Service) GenerateCode(target string) (*Code, error) {
-	code, err := s.getCode(target)
-	if errors.Is(err, ErrCodeNotFound) {
-		code = nil
-	} else if err != nil {
-		return nil, err
-	}
-
-	if code == nil || s.Clock.NowUTC().After(code.ExpireAt) {
-		code, err = s.createCode(target, nil)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return code, nil
+	return s.createCode(target, nil)
 }
 
 func (s *Service) GenerateWhatsappCode(target string, appID string, webSessionID string) (*Code, error) {
-	code, err := s.getCode(target)
-	if errors.Is(err, ErrCodeNotFound) {
-		code = nil
-	} else if err != nil {
-		return nil, err
-	}
-
-	if code == nil || s.Clock.NowUTC().After(code.ExpireAt) {
-		code, err = s.createCode(target, &Code{
-			AppID:        appID,
-			WebSessionID: webSessionID,
-		})
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return code, nil
+	return s.createCode(target, &Code{
+		AppID:        appID,
+		WebSessionID: webSessionID,
+	})
 }
 
 func (s *Service) VerifyCode(target string, code string) error {
