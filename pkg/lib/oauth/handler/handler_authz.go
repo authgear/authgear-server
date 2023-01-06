@@ -638,6 +638,10 @@ func (h *AuthorizationHandler) validateRequest(
 		return protocol.NewError("unsupported_response_type", "only 'code' response type is supported")
 	}
 
+	if r.SSOEnabled() && client != nil && client.MaxConcurrentSession == 1 {
+		return protocol.NewError("invalid_request", "'sso_enabled' must be false if config 'x_max_concurrent_session' is 1")
+	}
+
 	return nil
 }
 
