@@ -113,9 +113,7 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context, ignoreRatelimitE
 		panic("node: incompatible authenticator type for sending oob code: " + loginIDType)
 	}
 
-	code, err := ctx.OTPCodeService.GenerateCode(
-		target,
-		ctx.Clock.NowUTC().Add(ctx.Config.Verification.CodeExpiry.Duration()))
+	code, err := ctx.OTPCodeService.GenerateCode(target)
 	if err != nil {
 		return nil, err
 	}

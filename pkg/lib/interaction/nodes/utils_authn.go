@@ -2,7 +2,6 @@ package nodes
 
 import (
 	"errors"
-	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
@@ -75,10 +74,7 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 		}
 	}
 
-	code, err := p.Context.OTPCodeService.GenerateCode(
-		p.AuthenticatorInfo.OOBOTP.ToTarget(),
-		// TODO(oob): Expiry should be configurable
-		time.Time{})
+	code, err := p.Context.OTPCodeService.GenerateCode(p.AuthenticatorInfo.OOBOTP.ToTarget())
 	if err != nil {
 		return nil, err
 	}

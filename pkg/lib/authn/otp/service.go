@@ -2,9 +2,9 @@ package otp
 
 import (
 	"errors"
-	"time"
 
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
@@ -32,12 +32,11 @@ func (s *Service) getCode(target string) (*Code, error) {
 }
 
 func (s *Service) createCode(target string, codeModel *Code) (*Code, error) {
-	code := secretcode.OOBOTPSecretCode.Generate()
-	codeModel.Code = code
-
-	if time.Time.IsZero(codeModel.ExpireAt) {
-		codeModel.ExpireAt = s.Clock.NowUTC().Add(time.Duration(3600) * time.Second)
+	if codeModel == nil {
+		codeModel = &Code{}
 	}
+	codeModel.Code = secretcode.OOBOTPSecretCode.Generate()
+	codeModel.ExpireAt = s.Clock.NowUTC().Add(duration.UserInteraction)
 
 	err := s.CodeStore.Create(target, codeModel)
 	if err != nil {
@@ -53,7 +52,7 @@ func (s *Service) deleteCode(target string) {
 	}
 }
 
-func (s *Service) GenerateCode(target string, expireAt time.Time) (*Code, error) {
+func (s *Service) GenerateCode(target string) (*Code, error) {
 	code, err := s.getCode(target)
 	if errors.Is(err, ErrCodeNotFound) {
 		code = nil
@@ -62,7 +61,7 @@ func (s *Service) GenerateCode(target string, expireAt time.Time) (*Code, error)
 	}
 
 	if code == nil || s.Clock.NowUTC().After(code.ExpireAt) {
-		code, err = s.createCode(target, &Code{ExpireAt: expireAt})
+		code, err = s.createCode(target, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -81,7 +80,6 @@ func (s *Service) GenerateWhatsappCode(target string, appID string, webSessionID
 
 	if code == nil || s.Clock.NowUTC().After(code.ExpireAt) {
 		code, err = s.createCode(target, &Code{
-			ExpireAt:     s.Clock.NowUTC().Add(WhatsappCodeDuration),
 			AppID:        appID,
 			WebSessionID: webSessionID,
 		})
