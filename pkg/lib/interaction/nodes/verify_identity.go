@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func init() {
@@ -143,9 +142,7 @@ type RateLimiter interface {
 }
 
 type EdgeVerifyIdentityCheckCode struct {
-	RemoteIP    httputil.RemoteIP
-	Identity    *identity.Info
-	RateLimiter RateLimiter
+	Identity *identity.Info
 }
 
 func (e *EdgeVerifyIdentityCheckCode) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
@@ -156,7 +153,7 @@ func (e *EdgeVerifyIdentityCheckCode) Instantiate(ctx *interaction.Context, grap
 	loginIDModel := e.Identity.LoginID
 	_, target := loginIDModel.ToChannelTarget()
 
-	err := e.RateLimiter.TakeToken(verification.AutiBruteForceVerifyBucket(string(e.RemoteIP)))
+	err := ctx.RateLimiter.TakeToken(verification.AutiBruteForceVerifyBucket(string(ctx.RemoteIP)))
 	if err != nil {
 		return nil, err
 	}
