@@ -1,8 +1,6 @@
 package whatsapp
 
 import (
-	"errors"
-
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
@@ -34,11 +32,7 @@ func (p *Provider) GetServerWhatsappPhone() string {
 
 func (p *Provider) GenerateCode(phone string, appID string, webSessionID string) (*otp.Code, error) {
 	code, err := p.OTPCodeService.GenerateWhatsappCode(phone, appID, webSessionID)
-	if errors.Is(err, otp.ErrInvalidCode) {
-		return nil, ErrInvalidCode
-	} else if errors.Is(err, otp.ErrInputRequired) {
-		return nil, ErrInputRequired
-	} else if err != nil {
+	if err != nil {
 		return nil, err
 	}
 

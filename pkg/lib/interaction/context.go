@@ -156,10 +156,6 @@ type VerificationService interface {
 	MarkClaimVerified(claim *verification.Claim) error
 }
 
-type VerificationCodeSender interface {
-	SendCode(code *verification.Code) error
-}
-
 type CookieManager interface {
 	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
 	ClearCookie(def *httputil.CookieDef) *http.Cookie
@@ -204,7 +200,6 @@ type Context struct {
 	Passkey                  PasskeyService
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
 	Verification             VerificationService
-	VerificationCodeSender   VerificationCodeSender
 	RateLimiter              RateLimiter
 
 	Nonces NonceService
