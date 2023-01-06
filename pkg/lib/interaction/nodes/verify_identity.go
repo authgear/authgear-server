@@ -98,20 +98,7 @@ func (n *NodeVerifyIdentity) DeriveEdges(graph *interaction.Graph) ([]interactio
 
 func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context, ignoreRatelimitError bool) (*otp.CodeSendResult, error) {
 	loginIDType := n.Identity.LoginID.LoginIDType
-	loginID := n.Identity.LoginID.LoginID
-
-	var channel model.AuthenticatorOOBChannel
-	var target string
-	switch loginIDType {
-	case model.LoginIDKeyTypePhone:
-		channel = model.AuthenticatorOOBChannelSMS
-		target = loginID
-	case model.LoginIDKeyTypeEmail:
-		channel = model.AuthenticatorOOBChannelEmail
-		target = loginID
-	default:
-		panic("node: incompatible authenticator type for sending oob code: " + loginIDType)
-	}
+	channel, target := n.Identity.LoginID.ToChannelTarget()
 
 	code, err := ctx.OTPCodeService.GenerateCode(target)
 	if err != nil {
@@ -131,7 +118,7 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context, ignoreRatelimitE
 		Target:     target,
 		CodeLength: len(code.Code),
 	}
-	err = ctx.RateLimiter.TakeToken(interaction.AntiSpamSendVerificationCodeBucket(loginID))
+	err = ctx.RateLimiter.TakeToken(interaction.AntiSpamSendVerificationCodeBucket(target))
 	if ignoreRatelimitError && errors.Is(err, ratelimit.ErrTooManyRequests) {
 		// Ignore the rate limit error and do NOT send the code.
 		return result, nil
@@ -167,14 +154,7 @@ func (e *EdgeVerifyIdentityCheckCode) Instantiate(ctx *interaction.Context, grap
 		return nil, interaction.ErrIncompatibleInput
 	}
 	loginIDModel := e.Identity.LoginID
-
-	var target string
-	switch loginIDModel.LoginIDType {
-	case model.LoginIDKeyTypePhone, model.LoginIDKeyTypeEmail:
-		target = loginIDModel.LoginID
-	default:
-		panic("interaction: incompatible logic ID type for oob code: " + loginIDModel.LoginIDType)
-	}
+	_, target := loginIDModel.ToChannelTarget()
 
 	err := e.RateLimiter.TakeToken(verification.AutiBruteForceVerifyBucket(string(e.RemoteIP)))
 	if err != nil {
@@ -197,7 +177,7 @@ func (e *EdgeVerifyIdentityCheckCode) Instantiate(ctx *interaction.Context, grap
 		panic("interaction: unexpected login ID key")
 	}
 
-	verifiedClaim := ctx.Verification.NewVerifiedClaim(loginIDModel.UserID, string(claimName), loginIDModel.LoginID)
+	verifiedClaim := ctx.Verification.NewVerifiedClaim(loginIDModel.UserID, string(claimName), target)
 	return &NodeEnsureVerificationEnd{
 		Identity:         e.Identity,
 		NewVerifiedClaim: verifiedClaim,

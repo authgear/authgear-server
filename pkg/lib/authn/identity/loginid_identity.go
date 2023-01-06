@@ -30,3 +30,14 @@ func (i *LoginID) ToInfo() *Info {
 		LoginID: i,
 	}
 }
+
+func (i *LoginID) ToChannelTarget() (model.AuthenticatorOOBChannel, string) {
+	switch i.LoginIDType {
+	case model.LoginIDKeyTypePhone:
+		return model.AuthenticatorOOBChannelSMS, i.LoginID
+	case model.LoginIDKeyTypeEmail:
+		return model.AuthenticatorOOBChannelEmail, i.LoginID
+	default:
+		panic("node: incompatible authenticator type for sending oob code: " + i.LoginIDType)
+	}
+}
