@@ -53,7 +53,7 @@ type AuthenticatorService interface {
 }
 
 type OTPCodeService interface {
-	GenerateCode(target string, expireAt time.Time) (*otp.Code, error)
+	GenerateCode(target string) (*otp.Code, error)
 	VerifyCode(target string, code string) error
 }
 
