@@ -717,7 +717,7 @@ func (h *TokenHandler) revokeClientOfflineGrants(
 		return err
 	}
 	for _, offlineGrant := range offlineGrants {
-		err := h.SessionManager.RevokeWithEvent(offlineGrant, false, false)
+		err := h.SessionManager.RevokeWithoutEvent(offlineGrant)
 		if err != nil {
 			return err
 		}
