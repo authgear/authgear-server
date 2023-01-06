@@ -35,6 +35,7 @@ func (s *Service) createCode(target string, codeModel *Code) (*Code, error) {
 	if codeModel == nil {
 		codeModel = &Code{}
 	}
+	codeModel.Target = target
 	codeModel.Code = secretcode.OOBOTPSecretCode.Generate()
 	codeModel.ExpireAt = s.Clock.NowUTC().Add(duration.UserInteraction)
 

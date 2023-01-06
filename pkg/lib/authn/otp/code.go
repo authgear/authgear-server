@@ -11,6 +11,7 @@ const (
 )
 
 type Code struct {
+	Target   string    `json:"target"`
 	Code     string    `json:"code"`
 	ExpireAt time.Time `json:"expire_at"`
 
