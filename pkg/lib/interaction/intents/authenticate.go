@@ -358,9 +358,13 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 			panic(fmt.Errorf("interaction: unexpected authentication stage: %v", node.Stage))
 		}
 	case *nodes.NodePromptCreatePasskeyEnd:
-		return []interaction.Edge{
-			&nodes.EdgeConfirmTerminateOtherSessionsBegin{},
-		}, nil
+		if i.Kind == IntentAuthenticateKindLogin && i.isCancellable() {
+			return []interaction.Edge{
+				&nodes.EdgeConfirmTerminateOtherSessionsBegin{},
+			}, nil
+		} else {
+			return ensureSession()
+		}
 	case *nodes.NodeConfirmTerminateOtherSessionsEnd:
 		if node.IsConfirmed {
 			return ensureSession()
@@ -387,3 +391,7 @@ func (i *IntentAuthenticate) GetCancelURI() string {
 
 var _ interaction.IntentWithWebhookState = &IntentAuthenticate{}
 var _ interaction.IntentWithCancelURI = &IntentAuthenticate{}
+
+func (i *IntentAuthenticate) isCancellable() bool {
+	return i.GetCancelURI() != ""
+}
