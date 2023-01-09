@@ -7,5 +7,6 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(StoreRedis), "*"),
 	wire.Bind(new(Store), new(*StoreRedis)),
 	NewLogger,
+	ProvideOTPCodeBucket,
 	wire.Struct(new(Service), "*"),
 )
