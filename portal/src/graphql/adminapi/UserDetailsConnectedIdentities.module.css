@@ -119,6 +119,11 @@
   column-gap: 8px;
 }
 
+.actionButton {
+  grid-area: button-group;
+  justify-self: end;
+}
+
 .controlButton {
   border: 1px solid #d8d8d8;
   font-weight: 600;
