@@ -6,14 +6,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 type SendOOBCode struct {
+	Clock                clock.Clock
 	Context              *interaction.Context
 	Stage                authn.AuthenticationStage
 	IsAuthenticating     bool
@@ -73,18 +74,9 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 		}
 	}
 
-	code, err := p.Context.OOBAuthenticators.GetCode(p.AuthenticatorInfo.ID)
-	if errors.Is(err, oob.ErrCodeNotFound) {
-		code = nil
-	} else if err != nil {
+	code, err := p.Context.OTPCodeService.GenerateCode(p.AuthenticatorInfo.OOBOTP.ToTarget())
+	if err != nil {
 		return nil, err
-	}
-
-	if code == nil || p.Context.Clock.NowUTC().After(code.ExpireAt) {
-		code, err = p.Context.OOBAuthenticators.CreateCode(p.AuthenticatorInfo.ID)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	result := &otp.CodeSendResult{

@@ -100,7 +100,7 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(ctx *interaction.C
 		return &NodeCreateAuthenticatorOOB{Stage: e.Stage, Authenticator: info}, nil
 	}
 
-	code, err := ctx.WhatsappCodeProvider.CreateCode(phone, string(ctx.Config.ID), ctx.WebSessionID)
+	code, err := ctx.WhatsappCodeProvider.GenerateCode(phone, string(ctx.Config.ID), ctx.WebSessionID)
 	if err != nil {
 		return nil, err
 	}

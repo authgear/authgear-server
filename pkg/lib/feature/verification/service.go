@@ -7,21 +7,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/log"
-	"github.com/authgear/authgear-server/pkg/util/secretcode"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package verification
-
-type CodeStore interface {
-	Create(code *Code) error
-	Get(codeKey *CodeKey) (*Code, error)
-	Delete(codeKey *CodeKey) error
-}
 
 type ClaimStore interface {
 	ListByUser(userID string) ([]*Claim, error)
@@ -32,24 +22,12 @@ type ClaimStore interface {
 	DeleteAll(userID string) error
 }
 
-type RateLimiter interface {
-	TakeToken(bucket ratelimit.Bucket) error
-}
-
-type Logger struct{ *log.Logger }
-
-func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("verification")} }
-
 type Service struct {
-	RemoteIP          httputil.RemoteIP
-	Logger            Logger
 	Config            *config.VerificationConfig
 	UserProfileConfig *config.UserProfileConfig
 
-	Clock       clock.Clock
-	CodeStore   CodeStore
-	ClaimStore  ClaimStore
-	RateLimiter RateLimiter
+	Clock      clock.Clock
+	ClaimStore ClaimStore
 }
 
 func (s *Service) claimVerificationConfig(claimName model.ClaimName) *config.VerificationClaimConfig {
@@ -185,77 +163,6 @@ func (s *Service) IsUserVerified(identities []*identity.Info) (bool, error) {
 	default:
 		panic("verification: unknown criteria " + s.Config.Criteria)
 	}
-}
-
-func (s *Service) CreateNewCode(info *identity.Info, webSessionID string, requestedByUser bool) (*Code, error) {
-	if info.Type != model.IdentityTypeLoginID {
-		panic("verification: expect login ID identity")
-	}
-
-	loginIDType := info.LoginID.LoginIDType
-	loginID := info.LoginID.LoginID
-
-	code := secretcode.OOBOTPSecretCode.Generate()
-	codeModel := &Code{
-		UserID:          info.UserID,
-		IdentityID:      info.ID,
-		IdentityType:    string(info.Type),
-		LoginIDType:     string(loginIDType),
-		LoginID:         loginID,
-		Code:            code,
-		ExpireAt:        s.Clock.NowUTC().Add(s.Config.CodeExpiry.Duration()),
-		WebSessionID:    webSessionID,
-		RequestedByUser: requestedByUser,
-	}
-
-	err := s.CodeStore.Create(codeModel)
-	if err != nil {
-		return nil, err
-	}
-
-	return codeModel, nil
-}
-
-func (s *Service) GetCode(webSessionID string, info *identity.Info) (*Code, error) {
-	loginIDType := info.LoginID.LoginIDType
-	loginID := info.LoginID.LoginID
-	return s.CodeStore.Get(&CodeKey{
-		WebSessionID: webSessionID,
-		LoginIDType:  string(loginIDType),
-		LoginID:      loginID,
-	})
-}
-
-func (s *Service) VerifyCode(webSessionID string, info *identity.Info, code string) (*Code, error) {
-	loginIDType := info.LoginID.LoginIDType
-	loginID := info.LoginID.LoginID
-	codeKey := &CodeKey{
-		WebSessionID: webSessionID,
-		LoginIDType:  string(loginIDType),
-		LoginID:      loginID,
-	}
-
-	err := s.RateLimiter.TakeToken(AutiBruteForceVerifyBucket(string(s.RemoteIP)))
-	if err != nil {
-		return nil, err
-	}
-
-	codeModel, err := s.CodeStore.Get(codeKey)
-	if errors.Is(err, ErrCodeNotFound) {
-		return nil, ErrInvalidVerificationCode
-	} else if err != nil {
-		return nil, err
-	}
-
-	if !secretcode.OOBOTPSecretCode.Compare(code, codeModel.Code) {
-		return nil, ErrInvalidVerificationCode
-	}
-
-	if err = s.CodeStore.Delete(codeKey); err != nil {
-		s.Logger.WithError(err).Error("failed to delete code after verification")
-	}
-
-	return codeModel, nil
 }
 
 func (s *Service) NewVerifiedClaim(userID string, claimName string, claimValue string) *Claim {

@@ -34,7 +34,8 @@ func (e *EdgeVerifyIdentityViaWhatsapp) Instantiate(ctx *interaction.Context, gr
 
 	phone := e.Identity.LoginID.LoginID
 
-	code, err := ctx.WhatsappCodeProvider.CreateCode(phone, string(ctx.Config.ID), ctx.WebSessionID)
+	code, err := ctx.WhatsappCodeProvider.GenerateCode(phone, string(ctx.Config.ID), ctx.WebSessionID)
+
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +108,7 @@ func (e *EdgeVerifyIdentityViaWhatsappCheckCode) Instantiate(ctx *interaction.Co
 	}
 
 	phone := e.Identity.LoginID.LoginID
-	_, err := ctx.WhatsappCodeProvider.VerifyCode(phone, ctx.WebSessionID, true)
+	err := ctx.WhatsappCodeProvider.VerifyCode(phone, true)
 	if err != nil {
 		return nil, err
 	}

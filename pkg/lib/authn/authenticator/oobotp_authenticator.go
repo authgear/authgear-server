@@ -31,3 +31,14 @@ func (a *OOBOTP) ToInfo() *Info {
 		OOBOTP: a,
 	}
 }
+
+func (a *OOBOTP) ToTarget() string {
+	switch a.OOBAuthenticatorType {
+	case model.AuthenticatorTypeOOBSMS:
+		return a.Phone
+	case model.AuthenticatorTypeOOBEmail:
+		return a.Email
+	default:
+		panic("authenticator: incompatible authenticator type: " + a.OOBAuthenticatorType)
+	}
+}

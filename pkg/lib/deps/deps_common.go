@@ -3,6 +3,7 @@ package deps
 import (
 	"github.com/google/wire"
 
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	authenticatoroob "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
@@ -141,7 +142,6 @@ var CommonDependencySet = wire.NewSet(
 		authenticatorpassword.DependencySet,
 		wire.Bind(new(facade.PasswordHistoryStore), new(*authenticatorpassword.HistoryStore)),
 		authenticatoroob.DependencySet,
-		wire.Bind(new(interaction.OOBAuthenticatorProvider), new(*authenticatoroob.Provider)),
 		wire.Bind(new(interaction.OOBCodeSender), new(*authenticatoroob.CodeSender)),
 		authenticatortotp.DependencySet,
 		authenticatorpasskey.DependencySet,
@@ -299,13 +299,15 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(user.VerificationService), new(*verification.Service)),
 		wire.Bind(new(facade.VerificationService), new(*verification.Service)),
 		wire.Bind(new(interaction.VerificationService), new(*verification.Service)),
-		wire.Bind(new(interaction.VerificationCodeSender), new(*verification.CodeSender)),
 	),
 
 	wire.NewSet(
 		otp.DependencySet,
+		wire.Bind(new(authenticatorservice.OTPCodeService), new(*otp.Service)),
+		wire.Bind(new(interaction.OTPCodeService), new(*otp.Service)),
+		wire.Bind(new(whatsapp.OTPCodeService), new(*otp.Service)),
+		wire.Bind(new(webapp.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(authenticatoroob.OTPMessageSender), new(*otp.MessageSender)),
-		wire.Bind(new(verification.OTPMessageSender), new(*otp.MessageSender)),
 	),
 
 	wire.NewSet(
@@ -329,7 +331,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(forgotpassword.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(welcomemessage.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(mfa.RateLimiter), new(*ratelimit.Limiter)),
-		wire.Bind(new(verification.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(featuresiwe.RateLimiter), new(*ratelimit.Limiter)),
 	),
 

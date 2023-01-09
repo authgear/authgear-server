@@ -22,6 +22,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/siwe"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
@@ -386,53 +387,45 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: configAppID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: configAppID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := ProvideHTTPHost()
 	imagesCDNHost := environmentConfig.ImagesCDNHost

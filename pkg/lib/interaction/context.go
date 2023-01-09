@@ -8,8 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
@@ -54,9 +52,9 @@ type AuthenticatorService interface {
 	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec) (requireUpdate bool, err error)
 }
 
-type OOBAuthenticatorProvider interface {
-	GetCode(authenticatorID string) (*oob.Code, error)
-	CreateCode(authenticatorID string) (*oob.Code, error)
+type OTPCodeService interface {
+	GenerateCode(target string) (*otp.Code, error)
+	VerifyCode(target string, code string) error
 }
 
 type OOBCodeSender interface {
@@ -69,8 +67,8 @@ type OOBCodeSender interface {
 }
 
 type WhatsappCodeProvider interface {
-	CreateCode(phone string, appID string, webSessionID string) (*whatsapp.Code, error)
-	VerifyCode(phone string, webSessionID string, consume bool) (*whatsapp.Code, error)
+	GenerateCode(phone string, appID string, webSessionID string) (*otp.Code, error)
+	VerifyCode(phone string, consume bool) error
 }
 
 type AnonymousIdentityProvider interface {
@@ -154,19 +152,8 @@ type LoginIDNormalizerFactory interface {
 type VerificationService interface {
 	GetIdentityVerificationStatus(i *identity.Info) ([]verification.ClaimStatus, error)
 	GetAuthenticatorVerificationStatus(a *authenticator.Info) (verification.AuthenticatorStatus, error)
-	CreateNewCode(
-		info *identity.Info,
-		webSessionID string,
-		requestedByUser bool,
-	) (*verification.Code, error)
-	GetCode(webSessionID string, info *identity.Info) (*verification.Code, error)
-	VerifyCode(webSessionID string, info *identity.Info, code string) (*verification.Code, error)
 	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
 	MarkClaimVerified(claim *verification.Claim) error
-}
-
-type VerificationCodeSender interface {
-	SendCode(code *verification.Code) error
 }
 
 type CookieManager interface {
@@ -204,7 +191,7 @@ type Context struct {
 	Authenticators           AuthenticatorService
 	AnonymousIdentities      AnonymousIdentityProvider
 	BiometricIdentities      BiometricIdentityProvider
-	OOBAuthenticators        OOBAuthenticatorProvider
+	OTPCodeService           OTPCodeService
 	OOBCodeSender            OOBCodeSender
 	OAuthProviderFactory     OAuthProviderFactory
 	MFA                      MFAService
@@ -213,7 +200,6 @@ type Context struct {
 	Passkey                  PasskeyService
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
 	Verification             VerificationService
-	VerificationCodeSender   VerificationCodeSender
 	RateLimiter              RateLimiter
 
 	Nonces NonceService

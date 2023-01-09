@@ -445,53 +445,45 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -742,9 +734,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -770,19 +759,11 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -795,7 +776,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -804,7 +785,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -1255,53 +1235,45 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -1552,9 +1524,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -1580,19 +1549,11 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -1605,7 +1566,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -1614,7 +1575,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -2062,53 +2022,45 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -2368,9 +2320,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -2397,19 +2346,11 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -2422,7 +2363,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -2431,7 +2372,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -2815,53 +2755,45 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -3274,53 +3206,45 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -3618,53 +3542,45 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -4032,53 +3948,45 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -4555,53 +4463,45 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -4861,9 +4761,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -4890,19 +4787,11 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -4915,7 +4804,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -4924,7 +4813,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -5315,53 +5203,45 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -5674,9 +5554,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -5703,19 +5580,11 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -5728,7 +5597,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -5737,7 +5606,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -6078,53 +5946,45 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -6437,9 +6297,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -6466,19 +6323,11 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Events:              eventService,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -6491,7 +6340,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -6500,7 +6349,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -6946,53 +6794,45 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -7304,9 +7144,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -7332,19 +7169,11 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -7357,7 +7186,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -7366,7 +7195,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -7747,53 +7575,45 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -8105,9 +7925,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -8133,19 +7950,11 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -8158,7 +7967,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -8167,7 +7976,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -8547,53 +8355,45 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -8905,9 +8705,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -8933,19 +8730,11 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -8958,7 +8747,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -8967,7 +8756,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -9330,53 +9118,45 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -9688,9 +9468,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -9716,19 +9493,11 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -9741,7 +9510,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -9750,7 +9519,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -10111,53 +9879,45 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -10469,9 +10229,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -10497,19 +10254,11 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -10522,7 +10271,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -10531,7 +10280,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -10882,53 +10630,45 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -11240,9 +10980,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -11268,19 +11005,11 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -11293,7 +11022,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -11302,7 +11031,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -11656,53 +11384,45 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -12014,9 +11734,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -12042,19 +11759,11 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -12067,7 +11776,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -12076,7 +11785,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -12433,53 +12141,45 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -12791,9 +12491,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -12819,19 +12516,11 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -12844,7 +12533,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -12853,7 +12542,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -13212,53 +12900,45 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -13570,9 +13250,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -13598,19 +13275,11 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -13623,7 +13292,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -13632,7 +13301,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -13989,53 +13657,45 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -14347,9 +14007,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -14375,19 +14032,11 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -14400,7 +14049,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -14409,7 +14058,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -14766,53 +14414,45 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -15124,9 +14764,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -15152,19 +14789,11 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -15177,7 +14806,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -15186,7 +14815,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -15544,53 +15172,45 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -15902,9 +15522,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -15930,19 +15547,11 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -15955,7 +15564,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -15964,7 +15573,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -16321,53 +15929,45 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -16679,9 +16279,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -16707,19 +16304,11 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -16732,7 +16321,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -16741,7 +16330,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -17098,53 +16686,45 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -17456,9 +17036,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -17484,19 +17061,11 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -17509,7 +17078,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -17518,7 +17087,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -17877,53 +17445,45 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -18235,9 +17795,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -18263,19 +17820,11 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -18288,7 +17837,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -18297,7 +17846,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -18654,53 +18202,45 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -19012,9 +18552,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -19040,19 +18577,11 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -19065,7 +18594,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -19074,7 +18603,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -19431,53 +18959,45 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -19789,9 +19309,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -19817,19 +19334,11 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -19842,7 +19351,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -19851,7 +19360,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -20210,53 +19718,45 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -20568,9 +20068,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -20596,19 +20093,11 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -20621,7 +20110,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -20630,7 +20119,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -20987,53 +20475,45 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -21345,9 +20825,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -21373,19 +20850,11 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -21398,7 +20867,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -21407,7 +20876,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -21503,436 +20971,33 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 }
 
 func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
-	request := p.Request
-	contextContext := deps.ProvideRequestContext(request)
+	clockClock := _wireSystemClockValue
 	appProvider := p.AppProvider
 	handle := appProvider.Redis
-	clockClock := _wireSystemClockValue
-	storeRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   handle,
-		Clock:   clockClock,
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	storeRedis := &otp.StoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
 	}
 	factory := appProvider.LoggerFactory
-	logger := whatsapp.NewLogger(factory)
-	config := appProvider.Config
-	secretConfig := config.SecretConfig
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	userAgentString := deps.ProvideUserAgentString(request)
-	eventLogger := event.NewLogger(factory)
-	appdbHandle := appProvider.AppDatabase
-	appConfig := config.AppConfig
-	localizationConfig := appConfig.Localization
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	sqlExecutor := appdb.NewSQLExecutor(contextContext, appdbHandle)
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	appID := appConfig.ID
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	rawQueries := &user.RawQueries{
-		Store: store,
-	}
-	authenticationConfig := appConfig.Authentication
-	identityConfig := appConfig.Identity
-	featureConfig := config.FeatureConfig
-	identityFeatureConfig := featureConfig.Identity
-	serviceStore := &service.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	loginIDConfig := identityConfig.LoginID
-	manager := appProvider.Resources
-	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:    loginIDConfig,
-		Resources: manager,
-	}
-	checker := &loginid.Checker{
-		Config:             loginIDConfig,
-		TypeCheckerFactory: typeCheckerFactory,
-	}
-	normalizerFactory := &loginid.NormalizerFactory{
-		Config: loginIDConfig,
-	}
-	provider := &loginid.Provider{
-		Store:             loginidStore,
-		Config:            loginIDConfig,
-		Checker:           checker,
-		NormalizerFactory: normalizerFactory,
-		Clock:             clockClock,
-	}
-	oauthStore := &oauth3.Store{
-		SQLBuilder:     sqlBuilderApp,
-		SQLExecutor:    sqlExecutor,
-		IdentityConfig: identityConfig,
-	}
-	oauthProvider := &oauth3.Provider{
-		Store:          oauthStore,
-		Clock:          clockClock,
-		IdentityConfig: identityConfig,
-	}
-	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	anonymousProvider := &anonymous.Provider{
-		Store: anonymousStore,
-		Clock: clockClock,
-	}
-	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	biometricProvider := &biometric.Provider{
-		Store: biometricStore,
-		Clock: clockClock,
-	}
-	passkeyStore := &passkey.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	store2 := &passkey2.Store{
-		Context: contextContext,
-		Redis:   handle,
-		AppID:   appID,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpConfig := appConfig.HTTP
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	webAppCDNHost := environmentConfig.WebAppCDNHost
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:           contextContext,
-		Config:            httpConfig,
-		Localization:      localizationConfig,
-		HTTPProto:         httpProto,
-		WebAppCDNHost:     webAppCDNHost,
-		Resources:         manager,
-		EmbeddedResources: globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	configService := &passkey2.ConfigService{
-		Request:            request,
-		TrustProxy:         trustProxy,
-		TranslationService: translationService,
-	}
-	passkeyService := &passkey2.Service{
-		Store:         store2,
-		ConfigService: configService,
-	}
-	passkeyProvider := &passkey.Provider{
-		Store:   passkeyStore,
-		Clock:   clockClock,
-		Passkey: passkeyService,
-	}
-	siweStore := &siwe.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	web3Config := appConfig.Web3
-	siweStoreRedis := &siwe2.StoreRedis{
-		Context: contextContext,
-		Redis:   handle,
-		AppID:   appID,
-		Clock:   clockClock,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: handle,
-	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
-	}
-	siweLogger := siwe2.NewLogger(factory)
-	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  siweStoreRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
-	}
-	siweProvider := &siwe.Provider{
-		Store: siweStore,
-		Clock: clockClock,
-		SIWE:  siweService,
-	}
-	serviceService := &service.Service{
-		Authentication:        authenticationConfig,
-		Identity:              identityConfig,
-		IdentityFeatureConfig: identityFeatureConfig,
-		Store:                 serviceStore,
-		LoginID:               provider,
-		OAuth:                 oauthProvider,
-		Anonymous:             anonymousProvider,
-		Biometric:             biometricProvider,
-		Passkey:               passkeyProvider,
-		SIWE:                  siweProvider,
-	}
-	store3 := &service2.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorConfig := appConfig.Authenticator
-	authenticatorPasswordConfig := authenticatorConfig.Password
-	passwordLogger := password.NewLogger(factory)
-	historyStore := &password.HistoryStore{
-		Clock:       clockClock,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorFeatureConfig := featureConfig.Authenticator
-	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
-	housekeeperLogger := password.NewHousekeeperLogger(factory)
-	housekeeper := &password.Housekeeper{
-		Store:  historyStore,
-		Logger: housekeeperLogger,
-		Config: authenticatorPasswordConfig,
-	}
-	passwordProvider := &password.Provider{
-		Store:           passwordStore,
-		Config:          authenticatorPasswordConfig,
-		Clock:           clockClock,
-		Logger:          passwordLogger,
-		PasswordHistory: historyStore,
-		PasswordChecker: passwordChecker,
-		Housekeeper:     housekeeper,
-	}
-	store4 := &passkey3.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	provider2 := &passkey3.Provider{
-		Store:   store4,
-		Clock:   clockClock,
-		Passkey: passkeyService,
-	}
-	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorTOTPConfig := authenticatorConfig.TOTP
-	totpProvider := &totp.Provider{
-		Store:  totpStore,
-		Config: authenticatorTOTPConfig,
-		Clock:  clockClock,
-	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
-	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	oobStoreRedis := &oob.StoreRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	logger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
-	}
-	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
-	}
-	verificationLogger := verification.NewLogger(factory)
-	verificationConfig := appConfig.Verification
-	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
-		Config:            verificationConfig,
-		UserProfileConfig: userProfileConfig,
-		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
-		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
-	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	imagesCDNHost := environmentConfig.ImagesCDNHost
-	pictureTransformer := &stdattrs.PictureTransformer{
-		HTTPProto:     httpProto,
-		HTTPHost:      httpHost,
-		ImagesCDNHost: imagesCDNHost,
-	}
-	serviceNoEvent := &stdattrs.ServiceNoEvent{
-		UserProfileConfig: userProfileConfig,
-		Identities:        serviceService,
-		UserQueries:       rawQueries,
-		UserStore:         store,
-		ClaimStore:        storePQ,
-		Transformer:       pictureTransformer,
-	}
-	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
-		Config:      userProfileConfig,
-		UserQueries: rawQueries,
-		UserStore:   store,
-	}
-	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	web3Service := &web3.Service{
-		APIEndpoint: nftIndexerAPIEndpoint,
-		Web3Config:  web3Config,
-	}
-	queries := &user.Queries{
-		RawQueries:         rawQueries,
-		Store:              store,
-		Identities:         serviceService,
-		Authenticators:     service3,
-		Verification:       verificationService,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
-		Web3:               web3Service,
-	}
-	resolverImpl := &event.ResolverImpl{
-		Users: queries,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	webHookImpl := &hook.WebHookImpl{
-		Secret:    webhookKeyMaterials,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
-	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
-	}
-	sink := &hook.Sink{
-		Logger:             hookLogger,
-		Config:             hookConfig,
-		Clock:              clockClock,
-		WebHook:            webHookImpl,
-		DenoHook:           denoHookImpl,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilderApp,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
-	elasticsearchLogger := elasticsearch.NewLogger(factory)
-	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
-	client := elasticsearch.NewClient(elasticsearchCredentials)
-	queue := appProvider.TaskQueue
-	elasticsearchService := elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     queries,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
-	elasticsearchSink := &elasticsearch.Sink{
-		Logger:   elasticsearchLogger,
-		Service:  elasticsearchService,
-		Database: appdbHandle,
-	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
-	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       storeRedis,
-		Clock:           clockClock,
-		Logger:          logger,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
+		CodeStore: storeRedis,
+		Logger:    logger,
 	}
 	whatsappWATICallbackHandlerLogger := webapp.NewWhatsappWATICallbackHandlerLogger(factory)
+	secretConfig := config.SecretConfig
+	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	globalSessionServiceFactory := &webapp.GlobalSessionServiceFactory{
 		Clock:       clockClock,
 		RedisHandle: handle,
 	}
 	whatsappWATICallbackHandler := &webapp.WhatsappWATICallbackHandler{
-		WhatsappCodeProvider:        whatsappProvider,
+		OTPCodeService:              otpService,
 		Logger:                      whatsappWATICallbackHandlerLogger,
 		WATICredentials:             watiCredentials,
 		GlobalSessionServiceFactory: globalSessionServiceFactory,
@@ -22203,53 +21268,45 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -22561,9 +21618,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -22589,19 +21643,11 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -22614,7 +21660,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -22623,7 +21669,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -22980,53 +22025,45 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -23338,9 +22375,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -23366,19 +22400,11 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -23391,7 +22417,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -23400,7 +22426,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -23753,53 +22778,45 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -24111,9 +23128,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -24139,19 +23153,11 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -24164,7 +23170,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -24173,7 +23179,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -24528,53 +23533,45 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -24886,9 +23883,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -24914,19 +23908,11 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -24939,7 +23925,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -24948,7 +23934,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -25301,53 +24286,45 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -25659,9 +24636,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -25687,19 +24661,11 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -25712,7 +24678,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -25721,7 +24687,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -26084,53 +25049,45 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -26442,9 +25399,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -26470,19 +25424,11 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -26495,7 +25441,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -26504,7 +25450,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -26857,53 +25802,45 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -27215,9 +26152,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -27243,19 +26177,11 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -27268,7 +26194,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -27277,7 +26203,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -27631,53 +26556,45 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -27989,9 +26906,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -28017,19 +26931,11 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -28042,7 +26948,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -28051,7 +26957,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -28404,53 +27309,45 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -28762,9 +27659,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -28790,19 +27684,11 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -28815,7 +27701,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -28824,7 +27710,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -29208,53 +28093,45 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -29566,9 +28443,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -29594,19 +28468,11 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -29619,7 +28485,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -29628,7 +28494,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -29992,53 +28857,45 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -30350,9 +29207,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -30378,19 +29232,11 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -30403,7 +29249,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -30412,7 +29258,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -30789,53 +29634,45 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -31147,9 +29984,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -31175,19 +30009,11 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -31200,7 +30026,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -31209,7 +30035,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -31570,53 +30395,45 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -31928,9 +30745,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -31956,19 +30770,11 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -31981,7 +30787,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -31990,7 +30796,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -32344,53 +31149,45 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -32702,9 +31499,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -32730,19 +31524,11 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -32755,7 +31541,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -32764,7 +31550,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -33126,53 +31911,45 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -33484,9 +32261,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -33512,19 +32286,11 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -33537,7 +32303,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -33546,7 +32312,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -33900,53 +32665,45 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -34258,9 +33015,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -34286,19 +33040,11 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -34311,7 +33057,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -34320,7 +33066,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -34674,53 +33419,45 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -35032,9 +33769,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -35060,19 +33794,11 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -35085,7 +33811,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -35094,7 +33820,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -35448,53 +34173,45 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -35806,9 +34523,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -35834,19 +34548,11 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -35859,7 +34565,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -35868,7 +34574,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -36223,53 +34928,45 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -36581,9 +35278,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -36609,19 +35303,11 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -36634,7 +35320,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -36643,7 +35329,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -37016,53 +35701,45 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -37374,9 +36051,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -37402,19 +36076,11 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -37427,7 +36093,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -37436,7 +36102,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -37790,53 +36455,45 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -38148,9 +36805,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -38176,19 +36830,11 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -38201,7 +36847,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -38210,7 +36856,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -38564,53 +37209,45 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -38922,9 +37559,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -38950,19 +37584,11 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -38975,7 +37601,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -38984,7 +37610,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -39338,53 +37963,45 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -39696,9 +38313,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -39724,19 +38338,11 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -39749,7 +38355,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -39758,7 +38364,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -40112,53 +38717,45 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -40470,9 +39067,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -40498,19 +39092,11 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -40523,7 +39109,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -40532,7 +39118,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -40893,53 +39478,45 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -41251,9 +39828,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -41279,19 +39853,11 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -41304,7 +39870,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -41313,7 +39879,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -41668,53 +40233,45 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -42026,9 +40583,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -42054,19 +40608,11 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -42079,7 +40625,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -42088,7 +40634,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -42441,53 +40986,45 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -42799,9 +41336,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -42827,19 +41361,11 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -42852,7 +41378,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -42861,7 +41387,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -43228,53 +41753,45 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -43586,9 +42103,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -43614,19 +42128,11 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -43639,7 +42145,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -43648,7 +42154,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -44001,53 +42506,45 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -44359,9 +42856,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -44387,19 +42881,11 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -44412,7 +42898,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -44421,7 +42907,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -44774,53 +43259,45 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -45132,9 +43609,6 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -45160,19 +43634,11 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -45185,7 +43651,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -45194,7 +43660,6 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -45564,53 +44029,45 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -45922,9 +44379,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -45950,19 +44404,11 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   handle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -45975,7 +44421,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -45984,7 +44430,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -46304,53 +44749,45 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -46662,9 +45099,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -46690,19 +45124,11 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   handle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -46715,7 +45141,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -46724,7 +45150,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -47043,53 +45468,45 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -47401,9 +45818,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -47429,19 +45843,11 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -47454,7 +45860,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -47463,7 +45869,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -47826,53 +46231,45 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -48184,9 +46581,6 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -48212,19 +46606,11 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -48237,7 +46623,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -48246,7 +46632,6 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -48849,53 +47234,45 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
@@ -49440,53 +47817,45 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost

@@ -1,4 +1,4 @@
-package verification
+package otp
 
 import (
 	"context"
@@ -19,7 +19,7 @@ type StoreRedis struct {
 	Clock clock.Clock
 }
 
-func (s *StoreRedis) Create(code *Code) error {
+func (s *StoreRedis) set(target string, code *Code) error {
 	ctx := context.Background()
 	data, err := json.Marshal(code)
 	if err != nil {
@@ -27,9 +27,10 @@ func (s *StoreRedis) Create(code *Code) error {
 	}
 
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
-		codeKey := redisCodeKey(s.AppID, code.CodeKey())
+		codeKey := redisCodeKey(s.AppID, target)
 		ttl := code.ExpireAt.Sub(s.Clock.NowUTC())
-		_, err := conn.Set(ctx, codeKey, data, ttl).Result()
+
+		_, err := conn.SetEX(ctx, codeKey, data, ttl).Result()
 		if errors.Is(err, goredis.Nil) {
 			return errors.New("duplicated code")
 		} else if err != nil {
@@ -40,9 +41,13 @@ func (s *StoreRedis) Create(code *Code) error {
 	})
 }
 
-func (s *StoreRedis) Get(codeKey *CodeKey) (*Code, error) {
+func (s *StoreRedis) Create(target string, code *Code) error {
+	return s.set(target, code)
+}
+
+func (s *StoreRedis) Get(target string) (*Code, error) {
 	ctx := context.Background()
-	key := redisCodeKey(s.AppID, codeKey)
+	key := redisCodeKey(s.AppID, target)
 	var codeModel *Code
 	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
 		data, err := conn.Get(ctx, key).Bytes()
@@ -62,10 +67,14 @@ func (s *StoreRedis) Get(codeKey *CodeKey) (*Code, error) {
 	return codeModel, err
 }
 
-func (s *StoreRedis) Delete(codeKey *CodeKey) error {
+func (s *StoreRedis) Update(target string, code *Code) error {
+	return s.set(target, code)
+}
+
+func (s *StoreRedis) Delete(target string) error {
 	ctx := context.Background()
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
-		key := redisCodeKey(s.AppID, codeKey)
+		key := redisCodeKey(s.AppID, target)
 		_, err := conn.Del(ctx, key).Result()
 		if err != nil {
 			return err
@@ -74,6 +83,6 @@ func (s *StoreRedis) Delete(codeKey *CodeKey) error {
 	})
 }
 
-func redisCodeKey(appID config.AppID, codeKey *CodeKey) string {
-	return fmt.Sprintf("app:%s:verification-code:%s:%s:%s", appID, codeKey.WebSessionID, codeKey.LoginIDType, codeKey.LoginID)
+func redisCodeKey(appID config.AppID, target string) string {
+	return fmt.Sprintf("app:%s:otp-code:%s", appID, target)
 }

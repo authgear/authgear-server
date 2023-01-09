@@ -96,34 +96,30 @@ func (n *NodeVerifyIdentity) DeriveEdges(graph *interaction.Graph) ([]interactio
 }
 
 func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context, ignoreRatelimitError bool) (*otp.CodeSendResult, error) {
-	code, err := ctx.Verification.GetCode(ctx.WebSessionID, n.Identity)
-	if errors.Is(err, verification.ErrCodeNotFound) {
-		code = nil
+	loginIDType := n.Identity.LoginID.LoginIDType
+	channel, target := n.Identity.LoginID.ToChannelTarget()
+
+	code, err := ctx.OTPCodeService.GenerateCode(target)
+	if errors.Is(err, otp.ErrCodeNotFound) {
+		return nil, verification.ErrCodeNotFound
 	} else if err != nil {
 		return nil, err
 	}
 
-	if code == nil || ctx.Clock.NowUTC().After(code.ExpireAt) {
-		code, err = ctx.Verification.CreateNewCode(
-			n.Identity,
-			ctx.WebSessionID,
-			n.RequestedByUser,
-		)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	// disallow sending sms verification code if phone identity is disabled
 	fc := ctx.FeatureConfig
-	if model.LoginIDKeyType(code.LoginIDType) == model.LoginIDKeyTypePhone {
+	if model.LoginIDKeyType(loginIDType) == model.LoginIDKeyTypePhone {
 		if fc.Identity.LoginID.Types.Phone.Disabled {
 			return nil, feature.ErrFeatureDisabledSendingSMS
 		}
 	}
 
-	result := code.SendResult()
-	err = ctx.RateLimiter.TakeToken(interaction.AntiSpamSendVerificationCodeBucket(code.LoginID))
+	result := &otp.CodeSendResult{
+		Channel:    string(channel),
+		Target:     target,
+		CodeLength: len(code.Code),
+	}
+	err = ctx.RateLimiter.TakeToken(interaction.AntiSpamSendVerificationCodeBucket(target))
 	if ignoreRatelimitError && errors.Is(err, ratelimit.ErrTooManyRequests) {
 		// Ignore the rate limit error and do NOT send the code.
 		return result, nil
@@ -131,7 +127,7 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context, ignoreRatelimitE
 		return nil, err
 	}
 
-	err = ctx.VerificationCodeSender.SendCode(code)
+	err = ctx.OOBCodeSender.SendCode(channel, target, code.Code, otp.MessageTypeVerification)
 	if err != nil {
 		return nil, err
 	}
@@ -143,6 +139,10 @@ type InputVerifyIdentityCheckCode interface {
 	GetVerificationCode() string
 }
 
+type RateLimiter interface {
+	TakeToken(bucket ratelimit.Bucket) error
+}
+
 type EdgeVerifyIdentityCheckCode struct {
 	Identity *identity.Info
 }
@@ -152,14 +152,22 @@ func (e *EdgeVerifyIdentityCheckCode) Instantiate(ctx *interaction.Context, grap
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
+	loginIDModel := e.Identity.LoginID
+	_, target := loginIDModel.ToChannelTarget()
 
-	code, err := ctx.Verification.VerifyCode(ctx.WebSessionID, e.Identity, input.GetVerificationCode())
+	err := ctx.RateLimiter.TakeToken(verification.AutiBruteForceVerifyBucket(string(ctx.RemoteIP)))
 	if err != nil {
+		return nil, err
+	}
+	err = ctx.OTPCodeService.VerifyCode(target, input.GetVerificationCode())
+	if errors.Is(err, otp.ErrInvalidCode) {
+		return nil, verification.ErrInvalidVerificationCode
+	} else if err != nil {
 		return nil, err
 	}
 
 	var claimName model.ClaimName
-	switch model.LoginIDKeyType(code.LoginIDType) {
+	switch model.LoginIDKeyType(loginIDModel.LoginIDType) {
 	case model.LoginIDKeyTypeEmail:
 		claimName = model.ClaimEmail
 	case model.LoginIDKeyTypePhone:
@@ -170,7 +178,7 @@ func (e *EdgeVerifyIdentityCheckCode) Instantiate(ctx *interaction.Context, grap
 		panic("interaction: unexpected login ID key")
 	}
 
-	verifiedClaim := ctx.Verification.NewVerifiedClaim(code.UserID, string(claimName), code.LoginID)
+	verifiedClaim := ctx.Verification.NewVerifiedClaim(loginIDModel.UserID, string(claimName), target)
 	return &NodeEnsureVerificationEnd{
 		Identity:         e.Identity,
 		NewVerifiedClaim: verifiedClaim,
