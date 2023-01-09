@@ -287,9 +287,9 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
           const children =
             item.deleteAt != null ? (
               <FormattedMessage id="UsersList.cancel-removal" />
-            ) : item.anonymizeAt != null ? (
+            ) : item.isAnonymized ? null : item.anonymizeAt != null ? (
               <FormattedMessage id="UsersList.cancel-anonymization" />
-            ) : item.isAnonymized ? null : item.isDisabled ? (
+            ) : item.isDisabled ? (
               <FormattedMessage id="UsersList.reenable-user" />
             ) : (
               <FormattedMessage id="UsersList.disable-user" />
