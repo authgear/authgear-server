@@ -92,10 +92,12 @@ interface OAuthIdentityListItem {
   connectedOn: string;
 }
 
+type LoginIDKey = "email" | "phone" | "username";
+
 interface LoginIDIdentityListItem {
   id: string;
   type: "login_id";
-  loginIDKey: "email" | "phone" | "username";
+  loginIDKey: LoginIDKey;
   claimName: string;
   claimValue: string;
   verified?: boolean;
@@ -507,6 +509,7 @@ interface BaseIdentityListCellActionButtonProps {
     verified: boolean
   ) => Promise<boolean>;
   onRemoveClicked?: (identityID: string, identityName: string) => void;
+  onEditClicked?: (identityID: string, identityName: string) => void;
 }
 
 const BaseIdentityListCellActionButton: React.VFC<
@@ -521,6 +524,7 @@ const BaseIdentityListCellActionButton: React.VFC<
     verified,
     setVerifiedStatus,
     onRemoveClicked: _onRemoveClicked,
+    onEditClicked: _onEditClicked,
   } = props;
 
   const { renderToString } = useContext(Context);
@@ -535,6 +539,14 @@ const BaseIdentityListCellActionButton: React.VFC<
     _onRemoveClicked?.(identityID, identityName);
   }, [identityID, identityName, _onRemoveClicked]);
 
+  const onEditClicked = useCallback(() => {
+    if (identityID == null || identityName == null) {
+      return;
+    }
+
+    _onEditClicked?.(identityID, identityName);
+  }, [identityID, identityName, _onEditClicked]);
+
   const onVerifyClicked = useCallback(
     (verified: boolean) => {
       if (claimName === undefined || claimValue === undefined) {
@@ -548,6 +560,7 @@ const BaseIdentityListCellActionButton: React.VFC<
     [setVerifiedStatus, claimName, claimValue]
   );
 
+  const shouldShowEditButton = identityType === "login_id";
   const shouldShowVerifyButton = verified != null && setVerifiedStatus != null;
 
   const menuItems = useMemo<IContextualMenuItem[]>(() => {
@@ -562,6 +575,13 @@ const BaseIdentityListCellActionButton: React.VFC<
         disabled: verifying,
       });
     }
+    if (shouldShowEditButton) {
+      items.push({
+        key: "edit",
+        text: renderToString("edit"),
+        onClick: () => onEditClicked(),
+      });
+    }
     if (removeButtonTextId[identityType] !== "") {
       items.push({
         key: "remove",
@@ -572,9 +592,11 @@ const BaseIdentityListCellActionButton: React.VFC<
     return items;
   }, [
     identityType,
+    onEditClicked,
     onRemoveClicked,
     onVerifyClicked,
     renderToString,
+    shouldShowEditButton,
     shouldShowVerifyButton,
     verified,
     verifying,
@@ -653,6 +675,63 @@ const BaseIdentityListCell: React.VFC<BaseIdentityListCellProps> = (props) => {
         claimValue={claimValue}
         setVerifiedStatus={setVerifiedStatus}
         onRemoveClicked={onRemoveClicked}
+      />
+    </ListCellLayout>
+  );
+};
+
+interface LoginIDIdentityListCellProps extends BaseIdentityListCellProps {
+  loginIDKey: LoginIDKey;
+  onEditClicked: (
+    identityID: string,
+    identityName: string,
+    loginIDKey: LoginIDKey
+  ) => void;
+}
+
+const LoginIDIdentityListCell: React.VFC<LoginIDIdentityListCellProps> = (
+  props
+) => {
+  const {
+    icon,
+    identityID,
+    identityType,
+    loginIDKey,
+    identityName,
+    claimName,
+    claimValue,
+    verified,
+    connectedOn,
+    setVerifiedStatus,
+    onRemoveClicked,
+    onEditClicked: _onEditClicked,
+  } = props;
+
+  const onEditClicked = useCallback(() => {
+    _onEditClicked(identityID, identityName, loginIDKey);
+  }, [_onEditClicked, identityID, identityName, loginIDKey]);
+
+  return (
+    <ListCellLayout className={styles.cellContainer}>
+      <BaseIdentityListCellTitle as="Text" icon={icon}>
+        {identityName}
+      </BaseIdentityListCellTitle>
+      <BaseIdentityListCellDescription verified={verified}>
+        <FormattedMessage
+          id="UserDetails.connected-identities.added-on"
+          values={{ datetime: connectedOn }}
+        />
+      </BaseIdentityListCellDescription>
+      <BaseIdentityListCellActionButton
+        verified={verified}
+        identityID={identityID}
+        identityName={identityName}
+        identityType={identityType}
+        claimName={claimName}
+        claimValue={claimValue}
+        setVerifiedStatus={setVerifiedStatus}
+        onRemoveClicked={onRemoveClicked}
+        onEditClicked={onEditClicked}
       />
     </ListCellLayout>
   );
@@ -961,6 +1040,11 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
       [setConfirmationDialogData]
     );
 
+    const onEditLoginIDClicked = useCallback(
+      (identityID: string, identityName: string, loginIDKey: LoginIDKey) => {},
+      []
+    );
+
     const onDismissConfirmationDialog = useCallback(() => {
       if (!deletingIdentity) {
         setIsConfirmationDialogVisible(false);
@@ -989,8 +1073,9 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
         switch (item.type) {
           case "login_id":
             return (
-              <BaseIdentityListCell
+              <LoginIDIdentityListCell
                 icon={loginIdIconMap[item.loginIDKey]}
+                loginIDKey={item.loginIDKey}
                 identityID={identityID}
                 identityType={identityType}
                 identityName={identityName}
@@ -1000,6 +1085,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
                 connectedOn={connectedOn}
                 setVerifiedStatus={setVerifiedStatus}
                 onRemoveClicked={onRemoveClicked}
+                onEditClicked={onEditLoginIDClicked}
               />
             );
           case "oauth":
