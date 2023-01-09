@@ -274,9 +274,11 @@
 
   "CreateIdentity.require-login-id": "You need to add \"login_id\" to identities list in authgear config",
 
-  "AddEmailScreen.title": "Add Email",
-  "AddEmailScreen.email.label": "Email",
-  "AddEmailScreen.error.duplicated-email": "Email already exist",
+  "EmailScreen.add.title": "Add Email",
+  "EmailScreen.edit.title": "Edit Email",
+  "EmailScreen.email.label": "Email",
+  "EmailScreen.error.duplicated-email": "Email already exist",
+  "EmailScreen.edit.current-value": "Current email: {value}",
 
   "PhoneScreen.add.title": "Add Phone",
   "PhoneScreen.edit.title": "Edit Phone",

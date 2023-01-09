@@ -1046,8 +1046,13 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
           case "phone":
             navigate(generatePath("./edit-phone/:identityID", { identityID }));
             break;
+          case "email":
+            navigate(generatePath("./edit-email/:identityID", { identityID }));
+            break;
           default:
-            console.error(new Error(`Unexpected loginIDKey ${loginIDKey}`));
+            console.error(
+              new Error(`Unexpected loginIDKey ${loginIDKey as string}`)
+            );
             break;
         }
       },
