@@ -5,7 +5,7 @@ import NavBreadcrumb from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import FormTextField from "../../FormTextField";
-import AddIdentityForm from "./AddIdentityForm";
+import IdentityForm from "./IdentityForm";
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
 import { useUserQuery } from "./query/userQuery";
 import {
@@ -89,7 +89,8 @@ const AddEmailScreen: React.VFC = function AddEmailScreen() {
   }
 
   return (
-    <AddIdentityForm
+    <IdentityForm
+      originalIdentityID={null}
       appConfig={effectiveAppConfig}
       rawUser={user}
       loginIDType="email"
