@@ -500,7 +500,11 @@ function useSetUserDisabledCommandBarItem(
         ? renderToString("UserDetailsScreen.reenable-user")
         : renderToString("UserDetailsScreen.disable-user");
     const iconName =
-      user.deleteAt != null ? "Undo" : user.isDisabled ? "Play" : "CircleStop";
+      user.deleteAt != null || user.anonymizeAt != null
+        ? "Undo"
+        : user.isDisabled
+        ? "Play"
+        : "CircleStop";
     return {
       key: "setDisabledStatus",
       text,
