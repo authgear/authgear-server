@@ -171,16 +171,45 @@ var _ = Schema.Add("AuthenticatorOOBEmailConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"maximum": { "type": "integer" }
+		"maximum": { "type": "integer" },
+		"secondary_email_otp_mode": { "$ref": "#/$defs/AuthenticatorSecondaryEmailOTPMode" },
+		"secondary_allow_unverified": { "type": "boolean" }
 	}
 }
 `)
 
 type AuthenticatorOOBEmailConfig struct {
-	Maximum *int `json:"maximum,omitempty"`
+	Maximum                  *int                               `json:"maximum,omitempty"`
+	SecondaryEmailOTPMode    AuthenticatorSecondaryEmailOTPMode `json:"secondary_email_otp_mode,omitempty"`
+	SecondaryAllowUnverified bool                               `json:"secondary_allow_unverified,omitempty"`
+}
+
+var _ = Schema.Add("AuthenticatorSecondaryEmailOTPMode", `
+{
+	"type": "string",
+	"enum": ["code", "magic_link"]
+}
+`)
+
+type AuthenticatorSecondaryEmailOTPMode string
+
+const (
+	AuthenticatorSecondaryEmailOTPModeCodeOnly      AuthenticatorSecondaryEmailOTPMode = "code"
+	AuthenticatorSecondaryEmailOTPModeMagicLinkOnly AuthenticatorSecondaryEmailOTPMode = "magic_link"
+)
+
+func (m *AuthenticatorSecondaryEmailOTPMode) IsCodeEnabled() bool {
+	return *m == AuthenticatorSecondaryEmailOTPModeCodeOnly
+}
+
+func (m *AuthenticatorSecondaryEmailOTPMode) IsSecondaryMagicLinkEnabled() bool {
+	return *m == AuthenticatorSecondaryEmailOTPModeMagicLinkOnly
 }
 
 func (c *AuthenticatorOOBEmailConfig) SetDefaults() {
+	if c.SecondaryEmailOTPMode == "" {
+		c.SecondaryEmailOTPMode = AuthenticatorSecondaryEmailOTPModeCodeOnly
+	}
 	if c.Maximum == nil {
 		c.Maximum = newInt(99)
 	}
