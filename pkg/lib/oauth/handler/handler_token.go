@@ -718,6 +718,25 @@ func (h *TokenHandler) revokeClientOfflineGrants(
 	return nil
 }
 
+func (h *TokenHandler) issueOfflineGrant(
+	client *config.OAuthClientConfig,
+	code *oauth.CodeGrant,
+	resp protocol.TokenResponse,
+	opts IssueOfflineGrantOptions) (*oauth.OfflineGrant, error) {
+	// First revoke existing refresh tokens if MaxConcurrentSession == 1
+	if client.MaxConcurrentSession == 1 {
+		err := h.revokeClientOfflineGrants(client, code.AuthenticationInfo.UserID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	offlineGrant, err := h.TokenService.IssueOfflineGrant(client, opts, resp)
+	if err != nil {
+		return nil, err
+	}
+	return offlineGrant, nil
+}
+
 func (h *TokenHandler) issueTokensForAuthorizationCode(
 	client *config.OAuthClientConfig,
 	code *oauth.CodeGrant,
@@ -789,14 +808,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 		SSOEnabled:         code.SSOEnabled,
 	}
 	if issueRefreshToken {
-		// First revoke existing refresh tokens if MaxConcurrentSession == 1
-		if client.MaxConcurrentSession == 1 {
-			err := h.revokeClientOfflineGrants(client, code.AuthenticationInfo.UserID)
-			if err != nil {
-				return nil, err
-			}
-		}
-		offlineGrant, err := h.TokenService.IssueOfflineGrant(client, opts, resp)
+		offlineGrant, err := h.issueOfflineGrant(client, code, resp, opts)
 		if err != nil {
 			return nil, err
 		}
